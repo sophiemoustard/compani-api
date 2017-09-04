@@ -1,0 +1,21 @@
+{
+    "rules": {
+      "no-console": "off",
+      "consistent-return": "off",
+      "no-param-reassign": "off",
+      "no-plusplus": "off",
+      "default-case": "off",
+      "no-await-in-loop": "off",
+      "array-callback-return": "off",
+      "no-multi-assign": "off",
+      "no-restricted-syntax": "off",
+      "guard-for-in": "off",
+      "comma-dangle": "off",
+      "eqeqeq": "off",
+      "max-len": "off"
+    },
+    "extends": "airbnb-base",
+    "plugins": [
+        "import"
+    ]
+}

@@ -1,2 +1,2 @@
-# alenvi-api
-Alenvi API (NodeJS + Express)
+# alenvi-webapp
+Alenvi webapp backend with NodeJS & Express &amp; frontend with Vue and possibly Quasar Framework
