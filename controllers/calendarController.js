@@ -11,16 +11,23 @@ const getEvents = async (req, res) => {
     if (!req.query.id_person) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    const servicesRaw = await employees.getServices(
-      req.headers['x-ogust-token'],
-      req.query.id_person, 'true', 'false',
-      req.query.slotToSub || 2, req.query.slotToAdd || 2, req.query.intervalType || 'week',
-      '', '',
-      req.query.status || '@!=|N',
-      req.query.type || 'I',
-      req.query.nbPerPage || '500',
-      req.query.pageNum || '1'
-    );
+    const params = {
+      token: req.headers['x-ogust-token'],
+      id: req.query.id_person,
+      isRange: req.query.isRange || 'false',
+      isDate: req.query.isDate || 'false',
+      slotToSub: req.query.slotToSub || '',
+      slotToAdd: req.query.slotToAdd || '',
+      intervalType: req.query.intervalType || '',
+      startDate: req.query.startDate || '',
+      endDate: req.query.endDate || '',
+      status: req.query.status || '@!=|N',
+      type: req.query.type || 'I',
+      nbperpage: req.query.nbPerPage || '500',
+      pagenum: req.query.pageNum || '1'
+    };
+    const newParams = _.pickBy(params);
+    const servicesRaw = await employees.getServices(newParams);
     if (servicesRaw.body.status == 'KO') {
       return res.status(400).json({ success: false, message: servicesRaw.body.message });
     }
@@ -35,7 +42,13 @@ const getEvents = async (req, res) => {
       let isUniq = false;
       if (!_.some(uniqCustomers, ['id_customer', events[index].id_customer])) {
         isUniq = true;
-        const customerRaw = await customers.getCustomerById(req.headers['x-ogust-token'], events[index].id_customer, req.query.status || 'A');
+        const customerParams = {
+          token: req.headers['x-ogust-token'],
+          id: events[index].id_customer,
+          status: req.query.status || 'A',
+        };
+        const newCustomerParams = _.pickBy(customerParams);
+        const customerRaw = await customers.getCustomerById(newCustomerParams);
         if (customerRaw.body.status == 'KO') {
           return res.status(400).json({ success: false, message: customerRaw.body.message });
         }
