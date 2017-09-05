@@ -140,8 +140,6 @@ const editThirdPartyInformation = async (req, res) => {
     } else {
       if (req.query.address) {
         await redirectToBot(req.query.address);
-      } else {
-        return res.status(400).send({ success: true, message: translate[language].missingParameters });
       }
       res.status(200).json({ success: true, message: translate[language].thirdPartyInfoEdited, data: { info: thirdPartyInfos.body } });
     }
