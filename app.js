@@ -16,10 +16,6 @@ const app = express();
 
 const router = express.Router();
 
-const corsOptions = {
-  origin: ['https://alenvi-webapp.herokuapp.com', 'https://alenvi-webapp-dev.herokuapp.com']
-};
-
 // Db connection
 require('./config/mongoose');
 
@@ -29,9 +25,9 @@ require('./config/mongoose');
 // Logging requests
 if (process.env.NODE_ENV == 'development') {
   app.use(morgan('dev'));
+  app.use(cors());
 }
 
-app.use(cors(corsOptions));
 
 // app.use((req, res, next) => {
 //   res.header('Access-Control-Allow-Origin', '*');
