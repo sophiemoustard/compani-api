@@ -6,7 +6,7 @@ const express = require('express');
 const path = require('path');
 const favicon = require('serve-favicon');
 const morgan = require('morgan');
-const cors = require('cors');
+// const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 // const passport = require('passport');
@@ -31,7 +31,7 @@ require('./config/mongoose');
 // Logging requests
 if (process.env.NODE_ENV == 'development') {
   app.use(morgan('dev'));
-  app.use(cors());
+  // app.use(cors());
 }
 
 // Maybe a future use...
