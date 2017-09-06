@@ -14,6 +14,8 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+app.options('*', cors());
+
 const router = express.Router();
 
 // Db connection
@@ -25,7 +27,6 @@ require('./config/mongoose');
 // Logging requests
 if (process.env.NODE_ENV == 'development') {
   app.use(morgan('dev'));
-  app.use(cors());
 }
 
 
