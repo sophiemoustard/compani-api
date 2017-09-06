@@ -12,8 +12,11 @@ const bodyParser = require('body-parser');
 // const passport = require('passport');
 // const session = require('express-session');
 
-const router = express.Router();
 const app = express();
+
+app.use(cors());
+
+const router = express.Router();
 
 // Db connection
 require('./config/mongoose');
@@ -21,6 +24,7 @@ require('./config/mongoose');
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
+<<<<<<< HEAD
 // To comment for PROD, allow to do distant requests (local browser...)
 // app.use(function(req, res, next) {
 //     res.header("Access-Control-Allow-Origin", "*");
@@ -28,11 +32,18 @@ require('./config/mongoose');
 //     next();
 // });
 app.options('*', cors());
+=======
+>>>>>>> 3be7e0a33b96d19b233204dff481cb2306ec883c
 // Logging requests
 if (process.env.NODE_ENV == 'development') {
   app.use(morgan('dev'));
-  // app.use(cors());
 }
+
+// app.use((req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//   next();
+// });
 
 // Maybe a future use...
 app.use(cookieParser());
