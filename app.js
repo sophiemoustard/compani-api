@@ -15,6 +15,7 @@ const bodyParser = require('body-parser');
 const app = express();
 
 app.options('*', cors());
+app.use(cors());
 
 const router = express.Router();
 
