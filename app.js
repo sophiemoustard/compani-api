@@ -14,8 +14,6 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-app.use(cors());
-
 const router = express.Router();
 
 // Db connection
@@ -24,20 +22,12 @@ require('./config/mongoose');
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
-<<<<<<< HEAD
-// To comment for PROD, allow to do distant requests (local browser...)
-// app.use(function(req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
-app.options('*', cors());
-=======
->>>>>>> 3be7e0a33b96d19b233204dff481cb2306ec883c
 // Logging requests
 if (process.env.NODE_ENV == 'development') {
   app.use(morgan('dev'));
 }
+
+app.options('*', cors());
 
 // app.use((req, res, next) => {
 //   res.header('Access-Control-Allow-Origin', '*');
