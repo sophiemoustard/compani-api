@@ -8,6 +8,7 @@ const userController = require('../../controllers/userController');
 
 router.post('/', userController.create);
 router.post('/authenticate', userController.authenticate);
+router.get('/presentation', userController.getPresentation);
 
 // router.get('/authenticate/facebook', passport.authenticate('facebook', {session: false}));
 // router.get('/authenticate/facebook/callback', passport.authenticate('facebook', { session: false, failureRedirect: '/login'}), function(req, res) {
@@ -41,6 +42,6 @@ router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 router.get('/', userController.showAll);
 router.get('/:_id', userController.show);
 router.put('/:_id', userController.update);
-router.delete('/:_id', userController.delete);
+router.delete('/:_id', userController.remove);
 
 module.exports = router;
