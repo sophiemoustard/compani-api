@@ -11,7 +11,8 @@ const UserSchema = mongoose.Schema({
   local: {
     email: {
       type: String,
-      lowercase: true
+      lowercase: true,
+      trim: true
     },
     password: String
   },
@@ -39,6 +40,20 @@ const UserSchema = mongoose.Schema({
     trim: true
   },
   sector: {
+    type: String,
+    trim: true
+  },
+  youtube: {
+    link: {
+      type: String,
+      trim: true
+    },
+    location: {
+      type: [String],
+      trim: true
+    }
+  },
+  picture: {
     type: String,
     trim: true
   }

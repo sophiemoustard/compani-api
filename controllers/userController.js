@@ -13,7 +13,7 @@ const User = require('../models/User');
 const getUserByParamId = function (req, res, next) {
   User.findOne({ _id: req.params._id }, (err, user) => {
     if (err || !user) {
-      res.status(404).json({ success: false, message: translate[language].userNotFound });
+      return res.status(404).json({ success: false, message: translate[language].userNotFound });
     } else {
       req.user = user;
       // Callback for success
@@ -34,20 +34,20 @@ module.exports = {
   // Authenticate the user locally
   authenticate(req, res) {
     if (!req.body.email || !req.body.password) {
-      res.status(400).json({ success: false, message: translate[language].missingParameters });
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     // Get by local email
     User.findOne({ 'local.email': req.body.email }, (err, user) => {
       if (err) {
-        res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+        return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
       }
       if (!user) {
-        res.status(404).json({ success: false, message: translate[language].userAuthNotFound });
+        return res.status(404).json({ success: false, message: translate[language].userAuthNotFound });
       }
       // check if password matches
       bcrypt.compare(req.body.password, user.local.password, (error, isMatch) => {
         if (error || !isMatch) {
-          res.status(401).json({ success: false, message: translate[language].userAuthFailed });
+          return res.status(401).json({ success: false, message: translate[language].userAuthFailed });
         }
         const payload = {
           firstname: user.firstname,
@@ -57,13 +57,16 @@ module.exports = {
           role: user.role,
           customer_id: user.customer_id,
           employee_id: user.employee_id,
-          sector: user.sector
+          sector: user.sector,
+          'youtube.link': user.youtube.link,
+          'youtube.location': user.youtube.location,
+          picture: user.picture
         };
         const newPayload = _.pickBy(payload);
         const token = tokenProcess.encode(newPayload);
         console.log(`${req.body.email} connected`);
         // return the information including token as JSON
-        res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
+        return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
       });
     });
   },
@@ -73,18 +76,18 @@ module.exports = {
     // No security here to restrict access
     User.find({}, (err, users) => {
       if (err) {
-        res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+        return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
       }
       if (users.length === 0) {
-        res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
+        return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
       }
-      res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
+      return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
     });
   },
   // Show an user by ID
   show(req, res) {
     getUserByParamId(req, res, () => {
-      res.status(200).json({ success: true, message: translate[language].userFound, data: { user: req.user } });
+      return res.status(200).json({ success: true, message: translate[language].userFound, data: { user: req.user } });
     });
   },
 
@@ -105,7 +108,12 @@ module.exports = {
         'facebook.email': req.body.facebookEmail ? req.body.facebookEmail : '',
         'slack.slackId': req.body.slackId ? req.body.slackId : '',
         'slack.email': req.body.slackEmail ? req.body.slackEmail : '',
+        'youtube.link': req.body.youtubeLink ? req.body.youtubeLink : '',
+        picture: req.body.picture ? req.body.picture : ''
       };
+      if (req.body.youtubeLocation) {
+        payload.youtube.location = req.body.youtubeLocation;
+      }
       const newPayload = _.pickBy(payload);
       const newUser = User(
         newPayload
@@ -115,18 +123,17 @@ module.exports = {
           console.error(err);
           // Error code when there is a duplicate key, in this case : the email (unique field)
           if (err.code === 11000) {
-            res.status(409).json({ success: false, message: translate[language].userEmailExists });
+            return res.status(409).json({ success: false, message: translate[language].userEmailExists });
           } else if (err.name === 'InvalidEmail') {
-            res.status(400).json({ success: false, message: translate[language].invalidEmail });
-          } else {
-            res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+            return res.status(400).json({ success: false, message: translate[language].invalidEmail });
           }
+          return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
         }
-        res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
+        return res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
       });
     } else {
       // Mandatory fields are missing or not found
-      res.status(400).json({ success: false, message: translate[language].missingParameters });
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
   },
 
@@ -172,15 +179,27 @@ module.exports = {
         if (req.body.slackEmail) {
           req.user.slack.email = req.body.slackEmail;
         }
+        if (req.body.youtubeLink) {
+          req.user.youtube.link = req.body.youtubeLink;
+        }
+        if (req.body.youtubeLocation) {
+          req.user.youtube.location = [];
+          for (let i = 0; i < req.body.youtubeLocation.length; i++) {
+            req.user.youtube.location.push(req.body.youtubeLocation[i]);
+          }
+        }
+        if (req.body.picture) {
+          req.user.picture = req.body.picture;
+        }
         req.user.save((err) => {
           if (err) {
             // Error code when there is a duplicate key, in this case : the email (unique field)
             if (err.code === 11000) {
-              res.status(409).json({ success: false, message: translate[language].userEmailExists });
+              return res.status(409).json({ success: false, message: translate[language].userEmailExists });
             }
-            res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+            return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
           }
-          res.status(200).json({ success: true, message: translate[language].userUpdated, data: { user: req.user } });
+          return res.status(200).json({ success: true, message: translate[language].userUpdated, data: { user: req.user } });
         });
       });
     });
@@ -192,9 +211,9 @@ module.exports = {
       getUserByParamId(req, res, () => {
         req.user.remove({}, (err) => {
           if (err) {
-            res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+            return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
           }
-          res.status(200).json({ success: true, message: translate[language].userRemoved });
+          return res.status(200).json({ success: true, message: translate[language].userRemoved });
         });
       });
     });

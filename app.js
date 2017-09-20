@@ -4,7 +4,6 @@ require('./config/config.js');
 
 const express = require('express');
 const path = require('path');
-const favicon = require('serve-favicon');
 const morgan = require('morgan');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -17,25 +16,13 @@ const app = express();
 app.options('*', cors());
 app.use(cors());
 
-const router = express.Router();
-
 // Db connection
 require('./config/mongoose');
-
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
 // Logging requests
 if (process.env.NODE_ENV == 'development') {
   app.use(morgan('dev'));
 }
-
-
-// app.use((req, res, next) => {
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-//   next();
-// });
 
 // Maybe a future use...
 app.use(cookieParser());
