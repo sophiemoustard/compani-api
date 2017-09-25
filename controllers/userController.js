@@ -118,8 +118,7 @@ const create = (req, res) => {
 
 // Get all users presentation for alenvi.io (youtube + picture)
 const getPresentation = (req, res) => {
-  console.log(req.query);
-  User.find({ 'youtube.location': req.query.location || '', role: { $in: req.query.role } },
+  User.find({ 'youtube.location': { $in: req.query.location }, role: { $in: req.query.role } },
     { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 }, (err, users) => {
       if (err) {
         return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
