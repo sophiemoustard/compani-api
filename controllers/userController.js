@@ -118,20 +118,17 @@ const create = (req, res) => {
 
 // Get all users presentation for alenvi.io (youtube + picture)
 const getPresentation = (req, res) => {
-  const params = {
-    role: req.query.role || '',
-    'youtube.location': req.query.location || ''
-  };
-  const payload = _.pickBy(params);
-  User.find(payload, { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 }, (err, users) => {
-    if (err) {
-      return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-    }
-    if (users.length === 0) {
-      return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
-    }
-    return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
-  });
+  console.log(req.query);
+  User.find({ 'youtube.location': req.query.location || '', role: { $in: req.query.role } },
+    { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 }, (err, users) => {
+      if (err) {
+        return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+      }
+      if (users.length === 0) {
+        return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
+      }
+      return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
+    });
 };
 
 // Show all user
@@ -201,10 +198,7 @@ const update = (req, res) => {
         req.user.youtube.link = req.body.youtubeLink;
       }
       if (req.body.youtubeLocation) {
-        req.user.youtube.location = [];
-        for (let i = 0; i < req.body.youtubeLocation.length; i++) {
-          req.user.youtube.location.push(req.body.youtubeLocation[i]);
-        }
+        req.user.youtube.location = req.body.youtubeLocation;
       }
       if (req.body.picture) {
         req.user.picture = req.body.picture;
