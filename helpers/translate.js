@@ -37,7 +37,9 @@ module.exports = {
     salariesFound: 'Ogust employee\'s found.',
     facebookGetWhitelistedDomainsOk: 'Facebook whitelisted domains found.',
     facebookPostWhitelistedDomainsOk: 'Facebook whitelisted domain(s) added.',
-    facebookNoToken: 'Facebook Token not provided.'
+    facebookNoToken: 'Facebook Token not provided.',
+    blogGetRssFeedsOk: 'Rss feed found.',
+    blogGetRssFeedsNoUrl: 'URL not provided'
   },
   'fr-FR': {
     /* Global errors */
@@ -76,6 +78,8 @@ module.exports = {
     salariesFound: 'Bulletins de salaire de l\'employé trouvés avec succès.',
     facebookGetWhitelistedDomainsOk: 'Domains whitelistés Facebook récupérés avec succès.',
     facebookPostWhitelistedDomainsOk: 'Domaine(s) whitelisté(s) ajoutés avec succès.',
-    facebookNoToken: 'Merci de fournir un token d\'accès de page Facebook.'
+    facebookNoToken: 'Merci de fournir un token d\'accès de page Facebook.',
+    blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
+    blogGetRssFeedsNoUrl: 'URL manquante'
   }
 };
