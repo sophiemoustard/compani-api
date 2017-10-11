@@ -10,8 +10,10 @@ const customerController = require('./../../controllers/Ogust/customerController
 const employeeController = require('./../../controllers/Ogust/employeeController');
 const tokenController = require('./../../controllers/Ogust/tokenController');
 const serviceController = require('./../../controllers/Ogust/serviceController');
+const utilsController = require('./../../controllers/Ogust/utilsController');
 
 router.get('/token', tokenProcess.decode({ secret: tokenConfig.secret }), tokenController.get);
+router.post('/utils/getList', utilsController.getList);
 
 if (process.env.NODE_ENV == 'development') {
   router.get('/tests/token/:id', (req, res) => {
