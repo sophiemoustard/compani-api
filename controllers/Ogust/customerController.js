@@ -54,6 +54,33 @@ const getById = async (req, res) => {
   }
 };
 
+const editCustomerCodes = async (req, res) => {
+  try {
+    if (!req.params.id) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const params = {
+      token: req.headers['x-ogust-token'],
+      id: req.params.id,
+      status: req.query.status || 'A',
+      doorCode: req.body.doorCode,
+      interCode: req.body.interCode
+    };
+    const newParams = _.pickBy(params);
+    const user = await customers.editCustomerCodesById(newParams);
+    if (user.body.status == 'KO') {
+      res.status(400).json({ success: false, message: user.body.message });
+    } else if (user.length === 0) {
+      res.status(404).json({ success: false, message: translate[language].userNotFound });
+    } else {
+      res.status(200).json({ success: true, message: translate[language].customerCodesModified, data: { user: user.body } });
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
 const getCustomerServices = async (req, res) => {
   try {
     let servicesRaw = {};
@@ -154,5 +181,6 @@ module.exports = {
   getById,
   getCustomerServices,
   getThirdPartyInformation,
-  editThirdPartyInformation
+  editThirdPartyInformation,
+  editCustomerCodes
 };

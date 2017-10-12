@@ -39,7 +39,8 @@ module.exports = {
     facebookPostWhitelistedDomainsOk: 'Facebook whitelisted domain(s) added.',
     facebookNoToken: 'Facebook Token not provided.',
     blogGetRssFeedsOk: 'Rss feed found.',
-    blogGetRssFeedsNoUrl: 'URL not provided'
+    blogGetRssFeedsNoUrl: 'URL not provided',
+    customerCodesEdited: 'Ogust customer codes edited successfully'
   },
   'fr-FR': {
     /* Global errors */
@@ -80,6 +81,7 @@ module.exports = {
     facebookPostWhitelistedDomainsOk: 'Domaine(s) whitelisté(s) ajoutés avec succès.',
     facebookNoToken: 'Merci de fournir un token d\'accès de page Facebook.',
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
-    blogGetRssFeedsNoUrl: 'URL manquante'
+    blogGetRssFeedsNoUrl: 'URL manquante',
+    customerCodesEdited: 'Codes bénéficiaires edités avec succès.'
   }
 };

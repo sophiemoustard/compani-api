@@ -64,6 +64,24 @@ exports.getCustomerById = async (params) => {
   return result;
 };
 
+exports.editCustomerCodesById = async (params) => {
+  const options = {
+    url: `${Ogust.API_LINK}setCustomer`,
+    json: true,
+    body: {
+      token: params.token,
+      id_customer: params.id,
+      status: params.status,
+      door_code: params.doorCode,
+      intercom_code: params.interCode
+    },
+    resolveWithFullResponse: true,
+    time: true
+  };
+  const result = await rp.post(options);
+  return result;
+};
+
 exports.getThirdPartyInformationByCustomerId = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}getThirdPartyInformations`,
