@@ -62,12 +62,12 @@ const editCustomerCodes = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       id: req.params.id,
-      status: req.query.status || 'A',
       doorCode: req.body.doorCode,
       interCode: req.body.interCode
     };
-    const newParams = _.pickBy(params);
-    const user = await customers.editCustomerCodesById(newParams);
+    // console.log(params);
+    // const newParams = _.pickBy(params);
+    const user = await customers.editCustomerCodesById(params);
     if (user.body.status == 'KO') {
       res.status(400).json({ success: false, message: user.body.message });
     } else if (user.length === 0) {

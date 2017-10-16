@@ -71,7 +71,6 @@ exports.editCustomerCodesById = async (params) => {
     body: {
       token: params.token,
       id_customer: params.id,
-      status: params.status,
       door_code: params.doorCode,
       intercom_code: params.interCode
     },
