@@ -15,7 +15,7 @@ const getEmployeeEvents = async (req, res, params) => {
   const events = servicesRaw.body.array_service.result;
   if (Object.keys(events).length === 0) {
     // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
-    return res.status(200).json({ success: false, message: translate[language].servicesNotFound });
+    return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
   }
   const uniqCustomers = [];
   for (const index in events) {
@@ -62,7 +62,7 @@ const getCustomerEvents = async (req, res, params) => {
   const events = servicesRaw.body.array_service.result;
   if (Object.keys(events).length === 0) {
     // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
-    return res.status(200).json({ success: false, message: translate[language].servicesNotFound });
+    return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
   }
   const uniqEmployees = [];
   for (const index in events) {
