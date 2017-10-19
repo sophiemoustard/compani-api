@@ -29,24 +29,42 @@ const getEmployeeEvents = async (req, res, params) => {
       };
       const newCustomerParams = _.pickBy(customerParams);
       const customerRaw = await customers.getCustomerById(newCustomerParams);
+      const thirdPartyParams = {
+        token: req.headers['x-ogust-token'],
+        id: events[index].id_customer,
+        third_party: 'C',
+        nbperpage: 10,
+        pagenum: 1
+      };
+      const customerThirdPartyInfosRaw = await customers.getThirdPartyInformationByCustomerId(thirdPartyParams);
       if (customerRaw.body.status == 'KO') {
         return res.status(400).json({ success: false, message: customerRaw.body.message });
       }
+      customerRaw.body.customer.thirdPartyInformations = customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values;
       uniqCustomers.push(customerRaw.body.customer);
       events[index].customer = {
         id_customer: customerRaw.body.customer.id_customer,
         title: customerRaw.body.customer.title,
         firstname: customerRaw.body.customer.first_name,
-        lastname: customerRaw.body.customer.last_name
+        lastname: customerRaw.body.customer.last_name,
+        pathology: customerRaw.body.customer.thirdPartyInformations.NIVEAU || '/',
+        comments: customerRaw.body.customer.thirdPartyInformations.COMMNIV || '/',
+        interventionDetail: customerRaw.body.customer.thirdPartyInformations.DETAILEVE || '/',
+        misc: customerRaw.body.customer.thirdPartyInformations.AUTRESCOMM || '/'
       };
     }
     if (isUniq === false) {
+      // si customer existe déja ds l'array uniqCustomers, on prends l'info de ce dernier
       const customerUncut = _.find(uniqCustomers, ['id_customer', events[index].id_customer]);
       events[index].customer = {
         id_customer: customerUncut.id_customer,
         title: customerUncut.title,
         firstname: customerUncut.first_name,
-        lastname: customerUncut.last_name
+        lastname: customerUncut.last_name,
+        pathology: customerUncut.thirdPartyInformations.NIVEAU,
+        comments: customerUncut.thirdPartyInformations.COMMNIV,
+        interventionDetail: customerUncut.thirdPartyInformations.DETAILEVE,
+        misc: customerUncut.thirdPartyInformations.AUTRESCOMM
       };
     }
   }
