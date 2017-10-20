@@ -41,6 +41,9 @@ const getEmployeeEvents = async (req, res, params) => {
         return res.status(400).json({ success: false, message: customerRaw.body.message });
       }
       customerRaw.body.customer.thirdPartyInformations = customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values;
+      if (customerRaw.body.customer.thirdPartyInformations == null) {
+        customerRaw.body.customer.thirdPartyInformations = {};
+      }
       uniqCustomers.push(customerRaw.body.customer);
       events[index].customer = {
         id_customer: customerRaw.body.customer.id_customer,
