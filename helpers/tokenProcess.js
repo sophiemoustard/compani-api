@@ -5,14 +5,15 @@ const tokenConfig = require('../config/strategies').token;
 const language = translate.language;
 
 module.exports = {
-  encode: function(payload) {
+  encode: (payload) => {
     return jwt.sign(payload, tokenConfig.secret, { expiresIn: tokenConfig.expiresIn });
   },
-  decode: function(options) {
+  decode: (options) => {
     if (!options || !options.secret) {
       throw new Error('Authenticate : secret should be set.');
     }
-    return (function(req, res, next) {
+    // Return middleware Express callback
+    return (req, res, next) => {
       // Check header or url parameters or post parameters for token
       const token = req.body.token || req.query.token || req.headers['x-access-token'];
       // if there is no token
@@ -20,20 +21,19 @@ module.exports = {
         return res.status(401).json({ success: false, message: translate[language].tokenNotFound });
       }
       // verifies secret and checks expiration then decode token
-      jwt.verify(token, options.secret, function(err, decoded) {
-        if (err) {
-          if (err.name === 'JsonWebTokenError') {
-            return res.status(401).json({ success: false, message: translate[language].tokenAuthFailed });
-          }
-          if (err.name === 'TokenExpiredError') {
-            return res.status(401).json({ success: false, message: translate[language].tokenExpired });
-          }
-        } else {
-          // if everything is good, save to request for use in other routes
-          req.decoded = decoded;
-          next();
+      try {
+        const payload = jwt.verify(token, options.secret);
+        // if everything is good, save decoded payload to use it in other routes
+        req.decoded = payload;
+        next();
+      } catch (e) {
+        if (e.name === 'JsonWebTokenError') {
+          return res.status(401).json({ success: false, message: translate[language].tokenAuthFailed });
         }
-      });
-    });
+        if (e.name === 'TokenExpiredError') {
+          return res.status(401).json({ success: false, message: translate[language].tokenExpired });
+        }
+      }
+    };
   }
 };

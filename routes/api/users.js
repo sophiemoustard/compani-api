@@ -1,6 +1,7 @@
 const express = require('express');
 const tokenConfig = require('../../config/strategies').token;
 const tokenProcess = require('../../helpers/tokenProcess');
+const { checkRoles } = require('../../helpers/checkAuthorization');
 
 const router = express.Router();
 
@@ -38,10 +39,9 @@ router.get('/presentation', userController.getPresentation);
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 // All these routes need a token because of route protection above
-
-router.get('/', userController.showAll);
-router.get('/:_id', userController.show);
-router.put('/:_id', userController.update);
-router.delete('/:_id', userController.remove);
+router.get('/', checkRoles({ list: ['coach'] }), userController.showAll);
+router.get('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.show);
+router.put('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.update);
+router.delete('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.remove);
 
 module.exports = router;
