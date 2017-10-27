@@ -85,4 +85,24 @@ UserSchema.pre('save', async function (next) {
   }
 });
 
+UserSchema.pre('findOneAndUpdate', async function (next) {
+  try {
+    // Use mongoDB string dot notation to get update password
+    const password = this.getUpdate().$set['local.password'];
+    if (!password) {
+      return next();
+    }
+    // Gen salt
+    const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
+    // Hash password
+    const hash = await bcrypt.hash(password, salt);
+    // Store password using dot notation
+    this.getUpdate().$set['local.password'] = hash;
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+});
+
+
 module.exports = mongoose.model('User', UserSchema);

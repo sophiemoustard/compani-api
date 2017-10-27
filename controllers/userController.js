@@ -1,6 +1,7 @@
 // const db            = require('../config/database');
 // const tokenConfig   = require('../config/strategies').token;
 const bcrypt = require('bcrypt');
+const dot = require('dot-object');
 const translate = require('../helpers/translate');
 
 const language = translate.language;
@@ -119,7 +120,11 @@ const show = async (req, res) => {
 // Update an user by id
 const update = async (req, res) => {
   try {
-    const userUpdated = await User.findByIdAndUpdate({ _id: req.params._id }, { $set: req.body }, { new: true });
+    // Have to update using dot-object package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: dot.dot(req.body) }, { new: true });
+    if (!userUpdated) {
+      return res.status(404).json({ success: false, message: translate[language].userNotFound });
+    }
     return res.status(200).json({ success: true, message: translate[language].userUpdated, data: { userUpdated } });
   } catch (e) {
     // Error code when there is a duplicate key, in this case : the email (unique field)
