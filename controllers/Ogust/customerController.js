@@ -165,9 +165,9 @@ const editThirdPartyInformation = async (req, res) => {
     if (thirdPartyInfos.body.status == 'KO') {
       res.status(400).json({ success: false, message: thirdPartyInfos.body.message });
     } else {
-      if (req.query.address) {
-        await redirectToBot(req.query.address);
-      }
+      // if (req.query.address) {
+      //   await redirectToBot(req.query.address);
+      // }
       res.status(200).json({ success: true, message: translate[language].thirdPartyInfoEdited, data: { info: thirdPartyInfos.body } });
     }
   } catch (e) {

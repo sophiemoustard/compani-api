@@ -1,12 +1,18 @@
 const rp = require('request-promise');
 
-exports.redirectToBot = async (queryAdress) => {
-  const address = encodeURIComponent(queryAdress);
-  const url = `${process.env.BOT_HOSTNAME}/editCustomerDone?address=${address}`;
+exports.redirectToBot = async (address, message) => {
+  // const address = encodeURIComponent(queryAdress);
+  const url = `${process.env.BOT_HOSTNAME}/sendMessageToUser`;
   const options = {
     url,
+    body: {
+      address,
+      message
+    },
+    json: true,
     resolveWithFullResponse: true,
-    time: true,
+    time: true
   };
-  await rp.get(options);
+  const res = await rp.post(options);
+  return res;
 };
