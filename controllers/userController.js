@@ -135,6 +135,7 @@ const update = async (req, res) => {
   }
 };
 
+// Store user address from bot
 const storeUserAddress = async (req, res) => {
   try {
     const userAddressStored = await User.findOneAndUpdate({ _id: req.params._id }, { $set: { 'facebook.address': req.body.payload } }, { new: true });
