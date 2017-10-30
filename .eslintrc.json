@@ -12,7 +12,8 @@
       "guard-for-in": "off",
       "comma-dangle": "off",
       "eqeqeq": "off",
-      "max-len": "off"
+      "max-len": "off",
+      "no-underscore-dangle": [2, { "allow": ["_id"] }]
     },
     "extends": "airbnb-base",
     "plugins": [
