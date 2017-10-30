@@ -19,7 +19,24 @@ const UserSchema = mongoose.Schema({
   facebook: {
     facebookId: String,
     access_token: String,
-    email: String
+    email: String,
+    address: {
+      id: String,
+      channelId: String,
+      user: {
+        id: Number,
+        name: String
+      },
+      conversation: {
+        isGroup: Boolean,
+        id: String
+      },
+      bot: {
+        id: Number,
+        name: String
+      },
+      serviceUrl: String
+    }
   },
   slack: {
     slackId: String,
@@ -56,7 +73,7 @@ const UserSchema = mongoose.Schema({
   picture: {
     type: String,
     trim: true
-  }
+  },
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 

@@ -42,6 +42,7 @@ router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 router.get('/', checkRoles({ list: ['coach'] }), userController.showAll);
 router.get('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.show);
 router.put('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.update);
+router.put('/:_id/storeAddress', userController.storeUserAddress);
 router.delete('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.remove);
 
 module.exports = router;
