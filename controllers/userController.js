@@ -138,11 +138,29 @@ const update = async (req, res) => {
 // Store user address from bot
 const storeUserAddress = async (req, res) => {
   try {
+    if (!req.body.payload) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
     const userAddressStored = await User.findOneAndUpdate({ _id: req.params._id }, { $set: { 'facebook.address': req.body.payload } }, { new: true });
     if (!userAddressStored) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
     return res.status(200).json({ success: true, message: translate[language].userAddressStored, data: { userAddressStored } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+// Get sectors
+const getAllSectors = async (req, res) => {
+  try {
+    const users = await User.find({ sector: { $nin: ['*'] } }, { sector: 1, firstname: 1 });
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
+    }
+    const usersBySector = _.groupBy(users, 'sector');
+    return res.status(200).json({ success: true, message: translate[language].userSectorsFound, data: { sectors: usersBySector } });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
@@ -170,7 +188,8 @@ module.exports = {
   showAll,
   remove,
   getPresentation,
-  storeUserAddress
+  storeUserAddress,
+  getAllSectors
 };
 
 // bothauthFacebook: function(req, res) {
