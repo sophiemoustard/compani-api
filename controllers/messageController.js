@@ -76,7 +76,7 @@ const sendMessageById = async (req, res) => {
 
 const addMessageRecipientById = async (req, res) => {
   try {
-    if (!req.params._id || !req.body.success || !req.body.recipientId) {
+    if (!req.params._id || req.body.success === undefined || !req.body.recipientId) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
     const payload = {
