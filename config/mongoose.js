@@ -1,6 +1,7 @@
 const mongoose  = require('mongoose');
 const db        = require('./database');
 
+mongoose.Promise = global.Promise;
 mongoose.connect(db.database);
 
 // When successfully connected
