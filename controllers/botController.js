@@ -4,7 +4,6 @@ const _ = require('lodash');
 const tokenProcess = require('../helpers/tokenProcess');
 
 const User = require('../models/User');
-const { redirectToBot } = require('../models/Bot/bot');
 
 const language = translate.language;
 
@@ -76,18 +75,4 @@ module.exports = {
       return res.status(404).send({ success: false, message: translate[language].userNotFound });
     }
   },
-  sendMessageToBotUser: async (req, res) => {
-    try {
-      if (!req.body.message || !req.params._id) {
-        return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
-      }
-      const userAddressRaw = await User.findById(req.params._id).select('facebook.address');
-      const userAddress = userAddressRaw.facebook.address;
-      const sentMessage = await redirectToBot(userAddress, req.body.message);
-      return res.status(200).send({ success: true, message: translate[language].sentMessageToUserBot, data: { user: sentMessage } });
-    } catch (e) {
-      console.error(e.message);
-      return res.status(500).send({ success: false, message: `Erreur: ${translate[language].unexpectedBehavior}` });
-    }
-  }
 };
