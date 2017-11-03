@@ -15,5 +15,6 @@ router.use('/ogust', require('./api/ogust'));
 router.use('/facebook', require('./api/facebook'));
 router.use('/calendar', require('./api/calendar'));
 router.use('/blog', require('./api/blog'));
+router.use('/message', require('./api/message'));
 
 module.exports = router;

@@ -21,6 +21,7 @@ module.exports = {
     userRemoved: 'User removed successfully.',
     userUpdated: 'User updated successfully.',
     userAddressStored: 'User address stored successfully.',
+    userAddressNotFound: 'User address not found',
     userAuthNotFound: 'Authentication failed because the user was not found.',
     userAuthFailed: 'The email address or password you entered is not valid.',
     forbidden: 'Forbidden.',
@@ -42,7 +43,13 @@ module.exports = {
     facebookNoToken: 'Facebook Token not provided.',
     blogGetRssFeedsOk: 'Rss feed found.',
     blogGetRssFeedsNoUrl: 'URL not provided',
-    customerCodesEdited: 'Ogust customer codes edited successfully'
+    customerCodesEdited: 'Ogust customer codes edited successfully',
+    /* Messages */
+    getAllMessagesFound: 'Messages found successfully.',
+    getAllMessagesNotFound: 'Messages not found.',
+    messageNotFound: 'Message not found.',
+    storeMessage: 'Message successfully stored.',
+    messageRecipientAdded: 'Message recipient added successfully.'
   },
   'fr-FR': {
     /* Global errors */
@@ -65,6 +72,7 @@ module.exports = {
     userRemoved: 'Utilisateur supprimé avec succès.',
     userUpdated: 'Utilisateur modifié avec succès.',
     userAddressStored: 'Adresse utilisateur enregistré avec succès',
+    userAddressNotFound: "Adresse utilisateur n'existe pas.",
     userAuthNotFound: "L'authentification a échoué car l'utilisateur n'existe pas.",
     userAuthFailed: "L'adresse email ou le mot de passe est invalide.",
     forbidden: 'Accès non autorisé.',
@@ -86,6 +94,12 @@ module.exports = {
     facebookNoToken: 'Merci de fournir un token d\'accès de page Facebook.',
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     blogGetRssFeedsNoUrl: 'URL manquante',
-    customerCodesEdited: 'Codes bénéficiaires edités avec succès.'
+    customerCodesEdited: 'Codes bénéficiaires edités avec succès.',
+    /* Messages */
+    getAllMessagesFound: 'Messages trouvés avec succès.',
+    getAllMessagesNotFound: 'Pas de messages.',
+    messageNotFound: 'Message non trouvé.',
+    storeMessage: 'Message enregistré avec succès.',
+    messageRecipientUpdated: 'Destinataire message ajouté avec succès.'
   }
 };
