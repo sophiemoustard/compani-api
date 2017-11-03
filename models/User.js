@@ -77,6 +77,21 @@ const UserSchema = mongoose.Schema({
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
+UserSchema.statics.findUserAddressById = async function (id) {
+  try {
+    const User = this;
+    const filter = {
+      _id: id,
+      'facebook.address': {
+        $exists: true
+      }
+    };
+    return await User.findOne(filter, { 'facebook.address': 1 })
+  } catch (e) {
+    return Promise.reject(e);
+  }
+}
+
 UserSchema.pre('save', async function (next) {
   try {
     const user = this;
