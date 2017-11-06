@@ -13,6 +13,6 @@ router.get('/', messageController.getAllMessages);
 router.get('/:_id/send', messageController.sendMessageById);
 router.get('/user/:_id', messageController.getMessagesBySenderId);
 router.post('/', messageController.storeMessage);
-router.patch('/:_id/recipient', messageController.addMessageRecipientById);
+router.put('/:_id/recipient', messageController.addMessageRecipientById);
 
 module.exports = router;

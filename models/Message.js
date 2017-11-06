@@ -6,6 +6,7 @@ const MessageSchema = mongoose.Schema({
     required: true
   },
   content: String,
+  sectors: [String],
   recipients: {
     type: Array,
     default: []

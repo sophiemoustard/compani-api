@@ -23,7 +23,7 @@ const getMessagesBySenderId = async (req, res) => {
     if (!req.params._id) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
-    const messages = Message.find({ senderId: req.params._id });
+    const messages = await Message.find({ senderId: req.params._id });
     if (messages.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].getAllMessagesNotFound });
     }
@@ -36,12 +36,13 @@ const getMessagesBySenderId = async (req, res) => {
 
 const storeMessage = async (req, res) => {
   try {
-    if (!req.body.message || !req.query.senderId) {
+    if (!req.body.message || !req.query.senderId || !req.body.sectors) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
     const payload = {
       senderId: req.query.senderId,
-      content: req.body.message
+      content: req.body.message,
+      sectors: req.body.sectors
     };
     const message = new Message(payload);
     await message.save();
