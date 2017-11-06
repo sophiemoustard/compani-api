@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const MessageSchema = mongoose.Schema({
+const MessageToBotSchema = mongoose.Schema({
   senderId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true
@@ -13,4 +13,4 @@ const MessageSchema = mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Message', MessageSchema);
+module.exports = mongoose.model('MessageToBot', MessageToBotSchema);

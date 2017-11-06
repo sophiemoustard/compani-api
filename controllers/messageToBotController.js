@@ -1,13 +1,13 @@
 const translate = require('../helpers/translate');
 const User = require('../models/User');
-const Message = require('../models/Message');
+const MessageToBot = require('../models/MessageToBot');
 const { redirectToBot } = require('../models/Bot/bot');
 
 const language = translate.language;
 
 const getAllMessages = async (req, res) => {
   try {
-    const messages = await Message.find({});
+    const messages = await MessageToBot.find({});
     if (messages.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].getAllMessagesNotFound });
     }
@@ -23,7 +23,7 @@ const getMessagesBySenderId = async (req, res) => {
     if (!req.params._id) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
-    const messages = await Message.find({ senderId: req.params._id });
+    const messages = await MessageToBot.find({ senderId: req.params._id });
     if (messages.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].getAllMessagesNotFound });
     }
@@ -44,7 +44,7 @@ const storeMessage = async (req, res) => {
       content: req.body.message,
       sectors: req.body.sectors
     };
-    const message = new Message(payload);
+    const message = new MessageToBot(payload);
     await message.save();
     return res.status(200).send({ success: true, message: translate[language].storeMessage, data: { message } });
   } catch (e) {
@@ -63,7 +63,7 @@ const sendMessageById = async (req, res) => {
       return res.status(404).send({ success: false, message: translate[language].userAddressNotFound });
     }
     const userAddress = userAddressRaw.facebook.address;
-    const message = await Message.findOne({ _id: req.params._id });
+    const message = await MessageToBot.findOne({ _id: req.params._id });
     if (!message) {
       return res.status(404).send({ success: false, message: translate[language].messageNotFound });
     }
@@ -84,7 +84,7 @@ const addMessageRecipientById = async (req, res) => {
       id: req.body.recipientId,
       success: req.body.success
     };
-    const updatedMessage = await Message.findOneAndUpdate({ _id: req.params._id }, { $push: { recipients: payload } }, { new: true });
+    const updatedMessage = await MessageToBot.findOneAndUpdate({ _id: req.params._id }, { $push: { recipients: payload } }, { new: true });
     if (!updatedMessage) {
       return res.status(404).send({ success: false, message: translate[language].messageNotFound });
     }
