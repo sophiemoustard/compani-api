@@ -74,6 +74,27 @@ const UserSchema = mongoose.Schema({
     type: String,
     trim: true
   },
+  planningModification: [
+    {
+      content: String,
+      involved: String,
+      createdAt: {
+        type: Date,
+        default: Date.now
+      },
+      modificationType: String,
+      check: {
+        isChecked: {
+          type: Boolean,
+          default: false
+        },
+        checkBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          default: null
+        }
+      }
+    }
+  ]
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 

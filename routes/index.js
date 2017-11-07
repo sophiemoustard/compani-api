@@ -16,5 +16,6 @@ router.use('/facebook', require('./api/facebook'));
 router.use('/calendar', require('./api/calendar'));
 router.use('/blog', require('./api/blog'));
 router.use('/messageToBot', require('./api/messageToBot'));
+router.use('/planningUpdates', require('./api/planningUpdate'));
 
 module.exports = router;

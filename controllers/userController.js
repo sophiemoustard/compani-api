@@ -189,7 +189,7 @@ module.exports = {
   remove,
   getPresentation,
   storeUserAddress,
-  getAllSectors
+  getAllSectors,
 };
 
 // bothauthFacebook: function(req, res) {
