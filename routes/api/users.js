@@ -10,6 +10,7 @@ const userController = require('../../controllers/userController');
 router.post('/', userController.create);
 router.post('/authenticate', userController.authenticate);
 router.get('/presentation', userController.getPresentation);
+router.post('/refreshToken', userController.refreshToken);
 
 // router.get('/authenticate/facebook', passport.authenticate('facebook', {session: false}));
 // router.get('/authenticate/facebook/callback', passport.authenticate('facebook', { session: false, failureRedirect: '/login'}), function(req, res) {

@@ -128,6 +128,9 @@ const show = async (req, res) => {
 
 // Update an user by id
 const update = async (req, res) => {
+  if (!req.body) {
+    return res.status(400).json({ success: false, message: translate[language].missingParameters });
+  }
   try {
     // Have to update using dot-object package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: dot.dot(req.body) }, { new: true });
@@ -141,6 +144,29 @@ const update = async (req, res) => {
       return res.status(409).json({ success: false, message: translate[language].userEmailExists });
     }
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+const refreshToken = async (req, res) => {
+  if (!req.body.refreshToken) {
+    return res.status(400).json({ success: false, message: translate[language].missingParameters });
+  }
+  try {
+    const user = await User.findOne({ refreshToken: req.body.refreshToken });
+    if (!user) {
+      return res.status(404).json({ success: false, message: translate[language].userNotFound });
+    }
+    const payload = {
+      _id: user.id,
+      role: user.role,
+    };
+    const userPayload = _.pickBy(payload);
+    const token = tokenProcess.encode(userPayload);
+    // return the information including token as JSON
+    return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, refreshToken: user.refreshToken, user: userPayload } });
+  } catch (e) {
+    console.error(e);
+    return res.status(404).json({ success: false, message: translate[language].userNotFound });
   }
 };
 
@@ -196,6 +222,7 @@ module.exports = {
   show,
   showAll,
   remove,
+  refreshToken,
   getPresentation,
   storeUserAddress,
   getAllSectors,
