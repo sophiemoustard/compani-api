@@ -59,6 +59,7 @@ module.exports = {
       if (!user) {
         return res.status(404).send({ success: false, message: translate[language].userNotFound });
       }
+      const alenviToken = tokenProcess.encode(user._id);
       const payload = {
         firstname: user.firstname,
         lastname: user.lastname,
@@ -67,7 +68,8 @@ module.exports = {
         role: user.role,
         customer_id: user.customer_id,
         employee_id: user.employee_id,
-        sector: user.sector
+        sector: user.sector,
+        alenviToken
       };
       const newPayload = _.pickBy(payload);
       res.status(200).send({ success: true, message: translate[language].userFound, data: { user: newPayload } });
