@@ -2,6 +2,7 @@
 // const tokenConfig   = require('../config/strategies').token;
 const bcrypt = require('bcrypt');
 const dot = require('dot-object');
+const uuidv4 = require('uuid/v4');
 const translate = require('../helpers/translate');
 
 const language = translate.language;
@@ -22,6 +23,10 @@ const authenticate = async (req, res) => {
     if (!alenviUser) {
       return res.status(404).json({ success: false, message: translate[language].userAuthNotFound });
     }
+    // Check if user is allowed to (re)connect
+    if (!alenviUser.refreshToken) {
+      return res.status(403).json({ success: false, message: translate[language].forbidden });
+    }
     // check if password matches
     if (!await bcrypt.compare(req.body.password, alenviUser.local.password)) {
       return res.status(401).json({ success: false, message: translate[language].userAuthFailed });
@@ -41,10 +46,11 @@ const authenticate = async (req, res) => {
     };
     const user = _.pickBy(payload);
     const token = tokenProcess.encode(user);
+    const refreshToken = alenviUser.refreshToken;
     console.log(`${req.body.email} connected`);
     // return the information including token as JSON
     // return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
-    return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
+    return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, refreshToken, user } });
   } catch (e) {
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
@@ -57,7 +63,10 @@ const create = async (req, res) => {
     return res.status(400).json({ success: false, message: translate[language].missingParameters });
   }
   try {
+    // Create refreshToken and store it
+    req.body.refreshToken = uuidv4();
     const user = new User(req.body);
+    // Save user
     await user.save();
     return res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
   } catch (e) {

@@ -4,8 +4,8 @@ scripts_local
 # apidoc
 public/apidoc
 
-# env
-.env
+# webstorm
+.idea
 
 # ds_store
 .DS_Store

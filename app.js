@@ -43,7 +43,7 @@ app.use(express.static(path.join(__dirname, 'public/apidoc')));
 
 // Routing
 app.use(require('./routes/index'));
-//app.use('*', require('./routes/index'));
+// app.use('*', require('./routes/index'));
 
 // Error handler
 // app.use(function(err, req, res, next) {

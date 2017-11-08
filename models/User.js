@@ -8,6 +8,7 @@ const SALT_WORK_FACTOR = 10;
 const UserSchema = mongoose.Schema({
   firstname: String,
   lastname: String,
+  refreshToken: String,
   local: {
     email: {
       type: String,
