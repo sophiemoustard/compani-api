@@ -45,12 +45,13 @@ const authenticate = async (req, res) => {
       // picture: user.picture
     };
     const user = _.pickBy(payload);
-    const token = tokenProcess.encode(user);
+    const expireTime = 3600;
+    const token = tokenProcess.encode(user, expireTime);
     const refreshToken = alenviUser.refreshToken;
     console.log(`${req.body.email} connected`);
     // return the information including token as JSON
     // return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
-    return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, refreshToken, user } });
+    return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, refreshToken, expiresIn: expireTime, user } });
   } catch (e) {
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
@@ -68,7 +69,14 @@ const create = async (req, res) => {
     const user = new User(req.body);
     // Save user
     await user.save();
-    return res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
+    const payload = {
+      _id: user.id,
+      role: user.role,
+    };
+    const userPayload = _.pickBy(payload);
+    const expireTime = 3600;
+    const token = tokenProcess.encode(user, expireTime);
+    return res.status(200).json({ success: true, message: translate[language].userSaved, data: { token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload } });
   } catch (e) {
     console.error(e);
     // Error code when there is a duplicate key, in this case : the email (unique field)
