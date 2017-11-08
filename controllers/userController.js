@@ -161,9 +161,10 @@ const refreshToken = async (req, res) => {
       role: user.role,
     };
     const userPayload = _.pickBy(payload);
-    const token = tokenProcess.encode(userPayload);
+    const expireTime = 3600;
+    const token = tokenProcess.encode(userPayload, expireTime);
     // return the information including token as JSON
-    return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, refreshToken: user.refreshToken, user: userPayload } });
+    return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload } });
   } catch (e) {
     console.error(e);
     return res.status(404).json({ success: false, message: translate[language].userNotFound });
