@@ -14,7 +14,6 @@ const getModificationPlanning = async (req, res) => {
       filter._id = req.query.userId;
     }
     const modifPlanning = await User.find(filter, { firstname: 1, lastname: 1, planningModification: 1 });
-    console.log(modifPlanning);
     if (!modifPlanning) {
       return res.status(404).json({ success: false, message: translate[language].planningModificationsNotFound });
     }
