@@ -91,6 +91,10 @@ const UserSchema = mongoose.Schema({
         checkBy: {
           type: mongoose.Schema.Types.ObjectId,
           default: null
+        },
+        checkedAt: {
+          type: Date,
+          default: null
         }
       }
     }
@@ -107,11 +111,11 @@ UserSchema.statics.findUserAddressById = async function (id) {
         $exists: true
       }
     };
-    return await User.findOne(filter, { 'facebook.address': 1 })
+    return await User.findOne(filter, { 'facebook.address': 1 });
   } catch (e) {
     return Promise.reject(e);
   }
-}
+};
 
 UserSchema.pre('save', async function (next) {
   try {

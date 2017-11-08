@@ -49,7 +49,11 @@ module.exports = {
     getAllMessagesNotFound: 'Messages not found.',
     messageNotFound: 'Message not found.',
     storeMessage: 'Message successfully stored.',
-    messageRecipientAdded: 'Message recipient added successfully.'
+    messageRecipientAdded: 'Message recipient added successfully.',
+    /* Planning modifications */
+    planningModificationsFound: 'Planning modifications found.',
+    planningModificationsNotFound: 'Planning moddifications not found.',
+    planningModificationStored: 'Planning modification stored successfully.'
   },
   'fr-FR': {
     /* Global errors */
@@ -100,6 +104,10 @@ module.exports = {
     getAllMessagesNotFound: 'Pas de messages.',
     messageNotFound: 'Message non trouvé.',
     storeMessage: 'Message enregistré avec succès.',
-    messageRecipientUpdated: 'Destinataire message ajouté avec succès.'
+    messageRecipientUpdated: 'Destinataire message ajouté avec succès.',
+    /* Planning modifications */
+    planningModificationsFound: 'Planning modifications found.',
+    planningModificationsNotFound: 'Planning moddifications not found.',
+    planningModificationStored: 'Planning modification stored successfully.'
   }
 };
