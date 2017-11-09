@@ -10,6 +10,7 @@ const tokenProcess = require('../../helpers/tokenProcess');
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 router.get('/', planningUpdateController.getModificationPlanning);
-router.put('/', planningUpdateController.storeUserModificationPlanning);
+router.post('/', planningUpdateController.storeUserModificationPlanning);
+router.put('/:_id/status', planningUpdateController.updateModificationPlanningStatusById);
 
 module.exports = router;

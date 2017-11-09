@@ -53,7 +53,8 @@ module.exports = {
     /* Planning modifications */
     planningModificationsFound: 'Planning modifications found.',
     planningModificationsNotFound: 'Planning moddifications not found.',
-    planningModificationStored: 'Planning modification stored successfully.'
+    planningModificationStored: 'Planning modification stored successfully.',
+    planningModificationUpdated: 'Planning modification updated successfully'
   },
   'fr-FR': {
     /* Global errors */
@@ -106,8 +107,9 @@ module.exports = {
     storeMessage: 'Message enregistré avec succès.',
     messageRecipientUpdated: 'Destinataire message ajouté avec succès.',
     /* Planning modifications */
-    planningModificationsFound: 'Planning modifications found.',
-    planningModificationsNotFound: 'Planning moddifications not found.',
-    planningModificationStored: 'Planning modification stored successfully.'
+    planningModificationsFound: 'Modifications planning trouvées.',
+    planningModificationsNotFound: 'Pas de modifications planning.',
+    planningModificationStored: 'Modification planning enregistré avec succès.',
+    planningModificationUpdated: 'Modification planning mise a jour avec succès.'
   }
 };

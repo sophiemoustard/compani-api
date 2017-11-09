@@ -1,3 +1,5 @@
+const dot = require('dot-object');
+
 const translate = require('../helpers/translate');
 
 const language = translate.language;
@@ -45,7 +47,29 @@ const storeUserModificationPlanning = async (req, res) => {
   }
 };
 
+const updateModificationPlanningStatusById = async (req, res) => {
+  try {
+    if (!req.params._id) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const payload = {
+      isChecked: req.body.isChecked || false,
+      checkBy: req.body.checkBy || null,
+      checkedAt: req.body.checkedAt || null
+    };
+    const modificationPlanningUpdated = await User.findOneAndUpdate({ 'planningModification._id': req.params._id }, { $set: { 'planningModification.$.check': payload } }, { new: true });
+    if (!modificationPlanningUpdated) {
+      return res.status(404).json({ success: false, message: translate[language].planningModificationsNotFound });
+    }
+    return res.status(200).json({ success: true, message: translate[language].planningModificationUpdated, data: { modificationPlanningUpdated } });
+  } catch (e) {
+    console.error(e.message);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
 module.exports = {
   getModificationPlanning,
-  storeUserModificationPlanning
+  storeUserModificationPlanning,
+  updateModificationPlanningStatusById
 };
