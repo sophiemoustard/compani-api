@@ -50,7 +50,7 @@ const getAllBySector = async (req, res) => {
     const users = await employees.getEmployeesBySector(newParams);
     if (users.body.status == 'KO') {
       res.status(400).json({ success: false, message: users.body.message });
-    } else if (users.length === 0) {
+    } else if (Object.keys(users.body.array_employee.result).length === 0) {
       res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     } else {
       res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users: users.body } });
@@ -72,7 +72,7 @@ const getById = async (req, res) => {
     const user = await employees.getEmployeeById(newParams);
     if (user.body.status == 'KO') {
       res.status(400).json({ success: false, message: user.body.message });
-    } else if (user.length === 0) {
+    } else if (Object.keys(user.body.array_employee.result).length === 0) {
       res.status(404).json({ success: false, message: translate[language].userNotFound });
     } else {
       res.status(200).json({ success: true, message: translate[language].userFound, data: { user: user.body } });
@@ -152,7 +152,7 @@ const getEmployeeCustomers = async (req, res) => {
     }
     // Put it in a variable so it's more readable
     const servicesRawObj = servicesInFourWeeks.body.array_service.result;
-    if (Object.keys(servicesRawObj).length === 0) {
+    if (Object.keys(servicesRawObj.body.array_service.result).length === 0) {
       // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
       return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
     }
@@ -204,7 +204,7 @@ const getEmployeeSalaries = async (req, res) => {
     const salariesRaw = await employees.getSalaries(newParams);
     if (salariesRaw.body.status == 'KO') {
       res.status(400).json({ success: false, message: salariesRaw.body.message });
-    } else if (salariesRaw.length === 0) {
+    } else if (Object.keys(salariesRaw.body.array_salary.result).length === 0) {
       res.status(404).json({ success: false, message: translate[language].salariesNotFound });
     } else {
       res.status(200).json({ success: true, message: translate[language].salariesFound, data: { salaries: salariesRaw.body } });
