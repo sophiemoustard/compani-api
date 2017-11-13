@@ -152,7 +152,7 @@ const getEmployeeCustomers = async (req, res) => {
     }
     // Put it in a variable so it's more readable
     const servicesRawObj = servicesInFourWeeks.body.array_service.result;
-    if (Object.keys(servicesRawObj.body.array_service.result).length === 0) {
+    if (Object.keys(servicesRawObj).length === 0) {
       // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
       return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
     }
