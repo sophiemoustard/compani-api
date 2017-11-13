@@ -111,7 +111,7 @@ const getPresentation = async (req, res) => {
 const showAll = async (req, res) => {
   // No security here to restrict access
   try {
-    const users = await User.find({});
+    const users = await User.find(req.query);
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     }
