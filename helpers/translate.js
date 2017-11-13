@@ -42,7 +42,7 @@ module.exports = {
     facebookPostWhitelistedDomainsOk: 'Facebook whitelisted domain(s) added.',
     facebookNoToken: 'Facebook Token not provided.',
     blogGetRssFeedsOk: 'Rss feed found.',
-    blogGetRssFeedsNoUrl: 'URL not provided',
+    blogGetRssFeedsNoUrl: 'URL not provided.',
     customerCodesEdited: 'Ogust customer codes edited successfully',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
@@ -54,7 +54,9 @@ module.exports = {
     planningModificationsFound: 'Planning modifications found.',
     planningModificationsNotFound: 'Planning moddifications not found.',
     planningModificationStored: 'Planning modification stored successfully.',
-    planningModificationUpdated: 'Planning modification updated successfully'
+    planningModificationUpdated: 'Planning modification updated successfully.',
+    smsNotSent: 'SMS not sent.',
+    smsSent: 'SMS well sent.'
   },
   'fr-FR': {
     /* Global errors */
@@ -110,6 +112,8 @@ module.exports = {
     planningModificationsFound: 'Modifications planning trouvées.',
     planningModificationsNotFound: 'Pas de modifications planning.',
     planningModificationStored: 'Modification planning enregistré avec succès.',
-    planningModificationUpdated: 'Modification planning mise a jour avec succès.'
+    planningModificationUpdated: 'Modification planning mise a jour avec succès.',
+    smsNotSent: 'SMS non envoyé.',
+    smsSent: 'SMS bien envoyé.'
   }
 };
