@@ -13,6 +13,7 @@ const getAll = async (req, res) => {
       status: req.query.status || 'A',
       nature: req.query.nature || 'S',
       mobile_phone: req.query.mobile_phone || '',
+      sector: req.query.sector || '',
       nbperpage: req.query.nbperpage || 50,
       pagenum: req.query.pagenum || 1
     };

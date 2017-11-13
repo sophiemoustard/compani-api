@@ -20,6 +20,7 @@ exports.getEmployees = async (params) => {
       status: params.status,
       nature: params.nature,
       mobile_phone: params.mobile_phone,
+      sector: params.sector,
       nbperpage: params.nbperpage,
       pagenum: params.pagenum
     },
