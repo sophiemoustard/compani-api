@@ -22,7 +22,7 @@ const getAll = async (req, res) => {
     if (users.body.status == 'KO') {
       res.status(400).json({ success: false, message: users.body.message });
       // throw new Error(`Error while getting employees: ${result.body.message}`);
-    } else if (users.length === 0) {
+    } else if (Object.keys(users.body.array_employee.result).length === 0) {
       res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     } else {
       res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users: users.body } });
