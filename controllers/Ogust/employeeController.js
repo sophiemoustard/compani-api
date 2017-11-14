@@ -72,7 +72,7 @@ const getById = async (req, res) => {
     const user = await employees.getEmployeeById(newParams);
     if (user.body.status == 'KO') {
       res.status(400).json({ success: false, message: user.body.message });
-    } else if (Object.keys(user.body.array_employee.result).length === 0) {
+    } else if (Object.keys(user.body.employee).length === 0) {
       res.status(404).json({ success: false, message: translate[language].userNotFound });
     } else {
       res.status(200).json({ success: true, message: translate[language].userFound, data: { user: user.body } });
