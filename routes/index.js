@@ -18,5 +18,6 @@ router.use('/blog', require('./api/blog'));
 router.use('/messageToBot', require('./api/messageToBot'));
 router.use('/planningUpdates', require('./api/planningUpdate'));
 router.use('/twilio', require('./api/twilio'));
+router.use('/activation', require('./api/activation'));
 
 module.exports = router;

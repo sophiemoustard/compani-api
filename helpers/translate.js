@@ -55,8 +55,13 @@ module.exports = {
     planningModificationsNotFound: 'Planning moddifications not found.',
     planningModificationStored: 'Planning modification stored successfully.',
     planningModificationUpdated: 'Planning modification updated successfully.',
+    /* SMS */
     smsNotSent: 'SMS not sent.',
-    smsSent: 'SMS well sent.'
+    smsSent: 'SMS well sent.',
+    /* Activation Code */
+    activationCodeCreated: 'Activation code created.',
+    activationCodeNotFoundOrInvalid: 'Activation code not found or invalid.',
+    activationCodeValidated: 'Activation code validated.'
   },
   'fr-FR': {
     /* Global errors */
@@ -113,7 +118,12 @@ module.exports = {
     planningModificationsNotFound: 'Pas de modifications planning.',
     planningModificationStored: 'Modification planning enregistré avec succès.',
     planningModificationUpdated: 'Modification planning mise a jour avec succès.',
+    /* SMS */
     smsNotSent: 'SMS non envoyé.',
-    smsSent: 'SMS bien envoyé.'
+    smsSent: 'SMS bien envoyé.',
+    /* Activation Code */
+    activationCodeCreated: 'Code activation créé.',
+    activationCodeNotFoundOrInvalid: 'Code activation non trouvé ou invalide.',
+    activationCodeValidated: 'Code activation validé.'
   }
 };
