@@ -103,11 +103,11 @@ const UserSchema = mongoose.Schema({
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
-UserSchema.statics.findUserAddressById = async function (id) {
+UserSchema.statics.findUserAddressByEmployeeId = async function (id) {
   try {
     const User = this;
     const filter = {
-      _id: id,
+      employee_id: id,
       'facebook.address': {
         $exists: true
       }
