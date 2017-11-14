@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const ActivationCodeSchema = mongoose.Schema({
   code: Number,
-  createdAt: {
+  created_at: {
     type: Date,
     default: Date.now,
     expires: 600
