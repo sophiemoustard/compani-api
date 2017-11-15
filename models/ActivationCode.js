@@ -1,7 +1,14 @@
 const mongoose = require('mongoose');
 
 const ActivationCodeSchema = mongoose.Schema({
-  code: Number,
+  code: {
+    type: Number,
+    required: true
+  },
+  employee_id: {
+    type: Number,
+    required: true
+  },
   created_at: {
     type: Date,
     default: Date.now,
