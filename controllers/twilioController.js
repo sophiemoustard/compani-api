@@ -1,9 +1,6 @@
 const translate = require('../helpers/translate');
 const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-console.log(process.env.TWILIO_ACCOUNT_SID);
-console.log(process.env.TWILIO_AUTH_TOKEN);
-
 const language = translate.language;
 
 const sendSMS = (req, res) => {
