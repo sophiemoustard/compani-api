@@ -7,8 +7,11 @@ const ActivationCode = require('../models/ActivationCode');
 
 const createActivationCode = async (req, res) => {
   try {
-    const code = Math.floor(Math.random() * 1000000);
-    const activationCode = new ActivationCode({ code });
+    if (!req.body.employee_id) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    req.body.code = Math.floor(Math.random() * 1000000);
+    const activationCode = new ActivationCode(req.body);
     await activationCode.save();
     return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationCode } });
   } catch (e) {
