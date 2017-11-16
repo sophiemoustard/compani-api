@@ -179,6 +179,16 @@ const refreshToken = async (req, res) => {
   }
 };
 
+const generateRefreshToken = async (req, res) => {
+  try {
+    const randomToken = uuidv4();
+    return res.status(200).json({ success: true, message: 'Token generated.', data: { randomToken } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+}
+
 // Store user address from bot
 const storeUserAddress = async (req, res) => {
   try {
@@ -235,6 +245,7 @@ module.exports = {
   getPresentation,
   storeUserAddress,
   getAllSectors,
+  generateRefreshToken
 };
 
 // bothauthFacebook: function(req, res) {
