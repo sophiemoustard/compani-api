@@ -68,8 +68,25 @@ const updateModificationPlanningStatusById = async (req, res) => {
   }
 };
 
+const removeModificationPlanningById = async (req, res) => {
+  try {
+    if (!req.params._id || !req.query.userId) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const modificationPlanning = await User.update({ _id: req.query.userId }, { $pull: { planningModification: { _id: req.params._id } } });
+    if (!modificationPlanning) {
+      return res.status(404).json({ success: false, message: translate[language].planningModificationsNotFound });
+    }
+    return res.status(200).json({ success: true, message: translate[language].planningModificationDeleted });
+  } catch (e) {
+    console.error(e.message);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
 module.exports = {
   getModificationPlanning,
   storeUserModificationPlanning,
-  updateModificationPlanningStatusById
+  updateModificationPlanningStatusById,
+  removeModificationPlanningById
 };

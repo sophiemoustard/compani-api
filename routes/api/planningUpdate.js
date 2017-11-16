@@ -12,5 +12,6 @@ router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 router.get('/', planningUpdateController.getModificationPlanning);
 router.post('/', planningUpdateController.storeUserModificationPlanning);
 router.put('/:_id/status', planningUpdateController.updateModificationPlanningStatusById);
+router.delete('/:_id', planningUpdateController.removeModificationPlanningById);
 
 module.exports = router;

@@ -55,6 +55,7 @@ module.exports = {
     planningModificationsNotFound: 'Planning moddifications not found.',
     planningModificationStored: 'Planning modification stored successfully.',
     planningModificationUpdated: 'Planning modification updated successfully.',
+    planningModificationDeleted: 'Planning modification deleted successfully.',
     /* SMS */
     smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
@@ -118,6 +119,7 @@ module.exports = {
     planningModificationsNotFound: 'Pas de modifications planning.',
     planningModificationStored: 'Modification planning enregistré avec succès.',
     planningModificationUpdated: 'Modification planning mise a jour avec succès.',
+    planningModificationDeleted: 'Modification planning supprimée avec succès.',
     /* SMS */
     smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
