@@ -9,6 +9,7 @@ const ActivationCodeSchema = mongoose.Schema({
     type: Number,
     required: true
   },
+  token: String,
   created_at: {
     type: Date,
     default: Date.now,

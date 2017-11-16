@@ -1,3 +1,7 @@
+const _ = require('lodash');
+const randomize = require('randomatic');
+
+const tokenProcess = require('../helpers/tokenProcess');
 const translate = require('../helpers/translate');
 
 const language = translate.language;
@@ -10,8 +14,11 @@ const createActivationCode = async (req, res) => {
     if (!req.body.employee_id) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    req.body.code = Math.floor(Math.random() * 1000000);
-    const activationCode = new ActivationCode(req.body);
+    const expireTime = 600;
+    req.body.token = tokenProcess.encode({ employee_id: req.body.employee_id }, expireTime);
+    req.body.code = randomize('000000');
+    const payload = _.pick(req.body, ['employee_id', 'token', 'code']);
+    const activationCode = new ActivationCode(payload);
     await activationCode.save();
     return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationCode } });
   } catch (e) {
