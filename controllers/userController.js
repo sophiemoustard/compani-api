@@ -91,18 +91,19 @@ const create = async (req, res) => {
 
 // Get all users presentation for alenvi.io (youtube + picture)
 const getPresentation = async (req, res) => {
-  const params = {
-    'youtube.location': _.isArray(req.query.location) ? { $in: req.query.location } : req.query.location,
-    role: _.isArray(req.query.role) ? { $in: req.query.role } : req.query.role
-  };
-  const payload = _.pickBy(params);
   try {
-    const users = User.find(payload, { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 });
+    const params = {
+      'youtube.location': _.isArray(req.query.location) ? { $in: req.query.location } : req.query.location,
+      role: _.isArray(req.query.role) ? { $in: req.query.role } : req.query.role
+    };
+    const payload = _.pickBy(params);
+    const users = await User.find(payload, { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 });
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     }
     return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
   } catch (e) {
+    console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
