@@ -162,7 +162,7 @@ const refreshToken = async (req, res) => {
   try {
     const user = await User.findOne({ refreshToken: req.body.refreshToken });
     if (!user) {
-      return res.status(404).json({ success: false, message: translate[language].userNotFound });
+      return res.status(401).json({ success: false, message: translate[language].refreshTokenNotFound });
     }
     const payload = {
       _id: user.id,
