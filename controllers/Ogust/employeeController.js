@@ -11,7 +11,7 @@ const getAll = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       status: req.query.status || 'A',
-      nature: req.query.nature || 'S',
+      nature: req.query.nature || '',
       mobile_phone: req.query.mobile_phone || '',
       sector: req.query.sector || '',
       nbperpage: req.query.nbperpage || 50,
