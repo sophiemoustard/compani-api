@@ -13,7 +13,8 @@ const createActivationCode = async (req, res) => {
     if (!req.body.mobile_phone) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    // const expireTime = 600;
+    // 2 days expire
+    // const expireTime = 172800;
     // req.body.token = tokenProcess.encode({ employee_id: req.body.employee_id }, expireTime);
     req.body.code = randomize('000000');
     // const payload = _.pick(req.body, ['employee_id', 'token', 'code']);
