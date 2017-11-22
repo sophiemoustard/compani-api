@@ -5,15 +5,19 @@ const ActivationCodeSchema = mongoose.Schema({
     type: Number,
     required: true
   },
-  employee_id: {
+  mobile_phone: {
     type: Number,
     required: true
   },
-  token: String,
+  // employee_id: {
+  //   type: Number,
+  //   required: true
+  // },
+  // token: String,
   created_at: {
     type: Date,
     default: Date.now,
-    expires: 600
+    // expires: 600
   }
 });
 

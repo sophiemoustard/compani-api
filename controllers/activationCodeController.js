@@ -5,19 +5,19 @@ const tokenProcess = require('../helpers/tokenProcess');
 const translate = require('../helpers/translate');
 
 const language = translate.language;
-// const _ = require('lodash');
 
 const ActivationCode = require('../models/ActivationCode');
 
 const createActivationCode = async (req, res) => {
   try {
-    if (!req.body.employee_id) {
+    if (!req.body.mobile_phone) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    const expireTime = 600;
-    req.body.token = tokenProcess.encode({ employee_id: req.body.employee_id }, expireTime);
+    // const expireTime = 600;
+    // req.body.token = tokenProcess.encode({ employee_id: req.body.employee_id }, expireTime);
     req.body.code = randomize('000000');
-    const payload = _.pick(req.body, ['employee_id', 'token', 'code']);
+    // const payload = _.pick(req.body, ['employee_id', 'token', 'code']);
+    const payload = _.pick(req.body, ['mobile_phone', 'code']);
     const activationCode = new ActivationCode(payload);
     await activationCode.save();
     return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationCode } });
