@@ -41,8 +41,8 @@ const getAllBySector = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       sector: req.params.sector,
-      status: req.query.status || 'A',
-      nature: req.query.nature || 'S',
+      status: req.query.status || 'A', // status 'A' = 'Actif'
+      nature: req.query.nature || 'S', // nature 'S' = 'Salarié'
       nbperpage: req.query.nbperpage,
       pagenum: req.query.pagenum
     };
@@ -65,8 +65,7 @@ const getById = async (req, res) => {
   try {
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.params.id,
-      status: req.query.status || 'A'
+      id_employee: req.params.id
     };
     const newParams = _.pickBy(params);
     const user = await employees.getEmployeeById(newParams);
@@ -93,7 +92,7 @@ const getEmployeeServices = async (req, res) => {
     || (req.query.isDate == 'true' && req.query.startDate && req.query.endDate)) {
       const params = {
         token: req.headers['x-ogust-token'],
-        id: req.params.id,
+        id_employee: req.params.id,
         isRange: req.query.isRange || 'false',
         isDate: req.query.isDate || 'false',
         slotToSub: req.query.slotToSub || '',
@@ -131,7 +130,7 @@ const getEmployeeCustomers = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.params.id,
+      id_employee: req.params.id,
       isRange: 'true',
       isDate: 'false',
       slotToSub: req.query.slotToSub || 2,
@@ -196,23 +195,45 @@ const getEmployeeSalaries = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.params.id,
+      id_employee: req.params.id,
       nbperpage: req.query.nbPerPage || '24',
       pagenum: req.query.pageNum || '1'
     };
     const newParams = _.pickBy(params);
     const salariesRaw = await employees.getSalaries(newParams);
     if (salariesRaw.body.status == 'KO') {
-      res.status(400).json({ success: false, message: salariesRaw.body.message });
+      return res.status(400).json({ success: false, message: salariesRaw.body.message });
     } else if (Object.keys(salariesRaw.body.array_salary.result).length === 0) {
-      res.status(404).json({ success: false, message: translate[language].salariesNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].salariesFound, data: { salaries: salariesRaw.body } });
+      return res.status(404).json({ success: false, message: translate[language].salariesNotFound });
     }
+    return res.status(200).json({ success: true, message: translate[language].salariesFound, data: { salaries: salariesRaw.body } });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
 
-module.exports = { getAll, getById, getAllBySector, getEmployeeServices, getEmployeeCustomers, getEmployeeSalaries };
+const create = async (req, res) => {
+  try {
+    if (!req.body.title || !req.body.last_name || !req.body.main_address) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const params = {
+      token: req.headers['x-ogust-token'],
+      title: req.body.title,
+      last_name: req.body.lastname,
+      first_name: req.body.firstname,
+      main_address: req.body.address,
+      email: req.body.email,
+      sector: req.body.sector,
+      mobile_phone: req.body.mobile_phone
+    };
+    const user = await employees.create(params);
+    return res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+module.exports = { getAll, getById, getAllBySector, getEmployeeServices, getEmployeeCustomers, getEmployeeSalaries, create };

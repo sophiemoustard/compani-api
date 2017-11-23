@@ -5,10 +5,7 @@ exports.getList = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}getList`,
     json: true,
-    body: {
-      token: params.token,
-      key: params.key,
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true
   };

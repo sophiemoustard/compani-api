@@ -7,7 +7,7 @@ const router = express.Router();
 
 const activationCodeController = require('../../controllers/activationCodeController');
 
-router.post('/check', activationCodeController.activationCodeAuthentication);
+router.post('/check', activationCodeController.checkActivationCode);
 
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));

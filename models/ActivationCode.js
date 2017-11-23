@@ -9,6 +9,10 @@ const ActivationCodeSchema = mongoose.Schema({
     type: Number,
     required: true
   },
+  sector: {
+    type: String,
+    required: true
+  },
   // employee_id: {
   //   type: Number,
   //   required: true

@@ -36,8 +36,7 @@ const getById = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.params.id,
-      status: req.query.status || 'A'
+      id_customer: req.params.id
     };
     const newParams = _.pickBy(params);
     const user = await customers.getCustomerById(newParams);
@@ -61,9 +60,9 @@ const editCustomerCodes = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.params.id,
-      doorCode: req.body.doorCode,
-      interCode: req.body.interCode
+      id_customer: req.params.id,
+      door_code: req.body.doorCode,
+      intercom_code: req.body.interCode
     };
     // console.log(params);
     // const newParams = _.pickBy(params);
@@ -91,7 +90,7 @@ const getCustomerServices = async (req, res) => {
     || (req.query.isDate == 'true' && req.query.startDate && req.query.endDate)) {
       const params = {
         token: req.headers['x-ogust-token'],
-        id: req.params.id,
+        id_customer: req.params.id,
         isRange: req.query.isRange || false,
         isDate: req.query.isDate || false,
         slotToSub: req.query.slotToSub || '',
@@ -129,7 +128,7 @@ const getThirdPartyInformation = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.params.id,
+      third_party_id: req.params.id,
       third_party: req.query.third_party || 'C',
       nbperpage: req.query.nbperpage || 10,
       pagenum: req.query.pagenum || 1
@@ -156,9 +155,9 @@ const editThirdPartyInformation = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.params.id,
+      third_part_id: req.params.id,
       third_party: req.query.third_party || 'C',
-      arrayValues: req.body.arrayValues
+      array_values: req.body.arrayValues
     };
     const newParams = _.pickBy(params);
     const thirdPartyInfos = await customers.editThirdPartyInformationByCustomerId(newParams);

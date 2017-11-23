@@ -65,12 +65,7 @@ exports.getServiceById = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}getService`,
     json: true,
-    body: {
-      token: params.token,
-      id_service: params.id,
-      status: params.status,
-      type: params.type // I = Intervention
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true
   };

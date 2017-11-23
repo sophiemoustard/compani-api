@@ -15,15 +15,7 @@ exports.getEmployees = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}searchEmployee`,
     json: true,
-    body: {
-      token: params.token,
-      status: params.status,
-      nature: params.nature,
-      mobile_phone: params.mobile_phone,
-      sector: params.sector,
-      nbperpage: params.nbperpage,
-      pagenum: params.pagenum
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true,
   };
@@ -44,15 +36,7 @@ exports.getEmployeesBySector = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}searchEmployee`,
     json: true,
-    // status 'A' = 'Actif', nature 'S' = 'Salarié'
-    body: {
-      token: params.token,
-      sector: params.sector,
-      status: params.status,
-      nature: params.nature,
-      nbperpage: params.nbperpage,
-      pagenum: params.pagenum
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true,
   };
@@ -72,11 +56,7 @@ exports.getEmployeeById = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}getEmployee`,
     json: true,
-    body: {
-      token: params.token,
-      id_employee: params.id,
-      status: params.status
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true,
   };
@@ -116,7 +96,7 @@ exports.getServices = async (params) => {
     json: true,
     body: {
       token: params.token,
-      id_employee: params.id,
+      id_employee: params.id_employee,
       status: params.status,
       type: params.type, // I = Intervention
       start_date: `${'@between|'}${interval.intervalBwd}|${interval.intervalFwd}`,
@@ -143,14 +123,21 @@ exports.getSalaries = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}searchSalary`,
     json: true,
-    body: {
-      token: params.token,
-      id_employee: params.id,
-      nbperpage: params.nbperpage,
-      pagenum: params.pagenum,
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true,
+  };
+  const res = await rp.post(options);
+  return res;
+};
+
+exports.createEmployee = async (params) => {
+  const options = {
+    url: `${Ogust.API_LINK}setEmployee`,
+    json: true,
+    body: params,
+    resolveWithFullResponse: true,
+    time: true
   };
   const res = await rp.post(options);
   return res;

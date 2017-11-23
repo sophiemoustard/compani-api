@@ -49,9 +49,9 @@ const getById = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.params.id,
+      id_service: req.params.id,
       status: req.query.status || '@!=|N',
-      type: req.query.type || 'I'
+      type: req.query.type || 'I' // I = Intervention
     };
     const newParams = _.pickBy(params);
     servicesRaw = await services.getServiceById(newParams);

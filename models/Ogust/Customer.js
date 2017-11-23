@@ -27,12 +27,7 @@ exports.getCustomers = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}searchCustomer`,
     json: true,
-    body: {
-      token: params.token,
-      status: params.status,
-      nbperpage: params.nbperpage,
-      pagenum: params.pagenum
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true,
   };
@@ -52,11 +47,7 @@ exports.getCustomerById = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}getCustomer`,
     json: true,
-    body: {
-      token: params.token,
-      id_customer: params.id,
-      status: params.status
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true,
   };
@@ -68,12 +59,7 @@ exports.editCustomerCodesById = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}setCustomer`,
     json: true,
-    body: {
-      token: params.token,
-      id_customer: params.id,
-      door_code: params.doorCode,
-      intercom_code: params.interCode
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true
   };
@@ -85,13 +71,7 @@ exports.getThirdPartyInformationByCustomerId = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}getThirdPartyInformations`,
     json: true,
-    body: {
-      token: params.token,
-      nbperpage: params.nbperpage,
-      pagenum: params.pagenum,
-      third_party: params.third_party,
-      third_party_id: params.id,
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true,
   };
@@ -103,12 +83,7 @@ exports.editThirdPartyInformationByCustomerId = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}setThirdPartyInformations`,
     json: true,
-    body: {
-      token: params.token,
-      third_party_id: params.id,
-      third_party: params.third_party,
-      array_values: params.arrayValues
-    },
+    body: params,
     resolveWithFullResponse: true,
     time: true,
   };
@@ -148,7 +123,7 @@ exports.getServices = async (params) => {
     json: true,
     body: {
       token: params.token,
-      id_customer: params.id,
+      id_customer: params.id_customer,
       status: params.status,
       type: params.type, // I = Intervention
       start_date: `${'@between|'}${interval.intervalBwd}|${interval.intervalFwd}`,
