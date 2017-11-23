@@ -171,7 +171,7 @@ const getEmployeeCustomers = async (req, res) => {
     for (let i = 0; i < uniqCustomers.length; i++) {
       const customerParams = {
         token: req.headers['x-ogust-token'],
-        id: uniqCustomers[i],
+        id_customer: uniqCustomers[i],
         status: req.query.status || 'A',
       };
       const newCustomerParams = _.pickBy(customerParams);
