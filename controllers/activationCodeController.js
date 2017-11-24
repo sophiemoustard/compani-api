@@ -16,7 +16,7 @@ const createActivationCode = async (req, res) => {
     // 2 days expire
     // const expireTime = 172800;
     // req.body.token = tokenProcess.encode({ employee_id: req.body.employee_id }, expireTime);
-    req.body.code = randomize('000000');
+    req.body.code = randomize('0000');
     // const payload = _.pick(req.body, ['employee_id', 'token', 'code']);
     const payload = _.pick(req.body, ['mobile_phone', 'code', 'sector']);
     const activationData = new ActivationCode(payload);
