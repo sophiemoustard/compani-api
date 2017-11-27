@@ -40,7 +40,6 @@ const getEmployeeEvents = async (req, res, params) => {
       if (customerRaw.body.status == 'KO') {
         return res.status(400).json({ success: false, message: customerRaw.body.message });
       }
-      console.log(customerThirdPartyInfosRaw.body);
       customerRaw.body.customer.thirdPartyInformations = customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values;
       if (customerRaw.body.customer.thirdPartyInformations == null) {
         customerRaw.body.customer.thirdPartyInformations = {};
@@ -147,7 +146,6 @@ const getEvents = async (req, res) => {
     } else if (req.query.id_customer) {
       params.id_customer = req.query.id_customer;
     }
-    console.log(params);
     const newParams = _.pickBy(params);
 
     const events = personType === 'employees' ? await getEmployeeEvents(req, res, newParams) : await getCustomerEvents(req, res, newParams);
