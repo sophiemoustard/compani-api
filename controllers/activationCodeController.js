@@ -13,15 +13,12 @@ const createActivationCode = async (req, res) => {
     if (!req.body.mobile_phone) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    // 2 days expire
-    const expireTime = 172800;
-    const token = tokenProcess.encode({ mobile_phone: req.body.mobile_phone }, expireTime);
     req.body.code = randomize('0000');
     // const payload = _.pick(req.body, ['employee_id', 'token', 'code']);
     const payload = _.pick(req.body, ['mobile_phone', 'code', 'sector']);
     const activationData = new ActivationCode(payload);
     await activationData.save();
-    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationData, token } });
+    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationData } });
   } catch (e) {
     console.error(e.message);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
@@ -37,7 +34,10 @@ const checkActivationCode = async (req, res) => {
     if (!activationData) {
       return res.status(404).json({ success: false, message: translate[language].activationCodeNotFoundOrInvalid });
     }
-    return res.status(200).json({ success: true, message: translate[language].activationCodeValidated, data: { activationData } });
+    // 2 days expire
+    const expireTime = 172800;
+    const token = tokenProcess.encode({ activationData }, expireTime);
+    return res.status(200).json({ success: true, message: translate[language].activationCodeValidated, data: { activationData, token } });
   } catch (e) {
     console.error(e.message);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
