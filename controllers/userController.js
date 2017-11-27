@@ -75,7 +75,7 @@ const create = async (req, res) => {
     };
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
-    const token = tokenProcess.encode(user, expireTime);
+    const token = tokenProcess.encode(userPayload, expireTime);
     return res.status(200).json({ success: true, message: translate[language].userSaved, data: { token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload } });
   } catch (e) {
     console.error(e);
