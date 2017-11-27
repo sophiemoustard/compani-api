@@ -18,7 +18,7 @@ const ActivationCodeSchema = mongoose.Schema({
   //   required: true
   // },
   // token: String,
-  created_at: {
+  createdAt: {
     type: Date,
     default: Date.now,
     expires: 172800 // 2 days expire
