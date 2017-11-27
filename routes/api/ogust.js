@@ -14,7 +14,7 @@ const utilsController = require('./../../controllers/Ogust/utilsController');
 
 router.get('/token', tokenProcess.decode({ secret: tokenConfig.secret }), tokenController.get);
 router.post('/utils/getList', utilsController.getList);
-router.post('/employee', employeeController.create);
+router.post('/employees', employeeController.create);
 
 if (process.env.NODE_ENV == 'development') {
   router.get('/tests/token/:id', (req, res) => {

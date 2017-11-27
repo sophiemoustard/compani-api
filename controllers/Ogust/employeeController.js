@@ -221,14 +221,24 @@ const create = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       title: req.body.title,
-      last_name: req.body.lastname,
-      first_name: req.body.firstname,
-      main_address: req.body.address,
+      last_name: req.body.last_name,
+      first_name: req.body.first_name,
+      main_address: {
+        line: req.body.main_address.line,
+        zip: req.body.main_address.zip,
+        city: req.body.main_address.city,
+        type: 'Adrpri',
+        country: 'FR'
+      },
       email: req.body.email,
       sector: req.body.sector,
-      mobile_phone: req.body.mobile_phone
+      mobile_phone: req.body.mobile_phone,
+      nature: 'S',
+      status: 'A',
+      method_of_payment: '7268',
+      manager: '232220179'
     };
-    const user = await employees.create(params);
+    const user = await employees.createEmployee(params);
     return res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
   } catch (e) {
     console.error(e);
