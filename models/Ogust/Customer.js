@@ -123,7 +123,7 @@ exports.getServices = async (params) => {
     json: true,
     body: {
       token: params.token,
-      id_customer: params.id_customer,
+      id_customer: params.id,
       status: params.status,
       type: params.type, // I = Intervention
       start_date: `${'@between|'}${interval.intervalBwd}|${interval.intervalFwd}`,
