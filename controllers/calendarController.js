@@ -24,14 +24,14 @@ const getEmployeeEvents = async (req, res, params) => {
       isUniq = true;
       const customerParams = {
         token: req.headers['x-ogust-token'],
-        id: events[index].id_customer,
+        id_customer: events[index].id_customer,
         status: req.query.status || 'A',
       };
       const newCustomerParams = _.pickBy(customerParams);
       const customerRaw = await customers.getCustomerById(newCustomerParams);
       const thirdPartyParams = {
         token: req.headers['x-ogust-token'],
-        id: events[index].id_customer,
+        third_party_id: events[index].id_customer,
         third_party: 'C',
         nbperpage: 10,
         pagenum: 1
@@ -40,6 +40,7 @@ const getEmployeeEvents = async (req, res, params) => {
       if (customerRaw.body.status == 'KO') {
         return res.status(400).json({ success: false, message: customerRaw.body.message });
       }
+      console.log(customerThirdPartyInfosRaw.body);
       customerRaw.body.customer.thirdPartyInformations = customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values;
       if (customerRaw.body.customer.thirdPartyInformations == null) {
         customerRaw.body.customer.thirdPartyInformations = {};
@@ -92,7 +93,7 @@ const getCustomerEvents = async (req, res, params) => {
       isUniq = true;
       const employeeParams = {
         token: req.headers['x-ogust-token'],
-        id: events[index].id_employee,
+        id_employee: events[index].id_employee,
         status: req.query.status || 'A',
       };
       const newEmployeeParams = _.pickBy(employeeParams);
@@ -129,7 +130,6 @@ const getEvents = async (req, res) => {
     const personType = req.query.id_employee ? 'employees' : 'customers';
     const params = {
       token: req.headers['x-ogust-token'],
-      id: req.query.id_employee || req.query.id_customer,
       isRange: req.query.isRange || 'false',
       isDate: req.query.isDate || 'false',
       slotToSub: req.query.slotToSub || '',
@@ -142,14 +142,20 @@ const getEvents = async (req, res) => {
       nbperpage: req.query.nbPerPage || '500',
       pagenum: req.query.pageNum || '1'
     };
+    if (req.query.id_employee) {
+      params.id_employee = req.query.id_employee;
+    } else if (req.query.id_customer) {
+      params.id_customer = req.query.id_customer;
+    }
+    console.log(params);
     const newParams = _.pickBy(params);
 
     const events = personType === 'employees' ? await getEmployeeEvents(req, res, newParams) : await getCustomerEvents(req, res, newParams);
 
-    res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { events } });
+    return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { events } });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
 
