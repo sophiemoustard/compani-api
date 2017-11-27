@@ -14,14 +14,14 @@ const createActivationCode = async (req, res) => {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     // 2 days expire
-    // const expireTime = 172800;
-    // req.body.token = tokenProcess.encode({ employee_id: req.body.employee_id }, expireTime);
+    const expireTime = 172800;
+    const token = tokenProcess.encode({ mobile_phone: req.body.mobile_phone }, expireTime);
     req.body.code = randomize('0000');
     // const payload = _.pick(req.body, ['employee_id', 'token', 'code']);
     const payload = _.pick(req.body, ['mobile_phone', 'code', 'sector']);
     const activationData = new ActivationCode(payload);
     await activationData.save();
-    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationData } });
+    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationData, token } });
   } catch (e) {
     console.error(e.message);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
