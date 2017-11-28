@@ -10,7 +10,7 @@ const ActivationCode = require('../models/ActivationCode');
 
 const createActivationCode = async (req, res) => {
   try {
-    if (!req.body.mobile_phone) {
+    if (!req.body.mobile_phone || !req.body.sector) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     req.body.code = randomize('0000');
@@ -27,7 +27,7 @@ const createActivationCode = async (req, res) => {
 
 const checkActivationCode = async (req, res) => {
   try {
-    if (!req.body.code) {
+    if (!req.params.code) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     const activationData = await ActivationCode.findOne({ code: req.body.code });
@@ -43,6 +43,16 @@ const checkActivationCode = async (req, res) => {
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
+
+// const linkActivationCode = async (req, res) => {
+//   try {
+//     if (!req.body.code || !req.body.id_employee) {
+      
+//     }
+//   } catch (e) {
+
+//   }
+// }
 
 module.exports = {
   createActivationCode,

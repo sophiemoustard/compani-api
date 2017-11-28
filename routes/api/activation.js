@@ -7,11 +7,13 @@ const router = express.Router();
 
 const activationCodeController = require('../../controllers/activationCodeController');
 
-router.post('/check', activationCodeController.checkActivationCode);
+// Check if code is OK
+router.get('/', activationCodeController.checkActivationCode);
 
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
+// Create code
 router.post('/', checkRoles({ list: ['coach'] }), activationCodeController.createActivationCode);
 
 module.exports = router;
