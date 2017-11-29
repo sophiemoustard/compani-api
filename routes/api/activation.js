@@ -8,7 +8,7 @@ const router = express.Router();
 const activationCodeController = require('../../controllers/activationCodeController');
 
 // Check if code is OK
-router.get('/', activationCodeController.checkActivationCode);
+router.get('/:code', activationCodeController.checkActivationCode);
 
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));

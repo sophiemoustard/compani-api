@@ -30,7 +30,7 @@ const checkActivationCode = async (req, res) => {
     if (!req.params.code) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    const activationData = await ActivationCode.findOne({ code: req.body.code });
+    const activationData = await ActivationCode.findOne({ code: req.params.code });
     if (!activationData) {
       return res.status(404).json({ success: false, message: translate[language].activationCodeNotFoundOrInvalid });
     }
