@@ -63,7 +63,8 @@ module.exports = {
     activationCodeCreated: 'Activation code created.',
     activationCodeNotFoundOrInvalid: 'Activation code not found or invalid.',
     activationCodeValidated: 'Activation code validated.',
-    refreshTokenNotFound: 'Refresh token not found.'
+    refreshTokenNotFound: 'Refresh token not found.',
+    activationCodeDeleted: 'Activation data deleted.'
   },
   'fr-FR': {
     /* Global errors */
@@ -128,6 +129,7 @@ module.exports = {
     activationCodeCreated: 'Code activation créé.',
     activationCodeNotFoundOrInvalid: 'Code activation non trouvé ou invalide.',
     activationCodeValidated: 'Code activation validé.',
-    refreshTokenNotFound: 'Refresh token not found.'
+    refreshTokenNotFound: 'Refresh token not found.',
+    activationCodeDeleted: 'Données d\'activations bien effacées.'
   }
 };

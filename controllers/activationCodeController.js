@@ -44,7 +44,22 @@ const checkActivationCode = async (req, res) => {
   }
 };
 
+const deleteActivationCode = async (req, res) => {
+  try {
+    const activationData = await ActivationCode.findOne({ mobile_phone: req.params.mobile_phone });
+    if (!activationData) {
+      return res.status(404).json({ success: false, message: translate[language].activationCodeNotFoundOrInvalid });
+    }
+    const deleteActivationData = await ActivationCode.findByIdAndRemove({ _id: activationData._id });
+    return res.status(200).json({ success: true, message: translate[language].activationCodeDeleted, data: { deleteActivationData } });
+  } catch (e) {
+    console.error(e.message);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
 module.exports = {
   createActivationCode,
-  checkActivationCode
+  checkActivationCode,
+  deleteActivationCode
 };
