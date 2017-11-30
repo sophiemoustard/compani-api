@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const ActivationCodeSchema = mongoose.Schema({
   code: {
-    type: Number,
+    type: String,
     required: true
   },
   mobile_phone: {

@@ -44,16 +44,6 @@ const checkActivationCode = async (req, res) => {
   }
 };
 
-// const linkActivationCode = async (req, res) => {
-//   try {
-//     if (!req.body.code || !req.body.id_employee) {
-      
-//     }
-//   } catch (e) {
-
-//   }
-// }
-
 module.exports = {
   createActivationCode,
   checkActivationCode
