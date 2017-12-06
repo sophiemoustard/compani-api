@@ -155,7 +155,7 @@ const editThirdPartyInformation = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      third_part_id: req.params.id,
+      third_party_id: req.params.id,
       third_party: req.query.third_party || 'C',
       array_values: req.body.arrayValues
     };
