@@ -20,5 +20,6 @@ router.use('/planningUpdates', require('./api/planningUpdate'));
 router.use('/twilio', require('./api/twilio'));
 router.use('/activation', require('./api/activation'));
 router.use('/roles', require('./api/role'));
+router.use('/features', require('./api/features'));
 
 module.exports = router;

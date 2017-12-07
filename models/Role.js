@@ -9,15 +9,16 @@ const RoleSchema = mongoose.Schema({
     dropDups: true,
     default: 'guest'
   },
-  features: [
-    {
-      name: String,
-      permission_level: {
-        type: Number,
-        default: 0
-      }
+  features: [{
+    feature_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Feature',
+    },
+    permission_level: {
+      type: Number,
+      default: 0
     }
-  ]
+  }]
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 

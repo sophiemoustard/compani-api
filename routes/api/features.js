@@ -5,15 +5,15 @@ const { checkRoles } = require('../../helpers/checkAuthorization');
 
 const router = express.Router();
 
-const roleController = require('../../controllers/roleController');
+const featureController = require('../../controllers/featureController');
 
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 // All these routes need a token because of route protection above
-router.post('/', roleController.create);
-router.put('/:_id', roleController.update);
-router.get('/', roleController.showAll);
-router.get('/:_id', roleController.show);
+router.post('/', featureController.create);
+router.put('/:_id', featureController.update);
+router.get('/', featureController.showAll);
+router.get('/:_id', featureController.show);
 
 module.exports = router;

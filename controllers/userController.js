@@ -113,7 +113,13 @@ const getPresentation = async (req, res) => {
 const showAll = async (req, res) => {
   // No security here to restrict access
   try {
-    const users = await User.find(req.query).populate('role').exec();
+    // We populate the user with role data and then we populate the role with features data
+    const users = await User.find(req.query).populate({
+      path: 'role',
+      populate: {
+        path: 'features'
+      }
+    }).exec();
     console.log(users);
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });

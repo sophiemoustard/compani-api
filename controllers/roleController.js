@@ -19,6 +19,10 @@ const create = async (req, res) => {
     };
     return res.status(200).json({ success: true, message: translate[language].roleCreated, data: { role: payload } });
   } catch (e) {
+    console.error(e);
+    if (e.code === 11000) {
+      return res.status(409).json({ success: false, message: translate[language].roleExists });
+    }
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
@@ -34,9 +38,10 @@ const update = async (req, res) => {
     }
     return res.status(200).json({ success: true, message: translate[language].roleUpdated, data: { role: roleUpdated } });
   } catch (e) {
+    console.error(e);
     // Error code when there is a duplicate key, in this case : the name (unique field)
     if (e.code === 11000) {
-      return res.status(409).json({ success: false, message: translate[language].userEmailExists });
+      return res.status(409).json({ success: false, message: translate[language].roleExists });
     }
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
@@ -52,6 +57,7 @@ const showAll = async (req, res) => {
     }
     return res.status(200).json({ success: true, message: translate[language].rolesShowAllFound, data: { roles } });
   } catch (e) {
+    console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
@@ -65,6 +71,7 @@ const show = async (req, res) => {
     }
     return res.status(200).json({ success: true, message: translate[language].roleFound, data: { role } });
   } catch (e) {
+    console.error(e);
     return res.status(404).json({ success: false, message: translate[language].roleNotFound });
   }
 };
