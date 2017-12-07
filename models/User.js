@@ -4,6 +4,8 @@ const validator = require('validator');
 
 const SALT_WORK_FACTOR = 10;
 
+const Role = require('./Role');
+
 // User schema
 const UserSchema = mongoose.Schema({
   firstname: String,
@@ -46,12 +48,13 @@ const UserSchema = mongoose.Schema({
     slackId: String,
     email: String
   },
-  role: {
-    type: String,
-    trim: true,
-    enum: ['admin', 'tech', 'coach', 'leader', 'auxiliary', 'family', 'guest'],
-    default: ['guest']
-  },
+  role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role' },
+  // role: [Role],
+  // type: String,
+  // trim: true,
+  // enum: ['admin', 'tech', 'coach', 'leader', 'auxiliary', 'family', 'guest'],
+  // default: ['guest']
+  // },
   employee_id: {
     type: Number,
     trim: true

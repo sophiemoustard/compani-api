@@ -64,7 +64,13 @@ module.exports = {
     activationCodeNotFoundOrInvalid: 'Activation code not found or invalid.',
     activationCodeValidated: 'Activation code validated.',
     refreshTokenNotFound: 'Refresh token not found.',
-    activationCodeDeleted: 'Activation data deleted.'
+    activationCodeDeleted: 'Activation data deleted.',
+    /* Role */
+    roleCreated: 'Role created.',
+    roleDeleted: 'Role deleted.',
+    roleUpdated: 'Role updated.',
+    rolesShowAllNotFound: 'Roles not found.',
+    roleNotFound: 'Role not found'
   },
   'fr-FR': {
     /* Global errors */
@@ -130,6 +136,12 @@ module.exports = {
     activationCodeNotFoundOrInvalid: 'Code activation non trouvé ou invalide.',
     activationCodeValidated: 'Code activation validé.',
     refreshTokenNotFound: 'Refresh token not found.',
-    activationCodeDeleted: 'Données d\'activations bien effacées.'
+    activationCodeDeleted: 'Données d\'activations bien effacées.',
+    /* Role */
+    roleCreated: 'Rôle créé.',
+    roleDeleted: 'Rôle effacé.',
+    roleUpdated: 'Rôle mit à jour.',
+    rolesShowAllNotFound: 'Rôles non trouvés.',
+    roleNotFound: 'Role non trouvé'
   }
 };

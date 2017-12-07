@@ -11,6 +11,7 @@ const _ = require('lodash');
 const tokenProcess = require('../helpers/tokenProcess');
 
 const User = require('../models/User');
+const Role = require('../models/Role');
 
 // Authenticate the user locally
 const authenticate = async (req, res) => {
@@ -112,12 +113,14 @@ const getPresentation = async (req, res) => {
 const showAll = async (req, res) => {
   // No security here to restrict access
   try {
-    const users = await User.find(req.query);
+    const users = await User.find(req.query).populate('role').exec();
+    console.log(users);
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     }
     return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
   } catch (e) {
+    console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
@@ -131,6 +134,7 @@ const show = async (req, res) => {
     }
     return res.status(200).json({ success: true, message: translate[language].userFound, data: { user } });
   } catch (e) {
+    console.error(e);
     return res.status(404).json({ success: false, message: translate[language].userNotFound });
   }
 };
