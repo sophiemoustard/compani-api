@@ -72,13 +72,16 @@ module.exports = {
     rolesShowAllNotFound: 'Roles not found.',
     roleNotFound: 'Role not found',
     roleExists: 'Role already exists.',
+    roleRemoved: 'Role removed.',
     /* Feature */
     featureCreated: 'Feature created.',
     featureDeleted: 'Feature deleted.',
     featureUpdated: 'Feature updated.',
     featuresShowAllNotFound: 'Features not found.',
     featureNotFound: 'Feature not found',
-    featureExists: 'Feature already exists.'
+    featureExists: 'Feature already exists.',
+    featuresDoNotExist: 'Features do not exist.',
+    featureRemoved: 'Feature removed.'
   },
   'fr-FR': {
     /* Global errors */
@@ -152,12 +155,15 @@ module.exports = {
     rolesShowAllNotFound: 'Rôles non trouvés.',
     roleNotFound: 'Role non trouvé.',
     roleExists: 'Role déjà existant.',
+    roleRemoved: 'Role supprimé.',
     /* Feature */
     featureCreated: 'Feature créée.',
     featureDeleted: 'Feature effacée.',
     featureUpdated: 'Feature mise à jour.',
     featuresShowAllNotFound: 'Features non trouvées.',
     featureNotFound: 'Feature non trouvée.',
-    featureExists: 'Feature déjà existante.'
+    featureExists: 'Feature déjà existante.',
+    featuresDoNotExist: "Features n'existent pas.",
+    featureRemoved: 'Feature supprimé.'
   }
 };
