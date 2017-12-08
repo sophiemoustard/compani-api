@@ -15,5 +15,6 @@ router.post('/', roleController.create);
 router.put('/:_id', roleController.update);
 router.get('/', roleController.showAll);
 router.get('/:_id', roleController.show);
+router.delete('/:_id', roleController.remove);
 
 module.exports = router;
