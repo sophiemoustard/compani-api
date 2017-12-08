@@ -50,7 +50,7 @@ const update = async (req, res) => {
 const showAll = async (req, res) => {
   // No security here to restrict access
   try {
-    const features = await Feature.find(req.query);
+    const features = await Feature.find(req.query).select('_id name');
     if (features.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].featuresShowAllNotFound });
     }
@@ -75,9 +75,23 @@ const show = async (req, res) => {
   }
 };
 
+const remove = async (req, res) => {
+  try {
+    const featureDeleted = await Feature.findByIdAndRemove({ _id: req.params._id });
+    if (!featureDeleted) {
+      return res.status(404).json({ success: false, message: translate[language].featureNotFound });
+    }
+    return res.status(200).json({ success: true, message: translate[language].featureRemoved, data: { featureDeleted } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
 module.exports = {
   create,
   update,
   showAll,
-  show
+  show,
+  remove
 };
