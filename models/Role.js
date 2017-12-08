@@ -12,7 +12,7 @@ const RoleSchema = mongoose.Schema({
   features: [{
     feature_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Feature',
+      ref: 'Feature'
     },
     permission_level: {
       type: Number,
