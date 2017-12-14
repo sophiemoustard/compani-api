@@ -1,22 +1,22 @@
-const mongoose  = require('mongoose');
-const db        = require('./database');
+const mongoose = require('mongoose');
+const db = require('./database');
 
 mongoose.Promise = global.Promise;
-mongoose.connect(db.database);
+mongoose.connect(db.database, { useMongoClient: true });
 
 // When successfully connected
-mongoose.connection.once('connected', function() {
+mongoose.connection.once('connected', () => {
   return console.log('Successfully connected to MongoDB');
 });
 
 // If the connection throws an error
-mongoose.connection.on('error', function(err) {
+mongoose.connection.on('error', (err) => {
   console.error('There was a db connection error');
   return (err.message);
 });
 
 // When the connection is disconnected
-mongoose.connection.once('disconnected', function() {
+mongoose.connection.once('disconnected', () => {
   return console.log('Successfully disconnected from MongoDB');
 });
 
