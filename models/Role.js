@@ -16,7 +16,9 @@ const RoleSchema = mongoose.Schema({
     },
     permission_level: {
       type: Number,
-      default: 0
+      default: 0,
+      min: [0, 'Value must be between 0 and 2'],
+      max: [2, 'Value must be between 0 and 2']
     }
   }]
 }, { timestamps: true });
