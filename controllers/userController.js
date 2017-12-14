@@ -37,7 +37,7 @@ const authenticate = async (req, res) => {
     const payload = {
       // firstname: user.firstname,
       // lastname: user.lastname,
-      _id: alenviUser.id,
+      _id: alenviUser._id,
       // 'local.email': user.local.email,
       role: alenviUser.role,
       // customer_id: user.customer_id,
@@ -77,16 +77,19 @@ const create = async (req, res) => {
     const user = new User(req.body);
     // Save user
     await user.save();
-    await User.populate(user, {
+    // Populate user role
+    const populatedUser = await User.findOne({ _id: user._id }).populate({
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features.feature_id'
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
       }
     }).lean();
+    populatedUser.role.features = populateRole(populatedUser.role.features);
     const payload = {
-      _id: user.id,
-      role: user.role,
+      _id: populatedUser._id,
+      role: populatedUser.role,
     };
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
@@ -135,22 +138,13 @@ const showAll = async (req, res) => {
         path: 'features.feature_id'
       }
     }).lean();
-    // Format users to display features role with _id, name and permission_level 
-    users.forEach((user) => {
-      const features = [];
-      user.role.features.forEach((feature) => {
-        features.push({
-          _id: feature.feature_id._id,
-          name: feature.feature_id.name,
-          permission_level: feature.permission_level
-        });
-      });
-      user.role.features = features;
-    });
-    console.log(users);
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     }
+    // Format users to display features role with _id, name and permission_level 
+    users.forEach((user) => {
+      user.role.features = populateRole(user.role.features);
+    });
     return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
   } catch (e) {
     console.error(e);
@@ -161,19 +155,23 @@ const showAll = async (req, res) => {
 // Find an user by Id in param URL
 const show = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.params._id }).lean();
+    console.log(req.params._id);
+    const user = await User.findOne({ _id: req.params._id }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
     if (!user) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
-    const populatedRole = await Role.findOne({ _id: user.role }).populate({ path: 'features.feature_id' }).lean();
-    if (!populatedRole) {
-      return res.status(404).json({ success: false, message: translate[language].roleNotFound });
-    }
-    user.role = populateRole(populatedRole);
+    user.role.features = populateRole(user.role.features);
     return res.status(200).json({ success: true, message: translate[language].userFound, data: { user } });
   } catch (e) {
     console.error(e);
-    return res.status(404).json({ success: false, message: translate[language].userNotFound });
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
 
@@ -183,21 +181,28 @@ const update = async (req, res) => {
     return res.status(400).json({ success: false, message: translate[language].missingParameters });
   }
   try {
-    let populatedRole;
+    let role;
     if (req.body.role) {
-      populatedRole = await Role.findOne({ name: req.body.role });
-      if (!populatedRole) {
+      role = await Role.findOne({ name: req.body.role });
+      if (!role) {
         return res.status(404).json({ success: false, message: translate[language].roleNotFound });
       }
       req.body.role = role._id.toString();
     }
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.body) }, { new: true });
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.body) }, { new: true }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
     if (!userUpdated) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
-    const userUpdatedObj = userUpdated.toObject();
-    return res.status(200).json({ success: true, message: translate[language].userUpdated, data: { userUpdated: userUpdatedObj } });
+    userUpdated.role.features = populateRole(userUpdated.role.features);
+    return res.status(200).json({ success: true, message: translate[language].userUpdated, data: { userUpdated } });
   } catch (e) {
     console.error(e);
     // Error code when there is a duplicate key, in this case : the email (unique field)
