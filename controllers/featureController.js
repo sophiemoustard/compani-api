@@ -1,5 +1,5 @@
 const translate = require('../helpers/translate');
-const dot = require('dot-object');
+const flat = require('flat');
 
 const language = translate.language;
 
@@ -31,7 +31,7 @@ const update = async (req, res) => {
     return res.status(400).json({ success: false, message: translate[language].missingParameters });
   }
   try {
-    const featureUpdated = await Feature.findOneAndUpdate({ _id: req.params._id }, { $set: dot.dot(req.body) }, { new: true });
+    const featureUpdated = await Feature.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.body) }, { new: true });
     if (!featureUpdated) {
       return res.status(404).json({ success: false, message: translate[language].featureNotFound });
     }
