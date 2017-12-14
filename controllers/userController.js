@@ -1,13 +1,15 @@
 // const db            = require('../config/database');
 // const tokenConfig   = require('../config/strategies').token;
 const bcrypt = require('bcrypt');
-const dot = require('dot-object');
 const uuidv4 = require('uuid/v4');
+const flat = require('flat');
 const translate = require('../helpers/translate');
 
 const language = translate.language;
 // const jwt           = require('jsonwebtoken');
 const _ = require('lodash');
+
+const { populateRole } = require('../helpers/populateRole');
 const tokenProcess = require('../helpers/tokenProcess');
 
 const User = require('../models/User');
@@ -20,7 +22,7 @@ const authenticate = async (req, res) => {
   }
   // Get by local email
   try {
-    const alenviUser = await User.findOne({ 'local.email': req.body.email });
+    const alenviUser = await User.findOne({ 'local.email': req.body.email }).lean();
     if (!alenviUser) {
       return res.status(404).json({ success: false, message: translate[language].userAuthNotFound });
     }
@@ -65,11 +67,23 @@ const create = async (req, res) => {
     return res.status(400).json({ success: false, message: translate[language].missingParameters });
   }
   try {
+    const role = await Role.findOne({ name: req.body.role }, { _id: 1 }).lean();
+    if (!role) {
+      return res.status(404).json({ success: false, message: translate[language].roleNotFound });
+    }
+    req.body.role = role._id;
     // Create refreshToken and store it
     req.body.refreshToken = uuidv4();
     const user = new User(req.body);
     // Save user
     await user.save();
+    await User.populate(user, {
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id'
+      }
+    }).lean();
     const payload = {
       _id: user.id,
       role: user.role,
@@ -98,7 +112,7 @@ const getPresentation = async (req, res) => {
       role: _.isArray(req.query.role) ? { $in: req.query.role } : req.query.role
     };
     const payload = _.pickBy(params);
-    const users = await User.find(payload, { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 });
+    const users = await User.find(payload, { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 }).lean();
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     }
@@ -116,10 +130,23 @@ const showAll = async (req, res) => {
     // We populate the user with role data and then we populate the role with features data
     const users = await User.find(req.query).populate({
       path: 'role',
+      select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features'
+        path: 'features.feature_id'
       }
-    }).exec();
+    }).lean();
+    // Format users to display features role with _id, name and permission_level 
+    users.forEach((user) => {
+      const features = [];
+      user.role.features.forEach((feature) => {
+        features.push({
+          _id: feature.feature_id._id,
+          name: feature.feature_id.name,
+          permission_level: feature.permission_level
+        });
+      });
+      user.role.features = features;
+    });
     console.log(users);
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
@@ -134,10 +161,15 @@ const showAll = async (req, res) => {
 // Find an user by Id in param URL
 const show = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.params._id });
+    const user = await User.findOne({ _id: req.params._id }).lean();
     if (!user) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
+    const populatedRole = await Role.findOne({ _id: user.role }).populate({ path: 'features.feature_id' }).lean();
+    if (!populatedRole) {
+      return res.status(404).json({ success: false, message: translate[language].roleNotFound });
+    }
+    user.role = populateRole(populatedRole);
     return res.status(200).json({ success: true, message: translate[language].userFound, data: { user } });
   } catch (e) {
     console.error(e);
@@ -151,13 +183,23 @@ const update = async (req, res) => {
     return res.status(400).json({ success: false, message: translate[language].missingParameters });
   }
   try {
-    // Have to update using dot-object package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: dot.dot(req.body) }, { new: true });
+    let populatedRole;
+    if (req.body.role) {
+      populatedRole = await Role.findOne({ name: req.body.role });
+      if (!populatedRole) {
+        return res.status(404).json({ success: false, message: translate[language].roleNotFound });
+      }
+      req.body.role = role._id.toString();
+    }
+    // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.body) }, { new: true });
     if (!userUpdated) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
-    return res.status(200).json({ success: true, message: translate[language].userUpdated, data: { userUpdated } });
+    const userUpdatedObj = userUpdated.toObject();
+    return res.status(200).json({ success: true, message: translate[language].userUpdated, data: { userUpdated: userUpdatedObj } });
   } catch (e) {
+    console.error(e);
     // Error code when there is a duplicate key, in this case : the email (unique field)
     if (e.code === 11000) {
       return res.status(409).json({ success: false, message: translate[language].userEmailExists });
@@ -198,7 +240,7 @@ const generateRefreshToken = async (req, res) => {
     console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
-}
+};
 
 // Store user address from bot
 const storeUserAddress = async (req, res) => {
