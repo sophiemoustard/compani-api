@@ -86,8 +86,8 @@ const update = async (req, res) => {
       payload.name = req.body.name;
     }
     if (req.body.features) {
+      payload.features = [];
       req.body.features.forEach((feature) => {
-        payload.features = [];
         payload.features.push({
           feature_id: feature._id,
           permission_level: feature.permission_level
