@@ -1,5 +1,3 @@
-const dot = require('dot-object');
-
 const translate = require('../helpers/translate');
 
 const language = translate.language;
