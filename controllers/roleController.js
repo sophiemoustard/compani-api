@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const flat = require('flat');
 
 const translate = require('../helpers/translate');
 const { populateRole } = require('../helpers/populateRole');
@@ -39,6 +38,9 @@ const create = async (req, res) => {
     }
     for (let i = 0, l = features.length; i < l; i++) {
       const bodyFeature = _.find(req.body.features, ['_id', features[i]._id.toString()]);
+      if (isNaN(bodyFeature.permission_level) || bodyFeature.permission_level < 0 || bodyFeature.permission_level > 2) {
+        return res.status(400).json({ success: false, message: translate[language].invalidPermLevel, error: bodyFeature });
+      }
       if (_.some(req.body.features, ['_id', features[i]._id.toString()])) {
         createPayload.features.push({
           feature_id: features[i]._id,
@@ -53,7 +55,7 @@ const create = async (req, res) => {
     }
     const role = new Role(createPayload);
     await role.save();
-    const populatedRole = await Role.findOne({ _id: role._id }).populate('features.feature_id');
+    const populatedRole = await Role.findOne({ _id: role._id }).populate('features.feature_id').lean();
     const payload = {
       _id: populatedRole._id,
       name: populatedRole.name,
@@ -96,15 +98,7 @@ const update = async (req, res) => {
     if (!roleUpdated) {
       return res.status(404).json({ success: false, message: translate[language].roleNotFound });
     }
-    const features = [];
-    roleUpdated.features.forEach((feature) => {
-      features.push({
-        _id: feature.feature_id._id,
-        name: feature.feature_id.name,
-        permission_level: feature.permission_level
-      });
-    });
-    roleUpdated.features = features;
+    roleUpdated.features = populateRole(roleUpdated.features);
     return res.status(200).json({ success: true, message: translate[language].roleUpdated, data: { role: roleUpdated } });
   } catch (e) {
     console.error(e);
@@ -120,30 +114,16 @@ const update = async (req, res) => {
 const showAll = async (req, res) => {
   // No security here to restrict access
   try {
-    const rolesRaw = await Role.find(req.query, { 'features._id': 0, updatedAt: 0, createdAt: 0, __v: 0 }).populate({ path: 'features.feature_id', select: 'name _id' }).lean();
-    if (rolesRaw.length === 0) {
+    const roles = await Role.find(req.query, { 'features._id': 0, updatedAt: 0, createdAt: 0, __v: 0 }).populate({ path: 'features.feature_id', select: 'name _id' }).lean();
+    if (roles.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].rolesShowAllNotFound });
     }
-    const roles = [];
-    rolesRaw.forEach((role) => {
-      const features = [];
-      role.features.forEach((feature) => {
-        features.push({
-          _id: feature.feature_id._id,
-          name: feature.feature_id.name,
-          permission_level: feature.permission_level
-        });
-      });
-      roles.push({
-        _id: role._id,
-        name: role.name,
-        features
-      });
+    roles.forEach((role) => {
+      role.features = populateRole(role.features);
     });
     return res.status(200).json({ success: true, message: translate[language].rolesShowAllFound, data: { roles } });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
 
@@ -154,12 +134,11 @@ const show = async (req, res) => {
     if (!role) {
       return res.status(404).json({ success: false, message: translate[language].roleNotFound });
     }
-    const populatedRole = populateRole(role);
-    role.features = populatedRole;
+    role.features = populateRole(role.features);
     return res.status(200).json({ success: true, message: translate[language].roleFound, data: { role } });
   } catch (e) {
     console.error(e);
-    return res.status(404).json({ success: false, message: translate[language].roleNotFound });
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
 
