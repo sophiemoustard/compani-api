@@ -6,7 +6,6 @@ exports.populateRole = (features) => {
   // };
   const formattedFeatures = [];
   features.forEach((feature) => {
-    console.log(feature);
     formattedFeatures.push({
       _id: feature.feature_id._id,
       name: feature.feature_id.name,
