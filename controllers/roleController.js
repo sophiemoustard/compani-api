@@ -38,10 +38,11 @@ const create = async (req, res) => {
       return res.status(404).json({ success: false, message: translate[language].featuresDoNotExist });
     }
     for (let i = 0, l = features.length; i < l; i++) {
-      if (_.some(req.body.features, { name: features[i].name })) {
+      const bodyFeature = _.find(req.body.features, ['_id', features[i]._id.toString()]);
+      if (_.some(req.body.features, ['_id', features[i]._id.toString()])) {
         createPayload.features.push({
           feature_id: features[i]._id,
-          permission_level: req.body.features[features[i].name]
+          permission_level: bodyFeature.permission_level
         });
       } else {
         createPayload.features.push({
