@@ -84,6 +84,7 @@ const addMessageRecipientById = async (req, res) => {
       id: req.body.recipientId,
       success: req.body.success
     };
+    console.log(payload);
     const updatedMessage = await MessageToBot.findOneAndUpdate({ _id: req.params._id }, { $push: { recipients: payload } }, { new: true });
     if (!updatedMessage) {
       return res.status(404).send({ success: false, message: translate[language].messageNotFound });
