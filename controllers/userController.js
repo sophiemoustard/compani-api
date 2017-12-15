@@ -22,7 +22,7 @@ const authenticate = async (req, res) => {
   }
   // Get by local email
   try {
-    const alenviUser = await User.findOne({ 'local.email': req.body.email }).lean();
+    const alenviUser = await User.findOne({ 'local.email': req.body.email }).populate('role').lean();
     if (!alenviUser) {
       return res.status(404).json({ success: false, message: translate[language].userAuthNotFound });
     }
@@ -39,7 +39,7 @@ const authenticate = async (req, res) => {
       // lastname: user.lastname,
       _id: alenviUser._id,
       // 'local.email': user.local.email,
-      role: alenviUser.role,
+      role: alenviUser.role.name,
       // customer_id: user.customer_id,
       // employee_id: user.employee_id,
       // sector: user.sector,
