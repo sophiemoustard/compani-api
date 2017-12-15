@@ -148,7 +148,7 @@ const remove = async (req, res) => {
     if (!roleDeleted) {
       return res.status(404).json({ success: false, message: translate[language].roleNotFound });
     }
-    return res.status(200).json({ success: true, message: translate[language].roleRemoved, data: { roleDeleted } });
+    return res.status(200).json({ success: true, message: translate[language].roleRemoved, data: { role: roleDeleted } });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
