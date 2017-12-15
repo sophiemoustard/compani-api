@@ -13,7 +13,7 @@ module.exports = {
     let roleIsAuthorized = false;
     if (roles.list) {
       for (let i = roles.list.length - 1; i > -1; i--) {
-        if (req.decoded.role === roles[i]) {
+        if (req.decoded.role === roles.list[i]) {
           roleIsAuthorized = true;
         }
       }
