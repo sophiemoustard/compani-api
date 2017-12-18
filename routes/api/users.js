@@ -36,6 +36,9 @@ router.get('/token/generateRefresh', userController.generateRefreshToken);
 
 // router.post('/botauth/facebook', userController.bothauthFacebook);
 
+if (process.env.NODE_ENV === 'development') {
+  router.get('/setNewRoles', require('../../scripts/setNewRoles').setNewRoles);
+}
 
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
