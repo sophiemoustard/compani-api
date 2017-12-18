@@ -131,20 +131,23 @@ const showAll = async (req, res) => {
   // No security here to restrict access
   try {
     // We populate the user with role data and then we populate the role with features data
-    const users = await User.find(req.query).populate({
+    let users = await User.find(req.query).populate({
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features.feature_id'
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
       }
-    }).lean();
+    });
+    // let users = _.cloneDeep(usersRaw);
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     }
-    // Format users to display features role with _id, name and permission_level 
-    users.forEach((user) => {
-      user.role.features = populateRole(user.role.features);
-    });
+    // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
+    users = users.map(user => user.toObject());
+    for (let i = 0, l = users.length; i < l; i++) {
+      users[i].role.features = populateRole(users[i].role.features);
+    }
     return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
   } catch (e) {
     console.error(e);
