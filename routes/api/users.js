@@ -36,9 +36,6 @@ router.get('/token/generateRefresh', userController.generateRefreshToken);
 
 // router.post('/botauth/facebook', userController.bothauthFacebook);
 
-if (process.env.NODE_ENV === 'development') {
-  router.get('/setNewRoles', require('../../scripts/setNewRoles').setNewRoles);
-}
 
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
@@ -50,5 +47,7 @@ router.get('/:_id', checkRoles({ list: ['coach'], checkById: true }), userContro
 router.put('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.update);
 router.put('/:_id/storeAddress', userController.storeUserAddress);
 router.delete('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.remove);
+
+router.put('/updateRole', require('../../scripts/updateRole').updateRole);
 
 module.exports = router;

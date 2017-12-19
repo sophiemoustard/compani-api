@@ -4,7 +4,7 @@ const Role = require('../models/Role');
 
 const language = translate.language;
 
-exports.setNewRoles = async (req, res) => {
+exports.updateRole = async (req, res) => {
   try {
     if (!req.query && !req.query.formerRole && !req.query.newRole) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
