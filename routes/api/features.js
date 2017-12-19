@@ -15,5 +15,6 @@ router.post('/', featureController.create);
 router.put('/:_id', featureController.update);
 router.get('/', featureController.showAll);
 router.get('/:_id', featureController.show);
+router.delete('/:_id', featureController.remove);
 
 module.exports = router;
