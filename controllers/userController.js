@@ -48,7 +48,7 @@ const authenticate = async (req, res) => {
       // picture: user.picture
     };
     const user = _.pickBy(payload);
-    const expireTime = 3600;
+    const expireTime = process.env.NODE_ENV === 'development' && payload.role === 'Admin' ? 86400 : 3600;
     const token = tokenProcess.encode(user, expireTime);
     const refreshToken = alenviUser.refreshToken;
     console.log(`${req.body.email} connected`);
