@@ -6,12 +6,15 @@ const language = translate.language;
 
 exports.setNewRoles = async (req, res) => {
   try {
-    const role = await Role.findOne({ name: 'Coach' });
+    if (!req.query && !req.query.formerRole && !req.query.newRole) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const role = await Role.findOne({ name: req.query.newRole });
     console.log(role);
     const users = await User.find().lean();
     console.log('users', users);
     users.forEach(async (user) => {
-      if (user.role === 'coach') {
+      if (user.role === req.query.formerRole) {
         console.log('VRAI');
         await User.findOneAndUpdate({ _id: user._id }, { $set: { role: role._id } });
       }
