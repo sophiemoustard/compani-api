@@ -4,6 +4,7 @@ const flat = require('flat');
 const language = translate.language;
 
 const Feature = require('../models/Feature');
+const Role = require('../models/Role');
 
 const create = async (req, res) => {
   try {
@@ -16,6 +17,8 @@ const create = async (req, res) => {
       _id: feature._id,
       name: feature.name,
     };
+    await Role.updateMany({ name: { $not: /^Admin$/ } }, { $push: { features: { feature_id: payload._id, permission_level: 0 } } });
+    await Role.update({ name: 'Admin' }, { $push: { features: { feature_id: payload._id, permission_level: 2 } } });
     return res.status(200).json({ success: true, message: translate[language].featureCreated, data: { feature: payload } });
   } catch (e) {
     console.error(e);
@@ -64,6 +67,9 @@ const showAll = async (req, res) => {
 // Find an feature by Id
 const show = async (req, res) => {
   try {
+    if (!req.params._id) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
     const feature = await Feature.findOne({ _id: req.params._id });
     if (!feature) {
       return res.status(404).json({ success: false, message: translate[language].featureNotFound });
@@ -77,10 +83,14 @@ const show = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
+    if (!req.params._id) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
     const featureDeleted = await Feature.findByIdAndRemove({ _id: req.params._id });
     if (!featureDeleted) {
       return res.status(404).json({ success: false, message: translate[language].featureNotFound });
     }
+    await Role.update({}, { $pull: { features: { feature_id: req.params._id } } }, { multi: true });
     return res.status(200).json({ success: true, message: translate[language].featureRemoved, data: { featureDeleted } });
   } catch (e) {
     console.error(e);
