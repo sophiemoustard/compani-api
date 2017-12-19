@@ -100,9 +100,9 @@ const showAll = async (req, res) => {
     if (roles.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].rolesShowAllNotFound });
     }
-    roles.forEach((role) => {
-      role.features = populateRole(role.features);
-    });
+    // roles.forEach((role) => {
+    //   role.features = populateRole(role.features);
+    // });
     return res.status(200).json({ success: true, message: translate[language].rolesShowAllFound, data: { roles } });
   } catch (e) {
     console.error(e);
