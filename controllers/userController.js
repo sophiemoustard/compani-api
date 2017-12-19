@@ -146,7 +146,9 @@ const showAll = async (req, res) => {
     // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
     users = users.map(user => user.toObject());
     for (let i = 0, l = users.length; i < l; i++) {
-      users[i].role.features = populateRole(users[i].role.features);
+      if (users[i].role && users[i].role.features) {
+        users[i].role.features = populateRole(users[i].role.features);
+      }
     }
     return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
   } catch (e) {
@@ -170,7 +172,9 @@ const show = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
-    user.role.features = populateRole(user.role.features);
+    if (user.role && user.role.features) {
+      user.role.features = populateRole(user.role.features);
+    }
     return res.status(200).json({ success: true, message: translate[language].userFound, data: { user } });
   } catch (e) {
     console.error(e);
@@ -204,7 +208,9 @@ const update = async (req, res) => {
     if (!userUpdated) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
-    userUpdated.role.features = populateRole(userUpdated.role.features);
+    if (userUpdated.role && userUpdated.role.features) {
+      userUpdated.role.features = populateRole(userUpdated.role.features);
+    }
     return res.status(200).json({ success: true, message: translate[language].userUpdated, data: { userUpdated } });
   } catch (e) {
     console.error(e);

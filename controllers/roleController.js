@@ -80,7 +80,9 @@ const update = async (req, res) => {
     if (!roleUpdated) {
       return res.status(404).json({ success: false, message: translate[language].roleNotFound });
     }
-    roleUpdated.features = populateRole(roleUpdated.features);
+    if (roleUpdated.features) {
+      roleUpdated.features = populateRole(roleUpdated.features);
+    }
     return res.status(200).json({ success: true, message: translate[language].roleUpdated, data: { role: roleUpdated } });
   } catch (e) {
     console.error(e);
@@ -100,9 +102,11 @@ const showAll = async (req, res) => {
     if (roles.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].rolesShowAllNotFound });
     }
-    // roles.forEach((role) => {
-    //   role.features = populateRole(role.features);
-    // });
+    roles.forEach((role) => {
+      if (role && role.features) {
+        role.features = populateRole(role.features);
+      }
+    });
     return res.status(200).json({ success: true, message: translate[language].rolesShowAllFound, data: { roles } });
   } catch (e) {
     console.error(e);
@@ -116,7 +120,9 @@ const show = async (req, res) => {
     if (!role) {
       return res.status(404).json({ success: false, message: translate[language].roleNotFound });
     }
-    role.features = populateRole(role.features);
+    if (role.features) {
+      role.features = populateRole(role.features);
+    }
     return res.status(200).json({ success: true, message: translate[language].roleFound, data: { role } });
   } catch (e) {
     console.error(e);
