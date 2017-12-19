@@ -13,38 +13,20 @@ const create = async (req, res) => {
     if (!req.body.name && !req.body.features) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    // const createPayload = { name: req.body.name, features: [] };
-    // const features = await Feature.find();
-    // if (features.length === 0) {
-    //   return res.status(404).json({ success: false, message: translate[language].featuresDoNotExist });
-    // }
-    // for (let i = 0, l = features.length; i < l; i++) {
-    //   if (_.has(req.body.features, features[i].name)) {
-    //     createPayload.features.push({
-    //       feature_id: features[i]._id,
-    //       permission_level: req.body.features[features[i].name]
-    //     });
-    //   } else {
-    //     createPayload.features.push({
-    //       feature_id: features[i]._id,
-    //       permission_level: 0
-    //     });
-    //   }
-    // }
     const createPayload = { name: req.body.name, features: [] };
     const features = await Feature.find();
     if (features.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].featuresDoNotExist });
     }
     for (let i = 0, l = features.length; i < l; i++) {
-      const bodyFeature = _.find(req.body.features, ['_id', features[i]._id.toString()]);
-      if (isNaN(bodyFeature.permission_level) || bodyFeature.permission_level < 0 || bodyFeature.permission_level > 2) {
-        return res.status(400).json({ success: false, message: translate[language].invalidPermLevel, error: bodyFeature });
+      const existingFeature = _.find(req.body.features, ['_id', features[i]._id.toString()]);
+      if (existingFeature && (isNaN(existingFeature.permission_level) || existingFeature.permission_level < 0 || existingFeature.permission_level > 2)) {
+        return res.status(400).json({ success: false, message: translate[language].invalidPermLevel, error: existingFeature });
       }
-      if (_.some(req.body.features, ['_id', features[i]._id.toString()])) {
+      if (existingFeature) {
         createPayload.features.push({
           feature_id: features[i]._id,
-          permission_level: bodyFeature.permission_level
+          permission_level: existingFeature.permission_level
         });
       } else {
         createPayload.features.push({
