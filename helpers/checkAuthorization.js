@@ -7,7 +7,7 @@ module.exports = {
     if (!roles) {
       return next();
     }
-    if (req.decoded.role === 'admin') {
+    if (req.decoded.role === 'Admin') {
       return next();
     }
     let roleIsAuthorized = false;
