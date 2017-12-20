@@ -6,6 +6,7 @@ const { checkRoles } = require('../../helpers/checkAuthorization');
 const router = express.Router();
 
 const userController = require('../../controllers/userController');
+const test = require('../../scripts/updateRole');
 
 router.post('/', userController.create);
 router.post('/authenticate', userController.authenticate);
@@ -47,7 +48,5 @@ router.get('/:_id', checkRoles({ list: ['coach'], checkById: true }), userContro
 router.put('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.update);
 router.put('/:_id/storeAddress', userController.storeUserAddress);
 router.delete('/:_id', checkRoles({ list: ['coach'], checkById: true }), userController.remove);
-
-router.put('/updateRole', require('../../scripts/updateRole').updateRole);
 
 module.exports = router;
