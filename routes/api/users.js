@@ -6,7 +6,6 @@ const { checkRoles } = require('../../helpers/checkAuthorization');
 const router = express.Router();
 
 const userController = require('../../controllers/userController');
-const test = require('../../scripts/updateRole');
 
 router.post('/', userController.create);
 router.post('/authenticate', userController.authenticate);
