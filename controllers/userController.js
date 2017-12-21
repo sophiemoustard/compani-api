@@ -117,7 +117,14 @@ const getPresentation = async (req, res) => {
     const roleIds = await Role.find({ name: params.role }, { _id: 1 });
     params.role = { $in: roleIds };
     const payload = _.pickBy(params);
-    const users = await User.find(payload, { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 }).lean();
+    const users = await User.find(payload, { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
     if (users.length === 0) {
       return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     }
