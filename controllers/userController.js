@@ -114,6 +114,8 @@ const getPresentation = async (req, res) => {
       'youtube.location': _.isArray(req.query.location) ? { $in: req.query.location } : req.query.location,
       role: _.isArray(req.query.role) ? { $in: req.query.role } : req.query.role
     };
+    const roleIds = await Role.find({ name: params.role }, { _id: 1 });
+    params.role = { $in: roleIds };
     const payload = _.pickBy(params);
     const users = await User.find(payload, { _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1 }).lean();
     if (users.length === 0) {
