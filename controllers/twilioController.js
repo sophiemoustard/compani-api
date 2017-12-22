@@ -9,7 +9,7 @@ const sendSMS = (req, res) => {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     // Pour te connecter à Pigi, assure-toi de bien avoir l’application Messenger sur ton téléphone et clique sur le lien suivant: ${process.env.MESSENGER_LINK}
-    const welcomeMessage = `Bienvenue chez Alenvi ! :) Utilise ce code: ${req.body.activationCode} pour pouvoir commencer ton enregistrement ici: ${process.env.WEBSITE_HOSTNAME}/signup :-)`;
+    const welcomeMessage = `Bienvenue chez Alenvi ! :) Utilise ce code: ${req.body.activationCode} pour pouvoir commencer ton enregistrement ici avant ton intégration: ${process.env.WEBSITE_HOSTNAME}/signup :-)`;
     const internationalNbr = `+33${req.params.phoneNbr.substring(1)}`;
     twilio.messages.create({
       to: internationalNbr,

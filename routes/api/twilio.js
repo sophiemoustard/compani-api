@@ -10,6 +10,6 @@ const twilioController = require('../../controllers/twilioController');
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
-router.post('/send/:phoneNbr', checkRoles({ list: ['coach'] }), twilioController.sendSMS);
+router.post('/send/:phoneNbr', checkRoles({ list: ['Coach'] }), twilioController.sendSMS);
 
 module.exports = router;
