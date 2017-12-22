@@ -14,7 +14,7 @@ router.get('/:code', activationCodeController.checkActivationCode);
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 // Create code
-router.post('/', checkRoles({ list: ['coach'] }), activationCodeController.createActivationCode);
-router.delete('/:mobile_phone', checkRoles({ list: ['coach'] }), activationCodeController.deleteActivationCode);
+router.post('/', checkRoles({ list: ['Coach'] }), activationCodeController.createActivationCode);
+router.delete('/:mobile_phone', checkRoles({ list: ['Coach'] }), activationCodeController.deleteActivationCode);
 
 module.exports = router;
