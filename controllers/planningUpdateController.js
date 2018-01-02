@@ -26,14 +26,18 @@ const getModificationPlanning = async (req, res) => {
 
 const storeUserModificationPlanning = async (req, res) => {
   try {
-    if (!req.query.userId || !req.body.content || !req.body.involved || !req.body.type) {
+    if (!req.query.userId || !req.body) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
+    console.log(req.body);
     const payload = {
       content: req.body.content,
       involved: req.body.involved,
       modificationType: req.body.type
     };
+    if (req.body.check) {
+      payload.check = req.body.check;
+    }
     const userModificationPlanningStored = await User.findOneAndUpdate({ _id: req.query.userId }, { $push: { planningModification: payload } }, { new: true });
     if (!userModificationPlanningStored) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });

@@ -97,6 +97,7 @@ exports.getServices = async (params) => {
     body: {
       token: params.token,
       id_employee: params.id_employee,
+      id_customer: params.idCustomer,
       status: params.status,
       type: params.type, // I = Intervention
       start_date: `${'@between|'}${interval.intervalBwd}|${interval.intervalFwd}`,

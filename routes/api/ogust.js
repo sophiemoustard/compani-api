@@ -46,5 +46,6 @@ router.put('/customers/:id/editCustomerCodes', customerController.editCustomerCo
 
 router.get('/services', serviceController.getAll);
 router.get('/services/:id', serviceController.getById);
+router.put('/services/:id', serviceController.updateById);
 
 module.exports = router;

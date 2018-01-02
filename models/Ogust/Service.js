@@ -72,3 +72,15 @@ exports.getServiceById = async (params) => {
   const res = await rp.post(options);
   return res;
 };
+
+exports.setServiceById = async (params) => {
+  const options = {
+    url: `${Ogust.API_LINK}setService`,
+    json: true,
+    body: params,
+    resolveWithFullResponse: true,
+    time: true
+  };
+  const res = await rp.post(options);
+  return res;
+};

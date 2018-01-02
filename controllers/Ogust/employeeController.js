@@ -93,6 +93,7 @@ const getEmployeeServices = async (req, res) => {
       const params = {
         token: req.headers['x-ogust-token'],
         id_employee: req.params.id,
+        idCustomer: req.query.idCustomer || '',
         isRange: req.query.isRange || 'false',
         isDate: req.query.isDate || 'false',
         slotToSub: req.query.slotToSub || '',
