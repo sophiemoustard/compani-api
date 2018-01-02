@@ -29,7 +29,6 @@ const storeUserModificationPlanning = async (req, res) => {
     if (!req.query.userId || !req.body) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    console.log(req.body);
     const payload = {
       content: req.body.content,
       involved: req.body.involved,
