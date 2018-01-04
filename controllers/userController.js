@@ -236,13 +236,20 @@ const refreshToken = async (req, res) => {
     return res.status(400).json({ success: false, message: translate[language].missingParameters });
   }
   try {
-    const user = await User.findOne({ refreshToken: req.body.refreshToken });
+    const user = await User.findOne({ refreshToken: req.body.refreshToken }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
     if (!user) {
       return res.status(401).json({ success: false, message: translate[language].refreshTokenNotFound });
     }
     const payload = {
-      _id: user.id,
-      role: user.role,
+      _id: user._id,
+      role: user.role.name,
     };
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
