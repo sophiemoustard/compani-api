@@ -64,10 +64,10 @@ const getEmployeeEvents = async (req, res, params) => {
         title: customerUncut.title,
         firstname: customerUncut.first_name,
         lastname: customerUncut.last_name,
-        pathology: customerUncut.thirdPartyInformations.NIVEAU,
-        comments: customerUncut.thirdPartyInformations.COMMNIV,
-        interventionDetail: customerUncut.thirdPartyInformations.DETAILEVE,
-        misc: customerUncut.thirdPartyInformations.AUTRESCOMM
+        pathology: customerUncut.thirdPartyInformations.NIVEAU || '/',
+        comments: customerUncut.thirdPartyInformations.COMMNIV || '/',
+        interventionDetail: customerUncut.thirdPartyInformations.DETAILEVE || '/',
+        misc: customerUncut.thirdPartyInformations.AUTRESCOMM || '/'
       };
     }
   }
