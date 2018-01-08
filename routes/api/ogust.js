@@ -36,6 +36,7 @@ router.get('/employees/:id', employeeController.getById);
 router.get('/employees/:id/services', employeeController.getEmployeeServices);
 router.get('/employees/:id/customers', employeeController.getEmployeeCustomers);
 router.get('/employees/:id/salaries', employeeController.getEmployeeSalaries);
+router.put('/employees/:id', employeeController.updateById);
 
 router.get('/customers', customerController.getAll);
 router.get('/customers/:id', customerController.getById);

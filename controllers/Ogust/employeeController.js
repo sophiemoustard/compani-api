@@ -247,4 +247,29 @@ const create = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, getAllBySector, getEmployeeServices, getEmployeeCustomers, getEmployeeSalaries, create };
+const updateById = async (req, res) => {
+  try {
+    if (!req.body) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const params = {
+      token: req.headers['x-ogust-token'],
+      last_name: req.body.last_name,
+      first_name: req.body.first_name,
+      email: req.body.email,
+      sector: req.body.sector,
+      mobile_phone: req.body.mobile_phone
+    };
+    const newParams = _.pickBy(params);
+    const user = await employees.createEmployee(newParams);
+    if (user.body.status == 'KO') {
+      return res.status(400).json({ success: false, message: user.body.message });
+    }
+    return res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+module.exports = { getAll, getById, getAllBySector, getEmployeeServices, getEmployeeCustomers, getEmployeeSalaries, create, updateById };
