@@ -254,7 +254,7 @@ const updateById = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      title: req.body.title,
+      id_employee: req.params.id,
       last_name: req.body.last_name,
       first_name: req.body.first_name,
       email: req.body.email,
