@@ -249,7 +249,7 @@ const create = async (req, res) => {
 
 const updateById = async (req, res) => {
   try {
-    if (!req.body || req.params.id) {
+    if (!req.body || !req.params.id) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     const params = {
