@@ -26,8 +26,14 @@ const getModificationPlanning = async (req, res) => {
 
 const storeUserModificationPlanning = async (req, res) => {
   try {
-    if (!req.query.userId || !req.body) {
+    if (!req.body) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const filter = {};
+    if (req.query.userId) {
+      filter._id = req.query.userId;
+    } else {
+      filter.employee_id = req.query.employeeId;
     }
     const payload = {
       content: req.body.content,
@@ -37,7 +43,7 @@ const storeUserModificationPlanning = async (req, res) => {
     if (req.body.check) {
       payload.check = req.body.check;
     }
-    const userModificationPlanningStored = await User.findOneAndUpdate({ _id: req.query.userId }, { $push: { planningModification: payload } }, { new: true });
+    const userModificationPlanningStored = await User.findOneAndUpdate(filter, { $push: { planningModification: payload } }, { new: true });
     if (!userModificationPlanningStored) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
