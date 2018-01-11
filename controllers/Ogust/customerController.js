@@ -7,12 +7,15 @@ const language = translate.language;
 
 const getAll = async (req, res) => {
   try {
+    console.log(req);
     const params = {
       token: req.headers['x-ogust-token'],
+      email: req.query.email || '',
       status: req.query.status || 'A',
       nbperpage: req.query.nbperpage || 50,
       pagenum: req.query.pagenum || 1
     };
+    console.log(params);
     const newParams = _.pickBy(params);
     const users = await customers.getCustomers(newParams);
     if (users.body.status == 'KO') {
