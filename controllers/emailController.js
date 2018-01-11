@@ -4,7 +4,7 @@ const translate = require('../helpers/translate');
 
 const language = translate.language;
 
-const sendMail = async (req, res) => {
+const sendWelcolme = async (req, res) => {
   try {
     if (!req.body.sender || !req.body.receiver) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
@@ -40,4 +40,4 @@ const sendMail = async (req, res) => {
   }
 };
 
-module.exports = { sendMail };
+module.exports = { sendWelcolme };
