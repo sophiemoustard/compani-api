@@ -83,7 +83,9 @@ module.exports = {
     featureExists: 'Feature already exists.',
     featuresDoNotExist: 'Features do not exist.',
     featureRemoved: 'Feature removed.',
-    invalidPermLevel: 'Invalid feature permission level.'
+    invalidPermLevel: 'Invalid feature permission level.',
+    /* Email */
+    emailSent: 'Email successfully sent.'
   },
   'fr-FR': {
     /* Global errors */
@@ -168,6 +170,8 @@ module.exports = {
     featureExists: 'Feature déjà existante.',
     featuresDoNotExist: "Features n'existent pas.",
     featureRemoved: 'Feature supprimé.',
-    invalidPermLevel: 'Permission de la feature invalide.'
+    invalidPermLevel: 'Permission de la feature invalide.',
+    /* Email */
+    emailSent: 'Email envoyé avec succès.'
   }
 };

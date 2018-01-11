@@ -21,5 +21,6 @@ router.use('/twilio', require('./api/twilio'));
 router.use('/activation', require('./api/activation'));
 router.use('/roles', require('./api/role'));
 router.use('/features', require('./api/features'));
+router.use('/email', require('./api/email'));
 
 module.exports = router;
