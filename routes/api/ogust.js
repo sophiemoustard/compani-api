@@ -42,6 +42,8 @@ router.get('/customers', customerController.getAll);
 router.get('/customers/:id', customerController.getById);
 router.get('/customers/:id/services', customerController.getCustomerServices);
 router.get('/customers/:id/moreInfo', customerController.getThirdPartyInformation);
+router.get('/customers/:id/fiscalAttests', customerController.getCustomerFiscalAttests);
+router.get('/customers/:id/invoices', customerController.getCustomerInvoices);
 router.put('/customers/:id/moreInfo', customerController.editThirdPartyInformation);
 router.put('/customers/:id/editCustomerCodes', customerController.editCustomerCodes);
 

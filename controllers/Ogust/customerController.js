@@ -151,6 +151,60 @@ const getThirdPartyInformation = async (req, res) => {
   }
 };
 
+const getCustomerFiscalAttests = async (req, res) => {
+  try {
+    if (!req.params.id) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const params = {
+      token: req.headers['x-ogust-token'],
+      id_customer: req.params.id,
+      period_start: req.query.periodStart,
+      period_end: req.query.periodEnd,
+      nbperpage: req.query.nbPerPage || '24',
+      pagenum: req.query.pageNum || '1'
+    };
+    const newParams = _.pickBy(params);
+    const fiscalAttestsRaw = await customers.getFiscalAttests(newParams);
+    if (fiscalAttestsRaw.body.status == 'KO') {
+      return res.status(400).json({ success: false, message: fiscalAttestsRaw.body.message });
+    } else if (Object.keys(fiscalAttestsRaw.body.array_fiscalattest.result).length === 0) {
+      return res.status(404).json({ success: false, message: translate[language].fiscalAttestsNotFound });
+    }
+    return res.status(200).json({ success: true, message: translate[language].fiscalAttestsFound, data: { fiscalAttests: fiscalAttestsRaw.body } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+const getCustomerInvoices = async (req, res) => {
+  try {
+    if (!req.params.id) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const params = {
+      token: req.headers['x-ogust-token'],
+      id_customer: req.params.id,
+      start_of_period: req.query.startOfPeriod,
+      end_of_period: req.query.endOfPeriod,
+      nbperpage: req.query.nbPerPage || '50',
+      pagenum: req.query.pageNum || '1'
+    };
+    const newParams = _.pickBy(params);
+    const invoicesRaw = await customers.getInvoices(newParams);
+    if (invoicesRaw.body.status == 'KO') {
+      return res.status(400).json({ success: false, message: invoicesRaw.body.message });
+    } else if (Object.keys(invoicesRaw.body.array_invoice.result).length === 0) {
+      return res.status(404).json({ success: false, message: translate[language].invoicesNotFound });
+    }
+    return res.status(200).json({ success: true, message: translate[language].invoicesFound, data: { invoices: invoicesRaw.body } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
 const editThirdPartyInformation = async (req, res) => {
   try {
     if (!req.params.id || !req.body.arrayValues) {
@@ -183,6 +237,8 @@ module.exports = {
   getById,
   getCustomerServices,
   getThirdPartyInformation,
+  getCustomerFiscalAttests,
+  getCustomerInvoices,
   editThirdPartyInformation,
   editCustomerCodes
 };

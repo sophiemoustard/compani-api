@@ -45,6 +45,10 @@ module.exports = {
     blogGetRssFeedsOk: 'Rss feed found.',
     blogGetRssFeedsNoUrl: 'URL not provided.',
     customerCodesEdited: 'Ogust customer codes edited successfully',
+    fiscalAttestsFound: 'Customer fiscal attestations found.',
+    fiscalAttestsNotFound: 'Customer fiscal attestations not found.',
+    invoicesFound: 'Customer invoices found.',
+    invoicesNotFound: 'Customer invoices not found.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -132,6 +136,10 @@ module.exports = {
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     blogGetRssFeedsNoUrl: 'URL manquante',
     customerCodesEdited: 'Codes bénéficiaires edités avec succès.',
+    fiscalAttestsFound: 'Attestations fiscales du bénéficiaire trouvées.',
+    fiscalAttestsNotFound: 'Attestations fiscales du bénéficiaire non trouvées',
+    invoicesFound: 'Factures bénéficiaire trouvées.',
+    invoicesNotFound: 'Factures bénéficiaire trouvées.',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',

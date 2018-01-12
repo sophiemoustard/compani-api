@@ -136,3 +136,27 @@ exports.getServices = async (params) => {
   const res = await rp.post(options);
   return res;
 };
+
+exports.getFiscalAttests = async (params) => {
+  const options = {
+    url: `${Ogust.API_LINK}searchFiscalattest`,
+    json: true,
+    body: params,
+    resolveWithFullResponse: true,
+    time: true,
+  };
+  const res = await rp.post(options);
+  return res;
+};
+
+exports.getInvoices = async (params) => {
+  const options = {
+    url: `${Ogust.API_LINK}searchInvoice`,
+    json: true,
+    body: params,
+    resolveWithFullResponse: true,
+    time: true,
+  };
+  const res = await rp.post(options);
+  return res;
+};
