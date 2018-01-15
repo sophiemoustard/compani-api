@@ -147,9 +147,7 @@ const getEvents = async (req, res) => {
       params.id_customer = req.query.id_customer;
     }
     const newParams = _.pickBy(params);
-
     const events = personType === 'employees' ? await getEmployeeEvents(req, res, newParams) : await getCustomerEvents(req, res, newParams);
-
     return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { events } });
   } catch (e) {
     console.error(e);
