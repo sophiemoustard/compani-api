@@ -139,7 +139,7 @@ module.exports = {
     fiscalAttestsFound: 'Attestations fiscales du bénéficiaire trouvées.',
     fiscalAttestsNotFound: 'Attestations fiscales du bénéficiaire non trouvées',
     invoicesFound: 'Factures bénéficiaire trouvées.',
-    invoicesNotFound: 'Factures bénéficiaire trouvées.',
+    invoicesNotFound: 'Factures bénéficiaire non trouvées.',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
