@@ -3,6 +3,7 @@
 const bcrypt = require('bcrypt');
 const uuidv4 = require('uuid/v4');
 const flat = require('flat');
+const nodemailer = require('nodemailer');
 const translate = require('../helpers/translate');
 
 const language = translate.language;
@@ -272,6 +273,87 @@ const generateRefreshToken = async (req, res) => {
   }
 };
 
+const resetPasswordToken = async (req, res) => {
+  if (!req.params.token) {
+    return res.status(400).json({ success: false, message: translate[language].missingParameters });
+  }
+  try {
+    const filter = {
+      resetPassword: {
+        token: req.params.token,
+        expiresIn: { $gt: Date.now() }
+      }
+    };
+    const user = await User.findOne(flat(filter, { maxDepth: 2 })).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
+    if (!user) {
+      return res.status(404).json({ success: false, message: translate[language].resetPasswordTokenNotFound });
+    }
+    const payload = {
+      _id: user._id,
+      role: user.role.name,
+    };
+    const userPayload = _.pickBy(payload);
+    const expireTime = 3600;
+    const token = tokenProcess.encode(userPayload, expireTime);
+    // return the information including token as JSON
+    return res.status(200).json({ success: true, message: translate[language].resetPasswordTokenFound, data: { token, user: userPayload } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  try {
+    if (!req.body.email) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const token = uuidv4();
+    const payload = {
+      resetPassword: {
+        token,
+        expiresIn: Date.now() + 3600000
+      }
+    };
+    const user = await User.findOneAndUpdate({ 'local.email': req.body.email }, { $set: payload }, { new: true }).populate('role').lean();
+    console.log(user);
+    if (!user) {
+      return res.status(404).json({ success: false, message: translate[language].userNotFound });
+    }
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.sendgrid.net',
+      port: 465,
+      secure: true, // true for 465, false for other ports
+      auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY
+      }
+    });
+    const mailOptions = {
+      from: 'test@alenvi.io', // sender address
+      to: req.body.email, // list of receivers
+      subject: 'Changement de mot de passe de votre compte Alenvi', // Subject line
+      html: `<p>Bonjour,</p>
+             <p>Vous pouvez modifier votre mot de passe en cliquant sur le lient suivant:</p>
+             <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${token}</a></p>
+             <p>Bien cordialement,<br>
+                L'équipe Alenvi</p>` // html body
+    };
+    const mailInfo = await transporter.sendMail(mailOptions);
+    return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
 // Store user address from bot
 const storeUserAddress = async (req, res) => {
   try {
@@ -328,7 +410,9 @@ module.exports = {
   getPresentation,
   storeUserAddress,
   getAllSectors,
-  generateRefreshToken
+  generateRefreshToken,
+  resetPasswordToken,
+  forgotPassword
 };
 
 // bothauthFacebook: function(req, res) {

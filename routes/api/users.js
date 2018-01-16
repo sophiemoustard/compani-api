@@ -12,6 +12,8 @@ router.post('/authenticate', userController.authenticate);
 router.get('/presentation', userController.getPresentation);
 router.post('/refreshToken', userController.refreshToken);
 router.get('/token/generateRefresh', userController.generateRefreshToken);
+router.get('/resetPassword/:token', userController.resetPasswordToken);
+router.post('/forgotPassword', userController.forgotPassword);
 
 // router.get('/authenticate/facebook', passport.authenticate('facebook', {session: false}));
 // router.get('/authenticate/facebook/callback', passport.authenticate('facebook', { session: false, failureRedirect: '/login'}), function(req, res) {

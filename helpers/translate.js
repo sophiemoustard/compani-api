@@ -89,7 +89,10 @@ module.exports = {
     featureRemoved: 'Feature removed.',
     invalidPermLevel: 'Invalid feature permission level.',
     /* Email */
-    emailSent: 'Email successfully sent.'
+    emailSent: 'Email successfully sent.',
+    /* Reset password token */
+    resetPasswordTokenFound: 'Reset password token found.',
+    resetPasswordTokenNotFound: 'Reset password token not found.'
   },
   'fr-FR': {
     /* Global errors */
@@ -180,6 +183,9 @@ module.exports = {
     featureRemoved: 'Feature supprimé.',
     invalidPermLevel: 'Permission de la feature invalide.',
     /* Email */
-    emailSent: 'Email envoyé avec succès.'
+    emailSent: 'Email envoyé avec succès.',
+    /* Reset password token */
+    resetPasswordTokenFound: 'Token de changement de password trouvé.',
+    resetPasswordTokenNotFound: 'Token de changement de password non trouvé.'
   }
 };

@@ -4,13 +4,21 @@ const validator = require('validator');
 
 const SALT_WORK_FACTOR = 10;
 
-const Role = require('./Role');
-
 // User schema
 const UserSchema = mongoose.Schema({
   firstname: String,
   lastname: String,
   refreshToken: String,
+  resetPassword: {
+    token: {
+      type: String,
+      default: null
+    },
+    expiresIn: {
+      type: Date,
+      default: null
+    }
+  },
   local: {
     email: {
       type: String,
