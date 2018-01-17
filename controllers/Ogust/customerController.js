@@ -186,8 +186,7 @@ const getCustomerInvoices = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id,
-      start_of_period: req.query.startOfPeriod,
-      end_of_period: req.query.endOfPeriod,
+      end_of_period: `@between|${req.query.year}0101|${req.query.year}1231`,
       nbperpage: req.query.nbPerPage || '50',
       pagenum: req.query.pageNum || '1'
     };
