@@ -159,8 +159,7 @@ const getCustomerFiscalAttests = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id,
-      period_start: req.query.periodStart,
-      period_end: req.query.periodEnd,
+      period_end: `@between|${req.query.year}0101|${req.query.year}1231`,
       nbperpage: req.query.nbPerPage || '24',
       pagenum: req.query.pageNum || '1'
     };
