@@ -7,13 +7,16 @@ const customers = require('../models/Ogust/Customer');
 const language = translate.language;
 
 const getEmployeeEvents = async (req, res, params) => {
+  console.log('EMPLOYEE');
   const servicesRaw = await employees.getServices(params);
+  console.log('meh');
   if (servicesRaw.body.status == 'KO') {
+    console.log('PEH');
     return res.status(400).json({ success: false, message: servicesRaw.body.message });
   }
-  // Put it in a variable so it's more readable
-  const events = servicesRaw.body.array_service.result;
-  if (Object.keys(events).length === 0) {
+  // Put it in a variable so it's more readable & remove draft status
+  const events = _.filter(servicesRaw.body.array_service.result, item => item.status !== 'B');
+  if (events.length === 0) {
     // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
     return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
   }
@@ -50,10 +53,12 @@ const getEmployeeEvents = async (req, res, params) => {
         title: customerRaw.body.customer.title,
         firstname: customerRaw.body.customer.first_name,
         lastname: customerRaw.body.customer.last_name,
-        pathology: customerRaw.body.customer.thirdPartyInformations.NIVEAU || '/',
-        comments: customerRaw.body.customer.thirdPartyInformations.COMMNIV || '/',
-        interventionDetail: customerRaw.body.customer.thirdPartyInformations.DETAILEVE || '/',
-        misc: customerRaw.body.customer.thirdPartyInformations.AUTRESCOMM || '/'
+        door_code: customerRaw.body.customer.door_code,
+        intercom_code: customerRaw.body.customer.intercom_code,
+        pathology: customerRaw.body.customer.thirdPartyInformations.NIVEAU || '-',
+        comments: customerRaw.body.customer.thirdPartyInformations.COMMNIV || '-',
+        interventionDetail: customerRaw.body.customer.thirdPartyInformations.DETAILEVE || '-',
+        misc: customerRaw.body.customer.thirdPartyInformations.AUTRESCOMM || '-'
       };
     }
     if (isUniq === false) {
@@ -75,13 +80,14 @@ const getEmployeeEvents = async (req, res, params) => {
 };
 
 const getCustomerEvents = async (req, res, params) => {
+  console.log('CUSTOMER');
   const servicesRaw = await customers.getServices(params);
   if (servicesRaw.body.status == 'KO') {
     return res.status(400).json({ success: false, message: servicesRaw.body.message });
   }
   // Put it in a variable so it's more readable
-  const events = servicesRaw.body.array_service.result;
-  if (Object.keys(events).length === 0) {
+  const events = _.filter(servicesRaw.body.array_service.result, item => item.status !== 'B');
+  if (events.length === 0) {
     // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
     return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
   }
