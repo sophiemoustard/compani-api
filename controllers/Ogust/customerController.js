@@ -160,7 +160,7 @@ const getCustomerFiscalAttests = async (req, res) => {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id,
       status: 'E',
-      period_end: req.query.year ? `@between|${req.query.year}0101|${req.query.year}1231` : '',
+      period_end: req.query.year && req.query.month ? `@between|${req.query.year}${req.query.month}01|${req.query.year}${req.query.month}31` : '',
       nbperpage: req.query.nbPerPage || '24',
       pagenum: req.query.pageNum || '1'
     };
@@ -186,7 +186,7 @@ const getCustomerInvoices = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id,
-      end_of_period: req.query.year ? `@between|${req.query.year}0101|${req.query.year}1231` : '',
+      end_of_period: req.query.year && req.query.month ? `@between|${req.query.year}${req.query.month}01|${req.query.year}${req.query.month}31` : '',
       nbperpage: req.query.nbPerPage || '50',
       pagenum: req.query.pageNum || '1'
     };
