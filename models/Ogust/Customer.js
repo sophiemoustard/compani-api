@@ -160,3 +160,15 @@ exports.getInvoices = async (params) => {
   const res = await rp.post(options);
   return res;
 };
+
+exports.getContacts = async (params) => {
+  const options = {
+    url: `${Ogust.API_LINK}searchContact`,
+    json: true,
+    body: params,
+    resolveWithFullResponse: true,
+    time: true
+  };
+  const res = await rp.post(options);
+  return res;
+}

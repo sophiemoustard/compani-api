@@ -12,10 +12,10 @@ const getAll = async (req, res) => {
       token: req.headers['x-ogust-token'],
       email: req.query.email || '',
       status: req.query.status || 'A',
+      last_name: req.query.lastName || '',
       nbperpage: req.query.nbperpage || 50,
       pagenum: req.query.pagenum || 1
     };
-    console.log(params);
     const newParams = _.pickBy(params);
     const users = await customers.getCustomers(newParams);
     if (users.body.status == 'KO') {
@@ -231,6 +231,28 @@ const editThirdPartyInformation = async (req, res) => {
   }
 };
 
+const getCustomerContacts = async (req, res) => {
+  try {
+    if (!req.params.id) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    console.log('qwdq');
+    const params = {
+      token: req.headers['x-ogust-token'],
+      id_customer: req.params.id
+    };
+    const contactsRaw = await customers.getContacts(params);
+    if (contactsRaw == 'KO') {
+      res.status(400).json({ success: false, message: contactsRaw.body.message });
+    } else {
+      res.status(200).json({ success: true, message: translate[language].contactsFound, data: { contacts: contactsRaw.body } });
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
 module.exports = {
   getAll,
   getById,
@@ -239,5 +261,6 @@ module.exports = {
   getCustomerFiscalAttests,
   getCustomerInvoices,
   editThirdPartyInformation,
-  editCustomerCodes
+  editCustomerCodes,
+  getCustomerContacts
 };
