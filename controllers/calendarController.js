@@ -7,11 +7,8 @@ const customers = require('../models/Ogust/Customer');
 const language = translate.language;
 
 const getEmployeeEvents = async (req, res, params) => {
-  console.log('EMPLOYEE');
   const servicesRaw = await employees.getServices(params);
-  console.log('meh');
   if (servicesRaw.body.status == 'KO') {
-    console.log('PEH');
     return res.status(400).json({ success: false, message: servicesRaw.body.message });
   }
   // Put it in a variable so it's more readable & remove draft status
@@ -69,6 +66,8 @@ const getEmployeeEvents = async (req, res, params) => {
         title: customerUncut.title,
         firstname: customerUncut.first_name,
         lastname: customerUncut.last_name,
+        door_code: customerUncut.door_code,
+        intercom_code: customerUncut.intercom_code,
         pathology: customerUncut.thirdPartyInformations.NIVEAU || '/',
         comments: customerUncut.thirdPartyInformations.COMMNIV || '/',
         interventionDetail: customerUncut.thirdPartyInformations.DETAILEVE || '/',
