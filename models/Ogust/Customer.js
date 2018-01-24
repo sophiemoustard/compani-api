@@ -55,7 +55,7 @@ exports.getCustomerById = async (params) => {
   return result;
 };
 
-exports.editCustomerCodesById = async (params) => {
+exports.editCustomerById = async (params) => {
   const options = {
     url: `${Ogust.API_LINK}setCustomer`,
     json: true,

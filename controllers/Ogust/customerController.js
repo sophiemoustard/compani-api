@@ -56,7 +56,7 @@ const getById = async (req, res) => {
   }
 };
 
-const editCustomerCodes = async (req, res) => {
+const editCustomer = async (req, res) => {
   try {
     if (!req.params.id) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
@@ -64,12 +64,11 @@ const editCustomerCodes = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id,
-      door_code: req.body.doorCode,
-      intercom_code: req.body.interCode
+      door_code: req.body.doorCode || '',
+      intercom_code: req.body.interCode || ''
     };
-    // console.log(params);
-    // const newParams = _.pickBy(params);
-    const user = await customers.editCustomerCodesById(params);
+    const newParams = _.pickBy(params);
+    const user = await customers.editCustomerById(newParams);
     if (user.body.status == 'KO') {
       res.status(400).json({ success: false, message: user.body.message });
     } else if (user.length === 0) {
@@ -261,6 +260,6 @@ module.exports = {
   getCustomerFiscalAttests,
   getCustomerInvoices,
   editThirdPartyInformation,
-  editCustomerCodes,
+  editCustomer,
   getCustomerContacts
 };
