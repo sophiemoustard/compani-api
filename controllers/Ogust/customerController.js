@@ -65,7 +65,12 @@ const editCustomer = async (req, res) => {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id,
       door_code: req.body.doorCode || '',
-      intercom_code: req.body.interCode || ''
+      intercom_code: req.body.interCode || '',
+      first_name: req.body.first_name || '',
+      last_name: req.body.last_name || '',
+      email: req.body.email || '',
+      mobile_phone: req.body.mobile_phone || '',
+      landline: req.body.landline || ''
     };
     const newParams = _.pickBy(params);
     const user = await customers.editCustomerById(newParams);
