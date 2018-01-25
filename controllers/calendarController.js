@@ -54,7 +54,7 @@ const getEmployeeEvents = async (req, res, params) => {
         intercom_code: customerRaw.body.customer.intercom_code,
         pathology: customerRaw.body.customer.thirdPartyInformations.NIVEAU || '-',
         comments: customerRaw.body.customer.thirdPartyInformations.COMMNIV || '-',
-        interventionDetail: customerRaw.body.customer.thirdPartyInformations.DETAILEVE || '-',
+        interventionDetails: customerRaw.body.customer.thirdPartyInformations.DETAILEVE || '-',
         misc: customerRaw.body.customer.thirdPartyInformations.AUTRESCOMM || '-'
       };
     }
@@ -70,7 +70,7 @@ const getEmployeeEvents = async (req, res, params) => {
         intercom_code: customerUncut.intercom_code,
         pathology: customerUncut.thirdPartyInformations.NIVEAU || '/',
         comments: customerUncut.thirdPartyInformations.COMMNIV || '/',
-        interventionDetail: customerUncut.thirdPartyInformations.DETAILEVE || '/',
+        interventionDetails: customerUncut.thirdPartyInformations.DETAILEVE || '/',
         misc: customerUncut.thirdPartyInformations.AUTRESCOMM || '/'
       };
     }
