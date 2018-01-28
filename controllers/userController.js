@@ -273,7 +273,7 @@ const generateRefreshToken = async (req, res) => {
   }
 };
 
-const resetPasswordToken = async (req, res) => {
+const checkResetPasswordToken = async (req, res) => {
   if (!req.params.token) {
     return res.status(400).json({ success: false, message: translate[language].missingParameters });
   }
@@ -297,6 +297,7 @@ const resetPasswordToken = async (req, res) => {
     }
     const payload = {
       _id: user._id,
+      email: user.local.email,
       role: user.role.name,
     };
     const userPayload = _.pickBy(payload);
@@ -319,11 +320,10 @@ const forgotPassword = async (req, res) => {
     const payload = {
       resetPassword: {
         token,
-        expiresIn: Date.now() + 3600000
+        expiresIn: Date.now() + 3600000 // 1 hour
       }
     };
     const user = await User.findOneAndUpdate({ 'local.email': req.body.email }, { $set: payload }, { new: true }).populate('role').lean();
-    console.log(user);
     if (!user) {
       return res.status(404).json({ success: false, message: translate[language].userNotFound });
     }
@@ -337,12 +337,13 @@ const forgotPassword = async (req, res) => {
       }
     });
     const mailOptions = {
-      from: 'test@alenvi.io', // sender address
+      from: 'support@alenvi.io', // sender address
       to: req.body.email, // list of receivers
       subject: 'Changement de mot de passe de votre compte Alenvi', // Subject line
       html: `<p>Bonjour,</p>
-             <p>Vous pouvez modifier votre mot de passe en cliquant sur le lient suivant:</p>
+             <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure):</p>
              <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${token}</a></p>
+             <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
              <p>Bien cordialement,<br>
                 L'équipe Alenvi</p>` // html body
     };
@@ -411,7 +412,7 @@ module.exports = {
   storeUserAddress,
   getAllSectors,
   generateRefreshToken,
-  resetPasswordToken,
+  checkResetPasswordToken,
   forgotPassword
 };
 

@@ -11,5 +11,6 @@ const emailController = require('../../controllers/emailController');
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 router.post('/sendWelcome', checkRoles({ list: ['Coach'] }), emailController.sendWelcome);
+router.post('/sendChangePasswordOk', emailController.sendChangePasswordOk);
 
 module.exports = router;

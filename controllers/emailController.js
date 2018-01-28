@@ -40,4 +40,35 @@ const sendWelcome = async (req, res) => {
   }
 };
 
-module.exports = { sendWelcome };
+const sendChangePasswordOk = async (req, res) => {
+  try {
+    if (!req.body.email) {
+      return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
+    }
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.sendgrid.net',
+      port: 465,
+      secure: true, // true for 465, false for other ports
+      auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY
+      }
+    });
+    const mailOptions = {
+      from: 'support@alenvi.io', // sender address
+      to: req.body.email, // list of receivers
+      subject: 'Le mot de passe de votre compte Alenvi a bien été modifié', // Subject line
+      html: `<p>Bonjour,</p>
+             <p>Votre mot de passe a bien été modifié</p>
+             <p>Si vous n'êtes pas à l'origine de ce changement, veuillez contacter le support technique.</p>
+             <p>Bien cordialement,<br>
+                L'équipe Alenvi</p>` // html body
+    };
+    const mailInfo = await transporter.sendMail(mailOptions);
+    return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+module.exports = { sendWelcome, sendChangePasswordOk };
