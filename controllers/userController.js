@@ -170,7 +170,6 @@ const showAll = async (req, res) => {
 // Find an user by Id in param URL
 const show = async (req, res) => {
   try {
-    console.log(req.params._id);
     const user = await User.findOne({ _id: req.params._id }).populate({
       path: 'role',
       select: '-__v -createdAt -updatedAt',
