@@ -64,10 +64,10 @@ const authenticate = async (req, res) => {
 // Create a new user
 const create = async (req, res) => {
   // Check if users mandatory fields are missing
-  if (!req.body.email && !req.body.password && !req.body.role) {
-    return res.status(400).json({ success: false, message: translate[language].missingParameters });
-  }
   try {
+    if (!req.body.local.email || !req.body.local.password || !req.body.role) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
     const role = await Role.findOne({ name: req.body.role }, { _id: 1 }).lean();
     if (!role) {
       return res.status(404).json({ success: false, message: translate[language].roleNotFound });
