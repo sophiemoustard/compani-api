@@ -57,9 +57,9 @@ const sendChangePasswordOk = async (req, res) => {
     const mailOptions = {
       from: 'support@alenvi.io', // sender address
       to: req.body.email, // list of receivers
-      subject: 'Le mot de passe de votre compte Alenvi a bien été modifié', // Subject line
+      subject: 'Le mot de passe de votre compte Alenvi a bien été modifié.', // Subject line
       html: `<p>Bonjour,</p>
-             <p>Votre mot de passe a bien été modifié</p>
+             <p>Votre mot de passe a bien été modifié.</p>
              <p>Si vous n'êtes pas à l'origine de ce changement, veuillez contacter le support technique.</p>
              <p>Bien cordialement,<br>
                 L'équipe Alenvi</p>` // html body
