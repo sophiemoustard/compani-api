@@ -93,15 +93,15 @@ module.exports = {
   // },
   getUserByParamId: async (req, res) => {
     try {
-      const user = await User.findOne({ _id: req.params._id });
+      const user = await User.findOne({ _id: req.params._id }).lean();
       if (!user) {
         return res.status(404).send({ success: false, message: translate[language].userNotFound });
       }
-      const alenviToken = tokenProcess.encode(user._id);
+      const alenviToken = tokenProcess.encode({ _id: user._id });
       const payload = {
         firstname: user.firstname,
         lastname: user.lastname,
-        _id: user.id,
+        _id: user._id,
         'local.email': user.local.email,
         role: user.role,
         customer_id: user.customer_id,

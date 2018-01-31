@@ -43,7 +43,7 @@ router.post('/forgotPassword', userController.forgotPassword);
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 // All these routes need a token because of route protection above
-router.get('/', checkRoles({ list: ['Tech', 'Coach'] }), userController.showAll);
+router.get('/', checkRoles({ list: ['Tech', 'Coach'], checkById: true }), userController.showAll);
 router.get('/sectors', userController.getAllSectors);
 router.get('/:_id', checkRoles({ list: ['Tech', 'Coach'], checkById: true }), userController.show);
 router.put('/:_id', checkRoles({ list: ['Tech', 'Coach'], checkById: true }), userController.update);
