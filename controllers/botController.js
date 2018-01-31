@@ -4,6 +4,7 @@ const _ = require('lodash');
 const tokenProcess = require('../helpers/tokenProcess');
 
 const User = require('../models/User');
+const { populateRole } = require('../helpers/populateRole');
 
 const language = translate.language;
 
@@ -115,4 +116,34 @@ module.exports = {
       return res.status(404).send({ success: false, message: translate[language].userNotFound });
     }
   },
+  // Show all user
+  showAll: async (req, res) => {
+  // No security here to restrict access
+    try {
+    // We populate the user with role data and then we populate the role with features data
+      let users = await User.find(req.query).populate({
+        path: 'role',
+        select: '-__v -createdAt -updatedAt',
+        populate: {
+          path: 'features.feature_id',
+          select: '-__v -createdAt -updatedAt'
+        }
+      });
+      if (users.length === 0) {
+        return res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
+      }
+      // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
+      users = users.map(user => user.toObject());
+      // Format populated role to be read easier
+      for (let i = 0, l = users.length; i < l; i++) {
+        if (users[i].role && users[i].role.features) {
+          users[i].role.features = populateRole(users[i].role.features);
+        }
+      }
+      return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users } });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    }
+  }
 };
