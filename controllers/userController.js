@@ -140,8 +140,12 @@ const getPresentation = async (req, res) => {
 const showAll = async (req, res) => {
   // No security here to restrict access
   try {
+    if (req.query.role) {
+      req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
+    }
+    const params = _.pickBy(req.query);
     // We populate the user with role data and then we populate the role with features data
-    let users = await User.find(req.query).populate({
+    let users = await User.find(params).populate({
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {
