@@ -10,6 +10,7 @@ const language = translate.language;
 // const jwt           = require('jsonwebtoken');
 const _ = require('lodash');
 
+const { clean } = require('../helpers/clean');
 const { populateRole } = require('../helpers/populateRole');
 const tokenProcess = require('../helpers/tokenProcess');
 
@@ -48,7 +49,7 @@ const authenticate = async (req, res) => {
       // 'youtube.location': user.youtube.location,
       // picture: user.picture
     };
-    const user = _.pickBy(payload);
+    const user = clean(payload);
     const expireTime = process.env.NODE_ENV === 'development' && payload.role === 'Admin' ? 86400 : 3600;
     const token = tokenProcess.encode(user, expireTime);
     const refreshToken = alenviUser.refreshToken;
@@ -57,6 +58,7 @@ const authenticate = async (req, res) => {
     // return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
     return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, refreshToken, expiresIn: expireTime, user } });
   } catch (e) {
+    console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
@@ -209,7 +211,10 @@ const update = async (req, res) => {
       }
       req.body.role = role._id.toString();
     }
-    const newBody = _.pickBy(flat(req.body));
+    console.log(req.body);
+    const newBody = clean(flat(req.body));
+    console.log(newBody);
+    // const newBody = _.pickBy(flat(req.body), !_.isEmpty);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true }).populate({
       path: 'role',
