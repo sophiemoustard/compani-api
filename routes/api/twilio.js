@@ -11,5 +11,6 @@ const twilioController = require('../../controllers/twilioController');
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 router.post('/send/:phoneNbr', checkRoles({ list: ['Coach'] }), twilioController.sendSMS);
+router.post('/sendConfirm/:phoneNbr', twilioController.sendSMSConfirm);
 
 module.exports = router;
