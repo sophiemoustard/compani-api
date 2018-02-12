@@ -9,7 +9,6 @@ const sendWelcome = async (req, res) => {
     if (!req.body.sender || !req.body.receiver) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
-    const account = await nodemailer.createTestAccount();
     const transporter = nodemailer.createTransport({
       host: 'smtp.sendgrid.net',
       port: 465,
@@ -23,14 +22,24 @@ const sendWelcome = async (req, res) => {
       from: req.body.sender.email, // sender address
       to: req.body.receiver.email, // list of receivers
       subject: 'Accès à notre application en ligne', // Subject line
-      html: `<p>Bonjour ${req.body.receiver.title} ${req.body.receiver.name}</p>
-             <p>Vous disposez d'un accès à notre application web à l'adresse suivante:<p>
+      html: `<p>Bonjour,</p>
+             <p>Vous pouvez désormais accéder à votre espace Alenvi dans lequel vous trouverez notamment les éléments suivants:<p>
+             <ul>
+              <li>Vos factures et attestations fiscales,</li>
+              <li>Le planning d’interventions,</li>
+              <li>Le blog Alenvi avec des informations utiles pour les aidants familiaux.</li>
+             <ul>
              <a href="${process.env.WEBSITE_HOSTNAME}/dashboard/login">${process.env.WEBSITE_HOSTNAME}/dashboard/login</a>
-             <p>Vos identifiants sont :</p>
-             <p>login: ${req.body.receiver.email},<br>
-                mot de passe: ${req.body.receiver.password}</p>
-             <p>Bien cordialement,<br>
-                L'équipe Alenvi</p>` // html body
+             <p>Vos identifiants pour y accéder:</p>
+             </ul>
+              <li>login: ${req.body.receiver.email}</li>
+              <li>mot de passe: ${req.body.receiver.password}</li>
+             </ul>
+             <p>Nous vous recommandons de modifier votre mot de passe lors de votre première connexion.</p>
+             <p>Nous espérons que cet accès en ligne vous sera utile.<br>
+                Bien à vous,<br>
+                L'équipe Alenvi</p>
+             <p>01 79 75 54 75 - du lundi au vendredi de 9h à 19h</p>` // html body
     };
     const mailInfo = await transporter.sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
