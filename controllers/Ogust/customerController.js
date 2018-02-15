@@ -190,6 +190,7 @@ const getCustomerInvoices = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id,
+      status: 'E',
       nbperpage: req.query.nbPerPage || '50',
       pagenum: req.query.pageNum || '1'
     };
