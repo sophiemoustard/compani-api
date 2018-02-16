@@ -194,7 +194,9 @@ const getCustomerInvoices = async (req, res) => {
       nbperpage: req.query.nbPerPage || '50',
       pagenum: req.query.pageNum || '1'
     };
-    if (req.query.year && req.query.month) {
+    if (req.query.startPeriod && req.query.endPeriod) {
+      params.end_of_period = `@between|${req.query.startPeriod}|${req.query.endPeriod}`;
+    } else if (req.query.year && req.query.month) {
       params.end_of_period = `@between|${req.query.year}${req.query.month}01|${req.query.year}${req.query.month}31`;
     } else {
       params.end_of_period = `@between|${req.query.year}0101|${req.query.year}1231`;
