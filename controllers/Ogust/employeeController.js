@@ -162,7 +162,8 @@ const getEmployeeCustomers = async (req, res) => {
     const uniqCustomers = servicesUniqCustomers.filter(
       (service) => {
         if (service.id_customer != 0 && service.id_customer != '271395715'
-        && service.id_customer != '244566438' && service.id_customer != '286871430') {
+        && service.id_customer != '244566438' && service.id_customer != '286871430' && service.id_customer != '349780044'
+        && service.id_customer != '356779196' && service.id_customer != '356779463' && service.id_customer != '271395715') {
           // Not Reunion Alenvi please
           return service;
         }
