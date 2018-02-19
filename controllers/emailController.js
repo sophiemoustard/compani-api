@@ -23,7 +23,7 @@ const sendWelcome = async (req, res) => {
       to: req.body.receiver.email, // list of receivers
       subject: 'Accès à notre application en ligne', // Subject line
       html: `<p>Bonjour,</p>
-             <p>Vous pouvez désormais accéder à votre espace Alenvi dans lequel vous trouverez notamment les éléments suivants:<p>
+             <p>Vous pouvez désormais accéder à votre espace Alenvi dans lequel vous trouverez notamment les éléments suivants :<p>
              <ul>
               <li>Vos factures et attestations fiscales,</li>
               <li>Le planning d’interventions,</li>
@@ -32,8 +32,8 @@ const sendWelcome = async (req, res) => {
              <a href="${process.env.WEBSITE_HOSTNAME}/dashboard/login">${process.env.WEBSITE_HOSTNAME}/dashboard/login</a>
              <p>Vos identifiants pour y accéder:</p>
              </ul>
-              <li>login: ${req.body.receiver.email}</li>
-              <li>mot de passe: ${req.body.receiver.password}</li>
+              <li>login : ${req.body.receiver.email}</li>
+              <li>mot de passe : ${req.body.receiver.password}</li>
              </ul>
              <p>Nous vous recommandons de modifier votre mot de passe lors de votre première connexion.</p>
              <p>Nous espérons que cet accès en ligne vous sera utile.<br>

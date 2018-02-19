@@ -350,7 +350,7 @@ const forgotPassword = async (req, res) => {
       to: req.body.email, // list of receivers
       subject: 'Changement de mot de passe de votre compte Alenvi', // Subject line
       html: `<p>Bonjour,</p>
-             <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure):</p>
+             <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
              <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${token}</a></p>
              <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
              <p>Bien cordialement,<br>
