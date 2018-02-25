@@ -58,7 +58,7 @@ const sendMessageById = async (req, res) => {
     if (!req.params._id || !req.query.recipientId) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
-    const userAddressRaw = await User.findUserAddressByEmployeeId(req.query.recipientId);
+    const userAddressRaw = await User.findOne({ _id: req.query.recipientId, 'facebook.address': { $exists: true } }, { 'facebook.address': 1 });
     if (!userAddressRaw) {
       return res.status(404).send({ success: false, message: translate[language].userAddressNotFound });
     }
