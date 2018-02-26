@@ -13,6 +13,7 @@ const getAll = async (req, res) => {
       email: req.query.email || '',
       status: req.query.status || 'A',
       last_name: req.query.lastName || '',
+      sector: req.query.sector || '',
       nbperpage: req.query.nbperpage || 50,
       pagenum: req.query.pagenum || 1
     };
