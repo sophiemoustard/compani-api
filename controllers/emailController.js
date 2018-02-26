@@ -28,10 +28,10 @@ const sendWelcome = async (req, res) => {
               <li>Vos factures et attestations fiscales,</li>
               <li>Le planning d’interventions,</li>
               <li>Le blog Alenvi avec des informations utiles pour les aidants familiaux.</li>
-             <ul>
+             </ul>
              <a href="${process.env.WEBSITE_HOSTNAME}/dashboard/login">${process.env.WEBSITE_HOSTNAME}/dashboard/login</a>
              <p>Vos identifiants pour y accéder:</p>
-             </ul>
+             <ul>
               <li>login : ${req.body.receiver.email}</li>
               <li>mot de passe : ${req.body.receiver.password}</li>
              </ul>
