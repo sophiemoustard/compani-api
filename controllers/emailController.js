@@ -29,7 +29,8 @@ const sendWelcome = async (req, res) => {
               <li>Le planning d’interventions,</li>
               <li>Le blog Alenvi avec des informations utiles pour les aidants familiaux.</li>
              </ul>
-             <a href="${process.env.WEBSITE_HOSTNAME}/dashboard/login">${process.env.WEBSITE_HOSTNAME}/dashboard/login</a>
+             <p>Le lien :</p>
+             <a href="${process.env.WEBSITE_HOSTNAME}/login">${process.env.WEBSITE_HOSTNAME}/login</a>
              <p>Vos identifiants pour y accéder:</p>
              <ul>
               <li>login : ${req.body.receiver.email}</li>
