@@ -223,6 +223,7 @@ const create = async (req, res) => {
     const params = {
       token: req.headers['x-ogust-token'],
       title: req.body.title,
+      number: req.body.number,
       last_name: req.body.last_name,
       first_name: req.body.first_name,
       main_address: {
