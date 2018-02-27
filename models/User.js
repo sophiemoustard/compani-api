@@ -115,7 +115,8 @@ const UserSchema = mongoose.Schema({
     }
   ],
   isConstrained: Boolean,
-  mobilePhone: String
+  mobilePhone: String,
+  managerId: { type: mongoose.Schema.Types.ObjectId }
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
