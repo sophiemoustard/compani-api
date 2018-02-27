@@ -13,6 +13,10 @@ const ActivationCodeSchema = mongoose.Schema({
     type: String,
     required: true
   },
+  managerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true
+  },
   // employee_id: {
   //   type: Number,
   //   required: true
