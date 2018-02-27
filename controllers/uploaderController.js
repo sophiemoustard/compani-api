@@ -1,0 +1,38 @@
+const _ = require('lodash');
+
+const translate = require('../helpers/translate');
+
+const language = translate.language;
+
+const drive = require('../models/Uploader/GoogleDrive');
+
+const createFolder = async (req, res) => {
+  try {
+    if (!req.body.parentFolderId || !req.body.folderName) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const payload = _.pick(req.body, ['parentFolderId', 'folderName']);
+    const createdFolder = await drive.addFolder(payload);
+    console.log(createdFolder);
+    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { createdFolder } });
+  } catch (e) {
+    console.error(e.message);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+const createFile = async (req, res) => {
+  try {
+    if (!req.body.parentFolderId || !req.body.fileName || !req.body.mimeType || !req.body.filePath) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const payload = _.pick(req.body, ['parentFolderId', 'fileName', 'mimeType', 'filePath']);
+    const createdFile = await drive.addFile(payload);
+    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { createdFile } });
+  } catch (e) {
+    console.error(e.message);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+module.exports = { createFolder, createFile };

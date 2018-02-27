@@ -23,5 +23,6 @@ router.use('/roles', require('./api/role'));
 router.use('/features', require('./api/features'));
 router.use('/email', require('./api/email'));
 router.use('/idNumber', require('./api/idNumber'));
+router.use('/uploader', require('./api/uploader'));
 
 module.exports = router;

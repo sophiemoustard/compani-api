@@ -26,6 +26,7 @@
     "express-session": "^1.15.6",
     "feedparser-promised": "^1.5.0",
     "flat": "^4.0.0",
+    "googleapis": "^26.0.1",
     "jsonwebtoken": "^7.4.3",
     "lodash": "^4.17.5",
     "moment": "^2.20.1",
