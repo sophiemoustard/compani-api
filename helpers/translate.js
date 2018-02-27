@@ -92,7 +92,9 @@ module.exports = {
     emailSent: 'Email successfully sent.',
     /* Reset password token */
     resetPasswordTokenFound: 'Reset password token found.',
-    resetPasswordTokenNotFound: 'Reset password token not found.'
+    resetPasswordTokenNotFound: 'Reset password token not found.',
+    /* ID number */
+    idNumberCreated: 'ID number successfully created.'
   },
   'fr-FR': {
     /* Global errors */
@@ -186,6 +188,8 @@ module.exports = {
     emailSent: 'Email envoyé avec succès.',
     /* Reset password token */
     resetPasswordTokenFound: 'Token de changement de password trouvé.',
-    resetPasswordTokenNotFound: 'Token de changement de password non trouvé.'
+    resetPasswordTokenNotFound: 'Token de changement de password non trouvé.',
+    /* ID number */
+    idNumberCreated: 'Matricule créé.'
   }
 };

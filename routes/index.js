@@ -22,5 +22,6 @@ router.use('/activation', require('./api/activation'));
 router.use('/roles', require('./api/role'));
 router.use('/features', require('./api/features'));
 router.use('/email', require('./api/email'));
+router.use('/idNumber', require('./api/idNumber'));
 
 module.exports = router;
