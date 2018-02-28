@@ -16,6 +16,7 @@ const tokenProcess = require('../helpers/tokenProcess');
 
 const User = require('../models/User');
 const Role = require('../models/Role');
+const drive = require('../models/Uploader/GoogleDrive');
 
 // Authenticate the user locally
 const authenticate = async (req, res) => {
@@ -74,7 +75,18 @@ const create = async (req, res) => {
     if (!role) {
       return res.status(404).json({ success: false, message: translate[language].roleNotFound });
     }
+    if (req.body.role === 'Auxiliaire' && req.body.firstname && req.body.lastname) {
+      const folder = await drive.addFolder({ folderName: `${req.body.lastname.toUpperCase()} ${req.body.firstname}`, parentFolderId: process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID });
+      if (!folder) {
+        console.error('Google drive folder creation failed.');
+        return res.status(424).json({ success: false, message: translate[language].folderCreationFailure });
+      }
+      req.body.administrative = {
+        driveIdFolder: folder.id
+      };
+    }
     req.body.role = role._id;
+    console.log(req.body.administrative);
     // Create refreshToken and store it
     req.body.refreshToken = uuidv4();
     const user = new User(req.body);

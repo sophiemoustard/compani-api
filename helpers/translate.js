@@ -98,6 +98,7 @@ module.exports = {
     /* Uploader */
     fileNotFound: 'File not found.',
     folderCreated: 'Folder successfully created.',
+    folderCreationFailure: 'Folder creation Failed.',
     fileCreated: 'File successfully created.'
   },
   'fr-FR': {
@@ -198,6 +199,7 @@ module.exports = {
     /* Uploader */
     fileNotFound: 'Fichier non trouvé.',
     folderCreated: 'Dossier créé.',
+    folderCreationFailure: 'La création de dossier a échouée.',
     fileCreated: 'Fichier créé.'
   }
 };
