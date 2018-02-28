@@ -17,6 +17,7 @@
     "apidoc": "^0.17.6",
     "bcrypt": "^1.0.3",
     "body-parser": "~1.17.1",
+    "cloudinary": "^1.10.0",
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.4",
     "crypto": "0.0.3",

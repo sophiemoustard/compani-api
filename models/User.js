@@ -116,7 +116,56 @@ const UserSchema = mongoose.Schema({
   ],
   isConstrained: Boolean,
   mobilePhone: String,
-  managerId: { type: mongoose.Schema.Types.ObjectId }
+  managerId: { type: mongoose.Schema.Types.ObjectId },
+  administrative: {
+    driveIdFolder: String,
+    signup: {
+      firstSmsDate: Date,
+      secondSmsDate: Date,
+      save: String,
+      complete: Boolean
+    },
+    payment: {
+      rib: {
+        driveId: String,
+        link: String,
+        fullname: String,
+        iban: String,
+        bic: String
+      },
+      cesu: [String],
+      invoices: [String],
+      fiscalAttests: [String]
+    },
+    vitalCard: {
+      driveId: String,
+      link: String
+    },
+    driveIdCard: {
+      driveId: String,
+      link: String
+    },
+    healthAttest: {
+      driveId: String,
+      link: String
+    },
+    certificate: {
+      driveId: String,
+      link: String
+    },
+    phoneInvoice: {
+      driveId: String,
+      link: String
+    },
+    navigoInvoice: {
+      driveId: String,
+      link: String
+    },
+    mutualFund: {
+      driveId: String,
+      link: String
+    },
+  },
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 

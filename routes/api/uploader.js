@@ -11,5 +11,6 @@ router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 router.post('/drive/createFolder', uploaderController.createFolder);
 router.post('/drive/createFile', uploaderController.createFile);
+router.post('/cloudinary/uploadImage', uploaderController.uploadImage);
 
 module.exports = router;

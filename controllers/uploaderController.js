@@ -5,6 +5,7 @@ const translate = require('../helpers/translate');
 const language = translate.language;
 
 const drive = require('../models/Uploader/GoogleDrive');
+const cloudinary = require('../models/Uploader/Cloudinary');
 
 const createFolder = async (req, res) => {
   try {
@@ -39,4 +40,18 @@ const createFile = async (req, res) => {
   }
 };
 
-module.exports = { createFolder, createFile };
+const uploadImage = async (req, res) => {
+  try {
+    if (!req.body.file || !req.body.folder) {
+      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    }
+    const payload = _.pick(req.body, ['file', 'folder']);
+    const uploadedImage = await cloudinary.addImage(payload);
+    return res.status(200).json({ success: true, message: translate[language].fileCreated, data: { uploadedImage } });
+  } catch (e) {
+    console.error(e.message);
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+module.exports = { createFolder, createFile, uploadImage };
