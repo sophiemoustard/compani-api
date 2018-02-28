@@ -94,7 +94,11 @@ module.exports = {
     resetPasswordTokenFound: 'Reset password token found.',
     resetPasswordTokenNotFound: 'Reset password token not found.',
     /* ID number */
-    idNumberCreated: 'ID number successfully created.'
+    idNumberCreated: 'ID number successfully created.',
+    /* Uploader */
+    fileNotFound: 'File not found.',
+    folderCreated: 'Folder successfully created.',
+    fileCreated: 'File successfully created.'
   },
   'fr-FR': {
     /* Global errors */
@@ -190,6 +194,10 @@ module.exports = {
     resetPasswordTokenFound: 'Token de changement de password trouvé.',
     resetPasswordTokenNotFound: 'Token de changement de password non trouvé.',
     /* ID number */
-    idNumberCreated: 'Matricule créé.'
+    idNumberCreated: 'Matricule créé.',
+    /* Uploader */
+    fileNotFound: 'Fichier non trouvé.',
+    folderCreated: 'Dossier créé.',
+    fileCreated: 'Fichier créé.'
   }
 };

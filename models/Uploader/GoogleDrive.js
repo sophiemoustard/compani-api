@@ -45,6 +45,9 @@ exports.addFile = params => new Promise((resolve, reject) => {
     mimeType: params.mimeType,
     body: fs.createReadStream(params.filePath)
   };
+  media.body.on('error', (err) => {
+    reject(err);
+  });
   drive.files.create({
     auth: jwtClient,
     resource: fileMetadata,

@@ -14,7 +14,7 @@ const createFolder = async (req, res) => {
     const payload = _.pick(req.body, ['parentFolderId', 'folderName']);
     const createdFolder = await drive.addFolder(payload);
     console.log(createdFolder);
-    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { createdFolder } });
+    return res.status(200).json({ success: true, message: translate[language].folderCreated, data: { createdFolder } });
   } catch (e) {
     console.error(e.message);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
@@ -28,8 +28,12 @@ const createFile = async (req, res) => {
     }
     const payload = _.pick(req.body, ['parentFolderId', 'fileName', 'mimeType', 'filePath']);
     const createdFile = await drive.addFile(payload);
-    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { createdFile } });
+    return res.status(200).json({ success: true, message: translate[language].fileCreated, data: { createdFile } });
   } catch (e) {
+    if (e.code === 'ENOENT') {
+      console.error('File not found !');
+      return res.status(404).json({ success: false, message: translate[language].fileNotFound });
+    }
     console.error(e.message);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
