@@ -122,7 +122,7 @@ const UserSchema = mongoose.Schema({
     signup: {
       firstSmsDate: Date,
       secondSmsDate: Date,
-      save: String,
+      step: String,
       complete: Boolean
     },
     payment: {
