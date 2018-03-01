@@ -37,6 +37,7 @@
     "nodemailer": "^4.5.0",
     "passport": "^0.3.2",
     "passport-facebook": "^2.1.1",
+    "pify": "^3.0.0",
     "randomatic": "^2.0.0",
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
