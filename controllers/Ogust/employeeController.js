@@ -236,6 +236,7 @@ const create = async (req, res) => {
       email: req.body.email,
       sector: req.body.sector,
       mobile_phone: req.body.mobile_phone,
+      picture: req.body.picture,
       nature: 'S',
       status: 'A',
       method_of_payment: '7268',
