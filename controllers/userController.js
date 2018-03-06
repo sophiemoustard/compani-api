@@ -223,9 +223,7 @@ const update = async (req, res) => {
       }
       req.body.role = role._id.toString();
     }
-    console.log(req.body);
     const newBody = clean(flat(req.body));
-    console.log(newBody);
     // const newBody = _.pickBy(flat(req.body), !_.isEmpty);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true }).populate({
