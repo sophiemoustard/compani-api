@@ -1,4 +1,3 @@
-const fs = require('fs');
 const { google } = require('googleapis');
 
 const jwtClient = new google.auth.JWT(
@@ -36,23 +35,10 @@ exports.addFolder = params => new Promise((resolve, reject) => {
   });
 });
 
-exports.addFile = params => new Promise((resolve, reject) => {
-  const fileMetadata = {
-    name: params.fileName,
-    parents: [params.parentFolderId] || []
-  };
-  const media = {
-    mimeType: params.mimeType,
-    body: fs.createReadStream(params.filePath)
-  };
-  media.body.on('error', (err) => {
-    reject(err);
-  });
-  drive.files.create({
+exports.deleteFile = params => new Promise((resolve, reject) => {
+  drive.files.delete({
     auth: jwtClient,
-    resource: fileMetadata,
-    media,
-    fields: 'id'
+    fileId: params.fileId
   }, (err, file) => {
     if (err) {
       reject(err);
@@ -61,3 +47,29 @@ exports.addFile = params => new Promise((resolve, reject) => {
     }
   });
 });
+
+// exports.addFile = params => new Promise((resolve, reject) => {
+//   const fileMetadata = {
+//     name: params.fileName,
+//     parents: [params.parentFolderId] || []
+//   };
+//   const media = {
+//     mimeType: params.type,
+//     body: fs.createReadStream(params.file)
+//   };
+//   media.body.on('error', (err) => {
+//     reject(err);
+//   });
+//   drive.files.create({
+//     auth: jwtClient,
+//     resource: fileMetadata,
+//     media,
+//     fields: 'id'
+//   }, (err, file) => {
+//     if (err) {
+//       reject(err);
+//     } else {
+//       resolve(file.data);
+//     }
+//   });
+// });

@@ -86,8 +86,11 @@ const UserSchema = mongoose.Schema({
     }
   },
   picture: {
-    type: String,
-    trim: true
+    publicId: String,
+    link: {
+      type: String,
+      trim: true
+    }
   },
   planningModification: [
     {
@@ -127,9 +130,6 @@ const UserSchema = mongoose.Schema({
     },
     payment: {
       rib: {
-        driveId: String,
-        link: String,
-        fullname: String,
         iban: String,
         bic: String
       },
@@ -141,7 +141,7 @@ const UserSchema = mongoose.Schema({
       driveId: String,
       link: String
     },
-    driveIdCard: {
+    idCard: {
       driveId: String,
       link: String
     },
@@ -149,10 +149,12 @@ const UserSchema = mongoose.Schema({
       driveId: String,
       link: String
     },
-    certificate: {
-      driveId: String,
-      link: String
-    },
+    certificates: [
+      {
+        driveId: String,
+        link: String
+      }
+    ],
     phoneInvoice: {
       driveId: String,
       link: String

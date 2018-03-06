@@ -7,8 +7,26 @@ cloudinary.config({
 });
 
 exports.addImage = async params => new Promise((resolve, reject) => {
-  cloudinary.v2.uploader.upload(params.file, { folder: params.folder }, (err, res) => {
-    if (err) reject(err);
+  const options = {
+    folder: params.folder,
+    public_id: params.fileName,
+    eager: params.transform ? [params.transform] : []
+  };
+  cloudinary.v2.uploader.upload(params.filePath, options, (err, res) => {
+    if (err) {
+      err.cloudinary = true;
+      reject(err);
+    }
+    resolve(res);
+  });
+});
+
+exports.deleteImage = async params => new Promise((resolve, reject) => {
+  cloudinary.v2.uploader.destroy(params.publicId, (err, res) => {
+    if (err) {
+      err.cloudinary = true;
+      reject(err);
+    }
     resolve(res);
   });
 });
