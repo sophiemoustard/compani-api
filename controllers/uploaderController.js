@@ -30,11 +30,18 @@ const uploadFile = async (req, res) => {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     const administrativeKeys = Object.keys(req.files);
+    let driveFileInfo;
+    try {
+      driveFileInfo = await drive.getFileById({ fileId: req.files[administrativeKeys[0]][0].id });
+    } catch (e) {
+      console.error(e);
+    }
     if (administrativeKeys[0] === 'certificates') {
       const payload = {
         administrative: {
           certificates: {
-            driveIds: req.files.certificates[0].id
+            driveId: req.files.certificates[0].id,
+            link: driveFileInfo.webViewLink
           }
         }
       };
@@ -43,7 +50,8 @@ const uploadFile = async (req, res) => {
       const payload = {
         administrative: {
           [administrativeKeys[0]]: {
-            driveId: req.files[administrativeKeys[0]][0].id
+            driveId: req.files[administrativeKeys[0]][0].id,
+            link: driveFileInfo.webViewLink
           }
         }
       };

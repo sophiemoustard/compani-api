@@ -48,6 +48,20 @@ exports.deleteFile = params => new Promise((resolve, reject) => {
   });
 });
 
+exports.getFileById = params => new Promise((resolve, reject) => {
+  drive.files.get({
+    auth: jwtClient,
+    fileId: `${params.fileId}`,
+    //  pageSize: 10,
+    fields: ['name, webViewLink']
+  }, (err, response) => {
+    if (err) {
+      reject(`Google Drive API error: ${err}`);
+    }
+    resolve(response.data);
+  });
+});
+
 // exports.addFile = params => new Promise((resolve, reject) => {
 //   const fileMetadata = {
 //     name: params.fileName,
