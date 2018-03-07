@@ -131,7 +131,7 @@ const UserSchema = mongoose.Schema({
       },
       complete: {
         type: Boolean,
-        default: null
+        default: false
       }
     },
     payment: {
