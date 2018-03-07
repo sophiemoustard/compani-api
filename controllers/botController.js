@@ -95,7 +95,14 @@ module.exports = {
   // },
   getUserByParamId: async (req, res) => {
     try {
-      const user = await User.findOne({ _id: req.params._id }).lean();
+      const user = await User.findOne({ _id: req.params._id }).populate({
+        path: 'role',
+        select: '-__v -createdAt -updatedAt',
+        populate: {
+          path: 'features.feature_id',
+          select: '-__v -createdAt -updatedAt'
+        }
+      }).lean();
       if (!user) {
         return res.status(404).send({ success: false, message: translate[language].userNotFound });
       }
@@ -109,6 +116,7 @@ module.exports = {
         customer_id: user.customer_id,
         employee_id: user.employee_id,
         sector: user.sector,
+        administrative: user.administrative,
         alenviToken
       };
       const newPayload = _.pickBy(payload);
