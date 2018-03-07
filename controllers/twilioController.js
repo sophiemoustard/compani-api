@@ -1,4 +1,7 @@
+const flat = require('flat');
+
 const translate = require('../helpers/translate');
+const User = require('../models/User');
 const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 const language = translate.language;
@@ -46,7 +49,7 @@ Puis connecte-toi en cliquant sur le lien suivant: ${process.env.MESSENGER_LINK}
       to: internationalNbr,
       from: process.env.TWILIO_PHONE_NBR,
       body: msg
-    }, (err, message) => {
+    }, async (err, message) => {
       if (err) {
         return res.status(500).json({ success: false, message: translate[language].smsNotSent });
       }
@@ -55,6 +58,14 @@ Puis connecte-toi en cliquant sur le lien suivant: ${process.env.MESSENGER_LINK}
         to: message.to,
         body: message.body
       };
+      const payload = {
+        administrative: {
+          signup: {
+            secondSMSDate: Date.now()
+          }
+        }
+      };
+      await User.findOneAndUpdate({ mobilePhone: req.params.phoneNbr }, { $set: flat(payload) }, { new: true });
       return res.status(200).json({ success: true, message: translate[language].smsSent, data: { sms } });
     });
   } catch (error) {
