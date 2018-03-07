@@ -125,8 +125,14 @@ const UserSchema = mongoose.Schema({
     signup: {
       firstSmsDate: Date,
       secondSmsDate: Date,
-      step: String,
-      complete: Boolean
+      step: {
+        type: String,
+        default: 'first'
+      },
+      complete: {
+        type: Boolean,
+        default: null
+      }
     },
     payment: {
       rib: {
