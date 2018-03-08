@@ -10,11 +10,11 @@ const ActivationCode = require('../models/ActivationCode');
 
 const createActivationCode = async (req, res) => {
   try {
-    if (!req.body.mobile_phone || !req.body.sector || !req.body.managerId) {
+    if (!req.body.mobile_phone || !req.body.sector || !req.body.managerId || !req.body.firstSMS) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     req.body.code = randomize('0000');
-    const payload = _.pick(req.body, ['mobile_phone', 'code', 'sector', 'managerId']);
+    const payload = _.pick(req.body, ['mobile_phone', 'code', 'sector', 'managerId', 'firstSMS']);
     const activationData = new ActivationCode(payload);
     await activationData.save();
     return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationData } });

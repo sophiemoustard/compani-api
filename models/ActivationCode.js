@@ -17,6 +17,10 @@ const ActivationCodeSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
+  firstSMS: {
+    type: Date,
+    default: null
+  },
   // employee_id: {
   //   type: Number,
   //   required: true
