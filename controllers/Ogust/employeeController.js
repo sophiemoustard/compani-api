@@ -1,6 +1,10 @@
+const moment = require('moment');
+const flat = require('flat');
+
 const translate = require('../../helpers/translate');
 const employees = require('../../models/Ogust/Employee');
 const customers = require('../../models/Ogust/Customer');
+const Counter = require('../../models/IdNumber');
 
 const _ = require('lodash');
 
@@ -220,10 +224,19 @@ const create = async (req, res) => {
     if (!req.body.title || !req.body.last_name || !req.body.main_address) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
+    const query = {
+      idNumber: {
+        prefix: `SA${moment().format('YYMM')}`
+      }
+    };
+    const payload = {
+      idNumber: { seq: 1 }
+    };
+    const number = await Counter.findOneAndUpdate(flat(query), { $inc: flat(payload) }, { new: true, upsert: true, setDefaultsOnInsert: true });
+    const idNumber = `${number.idNumber.prefix}-${number.idNumber.seq.toString().padStart(3, '0')}`;
     const params = {
       token: req.headers['x-ogust-token'],
       title: req.body.title,
-      number: req.body.number,
       last_name: req.body.last_name,
       first_name: req.body.first_name,
       main_address: {
@@ -233,6 +246,7 @@ const create = async (req, res) => {
         type: 'Adrpri',
         country: 'FR'
       },
+      number: idNumber,
       email: req.body.email,
       sector: req.body.sector,
       mobile_phone: req.body.mobile_phone,
