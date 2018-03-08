@@ -112,15 +112,15 @@ module.exports = {
         lastname: user.lastname,
         _id: user._id,
         'local.email': user.local.email,
-        role: user.role,
+        role: user.role.name,
         customer_id: user.customer_id,
         employee_id: user.employee_id,
         sector: user.sector,
         administrative: user.administrative,
         alenviToken
       };
-      const newPayload = _.pickBy(payload);
-      res.status(200).send({ success: true, message: translate[language].userFound, data: { user: newPayload } });
+      // const newPayload = _.pickBy(payload);
+      res.status(200).send({ success: true, message: translate[language].userFound, data: { user: payload } });
     } catch (e) {
       return res.status(404).send({ success: false, message: translate[language].userNotFound });
     }
