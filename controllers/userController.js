@@ -81,9 +81,7 @@ const create = async (req, res) => {
         console.error('Google drive folder creation failed.');
         return res.status(424).json({ success: false, message: translate[language].folderCreationFailure });
       }
-      req.body.administrative = {
-        driveIdFolder: folder.id
-      };
+      req.body.administrative.driveIdFolder = folder.id;
     }
     req.body.role = role._id;
     console.log(req.body.administrative);
