@@ -277,10 +277,6 @@ const updateById = async (req, res) => {
       email: req.body.email,
       sector: req.body.sector,
       mobile_phone: req.body.mobile_phone,
-      bank_information: {
-        iban_number: req.body.iban_number,
-        bic_number: req.body.bic_number,
-      },
       date_of_birth: req.body.date_of_birth,
       country_of_birth: req.body.country_of_birth,
       place_of_birth: req.body.place_of_birth,

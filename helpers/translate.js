@@ -49,6 +49,7 @@ module.exports = {
     fiscalAttestsNotFound: 'Customer fiscal attestations not found.',
     invoicesFound: 'Customer invoices found.',
     invoicesNotFound: 'Customer invoices not found.',
+    bankInfoUpdated: 'Bank info updated.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -150,6 +151,7 @@ module.exports = {
     fiscalAttestsNotFound: 'Attestations fiscales du bénéficiaire non trouvées',
     invoicesFound: 'Factures bénéficiaire trouvées.',
     invoicesNotFound: 'Factures bénéficiaire non trouvées.',
+    bankInfoUpdated: 'Informations bancaires mises à jour',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',

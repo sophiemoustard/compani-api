@@ -10,6 +10,7 @@ const customerController = require('./../../controllers/Ogust/customerController
 const employeeController = require('./../../controllers/Ogust/employeeController');
 const tokenController = require('./../../controllers/Ogust/tokenController');
 const serviceController = require('./../../controllers/Ogust/serviceController');
+const bankInfoController = require('./../../controllers/Ogust/bankInfoController');
 const utilsController = require('./../../controllers/Ogust/utilsController');
 
 router.get('/token', tokenProcess.decode({ secret: tokenConfig.secret }), tokenController.get);
@@ -51,5 +52,7 @@ router.get('/customers/:id/contacts', customerController.getCustomerContacts);
 router.get('/services', serviceController.getAll);
 router.get('/services/:id', serviceController.getById);
 router.put('/services/:id', serviceController.updateById);
+
+router.put('/bankInfo', bankInfoController.updateByEmployeeId);
 
 module.exports = router;
