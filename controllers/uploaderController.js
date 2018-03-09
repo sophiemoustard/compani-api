@@ -82,7 +82,7 @@ const uploadImage = async (req, res) => {
     if (user.picture && user.picture.publicId) {
       await cloudinary.deleteImage({ publicId: user.picture.publicId });
     }
-    const uploadedImage = req.file;
+    // const uploadedImage = req.file;
     const payload = {
       picture: {
         publicId: req.file.public_id,
@@ -90,7 +90,7 @@ const uploadImage = async (req, res) => {
       }
     };
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
-    return res.status(200).json({ success: true, message: translate[language].fileCreated, data: { uploadedImage, userUpdated } });
+    return res.status(200).json({ success: true, message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } });
   } catch (e) {
     console.error(e);
     // if (e.cloudinary) {
