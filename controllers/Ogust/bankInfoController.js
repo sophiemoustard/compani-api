@@ -12,7 +12,7 @@ const updateByEmployeeId = async (req, res) => {
     }
     const params = {
       token: req.headers['x-ogust-token'],
-      id_tiers: req.body.id,
+      id_tiers: req.body.id_tiers,
       iban_number: req.body.iban || '',
       bic_number: req.body.bic || ''
     };
