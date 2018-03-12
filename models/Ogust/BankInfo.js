@@ -12,3 +12,15 @@ exports.setBankInfoByEmployeeId = async (params) => {
   const res = await rp.post(options);
   return res;
 };
+
+exports.getBankInfoById = async (params) => {
+  const options = {
+    url: `${Ogust.API_LINK}searchBankinfo`,
+    json: true,
+    body: params,
+    resolveWithFullResponse: true,
+    time: true
+  };
+  const res = await rp.post(options);
+  return res;
+};

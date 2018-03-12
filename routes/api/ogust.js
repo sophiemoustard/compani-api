@@ -53,6 +53,7 @@ router.get('/services', serviceController.getAll);
 router.get('/services/:id', serviceController.getById);
 router.put('/services/:id', serviceController.updateById);
 
+router.get('/bankInfo/:id', bankInfoController.getById);
 router.put('/bankInfo', bankInfoController.updateByEmployeeId);
 
 module.exports = router;
