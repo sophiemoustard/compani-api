@@ -37,15 +37,14 @@ const uploadFile = async (req, res) => {
       console.error(e);
     }
     if (administrativeKeys[0] === 'certificates') {
+      console.log('MEH');
       const payload = {
-        administrative: {
-          certificates: {
-            driveId: req.files.certificates[0].id,
-            link: driveFileInfo.webViewLink
-          }
+        'administrative.certificates': {
+          driveId: req.files.certificates[0].id,
+          link: driveFileInfo.webViewLink
         }
       };
-      await User.findOneAndUpdate({ _id: req.params._id }, { $push: flat(payload) }, { new: true });
+      await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true });
     } else {
       const payload = {
         administrative: {
