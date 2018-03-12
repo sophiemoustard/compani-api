@@ -37,7 +37,6 @@ const uploadFile = async (req, res) => {
       console.error(e);
     }
     if (administrativeKeys[0] === 'certificates') {
-      console.log('MEH');
       const payload = {
         'administrative.certificates': {
           driveId: req.files.certificates[0].id,
