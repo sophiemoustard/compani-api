@@ -143,10 +143,6 @@ const UserSchema = mongoose.Schema({
       invoices: [String],
       fiscalAttests: [String]
     },
-    vitalCard: {
-      driveId: String,
-      link: String
-    },
     idCard: {
       driveId: String,
       link: String
