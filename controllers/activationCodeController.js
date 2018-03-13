@@ -10,7 +10,7 @@ const ActivationCode = require('../models/ActivationCode');
 
 const createActivationCode = async (req, res) => {
   try {
-    if (!req.body.mobile_phone || !req.body.sector || !req.body.managerId || !req.body.firstSMS) {
+    if (!req.body.mobile_phone || !req.body.sector || !req.body.managerId) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     req.body.code = randomize('0000');
