@@ -15,7 +15,7 @@ const uploaderController = require('../../controllers/uploaderController');
 
 // Google drive storage
 const googleDriveStorage = gdriveStorage();
-const gdriveUpload = multer({ storage: googleDriveStorage });
+const gdriveUpload = multer({ storage: googleDriveStorage, limits: { fileSize: 2000000 } });
 
 // Cloudinary storage
 cloudinary.config({
@@ -31,7 +31,7 @@ const cloudStorage = cloudinaryStorage({
   },
   allowedFormats: ['jpg', 'png', 'gif']
 });
-const cloudinaryUpload = multer({ storage: cloudStorage });
+const cloudinaryUpload = multer({ storage: cloudStorage, limits: { fileSize: 2000000 } });
 
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
