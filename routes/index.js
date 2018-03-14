@@ -24,5 +24,6 @@ router.use('/features', require('./api/features'));
 router.use('/email', require('./api/email'));
 router.use('/idNumber', require('./api/idNumber'));
 router.use('/uploader', require('./api/uploader'));
+router.use('/slack', require('./api/slack'));
 
 module.exports = router;

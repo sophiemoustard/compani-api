@@ -117,6 +117,9 @@ module.exports = {
         employee_id: user.employee_id,
         sector: user.sector,
         administrative: user.administrative,
+        managerId: user.managerId,
+        createdAt: user.createdAt,
+        slack: user.slack,
         alenviToken
       };
       // const newPayload = _.pickBy(payload);
