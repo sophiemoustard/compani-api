@@ -122,6 +122,10 @@ const UserSchema = mongoose.Schema({
   managerId: { type: mongoose.Schema.Types.ObjectId },
   administrative: {
     driveIdFolder: String,
+    endorsement: {
+      type: Boolean,
+      default: false
+    },
     signup: {
       firstSmsDate: Date,
       secondSmsDate: Date,
