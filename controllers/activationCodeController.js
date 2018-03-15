@@ -34,7 +34,7 @@ const checkActivationCode = async (req, res) => {
       return res.status(404).json({ success: false, message: translate[language].activationCodeNotFoundOrInvalid });
     }
     // 2 days expire
-    const expireTime = 172800;
+    const expireTime = 604800;
     const token = tokenProcess.encode({ activationData }, expireTime);
     return res.status(200).json({ success: true, message: translate[language].activationCodeValidated, data: { activationData, token } });
   } catch (e) {
