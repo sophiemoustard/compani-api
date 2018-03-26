@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "apidoc": "^0.17.6",
+    "async": "^2.6.0",
     "bcrypt": "^1.0.3",
     "body-parser": "~1.17.1",
     "cloudinary": "^1.10.0",
@@ -29,6 +30,7 @@
     "feedparser-promised": "^1.5.0",
     "flat": "^4.0.0",
     "googleapis": "^26.0.1",
+    "hellosign-sdk": "^1.1.14",
     "jsonwebtoken": "^7.4.3",
     "lodash": "^4.17.5",
     "moment": "^2.20.1",
