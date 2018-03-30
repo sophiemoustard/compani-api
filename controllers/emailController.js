@@ -99,8 +99,12 @@ const sendUserRequest = async (req, res) => {
       from: req.body.user.email, // sender address
       to: 'support@alenvi.io', // list of receivers
       subject: "Demande d'informations", // Subject line
-      text: `Nom: ${req.body.user.name}
-            ${req.body.user.message}` // html body
+      html: `<ul>
+              <li>Nom: ${req.body.user.name || '-'}</li>
+              <li>Tel: ${req.body.user.phone || '-'}</li>
+              <li>Code Postal: ${req.body.user.zipCode || '-'}</li>
+            </ul>
+            <p>${req.body.user.message}</p>` // html body
     };
     const mailInfo = await transporter.sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
