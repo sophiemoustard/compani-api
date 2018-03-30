@@ -7,6 +7,8 @@ const router = express.Router();
 
 const emailController = require('../../controllers/emailController');
 
+router.post('/sendUserRequest', emailController.sendUserRequest);
+
 // Routes protection by token
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 

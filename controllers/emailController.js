@@ -81,4 +81,32 @@ const sendChangePasswordOk = async (req, res) => {
   }
 };
 
-module.exports = { sendWelcome, sendChangePasswordOk };
+const sendUserRequest = async (req, res) => {
+  try {
+    if (!req.body.user) {
+      return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
+    }
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.sendgrid.net',
+      port: 465,
+      secure: true, // true for 465, false for other ports
+      auth: {
+        user: 'apikey',
+        pass: process.env.SENDGRID_API_KEY
+      }
+    });
+    const mailOptions = {
+      from: req.body.user.email, // sender address
+      to: 'support@alenvi.io', // list of receivers
+      subject: "Demande d'informations", // Subject line
+      text: `Nom: ${req.body.user.name}
+            ${req.body.user.message}` // html body
+    };
+    const mailInfo = await transporter.sendMail(mailOptions);
+    return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+module.exports = { sendWelcome, sendChangePasswordOk, sendUserRequest };
