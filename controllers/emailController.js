@@ -97,7 +97,8 @@ const sendUserRequest = async (req, res) => {
     });
     const mailOptions = {
       from: req.body.user.email, // sender address
-      to: 'support@alenvi.io', // list of receivers
+      to: 'tasnime@alenvi.io', // list of receivers
+      cc: 'alison@alenvi.io', // list of receivers
       subject: "Demande d'informations", // Subject line
       html: `<ul>
               <li>Nom: ${req.body.user.name || '-'}</li>
