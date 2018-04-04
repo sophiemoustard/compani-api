@@ -38,7 +38,7 @@ const UserSchema = mongoose.Schema({
       id: String,
       channelId: String,
       user: {
-        id: Number,
+        id: String,
         name: String
       },
       conversation: {
@@ -46,7 +46,7 @@ const UserSchema = mongoose.Schema({
         id: String
       },
       bot: {
-        id: Number,
+        id: String,
         name: String
       },
       serviceUrl: String
