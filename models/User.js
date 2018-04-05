@@ -121,7 +121,11 @@ const UserSchema = mongoose.Schema({
   mobilePhone: String,
   managerId: { type: mongoose.Schema.Types.ObjectId },
   administrative: {
-    driveIdFolder: String,
+    driveFolder: {
+      id: String,
+      link: String
+    },
+    // driveIdFolder: String,
     endorsement: {
       type: Boolean,
       default: false
