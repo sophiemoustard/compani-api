@@ -81,7 +81,17 @@ const create = async (req, res) => {
         console.error('Google drive folder creation failed.');
         return res.status(424).json({ success: false, message: translate[language].folderCreationFailure });
       }
-      req.body.administrative.driveIdFolder = folder.id;
+      const folderLink = await drive.getFileById({ fileId: folder.id });
+      if (!folderLink) {
+        console.error('Google drive folder creation failed.');
+        return res.status(424).json({ success: false, message: translate[language].folderCreationFailure });
+      }
+      req.body.administrative = {
+        driveFolder: {
+          id: folder.id,
+          link: folderLink.webViewLink
+        }
+      };
     }
     req.body.role = role._id;
     console.log(req.body.administrative);
