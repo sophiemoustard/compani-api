@@ -21,10 +21,10 @@ function GdriveStorage() {
 GdriveStorage.prototype._handleFile = async function _handleFile(req, file, cb) {
   try {
     const user = await User.findById(req.params._id).lean();
-    if (!user.administrative.driveIdFolder) {
-      throw new Error('multer gdrive storage engine: No Google Drive folder ID !');
+    if (!user.administrative.driveFolder) {
+      throw new Error('multer gdrive storage engine: No Google Drive folder !');
     }
-    const parentFolderId = user.administrative.driveIdFolder;
+    const parentFolderId = user.administrative.driveFolder.id;
     const fileMetadata = {
       name: req.body.fileName || file.originalname,
       parents: parentFolderId ? [parentFolderId] : []
