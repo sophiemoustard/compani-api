@@ -94,7 +94,6 @@ const create = async (req, res) => {
       };
     }
     req.body.role = role._id;
-    console.log(req.body.administrative);
     // Create refreshToken and store it
     req.body.refreshToken = uuidv4();
     const user = new User(req.body);

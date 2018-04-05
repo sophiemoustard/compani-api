@@ -40,7 +40,8 @@ const sendSMSConfirm = async (req, res) => {
 Si tu ne t’es pas encore connecté avec tes identifiants sur Messenger, assure-toi d’abord de l’avoir bien téléchargé avec le lien suivant:
 - Apple: https://appstore.com/messenger
 - Google: https://play.google.com/store/apps/details?id=com.facebook.orca
-Puis connecte-toi en cliquant sur le lien suivant: ${process.env.MESSENGER_LINK}`;
+Puis connecte-toi en cliquant sur le lien suivant: ${process.env.MESSENGER_LINK}
+Si tu ne parviens pas à faire ces étapes, contacte dès aujourd'hui la personne qui t'a recruté chez alenvi`;
     const internationalNbr = `+33${req.params.phoneNbr.substring(1)}`;
     const message = await twilio.messages.create({
       to: internationalNbr,
