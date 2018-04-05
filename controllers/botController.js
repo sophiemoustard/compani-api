@@ -120,7 +120,7 @@ module.exports = {
         managerId: user.managerId,
         createdAt: user.createdAt,
         slack: user.slack,
-        alenviToken
+        token: alenviToken
       };
       // const newPayload = _.pickBy(payload);
       res.status(200).send({ success: true, message: translate[language].userFound, data: { user: payload } });
