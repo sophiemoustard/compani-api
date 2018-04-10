@@ -17,7 +17,8 @@ const UserSchema = mongoose.Schema({
     expiresIn: {
       type: Date,
       default: null
-    }
+    },
+    from: String
   },
   local: {
     email: {
