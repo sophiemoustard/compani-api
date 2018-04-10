@@ -325,6 +325,7 @@ const checkResetPasswordToken = async (req, res) => {
       _id: user._id,
       email: user.local.email,
       role: user.role.name,
+      from: user.resetPassword.from
     };
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
@@ -339,14 +340,15 @@ const checkResetPasswordToken = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   try {
-    if (!req.body.email) {
+    if (!req.body.email || !req.body.from) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     const token = uuidv4();
     const payload = {
       resetPassword: {
         token,
-        expiresIn: Date.now() + 3600000 // 1 hour
+        expiresIn: Date.now() + 3600000, // 1 hour
+        from: req.body.from
       }
     };
     const user = await User.findOneAndUpdate({ 'local.email': req.body.email }, { $set: payload }, { new: true }).populate('role').lean();
