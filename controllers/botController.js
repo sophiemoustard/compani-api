@@ -31,11 +31,14 @@ module.exports = {
         firstname: user.firstname,
         lastname: user.lastname,
         _id: user.id,
-        'local.email': user.local.email,
+        local: {
+          email: user.local.email
+        },
         role: user.role,
         customer_id: user.customer_id,
         employee_id: user.employee_id,
-        sector: user.sector
+        sector: user.sector,
+        createdAt: user.createdAt,
       };
       const newPayload = _.pickBy(payload);
       const token = tokenProcess.encode(newPayload);
@@ -111,7 +114,9 @@ module.exports = {
         firstname: user.firstname,
         lastname: user.lastname,
         _id: user._id,
-        'local.email': user.local.email,
+        local: {
+          email: user.local.email
+        },
         role: user.role.name,
         customer_id: user.customer_id,
         employee_id: user.employee_id,
