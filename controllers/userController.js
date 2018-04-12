@@ -86,12 +86,19 @@ const create = async (req, res) => {
         console.error('Google drive folder creation failed.');
         return res.status(424).json({ success: false, message: translate[language].folderCreationFailure });
       }
-      req.body.administrative = {
-        driveFolder: {
+      if (req.body.administrative && req.body.administrative.signup) {
+        req.body.administrative.driveFolder = {
           id: folder.id,
           link: folderLink.webViewLink
-        }
-      };
+        };
+      } else {
+        req.body.administrative = {
+          driveFolder: {
+            id: folder.id,
+            link: folderLink.webViewLink
+          }
+        };
+      }
     }
     req.body.role = role._id;
     // Create refreshToken and store it
