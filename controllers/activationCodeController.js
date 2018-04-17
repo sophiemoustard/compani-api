@@ -14,6 +14,7 @@ const createActivationCode = async (req, res) => {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
     req.body.code = randomize('0000');
+    req.body.firstSMS = Date.now();
     const payload = _.pick(req.body, ['mobile_phone', 'code', 'sector', 'managerId', 'firstSMS']);
     const activationData = new ActivationCode(payload);
     await activationData.save();
