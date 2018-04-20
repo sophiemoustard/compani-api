@@ -66,6 +66,7 @@ module.exports = {
     /* SMS */
     smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
+    smsListFound: 'SMS record list found.',
     /* Activation Code */
     activationCodeCreated: 'Activation code created.',
     activationCodeNotFoundOrInvalid: 'Activation code not found or invalid.',
@@ -169,6 +170,7 @@ module.exports = {
     /* SMS */
     smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
+    smsListFound: 'Liste enregistrement SMS trouvée.',
     /* Activation Code */
     activationCodeCreated: 'Code activation créé.',
     activationCodeNotFoundOrInvalid: 'Code activation non trouvé ou invalide.',
