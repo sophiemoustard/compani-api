@@ -91,7 +91,7 @@ const getRecords = async (req, res) => {
     const messageList = [];
     const opts = {
       done() {
-        return res.status(200).json({ success: true, message: translate[language].smsSent, data: { messageList } });
+        return res.status(200).json({ success: true, message: translate[language].smsListFound, data: { messageList } });
       }
     };
     if (req.query.limit && !isNaN(req.query.limit)) {
