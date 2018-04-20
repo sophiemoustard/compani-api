@@ -38,8 +38,12 @@ const uploadFile = async (req, res) => {
     }
     if (administrativeKeys[0] === 'certificates' || administrativeKeys[0] === 'idCard') {
       const key = administrativeKeys[0];
+      let path = `administrative.${key}`;
+      if (administrativeKeys[0] === 'certificates') {
+        path = `administrative.${key}.docs`;
+      }
       const payload = {
-        [`administrative.${key}`]: {
+        [`${path}`]: {
           driveId: req.files[key][0].id,
           link: driveFileInfo.webViewLink
         }
