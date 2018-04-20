@@ -162,23 +162,29 @@ const UserSchema = mongoose.Schema({
       driveId: String,
       link: String
     },
-    certificates: [
-      {
-        driveId: String,
-        link: String
-      }
-    ],
+    certificates: {
+      hasCertificates: Boolean,
+      docs: [
+        {
+          driveId: String,
+          link: String
+        }
+      ]
+    },
     phoneInvoice: {
       driveId: String,
-      link: String
+      link: String,
+      hasPhoneInvoice: Boolean
     },
     navigoInvoice: {
       driveId: String,
-      link: String
+      link: String,
+      hasNavigoInvoice: Boolean
     },
     mutualFund: {
       driveId: String,
-      link: String
+      link: String,
+      hasMutualFund: Boolean
     },
   },
 }, { timestamps: true });
