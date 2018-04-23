@@ -5,4 +5,5 @@ module.exports = [
   { name: 'phoneInvoice' },
   { name: 'navigoInvoice' },
   { name: 'mutualFund' },
+  { name: 'vitalCard' },
 ];

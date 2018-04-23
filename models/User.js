@@ -160,6 +160,11 @@ const UserSchema = mongoose.Schema({
     ],
     healthAttest: {
       driveId: String,
+      link: String,
+      hasHealthAttest: Boolean
+    },
+    vitalCard: {
+      driveId: String,
       link: String
     },
     certificates: {
