@@ -161,14 +161,14 @@ const UserSchema = mongoose.Schema({
     healthAttest: {
       driveId: String,
       link: String,
-      hasHealthAttest: Boolean
+      has: Boolean
     },
     vitalCard: {
       driveId: String,
       link: String
     },
     certificates: {
-      hasCertificates: Boolean,
+      has: Boolean,
       docs: [
         {
           driveId: String,
@@ -179,17 +179,17 @@ const UserSchema = mongoose.Schema({
     phoneInvoice: {
       driveId: String,
       link: String,
-      hasPhoneInvoice: Boolean
+      has: Boolean
     },
     navigoInvoice: {
       driveId: String,
       link: String,
-      hasNavigoInvoice: Boolean
+      has: Boolean
     },
     mutualFund: {
       driveId: String,
       link: String,
-      hasMutualFund: Boolean
+      has: Boolean
     },
   },
 }, { timestamps: true });
