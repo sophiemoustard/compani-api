@@ -49,28 +49,28 @@ const uploadFile = async (req, res) => {
         }
       };
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true });
-    } else if (administrativeKeys[0] === 'idCardRecto' || administrativeKeys[0] === 'idCardVerso') {
-      const key = administrativeKeys[0].replace('idCard', '').toLowerCase();
-      const payload = {
-        administrative: {
-          idCard: {
-            [key]: {
-              driveId: req.files[administrativeKeys[0]][0].id,
-              link: driveFileInfo.webViewLink
-            }
-          }
-        }
-      };
-      const user = await User.findById(req.params._id).lean();
-      if (user.administrative && user.administrative.idCard) {
-        const oldDocId = user.administrative.idCard[key].driveId;
-        try {
-          await drive.deleteFile({ fileId: oldDocId });
-        } catch (e) {
-          console.error(e.response);
-        }
-      }
-      await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+      // } else if (administrativeKeys[0] === 'idCardRecto' || administrativeKeys[0] === 'idCardVerso') {
+      // } const key = administrativeKeys[0].replace('idCard', '').toLowerCase();
+      // } const payload = {
+      // }   administrative: {
+      // }     idCard: {
+      // }       [key]: {
+      // }         driveId: req.files[administrativeKeys[0]][0].id,
+      // }         link: driveFileInfo.webViewLink
+      // }       }
+      // }     }
+      // }   }
+      // } };
+      // } const user = await User.findById(req.params._id).lean();
+      // } if (user.administrative && user.administrative.idCard) {
+      // }   const oldDocId = user.administrative.idCard[key].driveId;
+      // }   try {
+      // }     await drive.deleteFile({ fileId: oldDocId });
+      // }   } catch (e) {
+      // }     console.error(e.response);
+      // }   }
+      // } }
+      // } await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
     } else {
       const payload = {
         administrative: {
