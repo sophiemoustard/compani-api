@@ -152,12 +152,17 @@ const UserSchema = mongoose.Schema({
       invoices: [String],
       fiscalAttests: [String]
     },
-    idCard: [
-      {
+    idCard: {
+      recto: {
+        driveId: String,
+        link: String
+      },
+      verso: {
         driveId: String,
         link: String
       }
-    ],
+
+    },
     healthAttest: {
       driveId: String,
       link: String,
