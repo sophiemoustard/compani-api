@@ -1,5 +1,6 @@
 module.exports = [
-  { name: 'idCard' },
+  { name: 'idCardRecto' },
+  { name: 'idCardVerso' },
   { name: 'healthAttest' },
   { name: 'certificates' },
   { name: 'phoneInvoice' },
