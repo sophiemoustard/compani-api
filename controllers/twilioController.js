@@ -38,13 +38,11 @@ const sendSMSWarning = async (req, res) => {
     if (!req.params.phoneNbr || !req.body.id) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    const msg = `Attention,
-    il est nécessaire que tu télécharges l’application Facebook Messenger sur ton téléphone avant ta signature de contrat afin de pouvoir utiliser les outils Alenvi.
-    Voici les liens:
-- Apple: https://appstore.com/messenger
-- Google: https://play.google.com/store/apps/details?id=com.facebook.orca
-Puis connecte-toi en cliquant sur le lien suivant: ${process.env.MESSENGER_LINK}
-Si tu ne parviens pas à faire ces étapes, contacte dès aujourd'hui la personne qui t'a recruté chez alenvi`;
+    const msg = `Attention, avant la signature de ton contrat, tu dois télécharger l'application Facebook Messenger afin de pouvoir utiliser les outils Alenvi.
+    Voici les deux étapes à suivre:
+    1. Si ton téléphone est un Iphone, clique sur ce lien https://appstore.com/messenger, sinon clique sur ce lien: https://play.google.com/store/apps/details?id=com.facebook.orca
+    2. Une fois l'application installée, connecte-toi en cliquant sur le lien suivant: ${process.env.MESSENGER_LINK}
+Si tu rencontres des difficultés, contacte dès aujourd'hui la personne qui t'a recruté chez Alenvi`;
     // Attention il est necessaire de telecharger messenger pour continuer ton inscription
     const internationalNbr = `+33${req.params.phoneNbr.substring(1)}`;
     const message = await twilio.messages.create({
