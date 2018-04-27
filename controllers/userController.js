@@ -175,7 +175,7 @@ const showAll = async (req, res) => {
     // We populate the user with role data and then we populate the role with features data
     let users = await User.find(params).populate({
       path: 'role',
-      select: '-__v -createdAt -updatedAt',
+      select: '-__v -updatedAt',
       populate: {
         path: 'features.feature_id',
         select: '-__v -createdAt -updatedAt'
