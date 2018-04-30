@@ -47,6 +47,7 @@ module.exports = {
       return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
       // return response.success(res, translate[language].userAuthentified, { user: user, token: token } );
     } catch (e) {
+      console.error(e)
       return res.status(500).send({ success: false, message: `Erreur: ${translate[language].unexpectedBehavior}` });
       // return response.error(res, 500, translate[language].unexpectedBehavior);
     }
