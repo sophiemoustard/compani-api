@@ -4,7 +4,7 @@ const translate = require('../helpers/translate');
 const employees = require('../models/Ogust/Employee');
 const customers = require('../models/Ogust/Customer');
 
-const language = translate.language;
+const { language } = translate;
 
 const getEmployeeEvents = async (req, res, params) => {
   const servicesRaw = await employees.getServices(params);
@@ -80,6 +80,28 @@ const getEmployeeEvents = async (req, res, params) => {
 
 const getCustomerEvents = async (req, res, params) => {
   console.log('CUSTOMER');
+  const customerParams = {
+    token: req.headers['x-ogust-token'],
+    id_customer: params.id_customer,
+    status: req.query.status || 'A',
+  };
+  const newCustomerParams = _.pickBy(customerParams);
+  const customerRaw = await customers.getCustomerById(newCustomerParams);
+  if (customerRaw.body.status == 'KO') {
+    return res.status(400).json({ success: false, message: customerRaw.body.message });
+  }
+  const thirdPartyParams = {
+    token: req.headers['x-ogust-token'],
+    third_party_id: params.id_customer,
+    third_party: 'C',
+    nbperpage: 10,
+    pagenum: 1
+  };
+  const customerThirdPartyInfosRaw = await customers.getThirdPartyInformationByCustomerId(thirdPartyParams);
+  if (customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values == null) {
+    customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values = {};
+  }
+  const customerThirdPartyInfos = _.pickBy(customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values);
   const servicesRaw = await customers.getServices(params);
   if (servicesRaw.body.status == 'KO') {
     return res.status(400).json({ success: false, message: servicesRaw.body.message });
@@ -92,6 +114,13 @@ const getCustomerEvents = async (req, res, params) => {
   }
   const uniqEmployees = [];
   for (const index in events) {
+    events[index].customer = Object.assign({
+      title: customerRaw.body.customer.title,
+      firstname: customerRaw.body.customer.first_name,
+      lastname: customerRaw.body.customer.last_name,
+      door_code: customerRaw.body.customer.door_code,
+      intercom_code: customerRaw.body.customer.intercom_code
+    }, customerThirdPartyInfos);
     let isUniq = false;
     if (!_.some(uniqEmployees, ['id_employee', events[index].id_employee])) {
       isUniq = true;
