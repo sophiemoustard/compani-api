@@ -120,7 +120,12 @@ const getCustomerEvents = async (req, res, params) => {
       lastname: customerRaw.body.customer.last_name,
       door_code: customerRaw.body.customer.door_code,
       intercom_code: customerRaw.body.customer.intercom_code
-    }, customerThirdPartyInfos);
+    }, {
+      pathology: customerThirdPartyInfos.NIVEAU || '/',
+      comments: customerThirdPartyInfos.COMMNIV || '/',
+      interventionDetails: customerThirdPartyInfos.DETAILEVE || '/',
+      misc: customerThirdPartyInfos.AUTRESCOMM || '/'
+    });
     let isUniq = false;
     if (!_.some(uniqEmployees, ['id_employee', events[index].id_employee])) {
       isUniq = true;
