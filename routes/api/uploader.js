@@ -25,7 +25,27 @@ cloudinary.config({
 });
 const cloudStorage = cloudinaryStorage({
   cloudinary,
-  folder: 'images/users/auxiliaries',
+  folder: (req, file, cb) => {
+    if (req.body.role) {
+      switch (req.body.role) {
+        case 'Coach':
+          cb(null, 'images/users/coaches');
+          break;
+        case 'Tech':
+          cb(null, 'images/users/IT');
+          break;
+        case 'Mkt':
+          cb(null, 'images/users/Mkt');
+          break;
+        case 'Auxiliaire':
+          cb(null, 'images/users/auxiliaries');
+          break;
+      }
+    } else {
+      cb(null, 'images/users/auxiliaries');
+    }
+  },
+  // folder: 'images/users/auxiliaries',
   filename: (req, file, cb) => {
     cb(null, `${req.body.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`);
   },
