@@ -100,6 +100,9 @@ const create = async (req, res) => {
         };
       }
     }
+    if (!req.body.picture) {
+      req.body.picture = { link: 'https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png' };
+    }
     req.body.role = role._id;
     // Create refreshToken and store it
     req.body.refreshToken = uuidv4();
