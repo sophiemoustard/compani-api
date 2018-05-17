@@ -13,6 +13,7 @@ router.post('/sendUserRequest', emailController.sendUserRequest);
 router.use(tokenProcess.decode({ secret: tokenConfig.secret }));
 
 router.post('/sendWelcome', checkRoles({ list: ['Coach'] }), emailController.sendWelcome);
+router.post('/sendAuxiliaryWelcome', emailController.sendAuxiliaryWelcome);
 router.post('/sendChangePasswordOk', emailController.sendChangePasswordOk);
 
 module.exports = router;

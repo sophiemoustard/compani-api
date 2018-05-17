@@ -1,23 +1,15 @@
 const nodemailer = require('nodemailer');
 
 const translate = require('../helpers/translate');
+const { sendGridTransporter } = require('../helpers/nodemailer');
 
-const language = translate.language;
+const { language } = translate;
 
 const sendWelcome = async (req, res) => {
   try {
     if (!req.body.sender || !req.body.receiver) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 465,
-      secure: true, // true for 465, false for other ports
-      auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY
-      }
-    });
     const mailOptions = {
       from: req.body.sender.email, // sender address
       to: req.body.receiver.email, // list of receivers
@@ -42,7 +34,7 @@ const sendWelcome = async (req, res) => {
                 L'équipe Alenvi</p>
              <p>01 79 75 54 75 - du lundi au vendredi de 9h à 19h</p>` // html body
     };
-    const mailInfo = await transporter.sendMail(mailOptions);
+    const mailInfo = await sendGridTransporter.sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
   } catch (e) {
     console.error(e);
@@ -55,15 +47,6 @@ const sendChangePasswordOk = async (req, res) => {
     if (!req.body.email) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 465,
-      secure: true, // true for 465, false for other ports
-      auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY
-      }
-    });
     const mailOptions = {
       from: 'support@alenvi.io', // sender address
       to: req.body.email, // list of receivers
@@ -74,7 +57,7 @@ const sendChangePasswordOk = async (req, res) => {
              <p>Bien cordialement,<br>
                 L'équipe Alenvi</p>` // html body
     };
-    const mailInfo = await transporter.sendMail(mailOptions);
+    const mailInfo = await sendGridTransporter.sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
   } catch (e) {
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
@@ -86,15 +69,6 @@ const sendUserRequest = async (req, res) => {
     if (!req.body.user) {
       return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
     }
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 465,
-      secure: true, // true for 465, false for other ports
-      auth: {
-        user: 'apikey',
-        pass: process.env.SENDGRID_API_KEY
-      }
-    });
     const mailOptions = {
       from: req.body.user.email, // sender address
       to: 'tasnime@alenvi.io', // list of receivers
@@ -107,11 +81,35 @@ const sendUserRequest = async (req, res) => {
             </ul>
             <p>${req.body.user.message}</p>` // html body
     };
-    const mailInfo = await transporter.sendMail(mailOptions);
+    const mailInfo = await sendGridTransporter.sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
   } catch (e) {
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
 
-module.exports = { sendWelcome, sendChangePasswordOk, sendUserRequest };
+const sendAuxiliaryWelcome = async (req, res) => {
+  try {
+    if (!req.body.email) {
+      return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
+    }
+    const mailOptions = {
+      from: 'alenvi@alenvi.io', // sender address
+      to: req.body.email, // list of receivers
+      subject: 'Bienvenue chez Alenvi ! :)', // Subject line
+      html: `<p>Bienvenue chez Alenvi,</p>
+             <p>Ton compte a bien été créé.<br>
+               Tu peux t'y connecter à tout moment en suivant ce lien:</p>
+             <p><a href="${process.env.WEBSITE_HOSTNAME}/login">${process.env.WEBSITE_HOSTNAME}</a></p>
+             <p>Merci et à bientôt,<br>
+                L'équipe Alenvi</p>` // html body
+    };
+    const mailInfo = await sendGridTransporter.sendMail(mailOptions);
+    return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+  }
+};
+
+module.exports = { sendWelcome, sendChangePasswordOk, sendUserRequest, sendAuxiliaryWelcome };
+
