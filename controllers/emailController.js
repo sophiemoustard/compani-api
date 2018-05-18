@@ -34,7 +34,7 @@ const sendWelcome = async (req, res) => {
                 L'équipe Alenvi</p>
              <p>01 79 75 54 75 - du lundi au vendredi de 9h à 19h</p>` // html body
     };
-    const mailInfo = await sendGridTransporter.sendMail(mailOptions);
+    const mailInfo = await sendGridTransporter().sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
   } catch (e) {
     console.error(e);
@@ -57,9 +57,10 @@ const sendChangePasswordOk = async (req, res) => {
              <p>Bien cordialement,<br>
                 L'équipe Alenvi</p>` // html body
     };
-    const mailInfo = await sendGridTransporter.sendMail(mailOptions);
+    const mailInfo = await sendGridTransporter().sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
   } catch (e) {
+    console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
@@ -81,9 +82,10 @@ const sendUserRequest = async (req, res) => {
             </ul>
             <p>${req.body.user.message}</p>` // html body
     };
-    const mailInfo = await sendGridTransporter.sendMail(mailOptions);
+    const mailInfo = await sendGridTransporter().sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
   } catch (e) {
+    console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
@@ -104,9 +106,10 @@ const sendAuxiliaryWelcome = async (req, res) => {
              <p>Merci et à bientôt,<br>
                 L'équipe Alenvi</p>` // html body
     };
-    const mailInfo = await sendGridTransporter.sendMail(mailOptions);
+    const mailInfo = await sendGridTransporter().sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
   } catch (e) {
+    console.error(e);
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
