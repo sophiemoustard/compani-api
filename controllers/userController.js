@@ -174,6 +174,10 @@ const showAll = async (req, res) => {
     if (req.query.role) {
       req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
     }
+    if (req.query.email) {
+      req.query.local = { email: req.query.email };
+      delete req.query.email;
+    }
     const params = _.pickBy(req.query);
     // We populate the user with role data and then we populate the role with features data
     let users = await User.find(params).populate({
@@ -282,7 +286,7 @@ const refreshToken = async (req, res) => {
       }
     }).lean();
     if (!user) {
-      return res.status(401).json({ success: false, message: translate[language].refreshTokenNotFound });
+      return res.status(404).json({ success: false, message: translate[language].refreshTokenNotFound });
     }
     const payload = {
       _id: user._id,
@@ -295,7 +299,7 @@ const refreshToken = async (req, res) => {
     return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload } });
   } catch (e) {
     console.error(e);
-    return res.status(404).json({ success: false, message: translate[language].userNotFound });
+    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
 };
 
