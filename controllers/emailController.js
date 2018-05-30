@@ -15,7 +15,7 @@ const sendWelcome = async (req, res) => {
       to: req.body.receiver.email, // list of receivers
       subject: 'Alenvi - Accès à notre application en ligne', // Subject line
       html: `<p>Bonjour,</p>
-             <p>Vous pouvez désormais accéder à votre espace Alenvi dans lequel vous trouverez notamment les éléments suivants :<p>
+             <p>Vous pouvez désormais accéder à votre espace Alenvi dans lequel vous trouverez les éléments suivants :<p>
              <ul>
               <li>Vos factures et attestations fiscales,</li>
               <li>Le planning d’interventions,</li>
@@ -31,10 +31,11 @@ const sendWelcome = async (req, res) => {
              <p>Nous vous recommandons de modifier votre mot de passe lors de votre première connexion.</p>
              <p>Pour faciliter la prise en main de ces nouvelles fonctionnalités nous vous joignons <a href="https://www.youtube.com/watch?v=_CFPVFLAiTo">un cours tutoriel</a>.</p>
              <p>Nous espérons que cet accès en ligne vous sera utile.<br>
-                Bien à vous,<br>
-                L'équipe Alenvi</p>
-             <p>01 79 75 54 75 - du lundi au vendredi de 9h à 18h</p>
-             <img src="https://res.cloudinary.com/alenvi/image/upload/c_scale,w_393/v1507124345/images/business/alenvi_logo_complet_full.png" alt="Logo Alenvi">` // html body
+                Bien à vous,</p>
+             <p>L'équipe Alenvi</p>
+             <p>01 79 75 54 75</p>
+             <p>Du lundi au vendredi de 9h à 18h</p>
+             <img src="https://res.cloudinary.com/alenvi/image/upload/c_scale,w_183/v1507124345/images/business/alenvi_logo_complet_full.png" alt="Logo Alenvi">` // html body
     };
     const mailInfo = await sendGridTransporter().sendMail(mailOptions);
     return res.status(200).json({ success: true, message: translate[language].emailSent, data: { mailInfo } });
