@@ -25,6 +25,5 @@ router.use('/email', require('./api/email'));
 router.use('/idNumber', require('./api/idNumber'));
 router.use('/uploader', require('./api/uploader'));
 router.use('/slack', require('./api/slack'));
-router.use('/docusign', require('./api/docusign'));
 
 module.exports = router;
