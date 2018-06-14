@@ -5,9 +5,7 @@ const tokenConfig = require('../config/strategies').token;
 const language = translate.language;
 
 module.exports = {
-  encode: (payload, expireTime) => {
-    return jwt.sign(payload, tokenConfig.secret, { expiresIn: expireTime || tokenConfig.expiresIn });
-  },
+  encode: (payload, expireTime) => jwt.sign(payload, tokenConfig.secret, { expiresIn: expireTime || tokenConfig.expiresIn }),
   decode: (options) => {
     if (!options || !options.secret) {
       throw new Error('Authenticate : secret should be set.');
