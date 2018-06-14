@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 
+const Role = require('./Role');
+
 const SALT_WORK_FACTOR = 10;
 
 // User schema
@@ -212,6 +214,23 @@ UserSchema.statics.findUserAddressByEmployeeId = async function (id) {
   }
 };
 
+UserSchema.methods.saveWithRoleId = async function (roleName) {
+  const user = this;
+  try {
+    // Replace Role name by role ID
+    const role = await Role.findOne({ name: roleName });
+    if (!role) {
+      const noRoleErr = new Error();
+      noRoleErr.name = 'NoRole';
+      throw noRoleErr;
+    }
+    user.role = role._id;
+    return await user.save();
+  } catch (e) {
+    return Promise.reject(e);
+  }
+};
+
 UserSchema.pre('save', async function (next) {
   try {
     const user = this;
@@ -231,6 +250,7 @@ UserSchema.pre('save', async function (next) {
     const hash = await bcrypt.hash(user.local.password, salt);
     // Store password
     user.local.password = hash;
+
     return next();
   } catch (e) {
     return next(e);

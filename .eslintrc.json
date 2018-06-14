@@ -17,6 +17,11 @@
     },
     "extends": "airbnb-base",
     "plugins": [
-        "import"
-    ]
+        "import",
+        "mocha"
+    ],
+    "env": {
+      "node": true,
+      "mocha": true
+    }
 }

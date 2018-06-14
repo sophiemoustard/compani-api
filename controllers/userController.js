@@ -25,7 +25,7 @@ const authenticate = async (req, res) => {
   }
   // Get by local email
   try {
-    const alenviUser = await User.findOne({ 'local.email': req.body.email }).populate('role').lean();
+    const alenviUser = await User.findOne({ 'local.email': req.body.email.toLowerCase() }).populate('role').lean();
     if (!alenviUser) {
       return res.status(404).json({ success: false, message: translate[language].userAuthNotFound });
     }
@@ -71,10 +71,22 @@ const create = async (req, res) => {
     if (!req.body.local.email || !req.body.local.password || !req.body.role) {
       return res.status(400).json({ success: false, message: translate[language].missingParameters });
     }
-    const role = await Role.findOne({ name: req.body.role }, { _id: 1 }).lean();
-    if (!role) {
-      return res.status(404).json({ success: false, message: translate[language].roleNotFound });
+    // const role = await Role.findOne({ name: req.body.role }, { _id: 1, name: 1 }).lean();
+    // if (!role) {
+    //   return res.status(404).json({ success: false, message: translate[language].roleNotFound });
+    // }
+    if (!req.body.picture) {
+      req.body.picture = { link: 'https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png' };
     }
+    // req.body.role = role._id;
+    // Create refreshToken and store it
+    req.body.refreshToken = uuidv4();
+    const user = new User(req.body);
+    // Save user
+    await user.saveWithRoleId(req.body.role);
+    const leanUser = user.toObject();
+    // Add gdrive folder after save to avoid creating it if duplicate email
+    let folderPayload = {};
     if (req.body.role === 'Auxiliaire' && req.body.firstname && req.body.lastname) {
       const folder = await drive.addFolder({ folderName: `${req.body.lastname.toUpperCase()} ${req.body.firstname}`, parentFolderId: process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID });
       if (!folder) {
@@ -86,31 +98,25 @@ const create = async (req, res) => {
         console.error('Google drive folder creation failed.');
         return res.status(424).json({ success: false, message: translate[language].folderCreationFailure });
       }
-      if (req.body.administrative) {
-        req.body.administrative.driveFolder = {
+      if (leanUser.administrative) {
+        folderPayload.administrative = leanUser.administrative;
+        folderPayload.administrative.driveFolder = {
           id: folder.id,
           link: folderLink.webViewLink
         };
       } else {
-        req.body.administrative = {
-          driveFolder: {
-            id: folder.id,
-            link: folderLink.webViewLink
+        folderPayload = {
+          administrative: {
+            driveFolder: {
+              id: folder.id,
+              link: folderLink.webViewLink
+            }
           }
         };
       }
     }
-    if (!req.body.picture) {
-      req.body.picture = { link: 'https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png' };
-    }
-    req.body.role = role._id;
-    // Create refreshToken and store it
-    req.body.refreshToken = uuidv4();
-    const user = new User(req.body);
-    // Save user
-    await user.save();
     // Populate user role
-    const populatedUser = await User.findOne({ _id: user._id }).populate({
+    const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $set: folderPayload }, { new: true }).populate({
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {
@@ -134,6 +140,8 @@ const create = async (req, res) => {
       return res.status(409).json({ success: false, message: translate[language].userEmailExists });
     } else if (e.name === 'InvalidEmail') {
       return res.status(400).json({ success: false, message: translate[language].invalidEmail });
+    } else if (e.name === 'NoRole') {
+      return res.status(404).json({ success: false, message: translate[language].roleNotFound });
     }
     return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
   }
@@ -180,7 +188,7 @@ const showAll = async (req, res) => {
     }
     const params = _.pickBy(req.query);
     // We populate the user with role data and then we populate the role with features data
-    let users = await User.find(params).populate({
+    let users = await User.find(params, { planningModification: 0 }).populate({
       path: 'role',
       select: '-__v -updatedAt',
       populate: {

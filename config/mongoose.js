@@ -2,12 +2,14 @@ const mongoose = require('mongoose');
 const db = require('./database');
 
 mongoose.Promise = global.Promise;
-mongoose.connect(db.database, { useMongoClient: true });
+if (process.env.NODE_ENV === 'test') {
+  mongoose.connect(db.testDatabase, { useMongoClient: true });
+} else {
+  mongoose.connect(db.database, { useMongoClient: true });
+}
 
 // When successfully connected
-mongoose.connection.once('connected', () => {
-  return console.log('Successfully connected to MongoDB');
-});
+mongoose.connection.once('connected', () => console.log('Successfully connected to MongoDB'));
 
 // If the connection throws an error
 mongoose.connection.on('error', (err) => {
@@ -16,9 +18,7 @@ mongoose.connection.on('error', (err) => {
 });
 
 // When the connection is disconnected
-mongoose.connection.once('disconnected', () => {
-  return console.log('Successfully disconnected from MongoDB');
-});
+mongoose.connection.once('disconnected', () => console.log('Successfully disconnected from MongoDB'));
 
 // Models
 // require('../models/User');
