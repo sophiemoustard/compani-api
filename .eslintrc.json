@@ -13,7 +13,9 @@
       "comma-dangle": "off",
       "eqeqeq": "off",
       "max-len": "off",
-      "no-underscore-dangle": "off"
+      "no-underscore-dangle": "off",
+      "global-require": "off",
+      "strict": "off"
     },
     "extends": "airbnb-base",
     "plugins": [
