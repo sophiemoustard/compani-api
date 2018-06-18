@@ -40,17 +40,8 @@ const authenticate = async (req) => {
       return Boom.unauthorized();
     }
     const payload = {
-      // firstname: user.firstname,
-      // lastname: user.lastname,
       _id: alenviUser._id,
-      // 'local.email': user.local.email,
       role: alenviUser.role.name,
-      // customer_id: user.customer_id,
-      // employee_id: user.employee_id,
-      // sector: user.sector,
-      // 'youtube.link': user.youtube.link,
-      // 'youtube.location': user.youtube.location,
-      // picture: user.picture
     };
     const user = clean(payload);
     const expireTime = process.env.NODE_ENV === 'development' && payload.role === 'Admin' ? 86400 : 3600;
@@ -120,7 +111,7 @@ const create = async (req) => {
     }).lean();
     populatedUser.role.features = populateRole(populatedUser.role.features);
     const payload = {
-      _id: populatedUser._id,
+      _id: populatedUser._id.toHexString(),
       role: populatedUser.role,
     };
     const userPayload = _.pickBy(payload);

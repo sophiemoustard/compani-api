@@ -199,7 +199,7 @@ const UserSchema = mongoose.Schema({
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
-UserSchema.statics.findUserAddressByEmployeeId = async function (id) {
+async function findUserAddressByEmployeeId(id) {
   try {
     const User = this;
     const filter = {
@@ -212,9 +212,9 @@ UserSchema.statics.findUserAddressByEmployeeId = async function (id) {
   } catch (e) {
     return Promise.reject(e);
   }
-};
+}
 
-UserSchema.methods.saveWithRoleId = async function (roleName) {
+async function saveWithRoleId(roleName) {
   const user = this;
   try {
     // Replace Role name by role ID
@@ -229,9 +229,9 @@ UserSchema.methods.saveWithRoleId = async function (roleName) {
   } catch (e) {
     return Promise.reject(e);
   }
-};
+}
 
-UserSchema.pre('save', async function (next) {
+async function save(next) {
   try {
     const user = this;
     // Check email validity
@@ -255,9 +255,9 @@ UserSchema.pre('save', async function (next) {
   } catch (e) {
     return next(e);
   }
-});
+}
 
-UserSchema.pre('findOneAndUpdate', async function (next) {
+async function findOneAndUpdate(next) {
   try {
     // Use mongoDB string dot notation to get update password
     const password = this.getUpdate().$set['local.password'];
@@ -274,7 +274,11 @@ UserSchema.pre('findOneAndUpdate', async function (next) {
   } catch (e) {
     return next(e);
   }
-});
+}
 
+UserSchema.statics.findUserAddressByEmployeeId = findUserAddressByEmployeeId;
+UserSchema.methods.saveWithRoleId = saveWithRoleId;
+UserSchema.pre('save', save);
+UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 
 module.exports = mongoose.model('User', UserSchema);

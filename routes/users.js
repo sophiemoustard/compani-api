@@ -24,20 +24,25 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/create',
+      path: '/',
       options: {
         validate: {
           payload: Joi.object({
+            firstname: Joi.string(),
+            lastname: Joi.string(),
+            mobilePhone: Joi.string(),
+            sector: Joi.string(),
+            employee_id: Joi.number(),
+            customer_id: Joi.number(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
             },
             role: Joi.string().required(),
-            picture: { link: Joi.string().default('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png') }
-          }),
-          options: {
-            allowUnknown: true
-          }
+            picture: Joi.object().keys({
+              link: Joi.string().default('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png')
+            })
+          })
         },
         auth: false
       },

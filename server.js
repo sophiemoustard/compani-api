@@ -7,7 +7,7 @@ const { routes } = require('./routes/index');
 const { plugins } = require('./plugins/index');
 
 const server = Hapi.server({
-  port: 3001,
+  port: process.env.NODE_ENV === 'test' ? 3002 : 3001,
   host: 'localhost'
 });
 
@@ -41,6 +41,8 @@ const init = async () => {
   console.log(`Server running at: ${server.info.uri}`);
 };
 
+module.exports = server;
+
 process.on('unhandledRejection', (err) => {
   console.log(err);
   process.exit(1);
@@ -48,4 +50,3 @@ process.on('unhandledRejection', (err) => {
 
 init();
 
-exports.app = server;
