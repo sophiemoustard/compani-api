@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test mocha tests/*.test.js",
+    "test-watch": "nodemon --exec 'npm test'"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
     "joi": "^13.4.0",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.10",
+    "mongodb": "^3.0.10",
     "mongoose": "^5.1.5",
     "nodemailer": "^4.6.7",
     "uuid": "^3.2.1",

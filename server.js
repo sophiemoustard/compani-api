@@ -47,3 +47,5 @@ process.on('unhandledRejection', (err) => {
 });
 
 init();
+
+exports.app = server;
