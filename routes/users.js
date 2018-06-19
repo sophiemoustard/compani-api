@@ -27,7 +27,7 @@ exports.plugin = {
       path: '/',
       options: {
         validate: {
-          payload: Joi.object({
+          payload: Joi.object().keys({
             firstname: Joi.string(),
             lastname: Joi.string(),
             mobilePhone: Joi.string(),
@@ -40,8 +40,8 @@ exports.plugin = {
             },
             role: Joi.string().required(),
             picture: Joi.object().keys({
-              link: Joi.string().default('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png')
-            })
+              link: Joi.string()
+            }).default({ link: 'https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png' })
           })
         },
         auth: false

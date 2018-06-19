@@ -7,7 +7,7 @@ const { routes } = require('./routes/index');
 const { plugins } = require('./plugins/index');
 
 const server = Hapi.server({
-  port: process.env.NODE_ENV === 'test' ? 3002 : 3001,
+  port: process.env.NODE_ENV === 'test' ? 3002 : 3003,
   host: 'localhost'
 });
 

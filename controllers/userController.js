@@ -59,7 +59,6 @@ const authenticate = async (req) => {
 
 // Create a new user
 const create = async (req) => {
-  console.log(req.payload);
   // Check if users mandatory fields are missing
   try {
     // Create refreshToken and store it

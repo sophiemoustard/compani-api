@@ -49,11 +49,10 @@ describe('NON-PROTECTED ROUTES', () => {
       expect(user.local.email).toBe(userPayload.local.email);
       expect(user.local.password).toBeDefined();
     });
-    // it('should create an user with default picture if not provided', () => {
-    //   console.log('USER', user)
-    //   expect(user).toHaveProperty('picture');
-    //   expect(user.picture.link).toBe('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png');
-    // });
+    it('should create an user with default picture if not provided', () => {
+      expect(user).toHaveProperty('picture');
+      expect(user.picture.link).toBe('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png');
+    });
     // it('should create an user with a google drive folder if it is an auxiliary', () => {
     //   if (res.body.data.user.role.name === 'Auxiliaire') {
     //     expect(user.administrative).toHaveProperty('driveFolder');
