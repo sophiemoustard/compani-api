@@ -201,14 +201,14 @@ const UserSchema = mongoose.Schema({
 
 async function findUserAddressByEmployeeId(id) {
   try {
-    const User = this;
+    const user = this;
     const filter = {
       employee_id: id,
       'facebook.address': {
         $exists: true
       }
     };
-    return await User.findOne(filter, { 'facebook.address': 1 });
+    return await user.findOne(filter, { 'facebook.address': 1 });
   } catch (e) {
     return Promise.reject(e);
   }
@@ -250,7 +250,6 @@ async function save(next) {
     const hash = await bcrypt.hash(user.local.password, salt);
     // Store password
     user.local.password = hash;
-
     return next();
   } catch (e) {
     return next(e);

@@ -8,30 +8,22 @@ const expect = require('expect');
 
 const app = require('../server');
 const User = require('../models/User');
-const { userList, populateUsers } = require('./seed/usersSeed');
+const { userList, userPayload, populateUsers, getToken } = require('./seed/usersSeed');
 
-describe('NON-PROTECTED ROUTES', () => {
+describe('USERS ROUTES', () => {
+  let authToken = null;
   before(populateUsers);
+  authToken = before(getToken);
   describe('POST /users', () => {
     let res = null;
     let user = null;
-    let userPayload = null;
+    // let userPayload = null;
     it('should create an user', async () => {
-      userPayload = {
-        firstname: 'Test',
-        lastname: 'Test',
-        local: {
-          email: 'test1@alenvi.io',
-          password: '123456'
-        },
-        role: 'Auxiliaire'
-      };
       res = await app.inject({
         method: 'POST',
         url: '/users',
         payload: userPayload
       });
-      console.log(typeof res.result.data.user._id);
       expect(res.statusCode).toBe(200);
       expect(res.result.data).toEqual(expect.objectContaining({
         token: expect.any(String),
@@ -48,31 +40,45 @@ describe('NON-PROTECTED ROUTES', () => {
       expect(user.lastname).toBe(userPayload.lastname);
       expect(user.local.email).toBe(userPayload.local.email);
       expect(user.local.password).toBeDefined();
-    });
-    it('should create an user with default picture if not provided', () => {
       expect(user).toHaveProperty('picture');
       expect(user.picture.link).toBe('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png');
+      if (res.result.data.user.role.name === 'Auxiliaire') {
+        expect(user.administrative).toHaveProperty('driveFolder');
+        expect(user.administrative.driveFolder).toHaveProperty('id');
+        expect(user.administrative.driveFolder.id).toBeDefined();
+        expect(user.administrative.driveFolder.link).toBeDefined();
+      }
     });
-    // it('should create an user with a google drive folder if it is an auxiliary', () => {
-    //   if (res.body.data.user.role.name === 'Auxiliaire') {
+
+    // it('should check if user has default picture if not provided', () => {
+    //   expect(user).toHaveProperty('picture');
+    //   expect(user.picture.link).toBe('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png');
+    // });
+
+    // it('should check if user has a google drive folder if it is an auxiliary', () => {
+    //   if (res.result.data.user.role.name === 'Auxiliaire') {
     //     expect(user.administrative).toHaveProperty('driveFolder');
     //     expect(user.administrative.driveFolder).toHaveProperty('id');
     //     expect(user.administrative.driveFolder.id).toBeDefined();
     //     expect(user.administrative.driveFolder.link).toBeDefined();
     //   }
     // });
-    // it('should create an user with a refreshToken', () => {
+    // it('should check if user has a refreshToken', () => {
     //   expect(user.refreshToken).toBeDefined();
     // });
     // it('should respond with a populated user role', () => {
-    //   expect(res.body.data.user).toHaveProperty('role');
-    //   expect(res.body.data.user.role).toEqual(expect.objectContaining({ name: userPayload.role }));
+    //   expect(res.result.data.user).toHaveProperty('role');
+    //   expect(res.result.data.user.role).toEqual(expect.objectContaining({ name: userPayload.role }));
     // });
-    // it('should not create an user if missing parameters', async () => {
-    //   delete userPayload.role;
-    //   const response = await request(app).post('/users').send(userPayload);
-    //   expect(response.statusCode).toBe(400);
-    // });
+    it('should not create an user if missing parameters', async () => {
+      delete userPayload.role;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload: userPayload
+      });
+      expect(response.statusCode).toBe(400);
+    });
     // it('should not create an user if role provided does not exist', async () => {
     //   userPayload.role = 'Toto';
     //   const response = await request(app).post('/users').send(userPayload);

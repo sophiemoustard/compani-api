@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 
 const User = require('../../models/User');
 const Gdrive = require('../../models/Uploader/GoogleDrive');
+const app = require('../../server');
 
 const userList = [
   {
@@ -28,6 +29,16 @@ const userList = [
   }
 ];
 
+const userPayload = {
+  firstname: 'Test',
+  lastname: 'Test',
+  local: {
+    email: 'test1@alenvi.io',
+    password: '123456'
+  },
+  role: 'Auxiliaire'
+};
+
 const populateUsers = async () => {
   const users = await User.find();
   if (users.length > 0) {
@@ -46,4 +57,17 @@ const populateUsers = async () => {
   await new User(userList[1]).saveWithRoleId(userList[1].role);
 };
 
-module.exports = { userList, populateUsers };
+const getToken = async () => {
+  const credentials = {
+    email: 'test3@alenvi.io',
+    password: '123456'
+  };
+  const response = await app.inject({
+    method: 'POST',
+    url: '/users/authenticate',
+    payload: credentials
+  });
+  return response.result.data.token;
+};
+
+module.exports = { userList, userPayload, populateUsers, getToken };
