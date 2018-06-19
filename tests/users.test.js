@@ -18,6 +18,19 @@ describe('USERS ROUTES', () => {
     let res = null;
     let user = null;
     // let userPayload = null;
+
+    it('should not create an user if missing parameters', async () => {
+      const tmpRole = userPayload.role;
+      delete userPayload.role;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload: userPayload
+      });
+      userPayload.role = tmpRole;
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should create an user', async () => {
       res = await app.inject({
         method: 'POST',
@@ -70,15 +83,6 @@ describe('USERS ROUTES', () => {
     //   expect(res.result.data.user).toHaveProperty('role');
     //   expect(res.result.data.user.role).toEqual(expect.objectContaining({ name: userPayload.role }));
     // });
-    it('should not create an user if missing parameters', async () => {
-      delete userPayload.role;
-      const response = await app.inject({
-        method: 'POST',
-        url: '/users',
-        payload: userPayload
-      });
-      expect(response.statusCode).toBe(400);
-    });
     // it('should not create an user if role provided does not exist', async () => {
     //   userPayload.role = 'Toto';
     //   const response = await request(app).post('/users').send(userPayload);
