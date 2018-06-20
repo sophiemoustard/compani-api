@@ -53,6 +53,7 @@ const populateUsers = async () => {
       }
     }
   }
+  await User.remove({});
   await new User(userList[0]).saveByRoleName(userList[0].role);
   await new User(userList[1]).saveByRoleName(userList[1].role);
 };
