@@ -214,7 +214,7 @@ async function findUserAddressByEmployeeId(id) {
   }
 }
 
-async function saveWithRoleId(roleName) {
+async function saveByRoleName(roleName) {
   const user = this;
   try {
     // Replace Role name by role ID
@@ -225,7 +225,8 @@ async function saveWithRoleId(roleName) {
       throw noRoleErr;
     }
     user.role = role._id;
-    return await user.save();
+    const userSaved = await user.save();
+    return userSaved.toObject();
   } catch (e) {
     return Promise.reject(e);
   }
@@ -276,7 +277,7 @@ async function findOneAndUpdate(next) {
 }
 
 UserSchema.statics.findUserAddressByEmployeeId = findUserAddressByEmployeeId;
-UserSchema.methods.saveWithRoleId = saveWithRoleId;
+UserSchema.methods.saveByRoleName = saveByRoleName;
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 

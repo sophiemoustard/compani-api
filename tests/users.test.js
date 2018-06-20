@@ -47,7 +47,6 @@ describe('USERS ROUTES', () => {
           role: expect.objectContaining({ name: userPayload.role })
         })
       }));
-
       user = await User.findById(res.result.data.user._id);
       expect(user.firstname).toBe(userPayload.firstname);
       expect(user.lastname).toBe(userPayload.lastname);
@@ -62,27 +61,6 @@ describe('USERS ROUTES', () => {
         expect(user.administrative.driveFolder.link).toBeDefined();
       }
     });
-
-    // it('should check if user has default picture if not provided', () => {
-    //   expect(user).toHaveProperty('picture');
-    //   expect(user.picture.link).toBe('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png');
-    // });
-
-    // it('should check if user has a google drive folder if it is an auxiliary', () => {
-    //   if (res.result.data.user.role.name === 'Auxiliaire') {
-    //     expect(user.administrative).toHaveProperty('driveFolder');
-    //     expect(user.administrative.driveFolder).toHaveProperty('id');
-    //     expect(user.administrative.driveFolder.id).toBeDefined();
-    //     expect(user.administrative.driveFolder.link).toBeDefined();
-    //   }
-    // });
-    // it('should check if user has a refreshToken', () => {
-    //   expect(user.refreshToken).toBeDefined();
-    // });
-    // it('should respond with a populated user role', () => {
-    //   expect(res.result.data.user).toHaveProperty('role');
-    //   expect(res.result.data.user.role).toEqual(expect.objectContaining({ name: userPayload.role }));
-    // });
     // it('should not create an user if role provided does not exist', async () => {
     //   userPayload.role = 'Toto';
     //   const response = await request(app).post('/users').send(userPayload);
