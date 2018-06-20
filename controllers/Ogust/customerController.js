@@ -6,7 +6,6 @@ const language = translate.language;
 
 const getAll = async (req, res) => {
   try {
-    console.log(req);
     const params = {
       token: req.headers['x-ogust-token'],
       email: req.query.email || '',
@@ -24,7 +23,7 @@ const getAll = async (req, res) => {
     } else if (users.length === 0) {
       res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
     } else {
-      res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users: users.body } });
+      res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { customers: users.body } });
     }
   } catch (e) {
     console.error(e);
