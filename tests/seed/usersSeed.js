@@ -18,10 +18,10 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    firstname: 'Test3',
-    lastname: 'Test3',
+    firstname: 'Test4',
+    lastname: 'Test4',
     local: {
-      email: 'test3@alenvi.io',
+      email: 'test4@alenvi.io',
       password: '123456'
     },
     refreshToken: uuidv4(),
@@ -40,8 +40,9 @@ const userPayload = {
 };
 
 const populateUsers = async () => {
+  console.log('POPULATING USERS...');
   const users = await User.find();
-  if (users.length > 0) {
+  if (users.length > 0 && users.length < 3) {
     for (let i = 0, l = users.length; i < l; i++) {
       if (users[i].administrative && users[i].administrative.driveFolder && users[i].administrative.driveFolder.id) {
         try {
@@ -51,7 +52,6 @@ const populateUsers = async () => {
         }
       }
     }
-    await User.remove({});
   }
   await new User(userList[0]).saveByRoleName(userList[0].role);
   await new User(userList[1]).saveByRoleName(userList[1].role);
@@ -59,7 +59,7 @@ const populateUsers = async () => {
 
 const getToken = async () => {
   const credentials = {
-    email: 'test3@alenvi.io',
+    email: 'test4@alenvi.io',
     password: '123456'
   };
   const response = await app.inject({
