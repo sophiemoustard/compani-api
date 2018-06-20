@@ -63,47 +63,35 @@ describe('USERS ROUTES', () => {
       }
     });
 
-    // it('should check if user has default picture if not provided', () => {
-    //   expect(user).toHaveProperty('picture');
-    //   expect(user.picture.link).toBe('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png');
-    // });
-
-    // it('should check if user has a google drive folder if it is an auxiliary', () => {
-    //   if (res.result.data.user.role.name === 'Auxiliaire') {
-    //     expect(user.administrative).toHaveProperty('driveFolder');
-    //     expect(user.administrative.driveFolder).toHaveProperty('id');
-    //     expect(user.administrative.driveFolder.id).toBeDefined();
-    //     expect(user.administrative.driveFolder.link).toBeDefined();
-    //   }
-    // });
-    // it('should check if user has a refreshToken', () => {
-    //   expect(user.refreshToken).toBeDefined();
-    // });
-    // it('should respond with a populated user role', () => {
-    //   expect(res.result.data.user).toHaveProperty('role');
-    //   expect(res.result.data.user.role).toEqual(expect.objectContaining({ name: userPayload.role }));
-    // });
-    // it('should not create an user if role provided does not exist', async () => {
-    //   userPayload.role = 'Toto';
-    //   const response = await request(app).post('/users').send(userPayload);
-    //   expect(response.statusCode).toBe(404);
-    // });
-    // it('should not create an user if email provided already exists', () => {
-    //   const userPayload2 = {
-    //     firstname: 'Test',
-    //     lastname: 'Test',
-    //     local: {
-    //       email: 'test1@alenvi.io',
-    //       password: '123456'
-    //     },
-    //     role: 'Auxiliaire'
-    //   };
-    //   expect(async () => {
-    //     const response = await request(app).post('/users').send(userPayload2);
-    //     expect(response).toThrow();
-    //     expect(response.statusCode).toBe(409);
-    //   });
-    // });
+    it('should not create an user if role provided does not exist', async () => {
+      userPayload.role = 'Toto';
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload: userPayload
+      });
+      expect(response.statusCode).toBe(404);
+    });
+    it('should not create an user if email provided already exists', () => {
+      const userPayload2 = {
+        firstname: 'Test',
+        lastname: 'Test',
+        local: {
+          email: 'test1@alenvi.io',
+          password: '123456'
+        },
+        role: 'Auxiliaire'
+      };
+      expect(async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: userPayload2
+        });
+        expect(response).toThrow('NoRole');
+        expect(response.statusCode).toBe(409);
+      });
+    });
   });
 
   // describe('POST /users/authenticate', () => {
