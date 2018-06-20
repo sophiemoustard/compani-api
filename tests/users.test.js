@@ -47,7 +47,6 @@ describe('USERS ROUTES', () => {
           role: expect.objectContaining({ name: userPayload.role })
         })
       }));
-
       user = await User.findById(res.result.data.user._id);
       expect(user.firstname).toBe(userPayload.firstname);
       expect(user.lastname).toBe(userPayload.lastname);

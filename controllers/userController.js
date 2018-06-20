@@ -65,8 +65,8 @@ const create = async (req) => {
     req.payload.refreshToken = uuidv4();
     const user = new User(req.payload);
     // Save user
-    await user.saveWithRoleId(req.payload.role);
-    const leanUser = user.toObject();
+    await user.saveByRoleName(req.payload.role);
+    const leanUser = user;
     // Add gdrive folder after save to avoid creating it if duplicate email
     let folderPayload = {};
     if (req.payload.role === 'Auxiliaire' && req.payload.firstname && req.payload.lastname) {
