@@ -8,7 +8,9 @@ const expect = require('expect');
 
 const app = require('../server');
 const User = require('../models/User');
-const { userList, userPayload, populateUsers, getToken } = require('./seed/usersSeed');
+const {
+  userList, userPayload, populateUsers, getToken
+} = require('./seed/usersSeed');
 
 describe('USERS ROUTES', () => {
   let authToken = null;
@@ -18,7 +20,6 @@ describe('USERS ROUTES', () => {
     let res = null;
     let user = null;
     // let userPayload = null;
-
     it('should not create an user if missing parameters', async () => {
       const tmpRole = userPayload.role;
       delete userPayload.role;
@@ -30,7 +31,6 @@ describe('USERS ROUTES', () => {
       userPayload.role = tmpRole;
       expect(response.statusCode).toBe(400);
     });
-
     it('should create an user', async () => {
       res = await app.inject({
         method: 'POST',
@@ -61,7 +61,6 @@ describe('USERS ROUTES', () => {
         expect(user.administrative.driveFolder.link).toBeDefined();
       }
     });
-
     it('should not create an user if role provided does not exist', async () => {
       userPayload.role = 'Toto';
       const response = await app.inject({
@@ -93,62 +92,141 @@ describe('USERS ROUTES', () => {
     });
   });
 
-  // describe('POST /users/authenticate', () => {
-  //   it('should authenticate an user', async () => {
-  //     const credentials = {
-  //       email: 'test1@alenvi.io',
-  //       password: '123456'
-  //     };
+  describe('POST /users/authenticate', () => {
+    it('should authenticate an user', async () => {
+      const credentials = {
+        email: 'test1@alenvi.io',
+        password: '123456'
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users/authenticate',
+        payload: credentials
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data).toEqual(expect.objectContaining({
+        token: expect.any(String),
+        refreshToken: expect.any(String),
+        expiresIn: expect.any(Number),
+        user: expect.objectContaining({
+          _id: expect.any(String),
+          role: expect.any(String)
+        })
+      }));
+    });
+    it('should authenticate an user if email has capitals', async () => {
+      const credentials = {
+        email: 'Test1@alenvi.io',
+        password: '123456'
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users/authenticate',
+        payload: credentials
+      });
+      expect(res.statusCode).toBe(200);
+    });
+    it('should not authenticate an user if missing parameter', async () => {
+      const credentials = {
+        email: 'test1@alenvi.io'
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users/authenticate',
+        payload: credentials
+      });
+      expect(res.statusCode).toBe(400);
+    });
+    it('should not authenticate an user if user does not exist', async () => {
+      const credentials = {
+        email: 'test@alenvi.io',
+        password: '123456'
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users/authenticate',
+        payload: credentials
+      });
+      expect(res.statusCode).toBe(404);
+    });
+    it('should not authenticate an user if wrong password', async () => {
+      const credentials = {
+        email: 'test1@alenvi.io',
+        password: '7890'
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users/authenticate',
+        payload: credentials
+      });
+      expect(res.statusCode).toBe(401);
+    });
+    it('should not authenticate an user if refreshToken is missing', async () => {
+      const credentials = {
+        email: 'test2@alenvi.io',
+        password: '123456'
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users/authenticate',
+        payload: credentials
+      });
+      expect(res.statusCode).toBe(403);
+    });
+  });
 
-  //     const res = await request(app).post('/users/authenticate').send(credentials);
-  //     expect(res.statusCode).toBe(200);
-  //     expect(res.body.data).toEqual(expect.objectContaining({
-  //       token: expect.any(String),
-  //       refreshToken: expect.any(String),
-  //       expiresIn: expect.any(Number),
-  //       user: expect.objectContaining({ _id: expect.any(String), role: expect.any(String) })
-  //     }));
-  //   });
-  //   it('should authenticate an user if email has capitals', async () => {
-  //     const credentials = {
-  //       email: 'Test1@alenvi.io',
-  //       password: '123456'
-  //     };
-  //     const res = await request(app).post('/users/authenticate').send(credentials);
-  //     expect(res.statusCode).toBe(200);
-  //   });
-  //   it('should not authenticate an user if missing parameter', async () => {
-  //     const credentials = {
-  //       email: 'test1@alenvi.io'
-  //     };
-  //     const res = await request(app).post('/users/authenticate').send(credentials);
-  //     expect(res.statusCode).toBe(400);
-  //   });
-  //   it('should not authenticate an user if user does not exist', async () => {
-  //     const credentials = {
-  //       email: 'test@alenvi.io',
-  //       password: '123456'
-  //     };
-  //     const res = await request(app).post('/users/authenticate').send(credentials);
-  //     expect(res.statusCode).toBe(404);
-  //   });
-  //   it('should not authenticate an user if wrong password', async () => {
-  //     const credentials = {
-  //       email: 'test1@alenvi.io',
-  //       password: '7890'
-  //     };
-  //     const res = await request(app).post('/users/authenticate').send(credentials);
-  //     expect(res.statusCode).toBe(401);
-  //   });
-  //   it('should not authenticate an user if refreshToken is missing', async () => {
-  //     const credentials = {
-  //       email: 'test2@alenvi.io',
-  //       password: '123456'
-  //     };
-  //     const res = await request(app).post('/users/authenticate').send(credentials);
-  //     expect(res.statusCode).toBe(403);
-  //   });
-  // });
+  describe('GET /users', () => {
+    it('should get all users', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users',
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBe(3);
+    });
+    it('should populate users with roles and features', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users',
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users[0]).toHaveProperty('role');
+      expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
+        _id: expect.any(String),
+        name: expect.any(String),
+        features: expect.any(Array)
+      }));
+    });
+  });
+
+  describe('GET /users/:id', () => {
+    it('should return user', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${userList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.user).toBeDefined();
+      expect(res.result.data.user).toEqual(expect.objectContaining({
+        firstname: userList[0].firstname,
+        lastname: userList[0].lastname,
+        local: expect.objectContaining({ email: userList[0].local.email }),
+        role: expect.objectContaining({ name: userList[0].role })
+      }));
+    });
+    it('should return a 404 error if no user found', async () => {
+      const id = new ObjectID().toHexString();
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${id}`,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
 });
 
 // describe('PROTECTED ROUTES', async () => {
@@ -228,4 +306,3 @@ describe('USERS ROUTES', () => {
 //     });
 //   });
 // });
-

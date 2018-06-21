@@ -40,7 +40,7 @@ const authenticate = async (req) => {
       return Boom.unauthorized();
     }
     const payload = {
-      _id: alenviUser._id,
+      _id: alenviUser._id.toHexString(),
       role: alenviUser.role.name,
     };
     const user = clean(payload);
@@ -50,7 +50,12 @@ const authenticate = async (req) => {
     console.log(`${req.payload.email} connected`);
     // return the information including token as JSON
     // return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
-    return { message: translate[language].userAuthentified, data: { token, refreshToken, expiresIn: expireTime, user } };
+    return {
+      message: translate[language].userAuthentified,
+      data: {
+        token, refreshToken, expiresIn: expireTime, user
+      }
+    };
   } catch (e) {
     console.error(e);
     return Boom.badImplementation();
@@ -116,7 +121,12 @@ const create = async (req) => {
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
     const token = tokenProcess.encode(userPayload, expireTime);
-    return { message: translate[language].userSaved, data: { token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload } };
+    return {
+      message: translate[language].userSaved,
+      data: {
+        token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload
+      }
+    };
   } catch (e) {
     console.error(e);
     // Error code when there is a duplicate key, in this case : the email (unique field)
