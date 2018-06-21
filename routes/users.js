@@ -2,11 +2,12 @@
 
 const Joi = require('joi');
 
-const { authenticate, create } = require('../controllers/userController');
+const { authenticate, create, list } = require('../controllers/userController');
 
 exports.plugin = {
   name: 'routes-users',
   register: async (server) => {
+    // Authenticate a user
     server.route({
       method: 'POST',
       path: '/authenticate',
@@ -21,7 +22,7 @@ exports.plugin = {
       },
       handler: authenticate
     });
-
+    // Create a user
     server.route({
       method: 'POST',
       path: '/',
@@ -48,5 +49,19 @@ exports.plugin = {
       },
       handler: create
     });
+    // Get all users
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        validate: {
+          query: {
+            role: Joi.string(),
+            email: Joi.string().email()
+          }
+        }
+      },
+      handler: list
+    })
   }
 };
