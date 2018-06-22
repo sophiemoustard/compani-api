@@ -37,7 +37,7 @@ const create = async (req) => {
     await role.save();
     const populatedRole = await Role.findOne({ _id: role._id }).populate('features.feature_id').lean();
     const payload = {
-      _id: populatedRole._id,
+      _id: populatedRole._id.toHexString(),
       name: populatedRole.name,
       features: []
     };
