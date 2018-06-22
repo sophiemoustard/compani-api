@@ -102,6 +102,7 @@ const create = async (req) => {
         };
       }
     }
+
     // Populate user role
     const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $set: folderPayload }, { new: true }).populate({
       path: 'role',
@@ -139,4 +140,10 @@ const create = async (req) => {
   }
 };
 
-module.exports = { authenticate, create };
+const list = async () => {
+  const users = await User.find({});
+  return users;
+};
+
+
+module.exports = { authenticate, create, list };

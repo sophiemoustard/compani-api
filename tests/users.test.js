@@ -16,6 +16,7 @@ describe('USERS ROUTES', () => {
   let authToken = null;
   before(populateUsers);
   authToken = before(getToken);
+  console.log('authToken =', authToken);
   describe('POST /users', () => {
     let res = null;
     let user = null;
