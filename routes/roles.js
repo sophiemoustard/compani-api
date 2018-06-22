@@ -13,8 +13,8 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string(),
-            features: Joi.array(),
+            name: Joi.string().required(),
+            features: Joi.array().required(),
           })
         },
         auth: {

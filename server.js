@@ -23,8 +23,6 @@ const validate = async (decoded) => {
 const init = async () => {
   await server.register([...plugins]);
 
-  // server.auth.scheme('jwt', )
-
   server.auth.strategy('jwt', 'jwt', {
     key: process.env.TOKEN_SECRET,
     headerKey: 'x-access-token',
