@@ -140,9 +140,41 @@ const create = async (req) => {
   }
 };
 
-const list = async () => {
-  const users = await User.find({});
-  return users;
+const list = async (req) => {
+  if (req.query.role) {
+    console.log('req.query', req.query);
+    req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
+  }
+  if (req.query.email) {
+    req.query.local = { email: req.query.email };
+    delete req.query.email;
+  }
+  const params = _.pickBy(req.query);
+  // We populate the user with role data and then we populate the role with features data
+  let users = await User.find(params, { planningModification: 0 }).populate({
+    path: 'role',
+    select: '-__v -updatedAt',
+    populate: {
+      path: 'features.feature_id',
+      select: '-__v -createdAt -updatedAt'
+    }
+  });
+  if (users.length === 0) {
+    return Boom.notFound(translate[language].userShowAllNotFound);
+  }
+  // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
+  users = users.map(user => user.toObject());
+  for (let i = 0, l = users.length; i < l; i++) {
+    if (users[i].role && users[i].role.features) {
+      users[i].role.features = populateRole(users[i].role.features);
+    }
+  }
+  return {
+    message: translate[language].userShowAllFound,
+    data: {
+      users
+    }
+  };
 };
 
 

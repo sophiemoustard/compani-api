@@ -15,7 +15,9 @@ const {
 describe('USERS ROUTES', () => {
   let authToken = null;
   before(populateUsers);
-  authToken = before(getToken);
+  before(async () => {
+    authToken = await getToken();
+  });
   console.log('authToken =', authToken);
   describe('POST /users', () => {
     let res = null;
@@ -189,46 +191,46 @@ describe('USERS ROUTES', () => {
     it('should populate users with roles and features', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/users',
-        headers: { 'x-access-token': authToken }
+        url: '/users?role=Auxiliaire',
+        headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users[0]).toHaveProperty('role');
       expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
-        _id: expect.any(String),
+        _id: expect.any(Object),
         name: expect.any(String),
         features: expect.any(Array)
       }));
     });
   });
 
-  describe('GET /users/:id', () => {
-    it('should return user', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/${userList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken }
-      });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.user).toBeDefined();
-      expect(res.result.data.user).toEqual(expect.objectContaining({
-        firstname: userList[0].firstname,
-        lastname: userList[0].lastname,
-        local: expect.objectContaining({ email: userList[0].local.email }),
-        role: expect.objectContaining({ name: userList[0].role })
-      }));
-    });
-    it('should return a 404 error if no user found', async () => {
-      const id = new ObjectID().toHexString();
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/${id}`,
-        headers: { 'x-access-token': authToken }
-      });
-      expect(res.statusCode).toBe(404);
-    });
-  });
-});
+//   describe('GET /users/:id', () => {
+//     it('should return user', async () => {
+//       const res = await app.inject({
+//         method: 'GET',
+//         url: `/users/${userList[0]._id.toHexString()}`,
+//         headers: { 'x-access-token': authToken }
+//       });
+//       expect(res.statusCode).toBe(200);
+//       expect(res.result.data.user).toBeDefined();
+//       expect(res.result.data.user).toEqual(expect.objectContaining({
+//         firstname: userList[0].firstname,
+//         lastname: userList[0].lastname,
+//         local: expect.objectContaining({ email: userList[0].local.email }),
+//         role: expect.objectContaining({ name: userList[0].role })
+//       }));
+//     });
+//     it('should return a 404 error if no user found', async () => {
+//       const id = new ObjectID().toHexString();
+//       const res = await app.inject({
+//         method: 'GET',
+//         url: `/users/${id}`,
+//         headers: { 'x-access-token': authToken }
+//       });
+//       expect(res.statusCode).toBe(404);
+//     });
+//   });
+// });
 
 // describe('PROTECTED ROUTES', async () => {
 //   let token = null;
@@ -306,4 +308,4 @@ describe('USERS ROUTES', () => {
 //       expect(res.statusCode).toBe(404);
 //     });
 //   });
-// });
+});
