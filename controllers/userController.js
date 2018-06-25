@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const uuidv4 = require('uuid/v4');
-// const flat = require('flat');
+const flat = require('flat');
 // const nodemailer = require('nodemailer');
 const _ = require('lodash');
 const Boom = require('boom');
@@ -140,9 +140,9 @@ const create = async (req) => {
   }
 };
 
+// Show all user
 const list = async (req) => {
   if (req.query.role) {
-    console.log('req.query', req.query);
     req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
   }
   if (req.query.email) {
@@ -177,5 +177,91 @@ const list = async (req) => {
   };
 };
 
+// Find an user by Id in param URL
+const show = async (req) => {
+  try {
+    const user = await User.findOne({ _id: req.params._id }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
+    if (!user) {
+      return Boom.notFound(translate[language].userNotFound);
+    }
+    if (user.role && user.role.features) {
+      user.role.features = populateRole(user.role.features);
+    }
+    return {
+      message: translate[language].userFound,
+      data: { user }
+    };
+  } catch (e) {
+    console.error(e);
+    return Boom.badImplementation();
+  }
+};
 
-module.exports = { authenticate, create, list };
+// Update an user by id
+const update = async (req) => {
+  try {
+    let role;
+    if (req.payload.role) {
+      role = await Role.findOne({ name: req.payload.role });
+      if (!role) {
+        return Boom.notFound(translate[language].roleNotFound);
+      }
+      req.payload.role = role._id.toString();
+    }
+    const newBody = clean(flat(req.payload));
+    // const newBody = _.pickBy(flat(req.body), !_.isEmpty);
+    // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
+    if (!userUpdated) {
+      return Boom.notFound(translate[language].userNotFound);
+    }
+    if (userUpdated.role && userUpdated.role.features) {
+      userUpdated.role.features = populateRole(userUpdated.role.features);
+    }
+    return {
+      message: translate[language].userUpdated,
+      data: { userUpdated }
+    };
+  } catch (e) {
+    console.error(e);
+    // Error code when there is a duplicate key, in this case : the email (unique field)
+    if (e.code === 11000) {
+      return Boom.conflict(translate[language].userEmailExists);
+    }
+    return Boom.badImplementation();
+  }
+};
+
+// Remove an user by param id
+const remove = async (req) => {
+  try {
+    const userDeleted = await User.findByIdAndRemove({ _id: req.params._id });
+    if (!userDeleted) {
+      return Boom.notFound(translate[language].userNotFound);
+    }
+    return {
+      message: translate[language].userRemoved,
+      data: { userDeleted }
+    };
+  } catch (e) {
+    return Boom.badImplementation();
+  }
+};
+
+module.exports = {
+  authenticate, create, list, show, update, remove
+};

@@ -2,7 +2,9 @@
 
 const Joi = require('joi');
 
-const { authenticate, create, list } = require('../controllers/userController');
+const {
+  authenticate, create, list, show, update, remove
+} = require('../controllers/userController');
 
 exports.plugin = {
   name: 'routes-users',
@@ -16,7 +18,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
             password: Joi.string().required()
-          })
+          }).required()
         },
         auth: false
       },
@@ -43,7 +45,7 @@ exports.plugin = {
             picture: Joi.object().keys({
               link: Joi.string()
             }).default({ link: 'https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png' })
-          })
+          }).required()
         },
         auth: false
       },
@@ -59,9 +61,55 @@ exports.plugin = {
             role: Joi.string(),
             email: Joi.string().email()
           }
-        }
+        },
+        auth: { strategy: 'jwt' }
       },
       handler: list
-    })
+    });
+    // Get user by id
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      options: {
+        auth: { strategy: 'jwt' }
+      },
+      handler: show
+    });
+    // Update user by id
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          payload: Joi.object().keys({
+            firstname: Joi.string(),
+            lastname: Joi.string(),
+            mobilePhone: Joi.string(),
+            sector: Joi.string(),
+            employee_id: Joi.number(),
+            customer_id: Joi.number(),
+            local: {
+              email: Joi.string().email(),
+              password: Joi.string()
+            },
+            role: Joi.string(),
+            picture: Joi.object().keys({
+              link: Joi.string()
+            })
+          }).required()
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: update
+    });
+    // Delete user by id
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        auth: { strategy: 'jwt' }
+      },
+      handler: remove
+    });
   }
 };

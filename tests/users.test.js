@@ -186,12 +186,17 @@ describe('USERS ROUTES', () => {
         headers: { 'x-access-token': authToken }
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(3);
+      expect(res.result.data.users[0]).toHaveProperty('role');
+      expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
+        _id: expect.any(Object),
+        name: expect.any(String),
+        features: expect.any(Array)
+      }));
     });
-    it('should populate users with roles and features', async () => {
+    it('should get all coachs users', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/users?role=Auxiliaire',
+        url: '/users?role=Coach',
         headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
@@ -202,110 +207,87 @@ describe('USERS ROUTES', () => {
         features: expect.any(Array)
       }));
     });
+    it('should not get users if role given doesn\'t exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users?role=Test',
+        headers: { 'x-access-token': authToken },
+      });
+      expect(res.statusCode).toBe(404);
+    });
   });
 
-//   describe('GET /users/:id', () => {
-//     it('should return user', async () => {
-//       const res = await app.inject({
-//         method: 'GET',
-//         url: `/users/${userList[0]._id.toHexString()}`,
-//         headers: { 'x-access-token': authToken }
-//       });
-//       expect(res.statusCode).toBe(200);
-//       expect(res.result.data.user).toBeDefined();
-//       expect(res.result.data.user).toEqual(expect.objectContaining({
-//         firstname: userList[0].firstname,
-//         lastname: userList[0].lastname,
-//         local: expect.objectContaining({ email: userList[0].local.email }),
-//         role: expect.objectContaining({ name: userList[0].role })
-//       }));
-//     });
-//     it('should return a 404 error if no user found', async () => {
-//       const id = new ObjectID().toHexString();
-//       const res = await app.inject({
-//         method: 'GET',
-//         url: `/users/${id}`,
-//         headers: { 'x-access-token': authToken }
-//       });
-//       expect(res.statusCode).toBe(404);
-//     });
-//   });
-// });
+  describe('GET /users/:id', () => {
+    it('should return user', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${userList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.user).toBeDefined();
+      expect(res.result.data.user).toEqual(expect.objectContaining({
+        firstname: userList[0].firstname,
+        lastname: userList[0].lastname,
+        local: expect.objectContaining({ email: userList[0].local.email }),
+        role: expect.objectContaining({ name: userList[0].role })
+      }));
+    });
+    it('should return a 404 error if no user found', async () => {
+      const id = new ObjectID().toHexString();
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${id}`,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
 
-// describe('PROTECTED ROUTES', async () => {
-//   let token = null;
-//   before(async () => {
-//     const credentials = {
-//       email: 'test3@alenvi.io',
-//       password: '123456'
-//     };
-//     const response = await request(app).post('/users/authenticate').send(credentials);
-//     token = response.body.data.token;
-//   });
-//   describe('GET /users', () => {
-//     it('should get all users', async () => {
-//       const res = await request(app).get('/users').set('x-access-token', token);
-//       expect(res.statusCode).toBe(200);
-//       expect(res.body.data.users.length).toBe(3);
-//     });
-//     it('should populate users with roles and features', async () => {
-//       const res = await request(app).get('/users').set('x-access-token', token);
-//       expect(res.statusCode).toBe(200);
-//       expect(res.body.data.users[0]).toHaveProperty('role');
-//       expect(res.body.data.users[0].role).toEqual(expect.objectContaining({
-//         _id: expect.any(String),
-//         name: expect.any(String),
-//         features: expect.any(Array)
-//       }));
-//     });
-//   });
-//   describe('GET /users/:id', () => {
-//     it('should return user', async () => {
-//       const res = await request(app).get(`/users/${userList[0]._id.toHexString()}`).set('x-access-token', token);
-//       expect(res.statusCode).toBe(200);
-//       expect(res.body.data.user).toBeDefined();
-//       expect(res.body.data.user).toEqual(expect.objectContaining({
-//         firstname: userList[0].firstname,
-//         lastname: userList[0].lastname,
-//         local: expect.objectContaining({ email: userList[0].local.email }),
-//         role: expect.objectContaining({ name: userList[0].role })
-//       }));
-//     });
-//     it('should return a 404 error if no user found', async () => {
-//       const id = new ObjectID().toHexString();
-//       const res = await request(app).get(`/users/${id}`).set('x-access-token', token);
-//       expect(res.statusCode).toBe(404);
-//     });
-//   });
-//   describe('PUT /users/:id/', () => {
-//     it('should update the user', async () => {
-//       const updatePayload = {
-//         firstname: 'Riri',
-//         local: {
-//           email: 'riri@alenvi.io',
-//           password: '098765'
-//         },
-//         role: 'Tech',
-//       };
-//       const res = await request(app).put(`/users/${userList[0]._id.toHexString()}`).send(updatePayload).set('x-access-token', token);
-//       expect(res.statusCode).toBe(200);
-//       expect(res.body.data.userUpdated).toBeDefined();
-//       expect(res.body.data.userUpdated).toEqual(expect.objectContaining({
-//         _id: expect.any(String),
-//         firstname: updatePayload.firstname,
-//         local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
-//         role: expect.objectContaining({ name: updatePayload.role })
-//       }));
+  describe('PUT /users/:id/', () => {
+    it('should update the user', async () => {
+      const updatePayload = {
+        firstname: 'Riri',
+        local: {
+          email: 'riri@alenvi.io',
+          password: '098765'
+        },
+        role: 'Tech',
+      };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${userList[0]._id.toHexString()}`,
+        payload: updatePayload,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.userUpdated).toBeDefined();
+      expect(res.result.data.userUpdated).toEqual(expect.objectContaining({
+        _id: userList[0]._id,
+        firstname: updatePayload.firstname,
+        local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
+        role: expect.objectContaining({ name: updatePayload.role })
+      }));
+      const updatedUser = await User.findById(res.result.data.userUpdated._id).populate({ path: 'role' });
+      expect(updatedUser.firstname).toBe(updatePayload.firstname);
+      expect(updatedUser.local.email).toBe(updatePayload.local.email);
+      expect(updatedUser.role.name).toBe(updatePayload.role);
+    });
+    it('should return a 404 error if no user found', async () => {
+      const id = new ObjectID().toHexString();
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${id}`,
+        payload: {},
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
 
-//       const updatedUser = await User.findById(res.body.data.userUpdated._id).populate({ path: 'role' });
-//       expect(updatedUser.firstname).toBe(updatePayload.firstname);
-//       expect(updatedUser.local.email).toBe(updatePayload.local.email);
-//       expect(updatedUser.role.name).toBe(updatePayload.role);
-//     });
-//     it('should return a 404 error if no user found', async () => {
-//       const id = new ObjectID().toHexString();
-//       const res = await request(app).put(`/users/${id}`).send({}).set('x-access-token', token);
-//       expect(res.statusCode).toBe(404);
-//     });
-//   });
+  // describe('DELETE /users/:id', () => {
+  //   it('should delete a user by id', async () => {
+
+  //   })
+  // })
 });
