@@ -114,8 +114,28 @@ const rolePayload = {
   ]
 };
 
+const wrongRolePayload = {
+  name: 'T',
+  features: [
+    {
+      _id: featuresList[0]._id,
+      name: featuresList[0].name,
+      permission_level: 'meh',
+    },
+    {
+      _id: featuresList[1]._id,
+      name: featuresList[1].name,
+      permission_level: 9
+    },
+    {
+      _id: featuresList[2]._id,
+      name: featuresList[2].name,
+      permission_level: 1
+    }
+  ]
+};
+
 const populateRoles = async () => {
-  console.log('POPULATING ROLES AND FEATURES...');
   await Role.remove({});
   await Feature.remove({});
 
@@ -123,4 +143,4 @@ const populateRoles = async () => {
   await Role.insertMany(rolesList);
 };
 
-module.exports = { rolesList, featuresList, rolePayload, populateRoles };
+module.exports = { rolesList, featuresList, rolePayload, wrongRolePayload, populateRoles };

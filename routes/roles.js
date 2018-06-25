@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 
-const { create } = require('../controllers/roleController');
+const { create, update } = require('../controllers/roleController');
 
 exports.plugin = {
   name: 'routes-roles',
@@ -23,6 +23,30 @@ exports.plugin = {
         }
       },
       handler: create
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.string().required()
+          },
+          payload: Joi.object().keys({
+            name: Joi.string().optional(),
+            features: Joi.array().invalid([]).items(Joi.object().keys({
+              _id: Joi.string().required(),
+              permission_level: Joi.number().min(0).max(2).required()
+            })).optional()
+          }).required()
+        },
+        auth: {
+          strategy: 'jwt',
+          scope: ['Admin', 'Tech', 'Coach']
+        }
+      },
+      handler: update
     });
   }
 };
