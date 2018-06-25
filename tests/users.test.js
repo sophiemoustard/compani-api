@@ -210,7 +210,7 @@ describe('USERS ROUTES', () => {
     it('should not get users if role given doesn\'t exist', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/users?role=Test',
+        url: '/users?role=Babouin',
         headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(404);

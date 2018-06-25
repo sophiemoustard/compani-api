@@ -144,6 +144,9 @@ const create = async (req) => {
 const list = async (req) => {
   if (req.query.role) {
     req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
+    if (!req.query.role) {
+      return Boom.notFound(translate[language].roleNotFound);
+    }
   }
   if (req.query.email) {
     req.query.local = { email: req.query.email };
