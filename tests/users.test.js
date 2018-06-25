@@ -18,7 +18,6 @@ describe('USERS ROUTES', () => {
   before(async () => {
     authToken = await getToken();
   });
-  console.log('authToken =', authToken);
   describe('POST /users', () => {
     let res = null;
     let user = null;
