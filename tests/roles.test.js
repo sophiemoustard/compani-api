@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 
 const app = require('../server');
 const { getToken, populateUsers } = require('./seed/usersSeed');
@@ -100,7 +101,10 @@ describe('ROLES ROUTES', () => {
             _id: rolesList[0].features[0].feature_id,
             permission_level: 0
           },
-
+          {
+            _id: rolesList[1].features[1].feature_id,
+            permission_level: 1
+          },
         ]
       };
       const res = await app.inject({
@@ -117,9 +121,53 @@ describe('ROLES ROUTES', () => {
           expect.objectContaining({
             _id: payload.features[0]._id,
             permission_level: payload.features[0].permission_level
+          }),
+          expect.objectContaining({
+            _id: payload.features[1]._id,
+            permission_level: payload.features[1].permission_level
           })
         ])
       }));
+    });
+    it('should return a 404 error if role id does not exist', async () => {
+      const payload = {
+        name: 'Kokonut',
+        features: [
+          {
+            _id: rolesList[0].features[0].feature_id,
+            permission_level: 0
+          },
+          {
+            _id: rolesList[1].features[1].feature_id,
+            permission_level: 1
+          },
+        ]
+      };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/roles/${new ObjectID()}`,
+        payload,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+    it('should return a 400 error if id is not valid', async () => {
+      const payload = {
+        name: 'Kokonut',
+        features: [
+          {
+            _id: rolesList[0].features[0].feature_id,
+            permission_level: 0
+          },
+        ]
+      };
+      const res = await app.inject({
+        method: 'PUT',
+        url: '/roles/123456',
+        payload,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(400);
     });
   });
 });
