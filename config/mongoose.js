@@ -4,11 +4,11 @@ const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 
-if (process.env.NODE_ENV === 'test') {
-  mongoose.connect('mongodb://localhost:27017/hapi-test');
-} else {
-  mongoose.connect('mongodb://localhost:27017/hapi');
-}
+// if (process.env.NODE_ENV === 'test') {
+//   mongoose.connect('mongodb://localhost:27017/hapi-test');
+// } else {
+mongoose.connect('mongodb://localhost:27017/hapi-test');
+// }
 
 // When successfully connected
 mongoose.connection.once('connected', () => console.log('Successfully connected to MongoDB'));
