@@ -18,7 +18,6 @@ exports.plugin = {
             features: Joi.array().required(),
           })
         },
-        log: { collect: true },
         auth: {
           strategy: 'jwt',
           scope: ['Admin', 'Tech', 'Coach']
