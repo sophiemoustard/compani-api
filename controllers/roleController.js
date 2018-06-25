@@ -101,12 +101,26 @@ const update = async (req) => {
     return { message: translate[language].roleUpdated, data: { role: roleUpdated } };
   } catch (e) {
     req.log('error', e);
-    // Error code when there is a duplicate key, in this case : the name (unique field)
-    if (e.code === 11000) {
-      return Boom.conflict(translate[language].roleExists);
-    }
     return Boom.badImplementation(translate[language].unexpectedBehavior);
   }
 };
 
-module.exports = { create, update };
+
+const showAll = async (req) => {
+  try {
+    const roles = await Role.find(req.query, { 'features._id': 0, updatedAt: 0, createdAt: 0, __v: 0 }).populate({ path: 'features.feature_id', select: 'name _id' }).lean();
+    if (roles.length === 0) {
+      return Boom.notFound(translate[language].rolesShowAllNotFound);
+    }
+    roles.forEach((role) => {
+      if (role && role.features) {
+        role.features = populateRole(role.features);
+      }
+    });
+    return { message: translate[language].rolesShowAllFound, data: { roles } };
+  } catch (e) {
+    req.log('error', e);
+  }
+};
+
+module.exports = { create, update, showAll };

@@ -170,4 +170,25 @@ describe('ROLES ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
   });
+
+  describe('GET /roles', () => {
+    it('should return all roles', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.roles.length).toBe(4);
+      expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
+        name: expect.any(String),
+        features: expect.arrayContaining([
+          expect.objectContaining({
+            name: expect.any(String),
+            permission_level: expect.any(Number)
+          })
+        ])
+      }));
+    });
+  });
 });
