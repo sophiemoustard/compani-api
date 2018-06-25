@@ -20,7 +20,7 @@ if (process.env.NODE_ENV !== 'test') {
     console: [{
       module: 'good-squeeze',
       name: 'Squeeze',
-      args: [{ log: '*', response: '*', request: 'error' }]
+      args: [{ log: '*', request: 'error' }]
     },
     { module: 'good-console' },
     'stdout'
