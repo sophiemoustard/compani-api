@@ -100,7 +100,7 @@ const update = async (req) => {
     }
     return { message: translate[language].roleUpdated, data: { role: roleUpdated } };
   } catch (e) {
-    console.error(e);
+    req.log('error', e);
     // Error code when there is a duplicate key, in this case : the name (unique field)
     if (e.code === 11000) {
       return Boom.conflict(translate[language].roleExists);

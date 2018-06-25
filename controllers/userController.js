@@ -47,7 +47,7 @@ const authenticate = async (req) => {
     const expireTime = process.env.NODE_ENV === 'development' && payload.role === 'Admin' ? 86400 : 3600;
     const token = tokenProcess.encode(user, expireTime);
     const { refreshToken } = alenviUser;
-    console.log(`${req.payload.email} connected`);
+    req.log('info', `${req.payload.email} connected`);
     // return the information including token as JSON
     // return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
     return {
@@ -57,7 +57,7 @@ const authenticate = async (req) => {
       }
     };
   } catch (e) {
-    console.error(e);
+    req.log('error', e);
     return Boom.badImplementation();
   }
 };
@@ -129,7 +129,7 @@ const create = async (req) => {
       }
     };
   } catch (e) {
-    console.error(e);
+    req.log('error', e);
     // Error code when there is a duplicate key, in this case : the email (unique field)
     if (e.code === 11000) {
       return Boom.conflict(translate[language].userEmailExists);
@@ -202,7 +202,7 @@ const show = async (req) => {
       data: { user }
     };
   } catch (e) {
-    console.error(e);
+    req.log('error', e);
     return Boom.badImplementation();
   }
 };
@@ -240,7 +240,7 @@ const update = async (req) => {
       data: { userUpdated }
     };
   } catch (e) {
-    console.error(e);
+    req.log('error', e);
     // Error code when there is a duplicate key, in this case : the email (unique field)
     if (e.code === 11000) {
       return Boom.conflict(translate[language].userEmailExists);
@@ -261,6 +261,7 @@ const remove = async (req) => {
       data: { userDeleted }
     };
   } catch (e) {
+    req.log('error', e);
     return Boom.badImplementation();
   }
 };
