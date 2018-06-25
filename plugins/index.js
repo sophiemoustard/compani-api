@@ -15,6 +15,17 @@ if (process.env.NODE_ENV !== 'test') {
     'stdout'
     ]
   };
+} else {
+  reporters = {
+    testConsole: [{
+      module: 'good-squeeze',
+      name: 'Squeeze',
+      args: [{ error: '*' }]
+    },
+    { module: 'good-console' },
+    'stdout'
+    ],
+  };
 }
 exports.plugins = [
   {
