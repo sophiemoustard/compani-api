@@ -1,6 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 const { create, update } = require('../controllers/roleController');
 
@@ -17,6 +18,7 @@ exports.plugin = {
             features: Joi.array().required(),
           })
         },
+        log: { collect: true },
         auth: {
           strategy: 'jwt',
           scope: ['Admin', 'Tech', 'Coach']
@@ -31,12 +33,12 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.string().required()
+            _id: Joi.objectId()
           },
           payload: Joi.object().keys({
             name: Joi.string().optional(),
             features: Joi.array().invalid([]).items(Joi.object().keys({
-              _id: Joi.string().required(),
+              _id: Joi.objectId(),
               permission_level: Joi.number().min(0).max(2).required()
             })).optional()
           }).required()

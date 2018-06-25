@@ -36,7 +36,7 @@ const init = async () => {
 
   await server.start();
   require('./config/mongoose');
-  console.log(`Server running at: ${server.info.uri}`);
+  server.log('info', `Server running at: ${server.info.uri}`);
 };
 
 module.exports = server;
