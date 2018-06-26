@@ -266,6 +266,74 @@ const remove = async (req) => {
   }
 };
 
+// Get all users presentation for alenvi.io (youtube + picture)
+const getPresentation = async (req) => {
+  try {
+    const params = {
+      'youtube.location': _.isArray(req.query.location) ? { $in: req.query.location } : req.query.location,
+      role: _.isArray(req.query.role) ? { $in: req.query.role } : req.query.role
+    };
+    const roleIds = await Role.find({ name: params.role }, { _id: 1 });
+    params.role = { $in: roleIds };
+    const payload = _.pickBy(params);
+    const users = await User.find(payload, {
+      _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1
+    }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
+    if (users.length === 0) {
+      return Boom.notFound(translate[language].userShowAllNotFound);
+    }
+    return {
+      message: translate[language].userShowAllFound,
+      data: { users }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+// Refresh token
+const refreshToken = async (req) => {
+  try {
+    const user = await User.findOne({ refreshToken: req.payload.refreshToken }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
+    if (!user) {
+      return Boom.notFound(translate[language].refreshTokenNotFound);
+    }
+    const payload = {
+      _id: user._id,
+      role: user.role.name,
+    };
+    const userPayload = _.pickBy(payload);
+    const expireTime = 3600;
+    const token = tokenProcess.encode(userPayload, expireTime);
+    // return the information including token as JSON
+    return {
+      message: translate[language].userAuthentified,
+      data: {
+        token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+
 module.exports = {
-  authenticate, create, list, show, update, remove
+  authenticate, create, list, show, update, remove, getPresentation, refreshToken
 };
