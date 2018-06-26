@@ -139,4 +139,17 @@ const showById = async (req) => {
   }
 };
 
-module.exports = { create, update, showAll, showById };
+const remove = async (req) => {
+  try {
+    const roleDeleted = await Role.findByIdAndRemove({ _id: req.params._id });
+    if (!roleDeleted) {
+      return Boom.notFound(translate[language].roleNotFound);
+    }
+    return { message: translate[language].roleRemoved, data: { role: roleDeleted } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
+  }
+};
+
+module.exports = { create, update, showAll, showById, remove };

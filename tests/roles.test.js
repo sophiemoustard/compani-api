@@ -236,5 +236,45 @@ describe('ROLES ROUTES', () => {
       });
       expect(res.statusCode).toBe(404);
     });
+
+    it('should return a 400 error if id is not valid', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles/123456',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(400);
+    });
   });
+
+  describe('DELETE /role/{_id}', () => {
+    it('should delete role', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/roles/${rolesList[1]._id}`,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      const role = await Role.findById(rolesList[1]._id);
+      expect(role).toBeNull();
+    });
+
+    it('should return a 404 error if role does not exist', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/roles/${new ObjectID()}`,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should return a 400 error if id is not valid', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: '/roles/123456',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  })
 });
