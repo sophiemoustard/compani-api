@@ -12,6 +12,12 @@ exports.routes = [
     }
   },
   {
+    plugin: require('./features'),
+    routes: {
+      prefix: '/features'
+    }
+  },
+  {
     plugin: require('./upload'),
     routes: {
       prefix: '/upload'

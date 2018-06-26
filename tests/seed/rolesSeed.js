@@ -135,6 +135,8 @@ const wrongRolePayload = {
   ]
 };
 
+const featurePayload = { name: 'Test' };
+
 const populateRoles = async () => {
   await Role.remove({});
   await Feature.remove({});
@@ -143,4 +145,4 @@ const populateRoles = async () => {
   await Role.insertMany(rolesList);
 };
 
-module.exports = { rolesList, featuresList, rolePayload, wrongRolePayload, populateRoles };
+module.exports = { rolesList, featuresList, rolePayload, wrongRolePayload, populateRoles, featurePayload };
