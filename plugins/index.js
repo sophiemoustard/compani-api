@@ -23,7 +23,12 @@ if (process.env.NODE_ENV !== 'test') {
       name: 'Squeeze',
       args: [{ log: '*', request: 'error' }]
     },
-    { module: 'good-console' },
+    {
+      module: 'good-console',
+      args: [{
+        format: 'DDMMYYYY-HH:MM:ss'
+      }]
+    },
     'stdout'
     ],
   };
