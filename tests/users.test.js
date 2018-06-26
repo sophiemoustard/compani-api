@@ -300,12 +300,29 @@ describe('USERS ROUTES', () => {
         url: '/users',
         payload: userToDelete
       });
-      const userDeleted = await app.inject({
+      const res = await app.inject({
         method: 'DELETE',
         url: `/users/${userCreated.result.data.user._id}`,
         headers: { 'x-access-token': authToken }
       });
-      // expect()
+      expect(res.statusCode).toBe(200);
+    });
+    it('should return a 404 error if user is not found', async () => {
+      const objectId = new ObjectID();
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/users/${objectId}`,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+    it('should return a 400 error _id query is not an objectId', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: '/users/123',
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(400);
     });
   });
 });

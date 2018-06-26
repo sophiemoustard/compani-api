@@ -1,6 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   authenticate, create, list, show, update, remove
@@ -107,6 +108,11 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        validate: {
+          params: {
+            _id: Joi.objectId()
+          }
+        },
         auth: { strategy: 'jwt' }
       },
       handler: remove
