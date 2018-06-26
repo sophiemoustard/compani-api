@@ -325,4 +325,60 @@ describe('USERS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
   });
+
+  describe('GET /users/presentation', () => {
+    it('should return users presentation by role', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users/presentation?role=Auxiliaire'
+      });
+      expect(res.statusCode).toBe(200);
+    });
+    it('should return a 404 error if no user is found', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users/presentation'
+      });
+      expect(res.statusCode).toBe(404);
+    });
+    it('should return 404 error if role is not found', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users/presentation?role=RoleInexistant'
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('POST /users/refreshToken', () => {
+    it('should return refresh token', async () => {
+      const credentials = {
+        email: 'test1@alenvi.io',
+        password: '123456'
+      };
+      const user = await app.inject({
+        method: 'POST',
+        url: '/users/authenticate',
+        payload: credentials
+      });
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users/refreshToken',
+        payload: {
+          refreshToken: user.result.data.refreshToken
+        }
+      });
+      expect(res.statusCode).toBe(200);
+    });
+    it('should return a 404 error when refresh token isn\'t good', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/users/refreshToken',
+        payload: {
+          refreshToken: 'b171c888-6874-45fd-9c4e-1a9daf0231ba'
+        }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
 });

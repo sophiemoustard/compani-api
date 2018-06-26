@@ -4,7 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
-  authenticate, create, list, show, update, remove
+  authenticate, create, list, show, update, remove, getPresentation, refreshToken
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -116,6 +116,34 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: remove
+    });
+    // Get users presentation
+    server.route({
+      method: 'GET',
+      path: '/presentation',
+      options: {
+        validate: {
+          query: {
+            role: Joi.string()
+          }
+        },
+        auth: false
+      },
+      handler: getPresentation
+    });
+    // Post refresh token
+    server.route({
+      method: 'POST',
+      path: '/refreshToken',
+      options: {
+        validate: {
+          payload: {
+            refreshToken: Joi.string().required()
+          }
+        },
+        auth: false
+      },
+      handler: refreshToken
     });
   }
 };
