@@ -284,9 +284,28 @@ describe('USERS ROUTES', () => {
     });
   });
 
-  // describe('DELETE /users/:id', () => {
-  //   it('should delete a user by id', async () => {
-
-  //   })
-  // })
+  describe('DELETE /users/:id', () => {
+    it('should delete a user by id', async () => {
+      const userToDelete = {
+        firstname: 'Test',
+        lastname: 'Test',
+        local: {
+          email: 'todelete@alenvi.io',
+          password: '123456'
+        },
+        role: 'Auxiliaire'
+      };
+      const userCreated = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload: userToDelete
+      });
+      const userDeleted = await app.inject({
+        method: 'DELETE',
+        url: `/users/${userCreated.result.data.user._id}`,
+        headers: { 'x-access-token': authToken }
+      });
+      // expect()
+    });
+  });
 });
