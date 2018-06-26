@@ -6,7 +6,8 @@ if (process.env.NODE_ENV !== 'test') {
       name: 'Squeeze',
       args: [{
         log: '*',
-        response: '*'
+        response: '*',
+        request: '*'
       }]
     },
     {
