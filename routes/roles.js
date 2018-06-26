@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { create, update, showAll } = require('../controllers/roleController');
+const { create, update, showAll, showById } = require('../controllers/roleController');
 
 exports.plugin = {
   name: 'routes-roles',
@@ -62,6 +62,20 @@ exports.plugin = {
         auth: 'jwt'
       },
       handler: showAll
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId()
+          }
+        },
+        auth: 'jwt'
+      },
+      handler: showById
     });
   }
 };

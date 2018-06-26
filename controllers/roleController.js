@@ -123,4 +123,20 @@ const showAll = async (req) => {
   }
 };
 
-module.exports = { create, update, showAll };
+const showById = async (req) => {
+  try {
+    const role = await Role.findOne({ _id: req.params._id }, { 'features._id': 0, updatedAt: 0, createdAt: 0, __v: 0 }).populate({ path: 'features.feature_id', select: 'name _id' }).lean();
+    if (!role) {
+      return Boom.notFound(translate[language].roleNotFound);
+    }
+    if (role.features) {
+      role.features = populateRole(role.features);
+    }
+    return { message: translate[language].roleFound, data: { role } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
+  }
+};
+
+module.exports = { create, update, showAll, showById };

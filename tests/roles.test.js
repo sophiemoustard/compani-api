@@ -190,5 +190,51 @@ describe('ROLES ROUTES', () => {
         ])
       }));
     });
+
+    it('should return a 400 error if query parameter does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/roles?toto=test',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('GET /roles/{_id}', () => {
+    it('should return role', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/roles/${rolesList[0]._id}`,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.role).toEqual(expect.objectContaining({
+        name: expect.any(String),
+        features: expect.arrayContaining([
+          expect.objectContaining({
+            _id: rolesList[0].features[0].feature_id,
+            permission_level: rolesList[0].features[0].permission_level
+          }),
+          expect.objectContaining({
+            _id: rolesList[0].features[1].feature_id,
+            permission_level: rolesList[0].features[1].permission_level
+          }),
+          expect.objectContaining({
+            _id: rolesList[0].features[2].feature_id,
+            permission_level: rolesList[0].features[2].permission_level
+          })
+        ])
+      }));
+    });
+
+    it('should return a 404 error if role does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/roles/${new ObjectID()}`,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(404);
+    });
   });
 });
