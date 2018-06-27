@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { create, update, showAll, showById } = require('../controllers/featureController');
+const { create, update, showAll, showById, remove } = require('../controllers/featureController');
 
 exports.plugin = {
   name: 'routes-features',
@@ -73,18 +73,18 @@ exports.plugin = {
       handler: showById
     });
 
-    // server.route({
-    //   method: 'DELETE',
-    //   path: '/{_id}',
-    //   options: {
-    //     validate: {
-    //       params: {
-    //         _id: Joi.objectId()
-    //       }
-    //     },
-    //     auth: 'jwt'
-    //   },
-    //   handler: remove
-    // });
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt'
+      },
+      handler: remove
+    });
   }
 };

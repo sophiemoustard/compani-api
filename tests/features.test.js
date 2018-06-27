@@ -187,4 +187,47 @@ describe('FEATURES ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
   });
+
+  describe('DELETE /features/{_id}', () => {
+    let res = null;
+    beforeEach(async () => {
+      res = await app.inject({
+        method: 'DELETE',
+        url: `/features/${featuresList[0]._id}`,
+        headers: { 'x-access-token': token }
+      });
+    });
+    it('should delete a feature', async () => {
+      expect(res.statusCode).toBe(200);
+      const feature = await Feature.findById(featuresList[0]._id);
+      expect(feature).toBeNull();
+    });
+
+    it('should delete feature from all roles', async () => {
+      const roles = await Role.find({});
+      roles.forEach((role) => {
+        expect(role.features).toEqual(expect.not.arrayContaining([
+          { feature_id: featuresList[0]._id }
+        ]));
+      });
+    });
+
+    it('should return a 400 error if id is invalid', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: '/features/123456',
+        headers: { 'x-access-token': token }
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 404 error if feature does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/features/${new ObjectID()}`,
+        headers: { 'x-access-token': token }
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 });

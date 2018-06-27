@@ -73,4 +73,18 @@ const showById = async (req) => {
   }
 };
 
-module.exports = { create, update, showAll, showById };
+const remove = async (req) => {
+  try {
+    const featureDeleted = await Feature.findByIdAndRemove({ _id: req.params._id });
+    if (!featureDeleted) {
+      return Boom.notFound(translate[language].featureNotFound);
+    }
+    await Role.update({}, { $pull: { features: { feature_id: req.params._id } } }, { multi: true });
+    return { message: translate[language].featureRemoved, data: { featureDeleted } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
+  }
+};
+
+module.exports = { create, update, showAll, showById, remove };
