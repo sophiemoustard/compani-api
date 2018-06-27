@@ -49,10 +49,11 @@ const create = async (req) => {
     }
     return { success: true, message: translate[language].roleCreated, data: { role: payload } };
   } catch (e) {
-    req.log('error', e);
     if (e.code === 11000) {
+      req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].roleExists);
     }
+    req.log('error', e);
     return Boom.badImplementation(translate[language].unexpectedBehavior);
   }
 };
