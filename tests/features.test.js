@@ -54,5 +54,25 @@ describe('FEATURES ROUTES', () => {
         })
       ]));
     });
+
+    it('should return a 400 error if bad parameters are passed', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/features',
+        payload: { _id: '123456' },
+        headers: { 'x-access-token': token }
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 409 error if feature already exists', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/features',
+        payload: { name: 'Test' },
+        headers: { 'x-access-token': token }
+      });
+      expect(response.statusCode).toBe(409);
+    });
   });
 });
