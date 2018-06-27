@@ -114,4 +114,46 @@ describe('FEATURES ROUTES', () => {
       expect(res.statusCode).toBe(409);
     });
   });
+
+  describe('GET /features', () => {
+    it('should return all features', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/features',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.features.length).toBe(3);
+    });
+
+    it('should return features according to query param', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/features?name=feature1',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.features[0].name).toBe('feature1');
+    });
+
+    it('should return a 404 error if no features are found', async () => {
+      await Feature.remove({});
+      const res = await app.inject({
+        method: 'GET',
+        url: '/features',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+
+    it('should return a 400 error if bad parameters are passed', async () => {
+      await Feature.remove({});
+      const res = await app.inject({
+        method: 'GET',
+        url: '/features?test=toto',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
 });

@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { create, update } = require('../controllers/featureController');
+const { create, update, showAll } = require('../controllers/featureController');
 
 exports.plugin = {
   name: 'routes-features',
@@ -45,19 +45,19 @@ exports.plugin = {
       handler: update
     });
 
-    // server.route({
-    //   method: 'GET',
-    //   path: '/',
-    //   options: {
-    //     validate: {
-    //       query: Joi.object().keys({
-    //         name: Joi.string()
-    //       })
-    //     },
-    //     auth: 'jwt'
-    //   },
-    //   handler: showAll
-    // });
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        validate: {
+          query: Joi.object().keys({
+            name: Joi.string()
+          })
+        },
+        auth: 'jwt'
+      },
+      handler: showAll
+    });
 
     // server.route({
     //   method: 'GET',
