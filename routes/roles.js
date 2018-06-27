@@ -32,7 +32,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId()
+            _id: Joi.objectId().required()
           },
           payload: Joi.object().keys({
             name: Joi.string().optional(),
@@ -70,7 +70,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId()
+            _id: Joi.objectId().required()
           }
         },
         auth: 'jwt'
@@ -84,7 +84,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId()
+            _id: Joi.objectId().required()
           }
         },
         auth: 'jwt'
