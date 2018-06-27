@@ -1,5 +1,5 @@
 const expect = require('expect');
-// const { ObjectID } = require('mongodb');
+const { ObjectID } = require('mongodb');
 
 const app = require('../server');
 const { getToken, populateUsers } = require('./seed/usersSeed');
@@ -154,6 +154,37 @@ describe('FEATURES ROUTES', () => {
         headers: { 'x-access-token': token }
       });
       expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('GET /features/{_id}', () => {
+    it('should return a feature', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/features/${featuresList[0]._id}`,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.feature.name).toBe(featuresList[0].name);
+      expect(res.result.data.feature._id.toHexString()).toBe(featuresList[0]._id.toHexString());
+    });
+
+    it('should return a 400 error if id is invalid', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/features/123456',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 404 error if feature does not exist', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/features/${new ObjectID()}`,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(404);
     });
   });
 });

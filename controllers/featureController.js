@@ -49,7 +49,7 @@ const update = async (req) => {
 
 const showAll = async (req) => {
   try {
-    const features = await Feature.find(req.query).select('_id name');
+    const features = await Feature.find(req.query).select('_id name').lean();
     if (features.length === 0) {
       return Boom.notFound(translate[language].featuresShowAllNotFound);
     }
@@ -60,4 +60,17 @@ const showAll = async (req) => {
   }
 };
 
-module.exports = { create, update, showAll };
+const showById = async (req) => {
+  try {
+    const feature = await Feature.findOne({ _id: req.params._id }).lean();
+    if (!feature) {
+      return Boom.notFound(translate[language].featureNotFound);
+    }
+    return { success: true, message: translate[language].featureFound, data: { feature } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
+  }
+};
+
+module.exports = { create, update, showAll, showById };
