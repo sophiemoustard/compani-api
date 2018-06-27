@@ -4,7 +4,15 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
-  authenticate, create, list, show, update, remove, getPresentation, refreshToken
+  authenticate,
+  create,
+  list,
+  show,
+  update,
+  remove,
+  getPresentation,
+  refreshToken,
+  forgotPassword
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -144,6 +152,21 @@ exports.plugin = {
         auth: false
       },
       handler: refreshToken
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/forgotPassword',
+      options: {
+        validate: {
+          payload: Joi.object().keys({
+            email: Joi.string().email().required(),
+            from: Joi.string().default('w').required()
+          })
+        },
+        auth: false
+      },
+      handler: forgotPassword
     });
   }
 };

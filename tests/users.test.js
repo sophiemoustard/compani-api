@@ -1,6 +1,6 @@
-// const { expect } = require('code');
-// const Lab = require('lab');
 const { ObjectID } = require('mongodb');
+const rp = require('request-promise');
+const nodemailer = require('nodemailer');
 
 // const { before, describe, it } = exports.lab = Lab.script();
 const expect = require('expect');
@@ -379,6 +379,67 @@ describe('USERS ROUTES', () => {
         }
       });
       expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('POST /users/forgotPassword', () => {
+    let res = null;
+    before(async () => {
+      res = await app.inject({
+        method: 'POST',
+        url: '/users/forgotPassword',
+        payload: {
+          email: userList[2].local.email,
+          from: 'w'
+        }
+      });
+    });
+
+    it('should provide the user with a resetPassword token/expire date/from', async () => {
+      const user = await User.findById(userList[2]._id);
+      expect(user.resetPassword).toEqual(expect.objectContaining({
+        token: expect.any(String),
+        expiresIn: expect.any(Date),
+        from: expect.any(String)
+      }));
+    });
+
+    it('should send an email caontaining reset token to user', async () => {
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.mailInfo).toEqual(expect.objectContaining({
+        accepted: [userList[2].local.email]
+      }));
+      const emailUrl = nodemailer.getTestMessageUrl(res.result.data.mailInfo);
+      const email = await rp.get(emailUrl);
+      const user = await User.findById(userList[2]._id);
+      expect(email.toString()).toMatch(new RegExp(user.resetPassword.token));
+    });
+
+    const missingParamsTest = [{
+      name: 'email',
+      payload: { from: 'w' }
+    }, {
+      name: 'from',
+      payload: { email: userList[2].local.email }
+    }];
+    missingParamsTest.forEach((test) => {
+      it(`should return a 400 error if missing '${test.name}' parameter`, async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users/forgotPassword',
+          payload: test.payload
+        });
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    it('should return a 404 error if email provided does not exist in db', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/users/forgotPassword',
+        payload: { email: 'toto@alenvi.fr', from: 'w' }
+      });
+      expect(response.statusCode).toBe(404);
     });
   });
 });
