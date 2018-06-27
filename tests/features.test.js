@@ -3,7 +3,7 @@ const expect = require('expect');
 
 const app = require('../server');
 const { getToken, populateUsers } = require('./seed/usersSeed');
-const { populateRoles, featurePayload } = require('./seed/rolesSeed');
+const { populateRoles, featurePayload, featuresList } = require('./seed/rolesSeed');
 const Role = require('../models/Role');
 const Feature = require('../models/Feature');
 
@@ -73,6 +73,45 @@ describe('FEATURES ROUTES', () => {
         headers: { 'x-access-token': token }
       });
       expect(response.statusCode).toBe(409);
+    });
+  });
+
+  describe('PUT /features/{_id}', () => {
+    it('should update a feature', async () => {
+      const payload = { name: 'Kokonut' };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/features/${featuresList[0]._id}`,
+        payload,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.feature.name).toBe(payload.name);
+
+      const feature = await Feature.findById(res.result.data.feature._id);
+      expect(feature.name).toBe(payload.name);
+    });
+
+    it('should return a 400 error if bad parameters are passed', async () => {
+      const payload = { test: 'Kokonut' };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/features/${featuresList[0]._id}`,
+        payload,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 409 error if feature name already exists', async () => {
+      const payload = { name: 'feature2' };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/features/${featuresList[0]._id}`,
+        payload,
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(409);
     });
   });
 });

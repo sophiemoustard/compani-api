@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { create } = require('../controllers/featureController');
+const { create, update } = require('../controllers/featureController');
 
 exports.plugin = {
   name: 'routes-features',
@@ -25,29 +25,25 @@ exports.plugin = {
       handler: create
     });
 
-    // server.route({
-    //   method: 'PUT',
-    //   path: '/{_id}',
-    //   options: {
-    //     validate: {
-    //       params: {
-    //         _id: Joi.objectId()
-    //       },
-    //       payload: Joi.object().keys({
-    //         name: Joi.string().optional(),
-    //         features: Joi.array().invalid([]).items(Joi.object().keys({
-    //           _id: Joi.objectId(),
-    //           permission_level: Joi.number().min(0).max(2).required()
-    //         })).optional()
-    //       }).required()
-    //     },
-    //     auth: {
-    //       strategy: 'jwt',
-    //       scope: ['Admin', 'Tech', 'Coach']
-    //     }
-    //   },
-    //   handler: update
-    // });
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId()
+          },
+          payload: Joi.object().keys({
+            name: Joi.string().optional(),
+          }).required()
+        },
+        auth: {
+          strategy: 'jwt',
+          scope: ['Admin', 'Tech', 'Coach']
+        }
+      },
+      handler: update
+    });
 
     // server.route({
     //   method: 'GET',

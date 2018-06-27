@@ -1,5 +1,5 @@
 const Boom = require('boom');
-// const flat = require('flat');
+const flat = require('flat');
 
 const translate = require('../helpers/translate');
 const Feature = require('../models/Feature');
@@ -28,4 +28,23 @@ const create = async (req) => {
   }
 };
 
-module.exports = { create };
+
+const update = async (req) => {
+  try {
+    const featureUpdated = await Feature.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+    if (!featureUpdated) {
+      return Boom.notFound(translate[language].featureNotFound);
+    }
+    return { message: translate[language].featureUpdated, data: { feature: featureUpdated } };
+  } catch (e) {
+    // Error code when there is a duplicate key, in this case : the name (unique field)
+    if (e.code === 11000) {
+      req.log(['error', 'db'], e);
+      return Boom.conflict(translate[language].featureExists);
+    }
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
+  }
+};
+
+module.exports = { create, update };
