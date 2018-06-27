@@ -35,6 +35,8 @@
     "mongodb": "^3.0.10",
     "mongoose": "^5.1.5",
     "nodemailer": "^4.6.7",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2",
     "uuid": "^3.2.1",
     "validator": "^10.3.0"
   },
