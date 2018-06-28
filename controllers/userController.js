@@ -1,12 +1,13 @@
 const bcrypt = require('bcrypt');
 const uuidv4 = require('uuid/v4');
 const flat = require('flat');
-// const nodemailer = require('nodemailer');
 const _ = require('lodash');
 const Boom = require('boom');
+const nodemailer = require('nodemailer');
 
 const { clean } = require('../helpers/clean');
 const { populateRole } = require('../helpers/populateRole');
+const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const tokenProcess = require('../helpers/tokenProcess');
 
@@ -77,12 +78,12 @@ const create = async (req) => {
     if (req.payload.role === 'Auxiliaire' && req.payload.firstname && req.payload.lastname) {
       const folder = await drive.addFolder({ folderName: `${req.payload.lastname.toUpperCase()} ${req.payload.firstname}`, parentFolderId: process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID });
       if (!folder) {
-        console.error('Google drive folder creation failed.');
+        req.log('error', 'Google drive folder creation failed.');
         return Boom.failedDependency('Google drive folder creation failed.');
       }
       const folderLink = await drive.getFileById({ fileId: folder.id });
       if (!folderLink) {
-        console.error('Google drive folder creation failed.');
+        req.log('error', 'Google drive folder creation failed.');
         return Boom.notFound('Google drive folder not found.');
       }
       if (leanUser.administrative) {
@@ -336,7 +337,85 @@ const refreshToken = async (req) => {
   }
 };
 
+const forgotPassword = async (req) => {
+  try {
+    const payload = {
+      resetPassword: {
+        token: uuidv4(),
+        expiresIn: Date.now() + 3600000, // 1 hour
+        from: req.payload.from
+      }
+    };
+    const user = await User.findOneAndUpdate({ 'local.email': req.payload.email }, { $set: payload }, { new: true }).populate('role').lean();
+    if (!user) {
+      return Boom.notFound(translate[language].userNotFound);
+    }
+    const mailOptions = {
+      from: 'support@alenvi.io', // sender address
+      to: req.payload.email, // list of receivers
+      subject: 'Changement de mot de passe de votre compte Alenvi', // Subject line
+      html: `<p>Bonjour,</p>
+             <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
+             <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${payload.resetPassword.token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${payload.resetPassword.token}</a></p>
+             <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
+             <p>Bien cordialement,<br>
+                L'équipe Alenvi</p>` // html body
+    };
+    const mailInfo = process.env.NODE_ENV !== 'test' ? await sendGridTransporter.sendMail(mailOptions) : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+    // console.log(nodemailer.getTestMessageUrl(mailInfo)); // see email preview with test account
+    return { message: translate[language].emailSent, data: { mailInfo } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
+  }
+};
+
+const checkResetPasswordToken = async (req) => {
+  try {
+    const filter = {
+      resetPassword: {
+        token: req.params.token,
+        expiresIn: { $gt: Date.now() }
+      }
+    };
+    const user = await User.findOne(flat(filter, { maxDepth: 2 })).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
+    if (!user) {
+      return Boom.notFound(translate[language].resetPasswordTokenNotFound);
+    }
+    const payload = {
+      _id: user._id,
+      email: user.local.email,
+      role: user.role.name,
+      from: user.resetPassword.from
+    };
+    const userPayload = _.pickBy(payload);
+    const expireTime = 3600;
+    const token = tokenProcess.encode(userPayload, expireTime);
+    // return the information including token as JSON
+    return { message: translate[language].resetPasswordTokenFound, data: { token, user: userPayload } };
+  } catch (e) {
+    console.error(e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
+  }
+};
+
 
 module.exports = {
-  authenticate, create, list, show, update, remove, getPresentation, refreshToken
+  authenticate,
+  create,
+  list,
+  show,
+  update,
+  remove,
+  getPresentation,
+  refreshToken,
+  forgotPassword,
+  checkResetPasswordToken
 };
