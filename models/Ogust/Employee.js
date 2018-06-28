@@ -4,13 +4,13 @@ const axios = require('axios');
 const { getIntervalInRange } = require('../../helpers/intervalInRange');
 
 // Get all employees
-exports.getEmployees = async params => axios.post(`${Ogust.API_LINK}searchEmployee`, { params });
+exports.getEmployees = async payload => axios.post(`${Ogust.API_LINK}searchEmployee`, payload);
 
 // Get all employees by sector
-exports.getEmployeesBySector = async params => axios.post(`${Ogust.API_LINK}searchEmployee`, { params });
+exports.getEmployeesBySector = async payload => axios.post(`${Ogust.API_LINK}searchEmployee`, payload);
 
 // Get an employee by employee id
-exports.getEmployeeById = async params => axios.post(`${Ogust.API_LINK}getEmployee`, { params });
+exports.getEmployeeById = async payload => axios.post(`${Ogust.API_LINK}getEmployee`, payload);
 
 /*
 ** Get services by employee id in range or by date
@@ -53,7 +53,7 @@ exports.getServices = async (params) => {
 };
 
 // Get salaries by employee id
-exports.getSalaries = async params => axios.post(`${Ogust.API_LINK}searchSalary`, { params });
+exports.getSalaries = async payload => axios.post(`${Ogust.API_LINK}searchSalary`, payload);
 
 // Create employee
-exports.createEmployee = async params => axios.post(`${Ogust.API_LINK}setEmployee`, { params });
+exports.createEmployee = async payload=> axios.post(`${Ogust.API_LINK}setEmployee`, payload);
