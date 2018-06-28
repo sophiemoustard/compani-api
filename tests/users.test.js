@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const rp = require('request-promise');
+const axios = require('axios');
 const nodemailer = require('nodemailer');
 
 // const { before, describe, it } = exports.lab = Lab.script();
@@ -410,9 +410,10 @@ describe('USERS ROUTES', () => {
         accepted: [userList[2].local.email]
       }));
       const emailUrl = nodemailer.getTestMessageUrl(res.result.data.mailInfo);
-      const email = await rp.get(emailUrl);
+      const emailRaw = await axios.get(emailUrl);
+      const email = emailRaw.data;
       const user = await User.findById(userList[2]._id);
-      expect(email.toString()).toMatch(new RegExp(user.resetPassword.token));
+      expect(email).toMatch(new RegExp(user.resetPassword.token));
     });
 
     const missingParamsTest = [{
