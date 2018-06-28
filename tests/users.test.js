@@ -404,7 +404,7 @@ describe('USERS ROUTES', () => {
       }));
     });
 
-    it('should send an email caontaining reset token to user', async () => {
+    it('should send an email containing reset token to user', async () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.mailInfo).toEqual(expect.objectContaining({
         accepted: [userList[2].local.email]
@@ -440,6 +440,34 @@ describe('USERS ROUTES', () => {
         payload: { email: 'toto@alenvi.fr', from: 'w' }
       });
       expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('GET /checkResetPasswordToken/{token}', () => {
+    it('should check if token is valid', async () => {
+      const user = await User.findById(userList[2]._id);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/checkResetPassword/${user.resetPassword.token}`
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data).toEqual(expect.objectContaining({
+        token: expect.any(String),
+        user: expect.objectContaining({
+          _id: userList[2]._id,
+          email: userList[2].local.email,
+          role: expect.any(String),
+          from: expect.any(String)
+        })
+      }));
+    });
+
+    it('should return a 404 error if token is not found', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users/checkResetPassword/123456'
+      });
+      expect(res.statusCode).toBe(404);
     });
   });
 });

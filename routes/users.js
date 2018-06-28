@@ -12,7 +12,8 @@ const {
   remove,
   getPresentation,
   refreshToken,
-  forgotPassword
+  forgotPassword,
+  checkResetPasswordToken 
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -161,12 +162,26 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
-            from: Joi.string().default('w').required()
+            from: Joi.string().valid('p', 'w').default('w').required()
           })
         },
         auth: false
       },
       handler: forgotPassword
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/checkResetPassword/{token}',
+      options: {
+        validate: {
+          params: Joi.object().keys({
+            token: Joi.string().required()
+          })
+        },
+        auth: false
+      },
+      handler: checkResetPasswordToken
     });
   }
 };

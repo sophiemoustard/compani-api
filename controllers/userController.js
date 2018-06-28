@@ -370,6 +370,42 @@ const forgotPassword = async (req) => {
   }
 };
 
+const checkResetPasswordToken = async (req) => {
+  try {
+    const filter = {
+      resetPassword: {
+        token: req.params.token,
+        expiresIn: { $gt: Date.now() }
+      }
+    };
+    const user = await User.findOne(flat(filter, { maxDepth: 2 })).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'features.feature_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
+    if (!user) {
+      return Boom.notFound(translate[language].resetPasswordTokenNotFound);
+    }
+    const payload = {
+      _id: user._id,
+      email: user.local.email,
+      role: user.role.name,
+      from: user.resetPassword.from
+    };
+    const userPayload = _.pickBy(payload);
+    const expireTime = 3600;
+    const token = tokenProcess.encode(userPayload, expireTime);
+    // return the information including token as JSON
+    return { message: translate[language].resetPasswordTokenFound, data: { token, user: userPayload } };
+  } catch (e) {
+    console.error(e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
+  }
+};
+
 
 module.exports = {
   authenticate,
@@ -380,5 +416,6 @@ module.exports = {
   remove,
   getPresentation,
   refreshToken,
-  forgotPassword
+  forgotPassword,
+  checkResetPasswordToken
 };
