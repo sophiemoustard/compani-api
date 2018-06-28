@@ -22,5 +22,11 @@ exports.routes = [
     routes: {
       prefix: '/upload'
     }
+  },
+  {
+    plugin: require('./ogust'),
+    routes: {
+      prefix: '/ogust'
+    }
   }
 ];
