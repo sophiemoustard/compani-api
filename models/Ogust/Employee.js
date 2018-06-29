@@ -49,7 +49,7 @@ exports.getServices = async (params) => {
     nbperpage: params.nbperpage,
     pagenum: params.pagenum
   };
-  return axios.post(`${Ogust.API_LINK}searchService`, { newParams });
+  return axios.post(`${Ogust.API_LINK}searchService`, newParams);
 };
 
 // Get salaries by employee id
