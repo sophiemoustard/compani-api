@@ -9,6 +9,7 @@ const {
 } = require('./seed/usersSeed');
 const { populateActivationCode, activationCode } = require('./seed/activationCodeSeed');
 const { populateRoles } = require('./seed/rolesSeed');
+const ActivationCode = require('../models/ActivationCode');
 
 describe('ACTIVATION CODE ROUTES', () => {
   let token = null;
@@ -35,6 +36,14 @@ describe('ACTIVATION CODE ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.activationData).toEqual(expect.objectContaining({
+        _id: expect.any(Object),
+        firstSMS: expect.any(Date),
+        mobile_phone: payload.mobile_phone,
+        sector: payload.sector,
+        managerId: userList[0]._id
+      }));
+      const codeData = await ActivationCode.findById(res.result.data.activationData._id);
+      expect(codeData).toEqual(expect.objectContaining({
         firstSMS: expect.any(Date),
         mobile_phone: payload.mobile_phone,
         sector: payload.sector,
@@ -147,6 +156,43 @@ describe('ACTIVATION CODE ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/activation/0987',
+        headers: {
+          'x-access-token': token
+        }
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('DELETE /{mobile_phone}', () => {
+    it('should delete an activation code', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/activation/${activationCode.mobile_phone}`,
+        headers: {
+          'x-access-token': token
+        }
+      });
+      expect(res.statusCode).toBe(200);
+      const codeData = await ActivationCode.findById(activationCode._id);
+      expect(codeData).toBeNull();
+    });
+
+    it('should return a 400 error if mobile_phone is invalid', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: '/activation/00237865',
+        headers: {
+          'x-access-token': token
+        }
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 404 error if mobile_phone does not exist', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: '/activation/0987382938',
         headers: {
           'x-access-token': token
         }

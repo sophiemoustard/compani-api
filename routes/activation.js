@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { createActivationCode, checkActivationCode } = require('../controllers/activationCodeController');
+const { createActivationCode, checkActivationCode, deleteActivationCode } = require('../controllers/activationCodeController');
 
 exports.plugin = {
   name: 'routes-activation',
@@ -39,6 +39,23 @@ exports.plugin = {
         auth: false
       },
       handler: checkActivationCode
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{mobile_phone}',
+      options: {
+        validate: {
+          params: Joi.object().keys({
+            mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/).required(),
+          })
+        },
+        auth: {
+          strategy: 'jwt',
+          scope: ['Admin', 'Tech', 'Coach', 'Auxiliaire']
+        }
+      },
+      handler: deleteActivationCode
     });
   }
 };
