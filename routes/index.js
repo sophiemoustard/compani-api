@@ -18,9 +18,15 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./upload'),
+    plugin: require('./activation'),
     routes: {
-      prefix: '/upload'
+      prefix: '/activation'
+    }
+  },
+  {
+    plugin: require('./uploader'),
+    routes: {
+      prefix: '/uploader'
     }
   },
   {
