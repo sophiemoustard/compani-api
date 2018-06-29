@@ -13,7 +13,7 @@ const {
   getPresentation,
   refreshToken,
   forgotPassword,
-  checkResetPasswordToken 
+  checkResetPasswordToken
 } = require('../controllers/userController');
 
 exports.plugin = {
