@@ -24,7 +24,7 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./uploader'),
+    plugin: require('./upload'),
     routes: {
       prefix: '/uploader'
     }
