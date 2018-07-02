@@ -37,6 +37,17 @@ const userList = [
     },
     refreshToken: uuidv4(),
     role: 'Tech'
+  },
+  {
+    _id: new ObjectID(),
+    firstname: 'Test6',
+    lastname: 'Test6',
+    local: {
+      email: 'test6@alenvi.io',
+      password: '123456'
+    },
+    refreshToken: uuidv4(),
+    role: 'Auxiliaire'
   }
 ];
 
@@ -68,6 +79,7 @@ const populateUsers = async () => {
   await new User(userList[0]).saveByRoleName(userList[0].role);
   await new User(userList[1]).saveByRoleName(userList[1].role);
   await new User(userList[2]).saveByRoleName(userList[2].role);
+  await new User(userList[3]).saveByRoleName(userList[3].role);
 };
 
 const getToken = async () => {
