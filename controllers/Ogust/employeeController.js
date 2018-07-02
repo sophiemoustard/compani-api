@@ -54,27 +54,6 @@ const getById = async (req) => {
   }
 };
 
-const getAllBySector = async (req) => {
-  try {
-    const params = req.query;
-    params.token = req.headers['x-ogust-token'];
-    params.sector = req.params.sector;
-    const users = await employees.getEmployeesBySector(params);
-    if (users.data.status == 'KO') {
-      return Boom.badRequest(users.data.message);
-    } else if (Object.keys(users.data.array_employee.result).length === 0) {
-      return Boom.notFound();
-    }
-    return {
-      message: translate[language].userShowAllFound,
-      data: { users: users.data }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
 const getEmployeeServices = async (req) => {
   try {
     let servicesRaw = {};

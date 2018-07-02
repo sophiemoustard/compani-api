@@ -6,9 +6,6 @@ const { getIntervalInRange } = require('../../helpers/intervalInRange');
 // Get all employees
 exports.getEmployees = async payload => axios.post(`${Ogust.API_LINK}searchEmployee`, payload);
 
-// Get all employees by sector
-exports.getEmployeesBySector = async payload => axios.post(`${Ogust.API_LINK}searchEmployee`, payload);
-
 // Get an employee by employee id
 exports.getEmployeeById = async payload => axios.post(`${Ogust.API_LINK}getEmployee`, payload);
 

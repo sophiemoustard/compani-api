@@ -27,7 +27,7 @@ exports.plugin = {
           }).options({ allowUnknown: true }),
           query: {
             status: Joi.string().default('A'),
-            nature: Joi.string(),
+            nature: Joi.string().default('S'),
             mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
             sector: Joi.string(),
             nbperpage: Joi.number().default(50),
@@ -52,27 +52,6 @@ exports.plugin = {
         auth: false
       },
       handler: getById
-    });
-    // Get all employees by sector
-    server.route({
-      method: 'GET',
-      path: '/sector/{sector}',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { sector: Joi.string() },
-          query: {
-            status: Joi.string().default('A'),
-            nature: Joi.string().default('S'),
-            nbperpage: Joi.number().default(50),
-            pagenum: Joi.number().default(1)
-          }
-        },
-        auth: false
-      },
-      handler: getAllBySector
     });
     // Get employee services
     server.route({
