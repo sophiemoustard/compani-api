@@ -11,7 +11,6 @@ const list = async (req) => {
     const params = req.query;
     params.token = req.headers['x-ogust-token'];
     const users = await customers.getCustomers(params);
-    console.log(users.data);
     if (users.data.status == 'KO') {
       return Boom.badRequest(users.data.message);
       // throw new Error(`Error while getting customers: ${result.data.message}`);
