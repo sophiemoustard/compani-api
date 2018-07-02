@@ -10,13 +10,13 @@ const { language } = translate;
 const getEmployeeEvents = async (req, params) => {
   const servicesRaw = await employees.getServices(params);
   if (servicesRaw.data.status == 'KO') {
-    return Boom.badRequest(servicesRaw.data.message);
+    throw Boom.badRequest(servicesRaw.data.message);
   }
   // Put it in a variable so it's more readable & remove draft status
   const events = _.filter(servicesRaw.data.array_service.result, item => item.status !== 'B');
   if (events.length === 0) {
     // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
-    return Boom.notFound(translate[language].servicesNotFound);
+    throw Boom.notFound(translate[language].servicesNotFound);
   }
   const uniqCustomers = [];
   for (const index in events) {
@@ -39,7 +39,7 @@ const getEmployeeEvents = async (req, params) => {
       };
       const customerThirdPartyInfosRaw = await customers.getThirdPartyInformationByCustomerId(thirdPartyParams);
       if (customerRaw.data.status == 'KO') {
-        return Boom.badRequest(customerRaw.data.message);
+        throw Boom.badRequest(customerRaw.data.message);
       }
       customerRaw.data.customer.thirdPartyInformations = customerThirdPartyInfosRaw.data.thirdPartyInformations.array_values;
       if (customerRaw.data.customer.thirdPartyInformations == null) {
@@ -89,7 +89,7 @@ const getCustomerEvents = async (req, params) => {
   const newCustomerParams = _.pickBy(customerParams);
   const customerRaw = await customers.getCustomerById(newCustomerParams);
   if (customerRaw.data.status == 'KO') {
-    return Boom.badRequest(customerRaw.data.message);
+    throw Boom.badRequest(customerRaw.data.message);
   }
   const thirdPartyParams = {
     token: req.headers['x-ogust-token'],
@@ -105,13 +105,13 @@ const getCustomerEvents = async (req, params) => {
   const customerThirdPartyInfos = _.pickBy(customerThirdPartyInfosRaw.data.thirdPartyInformations.array_values);
   const servicesRaw = await customers.getServices(params);
   if (servicesRaw.data.status == 'KO') {
-    return Boom.badRequest(servicesRaw.data.message);
+    throw Boom.badRequest(servicesRaw.data.message);
   }
   // Put it in a variable so it's more readable
   const events = _.filter(servicesRaw.data.array_service.result, item => item.status !== 'B');
   if (events.length === 0) {
     // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
-    return Boom.notFound(translate[language].servicesNotFound);
+    throw Boom.notFound(translate[language].servicesNotFound);
   }
   const uniqEmployees = [];
   for (const index in events) {
@@ -138,7 +138,7 @@ const getCustomerEvents = async (req, params) => {
       const newEmployeeParams = _.pickBy(employeeParams);
       const employeeRaw = await employees.getEmployeeById(newEmployeeParams);
       if (employeeRaw.data.status == 'KO') {
-        return Boom.badRequest(employeeRaw.data.message);
+        throw Boom.badRequest(employeeRaw.data.message);
       }
       uniqEmployees.push(employeeRaw.data.employee);
       events[index].employee = {
@@ -184,7 +184,11 @@ const getEvents = async (req) => {
     return { message: translate[language].servicesFound, data: { events } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    if (e.output && e.output.statusCode === 400) {
+      return e;
+    } else if (e.output && e.output.statusCode === 404) {
+      return Boom.badImplementation();
+    }
   }
 };
 
