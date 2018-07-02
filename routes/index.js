@@ -35,6 +35,12 @@ exports.routes = [
       prefix: '/email'
     }
   },
+  {
+    plugin: require('./bot'),
+    routes: {
+      prefix: '/bot'
+    }
+  },
   // {
   //   plugin: require('./uploader'),
   //   routes: {
