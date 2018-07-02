@@ -46,6 +46,7 @@ const userList = [
       email: 'test6@alenvi.io',
       password: '123456'
     },
+    employee_id: 12345678,
     refreshToken: uuidv4(),
     role: 'Auxiliaire'
   }
