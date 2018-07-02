@@ -41,6 +41,12 @@ exports.routes = [
       prefix: '/bot'
     }
   },
+  {
+    plugin: require('./blog'),
+    routes: {
+      prefix: '/blog'
+    }
+  },
   // {
   //   plugin: require('./uploader'),
   //   routes: {
