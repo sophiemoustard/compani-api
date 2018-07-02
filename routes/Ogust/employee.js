@@ -1,29 +1,25 @@
 'use strict';
 
 const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
 
-const { getOgustToken } = require('../controllers/Ogust/tokenController');
 const {
-  list, getAllBySector, getById, getEmployeeCustomers, getEmployeeServices, getEmployeeSalaries, create, updateById
-} = require('../controllers/Ogust/employeeController');
+  list,
+  getAllBySector,
+  getById,
+  getEmployeeCustomers,
+  getEmployeeServices,
+  getEmployeeSalaries,
+  create,
+  updateById
+} = require('../../controllers/Ogust/employeeController');
 
 exports.plugin = {
-  name: 'routes-ogust',
+  name: 'routes-ogust-employees',
   register: async (server) => {
-  // Get Ogust token
-    server.route({
-      method: 'GET',
-      path: '/token',
-      options: {
-        auth: 'jwt'
-      },
-      handler: getOgustToken
-    });
     // Get all employees
     server.route({
       method: 'GET',
-      path: '/employees',
+      path: '/',
       options: {
         validate: {
           headers: Joi.object().keys({
@@ -32,7 +28,7 @@ exports.plugin = {
           query: {
             status: Joi.string().default('A'),
             nature: Joi.string(),
-            mobile_phone: Joi.number(),
+            mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
             sector: Joi.string(),
             nbperpage: Joi.number().default(50),
             pagenum: Joi.number().default(1)
@@ -45,7 +41,7 @@ exports.plugin = {
     // Get employee by id
     server.route({
       method: 'GET',
-      path: '/employees/{id}',
+      path: '/{id}',
       options: {
         validate: {
           headers: Joi.object().keys({
@@ -60,7 +56,7 @@ exports.plugin = {
     // Get all employees by sector
     server.route({
       method: 'GET',
-      path: '/employees/sector/{sector}',
+      path: '/sector/{sector}',
       options: {
         validate: {
           headers: Joi.object().keys({
@@ -81,7 +77,7 @@ exports.plugin = {
     // Get employee services
     server.route({
       method: 'GET',
-      path: '/employees/{id}/services',
+      path: '/{id}/services',
       options: {
         validate: {
           headers: Joi.object().keys({
@@ -110,7 +106,7 @@ exports.plugin = {
     // Get employee customers
     server.route({
       method: 'GET',
-      path: '/employees/{id}/customers',
+      path: '/{id}/customers',
       options: {
         validate: {
           headers: Joi.object().keys({
@@ -138,7 +134,7 @@ exports.plugin = {
     // Get employee salaries
     server.route({
       method: 'GET',
-      path: '/employees/{id}/salaries',
+      path: '/{id}/salaries',
       options: {
         validate: {
           headers: Joi.object().keys({
@@ -157,7 +153,7 @@ exports.plugin = {
     // Create employee
     server.route({
       method: 'POST',
-      path: '/employees',
+      path: '/',
       options: {
         validate: {
           headers: Joi.object().keys({
@@ -191,7 +187,7 @@ exports.plugin = {
     // Update employee by id
     server.route({
       method: 'PUT',
-      path: '/employees/{id}',
+      path: '/{id}',
       options: {
         validate: {
           headers: Joi.object().keys({

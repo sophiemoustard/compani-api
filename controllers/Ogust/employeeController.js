@@ -221,5 +221,12 @@ const updateById = async (req) => {
 
 
 module.exports = {
-  list, getById, getAllBySector, getEmployeeServices, getEmployeeCustomers, getEmployeeSalaries, create, updateById
+  list,
+  getById,
+  getAllBySector,
+  getEmployeeServices,
+  getEmployeeCustomers,
+  getEmployeeSalaries,
+  create,
+  updateById
 };

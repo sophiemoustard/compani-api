@@ -30,9 +30,27 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./ogust'),
+    plugin: require('./Ogust/employee'),
+    routes: {
+      prefix: '/ogust/employees'
+    }
+  },
+  {
+    plugin: require('./Ogust/customer'),
+    routes: {
+      prefix: '/ogust/customers'
+    }
+  },
+  {
+    plugin: require('./Ogust/utils'),
     routes: {
       prefix: '/ogust'
     }
-  }
+  },
+  // {
+  //   plugin: require('./Ogust/services'),
+  //   routes: {
+  //     prefix: '/ogust/services'
+  //   }
+  // }
 ];

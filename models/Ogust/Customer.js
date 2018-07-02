@@ -4,19 +4,19 @@ const axios = require('axios');
 const { getIntervalInRange } = require('../../helpers/intervalInRange');
 
 // Get customers
-exports.getCustomers = async params => axios.post(`${Ogust.API_LINK}searchCustomer`, { params });
+exports.getCustomers = async params => axios.post(`${Ogust.API_LINK}searchCustomer`, params);
 
 // Get a customer by customer id
-exports.getCustomerById = async params => axios.post(`${Ogust.API_LINK}getCustomer`, { params });
+exports.getCustomerById = async params => axios.post(`${Ogust.API_LINK}getCustomer`, params);
 
 // Edit customer by id
-exports.editCustomerById = async params => axios.post(`${Ogust.API_LINK}setCustomer`, { params });
+exports.editCustomerById = async params => axios.post(`${Ogust.API_LINK}setCustomer`, params);
 
 // Get third party information by customer id
-exports.getThirdPartyInformationByCustomerId = async params => axios.post(`${Ogust.API_LINK}getThirdPartyInformations`, { params });
+exports.getThirdPartyInformationByCustomerId = async params => axios.post(`${Ogust.API_LINK}getThirdPartyInformations`, params);
 
 // Edit third party information by customer id
-exports.editThirdPartyInformationByCustomerId = async params => axios.post(`${Ogust.API_LINK}setThirdPartyInformations`, { params });
+exports.editThirdPartyInformationByCustomerId = async params => axios.post(`${Ogust.API_LINK}setThirdPartyInformations`, params);
 
 /*
 ** Get services by customer id in range or by date
@@ -54,14 +54,14 @@ exports.getServices = async (params) => {
     nbperpage: params.nbperpage,
     pagenum: params.pagenum
   };
-  return axios.post(`${Ogust.API_LINK}searchService`, { newParams });
+  return axios.post(`${Ogust.API_LINK}searchService`, newParams);
 };
 
 // Get fiscal attests
-exports.getFiscalAttests = async params => axios.post(`${Ogust.API_LINK}searchFiscalattest`, { params });
+exports.getFiscalAttests = async params => axios.post(`${Ogust.API_LINK}searchFiscalattest`, params);
 
 // Get invoices
-exports.getInvoices = async params => axios.post(`${Ogust.API_LINK}searchInvoice`, { params });
+exports.getInvoices = async params => axios.post(`${Ogust.API_LINK}searchInvoice`, params);
 
 // Get contacts
-exports.getContacts = async params => axios.post(`${Ogust.API_LINK}searchContact`, { params });
+exports.getContacts = async params => axios.post(`${Ogust.API_LINK}searchContact`, params);
