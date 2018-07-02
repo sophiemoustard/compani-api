@@ -64,5 +64,11 @@ exports.routes = [
     routes: {
       prefix: '/ogust/services'
     }
+  },
+  {
+    plugin: require('./Ogust/bankInfo'),
+    routes: {
+      prefix: '/ogust/bankInfo'
+    }
   }
 ];

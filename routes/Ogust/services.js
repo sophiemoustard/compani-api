@@ -5,7 +5,8 @@ const Joi = require('joi');
 const {
   list,
   getById,
-} = require('../../controllers/Ogust/customerController');
+  updateById
+} = require('../../controllers/Ogust/serviceController');
 
 exports.plugin = {
   name: 'routes-ogust-services',
@@ -20,11 +21,16 @@ exports.plugin = {
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
           query: {
-            email: Joi.string().email(),
-            status: Joi.string().default('A'),
-            last_name: Joi.string(),
-            sector: Joi.string(),
-            nbperpage: Joi.number().default(50),
+            isRange: Joi.string().default('false'),
+            isDate: Joi.string().default('false'),
+            slotToSub: Joi.number(),
+            slotToAdd: Joi.number(),
+            intervalType: Joi.string(),
+            startDate: Joi.number(),
+            endDate: Joi.number(),
+            status: Joi.string().default('@!=|N'),
+            type: Joi.string().default('I'),
+            nbperpage: Joi.number().default(100),
             pagenum: Joi.number().default(1)
           }
         },
@@ -41,11 +47,34 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          params: { id: Joi.string() }
+          params: { id: Joi.string() },
+          query: {
+            status: Joi.string().default('@!=|N'),
+            type: Joi.string().default('I')
+          }
         },
         auth: false
       },
       handler: getById
+    });
+    // Update customer by id
+    server.route({
+      method: 'PUT',
+      path: '/{id}',
+      options: {
+        validate: {
+          headers: Joi.object().keys({
+            'x-ogust-token': Joi.string().required()
+          }).options({ allowUnknown: true }),
+          params: { id: Joi.string() },
+          payload: Joi.object().keys({
+            startDate: Joi.string(),
+            endDate: Joi.string()
+          })
+        },
+        auth: false
+      },
+      handler: updateById
     });
   },
 };
