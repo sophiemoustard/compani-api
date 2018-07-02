@@ -192,7 +192,7 @@ const create = async (req) => {
     const user = await employees.createEmployee(params);
     return {
       message: translate[language].userSaved,
-      data: { user }
+      data: user.data
     };
   } catch (e) {
     req.log('error', e);
@@ -211,7 +211,7 @@ const updateById = async (req) => {
     }
     return {
       message: translate[language].userSaved,
-      data: { user }
+      data: user.data
     };
   } catch (e) {
     req.log('error', e);

@@ -56,4 +56,4 @@ exports.getServices = async (params) => {
 exports.getSalaries = async payload => axios.post(`${Ogust.API_LINK}searchSalary`, payload);
 
 // Create employee
-exports.createEmployee = async payload=> axios.post(`${Ogust.API_LINK}setEmployee`, payload);
+exports.createEmployee = async payload => axios.post(`${Ogust.API_LINK}setEmployee`, payload);

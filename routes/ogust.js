@@ -159,31 +159,31 @@ exports.plugin = {
       method: 'POST',
       path: '/employees',
       options: {
-        // validate: {
-        //   headers: Joi.object().keys({
-        //     'x-ogust-token': Joi.string().required()
-        //   }).options({ allowUnknown: true }),
-        //   payload: Joi.object().keys({
-        //     title: Joi.string().required(),
-        //     last_name: Joi.string().required(),
-        //     first_name: Joi.string(),
-        //     main_address: Joi.object().keys({
-        //       line: Joi.string(),
-        //       zip: Joi.string(),
-        //       city: Joi.string(),
-        //       type: Joi.string().default('Adrpri'),
-        //       country: Joi.string().default('FR')
-        //     }).required(),
-        //     email: Joi.string().email().required(),
-        //     sector: Joi.string(),
-        //     mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
-        //     picture: Joi.string(),
-        //     nature: Joi.string().default('S'),
-        //     status: Joi.string().default('A'),
-        //     method_of_payment: Joi.string().default('7268'),
-        //     manager: Joi.string().default('232220179')
-        //   }).required()
-        // },
+        validate: {
+          headers: Joi.object().keys({
+            'x-ogust-token': Joi.string().required()
+          }).options({ allowUnknown: true }),
+          payload: Joi.object().keys({
+            title: Joi.string().required(),
+            last_name: Joi.string().required(),
+            first_name: Joi.string(),
+            main_address: Joi.object().keys({
+              line: Joi.string(),
+              zip: Joi.string(),
+              city: Joi.string(),
+              type: Joi.string().default('Adrpri'),
+              country: Joi.string().default('FR')
+            }).required(),
+            email: Joi.string().email().required(),
+            sector: Joi.string(),
+            mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
+            picture: Joi.string(),
+            nature: Joi.string().default('S'),
+            status: Joi.string().default('A'),
+            method_of_payment: Joi.string().default('7268'),
+            manager: Joi.string().default('232220179')
+          }).required()
+        },
         auth: false
       },
       handler: create
@@ -197,19 +197,20 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          params: { id_employee: Joi.string() },
+          params: { id: Joi.string() },
           payload: Joi.object().keys({
+            title: Joi.string(),
             last_name: Joi.string(),
             first_name: Joi.string(),
             email: Joi.string().email(),
             sector: Joi.string(),
             mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
-            date_of_birth: Joi.string(),
-            country_of_birth: Joi.string(),
-            place_of_birth: Joi.string(),
-            state_of_birth: Joi.string(),
-            social_insurance_number: Joi.string()
-          }).required()
+            picture: Joi.string(),
+            nature: Joi.string(),
+            status: Joi.string(),
+            method_of_payment: Joi.string(),
+            manager: Joi.string()
+          })
         },
         auth: false
       },
