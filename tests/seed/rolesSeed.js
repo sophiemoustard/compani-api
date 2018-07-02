@@ -145,4 +145,11 @@ const populateRoles = async () => {
   await Role.insertMany(rolesList);
 };
 
-module.exports = { rolesList, featuresList, rolePayload, wrongRolePayload, populateRoles, featurePayload };
+module.exports = {
+  rolesList,
+  featuresList,
+  rolePayload,
+  wrongRolePayload,
+  populateRoles,
+  featurePayload
+};

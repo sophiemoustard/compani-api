@@ -37,6 +37,17 @@ const userList = [
     },
     refreshToken: uuidv4(),
     role: 'Tech'
+  },
+  {
+    _id: new ObjectID(),
+    firstname: 'Test6',
+    lastname: 'Test6',
+    local: {
+      email: 'test6@alenvi.io',
+      password: '123456'
+    },
+    refreshToken: uuidv4(),
+    role: 'Auxiliaire'
   }
 ];
 
@@ -83,4 +94,9 @@ const getToken = async () => {
   return response.result.data.token;
 };
 
-module.exports = { userList, userPayload, populateUsers, getToken };
+module.exports = {
+  userList,
+  userPayload,
+  populateUsers,
+  getToken
+};

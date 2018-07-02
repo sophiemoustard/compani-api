@@ -3,7 +3,12 @@ const { ObjectID } = require('mongodb');
 
 const app = require('../server');
 const { getToken, populateUsers } = require('./seed/usersSeed');
-const { populateRoles, rolePayload, wrongRolePayload, rolesList } = require('./seed/rolesSeed');
+const {
+  populateRoles,
+  rolePayload,
+  wrongRolePayload,
+  rolesList
+} = require('./seed/rolesSeed');
 const Role = require('../models/Role');
 
 describe('ROLES ROUTES', () => {
@@ -276,5 +281,5 @@ describe('ROLES ROUTES', () => {
       });
       expect(res.statusCode).toBe(400);
     });
-  })
+  });
 });
