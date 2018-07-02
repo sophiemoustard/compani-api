@@ -79,6 +79,7 @@ const populateUsers = async () => {
   await new User(userList[0]).saveByRoleName(userList[0].role);
   await new User(userList[1]).saveByRoleName(userList[1].role);
   await new User(userList[2]).saveByRoleName(userList[2].role);
+  await new User(userList[3]).saveByRoleName(userList[3].role);
 };
 
 const getToken = async () => {
@@ -94,9 +95,4 @@ const getToken = async () => {
   return response.result.data.token;
 };
 
-module.exports = {
-  userList,
-  userPayload,
-  populateUsers,
-  getToken
-};
+module.exports = { userList, userPayload, populateUsers, getToken };
