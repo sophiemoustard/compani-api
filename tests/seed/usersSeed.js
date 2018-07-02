@@ -96,4 +96,9 @@ const getToken = async () => {
   return response.result.data.token;
 };
 
-module.exports = { userList, userPayload, populateUsers, getToken };
+module.exports = {
+  userList,
+  userPayload,
+  populateUsers,
+  getToken
+};
