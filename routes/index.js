@@ -29,6 +29,12 @@ exports.routes = [
       prefix: '/planningUpdates'
     }
   },
+  {
+    plugin: require('./email'),
+    routes: {
+      prefix: '/email'
+    }
+  },
   // {
   //   plugin: require('./uploader'),
   //   routes: {
