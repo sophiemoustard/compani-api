@@ -4,7 +4,10 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
-  list
+  list,
+  storeUserModificationPlanning,
+  updateModificationPlanningStatus,
+  removeModificationPlanning
 } = require('../controllers/planningUpdateController');
 
 exports.plugin = {
@@ -16,7 +19,7 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
-            userId: Joi.string(),
+            userId: Joi.objectId(),
           })
         },
         auth: 'jwt'
@@ -24,66 +27,57 @@ exports.plugin = {
       handler: list
     });
 
-    // server.route({
-    //   method: 'PUT',
-    //   path: '/{_id}',
-    //   options: {
-    //     validate: {
-    //       params: {
-    //         _id: Joi.objectId()
-    //       },
-    //       payload: Joi.object().keys({
-    //         name: Joi.string().optional(),
-    //       }).required()
-    //     },
-    //     auth: {
-    //       strategy: 'jwt',
-    //       scope: ['Admin', 'Tech', 'Coach']
-    //     }
-    //   },
-    //   handler: update
-    // });
+    server.route({
+      method: 'POST',
+      path: '/',
+      options: {
+        validate: {
+          query: Joi.object().keys({
+            userId: Joi.objectId(),
+            employee_id: Joi.string()
+          }).or('userId', 'employee_id'),
+          payload: Joi.object().keys({
+            content: Joi.string(),
+            involved: Joi.string(),
+            type: Joi.string().required(),
+            check: Joi.object()
+          })
+        },
+        auth: 'jwt'
+      },
+      handler: storeUserModificationPlanning
+    });
 
-    // server.route({
-    //   method: 'GET',
-    //   path: '/',
-    //   options: {
-    //     validate: {
-    //       query: Joi.object().keys({
-    //         name: Joi.string()
-    //       })
-    //     },
-    //     auth: 'jwt'
-    //   },
-    //   handler: showAll
-    // });
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/status',
+      options: {
+        validate: {
+          params: Joi.object().keys({
+            _id: Joi.objectId().required(),
+          }),
+          payload: Joi.object().keys({
+            isChecked: Joi.boolean().default(false),
+            checkBy: Joi.objectId().default(null),
+            checkedAt: Joi.date().default(null),
+          })
+        },
+        auth: 'jwt'
+      },
+      handler: updateModificationPlanningStatus
+    });
 
-    // server.route({
-    //   method: 'GET',
-    //   path: '/{_id}',
-    //   options: {
-    //     validate: {
-    //       params: {
-    //         _id: Joi.objectId().required()
-    //       }
-    //     },
-    //     auth: 'jwt'
-    //   },
-    //   handler: showById
-    // });
-
-    // server.route({
-    //   method: 'DELETE',
-    //   path: '/{_id}',
-    //   options: {
-    //     validate: {
-    //       params: {
-    //         _id: Joi.objectId().required()
-    //       }
-    //     },
-    //     auth: 'jwt'
-    //   },
-    //   handler: remove
-    // });
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: { _id: Joi.objectId().required() },
+          query: { userId: Joi.objectId().required() }
+        },
+        auth: 'jwt'
+      },
+      handler: removeModificationPlanning
+    });
   }
 };

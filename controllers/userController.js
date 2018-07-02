@@ -366,7 +366,7 @@ const forgotPassword = async (req) => {
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(translate[language].unexpectedBehavior);
+    return Boom.badImplementation();
   }
 };
 
@@ -401,8 +401,8 @@ const checkResetPasswordToken = async (req) => {
     // return the information including token as JSON
     return { message: translate[language].resetPasswordTokenFound, data: { token, user: userPayload } };
   } catch (e) {
-    console.error(e);
-    return Boom.badImplementation(translate[language].unexpectedBehavior);
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 

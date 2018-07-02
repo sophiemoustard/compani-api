@@ -46,6 +46,7 @@ const userList = [
       email: 'test6@alenvi.io',
       password: '123456'
     },
+    employee_id: 12345678,
     refreshToken: uuidv4(),
     role: 'Auxiliaire'
   }
@@ -95,4 +96,9 @@ const getToken = async () => {
   return response.result.data.token;
 };
 
-module.exports = { userList, userPayload, populateUsers, getToken };
+module.exports = {
+  userList,
+  userPayload,
+  populateUsers,
+  getToken
+};
