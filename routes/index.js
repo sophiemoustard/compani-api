@@ -24,11 +24,17 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./upload'),
+    plugin: require('./planningUpdates'),
     routes: {
-      prefix: '/uploader'
+      prefix: '/planningUpdates'
     }
   },
+  // {
+  //   plugin: require('./uploader'),
+  //   routes: {
+  //     prefix: '/uploader'
+  //   }
+  // },
   {
     plugin: require('./ogust'),
     routes: {
