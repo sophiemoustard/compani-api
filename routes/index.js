@@ -47,6 +47,12 @@ exports.routes = [
       prefix: '/blog'
     }
   },
+  {
+    plugin: require('./calendar'),
+    routes: {
+      prefix: '/calendar'
+    }
+  },
   // {
   //   plugin: require('./uploader'),
   //   routes: {
