@@ -53,10 +53,10 @@ exports.routes = [
       prefix: '/ogust'
     }
   },
-  // {
-  //   plugin: require('./Ogust/services'),
-  //   routes: {
-  //     prefix: '/ogust/services'
-  //   }
-  // }
+  {
+    plugin: require('./Ogust/services'),
+    routes: {
+      prefix: '/ogust/services'
+    }
+  }
 ];

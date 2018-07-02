@@ -202,7 +202,6 @@ const updateById = async (req) => {
 module.exports = {
   list,
   getById,
-  getAllBySector,
   getEmployeeServices,
   getEmployeeCustomers,
   getEmployeeSalaries,

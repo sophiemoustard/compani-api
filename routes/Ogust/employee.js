@@ -4,7 +4,6 @@ const Joi = require('joi');
 
 const {
   list,
-  getAllBySector,
   getById,
   getEmployeeCustomers,
   getEmployeeServices,
