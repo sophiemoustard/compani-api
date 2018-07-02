@@ -1,5 +1,4 @@
 const expect = require('expect');
-const { ObjectID } = require('mongodb');
 
 const app = require('../server');
 const { getToken, populateUsers, userList } = require('./seed/usersSeed');
