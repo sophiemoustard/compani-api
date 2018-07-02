@@ -1,4 +1,4 @@
-const Ogust = require('../../config/config').Ogust;
+const { Ogust } = require('../../config/config');
 const axios = require('axios');
 
 const { getIntervalInRange } = require('../../helpers/intervalInRange');
@@ -38,10 +38,10 @@ exports.editThirdPartyInformationByCustomerId = async params => axios.post(`${Og
 */
 exports.getServices = async (params) => {
   let interval = {};
-  if (params.isRange == 'true') {
+  if (params.isRange) {
     interval = getIntervalInRange(params.slotToSub, params.slotToAdd, params.intervalType);
   }
-  if (params.isDate == 'true') {
+  if (params.isDate) {
     interval.intervalBwd = parseInt(params.startDate, 10);
     interval.intervalFwd = parseInt(params.endDate, 10);
   }
