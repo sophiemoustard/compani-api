@@ -98,6 +98,10 @@ exports.plugin = {
             sector: Joi.string(),
             employee_id: Joi.number(),
             customer_id: Joi.number(),
+            facebook: Joi.object().keys({
+              address: Joi.object()
+            }),
+            'local.email': Joi.string().email(), // bot special case
             local: {
               email: Joi.string().email(),
               password: Joi.string()
