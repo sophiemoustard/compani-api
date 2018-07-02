@@ -39,7 +39,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/users/{_id}',
+      path: '/user/{_id}',
       options: {
         validate: {
           params: { _id: Joi.objectId().required() }
