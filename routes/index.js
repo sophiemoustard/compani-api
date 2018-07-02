@@ -53,6 +53,12 @@ exports.routes = [
       prefix: '/calendar'
     }
   },
+  {
+    plugin: require('./messageToBot'),
+    routes: {
+      prefix: '/messageToBot'
+    }
+  },
   // {
   //   plugin: require('./uploader'),
   //   routes: {
