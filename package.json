@@ -39,6 +39,7 @@
     "mongoose": "^5.1.5",
     "nodemailer": "^4.6.7",
     "randomatic": "^3.0.0",
+    "twilio": "^3.17.4",
     "uuid": "^3.2.1",
     "validator": "^10.3.0"
   },

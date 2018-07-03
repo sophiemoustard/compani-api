@@ -94,5 +94,11 @@ exports.routes = [
     routes: {
       prefix: '/ogust/bankInfo'
     }
+  },
+  {
+    plugin: require('./twilio'),
+    routes: {
+      prefix: '/sms'
+    }
   }
 ];
