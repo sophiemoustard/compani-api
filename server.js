@@ -15,7 +15,7 @@ const server = Hapi.server({
     },
     cors: {
       origin: ['*'],
-      additionalHeaders: ['accept-language', 'accept-encoding', 'connection', 'origin', 'host', 'user-agent', 'access-control-request-headers']
+      additionalHeaders: ['accept-language', 'accept-encoding', 'connection', 'origin', 'host', 'user-agent', 'access-control-request-headers', 'x-access-token', 'x-ogust-token']
     }
   }
 });
