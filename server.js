@@ -12,6 +12,10 @@ const server = Hapi.server({
   routes: {
     log: {
       collect: true
+    },
+    cors: {
+      origin: ['*'],
+      additionalHeaders: ['accept-language', 'accept-encoding', 'connection', 'origin', 'host', 'user-agent', 'access-control-request-headers']
     }
   }
 });
