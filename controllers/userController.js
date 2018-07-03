@@ -21,6 +21,7 @@ const drive = require('../models/Uploader/GoogleDrive');
 // Authenticate the user locally
 const authenticate = async (req) => {
   try {
+    console.log('MEH');
     const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() }).populate({
       path: 'role',
       model: Role,
@@ -76,7 +77,11 @@ const create = async (req) => {
     // Add gdrive folder after save to avoid creating it if duplicate email
     let folderPayload = {};
     if (req.payload.role === 'Auxiliaire' && req.payload.firstname && req.payload.lastname) {
-      const folder = await drive.addFolder({ folderName: `${req.payload.lastname.toUpperCase()} ${req.payload.firstname}`, parentFolderId: process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID });
+      const folder = await drive.add({
+        name: `${req.payload.lastname.toUpperCase()} ${req.payload.firstname}`,
+        parentFolderId: process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID,
+        folder: true
+      });
       if (!folder) {
         req.log('error', 'Google drive folder creation failed.');
         return Boom.failedDependency('Google drive folder creation failed.');

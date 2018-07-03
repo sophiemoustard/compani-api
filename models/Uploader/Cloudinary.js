@@ -7,18 +7,37 @@ cloudinary.config({
 });
 
 exports.addImage = async params => new Promise((resolve, reject) => {
+  let folder = '';
+  switch (params.role) {
+    case 'Coach':
+      folder = 'images/users/coaches';
+      break;
+    case 'Tech':
+      folder = 'images/users/IT';
+      break;
+    case 'Mkt':
+      folder = 'images/users/Mkt';
+      break;
+    case 'Auxiliaire':
+      folder = 'images/users/auxiliaries';
+      break;
+    default:
+      folder = 'images/users/auxiliaries';
+      break;
+  }
   const options = {
-    folder: params.folder,
-    public_id: params.fileName,
+    folder,
+    public_id: params.public_id,
     eager: params.transform ? [params.transform] : []
   };
-  cloudinary.v2.uploader.upload(params.filePath, options, (err, res) => {
+  const stream = cloudinary.v2.uploader.upload_stream(options, (err, res) => {
     if (err) {
       err.cloudinary = true;
       reject(err);
     }
     resolve(res);
   });
+  params.file.pipe(stream);
 });
 
 exports.deleteImage = async params => new Promise((resolve, reject) => {

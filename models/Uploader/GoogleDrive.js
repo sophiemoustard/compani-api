@@ -16,21 +16,23 @@ jwtClient.authorize((err) => {
 
 const drive = google.drive('v3');
 
-exports.addFolder = params => new Promise((resolve, reject) => {
+exports.add = params => new Promise((resolve, reject) => {
   const fileMetadata = {
-    name: params.folderName,
-    mimeType: 'application/vnd.google-apps.folder',
+    name: params.name,
+    mimeType: params.folder ? 'application/vnd.google-apps.folder' : null,
     parents: [params.parentFolderId] || []
   };
+  const media = params.folder ? null : { body: params.body, mimeType: params.type };
   drive.files.create({
     auth: jwtClient,
     resource: fileMetadata,
+    media,
     fields: 'id'
-  }, (err, folder) => {
+  }, (err, item) => {
     if (err) {
       reject(err);
     } else {
-      resolve(folder.data);
+      resolve(item.data);
     }
   });
 });
