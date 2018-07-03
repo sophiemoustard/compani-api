@@ -1,11 +1,11 @@
 const Boom = require('boom');
-// const _ = require('lodash');
+const moment = require('moment');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
 const { handleFile } = require('../helpers/gdriveStorage');
 const drive = require('../models/Uploader/GoogleDrive');
-// const cloudinary = require('../models/Uploader/Cloudinary');
+const cloudinary = require('../models/Uploader/Cloudinary');
 const User = require('../models/User');
 
 const { language } = translate;
@@ -63,7 +63,33 @@ const uploadFile = async (req) => {
       }
       await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
     }
-    return { success: true, message: translate[language].fileCreated, data: uploadedFile };
+    return { message: translate[language].fileCreated, data: uploadedFile };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const uploadImage = async (req) => {
+  try {
+    const pictureUploaded = await cloudinary.addImage({
+      file: req.payload.picture,
+      role: req.payload.role,
+      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
+    });
+    const user = await User.findById(req.params._id).lean();
+    if (user.picture && user.picture.publicId) {
+      await cloudinary.deleteImage({ publicId: user.picture.publicId });
+    }
+    // const uploadedImage = req.file;
+    const payload = {
+      picture: {
+        publicId: pictureUploaded.public_id,
+        link: pictureUploaded.secure_url
+      }
+    };
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+    return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -71,5 +97,6 @@ const uploadFile = async (req) => {
 };
 
 module.exports = {
-  uploadFile
+  uploadFile,
+  uploadImage
 };

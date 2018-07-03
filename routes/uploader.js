@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { uploadFile } = require('../controllers/uploaderController');
+const { uploadFile, uploadImage } = require('../controllers/uploaderController');
 
 exports.plugin = {
   name: 'routes-upload',
@@ -22,7 +22,31 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880
         },
-        auth: false
+        auth: {
+          strategy: 'jwt',
+          scope: ['Admin', 'Tech', 'Coach', 'Auxiliaire']
+        }
+      }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/cloudinary/uploadImage',
+      handler: uploadImage,
+      options: {
+        validate: {
+          params: { _id: Joi.objectId().required() }
+        },
+        payload: {
+          output: 'stream',
+          parse: true,
+          allow: 'multipart/form-data',
+          maxBytes: 5242880
+        },
+        auth: {
+          strategy: 'jwt',
+          scope: ['Admin', 'Tech', 'Coach', 'Auxiliaire']
+        }
       }
     });
   }
