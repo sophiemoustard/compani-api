@@ -59,12 +59,12 @@ exports.routes = [
       prefix: '/messageToBot'
     }
   },
-  // {
-  //   plugin: require('./uploader'),
-  //   routes: {
-  //     prefix: '/uploader'
-  //   }
-  // },
+  {
+    plugin: require('./uploader'),
+    routes: {
+      prefix: '/uploader'
+    }
+  },
   {
     plugin: require('./Ogust/employee'),
     routes: {
