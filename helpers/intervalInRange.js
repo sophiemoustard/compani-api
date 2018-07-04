@@ -15,6 +15,7 @@ exports.getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
   const finalInterval = {
     intervalBwd: dateNow.subtract(slotToSub, intervalType).format('YYYYMMDDHHmm'),
     // We have to (re)add slotToSub, because subtract() reallocates dateNow
-    intervalFwd: dateNow.add(slotToAdd + slotToSub, intervalType).format('YYYYMMDDHHmm') };
+    intervalFwd: dateNow.add(slotToAdd + slotToSub, intervalType).format('YYYYMMDDHHmm')
+  };
   return finalInterval;
 };
