@@ -7,7 +7,7 @@ mongoose.Promise = global.Promise;
 if (process.env.NODE_ENV === 'test') {
   mongoose.connect('mongodb://localhost:27017/hapitest');
 } else {
-  mongoose.connect('mongodb://localhost:27017/hapi');
+  mongoose.connect(process.env.MONGODB_URI);
 }
 
 // When successfully connected
