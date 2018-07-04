@@ -90,8 +90,8 @@ exports.plugin = {
           params: { id: Joi.string() },
           query: {
             idCustomer: Joi.string(),
-            isRange: Joi.string().default('false'),
-            isDate: Joi.string().default('false'),
+            isRange: Joi.boolean().default(false),
+            isDate: Joi.boolean().default(false),
             slotToSub: Joi.number(),
             slotToAdd: Joi.number(),
             intervalType: Joi.string(),

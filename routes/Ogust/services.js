@@ -21,8 +21,8 @@ exports.plugin = {
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
           query: {
-            isRange: Joi.string().default('false'),
-            isDate: Joi.string().default('false'),
+            isRange: Joi.boolean().default(false),
+            isDate: Joi.boolean().default(false),
             slotToSub: Joi.number(),
             slotToAdd: Joi.number(),
             intervalType: Joi.string(),
