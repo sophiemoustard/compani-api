@@ -40,7 +40,7 @@ exports.plugin = {
             content: Joi.string(),
             involved: Joi.string(),
             type: Joi.string().required(),
-            check: Joi.object()
+            check: Joi.object().allow(null)
           })
         },
         auth: 'jwt'
