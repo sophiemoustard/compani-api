@@ -11,6 +11,12 @@ const {
 } = require('./seed/rolesSeed');
 const Role = require('../models/Role');
 
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 describe('ROLES ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);

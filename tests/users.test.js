@@ -1,19 +1,24 @@
 const { ObjectID } = require('mongodb');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
-
-// const { before, describe, it } = exports.lab = Lab.script();
 const expect = require('expect');
-// const request = require('supertest');
 
 const app = require('../server');
 const User = require('../models/User');
 const {
   userList, userPayload, populateUsers, getToken
 } = require('./seed/usersSeed');
+const { populateRoles } = require('./seed/rolesSeed');
+
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
 
 describe('USERS ROUTES', () => {
   let authToken = null;
+  before(populateRoles);
   before(populateUsers);
   before(async () => {
     authToken = await getToken();

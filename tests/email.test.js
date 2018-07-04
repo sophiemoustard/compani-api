@@ -4,6 +4,12 @@ const app = require('../server');
 const { populateRoles } = require('./seed/rolesSeed');
 const { populateUsers, getToken } = require('./seed/usersSeed');
 
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 describe('EMAIL ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);

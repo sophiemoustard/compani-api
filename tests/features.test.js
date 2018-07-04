@@ -7,6 +7,12 @@ const { populateRoles, featurePayload, featuresList } = require('./seed/rolesSee
 const Role = require('../models/Role');
 const Feature = require('../models/Feature');
 
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 describe('FEATURES ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);

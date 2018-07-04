@@ -11,6 +11,12 @@ const { populateActivationCode, activationCode } = require('./seed/activationCod
 const { populateRoles } = require('./seed/rolesSeed');
 const ActivationCode = require('../models/ActivationCode');
 
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 describe('ACTIVATION CODE ROUTES', () => {
   let token = null;
   before(populateActivationCode);

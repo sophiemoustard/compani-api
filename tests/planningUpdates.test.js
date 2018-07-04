@@ -11,6 +11,12 @@ const {
 } = require('./seed/planningUpdatesSeed');
 const User = require('../models/User');
 
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 describe('PLANNING UPDATES ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);
