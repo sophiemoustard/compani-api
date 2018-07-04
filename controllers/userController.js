@@ -21,7 +21,6 @@ const drive = require('../models/Uploader/GoogleDrive');
 // Authenticate the user locally
 const authenticate = async (req) => {
   try {
-    console.log('MEH');
     const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() }).populate({
       path: 'role',
       model: Role,
