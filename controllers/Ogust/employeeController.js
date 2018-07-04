@@ -57,8 +57,8 @@ const getById = async (req) => {
 const getEmployeeServices = async (req) => {
   try {
     let servicesRaw = {};
-    if ((req.query.isRange == 'true' && req.query.slotToSub && req.query.slotToAdd && req.query.intervalType)
-    || (req.query.isDate == 'true' && req.query.startDate && req.query.endDate)) {
+    if ((req.query.isRange && req.query.slotToSub && req.query.slotToAdd && req.query.intervalType)
+    || (req.query.isDate && req.query.startDate && req.query.endDate)) {
       const params = req.query;
       params.token = req.headers['x-ogust-token'];
       params.id_employee = req.params.id;
