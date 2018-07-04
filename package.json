@@ -1,5 +1,5 @@
 {
-  "name": "alenvi-api",
+  "name": "alenvi-api-migration",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -7,11 +7,16 @@
     "test": "NODE_ENV=test mocha tests/*.test.js",
     "test-watch": "nodemon --exec 'npm test'"
   },
-  "author": "Pierre HOFMAN & Jean-Christophe TREBALAG",
-  "license": "MIT",
-  "engines": {
-    "node": "^10.4.1"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jctrebalag/alenvi-api-migration.git"
   },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jctrebalag/alenvi-api-migration/issues"
+  },
+  "homepage": "https://github.com/jctrebalag/alenvi-api-migration#readme",
   "dependencies": {
     "axios": "^0.18.0",
     "bcrypt": "^2.0.1",
