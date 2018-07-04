@@ -65,7 +65,7 @@ const userPayload = {
 const populateUsers = async () => {
   // console.log('POPULATING USERS...');
   const users = await User.find();
-  if (users.length > 0 && users.length < 3) {
+  if (users.length > 0) {
     for (let i = 0, l = users.length; i < l; i++) {
       if (users[i].administrative && users[i].administrative.driveFolder && users[i].administrative.driveFolder.id) {
         try {
