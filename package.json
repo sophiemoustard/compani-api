@@ -1,0 +1,60 @@
+{
+  "name": "alenvi-api-migration",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "NODE_ENV=test mocha tests/*.test.js",
+    "test-watch": "nodemon --exec 'npm test'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jctrebalag/alenvi-api-migration.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jctrebalag/alenvi-api-migration/issues"
+  },
+  "homepage": "https://github.com/jctrebalag/alenvi-api-migration#readme",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "bcrypt": "^2.0.1",
+    "boom": "^7.2.0",
+    "cloudinary": "^1.11.0",
+    "dotenv": "^6.0.0",
+    "feedparser-promised": "^1.5.0",
+    "flat": "^4.0.0",
+    "good": "^8.1.1",
+    "good-console": "^7.1.0",
+    "good-squeeze": "^5.1.0",
+    "googleapis": "^32.0.0",
+    "hapi": "^17.5.1",
+    "hapi-auth-jwt2": "^8.1.0",
+    "joi": "^13.4.0",
+    "joi-objectid": "^2.0.0",
+    "jsonwebtoken": "^8.3.0",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.2",
+    "moment-timezone": "^0.5.21",
+    "mongodb": "^3.0.10",
+    "mongoose": "^5.1.5",
+    "nodemailer": "^4.6.7",
+    "randomatic": "^3.0.0",
+    "twilio": "^3.17.4",
+    "uuid": "^3.2.1",
+    "validator": "^10.3.0"
+  },
+  "devDependencies": {
+    "code": "^5.2.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-hapi": "^4.1.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-mocha": "^5.0.0",
+    "expect": "^23.1.0",
+    "lab": "^15.5.0",
+    "mocha": "^5.2.0",
+    "supertest": "^3.1.0"
+  }
+}
