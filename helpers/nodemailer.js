@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-const sendGridTransporter = () => nodemailer.createTransport({
+const sendGridTransporter = nodemailer.createTransport({
   host: 'smtp.sendgrid.net',
   port: 465,
   secure: true, // true for 465, false for other ports
@@ -10,5 +10,14 @@ const sendGridTransporter = () => nodemailer.createTransport({
   }
 });
 
+const testTransporter = account => nodemailer.createTransport({
+  host: 'smtp.ethereal.email',
+  port: 587,
+  secure: false,
+  auth: {
+    user: account.user,
+    pass: account.pass
+  }
+});
 
-module.exports = { sendGridTransporter };
+module.exports = { sendGridTransporter, testTransporter };

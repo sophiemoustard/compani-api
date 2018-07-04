@@ -199,22 +199,22 @@ const UserSchema = mongoose.Schema({
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
-UserSchema.statics.findUserAddressByEmployeeId = async function (id) {
+async function findUserAddressByEmployeeId(id) {
   try {
-    const User = this;
+    const user = this;
     const filter = {
       employee_id: id,
       'facebook.address': {
         $exists: true
       }
     };
-    return await User.findOne(filter, { 'facebook.address': 1 });
+    return await user.findOne(filter, { 'facebook.address': 1 });
   } catch (e) {
     return Promise.reject(e);
   }
-};
+}
 
-UserSchema.methods.saveWithRoleId = async function (roleName) {
+async function saveByRoleName(roleName) {
   const user = this;
   try {
     // Replace Role name by role ID
@@ -225,13 +225,14 @@ UserSchema.methods.saveWithRoleId = async function (roleName) {
       throw noRoleErr;
     }
     user.role = role._id;
-    return await user.save();
+    const userSaved = await user.save();
+    return userSaved.toObject();
   } catch (e) {
     return Promise.reject(e);
   }
-};
+}
 
-UserSchema.pre('save', async function (next) {
+async function save(next) {
   try {
     const user = this;
     // Check email validity
@@ -250,14 +251,13 @@ UserSchema.pre('save', async function (next) {
     const hash = await bcrypt.hash(user.local.password, salt);
     // Store password
     user.local.password = hash;
-
     return next();
   } catch (e) {
     return next(e);
   }
-});
+}
 
-UserSchema.pre('findOneAndUpdate', async function (next) {
+async function findOneAndUpdate(next) {
   try {
     // Use mongoDB string dot notation to get update password
     const password = this.getUpdate().$set['local.password'];
@@ -274,7 +274,11 @@ UserSchema.pre('findOneAndUpdate', async function (next) {
   } catch (e) {
     return next(e);
   }
-});
+}
 
+UserSchema.statics.findUserAddressByEmployeeId = findUserAddressByEmployeeId;
+UserSchema.methods.saveByRoleName = saveByRoleName;
+UserSchema.pre('save', save);
+UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 
 module.exports = mongoose.model('User', UserSchema);

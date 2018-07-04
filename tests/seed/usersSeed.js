@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 
 const User = require('../../models/User');
 const Gdrive = require('../../models/Uploader/GoogleDrive');
+const app = require('../../server');
 
 const userList = [
   {
@@ -17,18 +18,52 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    firstname: 'Test3',
-    lastname: 'Test3',
+    firstname: 'Test4',
+    lastname: 'Test4',
     local: {
-      email: 'test3@alenvi.io',
+      email: 'test4@alenvi.io',
       password: '123456'
     },
     refreshToken: uuidv4(),
     role: 'Tech'
+  },
+  {
+    _id: new ObjectID(),
+    firstname: 'Test5',
+    lastname: 'Test5',
+    local: {
+      email: 'test5@alenvi.io',
+      password: '123456'
+    },
+    refreshToken: uuidv4(),
+    role: 'Tech'
+  },
+  {
+    _id: new ObjectID(),
+    firstname: 'Test6',
+    lastname: 'Test6',
+    local: {
+      email: 'test6@alenvi.io',
+      password: '123456'
+    },
+    employee_id: 12345678,
+    refreshToken: uuidv4(),
+    role: 'Auxiliaire'
   }
 ];
 
+const userPayload = {
+  firstname: 'Test',
+  lastname: 'Test',
+  local: {
+    email: 'test1@alenvi.io',
+    password: '123456'
+  },
+  role: 'Auxiliaire'
+};
+
 const populateUsers = async () => {
+  // console.log('POPULATING USERS...');
   const users = await User.find();
   if (users.length > 0) {
     for (let i = 0, l = users.length; i < l; i++) {
@@ -40,10 +75,30 @@ const populateUsers = async () => {
         }
       }
     }
-    await User.remove({});
   }
-  await new User(userList[0]).saveWithRoleId(userList[0].role);
-  await new User(userList[1]).saveWithRoleId(userList[1].role);
+  await User.remove({});
+  await new User(userList[0]).saveByRoleName(userList[0].role);
+  await new User(userList[1]).saveByRoleName(userList[1].role);
+  await new User(userList[2]).saveByRoleName(userList[2].role);
+  await new User(userList[3]).saveByRoleName(userList[3].role);
 };
 
-module.exports = { userList, populateUsers };
+const getToken = async () => {
+  const credentials = {
+    email: 'test4@alenvi.io',
+    password: '123456'
+  };
+  const response = await app.inject({
+    method: 'POST',
+    url: '/users/authenticate',
+    payload: credentials
+  });
+  return response.result.data.token;
+};
+
+module.exports = {
+  userList,
+  userPayload,
+  populateUsers,
+  getToken
+};

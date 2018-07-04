@@ -1,16 +1,20 @@
 const translate = require('../../helpers/translate');
-const token = require('../../models/Ogust/Token');
+const { getToken } = require('../../models/Ogust/Token');
+const Boom = require('boom');
 
-const language = translate.language;
+const { language } = translate;
 
-const get = async (req, res) => {
+const getOgustToken = async (req) => {
   try {
-    const newToken = await token.getToken();
-    res.status(200).json({ success: true, message: translate[language].OgustGetTokenOk, data: newToken.body });
+    const newToken = await getToken();
+    return {
+      message: translate[language].OgustGetTokenOk,
+      data: newToken.data
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].OgustGetTokenFailed });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-module.exports = { get };
+module.exports = { getOgustToken };

@@ -1,14 +1,5 @@
 const Ogust = require('../../config/config').Ogust;
-const rp = require('request-promise');
+const axios = require('axios');
 
-exports.getList = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}getList`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true
-  };
-  const res = await rp.post(options);
-  return res;
-};
+// Get List
+exports.getList = async payload => axios.post(`${Ogust.API_LINK}getList`, payload);

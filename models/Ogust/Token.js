@@ -1,9 +1,7 @@
 const Ogust = require('../../config/config').Ogust;
-const rp = require('request-promise');
+const axios = require('axios');
 const crypto = require('crypto');
 const moment = require('moment-timezone');
-
-/* ********* AUTHENTIFICATION ********* */
 
 /*
 ** Get token from Ogust base
@@ -18,17 +16,11 @@ exports.getToken = async () => {
   const joinPayload = `${payload.key}+${payload.request}+${payload.time}`;
   const hash = crypto.createHmac('sha1', process.env.OGUST_PRIVATE_KEY).update(joinPayload).digest('hex');
   payload.api_signature = hash.toUpperCase();
-  const res = await rp.post({
-    uri: `${Ogust.API_LINK}getToken`,
-    body: payload,
-    json: true,
-    resolveWithFullResponse: true,
-    time: true,
-  });
-  if (res.body.status == 'KO') {
-    throw new Error(`Error while getting new token from Ogust: ${res.body.message}`);
+  const res = await axios.post(`${Ogust.API_LINK}getToken`, payload);
+  if (res.data.status == 'KO') {
+    throw new Error(`Error while getting new token from Ogust: ${res.data.message}`);
   }
   const currentDate = moment().tz('Europe/Paris');
-  res.body.expireDate = currentDate.add(10, 'm').format();
+  res.data.expireDate = currentDate.add(10, 'm').format();
   return res;
 };

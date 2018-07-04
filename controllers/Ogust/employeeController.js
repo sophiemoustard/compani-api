@@ -1,178 +1,113 @@
 const moment = require('moment');
 const flat = require('flat');
+const Boom = require('boom');
 
 const translate = require('../../helpers/translate');
 const employees = require('../../models/Ogust/Employee');
 const customers = require('../../models/Ogust/Customer');
-const Counter = require('../../models/IdNumber');
+const Counter = require('../../models/idNumber');
 
 const _ = require('lodash');
 
-const language = translate.language;
+const { language } = translate;
 
-const getAll = async (req, res) => {
+const list = async (req) => {
   try {
-    const params = {
-      token: req.headers['x-ogust-token'],
-      status: req.query.status || 'A',
-      nature: req.query.nature || '',
-      mobile_phone: req.query.mobile_phone || '',
-      sector: req.query.sector || '',
-      nbperpage: req.query.nbperpage || 50,
-      pagenum: req.query.pagenum || 1
-    };
-    const newParams = _.pickBy(params);
-    const users = await employees.getEmployees(newParams);
-    if (users.body.status == 'KO') {
-      res.status(400).json({ success: false, message: users.body.message });
-      // throw new Error(`Error while getting employees: ${result.body.message}`);
-    } else if (Object.keys(users.body.array_employee.result).length === 0) {
-      res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users: users.body } });
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    const users = await employees.getEmployees(params);
+    if (users.data.status == 'KO') {
+      return Boom.badRequest(users.data.message);
+      // throw new Error(`Error while getting employees: ${result.data.message}`);
+    } else if (Object.keys(users.data.array_employee.result).length === 0) {
+      return Boom.notFound();
     }
+    return {
+      message: translate[language].userShowAllFound,
+      data: { users: users.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getAllBySector = async (req, res) => {
-  try {
-    if (!req.params.sector) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      sector: req.params.sector,
-      status: req.query.status || 'A', // status 'A' = 'Actif'
-      nature: req.query.nature || 'S', // nature 'S' = 'Salarié'
-      nbperpage: req.query.nbperpage,
-      pagenum: req.query.pagenum
-    };
-    const newParams = _.pickBy(params);
-    const users = await employees.getEmployeesBySector(newParams);
-    if (users.body.status == 'KO') {
-      res.status(400).json({ success: false, message: users.body.message });
-    } else if (Object.keys(users.body.array_employee.result).length === 0) {
-      res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users: users.body } });
-    }
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-  }
-};
-
-const getById = async (req, res) => {
+const getById = async (req) => {
   try {
     const params = {
       token: req.headers['x-ogust-token'],
       id_employee: req.params.id
     };
-    const newParams = _.pickBy(params);
-    const user = await employees.getEmployeeById(newParams);
-    if (user.body.status == 'KO') {
-      res.status(400).json({ success: false, message: user.body.message });
-    } else if (Object.keys(user.body.employee).length === 0) {
-      res.status(404).json({ success: false, message: translate[language].userNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].userFound, data: { user: user.body } });
+    const user = await employees.getEmployeeById(params);
+    if (user.data.status == 'KO') {
+      return Boom.badRequest(user.data.message);
+    } else if (Object.keys(user.data.employee).length === 0) {
+      return Boom.notFound();
     }
+    return {
+      message: translate[language].userFound,
+      data: { user: user.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getEmployeeServices = async (req, res) => {
+const getEmployeeServices = async (req) => {
   try {
     let servicesRaw = {};
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
     if ((req.query.isRange == 'true' && req.query.slotToSub && req.query.slotToAdd && req.query.intervalType)
     || (req.query.isDate == 'true' && req.query.startDate && req.query.endDate)) {
-      const params = {
-        token: req.headers['x-ogust-token'],
-        id_employee: req.params.id,
-        idCustomer: req.query.idCustomer || '',
-        isRange: req.query.isRange || 'false',
-        isDate: req.query.isDate || 'false',
-        slotToSub: req.query.slotToSub || '',
-        slotToAdd: req.query.slotToAdd || '',
-        intervalType: req.query.intervalType || '',
-        startDate: req.query.startDate || '',
-        endDate: req.query.endDate || '',
-        status: req.query.status || '@!=|N',
-        type: req.query.type || 'I',
-        nbperpage: req.query.nbPerPage || '100',
-        pagenum: req.query.pageNum || '1'
-      };
-      const newParams = _.pickBy(params);
-      servicesRaw = await employees.getServices(newParams);
+      const params = req.query;
+      params.token = req.headers['x-ogust-token'];
+      params.id_employee = req.params.id;
+      servicesRaw = await employees.getServices(params);
     } else {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+      return Boom.badRequest();
     }
-    if (servicesRaw.body.status == 'KO') {
-      res.status(400).json({ success: false, message: servicesRaw.body.message });
+    if (servicesRaw.data.status == 'KO') {
+      return Boom.badRequest(servicesRaw.data.message);
     } else if (servicesRaw.length === 0) {
-      res.status(404).json({ success: false, message: translate[language].servicesNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].servicesFound, data: { servicesRaw: servicesRaw.body } });
+      return Boom.notFound();
     }
+    return {
+      message: translate[language].servicesFound,
+      data: { servicesRaw: servicesRaw.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getEmployeeCustomers = async (req, res) => {
+const getEmployeeCustomers = async (req) => {
   try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_employee: req.params.id,
-      isRange: 'true',
-      isDate: 'false',
-      slotToSub: req.query.slotToSub || 2,
-      slotToAdd: req.query.slotToAdd || 2,
-      intervalType: req.query.intervalType || 'week',
-      startDate: '',
-      endDate: '',
-      status: req.query.status || '@!=|N',
-      type: req.query.type || 'I',
-      nbperpage: req.query.nbPerPage || '500',
-      pagenum: req.query.pageNum || '1'
-    };
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    params.id_employee = req.params.id;
     // First we get services from Ogust by employee Id in a specific range
-    const newParams = _.pickBy(params);
-    const servicesInFourWeeks = await employees.getServices(newParams);
-    if (servicesInFourWeeks.body.status == 'KO') {
-      return res.status(400).json({ success: false, message: servicesInFourWeeks.body.message });
+    const servicesInFourWeeks = await employees.getServices(params);
+    if (servicesInFourWeeks.data.status == 'KO') {
+      return Boom.badRequest(servicesInFourWeeks.data.message);
     }
     // Put it in a variable so it's more readable
-    const servicesRawObj = servicesInFourWeeks.body.array_service.result;
+    const servicesRawObj = servicesInFourWeeks.data.array_service.result;
     if (Object.keys(servicesRawObj).length === 0) {
       // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
-      return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
+      return Boom.notFound(translate[language].servicesNotFound);
     }
     // Transform this services object into an array, then pop all duplicates by id_customer
     const servicesUniqCustomers = _.uniqBy(_.values(servicesRawObj), 'id_customer');
     // Get only id_customer properties (without '0' id_customer)
-    const uniqCustomers = servicesUniqCustomers.filter(
-      (service) => {
-        if (service.id_customer != 0 && service.id_customer != '271395715'
+    const uniqCustomers = servicesUniqCustomers.filter((service) => {
+      if (service.id_customer != 0 && service.id_customer != '271395715'
         && service.id_customer != '244566438' && service.id_customer != '286871430' && service.id_customer != '349780044'
         && service.id_customer != '356779196' && service.id_customer != '356779463' && service.id_customer != '271395715') {
-          // Not Reunion Alenvi please
-          return service;
-        }
+        // Not Reunion Alenvi please
+        return service;
       }
-    ).map(service => service.id_customer); // Put it in array of id_customer
+    }).map(service => service.id_customer); // Put it in array of id_customer
     const myRawCustomers = [];
     for (let i = 0; i < uniqCustomers.length; i++) {
       const customerParams = {
@@ -182,48 +117,44 @@ const getEmployeeCustomers = async (req, res) => {
       };
       const newCustomerParams = _.pickBy(customerParams);
       const customerRaw = await customers.getCustomerById(newCustomerParams);
-      if (customerRaw.body.status == 'KO') {
-        return res.status(400).json({ success: false, message: customerRaw.body.message });
+      if (customerRaw.data.status == 'KO') {
+        return Boom.badRequest(customerRaw.data.message);
       }
-      myRawCustomers.push(customerRaw.body.customer);
+      myRawCustomers.push(customerRaw.data.customer);
     }
-    res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { customers: myRawCustomers } });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-  }
-};
-
-const getEmployeeSalaries = async (req, res) => {
-  try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_employee: req.params.id,
-      nbperpage: req.query.nbPerPage || '24',
-      pagenum: req.query.pageNum || '1'
+    return {
+      message: translate[language].userShowAllFound,
+      data: { customers: myRawCustomers }
     };
-    const newParams = _.pickBy(params);
-    const salariesRaw = await employees.getSalaries(newParams);
-    if (salariesRaw.body.status == 'KO') {
-      return res.status(400).json({ success: false, message: salariesRaw.body.message });
-    } else if (Object.keys(salariesRaw.body.array_salary.result).length === 0) {
-      return res.status(404).json({ success: false, message: translate[language].salariesNotFound });
-    }
-    return res.status(200).json({ success: true, message: translate[language].salariesFound, data: { salaries: salariesRaw.body } });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const create = async (req, res) => {
+const getEmployeeSalaries = async (req) => {
   try {
-    if (!req.body.title || !req.body.last_name || !req.body.main_address) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    params.id_employee = req.params.id;
+    const salariesRaw = await employees.getSalaries(params);
+    if (salariesRaw.data.status == 'KO') {
+      return Boom.badRequest(salariesRaw.data.message);
+    } else if (Object.keys(salariesRaw.data.array_salary.result).length === 0) {
+      return Boom.notFound(translate[language].salariesNotFound);
     }
+    return {
+      message: translate[language].salariesFound,
+      data: { salaries: salariesRaw.data }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const create = async (req) => {
+  try {
     const query = {
       idNumber: {
         prefix: `SA${moment().format('YYMM')}`
@@ -234,65 +165,46 @@ const create = async (req, res) => {
     };
     const number = await Counter.findOneAndUpdate(flat(query), { $inc: flat(payload) }, { new: true, upsert: true, setDefaultsOnInsert: true });
     const idNumber = `${number.idNumber.prefix}-${number.idNumber.seq.toString().padStart(3, '0')}`;
-    const params = {
-      token: req.headers['x-ogust-token'],
-      title: req.body.title,
-      last_name: req.body.last_name,
-      first_name: req.body.first_name,
-      main_address: {
-        line: req.body.main_address.line,
-        zip: req.body.main_address.zip,
-        city: req.body.main_address.city,
-        type: 'Adrpri',
-        country: 'FR'
-      },
-      number: idNumber,
-      email: req.body.email,
-      sector: req.body.sector,
-      mobile_phone: req.body.mobile_phone,
-      picture: req.body.picture,
-      nature: 'S',
-      status: 'A',
-      method_of_payment: '7268',
-      manager: '232220179'
-    };
+    const params = req.payload;
+    params.token = req.headers['x-ogust-token'];
+    params.number = idNumber;
     const user = await employees.createEmployee(params);
-    return res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-  }
-};
-
-const updateById = async (req, res) => {
-  try {
-    if (!req.body || !req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_employee: req.params.id,
-      last_name: req.body.last_name,
-      first_name: req.body.first_name,
-      email: req.body.email,
-      sector: req.body.sector,
-      mobile_phone: req.body.mobile_phone,
-      date_of_birth: req.body.date_of_birth,
-      country_of_birth: req.body.country_of_birth,
-      place_of_birth: req.body.place_of_birth,
-      state_of_birth: req.body.state_of_birth,
-      social_insurance_number: req.body.social_insurance_number
+    return {
+      message: translate[language].userSaved,
+      data: user.data
     };
-    const newParams = _.pickBy(params);
-    const user = await employees.createEmployee(newParams);
-    if (user.body.status == 'KO') {
-      return res.status(400).json({ success: false, message: user.body.message });
-    }
-    return res.status(200).json({ success: true, message: translate[language].userSaved, data: { user } });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-module.exports = { getAll, getById, getAllBySector, getEmployeeServices, getEmployeeCustomers, getEmployeeSalaries, create, updateById };
+const updateById = async (req) => {
+  try {
+    const params = req.payload;
+    params.token = req.headers['x-ogust-token'];
+    params.id_employee = req.params.id;
+    const user = await employees.createEmployee(params);
+    if (user.data.status == 'KO') {
+      return Boom.badRequest(user.data.message);
+    }
+    return {
+      message: translate[language].userSaved,
+      data: user.data
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+
+module.exports = {
+  list,
+  getById,
+  getEmployeeServices,
+  getEmployeeCustomers,
+  getEmployeeSalaries,
+  create,
+  updateById
+};

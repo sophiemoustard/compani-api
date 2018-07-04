@@ -1,3 +1,4 @@
+const Boom = require('boom');
 const _ = require('lodash');
 
 const translate = require('../helpers/translate');
@@ -6,16 +7,16 @@ const customers = require('../models/Ogust/Customer');
 
 const { language } = translate;
 
-const getEmployeeEvents = async (req, res, params) => {
+const getEmployeeEvents = async (req, params) => {
   const servicesRaw = await employees.getServices(params);
-  if (servicesRaw.body.status == 'KO') {
-    return res.status(400).json({ success: false, message: servicesRaw.body.message });
+  if (servicesRaw.data.status == 'KO') {
+    throw Boom.badRequest(servicesRaw.data.message);
   }
   // Put it in a variable so it's more readable & remove draft status
-  const events = _.filter(servicesRaw.body.array_service.result, item => item.status !== 'B');
+  const events = _.filter(servicesRaw.data.array_service.result, item => item.status !== 'B');
   if (events.length === 0) {
     // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
-    return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
+    throw Boom.notFound(translate[language].servicesNotFound);
   }
   const uniqCustomers = [];
   for (const index in events) {
@@ -37,25 +38,25 @@ const getEmployeeEvents = async (req, res, params) => {
         pagenum: 1
       };
       const customerThirdPartyInfosRaw = await customers.getThirdPartyInformationByCustomerId(thirdPartyParams);
-      if (customerRaw.body.status == 'KO') {
-        return res.status(400).json({ success: false, message: customerRaw.body.message });
+      if (customerRaw.data.status == 'KO') {
+        throw Boom.badRequest(customerRaw.data.message);
       }
-      customerRaw.body.customer.thirdPartyInformations = customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values;
-      if (customerRaw.body.customer.thirdPartyInformations == null) {
-        customerRaw.body.customer.thirdPartyInformations = {};
+      customerRaw.data.customer.thirdPartyInformations = customerThirdPartyInfosRaw.data.thirdPartyInformations.array_values;
+      if (customerRaw.data.customer.thirdPartyInformations == null) {
+        customerRaw.data.customer.thirdPartyInformations = {};
       }
-      uniqCustomers.push(customerRaw.body.customer);
+      uniqCustomers.push(customerRaw.data.customer);
       events[index].customer = {
-        id_customer: customerRaw.body.customer.id_customer,
-        title: customerRaw.body.customer.title,
-        firstname: customerRaw.body.customer.first_name,
-        lastname: customerRaw.body.customer.last_name,
-        door_code: customerRaw.body.customer.door_code,
-        intercom_code: customerRaw.body.customer.intercom_code,
-        pathology: customerRaw.body.customer.thirdPartyInformations.NIVEAU || '-',
-        comments: customerRaw.body.customer.thirdPartyInformations.COMMNIV || '-',
-        interventionDetails: customerRaw.body.customer.thirdPartyInformations.DETAILEVE || '-',
-        misc: customerRaw.body.customer.thirdPartyInformations.AUTRESCOMM || '-'
+        id_customer: customerRaw.data.customer.id_customer,
+        title: customerRaw.data.customer.title,
+        firstname: customerRaw.data.customer.first_name,
+        lastname: customerRaw.data.customer.last_name,
+        door_code: customerRaw.data.customer.door_code,
+        intercom_code: customerRaw.data.customer.intercom_code,
+        pathology: customerRaw.data.customer.thirdPartyInformations.NIVEAU || '-',
+        comments: customerRaw.data.customer.thirdPartyInformations.COMMNIV || '-',
+        interventionDetails: customerRaw.data.customer.thirdPartyInformations.DETAILEVE || '-',
+        misc: customerRaw.data.customer.thirdPartyInformations.AUTRESCOMM || '-'
       };
     }
     if (isUniq === false) {
@@ -78,7 +79,7 @@ const getEmployeeEvents = async (req, res, params) => {
   return events;
 };
 
-const getCustomerEvents = async (req, res, params) => {
+const getCustomerEvents = async (req, params) => {
   console.log('CUSTOMER');
   const customerParams = {
     token: req.headers['x-ogust-token'],
@@ -87,8 +88,8 @@ const getCustomerEvents = async (req, res, params) => {
   };
   const newCustomerParams = _.pickBy(customerParams);
   const customerRaw = await customers.getCustomerById(newCustomerParams);
-  if (customerRaw.body.status == 'KO') {
-    return res.status(400).json({ success: false, message: customerRaw.body.message });
+  if (customerRaw.data.status == 'KO') {
+    throw Boom.badRequest(customerRaw.data.message);
   }
   const thirdPartyParams = {
     token: req.headers['x-ogust-token'],
@@ -98,28 +99,28 @@ const getCustomerEvents = async (req, res, params) => {
     pagenum: 1
   };
   const customerThirdPartyInfosRaw = await customers.getThirdPartyInformationByCustomerId(thirdPartyParams);
-  if (customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values == null) {
-    customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values = {};
+  if (customerThirdPartyInfosRaw.data.thirdPartyInformations.array_values == null) {
+    customerThirdPartyInfosRaw.data.thirdPartyInformations.array_values = {};
   }
-  const customerThirdPartyInfos = _.pickBy(customerThirdPartyInfosRaw.body.thirdPartyInformations.array_values);
+  const customerThirdPartyInfos = _.pickBy(customerThirdPartyInfosRaw.data.thirdPartyInformations.array_values);
   const servicesRaw = await customers.getServices(params);
-  if (servicesRaw.body.status == 'KO') {
-    return res.status(400).json({ success: false, message: servicesRaw.body.message });
+  if (servicesRaw.data.status == 'KO') {
+    throw Boom.badRequest(servicesRaw.data.message);
   }
   // Put it in a variable so it's more readable
-  const events = _.filter(servicesRaw.body.array_service.result, item => item.status !== 'B');
+  const events = _.filter(servicesRaw.data.array_service.result, item => item.status !== 'B');
   if (events.length === 0) {
     // "Il semble que tu n'aies aucune intervention de prévues d'ici 2 semaines !"
-    return res.status(404).json({ success: false, message: translate[language].servicesNotFound });
+    throw Boom.notFound(translate[language].servicesNotFound);
   }
   const uniqEmployees = [];
   for (const index in events) {
     events[index].customer = Object.assign({
-      title: customerRaw.body.customer.title,
-      firstname: customerRaw.body.customer.first_name,
-      lastname: customerRaw.body.customer.last_name,
-      door_code: customerRaw.body.customer.door_code,
-      intercom_code: customerRaw.body.customer.intercom_code
+      title: customerRaw.data.customer.title,
+      firstname: customerRaw.data.customer.first_name,
+      lastname: customerRaw.data.customer.last_name,
+      door_code: customerRaw.data.customer.door_code,
+      intercom_code: customerRaw.data.customer.intercom_code
     }, {
       pathology: customerThirdPartyInfos.NIVEAU || '/',
       comments: customerThirdPartyInfos.COMMNIV || '/',
@@ -136,15 +137,15 @@ const getCustomerEvents = async (req, res, params) => {
       };
       const newEmployeeParams = _.pickBy(employeeParams);
       const employeeRaw = await employees.getEmployeeById(newEmployeeParams);
-      if (employeeRaw.body.status == 'KO') {
-        return res.status(400).json({ success: false, message: employeeRaw.body.message });
+      if (employeeRaw.data.status == 'KO') {
+        throw Boom.badRequest(employeeRaw.data.message);
       }
-      uniqEmployees.push(employeeRaw.body.employee);
+      uniqEmployees.push(employeeRaw.data.employee);
       events[index].employee = {
-        id_employee: employeeRaw.body.employee.id_employee,
-        title: employeeRaw.body.employee.title,
-        firstname: employeeRaw.body.employee.first_name,
-        lastname: employeeRaw.body.employee.last_name
+        id_employee: employeeRaw.data.employee.id_employee,
+        title: employeeRaw.data.employee.title,
+        firstname: employeeRaw.data.employee.first_name,
+        lastname: employeeRaw.data.employee.last_name
       };
     }
     if (isUniq === false) {
@@ -160,22 +161,15 @@ const getCustomerEvents = async (req, res, params) => {
   return events;
 };
 
-const getEvents = async (req, res) => {
+const getEvents = async (req) => {
   try {
-    if (!req.query.id_employee && !req.query.id_customer) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
     const personType = req.query.id_employee ? 'employees' : 'customers';
     const params = {
       token: req.headers['x-ogust-token'],
-      isRange: req.query.isRange || 'false',
       isDate: req.query.isDate || 'false',
-      slotToSub: req.query.slotToSub || '',
-      slotToAdd: req.query.slotToAdd || '',
-      intervalType: req.query.intervalType || '',
+      status: req.query.status || '@!=|N',
       startDate: req.query.startDate || '',
       endDate: req.query.endDate || '',
-      status: req.query.status || '@!=|N',
       type: req.query.type || 'I',
       nbperpage: req.query.nbPerPage || '500',
       pagenum: req.query.pageNum || '1'
@@ -186,11 +180,15 @@ const getEvents = async (req, res) => {
       params.id_customer = req.query.id_customer;
     }
     const newParams = _.pickBy(params);
-    const events = personType === 'employees' ? await getEmployeeEvents(req, res, newParams) : await getCustomerEvents(req, res, newParams);
-    return res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { events } });
+    const events = personType === 'employees' ? await getEmployeeEvents(req, newParams) : await getCustomerEvents(req, newParams);
+    return { message: translate[language].servicesFound, data: { events } };
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    if (e.output && e.output.statusCode === 400) {
+      return e;
+    } else if (e.output && e.output.statusCode === 404) {
+      return Boom.badImplementation();
+    }
   }
 };
 

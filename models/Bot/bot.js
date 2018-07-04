@@ -1,18 +1,3 @@
-const rp = require('request-promise');
+const axios = require('axios');
 
-exports.redirectToBot = async (address, message) => {
-  // const address = encodeURIComponent(queryAdress);
-  const url = `${process.env.BOT_HOSTNAME}/sendMessageToUser`;
-  const options = {
-    url,
-    body: {
-      address,
-      message
-    },
-    json: true,
-    resolveWithFullResponse: true,
-    time: true
-  };
-  const res = await rp.post(options);
-  return res;
-};
+exports.redirectToBot = async data => axios.post(`${process.env.BOT_HOSTNAME}/sendMessageToUser`, data);

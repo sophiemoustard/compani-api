@@ -1,11 +1,13 @@
+'use strict';
+
 const mongoose = require('mongoose');
-const db = require('./database');
 
 mongoose.Promise = global.Promise;
+
 if (process.env.NODE_ENV === 'test') {
-  mongoose.connect(db.testDatabase, { useMongoClient: true });
+  mongoose.connect('mongodb://localhost:27017/hapitest');
 } else {
-  mongoose.connect(db.database, { useMongoClient: true });
+  mongoose.connect(process.env.MONGODB_URI);
 }
 
 // When successfully connected
@@ -19,6 +21,3 @@ mongoose.connection.on('error', (err) => {
 
 // When the connection is disconnected
 mongoose.connection.once('disconnected', () => console.log('Successfully disconnected from MongoDB'));
-
-// Models
-// require('../models/User');

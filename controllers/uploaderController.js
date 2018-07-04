@@ -1,81 +1,53 @@
-const _ = require('lodash');
+const Boom = require('boom');
+const moment = require('moment');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
-
-const language = translate.language;
-
+const { handleFile } = require('../helpers/gdriveStorage');
 const drive = require('../models/Uploader/GoogleDrive');
 const cloudinary = require('../models/Uploader/Cloudinary');
 const User = require('../models/User');
 
-const createFolder = async (req, res) => {
-  try {
-    if (!req.body.parentFolderId || !req.body.folderName) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const payload = _.pick(req.body, ['parentFolderId', 'folderName']);
-    const createdFolder = await drive.addFolder(payload);
-    console.log(createdFolder);
-    return res.status(200).json({ success: true, message: translate[language].folderCreated, data: { createdFolder } });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-  }
-};
+const { language } = translate;
 
-const uploadFile = async (req, res) => {
+const uploadFile = async (req) => {
   try {
-    if (!req.body || !req.files || !req.params._id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const administrativeKeys = Object.keys(req.files);
+    const allowedFields = [
+      'idCardRecto',
+      'idCardVerso',
+      'healthAttest',
+      'certificates',
+      'phoneInvoice',
+      'navigoInvoice',
+      'mutualFund',
+      'vitalCard',
+    ];
+    const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
+    const uploadedFile = await handleFile({
+      _id: req.params._id,
+      name: req.payload.fileName || req.payload[administrativeKeys[0]].hapi.filename,
+      type: req.payload['Content-Type'],
+      body: req.payload[administrativeKeys[0]]
+    });
     let driveFileInfo;
     try {
-      driveFileInfo = await drive.getFileById({ fileId: req.files[administrativeKeys[0]][0].id });
+      driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
     } catch (e) {
-      console.error(e);
+      req.log(['error', 'gdrive'], e);
     }
     if (administrativeKeys[0] === 'certificates') {
-      const key = administrativeKeys[0];
-      let path = `administrative.${key}`;
-      if (administrativeKeys[0] === 'certificates') {
-        path = `administrative.${key}.docs`;
-      }
       const payload = {
-        [`${path}`]: {
-          driveId: req.files[key][0].id,
+        [`administrative.${administrativeKeys[0]}.docs`]: {
+          driveId: uploadedFile.id,
           link: driveFileInfo.webViewLink
         }
       };
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true });
-      // } else if (administrativeKeys[0] === 'idCardRecto' || administrativeKeys[0] === 'idCardVerso') {
-      // } const key = administrativeKeys[0].replace('idCard', '').toLowerCase();
-      // } const payload = {
-      // }   administrative: {
-      // }     idCard: {
-      // }       [key]: {
-      // }         driveId: req.files[administrativeKeys[0]][0].id,
-      // }         link: driveFileInfo.webViewLink
-      // }       }
-      // }     }
-      // }   }
-      // } };
-      // } const user = await User.findById(req.params._id).lean();
-      // } if (user.administrative && user.administrative.idCard) {
-      // }   const oldDocId = user.administrative.idCard[key].driveId;
-      // }   try {
-      // }     await drive.deleteFile({ fileId: oldDocId });
-      // }   } catch (e) {
-      // }     console.error(e.response);
-      // }   }
-      // } }
-      // } await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
     } else {
       const payload = {
         administrative: {
           [administrativeKeys[0]]: {
-            driveId: req.files[administrativeKeys[0]][0].id,
+            driveId: uploadedFile.id,
             link: driveFileInfo.webViewLink
           }
         }
@@ -86,23 +58,25 @@ const uploadFile = async (req, res) => {
         try {
           await drive.deleteFile({ fileId: oldDocId });
         } catch (e) {
-          console.error(e.response);
+          req.log(['error', 'gdrive'], e);
         }
       }
       await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
     }
-    return res.status(200).json({ success: true, message: translate[language].fileCreated, data: req.files });
+    return { message: translate[language].fileCreated, data: uploadedFile };
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const uploadImage = async (req, res) => {
+const uploadImage = async (req) => {
   try {
-    if (!req.body || !req.file || !req.params._id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
+    const pictureUploaded = await cloudinary.addImage({
+      file: req.payload.picture,
+      role: req.payload.role,
+      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
+    });
     const user = await User.findById(req.params._id).lean();
     if (user.picture && user.picture.publicId) {
       await cloudinary.deleteImage({ publicId: user.picture.publicId });
@@ -110,19 +84,19 @@ const uploadImage = async (req, res) => {
     // const uploadedImage = req.file;
     const payload = {
       picture: {
-        publicId: req.file.public_id,
-        link: req.file.secure_url
+        publicId: pictureUploaded.public_id,
+        link: pictureUploaded.secure_url
       }
     };
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
-    return res.status(200).json({ success: true, message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } });
+    return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
   } catch (e) {
-    console.error(e);
-    // if (e.cloudinary) {
-    //   return res.status(e.http_code).json({ success: false, from: 'Cloudinary', message: e.message });
-    // }
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-module.exports = { createFolder, uploadFile, uploadImage };
+module.exports = {
+  uploadFile,
+  uploadImage
+};

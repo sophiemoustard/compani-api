@@ -1,128 +1,47 @@
-// const flat = require('flat');
-// const url = require('url');
-
+const Boom = require('boom');
 const translate = require('../helpers/translate');
-// const User = require('../models/User');
 const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-const language = translate.language;
+const { language } = translate;
 
-const sendSMS = async (req, res) => {
+const list = async (req) => {
   try {
-    if (!req.params.phoneNbr || !req.body.activationCode) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    // Pour te connecter à Pigi, assure-toi de bien avoir l’application Messenger sur ton téléphone et clique sur le lien suivant: ${process.env.MESSENGER_LINK}
-    const welcomeMessage = `Bienvenue chez Alenvi ! :) Utilise ce code: ${req.body.activationCode} pour pouvoir commencer ton enregistrement ici avant ton intégration: ${process.env.WEBSITE_HOSTNAME}/signup :-)`;
-    const internationalNbr = `+33${req.params.phoneNbr.substring(1)}`;
-    const message = await twilio.messages.create({
-      to: internationalNbr,
-      // from: process.env.TWILIO_PHONE_NBR,
-      from: 'Alenvi',
-      body: welcomeMessage
-    });
-    const sms = {
-      from: message.from,
-      to: message.to,
-      body: message.body
-    };
-    return res.status(200).json({ success: true, message: translate[language].smsSent, data: { sms } });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-  }
-};
-
-const sendSMSWarning = async (req, res) => {
-  try {
-    if (!req.params.phoneNbr || !req.body.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const msg = `Attention, avant la signature de ton contrat, tu dois télécharger l'application Facebook Messenger afin de pouvoir utiliser les outils Alenvi.
-    Voici les deux étapes à suivre:
-    1. Si ton téléphone est un Iphone, clique sur ce lien https://appstore.com/messenger, sinon clique sur ce lien: https://play.google.com/store/apps/details?id=com.facebook.orca
-    2. Une fois l'application installée, connecte-toi en cliquant sur le lien suivant: ${process.env.MESSENGER_LINK}
-Si tu rencontres des difficultés, contacte dès aujourd'hui la personne qui t'a recruté chez Alenvi`;
-    // Attention il est necessaire de telecharger messenger pour continuer ton inscription
-    const internationalNbr = `+33${req.params.phoneNbr.substring(1)}`;
-    const message = await twilio.messages.create({
-      to: internationalNbr,
-      // from: process.env.TWILIO_PHONE_NBR,
-      from: 'Alenvi',
-      body: msg
-    });
-    const sms = {
-      from: message.from,
-      to: message.to,
-      body: message.body
-    };
-    return res.status(200).json({ success: true, message: translate[language].smsSent, data: { sms } });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-  }
-};
-
-const getRecords = async (req, res) => {
-  try {
-    // const opts = {};
-    // console.log(req.query);
-    // if (req.query.pageSize) {
-    //   if (isNaN(req.query.pageSize)) {
-    //     return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    //   }
-    //   opts.pageSize = Number(req.query.pageSize);
-    // }
-    // if (req.query.pageNumber) {
-    //   if (isNaN(req.query.pageNumber)) {
-    //     return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    //   }
-    //   opts.pageNumber = Number(req.query.pageNumber);
-    // }
-    // if (req.query.pageToken) {
-    //   opts.pageToken = req.query.pageToken;
-    // }
-    // const page = await twilio.messages.page(opts);
-    // console.log(page);
-    // const messageListRaw = await twilio.messages.list(opts);
-    // console.log(twilio);
     const messageList = [];
-    const opts = {
-      done() {
-        return res.status(200).json({ success: true, message: translate[language].smsListFound, data: { messageList } });
-      }
-    };
-    if (req.query.limit && !isNaN(req.query.limit)) {
-      opts.limit = Number(req.query.limit);
+    const opts = {};
+    if (req.query.limit) {
+      opts.limit = req.query.limit;
     }
-    twilio.messages.each(opts, (message) => {
-      messageList.push({
-        dateSent: message.dateSent,
-        to: message.to,
-        body: message.body
+    const messages = await new Promise((resolve) => {
+      twilio.messages.each({
+        done() {
+          resolve(messageList);
+        },
+        opts
+      }, (message) => {
+        messageList.push(message);
       });
     });
-    // for (let i = 0, l = page.instances.length; i < l; i++) {
-    //   messageList.push({
-    //     dateSent: page.instances[i].dateSent,
-    //     to: page.instances[i].to
-    //   });
-    // }
-    // const nextPage = page._payload.next_page_uri ? url.parse(page._payload.next_page_uri, true).query : null;
-    // return res.status(200).json({ success: true, message: translate[language].smsSent, data: { messageList } });
+    return messages;
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-// const getPageRecords = async (req, res) => {
-//   const pageSize = req.query.pageSize && !isNaN(req.query.pageSize) ? { pageSize: req.query.pageSize } : { pageSize: 30 };
-//
-// }
+const send = async (req) => {
+  try {
+    const sms = await twilio.messages.create(req.payload);
+    return {
+      message: translate[language].smsSent,
+      data: { sms }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
 
 module.exports = {
-  sendSMS,
-  sendSMSWarning,
-  getRecords
+  list,
+  send
 };

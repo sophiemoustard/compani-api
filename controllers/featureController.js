@@ -1,100 +1,153 @@
-const translate = require('../helpers/translate');
+const Boom = require('boom');
 const flat = require('flat');
 
-const language = translate.language;
-
+const translate = require('../helpers/translate');
 const Feature = require('../models/Feature');
 const Role = require('../models/Role');
 
-const create = async (req, res) => {
+const { language } = translate;
+
+const create = async (req) => {
   try {
-    if (!req.body.name) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const feature = new Feature(req.body);
+    const feature = new Feature(req.payload);
     await feature.save();
     const payload = {
       _id: feature._id,
       name: feature.name,
     };
-    await Role.updateMany({ name: { $not: /^Admin$/ } }, { $push: { features: { feature_id: payload._id, permission_level: 0 } } });
-    await Role.update({ name: 'Admin' }, { $push: { features: { feature_id: payload._id, permission_level: 2 } } });
-    return res.status(200).json({ success: true, message: translate[language].featureCreated, data: { feature: payload } });
+    await Role.updateMany({
+      name: {
+        $not: /^Admin$/
+      }
+    }, {
+      $push: {
+        features: {
+          feature_id: payload._id,
+          permission_level: 0
+        }
+      }
+    });
+    await Role.update({
+      name: 'Admin'
+    }, {
+      $push: {
+        features: {
+          feature_id: payload._id,
+          permission_level: 2
+        }
+      }
+    });
+    return {
+      message: translate[language].featureCreated,
+      data: {
+        feature: payload
+      }
+    };
   } catch (e) {
-    console.error(e);
     if (e.code === 11000) {
-      return res.status(409).json({ success: false, message: translate[language].featureExists });
+      req.log(['error', 'db'], e);
+      return Boom.conflict(translate[language].featureExists);
     }
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const update = async (req, res) => {
-  if (!req.body) {
-    return res.status(400).json({ success: false, message: translate[language].missingParameters });
-  }
+
+const update = async (req) => {
   try {
-    const featureUpdated = await Feature.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.body) }, { new: true });
+    const featureUpdated = await Feature.findOneAndUpdate({
+      _id: req.params._id
+    }, {
+      $set: flat(req.payload)
+    }, {
+      new: true
+    });
     if (!featureUpdated) {
-      return res.status(404).json({ success: false, message: translate[language].featureNotFound });
+      return Boom.notFound(translate[language].featureNotFound);
     }
-    return res.status(200).json({ success: true, message: translate[language].featureUpdated, data: { feature: featureUpdated } });
+    return {
+      message: translate[language].featureUpdated,
+      data: {
+        feature: featureUpdated
+      }
+    };
   } catch (e) {
-    console.error(e);
     // Error code when there is a duplicate key, in this case : the name (unique field)
     if (e.code === 11000) {
-      return res.status(409).json({ success: false, message: translate[language].featureExists });
+      req.log(['error', 'db'], e);
+      return Boom.conflict(translate[language].featureExists);
     }
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-// Show all features
-const showAll = async (req, res) => {
-  // No security here to restrict access
+const showAll = async (req) => {
   try {
-    const features = await Feature.find(req.query).select('_id name');
+    const features = await Feature.find(req.query).select('_id name').lean();
     if (features.length === 0) {
-      return res.status(404).json({ success: false, message: translate[language].featuresShowAllNotFound });
+      return Boom.notFound(translate[language].featuresShowAllNotFound);
     }
-    return res.status(200).json({ success: true, message: translate[language].featuresShowAllFound, data: { features } });
+    return {
+      message: translate[language].featuresShowAllFound,
+      data: {
+        features
+      }
+    };
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-// Find an feature by Id
-const show = async (req, res) => {
+const showById = async (req) => {
   try {
-    if (!req.params._id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const feature = await Feature.findOne({ _id: req.params._id });
+    const feature = await Feature.findOne({
+      _id: req.params._id
+    }).lean();
     if (!feature) {
-      return res.status(404).json({ success: false, message: translate[language].featureNotFound });
+      return Boom.notFound(translate[language].featureNotFound);
     }
-    return res.status(200).json({ success: true, message: translate[language].featureFound, data: { feature } });
+    return {
+      success: true,
+      message: translate[language].featureFound,
+      data: {
+        feature
+      }
+    };
   } catch (e) {
-    console.error(e);
-    return res.status(404).json({ success: false, message: translate[language].featureNotFound });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const remove = async (req, res) => {
+const remove = async (req) => {
   try {
-    if (!req.params._id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const featureDeleted = await Feature.findByIdAndRemove({ _id: req.params._id });
+    const featureDeleted = await Feature.findByIdAndRemove({
+      _id: req.params._id
+    });
     if (!featureDeleted) {
-      return res.status(404).json({ success: false, message: translate[language].featureNotFound });
+      return Boom.notFound(translate[language].featureNotFound);
     }
-    await Role.update({}, { $pull: { features: { feature_id: req.params._id } } }, { multi: true });
-    return res.status(200).json({ success: true, message: translate[language].featureRemoved, data: { featureDeleted } });
+    await Role.update({}, {
+      $pull: {
+        features: {
+          feature_id: req.params._id
+        }
+      }
+    }, {
+      multi: true
+    });
+    return {
+      message: translate[language].featureRemoved,
+      data: {
+        featureDeleted
+      }
+    };
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
@@ -102,6 +155,6 @@ module.exports = {
   create,
   update,
   showAll,
-  show,
+  showById,
   remove
 };

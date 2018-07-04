@@ -1,52 +1,45 @@
+const Boom = require('boom');
+
 const translate = require('../../helpers/translate');
 const bankInfo = require('../../models/Ogust/BankInfo');
-const _ = require('lodash');
 
-const language = translate.language;
+const { language } = translate;
 
-const getById = async (req, res) => {
+const getById = async (req) => {
   try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    console.log(req.body);
     const params = {
       token: req.headers['x-ogust-token'],
       id_bankinfo: req.params.id,
     };
-    const newParams = _.pickBy(params);
-    const bankInfoRaw = await bankInfo.getBankInfoById(newParams);
-    if (bankInfoRaw.body.status == 'KO') {
-      return res.status(400).json({ success: false, message: bankInfoRaw.body.message });
+    const bankInfoRaw = await bankInfo.getBankInfoById(params);
+    if (bankInfoRaw.data.status == 'KO') {
+      return Boom.badRequest(bankInfoRaw.data.message);
     }
-    return res.status(200).json({ success: true, message: translate[language].bankInfoUpdated, data: { bankInfo: bankInfoRaw.body } });
+    return {
+      message: translate[language].bankInfoUpdated,
+      data: { bankInfo: bankInfoRaw.data }
+    }
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const updateByEmployeeId = async (req, res) => {
+const updateByEmployeeId = async (req) => {
   try {
-    if (!req.body) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    const params = req.payload;
+    params.token = req.headers['x-ogust-token'];
+    const updatedBankInfo = await bankInfo.setBankInfoByEmployeeId(params);
+    if (updatedBankInfo.data.status == 'KO') {
+      return Boom.badRequest(updatedBankInfo.data.message);
     }
-    console.log(req.body);
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_tiers: req.body.id_tiers,
-      iban_number: req.body.iban_number || '',
-      bic_number: req.body.bic_number || ''
-    };
-    const newParams = _.pickBy(params);
-    const updatedBankInfo = await bankInfo.setBankInfoByEmployeeId(newParams);
-    if (updatedBankInfo.body.status == 'KO') {
-      return res.status(400).json({ success: false, message: updatedBankInfo.body.message });
+    return {
+      message: translate[language].bankInfoUpdated,
+      data: { updatedBankInfo: updatedBankInfo.data }
     }
-    return res.status(200).json({ success: true, message: translate[language].bankInfoUpdated, data: { updatedBankInfo: updatedBankInfo.body } });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 

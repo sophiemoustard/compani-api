@@ -1,98 +1,84 @@
+const Boom = require('boom');
+
 const translate = require('../../helpers/translate');
 const services = require('../../models/Ogust/Service');
-const _ = require('lodash');
 
-const language = translate.language;
+const { language } = translate;
 
-const getAll = async (req, res) => {
+const list = async (req) => {
   try {
     let servicesRaw = {};
     if ((req.query.isRange == 'true' && req.query.slotToSub && req.query.slotToAdd && req.query.intervalType)
     || (req.query.isDate == 'true' && req.query.startDate && req.query.endDate)) {
-      const params = {
-        token: req.headers['x-ogust-token'],
-        isRange: req.query.isRange || false,
-        isDate: req.query.isDate || false,
-        slotToSub: req.query.slotToSub || '',
-        slotToAdd: req.query.slotToAdd || '',
-        intervalType: req.query.intervalType || '',
-        startDate: req.query.startDate || '',
-        endDate: req.query.endDate || '',
-        status: req.query.status || '@!=|N',
-        type: req.query.type || 'I',
-        nbperpage: req.query.nbPerPage || '100',
-        pagenum: req.query.pageNum || '1'
-      };
-      const newParams = _.pickBy(params);
-      servicesRaw = await services.getServices(newParams);
+      const params = req.query;
+      params.token = req.headers['x-ogust-token'];
+      servicesRaw = await services.getServices(params);
     } else {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+      return Boom.badRequest();
     }
-    if (servicesRaw.body.status == 'KO') {
-      res.status(400).json({ success: false, message: servicesRaw.body.message });
+    if (servicesRaw.data.status == 'KO') {
+      return Boom.badRequest(servicesRaw.body.message);
     } else if (servicesRaw.length === 0) {
-      res.status(404).json({ success: false, message: translate[language].servicesNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].servicesFound, data: { servicesRaw: servicesRaw.body } });
+      return Boom.notFound();
     }
+    return {
+      message: translate[language].servicesFound,
+      data: { servicesRaw: servicesRaw.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getById = async (req, res) => {
+const getById = async (req) => {
   try {
     let servicesRaw = {};
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_service: req.params.id,
-      status: req.query.status || '@!=|N',
-      type: req.query.type || 'I' // I = Intervention
-    };
-    const newParams = _.pickBy(params);
-    servicesRaw = await services.getServiceById(newParams);
-    if (servicesRaw.body.status == 'KO') {
-      res.status(400).json({ success: false, message: servicesRaw.body.message });
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    params.id_service = req.params.id;
+    servicesRaw = await services.getServiceById(params);
+    if (servicesRaw.data.status == 'KO') {
+      return Boom.badRequest(servicesRaw.data.message);
     } else if (servicesRaw.length === 0) {
-      res.status(404).json({ success: false, message: translate[language].serviceNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].serviceFound, data: { servicesRaw: servicesRaw.body } });
+      return Boom.notFound();
     }
+    return {
+      message: translate[language].serviceFound,
+      data: { servicesRaw: servicesRaw.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const updateById = async (req, res) => {
+const updateById = async (req) => {
   try {
-    if (!req.body || !req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    const params = {};
+    params.token = req.headers['x-ogust-token'];
+    params.id_service = req.params.id;
+    if (req.payload.startDate && req.payload.endDate) {
+      params.start_date = req.payload.startDate;
+      params.end_date = req.payload.endDate;
     }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_service: req.params.id,
-      start_date: req.body.startDate || '',
-      end_date: req.body.endDate || ''
+    const updatedService = await services.setServiceById(params);
+    if (updatedService.data.status == 'KO') {
+      return Boom.badRequest(updatedService.data.message);
+    }
+    return {
+      message: translate[language].serviceUpdated,
+      data: { updatedService: updatedService.data }
     };
-    const newParams = _.pickBy(params);
-    const updatedService = await services.setServiceById(newParams);
-    if (updatedService.body.status == 'KO') {
-      return res.status(400).json({ success: false, message: updatedService.body.message });
-    }
-    return res.status(200).json({ success: true, message: translate[language].serviceUpdated, data: { updatedService: updatedService.body } });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
+
 
 module.exports = {
-  getAll,
+  list,
   getById,
   updateById
 };

@@ -1,95 +1,22 @@
-const Ogust = require('../../config/config').Ogust;
-const rp = require('request-promise');
+const { Ogust } = require('../../config/config');
+const axios = require('axios');
 
 const { getIntervalInRange } = require('../../helpers/intervalInRange');
 
-/*
-** Get all customers
-** PARAMS:
-** - token: token after login
-** - status: customer status
-** - nature: customer nature
-** Method: POST
-*/
+// Get customers
+exports.getCustomers = async params => axios.post(`${Ogust.API_LINK}searchCustomer`, params);
 
-// const param = {
-//   qs: {
-//
-//   },
-//   body: {
-//
-//   }
-// }
-//
-// const param2 = _pickBy(param);
+// Get a customer by customer id
+exports.getCustomerById = async params => axios.post(`${Ogust.API_LINK}getCustomer`, params);
 
-exports.getCustomers = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}searchCustomer`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true,
-  };
-  const result = await rp.post(options);
-  return result;
-};
+// Edit customer by id
+exports.editCustomerById = async params => axios.post(`${Ogust.API_LINK}setCustomer`, params);
 
-/*
-** Get a customer by customer id
-** PARAMS:
-** - token: token after login
-** - id: customer id
-** - status: customer status
-** Method: POST
-*/
-exports.getCustomerById = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}getCustomer`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true,
-  };
-  const result = await rp.post(options);
-  return result;
-};
+// Get third party information by customer id
+exports.getThirdPartyInformationByCustomerId = async params => axios.post(`${Ogust.API_LINK}getThirdPartyInformations`, params);
 
-exports.editCustomerById = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}setCustomer`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true
-  };
-  const result = await rp.post(options);
-  return result;
-};
-
-exports.getThirdPartyInformationByCustomerId = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}getThirdPartyInformations`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true,
-  };
-  const res = await rp.post(options);
-  return res;
-};
-
-exports.editThirdPartyInformationByCustomerId = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}setThirdPartyInformations`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true,
-  };
-  const res = await rp.post(options);
-  return res;
-};
+// Edit third party information by customer id
+exports.editThirdPartyInformationByCustomerId = async params => axios.post(`${Ogust.API_LINK}setThirdPartyInformations`, params);
 
 /*
 ** Get services by customer id in range or by date
@@ -111,64 +38,30 @@ exports.editThirdPartyInformationByCustomerId = async (params) => {
 */
 exports.getServices = async (params) => {
   let interval = {};
-  if (params.isRange == 'true') {
+  if (params.isRange) {
     interval = getIntervalInRange(params.slotToSub, params.slotToAdd, params.intervalType);
   }
-  if (params.isDate == 'true') {
+  if (params.isDate) {
     interval.intervalBwd = parseInt(params.startDate, 10);
     interval.intervalFwd = parseInt(params.endDate, 10);
   }
-  const options = {
-    url: `${Ogust.API_LINK}searchService`,
-    json: true,
-    body: {
-      token: params.token,
-      id_customer: params.id_customer,
-      status: params.status,
-      type: params.type, // I = Intervention
-      start_date: `${'@between|'}${interval.intervalBwd}|${interval.intervalFwd}`,
-      nbperpage: params.nbperpage,
-      pagenum: params.pagenum
-    },
-    resolveWithFullResponse: true,
-    time: true
+  const newParams = {
+    token: params.token,
+    id_customer: params.id_customer,
+    status: params.status,
+    type: params.type, // I = Intervention
+    start_date: `${'@between|'}${interval.intervalBwd}|${interval.intervalFwd}`,
+    nbperpage: params.nbperpage,
+    pagenum: params.pagenum
   };
-  const res = await rp.post(options);
-  return res;
+  return axios.post(`${Ogust.API_LINK}searchService`, newParams);
 };
 
-exports.getFiscalAttests = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}searchFiscalattest`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true,
-  };
-  const res = await rp.post(options);
-  return res;
-};
+// Get fiscal attests
+exports.getFiscalAttests = async params => axios.post(`${Ogust.API_LINK}searchFiscalattest`, params);
 
-exports.getInvoices = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}searchInvoice`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true,
-  };
-  const res = await rp.post(options);
-  return res;
-};
+// Get invoices
+exports.getInvoices = async params => axios.post(`${Ogust.API_LINK}searchInvoice`, params);
 
-exports.getContacts = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}searchContact`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true
-  };
-  const res = await rp.post(options);
-  return res;
-}
+// Get contacts
+exports.getContacts = async params => axios.post(`${Ogust.API_LINK}searchContact`, params);

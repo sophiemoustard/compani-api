@@ -1,199 +1,148 @@
+
+const Boom = require('boom');
+
 const translate = require('../../helpers/translate');
 const customers = require('../../models/Ogust/Customer');
-const _ = require('lodash');
 
-const language = translate.language;
+const { language } = translate;
 
-const getAll = async (req, res) => {
+const list = async (req) => {
   try {
-    console.log(req);
-    const params = {
-      token: req.headers['x-ogust-token'],
-      email: req.query.email || '',
-      status: req.query.status || 'A',
-      last_name: req.query.lastName || '',
-      sector: req.query.sector || '',
-      nbperpage: req.query.nbperpage || 50,
-      pagenum: req.query.pagenum || 1
-    };
-    const newParams = _.pickBy(params);
-    const users = await customers.getCustomers(newParams);
-    if (users.body.status == 'KO') {
-      res.status(400).json({ success: false, message: users.body.message });
-      // throw new Error(`Error while getting employees: ${result.body.message}`);
-    } else if (users.length === 0) {
-      res.status(404).json({ success: false, message: translate[language].userShowAllNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].userShowAllFound, data: { users: users.body } });
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    const users = await customers.getCustomers(params);
+    if (users.data.status == 'KO') {
+      return Boom.badRequest(users.data.message);
+      // throw new Error(`Error while getting customers: ${result.data.message}`);
+    } else if (Object.keys(users.data.array_customer.result).length === 0) {
+      return Boom.notFound();
     }
+    return {
+      message: translate[language].userShowAllFound,
+      data: { customers: users.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getById = async (req, res) => {
+const getById = async (req) => {
   try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
     const params = {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id
     };
-    const newParams = _.pickBy(params);
-    const user = await customers.getCustomerById(newParams);
-    if (user.body.status == 'KO') {
-      res.status(400).json({ success: false, message: user.body.message });
-    } else if (user.length === 0) {
-      res.status(404).json({ success: false, message: translate[language].userNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].userFound, data: { user: user.body } });
+    const user = await customers.getCustomerById(params);
+    if (user.data.status == 'KO') {
+      return Boom.badRequest(user.data.message);
+    } else if (Object.keys(user.data.customer).length === 0) {
+      return Boom.notFound();
     }
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-  }
-};
-
-const editCustomer = async (req, res) => {
-  try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_customer: req.params.id,
-      door_code: req.body.doorCode || '',
-      intercom_code: req.body.interCode || '',
-      first_name: req.body.first_name || '',
-      last_name: req.body.last_name || '',
-      email: req.body.email || '',
-      mobile_phone: req.body.mobile_phone || '',
-      landline: req.body.landline || ''
+    return {
+      message: translate[language].userFound,
+      data: { user: user.data }
     };
-    const newParams = _.pickBy(params);
-    const user = await customers.editCustomerById(newParams);
-    if (user.body.status == 'KO') {
-      res.status(400).json({ success: false, message: user.body.message });
-    } else if (user.length === 0) {
-      res.status(404).json({ success: false, message: translate[language].userNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].customerCodesModified, data: { user: user.body } });
-    }
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getCustomerServices = async (req, res) => {
+const getCustomerServices = async (req) => {
   try {
     let servicesRaw = {};
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
     if ((req.query.isRange == 'true' && req.query.slotToSub && req.query.slotToAdd && req.query.intervalType)
     || (req.query.isDate == 'true' && req.query.startDate && req.query.endDate)) {
-      const params = {
-        token: req.headers['x-ogust-token'],
-        id_customer: req.params.id,
-        isRange: req.query.isRange || false,
-        isDate: req.query.isDate || false,
-        slotToSub: req.query.slotToSub || '',
-        slotToAdd: req.query.slotToAdd || '',
-        intervalType: req.query.intervalType || '',
-        startDate: req.query.startDate || '',
-        endDate: req.query.endDate || '',
-        status: req.query.status || '@!=|N',
-        type: req.query.type || 'I',
-        nbperpage: req.query.nbPerPage || '100',
-        pagenum: req.query.pageNum || '1'
-      };
-      const newParams = _.pickBy(params);
-      servicesRaw = await customers.getServices(newParams);
+      const params = req.query;
+      params.token = req.headers['x-ogust-token'];
+      params.id_customer = req.params.id;
+      servicesRaw = await customers.getServices(params);
     } else {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+      return Boom.badRequest();
     }
-    if (servicesRaw.body.status == 'KO') {
-      res.status(400).json({ success: false, message: servicesRaw.body.message });
+    if (servicesRaw.data.status == 'KO') {
+      return Boom.badRequest(servicesRaw.data.message);
     } else if (servicesRaw.length === 0) {
-      res.status(404).json({ success: false, message: translate[language].servicesNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].servicesFound, data: { servicesRaw: servicesRaw.body } });
+      return Boom.notFound();
     }
+    return {
+      message: translate[language].servicesFound,
+      data: { servicesRaw: servicesRaw.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getThirdPartyInformation = async (req, res) => {
+const updateById = async (req) => {
   try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    const params = req.payload;
+    params.token = req.headers['x-ogust-token'];
+    params.id_customer = req.params.id;
+    const user = await customers.editCustomerById(params);
+    if (user.data.status == 'KO') {
+      return Boom.badRequest(user.data.message);
     }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      third_party_id: req.params.id,
-      third_party: req.query.third_party || 'C',
-      nbperpage: req.query.nbperpage || 10,
-      pagenum: req.query.pagenum || 1
+    return {
+      message: translate[language].userSaved,
+      data: user.data
     };
-    const newParams = _.pickBy(params);
-    const thirdPartyInfos = await customers.getThirdPartyInformationByCustomerId(newParams);
-    if (thirdPartyInfos.body.status == 'KO') {
-      res.status(400).json({ success: false, message: thirdPartyInfos.body.message });
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const getThirdPartyInformation = async (req) => {
+  try {
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    params.third_party_id = req.params.id;
+    const thirdPartyInfos = await customers.getThirdPartyInformationByCustomerId(params);
+    if (thirdPartyInfos.data.status == 'KO') {
+      return Boom.badRequest(thirdPartyInfos.data.message);
     } else if (thirdPartyInfos.length === 0) {
-      res.status(404).json({ success: false, message: translate[language].thirdPartyInfoNotFound });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].thirdPartyInfoFound, data: { info: thirdPartyInfos.body } });
+      return Boom.notFound();
     }
+    return {
+      message: translate[language].thirdPartyInfoFound,
+      data: { info: thirdPartyInfos.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getCustomerFiscalAttests = async (req, res) => {
+const getCustomerFiscalAttests = async (req) => {
   try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    params.id_customer = req.params.id;
+    params.period_end = `@between|${req.query.year}0101|${req.query.year}1231`;
+    const fiscalAttestsRaw = await customers.getFiscalAttests(params);
+    if (fiscalAttestsRaw.data.status == 'KO') {
+      return Boom.badRequest(fiscalAttestsRaw.data.message);
+    } else if (fiscalAttestsRaw.length === 0) {
+      return Boom.notFound();
     }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_customer: req.params.id,
-      status: 'E',
-      period_end: req.query.year ? `@between|${req.query.year}0101|${req.query.year}1231` : '',
-      nbperpage: req.query.nbPerPage || '24',
-      pagenum: req.query.pageNum || '1'
+    return {
+      message: translate[language].fiscalAttestsRaw,
+      data: { info: fiscalAttestsRaw.data }
     };
-    const newParams = _.pickBy(params);
-    const fiscalAttestsRaw = await customers.getFiscalAttests(newParams);
-    if (fiscalAttestsRaw.body.status == 'KO') {
-      return res.status(400).json({ success: false, message: fiscalAttestsRaw.body.message });
-    } else if (Object.keys(fiscalAttestsRaw.body.array_fiscalattest.result).length === 0) {
-      return res.status(404).json({ success: false, message: translate[language].fiscalAttestsNotFound });
-    }
-    return res.status(200).json({ success: true, message: translate[language].fiscalAttestsFound, data: { fiscalAttests: fiscalAttestsRaw.body } });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getCustomerInvoices = async (req, res) => {
+const getCustomerInvoices = async (req) => {
   try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      id_customer: req.params.id,
-      status: 'E',
-      nbperpage: req.query.nbPerPage || '50',
-      pagenum: req.query.pageNum || '1'
-    };
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    params.id_customer = req.params.id;
     if (req.query.startPeriod && req.query.endPeriod) {
       params.end_of_period = `@between|${req.query.startPeriod}|${req.query.endPeriod}`;
     } else if (req.query.year && req.query.month) {
@@ -201,77 +150,72 @@ const getCustomerInvoices = async (req, res) => {
     } else {
       params.end_of_period = `@between|${req.query.year}0101|${req.query.year}1231`;
     }
-    const newParams = _.pickBy(params);
-    const invoicesRaw = await customers.getInvoices(newParams);
-    if (invoicesRaw.body.status == 'KO') {
-      return res.status(400).json({ success: false, message: invoicesRaw.body.message });
-    } else if (Object.keys(invoicesRaw.body.array_invoice.result).length === 0) {
-      return res.status(404).json({ success: false, message: translate[language].invoicesNotFound });
+    const invoicesRaw = await customers.getInvoices(params);
+    if (invoicesRaw.data.status == 'KO') {
+      return Boom.badRequest(invoicesRaw.data.message);
+    } else if (Object.keys(invoicesRaw.data.array_invoice.result).length === 0) {
+      return Boom.notFound();
     }
-    return res.status(200).json({ success: true, message: translate[language].invoicesFound, data: { invoices: invoicesRaw.body } });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
-  }
-};
-
-const editThirdPartyInformation = async (req, res) => {
-  try {
-    if (!req.params.id || !req.body.arrayValues) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    const params = {
-      token: req.headers['x-ogust-token'],
-      third_party_id: req.params.id,
-      third_party: req.query.third_party || 'C',
-      array_values: req.body.arrayValues
+    return {
+      message: translate[language].invoicesFound,
+      data: { invoices: invoicesRaw.data }
     };
-    const newParams = _.pickBy(params);
-    const thirdPartyInfos = await customers.editThirdPartyInformationByCustomerId(newParams);
-    if (thirdPartyInfos.body.status == 'KO') {
-      res.status(400).json({ success: false, message: thirdPartyInfos.body.message });
-    } else {
-      // if (req.query.address) {
-      //   await redirectToBot(req.query.address);
-      // }
-      res.status(200).json({ success: true, message: translate[language].thirdPartyInfoEdited, data: { info: thirdPartyInfos.body } });
-    }
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getCustomerContacts = async (req, res) => {
+const editThirdPartyInformation = async (req) => {
   try {
-    if (!req.params.id) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
+    const params = req.query;
+    params.token = req.headers['x-ogust-token'];
+    params.third_party_id = req.params.id;
+    console.log('req.payload', req.payload);
+    params.array_values = req.payload.arrayValues;
+    const thirdPartyInfos = await customers.editThirdPartyInformationByCustomerId(params);
+    if (thirdPartyInfos.data.status == 'KO') {
+      return Boom.badRequest(thirdPartyInfos.data.message);
     }
-    console.log('qwdq');
+    return {
+      message: translate[language].thirdPartyInfoEdited,
+      data: { info: thirdPartyInfos.data }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const getCustomerContacts = async (req) => {
+  try {
     const params = {
       token: req.headers['x-ogust-token'],
       id_customer: req.params.id
     };
     const contactsRaw = await customers.getContacts(params);
     if (contactsRaw == 'KO') {
-      res.status(400).json({ success: false, message: contactsRaw.body.message });
-    } else {
-      res.status(200).json({ success: true, message: translate[language].contactsFound, data: { contacts: contactsRaw.body } });
+      return Boom.badRequest(contactsRaw.data.message);
     }
+    return {
+      message: translate[language].contactsFound,
+      data: { contacts: contactsRaw.data }
+    };
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
+
 module.exports = {
-  getAll,
+  list,
   getById,
   getCustomerServices,
   getThirdPartyInformation,
   getCustomerFiscalAttests,
   getCustomerInvoices,
   editThirdPartyInformation,
-  editCustomer,
+  updateById,
   getCustomerContacts
 };

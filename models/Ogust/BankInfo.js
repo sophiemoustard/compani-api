@@ -1,26 +1,6 @@
 const Ogust = require('../../config/config').Ogust;
-const rp = require('request-promise');
+const axios = require('axios');
 
-exports.setBankInfoByEmployeeId = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}setBankinfo`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true
-  };
-  const res = await rp.post(options);
-  return res;
-};
+exports.setBankInfoByEmployeeId = async payload => axios.post(`${Ogust.API_LINK}setBankinfo`, payload);
 
-exports.getBankInfoById = async (params) => {
-  const options = {
-    url: `${Ogust.API_LINK}searchBankinfo`,
-    json: true,
-    body: params,
-    resolveWithFullResponse: true,
-    time: true
-  };
-  const res = await rp.post(options);
-  return res;
-};
+exports.getBankInfoById = async payload => axios.post(`${Ogust.API_LINK}searchBankinfo`, payload);

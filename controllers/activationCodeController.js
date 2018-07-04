@@ -1,60 +1,52 @@
-const _ = require('lodash');
 const randomize = require('randomatic');
+const Boom = require('boom');
 
 const tokenProcess = require('../helpers/tokenProcess');
+const ActivationCode = require('../models/ActivationCode');
 const translate = require('../helpers/translate');
 
-const language = translate.language;
+const { language } = translate;
 
-const ActivationCode = require('../models/ActivationCode');
-
-const createActivationCode = async (req, res) => {
+const createActivationCode = async (req) => {
   try {
-    if (!req.body.mobile_phone || !req.body.sector || !req.body.managerId) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
-    req.body.code = randomize('0000');
-    req.body.firstSMS = Date.now();
-    const payload = _.pick(req.body, ['mobile_phone', 'code', 'sector', 'managerId', 'firstSMS']);
-    const activationData = new ActivationCode(payload);
+    req.payload.code = randomize('0000');
+    req.payload.firstSMS = Date.now();
+    const activationData = new ActivationCode(req.payload);
     await activationData.save();
-    return res.status(200).json({ success: true, message: translate[language].activationCodeCreated, data: { activationData } });
+    return { message: translate[language].activationCodeCreated, data: { activationData } };
   } catch (e) {
-    console.error(e.message);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
   }
 };
 
-const checkActivationCode = async (req, res) => {
+const checkActivationCode = async (req) => {
   try {
-    if (!req.params.code) {
-      return res.status(400).json({ success: false, message: translate[language].missingParameters });
-    }
     const activationData = await ActivationCode.findOne({ code: req.params.code });
     if (!activationData) {
-      return res.status(404).json({ success: false, message: translate[language].activationCodeNotFoundOrInvalid });
+      return Boom.notFound(translate[language].activationCodeNotFoundOrInvalid);
     }
     // 2 days expire
     const expireTime = 604800;
     const token = tokenProcess.encode({ activationData }, expireTime);
-    return res.status(200).json({ success: true, message: translate[language].activationCodeValidated, data: { activationData, token } });
+    return { message: translate[language].activationCodeValidated, data: { activationData, token } };
   } catch (e) {
-    console.error(e.message);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
   }
 };
 
-const deleteActivationCode = async (req, res) => {
+const deleteActivationCode = async (req) => {
   try {
     const activationData = await ActivationCode.findOne({ mobile_phone: req.params.mobile_phone });
     if (!activationData) {
-      return res.status(404).json({ success: false, message: translate[language].activationCodeNotFoundOrInvalid });
+      return Boom.notFound(translate[language].activationCodeNotFoundOrInvalid);
     }
     const deleteActivationData = await ActivationCode.findByIdAndRemove({ _id: activationData._id });
-    return res.status(200).json({ success: true, message: translate[language].activationCodeDeleted, data: { deleteActivationData } });
+    return { message: translate[language].activationCodeDeleted, data: { deleteActivationData } };
   } catch (e) {
-    console.error(e.message);
-    return res.status(500).json({ success: false, message: translate[language].unexpectedBehavior });
+    req.log('error', e);
+    return Boom.badImplementation(translate[language].unexpectedBehavior);
   }
 };
 

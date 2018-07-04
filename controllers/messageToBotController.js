@@ -1,99 +1,90 @@
+const Boom = require('boom');
+
 const translate = require('../helpers/translate');
 const User = require('../models/User');
 const MessageToBot = require('../models/MessageToBot');
 const { redirectToBot } = require('../models/Bot/bot');
 
-const language = translate.language;
+const { language } = translate;
 
-const getAllMessages = async (req, res) => {
+const list = async (req) => {
   try {
-    const messages = await MessageToBot.find({});
+    const messages = await MessageToBot.find(req.query);
     if (messages.length === 0) {
-      return res.status(404).json({ success: false, message: translate[language].getAllMessagesNotFound });
+      return Boom.notFound(translate[language].getAllMessagesNotFound);
     }
-    return res.status(200).json({ success: true, message: translate[language].getAllMessagesFound, data: { messages } });
+    return { message: translate[language].getAllMessagesFound, data: { messages } };
   } catch (e) {
-    console.error(e.message);
-    return res.status(500).send({ success: false, message: `Erreur: ${translate[language].unexpectedBehavior}` });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const getMessagesBySenderId = async (req, res) => {
+const storeMessage = async (req) => {
   try {
-    if (!req.params._id) {
-      return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
-    }
-    const messages = await MessageToBot.find({ senderId: req.params._id });
-    if (messages.length === 0) {
-      return res.status(404).json({ success: false, message: translate[language].getAllMessagesNotFound });
-    }
-    return res.status(200).json({ success: true, message: translate[language].getAllMessagesFound, data: { messages } });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).send({ success: false, message: `Erreur: ${translate[language].unexpectedBehavior}` });
-  }
-};
-
-const storeMessage = async (req, res) => {
-  try {
-    if (!req.body.message || !req.query.senderId || !req.body.sectors) {
-      return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
-    }
     const payload = {
-      senderId: req.query.senderId,
-      content: req.body.message,
-      sectors: req.body.sectors
+      senderId: req.payload.senderId,
+      content: req.payload.message,
+      sectors: req.payload.sectors
     };
     const message = new MessageToBot(payload);
     await message.save();
-    return res.status(200).send({ success: true, message: translate[language].storeMessage, data: { message } });
+    return { message: translate[language].storeMessage, data: { message } };
   } catch (e) {
-    console.error(e.message);
-    return res.status(500).send({ success: false, message: `Erreur: ${translate[language].unexpectedBehavior}` });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const sendMessageById = async (req, res) => {
+const getById = async (req) => {
   try {
-    if (!req.params._id || !req.query.recipientId) {
-      return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
-    }
-    const userAddressRaw = await User.findOne({ _id: req.query.recipientId, 'facebook.address': { $exists: true } }, { 'facebook.address': 1 });
-    if (!userAddressRaw) {
-      return res.status(404).send({ success: false, message: translate[language].userAddressNotFound });
-    }
-    const userAddress = userAddressRaw.facebook.address;
     const message = await MessageToBot.findOne({ _id: req.params._id });
     if (!message) {
-      return res.status(404).send({ success: false, message: translate[language].messageNotFound });
+      return Boom.notFound(translate[language].messageNotFound);
     }
-    const sentMessage = await redirectToBot(userAddress, message.content);
-    return res.status(200).send({ success: true, message: translate[language].sentMessageToUserBot, data: { user: sentMessage } });
+    return { message: 'Message Found', data: { message } };
   } catch (e) {
-    console.error(e.message);
-    return res.status(500).send({ success: false, message: `Erreur: ${translate[language].unexpectedBehavior}` });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-const addMessageRecipientById = async (req, res) => {
+const sendMessageById = async (req) => {
   try {
-    if (!req.params._id || req.body.success === undefined || !req.body.recipientId) {
-      return res.status(400).send({ success: false, message: `Erreur: ${translate[language].missingParameters}` });
+    const userAddressRaw = await User.findOne({ _id: req.payload.recipientId, 'facebook.address': { $exists: true } }, { 'facebook.address': 1 });
+    if (!userAddressRaw) {
+      return Boom.notFound(translate[language].userAddressNotFound);
     }
+    const userAddress = userAddressRaw.facebook.address;
+    const sentMessage = await redirectToBot({ address: userAddress, message: req.payload.message });
+    return { message: sentMessage.data, data: { message: req.payload.message } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const addMessageRecipientById = async (req) => {
+  try {
     const payload = {
-      id: req.body.recipientId,
-      success: req.body.success
+      id: req.payload.recipientId,
+      success: req.payload.success
     };
-    console.log(payload);
     const updatedMessage = await MessageToBot.findOneAndUpdate({ _id: req.params._id }, { $push: { recipients: payload } }, { new: true });
     if (!updatedMessage) {
-      return res.status(404).send({ success: false, message: translate[language].messageNotFound });
+      return Boom.notFound(translate[language].messageNotFound);
     }
-    return res.status(200).send({ success: true, message: translate[language].messageRecipientUpdated, data: { message: updatedMessage } });
+    return { message: translate[language].messageRecipientUpdated, data: { message: updatedMessage } };
   } catch (e) {
-    console.error(e.message);
-    return res.status(500).send({ success: false, message: `Erreur: ${translate[language].unexpectedBehavior}` });
+    req.log('error', e);
+    return Boom.badImplementation();
   }
 };
 
-module.exports = { getAllMessages, getMessagesBySenderId, storeMessage, sendMessageById, addMessageRecipientById };
+module.exports = {
+  list,
+  getById,
+  storeMessage,
+  sendMessageById,
+  addMessageRecipientById
+};
