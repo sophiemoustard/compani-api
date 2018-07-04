@@ -21,7 +21,10 @@ const list = async (req) => {
         messageList.push(message);
       });
     });
-    return messages;
+    return {
+      message: translate[language].smsListFound,
+      data: { messages }
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
