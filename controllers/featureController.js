@@ -73,7 +73,6 @@ const update = async (req) => {
       }
     };
   } catch (e) {
-    // Error code when there is a duplicate key, in this case : the name (unique field)
     if (e.code === 11000) {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].featureExists);
