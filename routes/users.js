@@ -136,9 +136,10 @@ exports.plugin = {
       path: '/presentation',
       options: {
         validate: {
-          query: {
-            role: Joi.string()
-          }
+          query: Joi.object().keys({
+            role: [Joi.string(), Joi.array()],
+            location: [Joi.string(), Joi.array()]
+          })
         },
         auth: false
       },
