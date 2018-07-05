@@ -1,0 +1,12 @@
+language: node_js
+node_js: "10.4.1"
+deploy:
+  provider: heroku
+  api_key:
+    secure: "DUDshPB4Jvhup9fXkiIuZQPdsUzmNUxA7KLzEAlvSUAL62EQdD5la1ahRaRKKgrgwbgHfiZ5AqqUg14uaeYjNJysj45cj3fg5jIKxE+VwB0NpkpmI7n3OjjIq93UZA2NYmR2OTCHHdzsVydcfB8rQpiZAcEvKz/3RBPRB8qyEyC8m+1y8iLf2Jby8esAS2ymqnluqPUSmMjOKZ2/e4tFbnDq0LhNDt/DHIFHjIFUdubcrTM9rCOJP/wolEflfw+9n+ZrOqC6oeBt3zpLjO4CNGpqomsDguvpikXRHxBEs4AT3TRcy6HfNCsMzrkBzb5jPWRc4EH5tbmbUQfedA8OEEijjxvxJ4aWW04Vzaby03kpAnYHaX62QDW6xV96PyoblkDjc7EgWpoGXhh3hzmPrC0CDuQALSEXDxfU1GwJDD7Ne+DGxfiubQYqog65kB/u4cghCyjqm4smsl0AWGKu482P2DeMCTKpmwSJxmBfk4PjuC/xrSBYX80VKepty0MO6ENBrhT8m0Rw+Kh3GaBOF9FoILgdp/5WoQ5VIp27WiPj2/60G7izZPwCu+IdWbG+AIYsPYqNTD17QnLLUuF/PvvV5DkpHFYSqk/+sJR10KXLpdfKVKECN/na+OVDarsvB9Q9csQotwBbOgvP9OoSTNBVJaTb2s2ygB6OaBA9GLM="
+  app: alenvi-api-dev
+addons:
+  apt:
+    packages:
+    - mongodb-org
+services: mongodb
