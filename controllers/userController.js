@@ -288,9 +288,11 @@ const getPresentation = async (req) => {
       _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1
     }).populate({
       path: 'role',
+      model: Role,
       select: '-__v -createdAt -updatedAt',
       populate: {
         path: 'features.feature_id',
+        model: Feature,
         select: '-__v -createdAt -updatedAt'
       }
     }).lean();
