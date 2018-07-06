@@ -19,6 +19,9 @@ module.exports = {
       if (!user) {
         return Boom.notFound(translate[language].userAuthNotFound);
       }
+      if (!user.refreshToken) {
+        return Boom.forbidden();
+      }
       if (!await bcrypt.compare(req.payload.password, user.local.password)) {
         return Boom.unauthorized(translate[language].userAuthFailed);
       }
