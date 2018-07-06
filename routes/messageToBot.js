@@ -20,8 +20,8 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            message: Joi.string().required(),
-            sectors: Joi.string().required(),
+            content: Joi.string().required(),
+            sectors: Joi.alternatives().try(Joi.string().required(), Joi.array().required()).required(),
             senderId: Joi.objectId().required(),
           })
         },
