@@ -3,6 +3,7 @@
 require('dotenv').config();
 const Hapi = require('hapi');
 
+const { mongooseConnection } = require('./config/mongoose');
 const { routes } = require('./routes/index');
 const { plugins } = require('./plugins/index');
 
@@ -41,9 +42,8 @@ const init = async () => {
 
   await server.register([...routes]);
 
-
   await server.start();
-  require('./config/mongoose');
+  mongooseConnection(server);
   server.log('info', `Server running at: ${server.info.uri}`);
 };
 

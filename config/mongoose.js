@@ -4,20 +4,22 @@ const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
 
-if (process.env.NODE_ENV === 'test') {
-  mongoose.connect('mongodb://localhost:27017/hapitest');
-} else {
-  mongoose.connect(process.env.MONGODB_URI);
-}
+exports.mongooseConnection = (server) => {
+  if (process.env.NODE_ENV === 'test') {
+    mongoose.connect('mongodb://localhost:27017/hapitest');
+  } else {
+    mongoose.connect(process.env.MONGODB_URI);
+  }
 
-// When successfully connected
-mongoose.connection.once('connected', () => console.log('Successfully connected to MongoDB'));
+  // When successfully connected
+  mongoose.connection.once('connected', () => server.log(['info', 'db'], 'Successfully connected to MongoDB'));
 
-// If the connection throws an error
-mongoose.connection.on('error', (err) => {
-  console.error('There was a db connection error');
-  return (err.message);
-});
+  // If the connection throws an error
+  mongoose.connection.on('error', (err) => {
+    server.log(['error', 'db'], 'There was a db connection error');
+    return (err.message);
+  });
 
-// When the connection is disconnected
-mongoose.connection.once('disconnected', () => console.log('Successfully disconnected from MongoDB'));
+  // When the connection is disconnected
+  mongoose.connection.once('disconnected', () => server.log(['info', 'db'], 'Successfully disconnected from MongoDB'));
+};
