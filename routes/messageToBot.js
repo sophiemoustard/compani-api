@@ -21,7 +21,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             content: Joi.string().required(),
-            sectors: Joi.alternatives().try(Joi.string().required(), Joi.array().required()).required(),
+            sectors: Joi.alternatives().try(Joi.string(), Joi.array()).required(),
             senderId: Joi.objectId().required(),
           })
         },
@@ -58,7 +58,7 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: Joi.object().keys({
-            success: Joi.boolean().required(),
+            success: Joi.boolean().default(false),
             recipientId: Joi.objectId().required(),
           })
         },

@@ -22,12 +22,7 @@ const list = async (req) => {
 
 const storeMessage = async (req) => {
   try {
-    const payload = {
-      senderId: req.payload.senderId,
-      content: req.payload.message,
-      sectors: req.payload.sectors
-    };
-    const message = new MessageToBot(payload);
+    const message = new MessageToBot(req.payload);
     await message.save();
     return { message: translate[language].storeMessage, data: { message } };
   } catch (e) {
