@@ -40,7 +40,7 @@ describe('FEATURES ROUTES', () => {
     });
 
     it('should add feature to all existing roles with zero as permission level', async () => {
-      const roles = await Role.find({});
+      const roles = await Role.find({}, {}, { autopopulate: false });
       roles.filter(role => !role.name.match(/^Admin$/i)).forEach((role) => {
         expect(role.features).toEqual(expect.arrayContaining([
           expect.objectContaining({
@@ -52,7 +52,7 @@ describe('FEATURES ROUTES', () => {
     });
 
     it('should add feature to admin role with 2 as permission level', async () => {
-      const admin = await Role.find({ name: 'Admin' });
+      const admin = await Role.find({ name: 'Admin' }, {}, { autopopulate: false });
       expect(admin[0].features).toEqual(expect.arrayContaining([
         expect.objectContaining({
           feature_id: res.result.data.feature._id,
