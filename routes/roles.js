@@ -3,7 +3,13 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { create, update, showAll, showById, remove } = require('../controllers/roleController');
+const {
+  create,
+  update,
+  showAll,
+  showById,
+  remove
+} = require('../controllers/roleController');
 
 exports.plugin = {
   name: 'routes-roles',
