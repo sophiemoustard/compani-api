@@ -4,6 +4,7 @@ require('dotenv').config();
 const Hapi = require('hapi');
 
 const { mongooseConnection } = require('./config/mongoose');
+const { validate } = require('./helpers/authValidate');
 const { routes } = require('./routes/index');
 const { plugins } = require('./plugins/index');
 
@@ -19,15 +20,6 @@ const server = Hapi.server({
     }
   }
 });
-
-
-const validate = async (decoded) => {
-  const credentials = {
-    _id: decoded._id,
-    scope: [decoded.role, `user-${decoded._id}`]
-  };
-  return { isValid: true, credentials };
-};
 
 const init = async () => {
   await server.register([...plugins]);
