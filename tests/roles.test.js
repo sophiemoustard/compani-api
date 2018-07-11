@@ -34,7 +34,7 @@ describe('ROLES ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.role).toEqual(expect.objectContaining({
-        _id: expect.any(String),
+        _id: expect.any(Object),
         name: rolePayload.name,
         features: expect.arrayContaining([
           {
@@ -51,7 +51,7 @@ describe('ROLES ROUTES', () => {
           }
         ])
       }));
-      const role = await Role.findById(res.result.data.role._id);
+      const role = await Role.findById(res.result.data.role._id, {}, { autopopulate: false });
       expect(role.name).toBe(rolePayload.name);
       expect(role.features).toEqual(expect.arrayContaining([
         expect.objectContaining({

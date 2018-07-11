@@ -45,25 +45,17 @@ const create = async (req) => {
     }
     const role = new Role(createPayload);
     await role.save();
-    const populatedRole = await Role.findOne({
-      _id: role._id
-    }).populate('features.feature_id').lean();
-    const payload = {
-      _id: populatedRole._id.toHexString(),
-      name: populatedRole.name,
-      features: []
-    };
-    for (let i = 0, l = populatedRole.features.length; i < l; i++) {
-      payload.features.push({
-        _id: populatedRole.features[i].feature_id._id,
-        [populatedRole.features[i].feature_id.name]: populatedRole.features[i].permission_level
-      });
-    }
+    const newRole = await Role.findOne({ _id: role._id });
+    const objRole = newRole.toObject();
+    objRole.features = objRole.features.map(feature => ({
+      _id: feature.feature_id._id,
+      [feature.feature_id.name]: feature.permission_level
+    }));
     return {
       success: true,
       message: translate[language].roleCreated,
       data: {
-        role: payload
+        role: objRole
       }
     };
   } catch (e) {
@@ -78,7 +70,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const role = await Role.findById(req.params._id);
+    const role = await Role.findById(req.params._id, {}, { autopopulate: false });
     if (!role) return Boom.notFound(translate[language].roleNotFound);
     // const leanRole = role.toObject();
     const payload = {};
@@ -136,18 +128,11 @@ const update = async (req) => {
 
 const showAll = async (req) => {
   try {
-    const roles = await Role.find(req.query, {
-      'features._id': 0,
-      updatedAt: 0,
-      createdAt: 0,
-      __v: 0
-    }).populate({
-      path: 'features.feature_id',
-      select: 'name _id'
-    }).lean();
+    let roles = await Role.find(req.query);
     if (roles.length === 0) {
       return Boom.notFound(translate[language].rolesShowAllNotFound);
     }
+    roles = roles.map(role => role.toObject());
     roles.forEach((role) => {
       if (role && role.features) {
         role.features = populateRole(role.features);
@@ -167,17 +152,7 @@ const showAll = async (req) => {
 
 const showById = async (req) => {
   try {
-    const role = await Role.findOne({
-      _id: req.params._id
-    }, {
-      'features._id': 0,
-      updatedAt: 0,
-      createdAt: 0,
-      __v: 0
-    }).populate({
-      path: 'features.feature_id',
-      select: 'name _id'
-    }).lean();
+    const role = await Role.findOne({ _id: req.params._id });
     if (!role) {
       return Boom.notFound(translate[language].roleNotFound);
     }

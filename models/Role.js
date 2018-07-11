@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const autopopulate = require('mongoose-autopopulate');
 
 // Feature schema
 const RoleSchema = mongoose.Schema({
@@ -12,7 +13,8 @@ const RoleSchema = mongoose.Schema({
   features: [{
     feature_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Feature'
+      ref: 'Feature',
+      autopopulate: { select: 'name _id' }
     },
     permission_level: {
       type: Number,
@@ -22,6 +24,17 @@ const RoleSchema = mongoose.Schema({
     }
   }]
 }, { timestamps: true });
-// timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
+
+// function populateRoles() {
+//   console.log(this.getQuery());
+//   this.populate({
+//     path: 'features.feature_id',
+//     select: '_id name',
+//     model: Feature
+//   });
+// }
+
+// RoleSchema.pre('find', populateRoles);
+RoleSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('Role', RoleSchema);
