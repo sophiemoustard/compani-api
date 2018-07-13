@@ -6,7 +6,7 @@ const { getToken, populateUsers } = require('./seed/usersSeed');
 const {
   populateRoles,
   rolePayload,
-  wrongRolePayload,
+  rightsList,
   rolesList
 } = require('./seed/rolesSeed');
 const Role = require('../models/Role');
@@ -36,37 +36,83 @@ describe('ROLES ROUTES', () => {
       expect(res.result.data.role).toEqual(expect.objectContaining({
         _id: expect.any(Object),
         name: rolePayload.name,
-        features: expect.arrayContaining([
-          {
-            _id: rolePayload.features[0]._id,
-            [rolePayload.features[0].name]: rolePayload.features[0].permission_level
-          },
-          {
-            _id: rolePayload.features[1]._id,
-            [rolePayload.features[1].name]: rolePayload.features[1].permission_level
-          },
-          {
-            _id: rolePayload.features[2]._id,
-            [rolePayload.features[2].name]: rolePayload.features[2].permission_level
-          }
+        rights: expect.arrayContaining([
+          expect.objectContaining({
+            _id: rolePayload.rights[0].right_id,
+            name: rightsList[0].name,
+            permission: rightsList[0].permission,
+            description: rightsList[0].description,
+            hasAccess: rolePayload.rights[0].hasAccess
+          }),
+          expect.objectContaining({
+            _id: rolePayload.rights[1].right_id,
+            name: rightsList[1].name,
+            permission: rightsList[1].permission,
+            description: rightsList[1].description,
+            hasAccess: rolePayload.rights[1].hasAccess
+          }),
+          expect.objectContaining({
+            _id: rolePayload.rights[2].right_id,
+            name: rightsList[2].name,
+            permission: rightsList[2].permission,
+            description: rightsList[2].description,
+            hasAccess: rolePayload.rights[2].hasAccess
+          }),
         ])
       }));
       const role = await Role.findById(res.result.data.role._id, {}, { autopopulate: false });
       expect(role.name).toBe(rolePayload.name);
-      expect(role.features).toEqual(expect.arrayContaining([
+      expect(role.rights).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          feature_id: rolePayload.features[0]._id,
-          permission_level: rolePayload.features[0].permission_level
+          right_id: rolePayload.rights[0].right_id,
+          hasAccess: rolePayload.rights[0].hasAccess
         }),
         expect.objectContaining({
-          feature_id: rolePayload.features[1]._id,
-          permission_level: rolePayload.features[1].permission_level
+          right_id: rolePayload.rights[1].right_id,
+          hasAccess: rolePayload.rights[1].hasAccess
         }),
         expect.objectContaining({
-          feature_id: rolePayload.features[2]._id,
-          permission_level: rolePayload.features[2].permission_level
+          right_id: rolePayload.rights[2].right_id,
+          hasAccess: rolePayload.rights[2].hasAccess
         })
       ]));
+    });
+
+    it('should create a role with existing rights (access to false) if they are not provided', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/roles',
+        payload: { name: 'Test' },
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.role).toEqual(expect.objectContaining({
+        _id: expect.any(Object),
+        name: rolePayload.name,
+        rights: expect.arrayContaining([
+          expect.objectContaining({
+            _id: rightsList[0]._id,
+            name: rightsList[0].name,
+            permission: rightsList[0].permission,
+            description: rightsList[0].description,
+            hasAccess: false
+          }),
+          expect.objectContaining({
+            _id: rightsList[1]._id,
+            name: rightsList[1].name,
+            permission: rightsList[1].permission,
+            description: rightsList[1].description,
+            hasAccess: false
+          }),
+          expect.objectContaining({
+            _id: rightsList[2]._id,
+            name: rightsList[2].name,
+            permission: rightsList[2].permission,
+            description: rightsList[2].description,
+            hasAccess: false
+          }),
+        ])
+      }));
     });
 
     it('should return a 400 error if missing payload', async () => {
@@ -78,20 +124,10 @@ describe('ROLES ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 400 error if features permission level are wrong', async () => {
-      const res = await app.inject({
-        method: 'POST',
-        url: '/roles',
-        payload: wrongRolePayload,
-        headers: { 'x-access-token': token }
-      });
-      expect(res.statusCode).toBe(400);
-    });
-
     it('should return a 409 error if role already exists', async () => {
       const payload = {
         name: rolesList[0].name,
-        features: rolesList[0].features
+        rights: rolesList[0].rights
       };
       const res = await app.inject({
         method: 'POST',
@@ -107,14 +143,14 @@ describe('ROLES ROUTES', () => {
     it('should update role', async () => {
       const payload = {
         name: 'Kokonut',
-        features: [
+        rights: [
           {
-            _id: rolesList[0].features[0].feature_id,
-            permission_level: 0
+            _id: rolesList[0].rights[0].right_id,
+            hasAccess: false
           },
           {
-            _id: rolesList[1].features[1].feature_id,
-            permission_level: 1
+            _id: rolesList[1].rights[1].right_id,
+            hasAccess: false
           },
         ]
       };
@@ -128,29 +164,30 @@ describe('ROLES ROUTES', () => {
       expect(res.result.data.role).toEqual(expect.objectContaining({
         _id: rolesList[0]._id,
         name: payload.name,
-        features: expect.arrayContaining([
+        rights: expect.arrayContaining([
           expect.objectContaining({
-            _id: payload.features[0]._id,
-            permission_level: payload.features[0].permission_level
+            _id: payload.rights[0]._id,
+            hasAccess: payload.rights[0].hasAccess
           }),
           expect.objectContaining({
-            _id: payload.features[1]._id,
-            permission_level: payload.features[1].permission_level
+            _id: payload.rights[1]._id,
+            hasAccess: payload.rights[1].hasAccess
           })
         ])
       }));
     });
+
     it('should return a 404 error if role id does not exist', async () => {
       const payload = {
         name: 'Kokonut',
-        features: [
+        rights: [
           {
-            _id: rolesList[0].features[0].feature_id,
-            permission_level: 0
+            _id: rolesList[0].rights[0].right_id,
+            hasAccess: false
           },
           {
-            _id: rolesList[1].features[1].feature_id,
-            permission_level: 1
+            _id: rolesList[1].rights[1].right_id,
+            hasAccess: false
           },
         ]
       };
@@ -162,12 +199,13 @@ describe('ROLES ROUTES', () => {
       });
       expect(res.statusCode).toBe(404);
     });
+
     it('should return a 400 error if id is not valid', async () => {
       const payload = {
         name: 'Kokonut',
-        features: [
+        rights: [
           {
-            _id: rolesList[0].features[0].feature_id,
+            _id: rolesList[0].rights[0].right_id,
             permission_level: 0
           },
         ]
@@ -193,10 +231,12 @@ describe('ROLES ROUTES', () => {
       expect(res.result.data.roles.length).toBe(4);
       expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
         name: expect.any(String),
-        features: expect.arrayContaining([
+        rights: expect.arrayContaining([
           expect.objectContaining({
             name: expect.any(String),
-            permission_level: expect.any(Number)
+            permission: expect.any(String),
+            description: expect.any(String),
+            hasAccess: expect.any(Boolean)
           })
         ])
       }));
@@ -222,18 +262,27 @@ describe('ROLES ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.role).toEqual(expect.objectContaining({
         name: expect.any(String),
-        features: expect.arrayContaining([
+        rights: expect.arrayContaining([
           expect.objectContaining({
-            _id: rolesList[0].features[0].feature_id,
-            permission_level: rolesList[0].features[0].permission_level
+            _id: rolesList[0].rights[0].right_id,
+            name: rightsList[0].name,
+            permission: rightsList[0].permission,
+            description: rightsList[0].description,
+            hasAccess: rolesList[0].rights[0].hasAccess
           }),
           expect.objectContaining({
-            _id: rolesList[0].features[1].feature_id,
-            permission_level: rolesList[0].features[1].permission_level
+            _id: rolesList[0].rights[1].right_id,
+            name: rightsList[1].name,
+            permission: rightsList[1].permission,
+            description: rightsList[1].description,
+            hasAccess: rolesList[0].rights[1].hasAccess
           }),
           expect.objectContaining({
-            _id: rolesList[0].features[2].feature_id,
-            permission_level: rolesList[0].features[2].permission_level
+            _id: rolesList[0].rights[2].right_id,
+            name: rightsList[2].name,
+            permission: rightsList[2].permission,
+            description: rightsList[2].description,
+            hasAccess: rolesList[0].rights[2].hasAccess
           })
         ])
       }));

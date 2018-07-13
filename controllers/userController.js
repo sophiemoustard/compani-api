@@ -15,7 +15,7 @@ const { language } = translate;
 
 const User = require('../models/User');
 const Role = require('../models/Role');
-const Feature = require('../models/Feature');
+const Right = require('../models/Right');
 const drive = require('../models/Uploader/GoogleDrive');
 
 // Authenticate the user locally
@@ -25,8 +25,8 @@ const authenticate = async (req) => {
       path: 'role',
       model: Role,
       populate: {
-        path: 'features.feature_id',
-        model: Feature
+        path: 'rights.right_id',
+        model: Right
       }
     }).lean();
     if (!alenviUser) {
@@ -49,8 +49,6 @@ const authenticate = async (req) => {
     const token = tokenProcess.encode(user, expireTime);
     const { refreshToken } = alenviUser;
     req.log('info', `${req.payload.email} connected`);
-    // return the information including token as JSON
-    // return res.status(200).json({ success: true, message: translate[language].userAuthentified, data: { token, user } });
     return {
       message: translate[language].userAuthentified,
       data: {
@@ -114,12 +112,12 @@ const create = async (req) => {
       model: Role,
       select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features.feature_id',
-        model: Feature,
+        path: 'rights.right_id',
+        model: Right,
         select: '-__v -createdAt -updatedAt'
       }
     }).lean();
-    populatedUser.role.features = populateRole(populatedUser.role.features);
+    populatedUser.role.rights = populateRole(populatedUser.role.rights);
     const payload = {
       _id: populatedUser._id.toHexString(),
       role: populatedUser.role,
@@ -160,12 +158,12 @@ const list = async (req) => {
     delete req.query.email;
   }
   const params = _.pickBy(req.query);
-  // We populate the user with role data and then we populate the role with features data
+  // We populate the user with role data and then we populate the role with rights data
   let users = await User.find(params, { planningModification: 0 }).populate({
     path: 'role',
     select: '-__v -updatedAt',
     populate: {
-      path: 'features.feature_id',
+      path: 'rights.right_id',
       select: '-__v -createdAt -updatedAt'
     }
   });
@@ -173,12 +171,13 @@ const list = async (req) => {
     return Boom.notFound(translate[language].userShowAllNotFound);
   }
   // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
-  users = users.map(user => user.toObject());
-  for (let i = 0, l = users.length; i < l; i++) {
-    if (users[i].role && users[i].role.features) {
-      users[i].role.features = populateRole(users[i].role.features);
+  users = users.map((user) => {
+    user = user.toObject();
+    if (user.role && user.role.rights) {
+      user.role.rights = populateRole(user.role.rights);
     }
-  }
+    return user;
+  });
   return {
     message: translate[language].userShowAllFound,
     data: {
@@ -194,15 +193,15 @@ const show = async (req) => {
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features.feature_id',
+        path: 'rights.right_id',
         select: '-__v -createdAt -updatedAt'
       }
     }).lean();
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
     }
-    if (user.role && user.role.features) {
-      user.role.features = populateRole(user.role.features);
+    if (user.role && user.role.rights) {
+      user.role.rights = populateRole(user.role.rights);
     }
     return {
       message: translate[language].userFound,
@@ -232,15 +231,15 @@ const update = async (req) => {
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features.feature_id',
+        path: 'rights.right_id',
         select: '-__v -createdAt -updatedAt'
       }
     }).lean();
     if (!userUpdated) {
       return Boom.notFound(translate[language].userNotFound);
     }
-    if (userUpdated.role && userUpdated.role.features) {
-      userUpdated.role.features = populateRole(userUpdated.role.features);
+    if (userUpdated.role && userUpdated.role.rights) {
+      userUpdated.role.rights = populateRole(userUpdated.role.rights);
     }
     return {
       message: translate[language].userUpdated,
@@ -291,8 +290,8 @@ const getPresentation = async (req) => {
       model: Role,
       select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features.feature_id',
-        model: Feature,
+        path: 'rights.right_id',
+        model: Right,
         select: '-__v -createdAt -updatedAt'
       }
     }).lean();
@@ -316,7 +315,7 @@ const refreshToken = async (req) => {
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features.feature_id',
+        path: 'rights.right_id',
         select: '-__v -createdAt -updatedAt'
       }
     }).lean();
@@ -388,7 +387,7 @@ const checkResetPasswordToken = async (req) => {
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {
-        path: 'features.feature_id',
+        path: 'rights.right_id',
         select: '-__v -createdAt -updatedAt'
       }
     }).lean();

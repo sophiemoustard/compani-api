@@ -1,20 +1,42 @@
 const { ObjectID } = require('mongodb');
 
 const Role = require('../../models/Role');
-const Feature = require('../../models/Feature');
+const Right = require('../../models/Right');
+// const Feature = require('../../models/Feature');
 
-const featuresList = [
+// const featuresList = [
+//   {
+//     _id: new ObjectID(),
+//     name: 'feature1',
+//   },
+//   {
+//     _id: new ObjectID(),
+//     name: 'feature2',
+//   },
+//   {
+//     _id: new ObjectID(),
+//     name: 'feature3',
+//   }
+// ];
+
+const rightsList = [
   {
     _id: new ObjectID(),
-    name: 'feature1',
+    name: 'right1',
+    description: 'right1',
+    permission: 'right1:read'
   },
   {
     _id: new ObjectID(),
-    name: 'feature2',
+    name: 'right2',
+    description: 'right2',
+    permission: 'right2:write'
   },
   {
     _id: new ObjectID(),
-    name: 'feature3',
+    name: 'right3',
+    description: 'right3',
+    permission: 'right3:write'
   }
 ];
 
@@ -22,72 +44,72 @@ const rolesList = [
   {
     _id: new ObjectID(),
     name: 'Tech',
-    features: [
+    rights: [
       {
-        feature_id: featuresList[0]._id,
-        permission_level: 2
+        right_id: rightsList[0]._id,
+        hasAccess: true
       },
       {
-        feature_id: featuresList[1]._id,
-        permission_level: 2
+        right_id: rightsList[1]._id,
+        hasAccess: true
       },
       {
-        feature_id: featuresList[2]._id,
-        permission_level: 2
+        right_id: rightsList[2]._id,
+        hasAccess: true
       }
     ]
   },
   {
     _id: new ObjectID(),
     name: 'Admin',
-    features: [
+    rights: [
       {
-        feature_id: featuresList[0]._id,
-        permission_level: 2
+        right_id: rightsList[0]._id,
+        hasAccess: true
       },
       {
-        feature_id: featuresList[1]._id,
-        permission_level: 2
+        right_id: rightsList[1]._id,
+        hasAccess: true
       },
       {
-        feature_id: featuresList[2]._id,
-        permission_level: 2
+        right_id: rightsList[2]._id,
+        hasAccess: true
       }
     ]
   },
   {
     _id: new ObjectID(),
     name: 'Coach',
-    features: [
+    rights: [
       {
-        feature_id: featuresList[0]._id,
-        permission_level: 2
+        right_id: rightsList[0]._id,
+        hasAccess: true
       },
       {
-        feature_id: featuresList[1]._id,
-        permission_level: 1
+        right_id: rightsList[1]._id,
+        hasAccess: false
       },
       {
-        feature_id: featuresList[2]._id,
-        permission_level: 1
+        right_id: rightsList[2]._id,
+        hasAccess: true
       }
     ]
   },
   {
     _id: new ObjectID(),
     name: 'Auxiliaire',
-    features: [
+    rights: [
       {
-        feature_id: featuresList[0]._id,
-        permission_level: 1
+        right_id: rightsList[0]._id,
+        hasAccess: true
       },
       {
-        feature_id: featuresList[1]._id,
-        permission_level: 0
+        right_id: rightsList[1]._id,
+        hasAccess: false
       },
       {
-        feature_id: featuresList[2]._id,
-        permission_level: 0
+        right_id: rightsList[2]._id,
+        hasAccess: false
       }
     ]
   },
@@ -95,61 +117,62 @@ const rolesList = [
 
 const rolePayload = {
   name: 'Test',
-  features: [
+  rights: [
     {
-      _id: featuresList[0]._id,
-      name: featuresList[0].name,
-      permission_level: 1
+      right_id: rightsList[0]._id,
+      hasAccess: true
     },
     {
-      _id: featuresList[1]._id,
-      name: featuresList[1].name,
-      permission_level: 1
+      right_id: rightsList[1]._id,
+      hasAccess: true
     },
     {
-      _id: featuresList[2]._id,
-      name: featuresList[2].name,
-      permission_level: 1
+      right_id: rightsList[2]._id,
+      hasAccess: false
     }
   ]
 };
 
 const wrongRolePayload = {
   name: 'T',
-  features: [
+  rights: [
     {
-      _id: featuresList[0]._id,
-      name: featuresList[0].name,
+      _id: rightsList[0]._id,
+      name: rightsList[0].name,
       permission_level: 'meh',
     },
     {
-      _id: featuresList[1]._id,
-      name: featuresList[1].name,
+      _id: rightsList[1]._id,
+      name: rightsList[1].name,
       permission_level: 9
     },
     {
-      _id: featuresList[2]._id,
-      name: featuresList[2].name,
+      _id: rightsList[2]._id,
+      name: rightsList[2].name,
       permission_level: 1
     }
   ]
 };
 
-const featurePayload = { name: 'Test' };
+const rightPayload = { name: 'Test', description: 'test', permission: 'test:read' };
 
 const populateRoles = async () => {
   await Role.remove({});
-  await Feature.remove({});
+  await Right.remove({});
+  // await Feature.remove({});
 
-  await Feature.insertMany(featuresList);
+  // await Feature.insertMany(featuresList);
+  await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
 };
 
 module.exports = {
   rolesList,
-  featuresList,
+  // featuresList,
+  rightsList,
   rolePayload,
   wrongRolePayload,
   populateRoles,
-  featurePayload
+  rightPayload
+  // featurePayload
 };

@@ -12,9 +12,9 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./features'),
+    plugin: require('./rights'),
     routes: {
-      prefix: '/features'
+      prefix: '/rights'
     }
   },
   {

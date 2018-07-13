@@ -9,10 +9,10 @@ const {
   showAll,
   showById,
   remove
-} = require('../controllers/roleController');
+} = require('../controllers/rightController');
 
 exports.plugin = {
-  name: 'routes-roles',
+  name: 'routes-rights',
   register: async (server) => {
     server.route({
       method: 'POST',
@@ -20,9 +20,10 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string().default('Invité'),
-            rights: Joi.array(),
-          }).or('name', 'rights')
+            name: Joi.string().required(),
+            description: Joi.string(),
+            permission: Joi.string().required()
+          })
         },
         auth: {
           strategy: 'jwt',
@@ -38,15 +39,13 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId()
           },
           payload: Joi.object().keys({
-            name: Joi.string().optional(),
-            rights: Joi.array().invalid([]).items(Joi.object().keys({
-              _id: Joi.objectId().required(),
-              hasAccess: Joi.boolean().required()
-            })).optional()
-          }).required()
+            name: Joi.string(),
+            description: Joi.string(),
+            permission: Joi.string()
+          }).or('name', 'description', 'permission')
         },
         auth: {
           strategy: 'jwt',
@@ -62,7 +61,8 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
-            name: Joi.string()
+            name: Joi.string(),
+            permission: Joi.string()
           })
         },
         auth: 'jwt'

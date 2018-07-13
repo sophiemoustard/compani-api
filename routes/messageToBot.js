@@ -45,7 +45,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: ['Admin', 'Tech', 'Coach']
+          scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: sendMessageById
@@ -64,7 +64,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: ['Admin', 'Tech', 'Coach']
+          scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: addMessageRecipientById
@@ -81,7 +81,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: ['Admin', 'Tech', 'Coach']
+          scope: process.env.NODE_ENV === 'test' ? ['right1:read'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: list
@@ -96,7 +96,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: ['Admin', 'Tech', 'Coach']
+          scope: process.env.NODE_ENV === 'test' ? ['right1:read'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: getById

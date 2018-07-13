@@ -1,13 +1,11 @@
-exports.populateRole = (features) => {
-  const formattedFeatures = [];
-  features.forEach((feature) => {
-    if (feature.feature_id && feature.feature_id._id && feature.feature_id.name) {
-      formattedFeatures.push({
-        _id: feature.feature_id._id,
-        name: feature.feature_id.name,
-        permission_level: feature.permission_level
-      });
-    }
-  });
-  return formattedFeatures;
-};
+exports.populateRole = rights => rights.map((right) => {
+  if (right.right_id && right.right_id._id && right.right_id.name) {
+    return {
+      _id: right.right_id._id,
+      name: right.right_id.name,
+      permission: right.right_id.permission,
+      description: right.right_id.description,
+      hasAccess: right.hasAccess
+    };
+  }
+});

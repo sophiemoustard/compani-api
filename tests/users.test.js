@@ -194,7 +194,7 @@ describe('USERS ROUTES', () => {
       expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
         _id: expect.any(Object),
         name: expect.any(String),
-        features: expect.any(Array)
+        rights: expect.any(Array)
       }));
     });
     it('should get all coachs users', async () => {
@@ -208,7 +208,7 @@ describe('USERS ROUTES', () => {
       expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
         _id: expect.any(Object),
         name: expect.any(String),
-        features: expect.any(Array)
+        rights: expect.any(Array)
       }));
     });
     it('should not get users if role given doesn\'t exist', async () => {

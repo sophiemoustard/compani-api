@@ -7,55 +7,29 @@ const { populateRole } = require('../helpers/populateRole');
 const { language } = translate;
 
 const Role = require('../models/Role');
-const Feature = require('../models/Feature');
+const Right = require('../models/Right');
 
 const create = async (req) => {
   try {
-    const createPayload = {
-      name: req.payload.name,
-      features: []
-    };
-    const features = await Feature.find();
-    if (features.length === 0) {
-      return Boom.notFound({
-        success: false,
-        message: translate[language].featuresDoNotExist
-      });
-    }
-    for (let i = 0, l = features.length; i < l; i++) {
-      const existingFeature = _.find(req.payload.features, ['_id', features[i]._id.toString()]);
-      if (existingFeature && (isNaN(existingFeature.permission_level) || existingFeature.permission_level < 0 || existingFeature.permission_level > 2)) {
-        return Boom.badRequest({
-          success: false,
-          message: translate[language].invalidPermLevel,
-          error: existingFeature
-        });
+    const createPayload = { name: req.payload.name };
+    if (!req.payload.rights) {
+      const rights = await Right.find();
+      if (rights.length > 0) {
+        createPayload.rights = rights.map(right => ({ right_id: right._id }));
       }
-      if (existingFeature) {
-        createPayload.features.push({
-          feature_id: features[i]._id,
-          permission_level: existingFeature.permission_level
-        });
-      } else {
-        createPayload.features.push({
-          feature_id: features[i]._id,
-          permission_level: 0
-        });
-      }
+    } else {
+      createPayload.rights = req.payload.rights;
     }
     const role = new Role(createPayload);
     await role.save();
-    const newRole = await Role.findOne({ _id: role._id });
-    const objRole = newRole.toObject();
-    objRole.features = objRole.features.map(feature => ({
-      _id: feature.feature_id._id,
-      [feature.feature_id.name]: feature.permission_level
-    }));
+    let createdRole = await Role.findById(role._id);
+    createdRole = createdRole.toObject();
+    createdRole.rights = populateRole(createdRole.rights);
     return {
       success: true,
       message: translate[language].roleCreated,
       data: {
-        role: objRole
+        role: createdRole
       }
     };
   } catch (e) {
@@ -70,48 +44,33 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const role = await Role.findById(req.params._id, {}, { autopopulate: false });
-    if (!role) return Boom.notFound(translate[language].roleNotFound);
-    // const leanRole = role.toObject();
-    const payload = {};
-    if (req.payload.name) {
-      payload.name = req.payload.name;
-    }
-    if (req.payload.features) {
-      let features = await Feature.find().lean();
-      features = features.map(feature => ({
-        _id: feature._id.toString()
-      }));
-      payload.features = [];
-      req.payload.features.forEach((feature) => {
-        if (_.find(features, ['_id', feature._id])) {
-          payload.features.push({
-            feature_id: feature._id,
-            permission_level: feature.permission_level
-          });
-        }
+    let roleUpdated = null;
+    if (!req.payload.rights) {
+      roleUpdated = await Role.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
+      if (!roleUpdated) return Boom.notFound(translate[language].roleNotFound);
+    } else {
+      const role = await Role.findById(req.params._id, {}, { autopopulate: false });
+      if (!role) return Boom.notFound(translate[language].roleNotFound);
+      req.payload.rights.forEach((right) => {
+        role.rights = role.rights.map((roleRight) => {
+          if (right._id === roleRight.right_id.toHexString()) {
+            return {
+              right_id: roleRight.right_id,
+              hasAccess: right.hasAccess
+            };
+          }
+          return roleRight;
+        });
       });
-    }
-    for (let i = 0, l = payload.features.length; i < l; i++) {
-      for (let k = 0, len = role.features.length; k < len; k++) {
-        if (payload.features[i].feature_id === role.features[k].feature_id.toString()) {
-          role.features[k].set({
-            permission_level: payload.features[i].permission_level
-          });
-          break;
-        }
-      }
-    }
-    role.name = payload.name;
-    let roleUpdated = await role.save();
-    roleUpdated = await roleUpdated.populate({
-      path: 'features.feature_id',
-      select: '_id name',
-      model: Feature
-    }).execPopulate();
-    roleUpdated = roleUpdated.toObject();
-    if (roleUpdated.features) {
-      roleUpdated.features = populateRole(roleUpdated.features);
+      if (req.payload.name) role.name = req.payload.name;
+      roleUpdated = await role.save();
+      roleUpdated = await roleUpdated.populate({
+        path: 'rights.right_id',
+        select: 'name description permission _id',
+        model: Right
+      }).execPopulate();
+      roleUpdated = roleUpdated.toObject();
+      roleUpdated.rights = populateRole(roleUpdated.rights);
     }
     return {
       message: translate[language].roleUpdated,
@@ -132,11 +91,12 @@ const showAll = async (req) => {
     if (roles.length === 0) {
       return Boom.notFound(translate[language].rolesShowAllNotFound);
     }
-    roles = roles.map(role => role.toObject());
-    roles.forEach((role) => {
-      if (role && role.features) {
-        role.features = populateRole(role.features);
+    roles = roles.map((role) => {
+      role = role.toObject();
+      if (_.isArray(role.rights)) {
+        role.rights = populateRole(role.rights);
       }
+      return role;
     });
     return {
       message: translate[language].rolesShowAllFound,
@@ -152,12 +112,13 @@ const showAll = async (req) => {
 
 const showById = async (req) => {
   try {
-    const role = await Role.findOne({ _id: req.params._id });
+    let role = await Role.findById(req.params._id);
     if (!role) {
       return Boom.notFound(translate[language].roleNotFound);
     }
-    if (role.features) {
-      role.features = populateRole(role.features);
+    role = role.toObject();
+    if (role.rights) {
+      role.rights = populateRole(role.rights);
     }
     return {
       message: translate[language].roleFound,
@@ -173,9 +134,7 @@ const showById = async (req) => {
 
 const remove = async (req) => {
   try {
-    const roleDeleted = await Role.findByIdAndRemove({
-      _id: req.params._id
-    });
+    const roleDeleted = await Role.findByIdAndRemove(req.params._id);
     if (!roleDeleted) {
       return Boom.notFound(translate[language].roleNotFound);
     }

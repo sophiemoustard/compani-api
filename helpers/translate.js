@@ -91,6 +91,15 @@ module.exports = {
     featuresDoNotExist: 'Features do not exist.',
     featureRemoved: 'Feature removed.',
     invalidPermLevel: 'Invalid feature permission level.',
+    /* Feature */
+    rightCreated: 'Right created.',
+    rightDeleted: 'Right deleted.',
+    rightUpdated: 'Right updated.',
+    rightsShowAllNotFound: 'Rights not found.',
+    rightNotFound: 'Right not found',
+    rightExists: 'Right already exists.',
+    rightsDoNotExist: 'Rights do not exist.',
+    rightRemoved: 'Right removed.',
     /* Email */
     emailSent: 'Email successfully sent.',
     /* Reset password token */
