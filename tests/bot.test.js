@@ -32,7 +32,7 @@ describe('BOT ROUTES', () => {
         token: expect.any(String),
         user: expect.objectContaining({
           _id: expect.any(Object),
-          role: rolesList[0]._id,
+          role: expect.objectContaining({ name: userList[1].role }),
           firstname: userList[1].lastname,
           lastname: userList[1].lastname,
           employee_id: userList[1].employee_id,
