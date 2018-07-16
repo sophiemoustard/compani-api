@@ -8,7 +8,7 @@ exports.validate = async (decoded) => {
       name: decodedRole
     });
     let rights = [];
-    if (!role[0].features) { // temporary, it will be removed after RBAC migration is complete
+    if (role[0].features.length === 0) { // temporary, it will be removed after RBAC migration is complete
       if (role.length === 0) throw new Error('Role not found !');
       if (role[0].rights.length === 0) throw new Error('Rights are not set !');
       rights = role[0].rights.filter(right => right.hasAccess).map((right) => {
