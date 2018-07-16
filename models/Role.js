@@ -20,20 +20,20 @@ const RoleSchema = mongoose.Schema({
       type: Boolean,
       default: false
     }
+  }],
+  features: [{
+    feature_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      // ref: 'Feature',
+      // autopopulate: { select: 'name _id' }
+    },
+    permission_level: {
+      type: Number,
+      default: 0,
+      min: [0, 'Value must be between 0 and 2'],
+      max: [2, 'Value must be between 0 and 2']
+    }
   }]
-  // features: [{
-  //   feature_id: {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: 'Feature',
-  //     autopopulate: { select: 'name _id' }
-  //   },
-  //   permission_level: {
-  //     type: Number,
-  //     default: 0,
-  //     min: [0, 'Value must be between 0 and 2'],
-  //     max: [2, 'Value must be between 0 and 2']
-  //   }
-  // }]
 }, { timestamps: true });
 
 RoleSchema.plugin(autopopulate);
