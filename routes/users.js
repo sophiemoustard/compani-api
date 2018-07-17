@@ -109,6 +109,11 @@ exports.plugin = {
             role: Joi.string(),
             picture: Joi.object().keys({
               link: Joi.string()
+            }),
+            resetPassword: Joi.object().keys({
+              token: Joi.string().allow(null),
+              expiresIn: Joi.number().allow(null),
+              from: Joi.string().allow(null),
             })
           }).required()
         },
