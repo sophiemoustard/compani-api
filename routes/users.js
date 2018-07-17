@@ -92,6 +92,7 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
+            _id: Joi.objectId(),
             firstname: Joi.string(),
             lastname: Joi.string(),
             mobilePhone: Joi.string(),
