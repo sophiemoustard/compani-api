@@ -5,6 +5,7 @@ exports.populateRole = rights => rights.map((right) => {
       name: right.right_id.name,
       permission: right.right_id.permission,
       description: right.right_id.description,
+      rolesAllowed: right.rolesAllowed,
       hasAccess: right.hasAccess
     };
   }

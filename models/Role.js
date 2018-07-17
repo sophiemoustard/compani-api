@@ -19,7 +19,13 @@ const RoleSchema = mongoose.Schema({
     hasAccess: {
       type: Boolean,
       default: false
-    }
+    },
+    rolesAllowed: [{
+      role_id: {
+        type: mongoose.Schema.Types.ObjectId,
+      },
+      name: String
+    }]
   }],
   features: [{
     feature_id: {

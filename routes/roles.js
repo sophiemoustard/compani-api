@@ -44,7 +44,11 @@ exports.plugin = {
             name: Joi.string().optional(),
             rights: Joi.array().invalid([]).items(Joi.object().keys({
               _id: Joi.objectId().required(),
-              hasAccess: Joi.boolean().required()
+              hasAccess: Joi.boolean().required(),
+              rolesAllowed: Joi.array().items(Joi.object().keys({
+                role_id: Joi.objectId(),
+                name: Joi.string()
+              }))
             })).optional()
           }).required()
         },

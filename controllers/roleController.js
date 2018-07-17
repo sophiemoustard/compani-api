@@ -56,7 +56,8 @@ const update = async (req) => {
           if (right._id === roleRight.right_id.toHexString()) {
             return {
               right_id: roleRight.right_id,
-              hasAccess: right.hasAccess
+              hasAccess: right.hasAccess,
+              rolesAllowed: right.rolesAllowed && right.rolesAllowed.length > 0 ? right.rolesAllowed : []
             };
           }
           return roleRight;

@@ -146,6 +146,10 @@ describe('ROLES ROUTES', () => {
         rights: [
           {
             _id: rolesList[0].rights[0].right_id,
+            rolesAllowed: [{
+              role_id: rolesList[0]._id,
+              name: rolesList[0].name
+            }],
             hasAccess: false
           },
           {
@@ -167,7 +171,13 @@ describe('ROLES ROUTES', () => {
         rights: expect.arrayContaining([
           expect.objectContaining({
             _id: payload.rights[0]._id,
-            hasAccess: payload.rights[0].hasAccess
+            hasAccess: payload.rights[0].hasAccess,
+            rolesAllowed: expect.arrayContaining([
+              expect.objectContaining({
+                role_id: payload.rights[0].rolesAllowed[0].role_id,
+                name: payload.rights[0].rolesAllowed[0].name
+              })
+            ])
           }),
           expect.objectContaining({
             _id: payload.rights[1]._id,
