@@ -149,7 +149,7 @@ describe('RIGHTS ROUTES', () => {
         headers: { 'x-access-token': token }
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.rights.length).toBe(3);
+      expect(res.result.data.rights.length).toBe(4);
     });
 
     it('should return rights according to query param', async () => {

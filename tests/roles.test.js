@@ -38,21 +38,21 @@ describe('ROLES ROUTES', () => {
         name: rolePayload.name,
         rights: expect.arrayContaining([
           expect.objectContaining({
-            _id: rolePayload.rights[0].right_id,
+            right_id: rolePayload.rights[0].right_id,
             name: rightsList[0].name,
             permission: rightsList[0].permission,
             description: rightsList[0].description,
             hasAccess: rolePayload.rights[0].hasAccess
           }),
           expect.objectContaining({
-            _id: rolePayload.rights[1].right_id,
+            right_id: rolePayload.rights[1].right_id,
             name: rightsList[1].name,
             permission: rightsList[1].permission,
             description: rightsList[1].description,
             hasAccess: rolePayload.rights[1].hasAccess
           }),
           expect.objectContaining({
-            _id: rolePayload.rights[2].right_id,
+            right_id: rolePayload.rights[2].right_id,
             name: rightsList[2].name,
             permission: rightsList[2].permission,
             description: rightsList[2].description,
@@ -91,21 +91,21 @@ describe('ROLES ROUTES', () => {
         name: rolePayload.name,
         rights: expect.arrayContaining([
           expect.objectContaining({
-            _id: rightsList[0]._id,
+            right_id: rightsList[0]._id,
             name: rightsList[0].name,
             permission: rightsList[0].permission,
             description: rightsList[0].description,
             hasAccess: false
           }),
           expect.objectContaining({
-            _id: rightsList[1]._id,
+            right_id: rightsList[1]._id,
             name: rightsList[1].name,
             permission: rightsList[1].permission,
             description: rightsList[1].description,
             hasAccess: false
           }),
           expect.objectContaining({
-            _id: rightsList[2]._id,
+            right_id: rightsList[2]._id,
             name: rightsList[2].name,
             permission: rightsList[2].permission,
             description: rightsList[2].description,
@@ -145,17 +145,21 @@ describe('ROLES ROUTES', () => {
         name: 'Kokonut',
         rights: [
           {
-            _id: rolesList[0].rights[0].right_id,
-            rolesAllowed: [{
+            right_id: rolesList[0].rights[0].right_id,
+            rolesConcerned: [{
               role_id: rolesList[0]._id,
               name: rolesList[0].name
             }],
             hasAccess: false
           },
           {
-            _id: rolesList[1].rights[1].right_id,
+            right_id: rolesList[1].rights[1].right_id,
             hasAccess: false
           },
+          {
+            right_id: rightsList[3]._id,
+            hasAccess: true
+          }
         ]
       };
       const res = await app.inject({
@@ -170,18 +174,22 @@ describe('ROLES ROUTES', () => {
         name: payload.name,
         rights: expect.arrayContaining([
           expect.objectContaining({
-            _id: payload.rights[0]._id,
+            right_id: payload.rights[0].right_id,
             hasAccess: payload.rights[0].hasAccess,
-            rolesAllowed: expect.arrayContaining([
+            rolesConcerned: expect.arrayContaining([
               expect.objectContaining({
-                role_id: payload.rights[0].rolesAllowed[0].role_id,
-                name: payload.rights[0].rolesAllowed[0].name
+                role_id: payload.rights[0].rolesConcerned[0].role_id,
+                name: payload.rights[0].rolesConcerned[0].name
               })
             ])
           }),
           expect.objectContaining({
-            _id: payload.rights[1]._id,
+            right_id: payload.rights[1].right_id,
             hasAccess: payload.rights[1].hasAccess
+          }),
+          expect.objectContaining({
+            right_id: payload.rights[2].right_id,
+            hasAccess: payload.rights[2].hasAccess
           })
         ])
       }));
@@ -192,11 +200,11 @@ describe('ROLES ROUTES', () => {
         name: 'Kokonut',
         rights: [
           {
-            _id: rolesList[0].rights[0].right_id,
+            right_id: rolesList[0].rights[0].right_id,
             hasAccess: false
           },
           {
-            _id: rolesList[1].rights[1].right_id,
+            right_id: rolesList[1].rights[1].right_id,
             hasAccess: false
           },
         ]
@@ -215,7 +223,7 @@ describe('ROLES ROUTES', () => {
         name: 'Kokonut',
         rights: [
           {
-            _id: rolesList[0].rights[0].right_id,
+            right_id: rolesList[0].rights[0].right_id,
             permission_level: 0
           },
         ]
@@ -274,21 +282,21 @@ describe('ROLES ROUTES', () => {
         name: expect.any(String),
         rights: expect.arrayContaining([
           expect.objectContaining({
-            _id: rolesList[0].rights[0].right_id,
+            right_id: rolesList[0].rights[0].right_id,
             name: rightsList[0].name,
             permission: rightsList[0].permission,
             description: rightsList[0].description,
             hasAccess: rolesList[0].rights[0].hasAccess
           }),
           expect.objectContaining({
-            _id: rolesList[0].rights[1].right_id,
+            right_id: rolesList[0].rights[1].right_id,
             name: rightsList[1].name,
             permission: rightsList[1].permission,
             description: rightsList[1].description,
             hasAccess: rolesList[0].rights[1].hasAccess
           }),
           expect.objectContaining({
-            _id: rolesList[0].rights[2].right_id,
+            right_id: rolesList[0].rights[2].right_id,
             name: rightsList[2].name,
             permission: rightsList[2].permission,
             description: rightsList[2].description,

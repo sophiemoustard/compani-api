@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const _ = require('lodash');
+const { ObjectID } = require('mongodb');
 
 const translate = require('../helpers/translate');
 const { populateRole } = require('../helpers/populateRole');
@@ -51,18 +52,31 @@ const update = async (req) => {
     } else {
       const role = await Role.findById(req.params._id, {}, { autopopulate: false });
       if (!role) return Boom.notFound(translate[language].roleNotFound);
-      req.payload.rights.forEach((right) => {
-        role.rights = role.rights.map((roleRight) => {
-          if (right._id === roleRight.right_id.toHexString()) {
-            return {
-              right_id: roleRight.right_id,
-              hasAccess: right.hasAccess,
-              rolesAllowed: right.rolesAllowed && right.rolesAllowed.length > 0 ? right.rolesAllowed : []
-            };
-          }
-          return roleRight;
+      const rights = await Right.find({});
+      if (rights.length === 0) return Boom.notFound(translate[language].rightsShowAllNotFound);
+      const filteredRights = req.payload.rights.filter(payloadRight => _.some(rights, ['_id', new ObjectID(payloadRight.right_id)]));
+      if (role.rights.length > 0) {
+        filteredRights.forEach((right) => {
+          role.rights = role.rights.map((roleRight) => {
+            if (right.right_id === roleRight.right_id.toHexString()) {
+              return {
+                right_id: roleRight.right_id,
+                hasAccess: right.hasAccess,
+                rolesConcerned: right.rolesConcerned && right.rolesConcerned.length > 0 ? right.rolesConcerned : []
+              };
+            }
+            return roleRight;
+          });
         });
-      });
+        const newRights = filteredRights.filter(right => !_.some(role.rights, ['right_id', new ObjectID(right.right_id)]));
+        role.rights.push(...newRights);
+      } else {
+        role.rights = filteredRights.map(right => ({
+          right_id: right.right_id,
+          hasAccess: right.hasAccess,
+          rolesConcerned: right.rolesConcerned && right.rolesConcerned.length > 0 ? right.rolesConcerned : []
+        }));
+      }
       if (req.payload.name) role.name = req.payload.name;
       roleUpdated = await role.save();
       roleUpdated = await roleUpdated.populate({

@@ -37,6 +37,12 @@ const rightsList = [
     name: 'right3',
     description: 'right3',
     permission: 'right3:write'
+  },
+  {
+    _id: new ObjectID(),
+    name: 'right4',
+    description: 'right4',
+    permission: 'right4:read'
   }
 ];
 
