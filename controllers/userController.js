@@ -117,7 +117,7 @@ const create = async (req) => {
         select: '-__v -createdAt -updatedAt'
       }
     }).lean();
-    populatedUser.role.rights = populateRole(populatedUser.role.rights);
+    populatedUser.role.rights = populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
     const payload = {
       _id: populatedUser._id.toHexString(),
       role: populatedUser.role,
@@ -174,7 +174,7 @@ const list = async (req) => {
   users = users.map((user) => {
     user = user.toObject();
     if (user.role && user.role.rights) {
-      user.role.rights = populateRole(user.role.rights);
+      user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
     }
     return user;
   });
@@ -194,14 +194,14 @@ const show = async (req) => {
       select: '-__v -createdAt -updatedAt',
       populate: {
         path: 'rights.right_id',
-        select: '-__v -createdAt -updatedAt'
+        select: '-__v -createdAt -updatedAt',
       }
     }).lean();
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
     }
     if (user.role && user.role.rights) {
-      user.role.rights = populateRole(user.role.rights);
+      user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
     }
     return {
       message: translate[language].userFound,
@@ -239,7 +239,7 @@ const update = async (req) => {
       return Boom.notFound(translate[language].userNotFound);
     }
     if (userUpdated.role && userUpdated.role.rights) {
-      userUpdated.role.rights = populateRole(userUpdated.role.rights);
+      userUpdated.role.rights = populateRole(userUpdated.role.rights, { onlyGrantedRights: true });
     }
     return {
       message: translate[language].userUpdated,

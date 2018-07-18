@@ -20,7 +20,7 @@ const RoleSchema = mongoose.Schema({
       type: Boolean,
       default: false
     },
-    rolesAllowed: [{
+    rolesConcerned: [{
       role_id: {
         type: mongoose.Schema.Types.ObjectId,
       },
