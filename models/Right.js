@@ -4,12 +4,17 @@ const mongoose = require('mongoose');
 const RightSchema = mongoose.Schema({
   name: {
     type: String,
-    unique: true,
-    required: true,
-    dropDups: true
+    dropDups: true,
+    index: {
+      unique: true,
+      partialFilterExpression: { name: { $type: 'string' } }
+    }
   },
   description: String,
-  permission: String
+  permission: {
+    type: String,
+    unique: true
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Right', RightSchema);

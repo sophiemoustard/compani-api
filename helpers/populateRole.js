@@ -1,5 +1,5 @@
 const processingRights = rights => rights.map((right) => {
-  if (right.right_id && right.right_id._id && right.right_id.name) {
+  if (right.right_id && right.right_id._id && (right.right_id.name || right.right_id.permission)) {
     return {
       right_id: right.right_id._id,
       name: right.right_id.name,

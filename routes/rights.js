@@ -20,7 +20,7 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            name: Joi.string().required(),
+            name: Joi.string(),
             description: Joi.string(),
             permission: Joi.string().required()
           })

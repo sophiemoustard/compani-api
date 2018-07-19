@@ -70,27 +70,25 @@ describe('RIGHTS ROUTES', () => {
       ]));
     });
 
-    const missingParams = [{
-      name: 'name',
-      payload: { permission: 'test:read' }
-    }, {
-      name: 'permission',
-      payload: { name: 'Test Right' }
-    }];
+    // const missingParams = [{
+    //   name: 'name',
+    //   payload: { permission: 'test:read' }
+    // }, {
+    //   name: 'permission',
+    //   payload: { name: 'Test Right' }
+    // }];
 
-    missingParams.forEach((param) => {
-      it(`should return a 400 error if '${param.name}' param is missing`, async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: '/rights',
-          payload: param.payload,
-          headers: {
-            'x-access-token': token
-          }
-        });
-        expect(response.statusCode).toBe(400);
+    // missingParams.forEach((param) => {
+    it("should return a 400 error if 'permission' param is missing", async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/rights',
+        payload: { name: 'Test Right' },
+        headers: { 'x-access-token': token }
       });
+      expect(response.statusCode).toBe(400);
     });
+    // });
 
     it('should return a 409 error if feature already exists', async () => {
       const response = await app.inject({
