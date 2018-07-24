@@ -100,5 +100,11 @@ exports.routes = [
     routes: {
       prefix: '/sms'
     }
+  },
+  {
+    plugin: require('./tasks'),
+    routes: {
+      prefix: '/tasks'
+    }
   }
 ];

@@ -195,6 +195,16 @@ const UserSchema = mongoose.Schema({
       link: String,
       has: Boolean
     },
+    procedure: [{
+      task_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Task'
+      },
+      isDone: {
+        type: Boolean,
+        default: false
+      }
+    }]
   },
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields

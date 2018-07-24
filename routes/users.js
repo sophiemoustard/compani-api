@@ -115,6 +115,11 @@ exports.plugin = {
               token: Joi.string().allow(null),
               expiresIn: Joi.number().allow(null),
               from: Joi.string().allow(null),
+            }),
+            procedure: Joi.object().keys({
+              _id: Joi.objectId(),
+              name: Joi.string(),
+              isDone: Joi.boolean()
             })
           }).required()
         },
