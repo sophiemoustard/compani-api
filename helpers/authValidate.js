@@ -1,12 +1,23 @@
 const Role = require('../models/Role');
 
-exports.validate = async (decoded) => {
+exports.validate = async (decoded, req) => {
   try {
-    if (decoded) {
-      return {
-        isValid: true
+    // if (decoded) {
+    //   return {
+    //     isValid: true
+    //   }
+    // }
+    if (req.route.path === '/ogust/token') {
+      if (decoded) {
+        return {
+          isValid: true
+        };
       }
+      return {
+        isValid: false
+      };
     }
+    console.log('REQ', req);
     if (!decoded.role) throw new Error('Missing role in token !');
     const decodedRole = typeof decoded.role === 'string' ? decoded.role : decoded.role.name;
     const role = await Role.find({
