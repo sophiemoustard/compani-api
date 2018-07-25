@@ -17,7 +17,6 @@ const create = async (req) => {
         $push: {
           procedure: {
             task_id: task._id,
-            isDone: false
           }
         }
       });
