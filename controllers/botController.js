@@ -100,7 +100,7 @@ module.exports = {
       }
       const params = _.pickBy(req.query);
       // We populate the user with role data and then we populate the role with rights data
-      let users = await User.find(params).populate({
+      let users = await User.find(params, { planningModification: 0 }).populate({
         path: 'role',
         select: '-__v -createdAt -updatedAt',
         populate: {
@@ -117,6 +117,7 @@ module.exports = {
         if (user.role && user.role.rights) {
           user.role.rights = populateRole(user.role.rights);
         }
+        return user;
       });
       return { message: translate[language].userShowAllFound, data: { users } };
     } catch (e) {
