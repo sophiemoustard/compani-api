@@ -45,16 +45,22 @@ exports.plugin = {
             lastname: Joi.string(),
             mobilePhone: Joi.string(),
             sector: Joi.string(),
-            employee_id: Joi.number(),
-            customer_id: Joi.number(),
+            employee_id: Joi.string(),
+            customer_id: Joi.string(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
             },
+            managerId: Joi.objectId(),
             role: Joi.string().required(),
             picture: Joi.object().keys({
               link: Joi.string()
-            }).default({ link: 'https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png' })
+            }).default({ link: 'https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png' }),
+            administrative: Joi.object().keys({
+              signup: Joi.object().keys({
+                firstSmsDate: Joi.string()
+              })
+            })
           }).required()
         },
         auth: false
