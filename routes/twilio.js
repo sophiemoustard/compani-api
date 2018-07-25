@@ -19,7 +19,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: ['Admin', 'Tech', 'Coach']
+          // scope: ['Admin', 'Tech', 'Coach']
         }
       },
       handler: list
@@ -38,7 +38,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: ['Admin', 'Tech', 'Coach']
+          // scope: ['Admin', 'Tech', 'Coach']
         }
       },
       handler: send

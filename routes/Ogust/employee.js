@@ -173,6 +173,7 @@ exports.plugin = {
           }).options({ allowUnknown: true }),
           params: { id: Joi.string() },
           payload: Joi.object().keys({
+            id_employee: Joi.string(),
             title: Joi.string(),
             last_name: Joi.string(),
             first_name: Joi.string(),
@@ -183,7 +184,12 @@ exports.plugin = {
             nature: Joi.string(),
             status: Joi.string(),
             method_of_payment: Joi.string(),
-            manager: Joi.string()
+            manager: Joi.string(),
+            country_of_birth: Joi.string(),
+            date_of_birth: Joi.string(),
+            place_of_birth: Joi.string(),
+            state_of_birth: Joi.number(),
+            social_insurance_number: Joi.number()
           })
         },
         auth: false

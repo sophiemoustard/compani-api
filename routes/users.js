@@ -122,6 +122,33 @@ exports.plugin = {
               expiresIn: Joi.number().allow(null),
               from: Joi.string().allow(null),
             }),
+            administrative: {
+              signup: {
+                step: Joi.string(),
+                complete: Joi.boolean()
+              },
+              mutualFund: {
+                has: Joi.string(),
+              },
+              navigoInvoice: {
+                has: Joi.string()
+              },
+              phoneInvoice: {
+                has: Joi.string()
+              },
+              certificates: {
+                has: Joi.string()
+              },
+              healthAttest: {
+                has: Joi.string()
+              },
+              payment: {
+                rib: {
+                  iban: Joi.string(),
+                  bic: Joi.string()
+                }
+              }
+            },
             procedure: Joi.object().keys({
               _id: Joi.objectId(),
               name: Joi.string(),

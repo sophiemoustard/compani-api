@@ -27,7 +27,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
+          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: create
@@ -49,7 +49,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
+          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: update

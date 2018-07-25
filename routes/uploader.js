@@ -24,7 +24,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
+          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
     });
@@ -45,7 +45,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
+          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
     });
