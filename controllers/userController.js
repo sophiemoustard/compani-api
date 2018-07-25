@@ -166,6 +166,9 @@ const list = async (req) => {
       path: 'rights.right_id',
       select: '-__v -createdAt -updatedAt'
     }
+  }).populate({
+    path: 'procedure.task_id',
+    select: '-__v -createdAt -updatedAt'
   });
   if (users.length === 0) {
     return Boom.notFound(translate[language].userShowAllNotFound);
