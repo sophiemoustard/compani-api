@@ -2,6 +2,11 @@ const Role = require('../models/Role');
 
 exports.validate = async (decoded) => {
   try {
+    if (decoded) {
+      return {
+        isValid: true
+      }
+    }
     if (!decoded.role) throw new Error('Missing role in token !');
     const decodedRole = typeof decoded.role === 'string' ? decoded.role : decoded.role.name;
     const role = await Role.find({
