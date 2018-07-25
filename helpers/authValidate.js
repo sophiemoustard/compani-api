@@ -17,7 +17,6 @@ exports.validate = async (decoded, req) => {
         isValid: false
       };
     }
-    console.log('REQ', req);
     if (!decoded.role) throw new Error('Missing role in token !');
     const decodedRole = typeof decoded.role === 'string' ? decoded.role : decoded.role.name;
     const role = await Role.find({
