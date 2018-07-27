@@ -187,7 +187,7 @@ const getEvents = async (req) => {
     if (e.output && e.output.statusCode === 400) {
       return e;
     } else if (e.output && e.output.statusCode === 404) {
-      return Boom.badImplementation();
+      return Boom.notFound();
     }
   }
 };
