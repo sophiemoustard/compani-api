@@ -41,16 +41,15 @@ exports.plugin = {
             _id: Joi.objectId().required()
           },
           payload: Joi.object().keys({
-            name: Joi.string().optional(),
-            rights: Joi.array().invalid([]).items(Joi.object().keys({
-              right_id: Joi.objectId().required(),
-              hasAccess: Joi.boolean().required(),
-              rolesConcerned: Joi.array().items(Joi.object().keys({
-                role_id: Joi.objectId(),
-                name: Joi.string()
-              }))
-            })).optional()
-          }).required()
+            name: Joi.string().required() // .optional(),
+            // rights: Joi.array().invalid([]).items(Joi.object().keys({
+            //   right_id: Joi.objectId().required(),
+            //   hasAccess: Joi.boolean().required(),
+            //   rolesConcerned: Joi.array().items(Joi.object().keys({
+            //     role_id: Joi.objectId(),
+            //     name: Joi.string()
+            //   }))
+          }) // ).optional()
         },
         auth: {
           strategy: 'jwt',
