@@ -44,6 +44,7 @@ exports.plugin = {
             firstname: Joi.string(),
             lastname: Joi.string(),
             mobilePhone: Joi.string(),
+            emergencyPhone: Joi.string(),
             sector: Joi.string(),
             employee_id: Joi.string(),
             customer_id: Joi.string(),
@@ -102,6 +103,7 @@ exports.plugin = {
             firstname: Joi.string(),
             lastname: Joi.string(),
             mobilePhone: Joi.string(),
+            emergencyPhone: Joi.string(),
             sector: Joi.string(),
             employee_id: Joi.number(),
             customer_id: Joi.number(),
@@ -142,6 +144,7 @@ exports.plugin = {
               healthAttest: {
                 has: Joi.string()
               },
+              socialSecurityNumber: Joi.number(),
               payment: {
                 rib: {
                   iban: Joi.string(),

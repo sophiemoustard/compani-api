@@ -122,6 +122,7 @@ const UserSchema = mongoose.Schema({
   ],
   isConstrained: Boolean,
   mobilePhone: String,
+  emergencyPhone: String,
   managerId: { type: mongoose.Schema.Types.ObjectId },
   administrative: {
     driveFolder: {
@@ -145,6 +146,7 @@ const UserSchema = mongoose.Schema({
         default: false
       }
     },
+    socialSecurityNumber: Number,
     payment: {
       rib: {
         iban: String,
