@@ -171,7 +171,6 @@ const editThirdPartyInformation = async (req) => {
     const params = req.query;
     params.token = req.headers['x-ogust-token'];
     params.third_party_id = req.params.id;
-    console.log('req.payload', req.payload);
     params.array_values = req.payload.arrayValues;
     const thirdPartyInfos = await customers.editThirdPartyInformationByCustomerId(params);
     if (thirdPartyInfos.data.status == 'KO') {
