@@ -69,8 +69,8 @@ exports.plugin = {
             first_name: Joi.string(),
             email: Joi.string().email(),
             mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
-            door_code: Joi.strict(),
-            intercom_code: Joi.string(),
+            door_code: Joi.string().allow(null, ''),
+            intercom_code: Joi.string().allow(null, ''),
             landline: Joi.string()
           }).required()
         },
