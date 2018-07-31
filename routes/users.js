@@ -76,7 +76,8 @@ exports.plugin = {
         validate: {
           query: {
             role: Joi.string(),
-            email: Joi.string().email()
+            email: Joi.string().email(),
+            sector: Joi.string()
           }
         },
         auth: { strategy: 'jwt' }
