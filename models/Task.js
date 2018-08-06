@@ -7,11 +7,6 @@ const TaskSchema = mongoose.Schema({
     unique: true,
     required: true,
     dropDups: true
-  },
-  isDone: {
-    type: Boolean,
-    required: true,
-    default: false
   }
 }, { timestamps: true });
 
