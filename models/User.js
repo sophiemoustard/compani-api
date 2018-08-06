@@ -207,7 +207,11 @@ const UserSchema = mongoose.Schema({
       type: Boolean,
       default: false
     }
-  }]
+  }],
+  isActive: {
+    type: Boolean,
+    default: true
+  }
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
