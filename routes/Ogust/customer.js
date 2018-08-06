@@ -31,7 +31,7 @@ exports.plugin = {
             status: Joi.string().default('A'),
             last_name: Joi.string(),
             sector: Joi.string(),
-            nbperpage: Joi.number().default(50),
+            nbperpage: Joi.number().default(100),
             pagenum: Joi.number().default(1)
           }
         },
