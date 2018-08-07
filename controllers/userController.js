@@ -176,7 +176,7 @@ const list = async (req) => {
   // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
   users = users.map((user) => {
     user = user.toObject();
-    if (user.role && user.role.rights) {
+    if (user.role && user.role.rights.length > 0) {
       user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
     }
     return user;
@@ -203,7 +203,7 @@ const show = async (req) => {
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
     }
-    if (user.role && user.role.rights) {
+    if (user.role && user.role.rights.length > 0) {
       user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
     }
     return {
@@ -241,7 +241,7 @@ const update = async (req) => {
     if (!userUpdated) {
       return Boom.notFound(translate[language].userNotFound);
     }
-    if (userUpdated.role && userUpdated.role.rights) {
+    if (userUpdated.role && userUpdated.role.rights.length > 0) {
       userUpdated.role.rights = populateRole(userUpdated.role.rights, { onlyGrantedRights: true });
     }
     return {
