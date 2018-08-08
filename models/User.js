@@ -196,7 +196,26 @@ const UserSchema = mongoose.Schema({
       driveId: String,
       link: String,
       has: Boolean
-    }
+    },
+    contracts: [{
+      contractId: String,
+      creationDate: String,
+      startDate: String,
+      endDate: String,
+      type: String,
+      status: String,
+      motiveEntry: String,
+      collectiveConvention: String,
+      nature: String,
+      nature2: String,
+      specificity: String,
+      regime: String,
+      socialCategory: String,
+      description: String,
+      contractHours: String,
+      contractualSalary: String,
+      due: String
+    }]
   },
   procedure: [{
     task_id: {
