@@ -21,8 +21,8 @@ exports.plugin = {
               email: Joi.string().email().required()
             }),
             receiver: Joi.object().keys({
-              email: Joi.string().email(),
-              password: '123456'
+              email: Joi.string().email().required(),
+              password: Joi.string().required()
             }).required(),
           })
         },
