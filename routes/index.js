@@ -96,6 +96,12 @@ exports.routes = [
     }
   },
   {
+    plugin: require('./Ogust/employment'),
+    routes: {
+      prefix: '/ogust/employment'
+    }
+  },
+  {
     plugin: require('./twilio'),
     routes: {
       prefix: '/sms'

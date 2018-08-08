@@ -51,6 +51,10 @@ module.exports = {
     invoicesNotFound: 'Customer invoices not found.',
     bankInfoFound: 'Bank info found.',
     bankInfoUpdated: 'Bank info updated.',
+    employmentContractShowAllFound: 'Employment contracts found.',
+    employmentContractFound: 'Employment contract found.',
+    employmentContractCreated: 'Employment contract created.',
+    employmentContractSaved: 'Employment contract saved.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -163,7 +167,11 @@ module.exports = {
     invoicesFound: 'Factures bénéficiaire trouvées.',
     invoicesNotFound: 'Factures bénéficiaire non trouvées.',
     bankInfoFound: 'Informations bancaires trouvées.',
-    bankInfoUpdated: 'Informations bancaires mises à jour',
+    bankInfoUpdated: 'Informations bancaires mises à jour.',
+    employmentContractShowAllFound: "Contrats d'embauche trouvés.",
+    employmentContractFound: "Contrat d'embauche trouvé.",
+    employmentContractCreated: "Contrat d'embauche créé.",
+    employmentContractSaved: "Contrat d'embauche enregistré.",
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
