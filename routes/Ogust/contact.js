@@ -43,12 +43,12 @@ exports.plugin = {
           params: { id: Joi.string() },
           payload: Joi.object().keys({
             id_interloc: Joi.string(),
-            id_customer: Joi.string(),
-            last_name: Joi.string(),
-            first_name: Joi.string(),
+            id_customer: Joi.string().allow(''),
+            last_name: Joi.string().allow(''),
+            first_name: Joi.string().allow(''),
             email: Joi.string().email(),
-            mobile: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
-            landline: Joi.string()
+            mobile: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/).allow(''),
+            landline: Joi.string().allow('')
           }).required()
         },
         auth: false
