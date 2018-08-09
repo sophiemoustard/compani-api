@@ -18,7 +18,7 @@ const list = async (req) => {
     }
     return {
       message: translate[language].userShowAllFound,
-      data: { customers: users.data }
+      data: { contacts: users.data }
     };
   } catch (e) {
     req.log('error', e);
