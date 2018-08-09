@@ -30,7 +30,6 @@ const updateById = async (req) => {
   try {
     const params = req.payload;
     params.token = req.headers['x-ogust-token'];
-    params.id_interloc = req.params.id;
     const user = await contacts.editContactById(params);
     if (user.data.status == 'KO') {
       return Boom.badRequest(user.data.message);

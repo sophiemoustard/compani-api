@@ -42,6 +42,7 @@ exports.plugin = {
           }).options({ allowUnknown: true }),
           params: { id: Joi.string() },
           payload: Joi.object().keys({
+            id_interloc: Joi.string(),
             id_customer: Joi.string(),
             last_name: Joi.string(),
             first_name: Joi.string(),
