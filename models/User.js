@@ -202,7 +202,7 @@ const UserSchema = mongoose.Schema({
       creationDate: String,
       startDate: String,
       endDate: String,
-      type: String,
+      contractType: String,
       status: String,
       motiveEntry: String,
       collectiveConvention: String,
