@@ -19,6 +19,7 @@ const uploadFile = async (req) => {
       'certificates',
       'phoneInvoice',
       'navigoInvoice',
+      'transportInvoice',
       'mutualFund',
       'vitalCard',
     ];
