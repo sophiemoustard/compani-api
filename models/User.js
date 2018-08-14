@@ -124,6 +124,7 @@ const UserSchema = mongoose.Schema({
   mobilePhone: String,
   emergencyPhone: String,
   managerId: { type: mongoose.Schema.Types.ObjectId },
+  mentorId: { type: mongoose.Schema.Types.ObjectId },
   administrative: {
     driveFolder: {
       id: String,
@@ -146,7 +147,6 @@ const UserSchema = mongoose.Schema({
         default: false
       }
     },
-    socialSecurityNumber: Number,
     payment: {
       rib: {
         iban: String,
@@ -192,6 +192,12 @@ const UserSchema = mongoose.Schema({
       link: String,
       has: Boolean
     },
+    transportInvoice: {
+      driveId: String,
+      link: String,
+      type: String,
+      has: Boolean
+    },
     mutualFund: {
       driveId: String,
       link: String,
@@ -215,7 +221,26 @@ const UserSchema = mongoose.Schema({
       contractHours: String,
       contractualSalary: String,
       due: String
-    }]
+    }],
+    identity: {
+      nationality: String,
+      dateOfBirth: String,
+      birthContry: String,
+      birthState: String,
+      birthCity: String,
+      socialSecurityNumber: Number
+    },
+    contact: {
+      address: String,
+      additionalAddress: String,
+      zipCode: String,
+      city: String
+    },
+    emergencyContact: {
+      firstname: String,
+      lastname: String,
+      phoneNumber: String
+    }
   },
   procedure: [{
     task_id: {
@@ -230,7 +255,17 @@ const UserSchema = mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
-  }
+  },
+  historyChanges: [{
+    updatedFields: [{
+      name: String,
+      value: String
+    }],
+    date: {
+      type: Date,
+      default: null
+    }
+  }]
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
@@ -305,6 +340,22 @@ async function findOneAndUpdate(next) {
     const hash = await bcrypt.hash(password, salt);
     // Store password using dot notation
     this.getUpdate().$set['local.password'] = hash;
+
+    // User update tracking
+    const updatePayload = this.getUpdate().$set;
+    const trackingPayload = {
+      date: updatePayload.updatedAt,
+      updatedFields: []
+    };
+    for (const k in updatePayload) {
+      if (k !== 'updatedAt') {
+        trackingPayload.updatedFields.push({
+          name: k,
+          value: updatePayload[k]
+        });
+      }
+    }
+    this.update({}, { $push: { historyChanges: trackingPayload } });
     return next();
   } catch (e) {
     return next(e);
