@@ -228,9 +228,22 @@ const update = async (req) => {
       req.payload.role = role._id.toString();
     }
     const newBody = clean(flat(req.payload));
+    // User update tracking
+    const modifiedByUser = await User.findById(req.auth.credentials._id);
+    const trackingPayload = {
+      date: Date.now(),
+      updatedFields: [],
+      by: `${modifiedByUser.firstname} ${modifiedByUser.lastname}`
+    };
+    for (const k in newBody) {
+      trackingPayload.updatedFields.push({
+        name: k,
+        value: newBody[k]
+      });
+    }
     // const newBody = _.pickBy(flat(req.body), !_.isEmpty);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true }).populate({
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody, $push: { historyChanges: trackingPayload } }, { new: true }).populate({
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {

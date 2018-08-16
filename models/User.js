@@ -264,7 +264,8 @@ const UserSchema = mongoose.Schema({
     date: {
       type: Date,
       default: null
-    }
+    },
+    by: String
   }]
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
@@ -341,21 +342,6 @@ async function findOneAndUpdate(next) {
     // Store password using dot notation
     this.getUpdate().$set['local.password'] = hash;
 
-    // User update tracking
-    const updatePayload = this.getUpdate().$set;
-    const trackingPayload = {
-      date: updatePayload.updatedAt,
-      updatedFields: []
-    };
-    for (const k in updatePayload) {
-      if (k !== 'updatedAt') {
-        trackingPayload.updatedFields.push({
-          name: k,
-          value: updatePayload[k]
-        });
-      }
-    }
-    this.update({}, { $push: { historyChanges: trackingPayload } });
     return next();
   } catch (e) {
     return next(e);
