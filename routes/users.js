@@ -77,7 +77,8 @@ exports.plugin = {
           query: {
             role: Joi.string(),
             email: Joi.string().email(),
-            sector: Joi.string()
+            sector: Joi.string(),
+            isActive: Joi.boolean()
           }
         },
         auth: { strategy: 'jwt' }
