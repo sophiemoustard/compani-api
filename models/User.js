@@ -237,8 +237,7 @@ const UserSchema = mongoose.Schema({
       city: String
     },
     emergencyContact: {
-      firstname: String,
-      lastname: String,
+      name: String,
       phoneNumber: String
     }
   },
