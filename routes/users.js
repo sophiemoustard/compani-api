@@ -60,6 +60,24 @@ exports.plugin = {
             administrative: Joi.object().keys({
               signup: Joi.object().keys({
                 firstSmsDate: Joi.string()
+              }),
+              identity: Joi.object().keys({
+                nationality: Joi.string(),
+                dateOfBirth: Joi.string(),
+                birthContry: Joi.string(),
+                birthState: Joi.string(),
+                birthCity: Joi.string(),
+                socialSecurityNumber: Joi.number()
+              }),
+              contact: Joi.object().keys({
+                address: Joi.string(),
+                additionalAddress: Joi.string(),
+                zipCode: Joi.string(),
+                city: Joi.string()
+              }),
+              emergencyContact: Joi.object().keys({
+                name: Joi.string(),
+                phoneNumber: Joi.string()
               })
             })
           }).required()
@@ -152,13 +170,51 @@ exports.plugin = {
                   iban: Joi.string(),
                   bic: Joi.string()
                 }
-              }
+              },
+              contracts: Joi.object().keys({
+                contractId: Joi.string(),
+                creationDate: Joi.string(),
+                startDate: Joi.string(),
+                endDate: Joi.string(),
+                contractType: Joi.string(),
+                status: Joi.string(),
+                motiveEntry: Joi.string(),
+                collectiveConvention: Joi.string(),
+                nature: Joi.string(),
+                nature2: Joi.string(),
+                specificity: Joi.string(),
+                regime: Joi.string(),
+                socialCategory: Joi.string(),
+                description: Joi.string(),
+                contractHours: Joi.string(),
+                contractualSalary: Joi.string(),
+                due: Joi.string()
+              }),
+              identity: Joi.object().keys({
+                nationality: Joi.string(),
+                dateOfBirth: Joi.string(),
+                birthContry: Joi.string(),
+                birthState: Joi.string(),
+                birthCity: Joi.string(),
+                socialSecurityNumber: Joi.number()
+              }),
+              contact: Joi.object().keys({
+                address: Joi.string(),
+                additionalAddress: Joi.string(),
+                zipCode: Joi.string(),
+                city: Joi.string()
+              }),
+              emergencyContact: Joi.object().keys({
+                name: Joi.string(),
+                phoneNumber: Joi.string()
+              })
             },
             procedure: Joi.object().keys({
               _id: Joi.objectId(),
               name: Joi.string(),
               isDone: Joi.boolean()
-            })
+            }),
+            isActive: Joi.boolean()
           }).required()
         },
         auth: { strategy: 'jwt' }
