@@ -158,50 +158,59 @@ const UserSchema = mongoose.Schema({
     },
     idCardRecto: {
       driveId: String,
-      link: String
+      link: String,
+      thumbnailLink: String
     },
     idCardVerso: {
       driveId: String,
-      link: String
+      link: String,
+      thumbnailLink: String
     },
     healthAttest: {
       driveId: String,
       link: String,
-      has: Boolean
+      has: Boolean,
+      thumbnailLink: String
     },
     vitalCard: {
       driveId: String,
-      link: String
+      link: String,
+      thumbnailLink: String
     },
     certificates: {
       has: Boolean,
       docs: [
         {
           driveId: String,
-          link: String
+          link: String,
+          thumbnailLink: String
         }
       ]
     },
     phoneInvoice: {
       driveId: String,
       link: String,
-      has: Boolean
+      has: Boolean,
+      thumbnailLink: String
     },
     navigoInvoice: {
       driveId: String,
       link: String,
-      has: Boolean
+      has: Boolean,
+      thumbnailLink: String
     },
     transportInvoice: {
       driveId: String,
       link: String,
       type: String,
-      has: Boolean
+      has: Boolean,
+      thumbnailLink: String
     },
     mutualFund: {
       driveId: String,
       link: String,
-      has: Boolean
+      has: Boolean,
+      thumbnailLink: String
     },
     contracts: [{
       contractId: String,
