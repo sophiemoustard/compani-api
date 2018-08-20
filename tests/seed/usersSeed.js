@@ -2,7 +2,7 @@ const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
 
 const User = require('../../models/User');
-const Gdrive = require('../../models/Uploader/GoogleDrive');
+const Gdrive = require('../../models/GoogleDrive');
 const app = require('../../server');
 
 const userList = [
