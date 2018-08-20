@@ -16,7 +16,7 @@ const { language } = translate;
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Right = require('../models/Right');
-const drive = require('../models/Uploader/GoogleDrive');
+const drive = require('../models/GoogleDrive');
 
 // Authenticate the user locally
 const authenticate = async (req) => {

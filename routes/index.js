@@ -59,10 +59,16 @@ exports.routes = [
       prefix: '/messageToBot'
     }
   },
+  // {
+  //   plugin: require('./uploader'),
+  //   routes: {
+  //     prefix: '/uploader'
+  //   }
+  // },
   {
-    plugin: require('./uploader'),
+    plugin: require('./gdrive'),
     routes: {
-      prefix: '/uploader'
+      prefix: '/gdrive'
     }
   },
   {

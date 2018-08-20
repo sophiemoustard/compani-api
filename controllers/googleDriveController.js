@@ -1,12 +1,10 @@
 const Boom = require('boom');
-const moment = require('moment');
 const flat = require('flat');
 
-const translate = require('../helpers/translate');
 const { handleFile } = require('../helpers/gdriveStorage');
-const drive = require('../models/GoogleDrive');
-const cloudinary = require('../models/Cloudinary');
+const translate = require('../helpers/translate');
 const User = require('../models/User');
+const drive = require('../models/GoogleDrive');
 
 const { language } = translate;
 
@@ -25,12 +23,12 @@ const uploadFile = async (req) => {
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     const uploadedFile = await handleFile({
-      _id: req.params._id,
+      _id: req.payload._id,
       name: req.payload.fileName || req.payload[administrativeKeys[0]].hapi.filename,
       type: req.payload['Content-Type'],
       body: req.payload[administrativeKeys[0]]
     });
-    let driveFileInfo;
+    let driveFileInfo = null;
     try {
       driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
     } catch (e) {
@@ -40,7 +38,8 @@ const uploadFile = async (req) => {
       const payload = {
         [`administrative.${administrativeKeys[0]}.docs`]: {
           driveId: uploadedFile.id,
-          link: driveFileInfo.webViewLink
+          link: driveFileInfo.webViewLink,
+          thumbnailLink: driveFileInfo.thumbnailLink
         }
       };
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true });
@@ -49,48 +48,34 @@ const uploadFile = async (req) => {
         administrative: {
           [administrativeKeys[0]]: {
             driveId: uploadedFile.id,
-            link: driveFileInfo.webViewLink
+            link: driveFileInfo.webViewLink,
+            thumbnailLink: driveFileInfo.thumbnailLink
           }
         }
       };
-      const user = await User.findById(req.params._id).lean();
-      if (user.administrative && user.administrative[administrativeKeys[0]]) {
-        const oldDocId = user.administrative[administrativeKeys[0]].driveId;
-        try {
-          await drive.deleteFile({ fileId: oldDocId });
-        } catch (e) {
-          req.log(['error', 'gdrive'], e);
-        }
-      }
       await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
     }
-    return { message: translate[language].fileCreated, data: uploadedFile };
+    return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
   }
 };
 
-const uploadImage = async (req) => {
+const deleteFile = async (req) => {
   try {
-    const pictureUploaded = await cloudinary.addImage({
-      file: req.payload.picture,
-      role: req.payload.role,
-      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
-    });
-    const user = await User.findById(req.params._id).lean();
-    if (user.picture && user.picture.publicId) {
-      await cloudinary.deleteImage({ publicId: user.picture.publicId });
-    }
-    // const uploadedImage = req.file;
-    const payload = {
-      picture: {
-        publicId: pictureUploaded.public_id,
-        link: pictureUploaded.secure_url
-      }
-    };
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
-    return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
+    await drive.deleteFile({ fileId: req.params.id });
+    return { message: translate[language].fileDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const getFileById = async (req) => {
+  try {
+    const file = await drive.getFileById({ fileId: req.params.id });
+    return { message: translate[language].fileFound, data: { file } };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -99,5 +84,6 @@ const uploadImage = async (req) => {
 
 module.exports = {
   uploadFile,
-  uploadImage
+  deleteFile,
+  getFileById
 };

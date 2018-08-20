@@ -55,10 +55,10 @@ exports.getFileById = params => new Promise((resolve, reject) => {
     auth: jwtClient,
     fileId: `${params.fileId}`,
     //  pageSize: 10,
-    fields: ['name, webViewLink']
+    fields: ['name, webViewLink, thumbnailLink']
   }, (err, response) => {
     if (err) {
-      reject(`Google Drive API error: ${err}`);
+      reject(new Error(`Google Drive API error: ${err}`));
     }
     resolve(response.data);
   });

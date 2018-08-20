@@ -113,6 +113,8 @@ module.exports = {
     idNumberCreated: 'ID number successfully created.',
     /* Uploader */
     fileNotFound: 'File not found.',
+    fileFound: 'File found.',
+    fileDeleted: 'File Deleted',
     folderCreated: 'Folder successfully created.',
     folderCreationFailure: 'Folder creation Failed.',
     fileCreated: 'File successfully created.'
@@ -221,6 +223,8 @@ module.exports = {
     idNumberCreated: 'Matricule créé.',
     /* Uploader */
     fileNotFound: 'Fichier non trouvé.',
+    fileFound: 'Fichier trouvé.',
+    fileDeleted: 'Fichier supprimé.',
     folderCreated: 'Dossier créé.',
     folderCreationFailure: 'La création de dossier a échouée.',
     fileCreated: 'Fichier créé.'
