@@ -143,6 +143,7 @@ exports.plugin = {
             first_name: Joi.string(),
             main_address: Joi.object().keys({
               line: Joi.string(),
+              supplement: Joi.string(),
               zip: Joi.string(),
               city: Joi.string(),
               type: Joi.string().default('Adrpri'),
@@ -189,7 +190,16 @@ exports.plugin = {
             date_of_birth: Joi.string(),
             place_of_birth: Joi.string(),
             state_of_birth: Joi.number(),
-            social_insurance_number: Joi.number()
+            social_insurance_number: Joi.number(),
+            nationality: Joi.string(),
+            main_address: Joi.object().keys({
+              line: Joi.string(),
+              supplement: Joi.string(),
+              zip: Joi.string(),
+              city: Joi.string(),
+              type: Joi.string().default('Adrpri'),
+              country: Joi.string().default('FR')
+            })
           })
         },
         auth: false
