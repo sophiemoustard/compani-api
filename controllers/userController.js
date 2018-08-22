@@ -227,7 +227,8 @@ const update = async (req) => {
       }
       req.payload.role = role._id.toString();
     }
-    const newBody = clean(flat(req.payload));
+    // const newBody = clean(flat(req.payload)); no need of clean as Joi prevents falsy values
+    const newBody = flat(req.payload);
     // User update tracking
     const modifiedByUser = await User.findById(req.auth.credentials._id);
     const trackingPayload = {
