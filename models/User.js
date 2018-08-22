@@ -234,7 +234,7 @@ const UserSchema = mongoose.Schema({
     identity: {
       nationality: String,
       dateOfBirth: String,
-      birthContry: String,
+      birthCountry: String,
       birthState: String,
       birthCity: String,
       socialSecurityNumber: Number
