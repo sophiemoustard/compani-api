@@ -144,16 +144,20 @@ exports.plugin = {
               expiresIn: Joi.number().allow(null),
               from: Joi.string().allow(null),
             }),
+            mentor: Joi.string(),
             administrative: {
               signup: {
                 step: Joi.string(),
                 complete: Joi.boolean()
               },
               mutualFund: {
-                has: Joi.string(),
+                has: Joi.boolean(),
               },
               navigoInvoice: {
                 has: Joi.string()
+              },
+              transportInvoice: {
+                type: Joi.string()
               },
               phoneInvoice: {
                 has: Joi.string()
@@ -193,14 +197,14 @@ exports.plugin = {
               identity: Joi.object().keys({
                 nationality: Joi.string(),
                 dateOfBirth: Joi.string(),
-                birthContry: Joi.string(),
+                birthCountry: Joi.string(),
                 birthState: Joi.string(),
                 birthCity: Joi.string(),
                 socialSecurityNumber: Joi.number()
               }),
               contact: Joi.object().keys({
                 address: Joi.string(),
-                additionalAddress: Joi.string(),
+                additionalAddress: Joi.string().allow(''),
                 zipCode: Joi.string(),
                 city: Joi.string()
               }),
