@@ -13,7 +13,8 @@ const {
   getPresentation,
   refreshToken,
   forgotPassword,
-  checkResetPasswordToken
+  checkResetPasswordToken,
+  updateCertificates
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -152,21 +153,39 @@ exports.plugin = {
               },
               mutualFund: {
                 has: Joi.boolean(),
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
               },
               navigoInvoice: {
-                has: Joi.string()
+                has: Joi.string(),
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
               },
               transportInvoice: {
-                type: Joi.string()
+                type: Joi.string(),
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
               },
               phoneInvoice: {
-                has: Joi.string()
+                has: Joi.string(),
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
               },
               certificates: {
                 has: Joi.string()
               },
               healthAttest: {
-                has: Joi.string()
+                has: Joi.string(),
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
+              },
+              idCardRecto: {
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
+              },
+              idCardVerso: {
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
               },
               socialSecurityNumber: Joi.number(),
               payment: {
@@ -224,6 +243,26 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: update
+    });
+    // Update user certificates
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/certificates',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId()
+          },
+          payload: Joi.object().keys({
+            _id: Joi.objectId(),
+            'administrative.certificates': {
+              driveId: Joi.string()
+            }
+          })
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: updateCertificates
     });
     // Delete user by id
     server.route({
