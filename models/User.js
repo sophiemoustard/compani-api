@@ -177,16 +177,20 @@ const UserSchema = mongoose.Schema({
       link: String,
       thumbnailLink: String
     },
-    certificates: {
-      has: Boolean,
-      docs: [
-        {
-          driveId: String,
-          link: String,
-          thumbnailLink: String
-        }
-      ]
-    },
+    // certificates: {
+    //   has: Boolean,
+    //   docs: [
+    //     {
+    //       driveId: String,
+    //       link: String,
+    //       thumbnailLink: String
+    //     }
+    //   ]
+    // },
+    certificates: [{
+      driveId: String,
+      link: String
+    }],
     phoneInvoice: {
       driveId: String,
       link: String,
