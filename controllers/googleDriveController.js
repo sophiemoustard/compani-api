@@ -36,24 +36,24 @@ const uploadFile = async (req) => {
     }
     if (administrativeKeys[0] === 'certificates') {
       const payload = {
-        [`administrative.${administrativeKeys[0]}.docs`]: {
+        [`administrative.${administrativeKeys[0]}`]: {
           driveId: uploadedFile.id,
           link: driveFileInfo.webViewLink,
-          thumbnailLink: driveFileInfo.thumbnailLink
+          // thumbnailLink: driveFileInfo.thumbnailLink
         }
       };
-      await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true });
+      await User.findOneAndUpdate({ _id: req.payload._id }, { $push: payload }, { new: true });
     } else {
       const payload = {
         administrative: {
           [administrativeKeys[0]]: {
             driveId: uploadedFile.id,
             link: driveFileInfo.webViewLink,
-            thumbnailLink: driveFileInfo.thumbnailLink
+            // thumbnailLink: driveFileInfo.thumbnailLink
           }
         }
       };
-      await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+      await User.findOneAndUpdate({ _id: req.payload._id }, { $set: flat(payload) }, { new: true });
     }
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {

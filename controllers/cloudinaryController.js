@@ -21,7 +21,7 @@ const uploadImage = async (req) => {
         link: pictureUploaded.secure_url
       }
     };
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+    const userUpdated = await User.findOneAndUpdate({ _id: req.payload._id }, { $set: flat(payload) }, { new: true });
     return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
   } catch (e) {
     req.log('error', e);
