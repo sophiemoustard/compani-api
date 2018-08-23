@@ -8,6 +8,7 @@ const nodemailer = require('nodemailer');
 const { clean } = require('../helpers/clean');
 const { populateRole } = require('../helpers/populateRole');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
+const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const tokenProcess = require('../helpers/tokenProcess');
 
@@ -219,7 +220,7 @@ const show = async (req) => {
 // Update an user by id
 const update = async (req) => {
   try {
-    let role;
+    let role = null;
     if (req.payload.role) {
       role = await Role.findOne({ name: req.payload.role });
       if (!role) {
@@ -230,19 +231,7 @@ const update = async (req) => {
     // const newBody = clean(flat(req.payload)); no need of clean as Joi prevents falsy values
     const newBody = flat(req.payload);
     // User update tracking
-    const modifiedByUser = await User.findById(req.auth.credentials._id);
-    const trackingPayload = {
-      date: Date.now(),
-      updatedFields: [],
-      by: `${modifiedByUser.firstname} ${modifiedByUser.lastname}`
-    };
-    for (const k in newBody) {
-      trackingPayload.updatedFields.push({
-        name: k,
-        value: newBody[k]
-      });
-    }
-    // const newBody = _.pickBy(flat(req.body), !_.isEmpty);
+    const trackingPayload = userUpdateTracking(req.auth.credentials._id, newBody);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody, $push: { historyChanges: trackingPayload } }, { new: true }).populate({
       path: 'role',
@@ -268,6 +257,39 @@ const update = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].userEmailExists);
     }
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+// Update an user certificates
+const updateCertificates = async (req) => {
+  try {
+    delete req.payload._id;
+    // const newBody = flat(req.payload);
+    console.log('PAYLOAD', req.payload);
+    // User update tracking
+    const trackingPayload = userUpdateTracking(req.auth.credentials._id, req.payload);
+    // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload, $push: { historyChanges: trackingPayload } }, { new: true }).populate({
+      path: 'role',
+      select: '-__v -createdAt -updatedAt',
+      populate: {
+        path: 'rights.right_id',
+        select: '-__v -createdAt -updatedAt'
+      }
+    }).lean();
+    if (!userUpdated) {
+      return Boom.notFound(translate[language].userNotFound);
+    }
+    if (userUpdated.role && userUpdated.role.rights.length > 0) {
+      userUpdated.role.rights = populateRole(userUpdated.role.rights, { onlyGrantedRights: true });
+    }
+    return {
+      message: translate[language].userUpdated,
+      data: { userUpdated }
+    };
+  } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
   }
@@ -439,5 +461,6 @@ module.exports = {
   getPresentation,
   refreshToken,
   forgotPassword,
-  checkResetPasswordToken
+  checkResetPasswordToken,
+  updateCertificates
 };
