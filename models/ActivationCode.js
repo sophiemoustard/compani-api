@@ -11,11 +11,11 @@ const ActivationCodeSchema = mongoose.Schema({
   },
   sector: {
     type: String,
-    required: true
+    // required: true
   },
   managerId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true
+    // required: true
   },
   firstSMS: {
     type: Date,
