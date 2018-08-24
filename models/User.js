@@ -124,6 +124,7 @@ const UserSchema = mongoose.Schema({
   mobilePhone: String,
   emergencyPhone: String,
   managerId: { type: mongoose.Schema.Types.ObjectId },
+  ogustManagerId: String,
   mentor: String,
   administrative: {
     driveFolder: {
@@ -236,6 +237,7 @@ const UserSchema = mongoose.Schema({
       due: String
     }],
     identity: {
+      title: String,
       nationality: String,
       dateOfBirth: String,
       birthCountry: String,
@@ -267,6 +269,10 @@ const UserSchema = mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isConfirmed: {
+    type: Boolean,
+    default: false
   },
   historyChanges: [{
     updatedFields: [{

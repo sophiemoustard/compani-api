@@ -54,6 +54,7 @@ exports.plugin = {
               password: Joi.string().required()
             },
             managerId: Joi.objectId(),
+            ogustManagerId: Joi.string(),
             role: Joi.string().required(),
             picture: Joi.object().keys({
               link: Joi.string()
@@ -63,6 +64,7 @@ exports.plugin = {
                 firstSmsDate: Joi.string()
               }),
               identity: Joi.object().keys({
+                title: Joi.string(),
                 nationality: Joi.string(),
                 dateOfBirth: Joi.string(),
                 birthContry: Joi.string(),
