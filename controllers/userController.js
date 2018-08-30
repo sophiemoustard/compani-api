@@ -270,7 +270,6 @@ const updateCertificates = async (req) => {
   try {
     delete req.payload._id;
     // const newBody = flat(req.payload);
-    console.log('PAYLOAD', req.payload);
     // User update tracking
     const trackingPayload = userUpdateTracking(req.auth.credentials._id, req.payload);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
@@ -352,6 +351,7 @@ const getPresentation = async (req) => {
 
 const updateTask = async (req) => {
   try {
+    req.payload.at = Date.now();
     const tasks = await User.findOneAndUpdate(
       { _id: req.params.user_id, 'procedure.task': req.params.task_id },
       { $set: { 'procedure.$.check': req.payload } },
