@@ -16,7 +16,7 @@ const create = async (req) => {
       await User.updateMany({}, {
         $push: {
           procedure: {
-            task_id: task._id,
+            task: task._id,
           }
         }
       });
@@ -107,7 +107,7 @@ const remove = async (req) => {
     await User.update({}, {
       $pull: {
         procedure: {
-          task_id: req.params._id
+          task: req.params._id
         }
       }
     }, {

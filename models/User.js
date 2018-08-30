@@ -257,13 +257,19 @@ const UserSchema = mongoose.Schema({
     }
   },
   procedure: [{
-    task_id: {
+    task: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Task'
     },
-    isDone: {
-      type: Boolean,
-      default: false
+    check: {
+      isDone: {
+        type: Boolean,
+        default: false
+      },
+      at: {
+        type: Date,
+        default: Date.now()
+      }
     }
   }],
   isActive: {

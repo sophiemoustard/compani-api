@@ -14,7 +14,8 @@ const {
   refreshToken,
   forgotPassword,
   checkResetPasswordToken,
-  updateCertificates
+  updateCertificates,
+  updateTask
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -265,6 +266,23 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: updateCertificates
+    });
+    server.route({
+      method: 'PUT',
+      path: '/{user_id}/tasks/{task_id}',
+      options: {
+        validate: {
+          params: {
+            user_id: Joi.objectId(),
+            task_id: Joi.objectId()
+          },
+          payload: Joi.object().keys({
+            isDone: Joi.boolean()
+          })
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: updateTask
     });
     // Delete user by id
     server.route({

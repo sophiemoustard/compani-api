@@ -168,7 +168,7 @@ const list = async (req) => {
       select: '-__v -createdAt -updatedAt'
     }
   }).populate({
-    path: 'procedure.task_id',
+    path: 'procedure.task',
     select: '-__v -createdAt -updatedAt'
   });
   if (users.length === 0) {
@@ -200,6 +200,9 @@ const show = async (req) => {
         path: 'rights.right_id',
         select: '-__v -createdAt -updatedAt',
       }
+    }).populate({
+      path: 'procedure.task',
+      select: '-__v -createdAt -updatedAt'
     }).lean();
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
@@ -347,6 +350,25 @@ const getPresentation = async (req) => {
   }
 };
 
+const updateTask = async (req) => {
+  try {
+    const tasks = await User.findOneAndUpdate(
+      { _id: req.params.user_id, 'procedure.task': req.params.task_id },
+      { $set: { 'procedure.$.check': req.payload } },
+      { new: true }
+    ).select('procedure').populate({
+      path: 'procedure.task',
+      select: '-__v -createdAt -updatedAt'
+    }).lean();
+    return {
+      data: { tasks }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 // Refresh token
 const refreshToken = async (req) => {
   try {
@@ -462,5 +484,6 @@ module.exports = {
   refreshToken,
   forgotPassword,
   checkResetPasswordToken,
-  updateCertificates
+  updateCertificates,
+  updateTask
 };
