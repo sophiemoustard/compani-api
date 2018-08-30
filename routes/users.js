@@ -131,6 +131,7 @@ exports.plugin = {
             sector: Joi.string(),
             employee_id: Joi.number(),
             customer_id: Joi.number(),
+            isConstrained: Joi.boolean(),
             facebook: Joi.object().keys({
               address: Joi.object()
             }),
@@ -277,7 +278,9 @@ exports.plugin = {
             task_id: Joi.objectId()
           },
           payload: Joi.object().keys({
-            isDone: Joi.boolean()
+            isDone: Joi.boolean(),
+            user_id: Joi.objectId(),
+            task_id: Joi.objectId()
           })
         },
         auth: { strategy: 'jwt' }
