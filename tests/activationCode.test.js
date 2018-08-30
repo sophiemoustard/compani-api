@@ -57,37 +57,20 @@ describe('ACTIVATION CODE ROUTES', () => {
       }));
     });
 
-    const missingParams = [{
-      name: 'mobile_phone',
-      payload: {
+    it("should return a 400 error if 'mobile_phone' parameter is missing", async () => {
+      const payload = {
         sector: '1w*',
         managerId: userList[0]._id
-      }
-    }, {
-      name: 'sector',
-      payload: {
-        mobile_phone: '0645237890',
-        managerId: userList[0]._id
-      }
-    }, {
-      name: 'managerId',
-      payload: {
-        mobile_phone: '0645237890',
-        sector: '1w*'
-      }
-    }];
-    missingParams.forEach((param) => {
-      it(`should return a 400 error if '${param.name}' parameter is missing `, async () => {
-        const res = await app.inject({
-          method: 'POST',
-          url: '/activation',
-          payload: param.payload,
-          headers: {
-            'x-access-token': token
-          }
-        });
-        expect(res.statusCode).toBe(400);
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/activation',
+        payload,
+        headers: {
+          'x-access-token': token
+        }
       });
+      expect(res.statusCode).toBe(400);
     });
 
     it('should return a 400 error if mobile_phone is invalid (not local fr)', async () => {
