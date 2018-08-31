@@ -13,6 +13,8 @@ const uploadFile = async (req) => {
     const allowedFields = [
       'idCardRecto',
       'idCardVerso',
+      'passport',
+      'residencePermit',
       'healthAttest',
       'certificates',
       'phoneInvoice',
@@ -22,6 +24,9 @@ const uploadFile = async (req) => {
       'vitalCard',
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
+    if (administrativeKeys.length === 0) {
+      Boom.forbidden('Upload not allowed');
+    }
     const uploadedFile = await handleFile({
       _id: req.payload._id,
       name: req.payload.fileName || req.payload[administrativeKeys[0]].hapi.filename,

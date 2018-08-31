@@ -191,6 +191,14 @@ exports.plugin = {
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null)
               },
+              passport: {
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
+              },
+              residencePermit: {
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
+              },
               socialSecurityNumber: Joi.number(),
               payment: {
                 rib: {
