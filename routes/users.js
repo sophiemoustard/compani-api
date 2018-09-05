@@ -149,7 +149,7 @@ exports.plugin = {
               expiresIn: Joi.number().allow(null),
               from: Joi.string().allow(null),
             }),
-            mentor: Joi.string(),
+            mentorId: Joi.objectId(),
             administrative: {
               signup: {
                 step: Joi.string(),
