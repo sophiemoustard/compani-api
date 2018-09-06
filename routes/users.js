@@ -155,6 +155,7 @@ exports.plugin = {
                 step: Joi.string(),
                 complete: Joi.boolean()
               },
+              identityDocs: Joi.string().valid('pp', 'cni', 'ts'),
               mutualFund: {
                 has: Joi.boolean(),
                 driveId: Joi.string().allow(null),

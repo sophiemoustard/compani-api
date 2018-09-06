@@ -192,6 +192,7 @@ const UserSchema = mongoose.Schema({
     //     }
     //   ]
     // },
+    identityDocs: String,
     certificates: [{
       driveId: String,
       link: String
