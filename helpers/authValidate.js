@@ -1,12 +1,8 @@
 const Role = require('../models/Role');
+const User = require('../models/User');
 
 exports.validate = async (decoded, req) => {
   try {
-    // if (decoded) {
-    //   return {
-    //     isValid: true
-    //   }
-    // }
     if (req.route.path === '/ogust/token') {
       if (decoded) {
         return {
@@ -17,7 +13,12 @@ exports.validate = async (decoded, req) => {
         isValid: false
       };
     }
-    if (!decoded.role) throw new Error('Missing role in token !');
+    if (!decoded.role && decoded._id) {
+      const user = User.findById(decoded._id);
+      decoded.role = user.role;
+    } else {
+      throw new Error('No id present in token');
+    }
     const decodedRole = typeof decoded.role === 'string' ? decoded.role : decoded.role.name;
     const role = await Role.find({
       name: decodedRole
@@ -40,5 +41,8 @@ exports.validate = async (decoded, req) => {
     };
   } catch (e) {
     console.error(e);
+    return {
+      isValid: false
+    };
   }
 };
