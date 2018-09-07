@@ -21,11 +21,13 @@ const ActivationCodeSchema = mongoose.Schema({
     type: Date,
     default: null
   },
+  newUserId: {
+    type: mongoose.Schema.Types.ObjectId
+  },
   // employee_id: {
   //   type: Number,
   //   required: true
   // },
-  // token: String,
   createdAt: {
     type: Date,
     default: Date.now,
