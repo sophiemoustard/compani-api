@@ -167,7 +167,7 @@ exports.plugin = {
                 link: Joi.string().allow(null)
               },
               transportInvoice: {
-                type: Joi.string(),
+                transportType: Joi.string(),
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null)
               },

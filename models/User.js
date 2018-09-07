@@ -218,8 +218,7 @@ const UserSchema = mongoose.Schema({
     transportInvoice: {
       driveId: String,
       link: String,
-      type: String,
-      has: Boolean,
+      transportType: String
     },
     mutualFund: {
       driveId: String,
