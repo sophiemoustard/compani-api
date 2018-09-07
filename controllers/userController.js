@@ -16,20 +16,12 @@ const { language } = translate;
 
 const User = require('../models/User');
 const Role = require('../models/Role');
-const Right = require('../models/Right');
 const drive = require('../models/GoogleDrive');
 
 // Authenticate the user locally
 const authenticate = async (req) => {
   try {
-    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() }).populate({
-      path: 'role',
-      model: Role,
-      populate: {
-        path: 'rights.right_id',
-        model: Right
-      }
-    }).lean();
+    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() });
     if (!alenviUser) {
       return Boom.notFound();
     }
@@ -108,16 +100,7 @@ const create = async (req) => {
     }
 
     // Populate user role
-    const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $set: folderPayload }, { new: true }).populate({
-      path: 'role',
-      model: Role,
-      select: '-__v -createdAt -updatedAt',
-      populate: {
-        path: 'rights.right_id',
-        model: Right,
-        select: '-__v -createdAt -updatedAt'
-      }
-    }).lean();
+    const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $set: folderPayload }, { new: true });
     populatedUser.role.rights = populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
     const payload = {
       _id: populatedUser._id.toHexString(),
@@ -160,17 +143,7 @@ const list = async (req) => {
   }
   const params = _.pickBy(req.query);
   // We populate the user with role data and then we populate the role with rights data
-  let users = await User.find(params, { planningModification: 0 }).populate({
-    path: 'role',
-    select: '-__v -updatedAt',
-    populate: {
-      path: 'rights.right_id',
-      select: '-__v -createdAt -updatedAt'
-    }
-  }).populate({
-    path: 'procedure.task',
-    select: '-__v -createdAt -updatedAt'
-  });
+  let users = await User.find(params, { planningModification: 0 });
   if (users.length === 0) {
     return Boom.notFound(translate[language].userShowAllNotFound);
   }
@@ -193,17 +166,7 @@ const list = async (req) => {
 // Find an user by Id in param URL
 const show = async (req) => {
   try {
-    const user = await User.findOne({ _id: req.params._id }).populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: {
-        path: 'rights.right_id',
-        select: '-__v -createdAt -updatedAt',
-      }
-    }).populate({
-      path: 'procedure.task',
-      select: '-__v -createdAt -updatedAt'
-    }).lean();
+    const user = await User.findOne({ _id: req.params._id });
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
     }
@@ -236,14 +199,7 @@ const update = async (req) => {
     // User update tracking
     const trackingPayload = userUpdateTracking(req.auth.credentials._id, newBody);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody, $push: { historyChanges: trackingPayload } }, { new: true }).populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: {
-        path: 'rights.right_id',
-        select: '-__v -createdAt -updatedAt'
-      }
-    }).lean();
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody, $push: { historyChanges: trackingPayload } }, { new: true });
     if (!userUpdated) {
       return Boom.notFound(translate[language].userNotFound);
     }
@@ -273,14 +229,7 @@ const updateCertificates = async (req) => {
     // User update tracking
     const trackingPayload = userUpdateTracking(req.auth.credentials._id, req.payload);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload, $push: { historyChanges: trackingPayload } }, { new: true }).populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: {
-        path: 'rights.right_id',
-        select: '-__v -createdAt -updatedAt'
-      }
-    }).lean();
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload, $push: { historyChanges: trackingPayload } }, { new: true });
     if (!userUpdated) {
       return Boom.notFound(translate[language].userNotFound);
     }
@@ -326,16 +275,7 @@ const getPresentation = async (req) => {
     const payload = _.pickBy(params);
     const users = await User.find(payload, {
       _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1
-    }).populate({
-      path: 'role',
-      model: Role,
-      select: '-__v -createdAt -updatedAt',
-      populate: {
-        path: 'rights.right_id',
-        model: Right,
-        select: '-__v -createdAt -updatedAt'
-      }
-    }).lean();
+    });
     if (users.length === 0) {
       return Boom.notFound(translate[language].userShowAllNotFound);
     }
@@ -356,10 +296,7 @@ const updateTask = async (req) => {
       { _id: req.params.user_id, 'procedure.task': req.params.task_id },
       { $set: { 'procedure.$.check': req.payload } },
       { new: true }
-    ).select('procedure').populate({
-      path: 'procedure.task',
-      select: '-__v -createdAt -updatedAt'
-    }).lean();
+    ).select('procedure');
     return {
       data: { tasks }
     };
@@ -372,14 +309,7 @@ const updateTask = async (req) => {
 // Refresh token
 const refreshToken = async (req) => {
   try {
-    const user = await User.findOne({ refreshToken: req.payload.refreshToken }).populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: {
-        path: 'rights.right_id',
-        select: '-__v -createdAt -updatedAt'
-      }
-    }).lean();
+    const user = await User.findOne({ refreshToken: req.payload.refreshToken });
     if (!user) {
       return Boom.notFound(translate[language].refreshTokenNotFound);
     }
@@ -412,7 +342,7 @@ const forgotPassword = async (req) => {
         from: req.payload.from
       }
     };
-    const user = await User.findOneAndUpdate({ 'local.email': req.payload.email }, { $set: payload }, { new: true }).populate('role').lean();
+    const user = await User.findOneAndUpdate({ 'local.email': req.payload.email }, { $set: payload }, { new: true });
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
     }
@@ -444,14 +374,7 @@ const checkResetPasswordToken = async (req) => {
         expiresIn: { $gt: Date.now() }
       }
     };
-    const user = await User.findOne(flat(filter, { maxDepth: 2 })).populate({
-      path: 'role',
-      select: '-__v -createdAt -updatedAt',
-      populate: {
-        path: 'rights.right_id',
-        select: '-__v -createdAt -updatedAt'
-      }
-    }).lean();
+    const user = await User.findOne(flat(filter, { maxDepth: 2 }));
     if (!user) {
       return Boom.notFound(translate[language].resetPasswordTokenNotFound);
     }

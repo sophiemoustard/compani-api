@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
+const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 
 const Role = require('./Role');
+const Right = require('./Right');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -59,7 +61,14 @@ const UserSchema = mongoose.Schema({
     slackId: String,
     email: String
   },
-  role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role' },
+  role: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role',
+    autopopulate: {
+      select: '-__v -createdAt -updatedAt',
+      maxDepth: 3
+    }
+  },
   // role: [Role],
   // type: String,
   // trim: true,
@@ -260,7 +269,11 @@ const UserSchema = mongoose.Schema({
   procedure: [{
     task: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Task'
+      ref: 'Task',
+      autopopulate: {
+        select: '-__v -createdAt -updatedAt',
+        maxDepth: 2
+      }
     },
     check: {
       isDone: {
@@ -377,5 +390,7 @@ UserSchema.statics.findUserAddressByEmployeeId = findUserAddressByEmployeeId;
 UserSchema.methods.saveByRoleName = saveByRoleName;
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
+
+UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
