@@ -4,7 +4,6 @@ const bcrypt = require('bcrypt');
 const validator = require('validator');
 
 const Role = require('./Role');
-const Right = require('./Right');
 
 const SALT_WORK_FACTOR = 10;
 
