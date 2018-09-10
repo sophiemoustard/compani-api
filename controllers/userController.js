@@ -101,7 +101,7 @@ const create = async (req) => {
     }
     // Add tasks + drive (auxiliary) folder to newly created user
     const tasks = await Task.find({});
-    const taskIds = tasks.map(task => task._id);
+    const taskIds = tasks.map(task => ({ task: task._id }));
     const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $set: folderPayload, $push: { procedure: { $each: taskIds } } }, { new: true });
     populatedUser.role.rights = populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
     const payload = {
