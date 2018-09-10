@@ -12,7 +12,7 @@ const uploadImage = async (req) => {
   try {
     const pictureUploaded = await cloudinary.addImage({
       file: req.payload.picture,
-      role: req.payload.role,
+      role: req.payload.role || 'Auxiliaire',
       public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
     });
     const payload = {
@@ -31,7 +31,7 @@ const uploadImage = async (req) => {
 
 const deleteImage = async (req) => {
   try {
-    await cloudinary.deleteImage({ publicId: req.payload.id });
+    await cloudinary.deleteImage({ publicId: req.params.id });
     return { message: translate[language].fileDeleted };
   } catch (e) {
     req.log('error', e);

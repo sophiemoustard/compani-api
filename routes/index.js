@@ -72,6 +72,12 @@ exports.routes = [
     }
   },
   {
+    plugin: require('./cloudinary'),
+    routes: {
+      prefix: '/cloudinary'
+    }
+  },
+  {
     plugin: require('./Ogust/employee'),
     routes: {
       prefix: '/ogust/employees'
