@@ -46,7 +46,7 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          params: { id: Joi.string() }
+          params: { id: [Joi.number(), Joi.string()] }
         },
         auth: false
       },
@@ -61,9 +61,9 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
+          params: { id: [Joi.number(), Joi.string()] },
           query: {
-            idCustomer: Joi.string(),
+            idCustomer: [Joi.number(), Joi.string()],
             isRange: Joi.boolean().default(false),
             isDate: Joi.boolean().default(false),
             slotToSub: Joi.number(),
@@ -90,7 +90,7 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
+          params: { id: [Joi.number(), Joi.string()] },
           query: {
             isRange: Joi.boolean().default(true),
             isDate: Joi.boolean().default(false),
@@ -118,7 +118,7 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
+          params: { id: [Joi.number(), Joi.string()] },
           query: {
             nbperpage: Joi.number().default(24),
             pagenum: Joi.number().default(1)
@@ -172,9 +172,9 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
+          params: { id: [Joi.number(), Joi.string()] },
           payload: Joi.object().keys({
-            id_employee: Joi.string(),
+            id_employee: [Joi.number(), Joi.string()],
             title: Joi.string(),
             last_name: Joi.string(),
             first_name: Joi.string(),
