@@ -17,7 +17,8 @@ exports.plugin = {
             mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/).required(),
             sector: Joi.string(),
             managerId: Joi.objectId(),
-            newUserId: Joi.objectId()
+            newUserId: Joi.objectId(),
+            userEmail: Joi.string().email()
           })
         },
         auth: {

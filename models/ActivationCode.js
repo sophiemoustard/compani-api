@@ -24,6 +24,7 @@ const ActivationCodeSchema = mongoose.Schema({
   newUserId: {
     type: mongoose.Schema.Types.ObjectId
   },
+  userEmail: String,
   // employee_id: {
   //   type: Number,
   //   required: true
