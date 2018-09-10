@@ -14,7 +14,7 @@ exports.validate = async (decoded, req) => {
       };
     }
     if (!decoded.role && decoded._id) {
-      const user = User.findById(decoded._id);
+      const user = await User.findById(decoded._id);
       decoded.role = user.role;
     } else if (!decoded.role && !decoded._id) {
       throw new Error('No id / role present in token');
