@@ -16,6 +16,7 @@ const { language } = translate;
 
 const User = require('../models/User');
 const Role = require('../models/Role');
+const Task = require('../models/Task');
 const drive = require('../models/GoogleDrive');
 
 // Authenticate the user locally
@@ -98,9 +99,10 @@ const create = async (req) => {
         };
       }
     }
-
-    // Populate user role
-    const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $set: folderPayload }, { new: true });
+    // Add tasks + drive (auxiliary) folder to newly created user
+    const tasks = await Task.find({});
+    const taskIds = tasks.map(task => task._id);
+    const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $set: folderPayload, $push: { procedure: { $each: taskIds } } }, { new: true });
     populatedUser.role.rights = populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
     const payload = {
       _id: populatedUser._id.toHexString(),
