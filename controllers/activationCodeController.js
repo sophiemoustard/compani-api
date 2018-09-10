@@ -28,7 +28,11 @@ const checkActivationCode = async (req) => {
     }
     // 2 days expire
     const expireTime = 604800;
-    const token = tokenProcess.encode({ activationData }, expireTime);
+    const tokenPayload = {
+      _id: activationData.newUserId,
+      userEmail: activationData.userEmail,
+    };
+    const token = tokenProcess.encode(tokenPayload, expireTime);
     return { message: translate[language].activationCodeValidated, data: { activationData, token } };
   } catch (e) {
     req.log('error', e);
