@@ -40,22 +40,7 @@ const checkActivationCode = async (req) => {
   }
 };
 
-const deleteActivationCode = async (req) => {
-  try {
-    const activationData = await ActivationCode.findOne({ mobile_phone: req.params.mobile_phone });
-    if (!activationData) {
-      return Boom.notFound(translate[language].activationCodeNotFoundOrInvalid);
-    }
-    const deleteActivationData = await ActivationCode.findByIdAndRemove({ _id: activationData._id });
-    return { message: translate[language].activationCodeDeleted, data: { deleteActivationData } };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(translate[language].unexpectedBehavior);
-  }
-};
-
 module.exports = {
   createActivationCode,
-  checkActivationCode,
-  deleteActivationCode
+  checkActivationCode
 };
