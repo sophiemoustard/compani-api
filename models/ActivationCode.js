@@ -7,7 +7,7 @@ const ActivationCodeSchema = mongoose.Schema({
   },
   mobile_phone: {
     type: String,
-    required: true
+    // required: true
   },
   sector: {
     type: String,

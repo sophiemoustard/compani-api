@@ -14,7 +14,7 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/).required(),
+            mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
             sector: Joi.string(),
             managerId: Joi.objectId(),
             newUserId: Joi.objectId(),
