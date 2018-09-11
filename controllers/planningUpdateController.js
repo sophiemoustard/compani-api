@@ -41,11 +41,13 @@ const list = async (req) => {
 
 const storeUserModificationPlanning = async (req) => {
   try {
+    console.log('PAYLOAD', req.payload);
+    console.log('QUERY', req.query);
     const filter = {};
     if (req.query.userId) {
       filter._id = req.query.userId;
     } else {
-      filter.employee_id = req.query.employeeId;
+      filter.employee_id = req.query.employee_id;
     }
     const payload = {
       content: req.payload.content,
