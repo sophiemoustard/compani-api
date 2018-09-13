@@ -254,6 +254,7 @@ const UserSchema = mongoose.Schema({
       socialSecurityNumber: Number
     },
     contact: {
+      addressId: String,
       address: String,
       additionalAddress: String,
       zipCode: String,
