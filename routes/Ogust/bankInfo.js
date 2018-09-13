@@ -25,7 +25,7 @@ exports.plugin = {
       },
       handler: getById
     });
-    // Update customer by id
+    // Update bankInfo by id
     server.route({
       method: 'PUT',
       path: '/',
@@ -35,7 +35,7 @@ exports.plugin = {
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
           payload: Joi.object().keys({
-            id_tiers: Joi.string(),
+            id_tiers: [Joi.string(), Joi.number()],
             iban_number: Joi.string(),
             bic_number: Joi.string()
           })
