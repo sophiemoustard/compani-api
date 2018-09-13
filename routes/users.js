@@ -74,6 +74,7 @@ exports.plugin = {
                 socialSecurityNumber: Joi.number()
               }),
               contact: Joi.object().keys({
+                addressId: Joi.string(),
                 address: Joi.string(),
                 additionalAddress: Joi.string(),
                 zipCode: Joi.string(),
