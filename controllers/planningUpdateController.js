@@ -41,8 +41,6 @@ const list = async (req) => {
 
 const storeUserModificationPlanning = async (req) => {
   try {
-    console.log('PAYLOAD', req.payload);
-    console.log('QUERY', req.query);
     const filter = {};
     if (req.query.userId) {
       filter._id = req.query.userId;
