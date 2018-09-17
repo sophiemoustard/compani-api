@@ -60,7 +60,6 @@ describe('USERS ROUTES', () => {
       expect(user.local.email).toBe(userPayload.local.email);
       expect(user.local.password).toBeDefined();
       expect(user).toHaveProperty('picture');
-      expect(user.picture.link).toBe('https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png');
       if (res.result.data.user.role.name === 'Auxiliaire') {
         expect(user.administrative).toHaveProperty('driveFolder');
         expect(user.administrative.driveFolder).toHaveProperty('id');

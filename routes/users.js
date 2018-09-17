@@ -59,7 +59,7 @@ exports.plugin = {
             role: Joi.string().required(),
             picture: Joi.object().keys({
               link: Joi.string()
-            }).default({ link: 'https://res.cloudinary.com/alenvi/image/upload/c_scale,h_400,q_auto,w_400/v1513764284/images/users/default_avatar.png' }),
+            }),
             administrative: Joi.object().keys({
               signup: Joi.object().keys({
                 firstSmsDate: Joi.string()
