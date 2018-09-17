@@ -9,7 +9,7 @@ const { language } = translate;
 
 const createActivationCode = async (req) => {
   try {
-    req.payload.code = randomize('0000');
+    req.payload.code = req.payload.code || randomize('0000');
     req.payload.firstSMS = Date.now();
     const activationData = new ActivationCode(req.payload);
     await activationData.save();
