@@ -9,7 +9,8 @@ const {
   getEmployeeServices,
   getEmployeeSalaries,
   create,
-  updateById
+  updateById,
+  removeById
 } = require('../../controllers/Ogust/employeeController');
 
 exports.plugin = {
@@ -205,6 +206,21 @@ exports.plugin = {
         auth: false
       },
       handler: updateById
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{id}',
+      options: {
+        validate: {
+          headers: Joi.object().keys({
+            'x-ogust-token': Joi.string().required()
+          }).options({ allowUnknown: true }),
+          params: { id: [Joi.number(), Joi.string()] }
+        },
+        auth: false
+      },
+      handler: removeById
     });
   },
 };

@@ -54,3 +54,6 @@ exports.getSalaries = async payload => axios.post(`${Ogust.API_LINK}searchSalary
 
 // Create employee
 exports.createEmployee = async payload => axios.post(`${Ogust.API_LINK}setEmployee`, payload);
+
+// Delete employee
+exports.deleteEmployee = async payload => axios.post(`${Ogust.API_LINK}remEmployee`, payload);

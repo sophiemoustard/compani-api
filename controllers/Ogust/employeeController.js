@@ -198,6 +198,24 @@ const updateById = async (req) => {
   }
 };
 
+const removeById = async (req) => {
+  try {
+    const params = req.payload;
+    params.token = req.headers['x-ogust-token'];
+    params.id_employee = req.params.id;
+    const user = await employees.deleteEmployee(params);
+    if (user.data.status == 'KO') {
+      return Boom.badRequest(user.data.message);
+    }
+    return {
+      message: translate[language].userDeleted,
+      data: user.data
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
 
 module.exports = {
   list,
@@ -206,5 +224,6 @@ module.exports = {
   getEmployeeCustomers,
   getEmployeeSalaries,
   create,
-  updateById
+  updateById,
+  removeById
 };
