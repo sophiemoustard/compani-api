@@ -58,9 +58,10 @@ exports.getFileById = params => new Promise((resolve, reject) => {
     fields: ['name, webViewLink, thumbnailLink']
   }, (err, response) => {
     if (err) {
-      reject(new Error(`Google Drive API error: ${err}`));
+      reject(new Error(`Google Drive API ${err}`));
+    } else {
+      resolve(response.data);
     }
-    resolve(response.data);
   });
 });
 

@@ -83,6 +83,9 @@ const getFileById = async (req) => {
     return { message: translate[language].fileFound, data: { file } };
   } catch (e) {
     req.log('error', e);
+    if (e.message.match(/file not found/i)) {
+      return Boom.notFound();
+    }
     return Boom.badImplementation();
   }
 };
