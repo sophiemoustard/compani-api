@@ -168,7 +168,8 @@ const list = async (req) => {
 // Find an user by Id in param URL
 const show = async (req) => {
   try {
-    const user = await User.findOne({ _id: req.params._id });
+    let user = await User.findOne({ _id: req.params._id });
+    user = user.toObject();
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
     }
