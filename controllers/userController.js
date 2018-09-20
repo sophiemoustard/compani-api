@@ -169,10 +169,10 @@ const list = async (req) => {
 const show = async (req) => {
   try {
     let user = await User.findOne({ _id: req.params._id });
-    user = user.toObject();
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
     }
+    user = user.toObject();
     if (user.role && user.role.rights.length > 0) {
       user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
     }
