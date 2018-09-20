@@ -252,7 +252,8 @@ exports.plugin = {
               name: Joi.string(),
               isDone: Joi.boolean()
             }),
-            isActive: Joi.boolean()
+            isActive: Joi.boolean(),
+            isConfirmed: Joi.boolean()
           }).required()
         },
         auth: { strategy: 'jwt' }
