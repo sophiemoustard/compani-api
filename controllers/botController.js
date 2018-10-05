@@ -29,9 +29,9 @@ module.exports = {
       if (!user.refreshToken) {
         return Boom.forbidden();
       }
-      // if (!await bcrypt.compare(req.payload.password, user.local.password)) {
-      //   return Boom.unauthorized(translate[language].userAuthFailed);
-      // }
+      if (!await bcrypt.compare(req.payload.password, user.local.password)) {
+        return Boom.unauthorized(translate[language].userAuthFailed);
+      }
       const payload = {
         firstname: user.firstname,
         lastname: user.lastname,
