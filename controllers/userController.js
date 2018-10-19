@@ -145,7 +145,7 @@ const list = async (req) => {
   }
   const params = _.pickBy(req.query);
   // We populate the user with role data and then we populate the role with rights data
-  let users = await User.find(params, { planningModification: 0 });
+  let users = await User.find(params, { planningModification: 0, historyChanges: 0, features: 0 });
   if (users.length === 0) {
     return Boom.notFound(translate[language].userShowAllNotFound);
   }
