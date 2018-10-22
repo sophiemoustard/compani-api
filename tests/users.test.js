@@ -8,7 +8,7 @@ const User = require('../models/User');
 const {
   userList, userPayload, populateUsers, getToken
 } = require('./seed/usersSeed');
-const { populateRoles } = require('./seed/rolesSeed');
+const { populateRoles, rolesList } = require('./seed/rolesSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -190,11 +190,12 @@ describe('USERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
-        _id: expect.any(Object),
-        name: expect.any(String),
-        rights: expect.any(Array)
-      }));
+      expect(res.result.data.users[0].role.toHexString()).toEqual(expect.any(String));
+      // expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
+      //   _id: expect.any(Object),
+      //   name: expect.any(String),
+      //   rights: expect.any(Array)
+      // }));
     });
     it('should get all coachs users', async () => {
       const res = await app.inject({
@@ -204,11 +205,12 @@ describe('USERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
-        _id: expect.any(Object),
-        name: expect.any(String),
-        rights: expect.any(Array)
-      }));
+      expect(res.result.data.users[0].role.toHexString()).toEqual(rolesList[2]._id.toHexString());
+      // expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
+      //   _id: expect.any(Object),
+      //   name: expect.any(String),
+      //   rights: expect.any(Array)
+      // }));
     });
     it('should not get users if role given doesn\'t exist', async () => {
       const res = await app.inject({

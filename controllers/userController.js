@@ -145,18 +145,26 @@ const list = async (req) => {
   }
   const params = _.pickBy(req.query);
   // We populate the user with role data and then we populate the role with rights data
-  let users = await User.find(params, { planningModification: 0, historyChanges: 0, features: 0 });
+  const users = await User.find(params, {
+    planningModification: 0,
+    historyChanges: 0,
+    features: 0,
+  }, { autopopulate: false })
+    .populate({
+      path: 'procedure.task',
+      select: 'name'
+    });
   if (users.length === 0) {
     return Boom.notFound(translate[language].userShowAllNotFound);
   }
   // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
-  users = users.map((user) => {
-    user = user.toObject();
-    if (user.role && user.role.rights.length > 0) {
-      user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
-    }
-    return user;
-  });
+  // users = users.map((user) => {
+  //   user = user.toObject();
+  //   if (user.role && user.role.rights.length > 0) {
+  //     user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
+  //   }
+  //   return user;
+  // });
   return {
     message: translate[language].userShowAllFound,
     data: {
