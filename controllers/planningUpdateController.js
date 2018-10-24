@@ -18,13 +18,7 @@ const list = async (req) => {
       firstname: 1,
       lastname: 1,
       sector: 1,
-      'planningModification._id': 1,
-      'planningModification.modificationType': 1,
-      'planningModification.involved': 1,
-      'planningModification.content': 1,
-      'planningModification.createdAt': 1,
-      'planningModification.check.isChecked': 1,
-      'planningModification.check.checkedAt': 1
+      planningModification: 1
     }).populate({
       path: 'planningModification.check.checkBy',
       select: 'firstname lastname'
