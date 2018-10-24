@@ -61,9 +61,10 @@ const create = async (req) => {
   try {
     // Create refreshToken and store it
     req.payload.refreshToken = uuidv4();
+    req.payload.company = 'Alenvi';
     const user = new User(req.payload);
     // Save user
-    await user.saveByRoleName(req.payload.role);
+    await user.saveByParams(_.pick(req.payload, ['role', 'company']));
     const leanUser = user;
     // Add gdrive folder after save to avoid creating it if duplicate email
     let folderPayload = {};
@@ -208,9 +209,10 @@ const update = async (req) => {
     // const newBody = clean(flat(req.payload)); no need of clean as Joi prevents falsy values
     const newBody = flat(req.payload);
     // User update tracking
-    const trackingPayload = userUpdateTracking(req.auth.credentials._id, newBody);
+    // const trackingPayload = userUpdateTracking(req.auth.credentials._id, newBody);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody, $push: { historyChanges: trackingPayload } }, { new: true });
+    // const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody, $push: { historyChanges: trackingPayload } }, { new: true });
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true });
     if (!userUpdated) {
       return Boom.notFound(translate[language].userNotFound);
     }

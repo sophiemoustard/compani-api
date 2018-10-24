@@ -118,7 +118,14 @@ module.exports = {
     fileDeleted: 'File Deleted',
     folderCreated: 'Folder successfully created.',
     folderCreationFailure: 'Folder creation Failed.',
-    fileCreated: 'File successfully created.'
+    fileCreated: 'File successfully created.',
+    /* Company */
+    companiesShowAllFound: 'Companies found.',
+    companyFound: 'Company found.',
+    companyNotFound: 'Company not found',
+    companyCreated: 'Company created.',
+    companyDeleted: 'Company deleted.',
+    companyExists: 'Company already exists.'
   },
   'fr-FR': {
     /* Global errors */
@@ -229,6 +236,13 @@ module.exports = {
     fileDeleted: 'Fichier supprimé.',
     folderCreated: 'Dossier créé.',
     folderCreationFailure: 'La création de dossier a échouée.',
-    fileCreated: 'Fichier créé.'
+    fileCreated: 'Fichier créé.',
+    /* Company */
+    companiesShowAllFound: 'Entreprises trouvées.',
+    companyFound: 'Entreprise trouvée.',
+    companyNotFound: 'Entreprise non trouvée.',
+    companyCreated: 'Entreprise créée.',
+    companyDeleted: 'Entreprise supprimée.',
+    companyExists: 'Entreprise déjà existante.'
   }
 };

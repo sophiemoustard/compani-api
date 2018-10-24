@@ -136,5 +136,11 @@ exports.routes = [
     routes: {
       prefix: '/tasks'
     }
+  },
+  {
+    plugin: require('./companies'),
+    routes: {
+      prefix: '/companies'
+    }
   }
 ];

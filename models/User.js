@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const validator = require('validator');
 
 const Role = require('./Role');
+const Company = require('./Company');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -303,7 +304,15 @@ const UserSchema = mongoose.Schema({
       default: null
     },
     by: String
-  }]
+  }],
+  company: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+    autopopulate: {
+      select: '-__v -createdAt -updatedAt',
+      maxDepth: 2
+    }
+  }
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
@@ -322,17 +331,26 @@ async function findUserAddressByEmployeeId(id) {
   }
 }
 
-async function saveByRoleName(roleName) {
+async function saveByParams(params) {
   const user = this;
   try {
     // Replace Role name by role ID
-    const role = await Role.findOne({ name: roleName });
-    if (!role) {
-      const noRoleErr = new Error();
-      noRoleErr.name = 'NoRole';
-      throw noRoleErr;
+    if (params.role) {
+      const role = await Role.findOne({ name: params.role });
+      if (!role) {
+        const noRoleErr = new Error();
+        noRoleErr.name = 'NoRole';
+        throw noRoleErr;
+      }
+      user.role = role._id;
     }
-    user.role = role._id;
+
+    if (params.company) {
+      const company = await Company.findOne({ name: params.company });
+      if (company) {
+        user.company = company._id;
+      }
+    }
     const userSaved = await user.save();
     return userSaved.toObject();
   } catch (e) {
@@ -386,7 +404,7 @@ async function findOneAndUpdate(next) {
 }
 
 UserSchema.statics.findUserAddressByEmployeeId = findUserAddressByEmployeeId;
-UserSchema.methods.saveByRoleName = saveByRoleName;
+UserSchema.methods.saveByParams = saveByParams;
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 
