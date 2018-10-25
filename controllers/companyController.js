@@ -57,7 +57,18 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const companyUpdated = await Company.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+    let companyUpdated;
+    if (req.payload.rhConfig && req.payload.rhConfig.transportSubs && !Array.isArray(req.payload.transportSubs)) {
+      const { subId } = req.payload.rhConfig.transportSubs;
+      delete req.payload.rhConfig.transportSubs.subId;
+      delete req.payload._id;
+      companyUpdated = await Company.findOneAndUpdate({
+        _id: req.params._id,
+        'rhConfig.transportSubs._id': subId
+      }, { $set: flat(req.payload) }, { new: true });
+    } else {
+      companyUpdated = await Company.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+    }
     if (!companyUpdated) {
       return Boom.notFound(translate[language].companyNotFound);
     }

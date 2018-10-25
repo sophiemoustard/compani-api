@@ -68,10 +68,13 @@ exports.plugin = {
                 grossHourlyRate: Joi.number()
               },
               phoneSubRefunding: Joi.number(),
-              transportSubs: Joi.array().items({
+              transportSubs: [Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number()
-              }),
+              }), Joi.object().keys({
+                subId: Joi.objectId().required(),
+                '$.price': Joi.number()
+              })],
               contractTemplate: {
                 id: Joi.string(),
                 link: Joi.string()
