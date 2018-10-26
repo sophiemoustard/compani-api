@@ -15,7 +15,9 @@ const {
   forgotPassword,
   checkResetPasswordToken,
   updateCertificates,
-  updateTask
+  updateTask,
+  uploadFile,
+  uploadImage
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -370,6 +372,42 @@ exports.plugin = {
         auth: false
       },
       handler: checkResetPasswordToken
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/gdrive/{driveId}/upload',
+      handler: uploadFile,
+      options: {
+        payload: {
+          output: 'stream',
+          parse: true,
+          allow: 'multipart/form-data',
+          maxBytes: 5242880
+        },
+        auth: {
+          strategy: 'jwt',
+          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
+        }
+      }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/cloudinary/upload',
+      handler: uploadImage,
+      options: {
+        payload: {
+          output: 'stream',
+          parse: true,
+          allow: 'multipart/form-data',
+          maxBytes: 5242880
+        },
+        auth: {
+          strategy: 'jwt',
+          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
+        }
+      }
     });
   }
 };

@@ -4,6 +4,7 @@ const flat = require('flat');
 const _ = require('lodash');
 const Boom = require('boom');
 const nodemailer = require('nodemailer');
+const moment = require('moment');
 
 const { clean } = require('../helpers/clean');
 const { populateRole } = require('../helpers/populateRole');
@@ -11,6 +12,7 @@ const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer'
 const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const tokenProcess = require('../helpers/tokenProcess');
+const { handleFile } = require('../helpers/gdriveStorage');
 
 const { language } = translate;
 
@@ -18,6 +20,7 @@ const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
 const drive = require('../models/GoogleDrive');
+const cloudinary = require('../models/Cloudinary');
 
 // Authenticate the user locally
 const authenticate = async (req) => {
@@ -408,6 +411,87 @@ const checkResetPasswordToken = async (req) => {
   }
 };
 
+const uploadFile = async (req) => {
+  try {
+    const allowedFields = [
+      'idCardRecto',
+      'idCardVerso',
+      'passport',
+      'residencePermit',
+      'healthAttest',
+      'certificates',
+      'phoneInvoice',
+      'navigoInvoice',
+      'transportInvoice',
+      'mutualFund',
+      'vitalCard',
+    ];
+    const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
+    if (administrativeKeys.length === 0) {
+      Boom.forbidden('Upload not allowed');
+    }
+    const uploadedFile = await handleFile({
+      driveFolderId: req.params.driveId,
+      name: req.payload.fileName || req.payload[administrativeKeys[0]].hapi.filename,
+      type: req.payload['Content-Type'],
+      body: req.payload[administrativeKeys[0]]
+    });
+    let driveFileInfo = null;
+    try {
+      driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
+      console.log('UPLOADED FILE', driveFileInfo);
+    } catch (e) {
+      req.log(['error', 'gdrive'], e);
+    }
+    if (administrativeKeys[0] === 'certificates') {
+      const payload = {
+        [`administrative.${administrativeKeys[0]}`]: {
+          driveId: uploadedFile.id,
+          link: driveFileInfo.webViewLink,
+          // thumbnailLink: driveFileInfo.thumbnailLink
+        }
+      };
+      await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true });
+    } else {
+      const payload = {
+        administrative: {
+          [administrativeKeys[0]]: {
+            driveId: uploadedFile.id,
+            link: driveFileInfo.webViewLink,
+            // thumbnailLink: driveFileInfo.thumbnailLink
+          }
+        }
+      };
+      await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+    }
+    return { message: translate[language].fileCreated, data: { uploadedFile } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const uploadImage = async (req) => {
+  try {
+    const pictureUploaded = await cloudinary.addImage({
+      file: req.payload.picture,
+      role: req.payload.role || 'Auxiliaire',
+      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
+    });
+    const payload = {
+      picture: {
+        publicId: pictureUploaded.public_id,
+        link: pictureUploaded.secure_url
+      }
+    };
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+    return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 
 module.exports = {
   authenticate,
@@ -421,5 +505,7 @@ module.exports = {
   forgotPassword,
   checkResetPasswordToken,
   updateCertificates,
-  updateTask
+  updateTask,
+  uploadFile,
+  uploadImage
 };

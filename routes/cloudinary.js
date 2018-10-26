@@ -3,29 +3,11 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { uploadImage, deleteImage } = require('../controllers/cloudinaryController');
+const { deleteImage } = require('../controllers/cloudinaryController');
 
 exports.plugin = {
   name: 'routes-cloudinary',
   register: async (server) => {
-    server.route({
-      method: 'POST',
-      path: '/upload',
-      handler: uploadImage,
-      options: {
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880
-        },
-        auth: {
-          strategy: 'jwt',
-          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
-        }
-      }
-    });
-
     server.route({
       method: 'DELETE',
       path: '/image/{id}',

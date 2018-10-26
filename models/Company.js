@@ -18,6 +18,7 @@ const CompanySchema = mongoose.Schema({
       price: Number
     }],
     contractTemplate: {
+      folderId: String,
       id: String,
       link: String
     }
