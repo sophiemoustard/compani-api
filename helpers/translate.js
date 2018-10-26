@@ -125,7 +125,12 @@ module.exports = {
     companyNotFound: 'Company not found',
     companyCreated: 'Company created.',
     companyDeleted: 'Company deleted.',
-    companyExists: 'Company already exists.'
+    companyExists: 'Company already exists.',
+    /* User contracts */
+    userContractsFound: 'User contracts found.',
+    userContractUpdated: 'User contract updated.',
+    userContractAdded: 'User contract added.',
+    userContractRemoved: 'User contract removed.'
   },
   'fr-FR': {
     /* Global errors */
@@ -243,6 +248,11 @@ module.exports = {
     companyNotFound: 'Entreprise non trouvée.',
     companyCreated: 'Entreprise créée.',
     companyDeleted: 'Entreprise supprimée.',
-    companyExists: 'Entreprise déjà existante.'
+    companyExists: 'Entreprise déjà existante.',
+    /* User contracts */
+    userContractsFound: "Contrats de l'utilisateur trouvés.",
+    userContractUpdated: "Contrat de l'utilisateur mis à jour.",
+    userContractAdded: "Contrat de l'utilisateur ajouté.",
+    userContractRemoved: "Contrat de l'utilisateur supprimé."
   }
 };

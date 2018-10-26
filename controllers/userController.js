@@ -491,6 +491,79 @@ const uploadImage = async (req) => {
   }
 };
 
+const getUserContracts = async (req) => {
+  try {
+    const contracts = await User.findOne({
+      _id: req.params._id,
+      'administrative.contracts': { $exists: true }
+    }, {
+      firstname: 1,
+      lastname: 1,
+      administrative: 1
+    }, { autopopulate: false });
+    return {
+      message: translate[language].userContractsFound,
+      data: contracts
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateUserContract = async (req) => {
+  try {
+    const payload = { 'administrative.contracts.$': { ...req.payload } };
+    const contractUpdated = await User.findOneAndUpdate({
+      _id: req.params._id,
+      'administrative.contracts._id': req.params.contractId
+    }, { $set: flat(payload) }, { new: true, select: { firstname: 1, lastname: 1, administrative: 1 }, autopopulate: false });
+    if (!contractUpdated) {
+      return Boom.notFound(translate[language].contractNotFound);
+    }
+    return { message: translate[language].userContractUpdated, data: { contract: contractUpdated } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const createUserContract = async (req) => {
+  try {
+    const newContract = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.contracts': req.payload } }, {
+      new: true,
+      select: {
+        firstname: 1,
+        lastname: 1,
+        administrative: 1
+      },
+      autopopulate: false
+    });
+    return { message: translate[language].userContractAdded, data: { contract: newContract } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const removeUserContract = async (req) => {
+  try {
+    await User.findOneAndUpdate({ _id: req.params._id }, { $pull: { 'administrative.contracts': { _id: req.params.contractId } } }, {
+      select: {
+        firstname: 1,
+        lastname: 1,
+        administrative: 1
+      },
+      autopopulate: true
+    });
+    return {
+      message: translate[language].userContractRemoved,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
 
 module.exports = {
   authenticate,
@@ -506,5 +579,9 @@ module.exports = {
   updateCertificates,
   updateTask,
   uploadFile,
-  uploadImage
+  uploadImage,
+  getUserContracts,
+  updateUserContract,
+  createUserContract,
+  removeUserContract
 };

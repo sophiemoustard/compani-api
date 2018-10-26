@@ -17,7 +17,11 @@ const {
   updateCertificates,
   updateTask,
   uploadFile,
-  uploadImage
+  uploadImage,
+  getUserContracts,
+  updateUserContract,
+  createUserContract,
+  removeUserContract
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -408,6 +412,92 @@ exports.plugin = {
           // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/contracts',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: getUserContracts
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/contracts/{contractId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            contractId: Joi.objectId().required()
+          },
+          payload: {
+            creationDate: Joi.date(),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
+            contractType: Joi.string(),
+            customer: {
+              firstname: Joi.string(),
+              lastname: Joi.string(),
+              customer_id: Joi.string()
+            },
+            weeklyHours: Joi.number(),
+            salary: Joi.number(),
+            grossHourlyRate: Joi.number()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: updateUserContract
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/contracts',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+          payload: {
+            creationDate: Joi.date(),
+            startDate: Joi.date().required(),
+            endDate: Joi.date(),
+            contractType: Joi.string().required(),
+            customer: {
+              firstname: Joi.string(),
+              lastname: Joi.string(),
+              customer_id: Joi.string()
+            },
+            weeklyHours: Joi.number().required(),
+            salary: Joi.number(),
+            grossHourlyRate: Joi.number()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: createUserContract
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/contracts/{contractId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            contractId: Joi.objectId().required()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: removeUserContract
     });
   }
 };

@@ -227,23 +227,21 @@ const UserSchema = mongoose.Schema({
       has: Boolean,
     },
     contracts: [{
-      contractId: String,
-      creationDate: String,
-      startDate: String,
-      endDate: String,
+      creationDate: {
+        type: Date,
+        default: Date.now
+      },
+      startDate: Date,
+      endDate: Date,
       contractType: String,
-      status: String,
-      motiveEntry: String,
-      collectiveConvention: String,
-      nature: String,
-      nature2: String,
-      specificity: String,
-      regime: String,
-      socialCategory: String,
-      description: String,
-      contractHours: String,
-      contractualSalary: String,
-      due: String
+      customer: {
+        firstname: String,
+        lastname: String,
+        customer_id: String
+      },
+      weeklyHours: Number,
+      salary: Number,
+      grossHourlyRate: Number
     }],
     identity: {
       title: String,
