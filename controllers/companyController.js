@@ -2,7 +2,9 @@ const Boom = require('boom');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
+const { handleFile } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
+const drive = require('../models/GoogleDrive');
 
 const { language } = translate;
 
@@ -100,10 +102,43 @@ const remove = async (req) => {
   }
 };
 
+const uploadFile = async (req) => {
+  try {
+    const allowedFields = [
+      'contractTemplate'
+    ];
+    const keys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
+    if (keys.length === 0) {
+      Boom.forbidden('Upload not allowed');
+    }
+    const uploadedFile = await handleFile({
+      driveFolderId: req.params.driveId,
+      name: req.payload.fileName || req.payload[keys[0]].hapi.filename,
+      type: req.payload['Content-Type'],
+      body: req.payload[keys[0]]
+    });
+    const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
+    const payload = {
+      rhConfig: {
+        contractTemplate: {
+          id: uploadedFile.id,
+          link: driveFileInfo.webViewLink
+        }
+      }
+    };
+    await Company.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+    return { message: translate[language].fileCreated, data: { uploadedFile } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
   create,
   update,
-  remove
+  remove,
+  uploadFile
 };

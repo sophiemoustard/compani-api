@@ -9,7 +9,8 @@ const {
   update,
   list,
   show,
-  remove
+  remove,
+  uploadFile
 } = require('../controllers/companyController');
 
 exports.plugin = {
@@ -76,8 +77,8 @@ exports.plugin = {
                 '$.price': Joi.number()
               })],
               contractTemplate: {
-                id: Joi.string(),
-                link: Joi.string()
+                id: Joi.string().allow(null),
+                link: Joi.string().allow(null)
               }
             })
           })
@@ -130,6 +131,24 @@ exports.plugin = {
         auth: 'jwt'
       },
       handler: remove
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/gdrive/{driveId}/upload',
+      handler: uploadFile,
+      options: {
+        payload: {
+          output: 'stream',
+          parse: true,
+          allow: 'multipart/form-data',
+          maxBytes: 5242880
+        },
+        auth: {
+          strategy: 'jwt',
+          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
+        }
+      }
     });
   }
 };
