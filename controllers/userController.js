@@ -439,7 +439,6 @@ const uploadFile = async (req) => {
     let driveFileInfo = null;
     try {
       driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
-      console.log('UPLOADED FILE', driveFileInfo);
     } catch (e) {
       req.log(['error', 'gdrive'], e);
     }
