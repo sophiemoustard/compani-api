@@ -64,7 +64,7 @@ const create = async (req) => {
   try {
     // Create refreshToken and store it
     req.payload.refreshToken = uuidv4();
-    req.payload.company = 'Alenvi';
+    // req.payload.company = 'Alenvi';
     const user = new User(req.payload);
     // Save user
     await user.saveByParams(_.pick(req.payload, ['role', 'company']));
