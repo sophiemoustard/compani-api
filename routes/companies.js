@@ -74,7 +74,7 @@ exports.plugin = {
                 price: Joi.number()
               }), Joi.object().keys({
                 subId: Joi.objectId().required(),
-                '$.price': Joi.number()
+                price: Joi.number()
               })],
               contractTemplate: {
                 id: Joi.string().allow(null),

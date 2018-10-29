@@ -62,7 +62,8 @@ const update = async (req) => {
     let companyUpdated;
     if (req.payload.rhConfig && req.payload.rhConfig.transportSubs && !Array.isArray(req.payload.transportSubs)) {
       const { subId } = req.payload.rhConfig.transportSubs;
-      delete req.payload.rhConfig.transportSubs.subId;
+      req.payload.rhConfig['transportSubs.$'] = req.payload.rhConfig.transportSubs;
+      delete req.payload.rhConfig.transportSubs;
       delete req.payload._id;
       companyUpdated = await Company.findOneAndUpdate({
         _id: req.params._id,
