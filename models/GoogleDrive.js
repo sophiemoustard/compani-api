@@ -1,10 +1,11 @@
+const fs = require('fs');
 const { google } = require('googleapis');
 
 const jwtClient = new google.auth.JWT(
   process.env.GOOGLE_DRIVE_API_EMAIL,
   null,
   process.env.GOOGLE_DRIVE_API_PRIVATE_KEY.replace(/\\n/g, '\n'),
-  ['https://www.googleapis.com/auth/drive.file'],
+  ['https://www.googleapis.com/auth/drive'],
   null
 );
 
@@ -62,6 +63,22 @@ exports.getFileById = params => new Promise((resolve, reject) => {
     } else {
       resolve(response.data);
     }
+  });
+});
+
+exports.downloadFileById = params => new Promise((resolve, reject) => {
+  const dest = fs.createWriteStream(params.tmpFilePath);
+  drive.files.get({
+    auth: jwtClient,
+    fileId: `${params.fileId}`,
+    alt: 'media'
+  }, { responseType: 'stream' }, (err, res) => {
+    res.data.on('end', () => {
+      resolve();
+      console.log('Google drive doc downloaded successfully !');
+    }).on('error', () => {
+      reject(new Error(`Error during Google drive doc download ${err}`));
+    }).pipe(dest);
   });
 });
 
