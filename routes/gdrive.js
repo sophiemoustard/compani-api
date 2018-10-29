@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { deleteFile, getFileById } = require('../controllers/googleDriveController');
+const { deleteFile, getFileById, generateDocxFromDrive } = require('../controllers/googleDriveController');
 
 exports.plugin = {
   name: 'routes-gdrive',
@@ -32,6 +32,21 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt'
+        }
+      }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{id}/generatedocx',
+      handler: generateDocxFromDrive,
+      options: {
+        validate: {
+          params: { id: Joi.string() }
+        },
+        auth: {
+          strategy: 'jwt',
+          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
     });

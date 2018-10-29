@@ -1,4 +1,9 @@
 const Boom = require('boom');
+const JSZip = require('jszip');
+const DocxTemplater = require('docxtemplater');
+const fs = require('fs');
+
+const fsPromises = fs.promises;
 
 const translate = require('../helpers/translate');
 const drive = require('../models/GoogleDrive');
@@ -28,7 +33,34 @@ const getFileById = async (req) => {
   }
 };
 
+const generateDocxFromDrive = async (req, h) => {
+  try {
+    const payload = { fileId: req.params.id, tmpFilePath: '/tmp/template.docx' };
+    await drive.downloadFileById(payload);
+    const file = await fsPromises.readFile(payload.tmpFilePath, 'binary');
+    const zip = new JSZip(file);
+    const doc = new DocxTemplater();
+    doc.loadZip(zip);
+    doc.setData(req.payload);
+    doc.render();
+    const filledZip = doc.getZip().generate({
+      type: 'nodebuffer'
+    });
+    const tmpOutputPath = '/tmp/filled.docx';
+    await fsPromises.writeFile(tmpOutputPath, filledZip);
+    const test = await fsPromises.readFile(tmpOutputPath);
+    console.log('MEH', test);
+    return h.file(tmpOutputPath, {
+      confine: false
+    });
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   deleteFile,
-  getFileById
+  getFileById,
+  generateDocxFromDrive
 };
