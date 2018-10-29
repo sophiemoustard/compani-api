@@ -565,6 +565,49 @@ const removeUserContract = async (req) => {
   }
 };
 
+const createUserContractAmendment = async (req) => {
+  try {
+    const newContract = await User.findOneAndUpdate({
+      _id: req.params._id,
+      'administrative.contracts._id': req.params.contractId
+    }, { $push: { 'administrative.contracts.$.amendments': req.payload } }, {
+      new: true,
+      select: {
+        firstname: 1,
+        lastname: 1,
+        administrative: 1
+      },
+      autopopulate: false
+    });
+    return { message: translate[language].userContractAmendmentAdded, data: { contract: newContract } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const removeUserContractAmendment = async (req) => {
+  try {
+    await User.findOneAndUpdate({
+      _id: req.params._id,
+      'administrative.contracts._id': req.params.contractId,
+    }, { $pull: { 'administrative.contracts.$.amendments': { _id: req.params.amendmentId } } }, {
+      select: {
+        firstname: 1,
+        lastname: 1,
+        administrative: 1
+      },
+      autopopulate: true
+    });
+    return {
+      message: translate[language].userContractAmendmentRemoved,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   authenticate,
   create,
@@ -583,5 +626,7 @@ module.exports = {
   getUserContracts,
   updateUserContract,
   createUserContract,
-  removeUserContract
+  removeUserContract,
+  createUserContractAmendment,
+  removeUserContractAmendment
 };

@@ -130,7 +130,10 @@ module.exports = {
     userContractsFound: 'User contracts found.',
     userContractUpdated: 'User contract updated.',
     userContractAdded: 'User contract added.',
-    userContractRemoved: 'User contract removed.'
+    userContractRemoved: 'User contract removed.',
+    /* User contracts amendments */
+    userContractAmendmentAdded: 'User contract amendment added.',
+    userContractAmendmentRemoved: 'User contract amendment removed.'
   },
   'fr-FR': {
     /* Global errors */
@@ -253,6 +256,9 @@ module.exports = {
     userContractsFound: "Contrats de l'utilisateur trouvés.",
     userContractUpdated: "Contrat de l'utilisateur mis à jour.",
     userContractAdded: "Contrat de l'utilisateur ajouté.",
-    userContractRemoved: "Contrat de l'utilisateur supprimé."
+    userContractRemoved: "Contrat de l'utilisateur supprimé.",
+    /* User contracts amendments */
+    userContractAmendmentAdded: "Avenant au contrat de l'utilisateur ajouté.",
+    userContractAmendmentRemoved: "Avenant au contrat de l'utilisateur supprimé."
   }
 };

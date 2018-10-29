@@ -21,7 +21,10 @@ const {
   getUserContracts,
   updateUserContract,
   createUserContract,
-  removeUserContract
+  removeUserContract,
+  createUserContractAmendment,
+  updateUserContractAmendment,
+  removeUserContractAmendment
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -498,6 +501,67 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: removeUserContract
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/contracts/{contractId}/amendments',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            contractId: Joi.objectId().required()
+          },
+          payload: {
+            creationDate: Joi.date(),
+            startDate: Joi.date().required(),
+            endDate: Joi.date(),
+            weeklyHours: Joi.number().required(),
+            salary: Joi.number(),
+            grossHourlyRate: Joi.number()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: createUserContractAmendment
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/contracts/{contractId}/amendments/{amendmentId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            contractId: Joi.objectId().required(),
+            amendmentId: Joi.objectId().required()
+          },
+          payload: {
+            startDate: Joi.date(),
+            weeklyHours: Joi.number(),
+            salary: Joi.number(),
+            grossHourlyRate: Joi.number()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: updateUserContractAmendment
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/contracts/{contractId}/amendments/{amendmentId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            contractId: Joi.objectId().required(),
+            amendmentId: Joi.objectId().required()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: removeUserContractAmendment
     });
   }
 };
