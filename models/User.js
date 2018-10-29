@@ -233,6 +233,7 @@ const UserSchema = mongoose.Schema({
       },
       startDate: Date,
       endDate: Date,
+      status: String,
       contractType: String,
       customer: {
         firstname: String,
