@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+puts "Cleaning /tmp folder"
+system "rm -r /tmp/*"
