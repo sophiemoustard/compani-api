@@ -74,8 +74,8 @@ exports.downloadFileById = params => new Promise((resolve, reject) => {
     alt: 'media'
   }, { responseType: 'stream' }, (err, res) => {
     res.data.on('end', () => {
-      resolve();
       console.log('Google drive doc downloaded successfully !');
+      resolve();
     }).on('error', () => {
       reject(new Error(`Error during Google drive doc download ${err}`));
     }).pipe(dest);
