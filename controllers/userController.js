@@ -5,6 +5,7 @@ const _ = require('lodash');
 const Boom = require('boom');
 const nodemailer = require('nodemailer');
 const moment = require('moment');
+const mongoose = require('mongoose');
 
 const { clean } = require('../helpers/clean');
 const { populateRole } = require('../helpers/populateRole');
@@ -513,11 +514,14 @@ const getUserContracts = async (req) => {
     }, {
       firstname: 1,
       lastname: 1,
-      administrative: 1
-    }, { autopopulate: false });
+      'administrative.contracts': 1
+    }, { autopopulate: false }).lean();
     return {
       message: translate[language].userContractsFound,
-      data: contracts
+      data: {
+        user: _.pick(contracts, ['_id', 'firstname', 'lastname']),
+        contracts: contracts.administrative.contracts
+      }
     };
   } catch (e) {
     req.log('error', e);
@@ -531,11 +535,17 @@ const updateUserContract = async (req) => {
     const contractUpdated = await User.findOneAndUpdate({
       _id: req.params._id,
       'administrative.contracts._id': req.params.contractId
-    }, { $set: flat(payload) }, { new: true, select: { firstname: 1, lastname: 1, administrative: 1 }, autopopulate: false });
+    }, { $set: flat(payload) }, { new: true, select: { firstname: 1, lastname: 1, 'administrative.contracts': 1 }, autopopulate: false }).lean();
     if (!contractUpdated) {
       return Boom.notFound(translate[language].contractNotFound);
     }
-    return { message: translate[language].userContractUpdated, data: { contract: contractUpdated } };
+    return {
+      message: translate[language].userContractUpdated,
+      data: {
+        user: _.pick(contractUpdated, ['_id', 'firstname', 'lastname']),
+        contracts: contractUpdated.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
+      }
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -549,11 +559,17 @@ const createUserContract = async (req) => {
       select: {
         firstname: 1,
         lastname: 1,
-        administrative: 1
+        'administrative.contracts': 1
       },
       autopopulate: false
     });
-    return { message: translate[language].userContractAdded, data: { contract: newContract } };
+    return {
+      message: translate[language].userContractAdded,
+      data: {
+        user: _.pick(newContract, ['_id', 'firstname', 'lastname']),
+        contracts: newContract.administrative.contracts
+      }
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -568,7 +584,7 @@ const removeUserContract = async (req) => {
         lastname: 1,
         administrative: 1
       },
-      autopopulate: true
+      autopopulate: false
     });
     return {
       message: translate[language].userContractRemoved,
@@ -594,6 +610,33 @@ const createUserContractAmendment = async (req) => {
       autopopulate: false
     });
     return { message: translate[language].userContractAmendmentAdded, data: { contract: newContract } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateUserContractAmendment = async (req) => {
+  try {
+    const payload = { 'administrative.contracts.$[contract].amendments.$[amendment]': { ...req.payload } };
+    const updatedAmendment = await User.findOneAndUpdate({
+      _id: req.params._id,
+    }, { $set: flat(payload) }, {
+      // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
+      arrayFilters: [{ 'contract._id': mongoose.Types.ObjectId(req.params.contractId) }, { 'amendment._id': mongoose.Types.ObjectId(req.params.amendmentId) }],
+      new: true,
+      autopopulate: false,
+      firstname: 1,
+      lastname: 1,
+      'administrative.contracts': 1
+    });
+    return {
+      message: translate[language].userContractAmendmentUpdated,
+      data: {
+        user: _.pick(updatedAmendment, ['_id', 'firstname', 'lastname']),
+        contracts: updatedAmendment.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
+      }
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -643,5 +686,6 @@ module.exports = {
   createUserContract,
   removeUserContract,
   createUserContractAmendment,
+  updateUserContractAmendment,
   removeUserContractAmendment
 };

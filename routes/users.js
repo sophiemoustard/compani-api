@@ -24,6 +24,7 @@ const {
   createUserContract,
   removeUserContract,
   createUserContractAmendment,
+  updateUserContractAmendment,
   removeUserContractAmendment
 } = require('../controllers/userController');
 
@@ -544,6 +545,26 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: createUserContractAmendment
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/contracts/{contractId}/amendments/{amendmentId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            contractId: Joi.objectId().required(),
+            amendmentId: Joi.objectId().required()
+          },
+          payload: {
+            isActive: Joi.boolean(),
+            weeklyHours: Joi.number()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: updateUserContractAmendment
     });
 
     server.route({
