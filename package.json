@@ -48,6 +48,7 @@
     "mongoose-autopopulate": "^0.8.0",
     "nodemailer": "^4.6.7",
     "randomatic": "^3.0.0",
+    "shelljs": "^0.8.2",
     "twilio": "^3.17.4",
     "uuid": "^3.2.1",
     "validator": "^10.3.0"

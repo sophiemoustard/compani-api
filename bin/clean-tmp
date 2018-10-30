@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env node
+const shell = require('shelljs');
 
-puts "Cleaning /tmp folder"
-system "rm -r /tmp/*"
+shell.rm('-rf', '/tmp/*');
