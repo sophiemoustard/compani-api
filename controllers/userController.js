@@ -69,44 +69,10 @@ const create = async (req) => {
     // Save user
     await user.saveByParams(_.pick(req.payload, ['role', 'company']));
     const leanUser = user;
-    // Add gdrive folder after save to avoid creating it if duplicate email
-    let folderPayload = {};
-    if (req.payload.role === 'Auxiliaire' && req.payload.firstname && req.payload.lastname) {
-      const folder = await drive.add({
-        name: `${req.payload.lastname.toUpperCase()} ${req.payload.firstname}`,
-        parentFolderId: process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID,
-        folder: true
-      });
-      if (!folder) {
-        req.log('error', 'Google drive folder creation failed.');
-        return Boom.failedDependency('Google drive folder creation failed.');
-      }
-      const folderLink = await drive.getFileById({ fileId: folder.id });
-      if (!folderLink) {
-        req.log('error', 'Google drive folder creation failed.');
-        return Boom.notFound('Google drive folder not found.');
-      }
-      if (leanUser.administrative) {
-        folderPayload.administrative = leanUser.administrative;
-        folderPayload.administrative.driveFolder = {
-          id: folder.id,
-          link: folderLink.webViewLink
-        };
-      } else {
-        folderPayload = {
-          administrative: {
-            driveFolder: {
-              id: folder.id,
-              link: folderLink.webViewLink
-            }
-          }
-        };
-      }
-    }
     // Add tasks + drive (auxiliary) folder to newly created user
     const tasks = await Task.find({});
     const taskIds = tasks.map(task => ({ task: task._id }));
-    const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $set: folderPayload, $push: { procedure: { $each: taskIds } } }, { new: true });
+    const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $push: { procedure: { $each: taskIds } } }, { new: true });
     populatedUser.role.rights = populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
     const payload = {
       _id: populatedUser._id.toHexString(),
@@ -491,6 +457,54 @@ const uploadImage = async (req) => {
   }
 };
 
+const createDriveFolder = async (req) => {
+  try {
+    const user = await User.findOne({ _id: req.params._id });
+    let folderPayload = {};
+    let updatedUser;
+    if (user.firstname && user.lastname) {
+      const folder = await drive.add({
+        name: `${user.lastname.toUpperCase()} ${user.firstname}`,
+        parentFolderId: req.payload.parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID,
+        folder: true
+      });
+      if (!folder) {
+        req.log('error', 'Google drive folder creation failed.');
+        return Boom.failedDependency('Google drive folder creation failed.');
+      }
+      const folderLink = await drive.getFileById({ fileId: folder.id });
+      if (!folderLink) {
+        req.log('error', 'Google drive folder creation failed.');
+        return Boom.notFound('Google drive folder not found.');
+      }
+      if (user.administrative) {
+        folderPayload.administrative = user.administrative;
+        folderPayload.administrative.driveFolder = {
+          id: folder.id,
+          link: folderLink.webViewLink
+        };
+      } else {
+        folderPayload = {
+          administrative: {
+            driveFolder: {
+              id: folder.id,
+              link: folderLink.webViewLink
+            }
+          }
+        };
+      }
+      updatedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: folderPayload }, { new: true, autopopulate: false });
+    }
+    return {
+      message: translate[language].userUpdated,
+      data: { updatedUser }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 const getUserContracts = async (req) => {
   try {
     const contracts = await User.findOne({
@@ -623,6 +637,7 @@ module.exports = {
   updateTask,
   uploadFile,
   uploadImage,
+  createDriveFolder,
   getUserContracts,
   updateUserContract,
   createUserContract,

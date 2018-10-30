@@ -18,6 +18,7 @@ const {
   updateTask,
   uploadFile,
   uploadImage,
+  createDriveFolder,
   getUserContracts,
   updateUserContract,
   createUserContract,
@@ -396,6 +397,26 @@ exports.plugin = {
           // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/drivefolder',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId()
+          },
+          payload: Joi.object().keys({
+            parentFolderId: Joi.string(),
+            _id: Joi.objectId()
+          })
+        },
+        auth: {
+          strategy: 'jwt'
+        }
+      },
+      handler: createDriveFolder
     });
 
     server.route({

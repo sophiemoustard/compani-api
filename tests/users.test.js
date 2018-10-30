@@ -60,12 +60,6 @@ describe('USERS ROUTES', () => {
       expect(user.local.email).toBe(userPayload.local.email);
       expect(user.local.password).toBeDefined();
       expect(user).toHaveProperty('picture');
-      if (res.result.data.user.role.name === 'Auxiliaire') {
-        expect(user.administrative).toHaveProperty('driveFolder');
-        expect(user.administrative.driveFolder).toHaveProperty('id');
-        expect(user.administrative.driveFolder.id).toBeDefined();
-        expect(user.administrative.driveFolder.link).toBeDefined();
-      }
     });
     it('should not create an user if role provided does not exist', async () => {
       userPayload.role = 'Toto';
