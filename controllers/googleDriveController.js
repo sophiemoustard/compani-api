@@ -48,8 +48,7 @@ const generateDocxFromDrive = async (req, h) => {
     });
     const tmpOutputPath = '/tmp/filled.docx';
     await fsPromises.writeFile(tmpOutputPath, filledZip);
-    const test = await fsPromises.readFile(tmpOutputPath);
-    console.log('MEH', test);
+    await fsPromises.readFile(tmpOutputPath);
     return h.file(tmpOutputPath, {
       confine: false
     });
