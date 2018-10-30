@@ -46,7 +46,8 @@ const generateDocxFromDrive = async (req, h) => {
     const filledZip = doc.getZip().generate({
       type: 'nodebuffer'
     });
-    const tmpOutputPath = '/tmp/filled.docx';
+    const date = new Date();
+    const tmpOutputPath = `/tmp/template-filled-${date.getTime()}.docx`;
     await fsPromises.writeFile(tmpOutputPath, filledZip);
     await fsPromises.readFile(tmpOutputPath);
     return h.file(tmpOutputPath, {
