@@ -392,10 +392,17 @@ const uploadFile = async (req) => {
       'transportInvoice',
       'mutualFund',
       'vitalCard',
+      'signedContract',
+      'signedAmendment'
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) {
       Boom.forbidden('Upload not allowed');
+    }
+    if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedAmendment') {
+      if (!req.payload.contractId) {
+        return Boom.badRequest();
+      }
     }
     const uploadedFile = await handleFile({
       driveFolderId: req.params.driveId,
@@ -411,13 +418,23 @@ const uploadFile = async (req) => {
     }
     if (administrativeKeys[0] === 'certificates') {
       const payload = {
-        [`administrative.${administrativeKeys[0]}`]: {
+        'administrative.certificates': {
           driveId: uploadedFile.id,
           link: driveFileInfo.webViewLink,
           // thumbnailLink: driveFileInfo.thumbnailLink
         }
       };
-      await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true });
+      await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true, autopopulate: false });
+    } else if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedAmendment') {
+      const payload = {
+        administrative: {
+          'contracts.$': {
+            driveId: uploadedFile.id,
+            link: driveFileInfo.webViewLink,
+          }
+        }
+      };
+      await User.findOneAndUpdate({ _id: req.params._id, 'administrative.contracts._id': req.payload.contractId }, { $set: flat(payload) }, { new: true, autopopulate: false });
     } else {
       const payload = {
         administrative: {
@@ -428,7 +445,7 @@ const uploadFile = async (req) => {
           }
         }
       };
-      await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
+      await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true, autopopulate: false });
     }
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
