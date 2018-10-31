@@ -427,11 +427,9 @@ const uploadFile = async (req) => {
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true, autopopulate: false });
     } else if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedAmendment') {
       const payload = {
-        administrative: {
-          'contracts.$': {
-            driveId: uploadedFile.id,
-            link: driveFileInfo.webViewLink,
-          }
+        'administrative.contracts.$': {
+          driveId: uploadedFile.id,
+          link: driveFileInfo.webViewLink,
         }
       };
       await User.findOneAndUpdate({ _id: req.params._id, 'administrative.contracts._id': req.payload.contractId }, { $set: flat(payload) }, { new: true, autopopulate: false });
