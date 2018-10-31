@@ -17,10 +17,16 @@ const CompanySchema = mongoose.Schema({
       department: String,
       price: Number
     }],
-    contractTemplate: {
+    templates: {
       folderId: String,
-      id: String,
-      link: String
+      contract: {
+        driveId: String,
+        link: String
+      },
+      amendment: {
+        driveId: String,
+        link: String
+      }
     }
   }
 

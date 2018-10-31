@@ -106,7 +106,8 @@ const remove = async (req) => {
 const uploadFile = async (req) => {
   try {
     const allowedFields = [
-      'contractTemplate'
+      'contract',
+      'amendment'
     ];
     const keys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (keys.length === 0) {
@@ -121,9 +122,11 @@ const uploadFile = async (req) => {
     const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
     const payload = {
       rhConfig: {
-        contractTemplate: {
-          id: uploadedFile.id,
-          link: driveFileInfo.webViewLink
+        templates: {
+          [keys[0]]: {
+            driveId: uploadedFile.id,
+            link: driveFileInfo.webViewLink
+          }
         }
       }
     };
