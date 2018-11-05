@@ -245,7 +245,10 @@ const UserSchema = mongoose.Schema({
       weeklyHours: Number,
       salary: Number,
       grossHourlyRate: Number,
-      isActive: Boolean,
+      isActive: {
+        type: Boolean,
+        default: false
+      },
       link: String,
       driveId: String,
       amendments: [{
