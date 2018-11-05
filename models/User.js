@@ -235,6 +235,8 @@ const UserSchema = mongoose.Schema({
       endDate: Date,
       status: String,
       contractType: String,
+      ogustContractId: String,
+      parentContractId: { type: mongoose.Schema.Types.ObjectId },
       customer: {
         firstname: String,
         lastname: String,
