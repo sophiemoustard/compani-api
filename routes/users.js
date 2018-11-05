@@ -473,7 +473,8 @@ exports.plugin = {
             },
             weeklyHours: Joi.number(),
             salary: Joi.number(),
-            grossHourlyRate: Joi.number()
+            grossHourlyRate: Joi.number(),
+            isActive: Joi.boolean()
           }
         },
         auth: { strategy: 'jwt' }
