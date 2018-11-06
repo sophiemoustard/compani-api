@@ -490,7 +490,7 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
           },
-          payload: Joi.object.keys({
+          payload: Joi.object().keys({
             startDate: Joi.date().required(),
             contractType: Joi.string().required(),
             customer: {
