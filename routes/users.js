@@ -490,20 +490,19 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
           },
-          payload: {
-            creationDate: Joi.date(),
+          payload: Joi.object.keys({
             startDate: Joi.date().required(),
-            endDate: Joi.date(),
             contractType: Joi.string().required(),
             customer: {
               firstname: Joi.string(),
               lastname: Joi.string(),
               customer_id: Joi.string()
             },
+            status: Joi.string().required(),
             weeklyHours: Joi.number().required(),
             salary: Joi.number(),
-            grossHourlyRate: Joi.number()
-          }
+            grossHourlyRate: Joi.number().required()
+          })
         },
         auth: { strategy: 'jwt' }
       },
