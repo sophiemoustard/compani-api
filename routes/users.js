@@ -493,6 +493,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
             contractType: Joi.string().required(),
+            parentContractId: Joi.objectId(),
             customer: {
               firstname: Joi.string(),
               lastname: Joi.string(),
