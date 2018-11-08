@@ -93,6 +93,9 @@ exports.plugin = {
               emergencyContact: Joi.object().keys({
                 name: Joi.string(),
                 phoneNumber: Joi.string()
+              }),
+              transportInvoice: Joi.object().keys({
+                transportType: Joi.string()
               })
             })
           }).required()

@@ -158,7 +158,8 @@ exports.plugin = {
             nature: Joi.string().default('S'),
             status: Joi.string().default('A'),
             method_of_payment: Joi.string().default('7268'),
-            manager: Joi.string().default('232220179')
+            manager: Joi.string().default('232220179'),
+            means_of_transport: Joi.string().default('Abonnement transport en commun')
           }).required()
         },
         auth: false
@@ -194,6 +195,7 @@ exports.plugin = {
             state_of_birth: Joi.number(),
             social_insurance_number: Joi.number(),
             nationality: Joi.string(),
+            means_of_transport: Joi.string(),
             main_address: Joi.object().keys({
               line: Joi.string(),
               supplement: Joi.string(),
