@@ -234,33 +234,29 @@ const UserSchema = mongoose.Schema({
       startDate: Date,
       endDate: Date,
       status: String,
-      contractType: String,
       ogustContractId: String,
-      parentContractId: { type: mongoose.Schema.Types.ObjectId },
       customer: {
         firstname: String,
         lastname: String,
         customer_id: String
       },
-      weeklyHours: Number,
-      salary: Number,
-      grossHourlyRate: Number,
-      isActive: {
-        type: Boolean,
-        default: false
-      },
-      link: String,
-      driveId: String,
-      amendments: [{
+      isActive: Boolean,
+      versions: [{
         creationDate: {
           type: Date,
           default: Date.now
         },
         startDate: Date,
+        endDate: Date,
         weeklyHours: Number,
         salary: Number,
         grossHourlyRate: Number,
-        isActive: Boolean
+        isActive: {
+          type: Boolean,
+          default: false
+        },
+        link: String,
+        driveId: String
       }]
     }],
     identity: {

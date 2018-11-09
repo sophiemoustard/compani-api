@@ -23,9 +23,9 @@ const {
   updateUserContract,
   createUserContract,
   removeUserContract,
-  createUserContractAmendment,
-  updateUserContractAmendment,
-  removeUserContractAmendment
+  createUserContractVersion,
+  updateUserContractVersion,
+  removeUserContractVersion
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -495,17 +495,13 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
-            contractType: Joi.string().required(),
-            parentContractId: Joi.objectId(),
             customer: {
               firstname: Joi.string(),
               lastname: Joi.string(),
               customer_id: Joi.string()
             },
             status: Joi.string().required(),
-            weeklyHours: Joi.number().required(),
-            salary: Joi.number(),
-            grossHourlyRate: Joi.number().precision(2).required()
+            versions: Joi.array()
           })
         },
         auth: { strategy: 'jwt' }
@@ -530,7 +526,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/contracts/{contractId}/amendments',
+      path: '/{_id}/contracts/{contractId}/versions',
       options: {
         validate: {
           params: {
@@ -548,18 +544,18 @@ exports.plugin = {
         },
         auth: { strategy: 'jwt' }
       },
-      handler: createUserContractAmendment
+      handler: createUserContractVersion
     });
 
     server.route({
       method: 'PUT',
-      path: '/{_id}/contracts/{contractId}/amendments/{amendmentId}',
+      path: '/{_id}/contracts/{contractId}/versions/{versionId}',
       options: {
         validate: {
           params: {
             _id: Joi.objectId().required(),
             contractId: Joi.objectId().required(),
-            amendmentId: Joi.objectId().required()
+            versionId: Joi.objectId().required()
           },
           payload: {
             isActive: Joi.boolean(),
@@ -568,23 +564,23 @@ exports.plugin = {
         },
         auth: { strategy: 'jwt' }
       },
-      handler: updateUserContractAmendment
+      handler: updateUserContractVersion
     });
 
     server.route({
       method: 'DELETE',
-      path: '/{_id}/contracts/{contractId}/amendments/{amendmentId}',
+      path: '/{_id}/contracts/{contractId}/versions/{versionId}',
       options: {
         validate: {
           params: {
             _id: Joi.objectId().required(),
             contractId: Joi.objectId().required(),
-            amendmentId: Joi.objectId().required()
+            versionId: Joi.objectId().required()
           }
         },
         auth: { strategy: 'jwt' }
       },
-      handler: removeUserContractAmendment
+      handler: removeUserContractVersion
     });
   }
 };

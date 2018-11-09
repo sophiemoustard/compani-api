@@ -132,9 +132,9 @@ module.exports = {
     userContractAdded: 'User contract added.',
     userContractRemoved: 'User contract removed.',
     /* User contracts amendments */
-    userContractAmendmentAdded: 'User contract amendment added.',
-    userContractAmendmentRemoved: 'User contract amendment removed.',
-    userContractAmendmentUpdated: 'User contract amendment updated.'
+    userContractVersionAdded: 'User contract amendment added.',
+    userContractVersionRemoved: 'User contract amendment removed.',
+    userContractVersionUpdated: 'User contract amendment updated.'
   },
   'fr-FR': {
     /* Global errors */
@@ -259,8 +259,8 @@ module.exports = {
     userContractAdded: "Contrat de l'utilisateur ajouté.",
     userContractRemoved: "Contrat de l'utilisateur supprimé.",
     /* User contracts amendments */
-    userContractAmendmentAdded: "Avenant au contrat de l'utilisateur ajouté.",
-    userContractAmendmentRemoved: "Avenant au contrat de l'utilisateur supprimé.",
-    userContractAmendmentUpdated: "Avenant au contrat de l'utilisateur modifié."
+    userContractVersionAdded: "Avenant au contrat de l'utilisateur ajouté.",
+    userContractVersionRemoved: "Avenant au contrat de l'utilisateur supprimé.",
+    userContractVersionUpdated: "Avenant au contrat de l'utilisateur modifié."
   }
 };

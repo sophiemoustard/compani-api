@@ -393,14 +393,14 @@ const uploadFile = async (req) => {
       'mutualFund',
       'vitalCard',
       'signedContract',
-      'signedAmendment'
+      'signedVersion'
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) {
       Boom.forbidden('Upload not allowed');
     }
-    if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedAmendment') {
-      if (!req.payload.contractId) {
+    if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedVersion') {
+      if (!req.payload.contractId && !req.payload.versionId) {
         return Boom.badRequest();
       }
     }
@@ -425,14 +425,18 @@ const uploadFile = async (req) => {
         }
       };
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true, autopopulate: false });
-    } else if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedAmendment') {
+    } else if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedVersion') {
       const payload = {
-        'administrative.contracts.$': {
+        'administrative.contracts.$[contract].versions.$[version]': {
           driveId: uploadedFile.id,
           link: driveFileInfo.webViewLink,
         }
       };
-      await User.findOneAndUpdate({ _id: req.params._id, 'administrative.contracts._id': req.payload.contractId }, { $set: flat(payload) }, { new: true, autopopulate: false });
+      await User.findOneAndUpdate({ _id: req.params._id, }, { $set: flat(payload) }, {
+        new: true,
+        arrayFilters: [{ 'contract._id': mongoose.Types.ObjectId(req.payload.contractId) }, { 'version._id': mongoose.Types.ObjectId(req.payload.versionId) }],
+        autopopulate: false
+      });
     } else {
       const payload = {
         administrative: {
@@ -610,12 +614,12 @@ const removeUserContract = async (req) => {
   }
 };
 
-const createUserContractAmendment = async (req) => {
+const createUserContractVersion = async (req) => {
   try {
     const newContract = await User.findOneAndUpdate({
       _id: req.params._id,
       'administrative.contracts._id': req.params.contractId
-    }, { $push: { 'administrative.contracts.$.amendments': req.payload } }, {
+    }, { $push: { 'administrative.contracts.$.versions': req.payload } }, {
       new: true,
       select: {
         firstname: 1,
@@ -624,21 +628,21 @@ const createUserContractAmendment = async (req) => {
       },
       autopopulate: false
     });
-    return { message: translate[language].userContractAmendmentAdded, data: { contract: newContract } };
+    return { message: translate[language].userContractVersionAdded, data: { contract: newContract } };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
   }
 };
 
-const updateUserContractAmendment = async (req) => {
+const updateUserContractVersion = async (req) => {
   try {
-    const payload = { 'administrative.contracts.$[contract].amendments.$[amendment]': { ...req.payload } };
-    const updatedAmendment = await User.findOneAndUpdate({
+    const payload = { 'administrative.contracts.$[contract].versions.$[version]': { ...req.payload } };
+    const updatedVersion = await User.findOneAndUpdate({
       _id: req.params._id,
     }, { $set: flat(payload) }, {
       // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
-      arrayFilters: [{ 'contract._id': mongoose.Types.ObjectId(req.params.contractId) }, { 'amendment._id': mongoose.Types.ObjectId(req.params.amendmentId) }],
+      arrayFilters: [{ 'contract._id': mongoose.Types.ObjectId(req.params.contractId) }, { 'version._id': mongoose.Types.ObjectId(req.params.versionId) }],
       new: true,
       autopopulate: false,
       firstname: 1,
@@ -646,10 +650,10 @@ const updateUserContractAmendment = async (req) => {
       'administrative.contracts': 1
     });
     return {
-      message: translate[language].userContractAmendmentUpdated,
+      message: translate[language].userContractVersionUpdated,
       data: {
-        user: _.pick(updatedAmendment, ['_id', 'firstname', 'lastname']),
-        contracts: updatedAmendment.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
+        user: _.pick(updatedVersion, ['_id', 'firstname', 'lastname']),
+        contracts: updatedVersion.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
       }
     };
   } catch (e) {
@@ -658,12 +662,12 @@ const updateUserContractAmendment = async (req) => {
   }
 };
 
-const removeUserContractAmendment = async (req) => {
+const removeUserContractVersion = async (req) => {
   try {
     await User.findOneAndUpdate({
       _id: req.params._id,
       'administrative.contracts._id': req.params.contractId,
-    }, { $pull: { 'administrative.contracts.$.amendments': { _id: req.params.amendmentId } } }, {
+    }, { $pull: { 'administrative.contracts.$.versions': { _id: req.params.versionId } } }, {
       select: {
         firstname: 1,
         lastname: 1,
@@ -672,7 +676,7 @@ const removeUserContractAmendment = async (req) => {
       autopopulate: true
     });
     return {
-      message: translate[language].userContractAmendmentRemoved,
+      message: translate[language].userContractVersionRemoved,
     };
   } catch (e) {
     req.log('error', e);
@@ -700,7 +704,7 @@ module.exports = {
   updateUserContract,
   createUserContract,
   removeUserContract,
-  createUserContractAmendment,
-  updateUserContractAmendment,
-  removeUserContractAmendment
+  createUserContractVersion,
+  updateUserContractVersion,
+  removeUserContractVersion
 };
