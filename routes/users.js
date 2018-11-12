@@ -77,7 +77,7 @@ exports.plugin = {
               identity: Joi.object().keys({
                 title: Joi.string(),
                 nationality: Joi.string(),
-                birthDate: Joi.string(),
+                birthDate: Joi.date(),
                 birthContry: Joi.string(),
                 birthState: Joi.string(),
                 birthCity: Joi.string(),
@@ -247,7 +247,7 @@ exports.plugin = {
               }),
               identity: Joi.object().keys({
                 nationality: Joi.string(),
-                birthDate: Joi.string(),
+                birthDate: Joi.date(),
                 birthCountry: Joi.string(),
                 birthState: Joi.string(),
                 birthCity: Joi.string(),

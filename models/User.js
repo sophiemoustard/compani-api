@@ -266,7 +266,7 @@ const UserSchema = mongoose.Schema({
     identity: {
       title: String,
       nationality: String,
-      birthDate: String,
+      birthDate: Date,
       birthCountry: String,
       birthState: String,
       birthCity: String,
