@@ -133,7 +133,8 @@ const UserSchema = mongoose.Schema({
   mobilePhone: String,
   emergencyPhone: String,
   managerId: { type: mongoose.Schema.Types.ObjectId },
-  mentorId: { type: mongoose.Schema.Types.ObjectId },
+  // mentorId: { type: mongoose.Schema.Types.ObjectId },
+  mentor: String,
   ogustManagerId: String,
   administrative: {
     driveFolder: {
