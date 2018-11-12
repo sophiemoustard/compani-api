@@ -501,7 +501,8 @@ exports.plugin = {
               customer_id: Joi.string()
             },
             status: Joi.string().required(),
-            versions: Joi.array()
+            weeklyHours: Joi.number().required(),
+            grossHourlyRate: Joi.number().required()
           })
         },
         auth: { strategy: 'jwt' }
