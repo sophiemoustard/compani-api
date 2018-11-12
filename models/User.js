@@ -227,6 +227,10 @@ const UserSchema = mongoose.Schema({
       link: String,
       has: Boolean,
     },
+    medicalCertificate: {
+      driveId: String,
+      link: String
+    },
     contracts: [{
       creationDate: {
         type: Date,
@@ -241,7 +245,6 @@ const UserSchema = mongoose.Schema({
         lastname: String,
         customer_id: String
       },
-      isActive: Boolean,
       versions: [{
         creationDate: {
           type: Date,
@@ -263,7 +266,7 @@ const UserSchema = mongoose.Schema({
     identity: {
       title: String,
       nationality: String,
-      dateOfBirth: String,
+      birthDate: String,
       birthCountry: String,
       birthState: String,
       birthCity: String,

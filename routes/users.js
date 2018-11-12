@@ -77,7 +77,7 @@ exports.plugin = {
               identity: Joi.object().keys({
                 title: Joi.string(),
                 nationality: Joi.string(),
-                dateOfBirth: Joi.string(),
+                birthDate: Joi.string(),
                 birthContry: Joi.string(),
                 birthState: Joi.string(),
                 birthCity: Joi.string(),
@@ -215,6 +215,10 @@ exports.plugin = {
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null)
               },
+              medicalCertificate: {
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
+              },
               socialSecurityNumber: Joi.number(),
               payment: {
                 rib: {
@@ -243,7 +247,7 @@ exports.plugin = {
               }),
               identity: Joi.object().keys({
                 nationality: Joi.string(),
-                dateOfBirth: Joi.string(),
+                birthDate: Joi.string(),
                 birthCountry: Joi.string(),
                 birthState: Joi.string(),
                 birthCity: Joi.string(),
