@@ -179,7 +179,11 @@ const UserSchema = mongoose.Schema({
       driveId: String,
       link: String
     },
-    residencePermit: {
+    residencePermitRecto: {
+      driveId: String,
+      link: String
+    },
+    residencePermitVerso: {
       driveId: String,
       link: String
     },

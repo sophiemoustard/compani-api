@@ -211,7 +211,11 @@ exports.plugin = {
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null)
               },
-              residencePermit: {
+              residencePermitRecto: {
+                driveId: Joi.string().allow(null),
+                link: Joi.string().allow(null)
+              },
+              residencePermitVerso: {
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null)
               },
