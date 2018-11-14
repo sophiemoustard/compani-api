@@ -159,7 +159,7 @@ exports.plugin = {
             status: Joi.string().default('A'),
             method_of_payment: Joi.string().default('7268'),
             manager: Joi.string().default('232220179'),
-            means_of_transport: Joi.string().default('Abonnement transport en commun')
+            default_means_of_transport: Joi.string().default('C')
           }).required()
         },
         auth: false
