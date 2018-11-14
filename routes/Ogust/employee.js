@@ -195,7 +195,7 @@ exports.plugin = {
             state_of_birth: Joi.number(),
             social_insurance_number: Joi.number(),
             nationality: Joi.string(),
-            means_of_transport: Joi.string(),
+            default_means_of_transport: Joi.string(),
             main_address: Joi.object().keys({
               line: Joi.string(),
               supplement: Joi.string(),
