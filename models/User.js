@@ -250,6 +250,7 @@ const UserSchema = mongoose.Schema({
         customer_id: String
       },
       versions: [{
+        ogustContractId: String,
         creationDate: {
           type: Date,
           default: Date.now
