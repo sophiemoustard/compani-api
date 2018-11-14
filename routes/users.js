@@ -546,7 +546,8 @@ exports.plugin = {
             endDate: Joi.date(),
             weeklyHours: Joi.number().required(),
             salary: Joi.number(),
-            grossHourlyRate: Joi.number()
+            grossHourlyRate: Joi.number(),
+            ogustContractId: Joi.string()
           }
         },
         auth: { strategy: 'jwt' }
@@ -566,7 +567,8 @@ exports.plugin = {
           },
           payload: {
             isActive: Joi.boolean(),
-            weeklyHours: Joi.number()
+            weeklyHours: Joi.number(),
+            endDate: Joi.date()
           }
         },
         auth: { strategy: 'jwt' }
