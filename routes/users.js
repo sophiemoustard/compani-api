@@ -482,10 +482,7 @@ exports.plugin = {
               lastname: Joi.string(),
               customer_id: Joi.string()
             },
-            weeklyHours: Joi.number(),
-            salary: Joi.number(),
-            grossHourlyRate: Joi.number().precision(2),
-            isActive: Joi.boolean()
+            status: Joi.string()
           }
         },
         auth: { strategy: 'jwt' }

@@ -552,11 +552,30 @@ const getUserContracts = async (req) => {
 
 const updateUserContract = async (req) => {
   try {
-    const payload = { 'administrative.contracts.$': { ...req.payload } };
+    let payload;
+    if (req.payload.endDate) {
+      payload = {
+        'administrative.contracts.$[contract]': {
+          endDate: req.payload.endDate,
+          'versions.$[version]': { isActive: false, endDate: req.payload.endDate }
+        }
+      };
+    } else {
+      payload = { 'administrative.contracts.$': { ...req.payload } };
+    }
     const contractUpdated = await User.findOneAndUpdate({
       _id: req.params._id,
       'administrative.contracts._id': req.params.contractId
-    }, { $set: flat(payload) }, { new: true, select: { firstname: 1, lastname: 1, 'administrative.contracts': 1 }, autopopulate: false }).lean();
+    }, { $set: flat(payload) }, {
+      new: true,
+      arrayFilters: req.payload.endDate ? [{ 'contract._id': mongoose.Types.ObjectId(req.params.contractId) }, { 'version.isActive': { $eq: true } }] : [],
+      select: {
+        firstname: 1,
+        lastname: 1,
+        'administrative.contracts': 1
+      },
+      autopopulate: false
+    }).lean();
     if (!contractUpdated) {
       return Boom.notFound(translate[language].contractNotFound);
     }
