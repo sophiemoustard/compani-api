@@ -597,7 +597,8 @@ const createUserContract = async (req) => {
     req.payload.versions = [{
       startDate: req.payload.startDate,
       weeklyHours: req.payload.weeklyHours,
-      grossHourlyRate: req.payload.grossHourlyRate
+      grossHourlyRate: req.payload.grossHourlyRate,
+      ogustContractId: req.payload.ogustContractId
     }];
     const newContract = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.contracts': req.payload } }, {
       new: true,
