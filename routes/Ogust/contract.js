@@ -20,25 +20,48 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          payload: Joi.object().keys({
-            id_employee: Joi.string().required(),
-            creation_date: Joi.string().required(),
-            start_date: Joi.string().required(),
-            type: Joi.string().default('CDI'),
-            collective_convention: Joi.string().default('0005'),
-            nature: Joi.string().default('00201'),
-            nature_2: Joi.string().default(':1:0:0:0'),
-            specificity: Joi.string().default('0'),
-            regime: Joi.string().default('50'),
-            social_category: Joi.string().default('015'),
-            description: Joi.string().default("Auxiliaire d'envie"),
-            contractual_salary: Joi.string().required(),
-            contract_hours: Joi.string().required(),
-            status: Joi.string().default('B'),
-            type_employer: Joi.string().default('S'),
-            annual_modulation: Joi.string().default('1'),
-            motive_entry: Joi.string().default('001')
-          }).required()
+          payload: Joi.alternatives().when('source_contract', {
+            is: Joi.string(),
+            then: Joi.object().keys({
+              id_employee: Joi.string().required(),
+              creation_date: Joi.string().required(),
+              start_date: Joi.string().required(),
+              type: Joi.string().default('CDI'),
+              collective_convention: Joi.string().default('0005'),
+              nature: Joi.string().default('00201'),
+              nature_2: Joi.string().default(':1:0:0:0'),
+              specificity: Joi.string().default('0'),
+              regime: Joi.string().default('50'),
+              social_category: Joi.string().default('015'),
+              description: Joi.string().default("Auxiliaire d'envie"),
+              contractual_salary: Joi.string().required(),
+              contract_hours: Joi.string().required(),
+              status: Joi.string().default('B'),
+              annual_modulation: Joi.string().default('1'),
+              motive_entry: Joi.string().default('001'),
+              source_contract: Joi.string()
+            }).required(),
+            otherwise: Joi.object().keys({
+              id_employee: Joi.string().required(),
+              creation_date: Joi.string().required(),
+              start_date: Joi.string().required(),
+              type: Joi.string().default('CDI'),
+              collective_convention: Joi.string().default('0005'),
+              nature: Joi.string().default('00201'),
+              nature_2: Joi.string().default(':1:0:0:0'),
+              specificity: Joi.string().default('0'),
+              regime: Joi.string().default('50'),
+              social_category: Joi.string().default('015'),
+              description: Joi.string().default("Auxiliaire d'envie"),
+              contractual_salary: Joi.string().required(),
+              contract_hours: Joi.string().required(),
+              status: Joi.string().default('B'),
+              type_employer: Joi.string().default('S'),
+              annual_modulation: Joi.string().default('1'),
+              motive_entry: Joi.string().default('001'),
+              source_contract: Joi.string()
+            }).required()
+          })
         },
         auth: false
       },
