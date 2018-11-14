@@ -6,7 +6,7 @@ const {
   create,
   list,
   updateById,
-  // removeById
+  removeById
 } = require('../../controllers/Ogust/contractController');
 
 exports.plugin = {
@@ -83,6 +83,21 @@ exports.plugin = {
         auth: false
       },
       handler: updateById
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{id}',
+      options: {
+        validate: {
+          headers: Joi.object().keys({
+            'x-ogust-token': Joi.string().required()
+          }).options({ allowUnknown: true }),
+          params: { id: Joi.string() }
+        },
+        auth: false
+      },
+      handler: removeById
     });
   },
 };

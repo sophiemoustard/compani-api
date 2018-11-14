@@ -62,8 +62,10 @@ const updateById = async (req) => {
 
 const removeById = async (req) => {
   try {
-    const params = req.payload;
-    params.token = req.headers['x-ogust-token'];
+    const params = {
+      token: req.headers['x-ogust-token'],
+      id_contract: req.params.id
+    };
     const user = await contracts.removeContractById(params);
     if (user.data.status == 'KO') {
       return Boom.badRequest(user.data.message);
