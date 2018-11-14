@@ -506,8 +506,8 @@ exports.plugin = {
               customer_id: Joi.string()
             },
             status: Joi.string().required(),
-            grossHourlyRate: Joi.string().required(),
-            weeklyHours: Joi.string().required(),
+            grossHourlyRate: Joi.number().required(),
+            weeklyHours: Joi.number().required(),
             ogustContractId: Joi.string().required()
           })
         },
