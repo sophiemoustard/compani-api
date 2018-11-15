@@ -36,7 +36,7 @@ exports.plugin = {
             contract_hours: Joi.string().required(),
             status: Joi.string().default('B'),
             annual_modulation: Joi.string().default('1'),
-            type_employer: Joi.alternatives().when('source_contract', { is: Joi.string(), then: Joi.string(), otherwise: Joi.string().default('S') }),
+            type_employer: Joi.when('source_contract', { is: Joi.string(), then: Joi.string(), otherwise: Joi.string().default('S') }),
             motive_entry: Joi.string().default('001'),
             source_contract: Joi.string()
           }).required(),
