@@ -68,10 +68,10 @@ exports.plugin = {
           }).options({ allowUnknown: true }),
           params: { id: Joi.string() },
           payload: Joi.object().keys({
-            startDate: Joi.string(),
-            endDate: Joi.string(),
+            start_date: Joi.string(),
+            end_date: Joi.string(),
             status: Joi.string(),
-            id_employee: Joi.string().allow(null, '')
+            id_employee: [Joi.string(), Joi.number()]
           })
         },
         auth: false

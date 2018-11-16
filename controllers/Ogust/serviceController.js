@@ -14,11 +14,9 @@ const list = async (req) => {
       params.token = req.headers['x-ogust-token'];
       servicesRaw = await services.getServices(params);
     } else {
-      console.log('MEH');
       return Boom.badRequest();
     }
     if (servicesRaw.data.status == 'KO') {
-      console.log('PEH');
       return Boom.badRequest(servicesRaw.body.message);
     } else if (servicesRaw.length === 0) {
       return Boom.notFound();
@@ -60,10 +58,6 @@ const updateById = async (req) => {
     const params = {};
     params.token = req.headers['x-ogust-token'];
     params.id_service = req.params.id;
-    if (req.payload.startDate && req.payload.endDate) {
-      params.start_date = req.payload.startDate;
-      params.end_date = req.payload.endDate;
-    }
     const updatedService = await services.setServiceById(params);
     if (updatedService.data.status == 'KO') {
       return Boom.badRequest(updatedService.data.message);
