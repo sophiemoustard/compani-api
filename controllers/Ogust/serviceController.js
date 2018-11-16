@@ -55,10 +55,9 @@ const getById = async (req) => {
 
 const updateById = async (req) => {
   try {
-    const params = {};
-    params.token = req.headers['x-ogust-token'];
-    params.id_service = req.params.id;
-    const updatedService = await services.setServiceById(params);
+    req.payload.token = req.headers['x-ogust-token'];
+    req.payload.id_service = req.params.id;
+    const updatedService = await services.setServiceById(req.payload);
     if (updatedService.data.status == 'KO') {
       return Boom.badRequest(updatedService.data.message);
     }
