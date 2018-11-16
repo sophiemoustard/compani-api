@@ -1,4 +1,4 @@
-const Ogust = require('../../config/config').Ogust;
+const { Ogust } = require('../../config/config');
 const axios = require('axios');
 const crypto = require('crypto');
 const moment = require('moment-timezone');
