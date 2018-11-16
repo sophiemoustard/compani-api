@@ -18,7 +18,7 @@ const list = async (req) => {
     }
     if (servicesRaw.data.status == 'KO') {
       return Boom.badRequest(servicesRaw.body.message);
-    } else if (servicesRaw.length === 0) {
+    } else if (Object.keys(servicesRaw.data.array_service.result).length === 0) {
       return Boom.notFound();
     }
     return {
@@ -40,7 +40,7 @@ const getById = async (req) => {
     servicesRaw = await services.getServiceById(params);
     if (servicesRaw.data.status == 'KO') {
       return Boom.badRequest(servicesRaw.data.message);
-    } else if (servicesRaw.length === 0) {
+    } else if (Object.keys(servicesRaw.data.array_service.result).length === 0) {
       return Boom.notFound();
     }
     return {
