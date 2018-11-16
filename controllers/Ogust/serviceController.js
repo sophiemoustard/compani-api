@@ -8,15 +8,17 @@ const { language } = translate;
 const list = async (req) => {
   try {
     let servicesRaw = {};
-    if ((req.query.isRange == 'true' && req.query.slotToSub && req.query.slotToAdd && req.query.intervalType)
-    || (req.query.isDate == 'true' && req.query.startDate && req.query.endDate)) {
+    if ((req.query.isRange && req.query.slotToSub && req.query.slotToAdd && req.query.intervalType)
+    || (req.query.isDate && req.query.startDate && req.query.endDate)) {
       const params = req.query;
       params.token = req.headers['x-ogust-token'];
       servicesRaw = await services.getServices(params);
     } else {
+      console.log('MEH');
       return Boom.badRequest();
     }
     if (servicesRaw.data.status == 'KO') {
+      console.log('PEH');
       return Boom.badRequest(servicesRaw.body.message);
     } else if (servicesRaw.length === 0) {
       return Boom.notFound();

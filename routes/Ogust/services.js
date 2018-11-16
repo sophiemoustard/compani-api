@@ -69,7 +69,9 @@ exports.plugin = {
           params: { id: Joi.string() },
           payload: Joi.object().keys({
             startDate: Joi.string(),
-            endDate: Joi.string()
+            endDate: Joi.string(),
+            status: Joi.string(),
+            id_employee: Joi.string().allow(null, '')
           })
         },
         auth: false
