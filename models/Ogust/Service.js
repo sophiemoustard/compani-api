@@ -31,6 +31,7 @@ exports.getServices = async (params) => {
     token: params.token,
     status: params.status,
     type: params.type,
+    id_employee: params.id_employee,
     start_date: `${'@between|'}${interval.intervalBwd}|${interval.intervalFwd}`,
     nbperpage: params.nbperpage,
     pagenum: params.pagenum
