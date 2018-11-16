@@ -14,6 +14,7 @@ const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const tokenProcess = require('../helpers/tokenProcess');
 const { handleFile } = require('../helpers/gdriveStorage');
+const { dissociateEmployeeFromService } = require('../helpers/dissociateEmployeeFromService');
 
 const { language } = translate;
 
@@ -553,6 +554,7 @@ const getUserContracts = async (req) => {
 const updateUserContract = async (req) => {
   try {
     let payload;
+    let endContract = false;
     if (req.payload.endDate) {
       payload = {
         'administrative.contracts.$[contract]': {
@@ -560,6 +562,7 @@ const updateUserContract = async (req) => {
           'versions.$[version]': { isActive: false, endDate: req.payload.endDate }
         }
       };
+      endContract = true;
     } else {
       payload = { 'administrative.contracts.$': { ...req.payload } };
     }
@@ -568,16 +571,20 @@ const updateUserContract = async (req) => {
       'administrative.contracts._id': req.params.contractId
     }, { $set: flat(payload) }, {
       new: true,
-      arrayFilters: req.payload.endDate ? [{ 'contract._id': mongoose.Types.ObjectId(req.params.contractId) }, { 'version.isActive': { $eq: true } }] : [],
+      arrayFilters: endContract ? [{ 'contract._id': mongoose.Types.ObjectId(req.params.contractId) }, { 'version.isActive': { $eq: true } }] : [],
       select: {
         firstname: 1,
         lastname: 1,
+        employee_id: 1,
         'administrative.contracts': 1
       },
       autopopulate: false
     }).lean();
     if (!contractUpdated) {
       return Boom.notFound(translate[language].contractNotFound);
+    }
+    if (endContract) {
+      await dissociateEmployeeFromService({ from: req.payload.endDate, id_employee: contractUpdated.id_employee });
     }
     return {
       message: translate[language].userContractUpdated,
@@ -588,7 +595,7 @@ const updateUserContract = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.isBoom(e) ? e : Boom.badImplementation();
   }
 };
 
