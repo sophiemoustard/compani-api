@@ -335,7 +335,8 @@ const UserSchema = mongoose.Schema({
       select: '-__v -createdAt -updatedAt',
       maxDepth: 2
     }
-  }
+  },
+  customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customers' }]
 }, { timestamps: true });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
