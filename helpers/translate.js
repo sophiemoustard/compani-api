@@ -134,7 +134,12 @@ module.exports = {
     /* User contracts amendments */
     userContractVersionAdded: 'User contract amendment added.',
     userContractVersionRemoved: 'User contract amendment removed.',
-    userContractVersionUpdated: 'User contract amendment updated.'
+    userContractVersionUpdated: 'User contract amendment updated.',
+    /* Customers */
+    customersShowAllFound: 'Customers found.',
+    customerFound: 'Customer found.',
+    customerNotFound: 'Customer not found.',
+    customerCreated: 'Customer created.'
   },
   'fr-FR': {
     /* Global errors */
@@ -261,6 +266,11 @@ module.exports = {
     /* User contracts amendments */
     userContractVersionAdded: "Avenant au contrat de l'utilisateur ajouté.",
     userContractVersionRemoved: "Avenant au contrat de l'utilisateur supprimé.",
-    userContractVersionUpdated: "Avenant au contrat de l'utilisateur modifié."
+    userContractVersionUpdated: "Avenant au contrat de l'utilisateur modifié.",
+    /* Customers */
+    customersShowAllFound: 'Bénéficiaires trouvés.',
+    customerFound: 'Bénéficiaire trouvé.',
+    customerNotFound: 'Bénéficiaire non trouvé.',
+    customerCreated: 'Bénéficiaire créé.'
   }
 };

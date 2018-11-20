@@ -148,5 +148,11 @@ exports.routes = [
     routes: {
       prefix: '/companies'
     }
+  },
+  {
+    plugin: require('./customers'),
+    routes: {
+      prefix: '/customers'
+    }
   }
 ];
