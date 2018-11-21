@@ -396,7 +396,8 @@ const uploadFile = async (req) => {
       'vitalCard',
       'signedContract',
       'signedVersion',
-      'medicalCertificate'
+      'medicalCertificate',
+      'absenceReason'
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) {
@@ -428,6 +429,14 @@ const uploadFile = async (req) => {
         }
       };
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true, autopopulate: false });
+    } else if (administrativeKeys[0] === 'absenceReason') {
+      const payload = {
+        'administrative.absences.$': {
+          driveId: uploadedFile.id,
+          link: driveFileInfo.webViewLink,
+        }
+      };
+      await User.findOneAndUpdate({ _id: req.params._id, 'administrative.absences._id': req.payload.absenceId }, { $set: flat(payload) }, { new: true });
     } else if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedVersion') {
       const payload = {
         'administrative.contracts.$[contract].versions.$[version]': {
