@@ -287,7 +287,14 @@ const UserSchema = mongoose.Schema({
     emergencyContact: {
       name: String,
       phoneNumber: String
-    }
+    },
+    absences: [{
+      startDate: Date,
+      endDate: Date,
+      reason: String,
+      driveId: String,
+      link: String
+    }]
   },
   procedure: [{
     task: {
