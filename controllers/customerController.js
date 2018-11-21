@@ -1,5 +1,5 @@
 const Boom = require('boom');
-// const flat = require('flat');
+const flat = require('flat');
 
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
@@ -51,8 +51,46 @@ const create = async (req) => {
   }
 };
 
+const remove = async (req) => {
+  try {
+    const customerDeleted = await Customer.findByIdAndRemove(req.params._id);
+    if (!customerDeleted) {
+      return Boom.notFound(translate[language].customerNotFound);
+    }
+    return {
+      message: translate[language].customerRemoved,
+      data: {
+        customer: customerDeleted
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const update = async (req) => {
+  try {
+    const customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+    if (!customerUpdated) {
+      return Boom.notFound(translate[language].customerNotFound);
+    }
+    return {
+      message: translate[language].customerUpdated,
+      data: {
+        customer: customerUpdated
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
-  create
+  create,
+  remove,
+  update
 };

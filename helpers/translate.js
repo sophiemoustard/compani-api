@@ -139,7 +139,8 @@ module.exports = {
     customersShowAllFound: 'Customers found.',
     customerFound: 'Customer found.',
     customerNotFound: 'Customer not found.',
-    customerCreated: 'Customer created.'
+    customerCreated: 'Customer created.',
+    customerUpdated: 'Customer updated.'
   },
   'fr-FR': {
     /* Global errors */
@@ -271,6 +272,7 @@ module.exports = {
     customersShowAllFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé.',
     customerNotFound: 'Bénéficiaire non trouvé.',
-    customerCreated: 'Bénéficiaire créé.'
+    customerCreated: 'Bénéficiaire créé.',
+    customerUpdated: 'Bénéficiaire mis à jour.'
   }
 };

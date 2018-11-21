@@ -5,10 +5,10 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   create,
-  // update,
+  update,
   list,
   show,
-  // remove,
+  remove
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -37,46 +37,45 @@ exports.plugin = {
       handler: create
     });
 
-    // server.route({
-    //   method: 'PUT',
-    //   path: '/{_id}',
-    //   options: {
-    //     validate: {
-    //       params: {
-    //         _id: Joi.objectId().required()
-    //       },
-    //       payload: Joi.object().keys({
-    //         _id: Joi.objectId(),
-    //         name: Joi.string(),
-    //         rhConfig: Joi.object().keys({
-    //           providerContracts: {
-    //             grossHourlyRate: Joi.number()
-    //           },
-    //           agentContracts: {
-    //             grossHourlyRate: Joi.number()
-    //           },
-    //           phoneSubRefunding: Joi.number(),
-    //           transportSubs: [Joi.array().items({
-    //             department: Joi.string(),
-    //             price: Joi.number()
-    //           }), Joi.object().keys({
-    //             subId: Joi.objectId().required(),
-    //             price: Joi.number()
-    //           })],
-    //           contractTemplate: {
-    //             id: Joi.string().allow(null),
-    //             link: Joi.string().allow(null)
-    //           }
-    //         })
-    //       })
-    //     },
-    //     auth: {
-    //       strategy: 'jwt',
-    //       // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
-    //     }
-    //   },
-    //   handler: update
-    // });
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          },
+          payload: Joi.object().keys({
+            _id: Joi.objectId(),
+            firstname: Joi.string(),
+            lastname: Joi.string(),
+            email: Joi.string().email(),
+            phone: Joi.string(),
+            contact: Joi.object().keys({
+              ogustAddressId: Joi.string(),
+              address: Joi.string(),
+              additionalAddress: Joi.string(),
+              zipCode: Joi.string(),
+              city: Joi.string(),
+              doorCode: Joi.string(),
+              intercomCode: Joi.string()
+            }),
+            followUp: Joi.object().keys({
+              pathology: Joi.string(),
+              comments: Joi.string(),
+              details: Joi.string(),
+              misc: Joi.string(),
+              referent: Joi.string()
+            })
+          })
+        },
+        auth: {
+          strategy: 'jwt',
+          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
+        }
+      },
+      handler: update
+    });
 
     server.route({
       method: 'GET',
@@ -107,18 +106,18 @@ exports.plugin = {
       handler: show
     });
 
-    // server.route({
-    //   method: 'DELETE',
-    //   path: '/{_id}',
-    //   options: {
-    //     validate: {
-    //       params: {
-    //         _id: Joi.objectId().required()
-    //       }
-    //     },
-    //     auth: 'jwt'
-    //   },
-    //   handler: remove
-    // });
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt'
+      },
+      handler: remove
+    });
   }
 };
