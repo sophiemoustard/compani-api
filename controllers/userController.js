@@ -727,6 +727,103 @@ const removeUserContractVersion = async (req) => {
   }
 };
 
+const getUserAbsences = async (req) => {
+  try {
+    const absences = await User.findOne({
+      _id: req.params._id,
+      'administrative.absences': { $exists: true }
+    }, {
+      firstname: 1,
+      lastname: 1,
+      'administrative.absences': 1
+    }, { autopopulate: false }).lean();
+    return {
+      message: translate[language].userAbsencesFound,
+      data: {
+        user: _.pick(absences, ['_id', 'firstname', 'lastname']),
+        absences: absences.administrative.absences
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateUserAbsence = async (req) => {
+  try {
+    const payload = { 'administrative.absences.$': { ...req.payload } };
+    const absenceUpdated = await User.findOneAndUpdate({
+      _id: req.params._id,
+      'administrative.absences._id': req.params.absenceId
+    }, { $set: flat(payload) }, {
+      new: true,
+      select: {
+        firstname: 1,
+        lastname: 1,
+        employee_id: 1,
+        'administrative.absences': 1
+      }
+    }).lean();
+    if (!absenceUpdated) {
+      return Boom.notFound(translate[language].absenceNotFound);
+    }
+    return {
+      message: translate[language].userAbsenceUpdated,
+      data: {
+        user: _.pick(absenceUpdated, ['_id', 'firstname', 'lastname']),
+        absences: absenceUpdated.administrative.absences.find(absence => absence._id.toHexString() === req.params.absenceId)
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation();
+  }
+};
+
+const createUserAbsence = async (req) => {
+  try {
+    const newAbsence = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.absences': req.payload } }, {
+      new: true,
+      select: {
+        firstname: 1,
+        lastname: 1,
+        'administrative.absences': 1
+      },
+      autopopulate: false
+    });
+    return {
+      message: translate[language].userAbsenceAdded,
+      data: {
+        user: _.pick(newAbsence, ['_id', 'firstname', 'lastname']),
+        absences: newAbsence.administrative.absences
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const removeUserAbsence = async (req) => {
+  try {
+    await User.findOneAndUpdate({ _id: req.params._id }, { $pull: { 'administrative.absences': { _id: req.params.absenceId } } }, {
+      select: {
+        firstname: 1,
+        lastname: 1,
+        administrative: 1
+      },
+      autopopulate: false
+    });
+    return {
+      message: translate[language].userAbsenceRemoved
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   authenticate,
   create,
@@ -749,5 +846,9 @@ module.exports = {
   removeUserContract,
   createUserContractVersion,
   updateUserContractVersion,
-  removeUserContractVersion
+  removeUserContractVersion,
+  getUserAbsences,
+  updateUserAbsence,
+  createUserAbsence,
+  removeUserAbsence
 };
