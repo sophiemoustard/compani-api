@@ -729,7 +729,7 @@ const removeUserContractVersion = async (req) => {
 
 const getUserAbsences = async (req) => {
   try {
-    const absences = await User.findOne({
+    const user = await User.findOne({
       _id: req.params._id,
       'administrative.absences': { $exists: true }
     }, {
@@ -740,8 +740,8 @@ const getUserAbsences = async (req) => {
     return {
       message: translate[language].userAbsencesFound,
       data: {
-        user: _.pick(absences, ['_id', 'firstname', 'lastname']),
-        absences: absences.administrative.absences
+        user: _.pick(user, ['_id', 'firstname', 'lastname']),
+        absences: user.administrative.absences
       }
     };
   } catch (e) {
