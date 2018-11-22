@@ -11,7 +11,7 @@ const list = async (req) => {
     const customers = await Customer.find(req.query);
     return {
       message: translate[language].customersShowAllFound,
-      data: customers
+      data: { customers }
     };
   } catch (e) {
     req.log('error', e);
