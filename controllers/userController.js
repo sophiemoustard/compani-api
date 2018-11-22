@@ -547,6 +547,7 @@ const getUserContracts = async (req) => {
       lastname: 1,
       'administrative.contracts': 1
     }, { autopopulate: false }).lean();
+    if (!contracts) return Boom.notFound();
     return {
       message: translate[language].userContractsFound,
       data: {
@@ -729,11 +730,15 @@ const removeUserContractVersion = async (req) => {
 
 const getUserAbsences = async (req) => {
   try {
-    const user = await User.findOne({ _id: req.params._id, }, {
+    const user = await User.findOne({
+      _id: req.params._id,
+      'administrative.absences': { $exists: true }
+    }, {
       firstname: 1,
       lastname: 1,
       'administrative.absences': 1
     }, { autopopulate: false }).lean();
+    if (!user) return Boom.notFound();
     return {
       message: translate[language].userAbsencesFound,
       data: {
