@@ -291,6 +291,8 @@ const UserSchema = mongoose.Schema({
     absences: [{
       startDate: Date,
       endDate: Date,
+      startDuration: String,
+      endDuration: String,
       reason: String,
       driveId: String,
       link: String
