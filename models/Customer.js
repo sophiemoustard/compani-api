@@ -7,6 +7,7 @@ const CustomerSchema = mongoose.Schema({
   lastname: String,
   email: String,
   phone: String,
+  sectors: [String],
   contact: {
     ogustAddressId: String,
     address: String,
