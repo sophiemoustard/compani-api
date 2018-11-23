@@ -798,7 +798,7 @@ const createUserAbsence = async (req) => {
       message: translate[language].userAbsenceAdded,
       data: {
         user: _.pick(newAbsence, ['_id', 'firstname', 'lastname']),
-        absences: newAbsence.administrative.absences
+        absence: newAbsence.administrative.absences.find(absence => absence.reason === req.payload.reason)
       }
     };
   } catch (e) {
