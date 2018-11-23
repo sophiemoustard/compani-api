@@ -23,10 +23,14 @@ exports.plugin = {
             firstname: Joi.string().required(),
             lastname: Joi.string().required(),
             contact: Joi.object().keys({
+              ogustAddressId: Joi.string().required(),
               address: Joi.string().required(),
               zipCode: Joi.string().required(),
               city: Joi.string().required()
-            }).required()
+            }).required(),
+            customer_id: Joi.string(),
+            title: Joi.string(),
+            isActive: Joi.boolean().default(true)
           })
         },
         auth: {
