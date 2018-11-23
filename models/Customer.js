@@ -5,7 +5,11 @@ const CustomerSchema = mongoose.Schema({
   title: String,
   firstname: String,
   lastname: String,
-  email: String,
+  email: {
+    type: String,
+    lowercase: true,
+    trim: true,
+  },
   phone: String,
   sectors: [String],
   contact: {
