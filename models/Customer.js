@@ -2,15 +2,17 @@ const mongoose = require('mongoose');
 
 const CustomerSchema = mongoose.Schema({
   customerId: String,
-  title: String,
-  firstname: String,
-  lastname: String,
   email: {
     type: String,
     lowercase: true,
     trim: true,
   },
-  phone: String,
+  identity: {
+    title: String,
+    firstname: String,
+    lastname: String,
+    birthDate: Date
+  },
   sectors: [String],
   contact: {
     ogustAddressId: String,
@@ -18,6 +20,7 @@ const CustomerSchema = mongoose.Schema({
     additionalAddress: String,
     zipCode: String,
     city: String,
+    phone: String,
     doorCode: String,
     intercomCode: String
   },
@@ -28,8 +31,13 @@ const CustomerSchema = mongoose.Schema({
     misc: String,
     referent: String
   },
+  payment: {
+    bankAccountOwner: String,
+    rib: String,
+    bic: String
+  },
   isActive: Boolean,
-  customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  helpers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Customer', CustomerSchema);
