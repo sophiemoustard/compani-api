@@ -16,10 +16,12 @@ const CustomerSchema = mongoose.Schema({
   sectors: [String],
   contact: {
     ogustAddressId: String,
-    address: String,
-    additionalAddress: String,
-    zipCode: String,
-    city: String,
+    address: {
+      street: String,
+      additionalAddress: String,
+      zipCode: String,
+      city: String
+    },
     phone: String,
     doorCode: String,
     intercomCode: String

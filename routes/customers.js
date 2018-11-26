@@ -20,16 +20,20 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            firstname: Joi.string().required(),
-            lastname: Joi.string().required(),
+            identity: {
+              title: Joi.string(),
+              firstname: Joi.string(),
+              lastname: Joi.string().required()
+            },
             contact: Joi.object().keys({
               ogustAddressId: Joi.string().required(),
-              address: Joi.string().required(),
-              zipCode: Joi.string().required(),
-              city: Joi.string().required()
+              address: {
+                street: Joi.string().required(),
+                zipCode: Joi.string().required(),
+                city: Joi.string().required()
+              }
             }).required(),
-            customer_id: Joi.string(),
-            title: Joi.string(),
+            customerId: Joi.string(),
             isActive: Joi.boolean().default(true)
           })
         },
@@ -51,16 +55,22 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             _id: Joi.objectId(),
-            firstname: Joi.string(),
-            lastname: Joi.string(),
+            identity: {
+              title: Joi.string(),
+              firstname: Joi.string(),
+              lastname: Joi.string(),
+              birthDate: Joi.date()
+            },
             email: Joi.string().email(),
             phone: Joi.string(),
             contact: Joi.object().keys({
               ogustAddressId: Joi.string(),
-              address: Joi.string(),
-              additionalAddress: Joi.string(),
-              zipCode: Joi.string(),
-              city: Joi.string(),
+              address: {
+                street: Joi.string().required(),
+                additionalAddress: Joi.string(),
+                zipCode: Joi.string().required(),
+                city: Joi.string().required()
+              },
               doorCode: Joi.string(),
               intercomCode: Joi.string()
             }),
@@ -70,7 +80,8 @@ exports.plugin = {
               details: Joi.string(),
               misc: Joi.string(),
               referent: Joi.string()
-            })
+            }),
+            isActive: Joi.boolean()
           })
         },
         auth: {
