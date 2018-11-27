@@ -5,13 +5,14 @@ const Joi = require('joi');
 const {
   list,
   getById,
-  updateById
+  updateById,
+  create
 } = require('../../controllers/Ogust/serviceController');
 
 exports.plugin = {
   name: 'routes-ogust-services',
   register: async (server) => {
-    // Get all customers
+    // Get all services
     server.route({
       method: 'GET',
       path: '/',
@@ -38,7 +39,7 @@ exports.plugin = {
       },
       handler: list
     });
-    // Get customer by id
+    // Get service by id
     server.route({
       method: 'GET',
       path: '/{id}',
@@ -57,7 +58,7 @@ exports.plugin = {
       },
       handler: getById
     });
-    // Update customer by id
+    // Update service by id
     server.route({
       method: 'PUT',
       path: '/{id}',
@@ -77,6 +78,29 @@ exports.plugin = {
         auth: false
       },
       handler: updateById
+    });
+    // Create service
+    server.route({
+      method: 'POST',
+      path: '/',
+      options: {
+        validate: {
+          headers: Joi.object().keys({
+            'x-ogust-token': Joi.string().required()
+          }).options({ allowUnknown: true }),
+          payload: Joi.object().keys({
+            start_date: Joi.string(),
+            end_date: Joi.string(),
+            id_employee: [Joi.string(), Joi.number()],
+            type: Joi.string(),
+            id_customer: Joi.string().default('0'),
+            product_level: Joi.string().default('0')
+            // status: Joi.string(),
+          })
+        },
+        auth: false
+      },
+      handler: create
     });
   },
 };
