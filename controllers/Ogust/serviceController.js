@@ -71,9 +71,26 @@ const updateById = async (req) => {
   }
 };
 
+const create = async (req) => {
+  try {
+    req.payload.token = req.headers['x-ogust-token'];
+    const createdService = await services.setServiceById(req.payload);
+    if (createdService.data.status == 'KO') {
+      return Boom.badRequest(createdService.data.message);
+    }
+    return {
+      message: translate[language].serviceCreated,
+      data: { createdService: createdService.data }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
 
 module.exports = {
   list,
   getById,
-  updateById
+  updateById,
+  create
 };
