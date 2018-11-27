@@ -30,7 +30,12 @@ exports.plugin = {
               address: {
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
-                city: Joi.string().required()
+                city: Joi.string().required(),
+                fullAddress: Joi.string(),
+                location: {
+                  type: Joi.string(),
+                  coordinates: Joi.array()
+                }
               }
             }).required(),
             customerId: Joi.string(),
@@ -69,7 +74,12 @@ exports.plugin = {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string(),
                 zipCode: Joi.string().required(),
-                city: Joi.string().required()
+                city: Joi.string().required(),
+                fullAddress: Joi.string(),
+                location: {
+                  type: Joi.string(),
+                  coordinates: Joi.array()
+                }
               },
               doorCode: Joi.string(),
               intercomCode: Joi.string()

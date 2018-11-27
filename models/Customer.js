@@ -20,7 +20,12 @@ const CustomerSchema = mongoose.Schema({
       street: String,
       additionalAddress: String,
       zipCode: String,
-      city: String
+      city: String,
+      fullAddress: String,
+      location: {
+        type: { type: String },
+        coordinates: [Number]
+      }
     },
     phone: String,
     doorCode: String,
