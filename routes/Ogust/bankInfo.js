@@ -37,7 +37,8 @@ exports.plugin = {
           payload: Joi.object().keys({
             id_tiers: [Joi.string(), Joi.number()],
             iban_number: Joi.string(),
-            bic_number: Joi.string()
+            bic_number: Joi.string(),
+            holder: Joi.string()
           })
         },
         auth: false
