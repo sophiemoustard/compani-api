@@ -40,7 +40,7 @@ const CustomerSchema = mongoose.Schema({
   },
   payment: {
     bankAccountOwner: String,
-    rib: String,
+    iban: String,
     bic: String
   },
   isActive: Boolean,

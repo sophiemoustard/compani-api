@@ -8,7 +8,8 @@ const {
   update,
   list,
   show,
-  remove
+  remove,
+  removeHelper
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -67,9 +68,9 @@ exports.plugin = {
               birthDate: Joi.date()
             },
             email: Joi.string().email(),
-            phone: Joi.string(),
             contact: Joi.object().keys({
               ogustAddressId: Joi.string(),
+              phone: Joi.string(),
               address: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string(),
@@ -90,6 +91,11 @@ exports.plugin = {
               details: Joi.string(),
               misc: Joi.string(),
               referent: Joi.string()
+            }),
+            payment: Joi.object().keys({
+              bankAccountOwner: Joi.string(),
+              iban: Joi.string(),
+              bic: Joi.string()
             }),
             isActive: Joi.boolean()
           })
@@ -143,6 +149,21 @@ exports.plugin = {
         auth: 'jwt'
       },
       handler: remove
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/helpers/{helperId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            helperId: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt'
+      },
+      handler: removeHelper
     });
   }
 };
