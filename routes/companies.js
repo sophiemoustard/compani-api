@@ -76,9 +76,15 @@ exports.plugin = {
                 subId: Joi.objectId().required(),
                 price: Joi.number()
               })],
-              contractTemplate: {
-                id: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+              templates: {
+                contract: {
+                  driveId: Joi.string().allow(null),
+                  link: Joi.string().allow(null)
+                },
+                amendment: {
+                  driveId: Joi.string().allow(null),
+                  link: Joi.string().allow(null)
+                }
               }
             })
           })
