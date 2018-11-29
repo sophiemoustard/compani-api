@@ -168,7 +168,7 @@ exports.plugin = {
               expiresIn: Joi.number().allow(null),
               from: Joi.string().allow(null),
             }),
-            mentorId: Joi.objectId(),
+            mentor: Joi.string().allow('', null),
             administrative: {
               signup: {
                 step: Joi.string(),
@@ -234,25 +234,6 @@ exports.plugin = {
                   bic: Joi.string()
                 }
               },
-              contracts: Joi.object().keys({
-                contractId: Joi.string(),
-                creationDate: Joi.string(),
-                startDate: Joi.string(),
-                endDate: Joi.string(),
-                contractType: Joi.string(),
-                status: Joi.string(),
-                motiveEntry: Joi.string(),
-                collectiveConvention: Joi.string(),
-                nature: Joi.string(),
-                nature2: Joi.string(),
-                specificity: Joi.string(),
-                regime: Joi.string(),
-                socialCategory: Joi.string(),
-                description: Joi.string(),
-                contractHours: Joi.string(),
-                contractualSalary: Joi.string(),
-                due: Joi.string()
-              }),
               identity: Joi.object().keys({
                 nationality: Joi.string(),
                 birthDate: Joi.date(),
