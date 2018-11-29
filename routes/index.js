@@ -132,6 +132,12 @@ exports.routes = [
     }
   },
   {
+    plugin: require('./Ogust/sepaInfo'),
+    routes: {
+      prefix: '/ogust/sepaInfo'
+    }
+  },
+  {
     plugin: require('./twilio'),
     routes: {
       prefix: '/sms'

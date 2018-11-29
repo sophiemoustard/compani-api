@@ -56,6 +56,9 @@ module.exports = {
     employmentContractCreated: 'Employment contract created.',
     employmentContractSaved: 'Employment contract saved.',
     addressUpdated: 'Address successfully updated.',
+    sepaInfoFound: 'Sepa info found.',
+    sepaInfoUpdated: 'Sepa info updated.',
+    sepaInfoCreated: 'Sepa info created.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -205,6 +208,9 @@ module.exports = {
     employmentContractCreated: "Contrat d'embauche créé.",
     employmentContractSaved: "Contrat d'embauche enregistré.",
     addressUpdated: 'Adresse éditée avec succès.',
+    sepaInfoFound: 'Informations sepa trouvées.',
+    sepaInfoUpdated: 'Informations sepa mises à jour.',
+    sepaInfoCreated: 'Informations sepa créées.',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
