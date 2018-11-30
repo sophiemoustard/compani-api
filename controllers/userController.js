@@ -125,6 +125,10 @@ const list = async (req) => {
     .populate({
       path: 'procedure.task',
       select: 'name'
+    })
+    .populate({
+      path: 'customers',
+      select: 'identity'
     });
   if (users.length === 0) {
     return Boom.notFound(translate[language].userShowAllNotFound);
