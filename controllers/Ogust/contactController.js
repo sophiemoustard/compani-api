@@ -30,7 +30,25 @@ const updateById = async (req) => {
   try {
     const params = req.payload;
     params.token = req.headers['x-ogust-token'];
-    const user = await contacts.editContactById(params);
+    const user = await contacts.setContact(params);
+    if (user.data.status == 'KO') {
+      return Boom.badRequest(user.data.message);
+    }
+    return {
+      message: translate[language].userSaved,
+      data: user.data
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const create = async (req) => {
+  try {
+    const params = req.payload;
+    params.token = req.headers['x-ogust-token'];
+    const user = await contacts.setContact(params);
     if (user.data.status == 'KO') {
       return Boom.badRequest(user.data.message);
     }
@@ -46,5 +64,6 @@ const updateById = async (req) => {
 
 module.exports = {
   list,
-  updateById
+  updateById,
+  create
 };

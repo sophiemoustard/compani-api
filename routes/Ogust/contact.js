@@ -4,7 +4,8 @@ const Joi = require('joi');
 
 const {
   updateById,
-  list
+  list,
+  create
 } = require('../../controllers/Ogust/contactController');
 
 exports.plugin = {
@@ -31,7 +32,7 @@ exports.plugin = {
       },
       handler: list
     });
-    // Update customer by id
+
     server.route({
       method: 'PUT',
       path: '/{id}',
@@ -54,6 +55,26 @@ exports.plugin = {
         auth: false
       },
       handler: updateById
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/',
+      options: {
+        validate: {
+          headers: Joi.object().keys({
+            'x-ogust-token': Joi.string().required()
+          }).options({ allowUnknown: true }),
+          payload: Joi.object().keys({
+            id_customer: Joi.string().required(),
+            last_name: Joi.string().required(),
+            first_name: Joi.string(),
+            email: Joi.string().email()
+          }).required()
+        },
+        auth: false
+      },
+      handler: create
     });
   },
 };
