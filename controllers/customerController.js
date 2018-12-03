@@ -8,7 +8,14 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customers = await Customer.find(req.query);
+    const { lastname, firstname, ...payload } = req.query;
+    if (lastname) {
+      payload['identity.lastname'] = { $regex: lastname, $options: 'i' };
+    }
+    if (firstname) {
+      payload['identity.firstname'] = { $regex: firstname, $options: 'i' };
+    }
+    const customers = await Customer.find(payload);
     return {
       message: translate[language].customersShowAllFound,
       data: { customers }
