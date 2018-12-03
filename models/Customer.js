@@ -44,7 +44,7 @@ const CustomerSchema = mongoose.Schema({
     bic: String
   },
   isActive: Boolean,
-  helpers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  // helpers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Customer', CustomerSchema);

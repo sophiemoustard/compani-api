@@ -9,7 +9,7 @@ const {
   list,
   show,
   remove,
-  removeHelper
+  // removeHelper
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -152,19 +152,19 @@ exports.plugin = {
       handler: remove
     });
 
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}/helpers/{helperId}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            helperId: Joi.objectId().required()
-          }
-        },
-        auth: 'jwt'
-      },
-      handler: removeHelper
-    });
+    // server.route({
+    //   method: 'DELETE',
+    //   path: '/{_id}/helpers/{helperId}',
+    //   options: {
+    //     validate: {
+    //       params: {
+    //         _id: Joi.objectId().required(),
+    //         helperId: Joi.objectId().required()
+    //       }
+    //     },
+    //     auth: 'jwt'
+    //   },
+    //   handler: removeHelper
+    // });
   }
 };
