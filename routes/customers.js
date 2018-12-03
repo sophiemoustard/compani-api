@@ -115,7 +115,8 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             firstname: Joi.string(),
-            lastname: Joi.string()
+            lastname: Joi.string(),
+            isActive: Joi.boolean()
           })
         },
         auth: 'jwt'
