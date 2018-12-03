@@ -136,6 +136,7 @@ const UserSchema = mongoose.Schema({
   // mentorId: { type: mongoose.Schema.Types.ObjectId },
   mentor: String,
   ogustManagerId: String,
+  ogustInterlocId: String,
   administrative: {
     driveFolder: {
       id: String,

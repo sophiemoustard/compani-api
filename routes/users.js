@@ -70,6 +70,7 @@ exports.plugin = {
             },
             managerId: Joi.objectId(),
             ogustManagerId: Joi.string(),
+            ogustInterlocId: Joi.string(),
             role: Joi.string().required(),
             picture: Joi.object().keys({
               link: Joi.string()
@@ -119,7 +120,8 @@ exports.plugin = {
             role: Joi.string(),
             email: Joi.string().email(),
             sector: Joi.string(),
-            isActive: Joi.boolean()
+            isActive: Joi.boolean(),
+            customers: Joi.objectId()
           }
         },
         auth: { strategy: 'jwt' }
