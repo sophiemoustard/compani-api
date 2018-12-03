@@ -5,7 +5,8 @@ const Joi = require('joi');
 const {
   updateById,
   list,
-  create
+  create,
+  deleteById
 } = require('../../controllers/Ogust/contactController');
 
 exports.plugin = {
@@ -75,6 +76,21 @@ exports.plugin = {
         auth: false
       },
       handler: create
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{id}',
+      options: {
+        validate: {
+          headers: Joi.object().keys({
+            'x-ogust-token': Joi.string().required()
+          }).options({ allowUnknown: true }),
+          params: { id: Joi.string().required() }
+        },
+        auth: false
+      },
+      handler: deleteById
     });
   },
 };

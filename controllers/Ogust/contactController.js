@@ -62,8 +62,28 @@ const create = async (req) => {
   }
 };
 
+const deleteById = async (req) => {
+  try {
+    const params = {
+      id_interloc: req.params.id,
+      token: req.headers['x-ogust-token']
+    };
+    const contactDeleted = await contacts.deleteContact(params);
+    if (contactDeleted.data.status == 'KO') {
+      return Boom.badRequest(contactDeleted.data.message);
+    }
+    return {
+      message: translate[language].userDeleted
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   updateById,
-  create
+  create,
+  deleteById
 };
