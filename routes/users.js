@@ -101,7 +101,8 @@ exports.plugin = {
               transportInvoice: Joi.object().keys({
                 transportType: Joi.string()
               })
-            })
+            }),
+            customers: Joi.array()
           }).required()
         },
         auth: false
