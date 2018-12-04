@@ -5,4 +5,4 @@ exports.getContacts = async params => axios.post(`${Ogust.API_LINK}searchContact
 
 exports.setContact = async params => axios.post(`${Ogust.API_LINK}setContact`, params);
 
-exports.deleteContact = async params => axios.post(`${Ogust.API_LINK}setContact`, params);
+exports.deleteContact = async params => axios.post(`${Ogust.API_LINK}remContact`, params);
