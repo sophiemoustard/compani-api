@@ -73,7 +73,7 @@ const deleteById = async (req) => {
       return Boom.badRequest(contactDeleted.data.message);
     }
     return {
-      message: translate[language].userDeleted
+      message: translate[language].userRemoved
     };
   } catch (e) {
     req.log('error', e);
