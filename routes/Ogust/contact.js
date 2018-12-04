@@ -21,6 +21,7 @@ exports.plugin = {
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
           query: {
+            id_customer: Joi.string(),
             email: Joi.string().email(),
             status: Joi.string().default('A'),
             last_name: Joi.string(),
