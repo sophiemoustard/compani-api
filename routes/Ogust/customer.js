@@ -67,7 +67,7 @@ exports.plugin = {
           params: { id: Joi.string() },
           payload: Joi.object().keys({
             last_name: Joi.string(),
-            first_name: Joi.string(),
+            first_name: Joi.string().allow('', null),
             email: Joi.string().email(),
             mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/).allow('', null),
             door_code: Joi.string().allow(null, ''),

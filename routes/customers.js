@@ -63,7 +63,7 @@ exports.plugin = {
             _id: Joi.objectId(),
             identity: {
               title: Joi.string(),
-              firstname: Joi.string(),
+              firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               birthDate: Joi.date()
             },
