@@ -625,7 +625,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
             startDuration: Joi.string().required(),
-            endDuration: Joi.string(),
+            endDuration: Joi.string().allow('', null),
             endDate: Joi.date().required(),
             reason: Joi.string().required()
           })
