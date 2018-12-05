@@ -152,7 +152,7 @@ const list = async (req) => {
 // Find an user by Id in param URL
 const show = async (req) => {
   try {
-    let user = await User.findOne({ _id: req.params._id });
+    let user = await User.findOne({ _id: req.params._id }).populate('customers');
     if (!user) {
       return Boom.notFound(translate[language].userNotFound);
     }
