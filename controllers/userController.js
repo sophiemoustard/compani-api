@@ -14,7 +14,7 @@ const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const tokenProcess = require('../helpers/tokenProcess');
 const { handleFile } = require('../helpers/gdriveStorage');
-const { dissociateEmployeeFromService } = require('../helpers/dissociateEmployeeFromService');
+const { endUserContract, updateContract } = require('../helpers/userContracts');
 
 const { language } = translate;
 
@@ -346,7 +346,6 @@ const forgotPassword = async (req) => {
                 L'équipe Compani</p>` // html body
     };
     const mailInfo = process.env.NODE_ENV !== 'test' ? await sendGridTransporter.sendMail(mailOptions) : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
-    // console.log(nodemailer.getTestMessageUrl(mailInfo)); // see email preview with test account
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
     req.log('error', e);
@@ -567,44 +566,22 @@ const getUserContracts = async (req) => {
 
 const updateUserContract = async (req) => {
   try {
-    let payload;
-    let endContract = false;
+    let updatedUser;
     if (req.payload.endDate) {
-      payload = {
-        'administrative.contracts.$[contract]': {
-          endDate: req.payload.endDate,
-          'versions.$[version]': { isActive: false, endDate: req.payload.endDate }
-        }
-      };
-      endContract = true;
+      updatedUser = await endUserContract(req.params, req.payload);
     } else {
-      payload = { 'administrative.contracts.$': { ...req.payload } };
+      updateUser = await updateContract(req.params, req.payload);
     }
-    const contractUpdated = await User.findOneAndUpdate({
-      _id: req.params._id,
-      'administrative.contracts._id': req.params.contractId
-    }, { $set: flat(payload) }, {
-      new: true,
-      arrayFilters: endContract ? [{ 'contract._id': mongoose.Types.ObjectId(req.params.contractId) }, { 'version.isActive': { $eq: true } }] : [],
-      select: {
-        firstname: 1,
-        lastname: 1,
-        employee_id: 1,
-        'administrative.contracts': 1
-      },
-      autopopulate: false
-    }).lean();
-    if (!contractUpdated) {
+
+    if (!updatedUser) {
       return Boom.notFound(translate[language].contractNotFound);
     }
-    if (endContract) {
-      await dissociateEmployeeFromService({ from: req.payload.endDate, id_employee: contractUpdated.id_employee });
-    }
+
     return {
       message: translate[language].userContractUpdated,
       data: {
-        user: _.pick(contractUpdated, ['_id', 'firstname', 'lastname']),
-        contracts: contractUpdated.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
+        user: _.pick(updatedUser, ['_id', 'firstname', 'lastname']),
+        contracts: updatedUser.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
       }
     };
   } catch (e) {
@@ -621,7 +598,7 @@ const createUserContract = async (req) => {
       grossHourlyRate: req.payload.grossHourlyRate,
       ogustContractId: req.payload.ogustContractId
     }];
-    const newContract = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.contracts': req.payload } }, {
+    const newContract = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.contracts': req.payload }, $set: { 'inactivityDate': null } }, {
       new: true,
       select: {
         firstname: 1,
@@ -856,5 +833,5 @@ module.exports = {
   getUserAbsences,
   updateUserAbsence,
   createUserAbsence,
-  removeUserAbsence
+  removeUserAbsence,
 };
