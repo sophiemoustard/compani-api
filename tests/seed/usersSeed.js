@@ -59,6 +59,7 @@ const userList = [
       email: 'test7@alenvi.io',
       password: '123456'
     },
+    inactivityDate: null,
     employee_id: 12345678,
     refreshToken: uuidv4(),
     role: 'Auxiliaire',
@@ -66,7 +67,7 @@ const userList = [
       contracts: [
         {
           creationDate: "2018-12-04T16:34:04.144Z",
-          endDate: "2018-12-05T23:00:00.000Z",
+          endDate: null,
           ogustContractId: "429068718",
           startDate: "2018-12-03T23:00:00.000Z",
           status: "Prestataire",
@@ -74,9 +75,9 @@ const userList = [
           versions: [
             {
               creationDate: "2018-12-04T16:34:04.144Z",
-              endDate: "2018-12-04T23:00:00.000Z",
+              endDate: null,
               grossHourlyRate: 10.28,
-              isActive: false,
+              isActive: true,
               ogustContractId: "429068718",
               startDate: "2018-12-03T23:00:00.000Z",
               weeklyHours: 9,

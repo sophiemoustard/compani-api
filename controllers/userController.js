@@ -596,7 +596,7 @@ const updateUserContract = async (req) => {
     return {
       message: translate[language].userContractUpdated,
       data: {
-        user: _.pick(updatedUser, ['_id', 'firstname', 'lastname']),
+        user: _.pick(updatedUser, ['_id', 'firstname', 'lastname', 'inactivityDate']),
         contracts: updatedUser.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
       }
     };

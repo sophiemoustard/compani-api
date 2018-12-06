@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 // const axios = require('axios');
 // const nodemailer = require('nodemailer');
 const expect = require('expect');
-
+const moment = require('moment');
 const app = require('../server');
 const User = require('../models/User');
 const {
@@ -379,6 +379,54 @@ describe('USERS ROUTES', () => {
         method: 'GET',
         url: `/users/${invalidId}/contracts`,
         headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('PUT user contract', () => {
+    it('should end the user contract', async () => {
+      const user = userList[4];
+      const contract = user.administrative.contracts[0];
+
+      const endDate = moment().toDate();
+      const payload = { endDate };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${user._id.toHexString()}/contracts/${contract._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.contracts).toBeDefined();
+      expect(res.result.data.user).toBeDefined();
+      expect(res.result.data.contracts.endDate).toEqual(endDate);
+      expect(res.result.data.user.inactivityDate).not.toBeNull();
+    });
+    it('should return 404 error if no contract', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const endDate = moment().toDate();
+      const payload = { endDate };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${userList[4]._id.toHexString()}/contracts/${invalidId}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+    it('should return 404 error if no user', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const endDate = moment().toDate();
+      const payload = { endDate };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/users/${invalidId}/contracts/${invalidId}`,
+        headers: { 'x-access-token': authToken },
+        payload,
       });
 
       expect(res.statusCode).toBe(404);
