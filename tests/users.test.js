@@ -358,7 +358,7 @@ describe('USERS ROUTES', () => {
     });
   });
 
-  describe('GET user contracts', () => {
+  describe('GET user/:id/contracts/:contractId', () => {
     it('should return user contracts', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -385,7 +385,7 @@ describe('USERS ROUTES', () => {
     });
   });
 
-  describe('PUT user contract', () => {
+  describe('PUT user/:id/contract', () => {
     it('should end the user contract', async () => {
       const user = userList[4];
       const contract = user.administrative.contracts[0];
@@ -427,6 +427,31 @@ describe('USERS ROUTES', () => {
         url: `/users/${invalidId}/contracts/${invalidId}`,
         headers: { 'x-access-token': authToken },
         payload,
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('DELETE user/:id/contracts/:contractId', () => {
+    it('should delete a contract by id', async () => {
+      const user = userList[4];
+      const contract = user.administrative.contracts[0];
+
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/users/${user._id.toHexString()}/contracts/${contract._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+    it('should return a 404 error if user not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/users/${invalidId}/contracts/${invalidId}`,
+        headers: { 'x-access-token': authToken },
       });
 
       expect(res.statusCode).toBe(404);

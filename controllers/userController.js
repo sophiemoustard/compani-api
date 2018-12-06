@@ -638,7 +638,7 @@ const createUserContract = async (req) => {
 
 const removeUserContract = async (req) => {
   try {
-    await User.findOneAndUpdate({ _id: req.params._id }, { $pull: { 'administrative.contracts': { _id: req.params.contractId } } }, {
+    const user = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: { 'administrative.contracts': { _id: req.params.contractId } } }, {
       select: {
         firstname: 1,
         lastname: 1,
@@ -646,6 +646,11 @@ const removeUserContract = async (req) => {
       },
       autopopulate: false
     });
+
+    if (!user) {
+      return Boom.notFound(translate[language].userNotFound);
+    }
+
     return {
       message: translate[language].userContractRemoved,
     };
