@@ -133,14 +133,6 @@ const list = async (req) => {
   if (users.length === 0) {
     return Boom.notFound(translate[language].userShowAllNotFound);
   }
-  // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
-  // users = users.map((user) => {
-  //   user = user.toObject();
-  //   if (user.role && user.role.rights.length > 0) {
-  //     user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
-  //   }
-  //   return user;
-  // });
   return {
     message: translate[language].userShowAllFound,
     data: {
@@ -181,7 +173,6 @@ const update = async (req) => {
       }
       req.payload.role = role._id.toString();
     }
-    // const newBody = clean(flat(req.payload)); no need of clean as Joi prevents falsy values
     const newBody = flat(req.payload);
     // User update tracking
     // const trackingPayload = userUpdateTracking(req.auth.credentials._id, newBody);
@@ -213,7 +204,6 @@ const update = async (req) => {
 const updateCertificates = async (req) => {
   try {
     delete req.payload._id;
-    // const newBody = flat(req.payload);
     // User update tracking
     const trackingPayload = userUpdateTracking(req.auth.credentials._id, req.payload);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
@@ -287,6 +277,32 @@ const updateTask = async (req) => {
     ).select('procedure');
     return {
       data: { tasks }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const getUserTasks = async (req) => {
+  try {
+    let tasks = await User.findOne({
+      _id: req.params._id,
+      'procedure': { $exists: true },
+    }, {
+      firstname: 1,
+      lastname: 1,
+      'procedure': 1
+    });
+
+    if (!tasks) return Boom.notFound();
+
+    return {
+      message: translate[language].userTasksFound,
+      data: {
+        user: _.pick(tasks, ['_id', 'firstname', 'lastname']),
+        tasks: tasks.procedure,
+      }
     };
   } catch (e) {
     req.log('error', e);
@@ -820,6 +836,7 @@ module.exports = {
   checkResetPasswordToken,
   updateCertificates,
   updateTask,
+  getUserTasks,
   uploadFile,
   uploadImage,
   createDriveFolder,

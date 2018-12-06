@@ -16,6 +16,7 @@ const {
   checkResetPasswordToken,
   updateCertificates,
   updateTask,
+  getUserTasks,
   uploadFile,
   uploadImage,
   createDriveFolder,
@@ -307,6 +308,19 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: updateTask
+    });
+    server.route({
+      method: 'GET',
+      path: '/{_id}/tasks',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId(),
+          },
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: getUserTasks
     });
     // Delete user by id
     server.route({
