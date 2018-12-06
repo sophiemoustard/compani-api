@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
+const moment = require('moment');
 
 const Role = require('./Role');
 const Company = require('./Company');
@@ -69,12 +70,6 @@ const UserSchema = mongoose.Schema({
       maxDepth: 3
     }
   },
-  // role: [Role],
-  // type: String,
-  // trim: true,
-  // enum: ['admin', 'tech', 'coach', 'leader', 'auxiliary', 'family', 'guest'],
-  // default: ['guest']
-  // },
   employee_id: {
     type: Number,
     trim: true
@@ -133,7 +128,6 @@ const UserSchema = mongoose.Schema({
   mobilePhone: String,
   emergencyPhone: String,
   managerId: { type: mongoose.Schema.Types.ObjectId },
-  // mentorId: { type: mongoose.Schema.Types.ObjectId },
   mentor: String,
   ogustManagerId: String,
   ogustInterlocId: String,
@@ -142,7 +136,6 @@ const UserSchema = mongoose.Schema({
       id: String,
       link: String
     },
-    // driveIdFolder: String,
     endorsement: {
       type: Boolean,
       default: false
@@ -197,16 +190,6 @@ const UserSchema = mongoose.Schema({
       driveId: String,
       link: String,
     },
-    // certificates: {
-    //   has: Boolean,
-    //   docs: [
-    //     {
-    //       driveId: String,
-    //       link: String,
-    //       thumbnailLink: String
-    //     }
-    //   ]
-    // },
     identityDocs: String,
     certificates: [{
       driveId: String,
@@ -319,10 +302,6 @@ const UserSchema = mongoose.Schema({
       }
     }
   }],
-  isActive: {
-    type: Boolean,
-    default: true
-  },
   isConfirmed: {
     type: Boolean,
     default: false
@@ -346,8 +325,17 @@ const UserSchema = mongoose.Schema({
       maxDepth: 2
     }
   },
-  customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }]
-}, { timestamps: true });
+  customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
+  inactivityDate: { type: Date, default: null },
+}, {
+  timestamps: true,
+  toObject: {
+    virtuals: true
+  },
+  toJSON: {
+    virtuals: true
+  }
+});
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 
 async function findUserAddressByEmployeeId(id) {
@@ -436,6 +424,10 @@ async function findOneAndUpdate(next) {
     return next(e);
   }
 }
+
+UserSchema.virtual('isActive').get(function() {
+  return this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()) ? false : true;
+})
 
 UserSchema.statics.findUserAddressByEmployeeId = findUserAddressByEmployeeId;
 UserSchema.methods.saveByParams = saveByParams;
