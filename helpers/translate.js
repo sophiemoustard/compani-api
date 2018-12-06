@@ -143,6 +143,8 @@ module.exports = {
     userAbsenceUpdated: 'User contract updated.',
     userAbsenceAdded: 'User contract added.',
     userAbsenceRemoved: 'User contract removed.',
+    /* User tasks */
+    userTasksFound: 'User tasks found',
 
     /* Customers */
     customersShowAllFound: 'Customers found.',
@@ -286,6 +288,8 @@ module.exports = {
     userAbsenceUpdated: "Absence de l'utilisateur mise à jour.",
     userAbsenceAdded: "Absence de l'utilisateur ajoutée.",
     userAbsenceRemoved: "Absence de l'utilisateur supprimée.",
+    /* User tasks */
+    userTasksFound: "Tâches de l'utilisateur trouvés",
     /* Customers */
     customersShowAllFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé.',
