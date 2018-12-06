@@ -94,29 +94,10 @@ const update = async (req) => {
   }
 };
 
-// const removeHelper = async (req) => {
-//   try {
-//     const helperDeleted = await Customer.findOneAndUpdate({ _id: req.params._id }, { $pull: { helpers: req.params.helperId } }, { new: true });
-//     if (!helperDeleted) {
-//       return Boom.notFound(translate[language].customerNotFound);
-//     }
-//     return {
-//       message: translate[language].customerHelperDeleted,
-//       data: {
-//         customer: helperDeleted
-//       }
-//     };
-//   } catch (e) {
-//     req.log('error', e);
-//     return Boom.badImplementation();
-//   }
-// };
-
 module.exports = {
   list,
   show,
   create,
   remove,
-  update,
-  // removeHelper
+  update
 };

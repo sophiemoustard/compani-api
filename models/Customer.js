@@ -43,8 +43,7 @@ const CustomerSchema = mongoose.Schema({
     iban: String,
     bic: String
   },
-  isActive: Boolean,
-  // helpers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  isActive: Boolean
 }, { timestamps: true });
 
 module.exports = mongoose.model('Customer', CustomerSchema);

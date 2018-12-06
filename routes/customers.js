@@ -151,20 +151,5 @@ exports.plugin = {
       },
       handler: remove
     });
-
-    // server.route({
-    //   method: 'DELETE',
-    //   path: '/{_id}/helpers/{helperId}',
-    //   options: {
-    //     validate: {
-    //       params: {
-    //         _id: Joi.objectId().required(),
-    //         helperId: Joi.objectId().required()
-    //       }
-    //     },
-    //     auth: 'jwt'
-    //   },
-    //   handler: removeHelper
-    // });
   }
 };
