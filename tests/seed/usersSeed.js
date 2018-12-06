@@ -50,6 +50,43 @@ const userList = [
     employee_id: 12345678,
     refreshToken: uuidv4(),
     role: 'Auxiliaire'
+  },
+  {
+    _id: new ObjectID(),
+    firstname: 'Test7',
+    lastname: 'Test7',
+    local: {
+      email: 'test7@alenvi.io',
+      password: '123456'
+    },
+    inactivityDate: null,
+    employee_id: 12345678,
+    refreshToken: uuidv4(),
+    role: 'Auxiliaire',
+    administrative: {
+      contracts: [
+        {
+          creationDate: "2018-12-04T16:34:04.144Z",
+          endDate: null,
+          ogustContractId: "429068718",
+          startDate: "2018-12-03T23:00:00.000Z",
+          status: "Prestataire",
+          _id: new ObjectID(),
+          versions: [
+            {
+              creationDate: "2018-12-04T16:34:04.144Z",
+              endDate: null,
+              grossHourlyRate: 10.28,
+              isActive: true,
+              ogustContractId: "429068718",
+              startDate: "2018-12-03T23:00:00.000Z",
+              weeklyHours: 9,
+              _id: new ObjectID(),
+            },
+          ],
+        },
+      ],
+    },
   }
 ];
 
@@ -69,6 +106,7 @@ const populateUsers = async () => {
   await new User(userList[1]).saveByParams({ role: userList[1].role });
   await new User(userList[2]).saveByParams({ role: userList[2].role });
   await new User(userList[3]).saveByParams({ role: userList[3].role });
+  await new User(userList[4]).saveByParams({ role: userList[3].role });
 };
 
 const getToken = async () => {
