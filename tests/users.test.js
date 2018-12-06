@@ -23,10 +23,10 @@ describe('USERS ROUTES', () => {
   before(async () => {
     authToken = await getToken();
   });
+
   describe('POST /users', () => {
     let res = null;
     let user = null;
-    // let userPayload = null;
     it('should not create an user if missing parameters', async () => {
       const tmpRole = userPayload.role;
       delete userPayload.role;
@@ -185,11 +185,6 @@ describe('USERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users[0]).toHaveProperty('role');
       expect(res.result.data.users[0].role.toHexString()).toEqual(expect.any(String));
-      // expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
-      //   _id: expect.any(Object),
-      //   name: expect.any(String),
-      //   rights: expect.any(Array)
-      // }));
     });
     it('should get all coachs users', async () => {
       const res = await app.inject({
@@ -200,11 +195,6 @@ describe('USERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users[0]).toHaveProperty('role');
       expect(res.result.data.users[0].role.toHexString()).toEqual(rolesList[2]._id.toHexString());
-      // expect(res.result.data.users[0].role).toEqual(expect.objectContaining({
-      //   _id: expect.any(Object),
-      //   name: expect.any(String),
-      //   rights: expect.any(Array)
-      // }));
     });
     it('should not get users if role given doesn\'t exist', async () => {
       const res = await app.inject({
@@ -364,6 +354,33 @@ describe('USERS ROUTES', () => {
           refreshToken: 'b171c888-6874-45fd-9c4e-1a9daf0231ba'
         }
       });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('GET user contracts', () => {
+    it('should return user contracts', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${userList[4]._id.toHexString()}/contracts`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.user).toBeDefined();
+      expect(res.result.data.contracts).toBeDefined();
+      expect(res.result.data.contracts.length).toEqual(userList[4].administrative.contracts.length);
+      expect(res.result.data.contracts[0]._id).toEqual(userList[4].administrative.contracts[0]._id);
+      expect(res.result.data.user._id).toEqual(userList[4]._id);
+    });
+    it('should return 404 error if no user found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const res = await app.inject({
+        method: 'GET',
+        url: `/users/${invalidId}/contracts`,
+        headers: { 'x-access-token': authToken },
+      });
+
       expect(res.statusCode).toBe(404);
     });
   });
