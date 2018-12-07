@@ -137,7 +137,7 @@ describe('BOT ROUTES', () => {
         url: '/bot/users',
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBe(4);
+      expect(res.result.data.users.length).toBe(userList.length);
     });
   });
 });
