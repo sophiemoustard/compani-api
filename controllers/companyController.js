@@ -183,7 +183,33 @@ const createCompanyService = async (req) => {
   }
 };
 
-const updateService = async (req) => {};
+const updateCompanyService = async (req) => {
+  try {
+    const payload = { 'customersConfig.services.$': { ...req.payload } };
+    const company = await Company.findOneAndUpdate(
+      {
+        _id: req.params._id,
+        'customersConfig.services._id': req.params.serviceId,
+      },
+      { $set: flat(payload) },
+      { new: true },
+    );
+
+    if (!company) {
+      return Boom.notFound(translate[lamguage].companyServicesNotFound);
+    }
+
+    return {
+      message: translate[language].companyServicesUpdated,
+      data: {
+        services: company.customersConfig.services,
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
 
 const deleteCompanyService = async (req) => {
   try {
@@ -211,4 +237,5 @@ module.exports = {
   getCompanyServices,
   createCompanyService,
   deleteCompanyService,
+  updateCompanyService,
 };

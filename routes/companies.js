@@ -14,6 +14,7 @@ const {
   createCompanyService,
   getCompanyServices,
   deleteCompanyService,
+  updateCompanyService,
 } = require('../controllers/companyController');
 
 exports.plugin = {
@@ -167,6 +168,7 @@ exports.plugin = {
       options: {
         auth: { strategy: 'jwt' },
         validate: {
+          params: { _id: Joi.objectId().required() },
           payload: Joi.object().keys({
             defaultUnitAmount: Joi.number().required(),
             eveningSurcharge: Joi.number().allow('', null),
@@ -174,7 +176,7 @@ exports.plugin = {
             name: Joi.string().required(),
             nature: Joi.string().required(),
             vat: Joi.number().required(),
-          })
+          }),
         },
       },
     });
@@ -202,6 +204,29 @@ exports.plugin = {
             _id: Joi.objectId().required(),
             serviceId: Joi.objectId().required()
           },
+        },
+      },
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/services/{serviceId}',
+      handler: updateCompanyService,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            serviceId: Joi.objectId().required()
+          },
+          payload: Joi.object().keys({
+            defaultUnitAmount: Joi.number(),
+            eveningSurcharge: Joi.number(),
+            holidaySurcharge: Joi.number(),
+            name: Joi.string(),
+            nature: Joi.string(),
+            vat: Joi.number(),
+          }),
         },
       },
     });
