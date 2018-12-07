@@ -166,6 +166,16 @@ exports.plugin = {
       handler: createCompanyService,
       options: {
         auth: { strategy: 'jwt' },
+        validate: {
+          payload: Joi.object().keys({
+            defaultUnitAmount: Joi.number().required(),
+            eveningSurcharge: Joi.number().allow('', null),
+            holidaySurcharge: Joi.number().allow('', null),
+            name: Joi.string().required(),
+            nature: Joi.string().required(),
+            vat: Joi.number().required(),
+          })
+        },
       },
     });
 
