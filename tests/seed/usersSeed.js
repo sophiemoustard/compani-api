@@ -66,20 +66,20 @@ const userList = [
     administrative: {
       contracts: [
         {
-          creationDate: "2018-12-04T16:34:04.144Z",
+          creationDate: '2018-12-04T16:34:04.144Z',
           endDate: null,
-          ogustContractId: "429068718",
-          startDate: "2018-12-03T23:00:00.000Z",
-          status: "Prestataire",
+          ogustContractId: '429068718',
+          startDate: '2018-12-03T23:00:00.000Z',
+          status: 'Prestataire',
           _id: new ObjectID(),
           versions: [
             {
-              creationDate: "2018-12-04T16:34:04.144Z",
+              creationDate: '2018-12-04T16:34:04.144Z',
               endDate: null,
               grossHourlyRate: 10.28,
               isActive: true,
-              ogustContractId: "429068718",
-              startDate: "2018-12-03T23:00:00.000Z",
+              ogustContractId: '429068718',
+              startDate: '2018-12-03T23:00:00.000Z',
               weeklyHours: 9,
               _id: new ObjectID(),
             },

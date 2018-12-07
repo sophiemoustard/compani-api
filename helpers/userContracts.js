@@ -34,24 +34,22 @@ const endUserContract = async (params, payload) => {
 const updateUser = async (params, payload) => {
   const contractPayload = { 'administrative.contracts.$': { ...payload } };
 
-  return await User.findOneAndUpdate(
-    {
-      _id: params._id,
-      'administrative.contracts._id': params.contractId,
-    }, {
-      $set: flat(contractPayload), 
-    }, {
-      new: true,
-      select: {
-        firstname: 1,
-        lastname: 1,
-        employee_id: 1,
-        'administrative.contracts': 1,
-      },
-      autopopulate: false,
-    }
-  ).lean();
-}
+  return User.findOneAndUpdate({
+    _id: params._id,
+    'administrative.contracts._id': params.contractId,
+  }, {
+    $set: flat(contractPayload),
+  }, {
+    new: true,
+    select: {
+      firstname: 1,
+      lastname: 1,
+      employee_id: 1,
+      'administrative.contracts': 1,
+    },
+    autopopulate: false,
+  }).lean();
+};
 
 module.exports = {
   endUserContract,

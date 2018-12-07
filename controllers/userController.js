@@ -286,13 +286,13 @@ const updateTask = async (req) => {
 
 const getUserTasks = async (req) => {
   try {
-    let tasks = await User.findOne({
+    const tasks = await User.findOne({
       _id: req.params._id,
-      'procedure': { $exists: true },
+      procedure: { $exists: true },
     }, {
       firstname: 1,
       lastname: 1,
-      'procedure': 1
+      procedure: 1
     });
 
     if (!tasks) return Boom.notFound();
@@ -586,7 +586,7 @@ const updateUserContract = async (req) => {
     if (req.payload.endDate) {
       updatedUser = await endUserContract(req.params, req.payload);
     } else {
-      updateUser = await updateContract(req.params, req.payload);
+      updatedUser = await updateContract(req.params, req.payload);
     }
 
     if (!updatedUser) {
@@ -614,7 +614,7 @@ const createUserContract = async (req) => {
       grossHourlyRate: req.payload.grossHourlyRate,
       ogustContractId: req.payload.ogustContractId
     }];
-    const newContract = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.contracts': req.payload }, $set: { 'inactivityDate': null } }, {
+    const newContract = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.contracts': req.payload }, $set: { inactivityDate: null } }, {
       new: true,
       select: {
         firstname: 1,
