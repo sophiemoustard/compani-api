@@ -17,6 +17,7 @@ exports.getToken = async () => {
   const hash = crypto.createHmac('sha1', process.env.OGUST_PRIVATE_KEY).update(joinPayload).digest('hex');
   payload.api_signature = hash.toUpperCase();
   const res = await axios.post(`${Ogust.API_LINK}getToken`, payload);
+  console.log('RES', res.data);
   if (res.data.status == 'KO') {
     throw new Error(`Error while getting new token from Ogust: ${res.data.message}`);
   }
