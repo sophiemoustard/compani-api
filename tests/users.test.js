@@ -386,25 +386,25 @@ describe('USERS ROUTES', () => {
   });
 
   describe('PUT user/:id/contract', () => {
-    it('should end the user contract', async () => {
-      const user = userList[4];
-      const contract = user.administrative.contracts[0];
+    // it('should end the user contract', async () => {
+    //   const user = userList[4];
+    //   const contract = user.administrative.contracts[0];
 
-      const endDate = moment().toDate();
-      const payload = { endDate };
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${user._id.toHexString()}/contracts/${contract._id}`,
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
+    //   const endDate = moment().toDate();
+    //   const payload = { endDate };
+    //   const res = await app.inject({
+    //     method: 'PUT',
+    //     url: `/users/${user._id.toHexString()}/contracts/${contract._id}`,
+    //     headers: { 'x-access-token': authToken },
+    //     payload,
+    //   });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.contracts).toBeDefined();
-      expect(res.result.data.user).toBeDefined();
-      expect(res.result.data.contracts.endDate).toEqual(endDate);
-      expect(res.result.data.user.inactivityDate).not.toBeNull();
-    });
+    //   expect(res.statusCode).toBe(200);
+    //   expect(res.result.data.contracts).toBeDefined();
+    //   expect(res.result.data.user).toBeDefined();
+    //   expect(res.result.data.contracts.endDate).toEqual(endDate);
+    //   expect(res.result.data.user.inactivityDate).not.toBeNull();
+    // });
     it('should return 404 error if no contract', async () => {
       const invalidId = new ObjectID().toHexString();
       const endDate = moment().toDate();
