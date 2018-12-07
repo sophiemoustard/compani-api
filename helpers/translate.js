@@ -129,6 +129,9 @@ module.exports = {
     companyCreated: 'Company created.',
     companyDeleted: 'Company deleted.',
     companyExists: 'Company already exists.',
+    companyServicesFound: 'Company services found',
+    companyServiceCreated: 'Company service created',
+    companyServiceDeleted: 'Company service deleted',
     /* User contracts */
     userContractsFound: 'User contracts found.',
     userContractUpdated: 'User contract updated.',
@@ -274,6 +277,9 @@ module.exports = {
     companyCreated: 'Entreprise créée.',
     companyDeleted: 'Entreprise supprimée.',
     companyExists: 'Entreprise déjà existante.',
+    companyServicesFound: 'Services de l\'entreprise trouvés',
+    companyServiceCreated:'Service de l\'entreprise créé',
+    companyServiceDeleted:'Service de l\'entreprise supprimé',
     /* User contracts */
     userContractsFound: "Contrats de l'utilisateur trouvés.",
     userContractUpdated: "Contrat de l'utilisateur mis à jour.",

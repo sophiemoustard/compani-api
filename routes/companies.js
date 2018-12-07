@@ -10,7 +10,10 @@ const {
   list,
   show,
   remove,
-  uploadFile
+  uploadFile,
+  createCompanyService,
+  getCompanyServices,
+  deleteCompanyService,
 } = require('../controllers/companyController');
 
 exports.plugin = {
@@ -155,6 +158,42 @@ exports.plugin = {
           // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/services',
+      handler: createCompanyService,
+      options: {
+        auth: { strategy: 'jwt' },
+      },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/services',
+      handler: getCompanyServices,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: { _id: Joi.objectId().required() },
+        },
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/services/{serviceId}',
+      handler: deleteCompanyService,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            serviceId: Joi.objectId().required()
+          },
+        },
+      },
     });
   }
 };

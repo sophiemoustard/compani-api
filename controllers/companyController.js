@@ -138,11 +138,77 @@ const uploadFile = async (req) => {
   }
 };
 
+const getCompanyServices = async (req) => {
+  try {
+    const company = await Company.findOne(
+      {
+        _id: req.params._id,
+        'customersConfig.services': { $exists: true },
+      },
+    );
+
+    if (!company) {
+      return Boom.notFound();
+    }
+
+    return {
+      message: translate[language].companyServicesFound,
+      data: {
+        services: company.customersConfig.services,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const createCompanyService = async (req) => {
+  try {
+    const company = await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { 'customersConfig.services': req.payload } },
+      { new: true },
+    );
+  
+    return {
+      message: translate[language].companyServiceCreated,
+      data: {
+        services: company.customersConfig.services,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateService = async (req) => {};
+
+const deleteCompanyService = async (req) => {
+  try {
+    await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $pull: { 'customersConfig.services': { _id: req.params.serviceId } } },
+    );
+
+    return {
+      message: translate[language].companyServiceDeleted,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
   create,
   update,
   remove,
-  uploadFile
+  uploadFile,
+  getCompanyServices,
+  createCompanyService,
+  deleteCompanyService,
 };
