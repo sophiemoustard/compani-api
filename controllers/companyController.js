@@ -145,6 +145,10 @@ const getCompanyServices = async (req) => {
         _id: req.params._id,
         'customersConfig.services': { $exists: true },
       },
+      {
+        name: 1,
+        'customersConfig.services': 1
+      },
     );
 
     if (!company) {
@@ -168,7 +172,13 @@ const createCompanyService = async (req) => {
     const company = await Company.findOneAndUpdate(
       { _id: req.params._id },
       { $push: { 'customersConfig.services': req.payload } },
-      { new: true },
+      {
+        new: true,
+        select: {
+          name: 1,
+          'customersConfig.services': 1
+        },
+      },
     );
   
     return {
@@ -192,7 +202,13 @@ const updateCompanyService = async (req) => {
         'customersConfig.services._id': req.params.serviceId,
       },
       { $set: flat(payload) },
-      { new: true },
+      {
+        new: true,
+        select: {
+          name: 1,
+          'customersConfig.services': 1
+        },
+      },
     );
 
     if (!company) {
