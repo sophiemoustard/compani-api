@@ -221,8 +221,8 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             defaultUnitAmount: Joi.number(),
-            eveningSurcharge: Joi.number(),
-            holidaySurcharge: Joi.number(),
+            eveningSurcharge: Joi.number().allow('', null),
+            holidaySurcharge: Joi.number().allow('', null),
             name: Joi.string(),
             nature: Joi.string(),
             vat: Joi.number(),
