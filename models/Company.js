@@ -44,6 +44,10 @@ const CompanySchema = mongoose.Schema({
         driveId: String,
         link: String,
       },
+      quote: {
+        driveId: String,
+        link: String,
+      },
     },
   },
 }, {

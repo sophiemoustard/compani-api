@@ -97,6 +97,10 @@ exports.plugin = {
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null)
                 },
+                quote: {
+                  driveId: Joi.string().allow(null),
+                  link: Joi.string().allow(null)
+                },
               },
             }),
           })

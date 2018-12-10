@@ -109,6 +109,7 @@ const uploadFile = async (req) => {
       'contract',
       'amendment',
       'debitMandate',
+      'quote',
     ];
     const keys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (keys.length === 0) {
