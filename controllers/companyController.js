@@ -122,10 +122,14 @@ const uploadFile = async (req) => {
       body: req.payload[keys[0]]
     });
     const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
-    const templates = {
-      [keys[0]]: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
+    const configKey = (keys[0] === 'contract' || keys[0] === 'amendment') ? 'rhConfig' : 'customersConfig';
+    const payload = {
+      [configKey]: {
+        templates: {
+          [keys[0]]: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
+        },
+      },
     };
-    const payload = (keys[0] === 'contract' || keys[0] === 'amendment') ? { rhConfig: { templates } } : { customersConfig: { templates } };
 
     await Company.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
     return { message: translate[language].fileCreated, data: { uploadedFile } };

@@ -5,6 +5,7 @@ const CompanySchema = mongoose.Schema({
     type: String,
     unique: true
   },
+  folderId: String,
   rhConfig: {
     providerContracts: {
       grossHourlyRate: Number
@@ -18,7 +19,6 @@ const CompanySchema = mongoose.Schema({
       price: Number
     }],
     templates: {
-      folderId: String,
       contract: {
         driveId: String,
         link: String
