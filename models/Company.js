@@ -38,6 +38,13 @@ const CompanySchema = mongoose.Schema({
       holidaySurcharge: Number,
       eveningSurcharge: Number,
     }],
+    templates: {
+      folderId: String,
+      debitMandate: {
+        driveId: String,
+        link: String,
+      },
+    },
   },
 }, {
   timestamps: true
