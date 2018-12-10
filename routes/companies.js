@@ -10,7 +10,11 @@ const {
   list,
   show,
   remove,
-  uploadFile
+  uploadFile,
+  createCompanyService,
+  getCompanyServices,
+  deleteCompanyService,
+  updateCompanyService,
 } = require('../controllers/companyController');
 
 exports.plugin = {
@@ -155,6 +159,76 @@ exports.plugin = {
           // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/services',
+      handler: createCompanyService,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: { _id: Joi.objectId().required() },
+          payload: Joi.object().keys({
+            defaultUnitAmount: Joi.number().required(),
+            eveningSurcharge: Joi.number().allow('', null),
+            holidaySurcharge: Joi.number().allow('', null),
+            name: Joi.string().required(),
+            nature: Joi.string().required(),
+            vat: Joi.number().required(),
+          }),
+        },
+      },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/services',
+      handler: getCompanyServices,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: { _id: Joi.objectId().required() },
+        },
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/services/{serviceId}',
+      handler: deleteCompanyService,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            serviceId: Joi.objectId().required()
+          },
+        },
+      },
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/services/{serviceId}',
+      handler: updateCompanyService,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            serviceId: Joi.objectId().required()
+          },
+          payload: Joi.object().keys({
+            defaultUnitAmount: Joi.number(),
+            eveningSurcharge: Joi.number().allow('', null),
+            holidaySurcharge: Joi.number().allow('', null),
+            name: Joi.string(),
+            nature: Joi.string(),
+            vat: Joi.number(),
+          }),
+        },
+      },
     });
   }
 };

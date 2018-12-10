@@ -138,11 +138,120 @@ const uploadFile = async (req) => {
   }
 };
 
+const getCompanyServices = async (req) => {
+  try {
+    const company = await Company.findOne(
+      {
+        _id: req.params._id,
+        'customersConfig.services': { $exists: true },
+      },
+      {
+        name: 1,
+        'customersConfig.services': 1
+      },
+    );
+
+    if (!company) {
+      return Boom.notFound();
+    }
+
+    return {
+      message: translate[language].companyServicesFound,
+      data: {
+        services: company.customersConfig.services,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const createCompanyService = async (req) => {
+  try {
+    const company = await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { 'customersConfig.services': req.payload } },
+      {
+        new: true,
+        select: {
+          name: 1,
+          'customersConfig.services': 1
+        },
+      },
+    );
+  
+    return {
+      message: translate[language].companyServiceCreated,
+      data: {
+        services: company.customersConfig.services,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateCompanyService = async (req) => {
+  try {
+    const payload = { 'customersConfig.services.$': { ...req.payload } };
+    const company = await Company.findOneAndUpdate(
+      {
+        _id: req.params._id,
+        'customersConfig.services._id': req.params.serviceId,
+      },
+      { $set: flat(payload) },
+      {
+        new: true,
+        select: {
+          name: 1,
+          'customersConfig.services': 1
+        },
+      },
+    );
+
+    if (!company) {
+      return Boom.notFound(translate[lamguage].companyServicesNotFound);
+    }
+
+    return {
+      message: translate[language].companyServicesUpdated,
+      data: {
+        services: company.customersConfig.services,
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const deleteCompanyService = async (req) => {
+  try {
+    await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $pull: { 'customersConfig.services': { _id: req.params.serviceId } } },
+    );
+
+    return {
+      message: translate[language].companyServiceDeleted,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
   create,
   update,
   remove,
-  uploadFile
+  uploadFile,
+  getCompanyServices,
+  createCompanyService,
+  deleteCompanyService,
+  updateCompanyService,
 };

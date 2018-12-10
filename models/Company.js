@@ -26,10 +26,19 @@ const CompanySchema = mongoose.Schema({
       amendment: {
         driveId: String,
         link: String
-      }
-    }
-  }
-
+      },
+    },
+  },
+  customersConfig: {
+    services: [{
+      name: String,
+      nature: String,
+      defaultUnitAmount: Number,
+      vat: Number,
+      holidaySurcharge: Number,
+      eveningSurcharge: Number,
+    }],
+  },
 }, {
   timestamps: true
 });
