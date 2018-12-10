@@ -107,7 +107,9 @@ const uploadFile = async (req) => {
   try {
     const allowedFields = [
       'contract',
-      'amendment'
+      'amendment',
+      'debitMandate',
+      'quote',
     ];
     const keys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (keys.length === 0) {
@@ -120,16 +122,15 @@ const uploadFile = async (req) => {
       body: req.payload[keys[0]]
     });
     const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
+    const configKey = (keys[0] === 'contract' || keys[0] === 'amendment') ? 'rhConfig' : 'customersConfig';
     const payload = {
-      rhConfig: {
+      [configKey]: {
         templates: {
-          [keys[0]]: {
-            driveId: uploadedFile.id,
-            link: driveFileInfo.webViewLink
-          }
-        }
-      }
+          [keys[0]]: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
+        },
+      },
     };
+
     await Company.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {

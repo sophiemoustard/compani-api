@@ -89,8 +89,20 @@ exports.plugin = {
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null)
                 }
-              }
-            })
+              },
+            }),
+            customersConfig: Joi.object().keys({
+              templates: {
+                debitMandate: {
+                  driveId: Joi.string().allow(null),
+                  link: Joi.string().allow(null)
+                },
+                quote: {
+                  driveId: Joi.string().allow(null),
+                  link: Joi.string().allow(null)
+                },
+              },
+            }),
           })
         },
         auth: {
@@ -156,7 +168,6 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
     });
