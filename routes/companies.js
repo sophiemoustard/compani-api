@@ -65,6 +65,18 @@ exports.plugin = {
           payload: Joi.object().keys({
             _id: Joi.objectId(),
             name: Joi.string(),
+            address: Joi.object().keys({
+              street: Joi.string().required(),
+              zipCode: Joi.string().required(),
+              city: Joi.string().required(),
+              fullAddress: Joi.string(),
+              location: {
+                type: Joi.string(),
+                coordinates: Joi.array()
+              }
+            }),
+            ics: Joi.string(),
+            rcs: Joi.string(),
             rhConfig: Joi.object().keys({
               providerContracts: {
                 grossHourlyRate: Joi.number()

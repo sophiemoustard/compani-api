@@ -5,6 +5,14 @@ const CompanySchema = mongoose.Schema({
     type: String,
     unique: true
   },
+  address: {
+    street: String,
+    fullAddress: String,
+    zipCode: String,
+    city: String
+  },
+  rcs: String,
+  ics: String,
   folderId: String,
   rhConfig: {
     providerContracts: {
