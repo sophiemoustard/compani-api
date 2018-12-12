@@ -36,7 +36,17 @@ const customersList = [
       bankAccountOwner: `${faker.name.firstName()} ${faker.name.lastName()}`,
       iban: faker.finance.iban(),
       bic: faker.finance.bic()
-    }
+    },
+    subscriptions: [
+      {
+        _id: new ObjectID(),
+        service: 'Subscritpion',
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: true,
+        sundays: false
+      }
+    ],
   },
   {
     _id: new ObjectID(),
