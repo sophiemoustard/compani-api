@@ -13,7 +13,8 @@ const userList = [
       email: 'test2@alenvi.io',
       password: '123456'
     },
-    role: 'Coach'
+    role: 'Coach',
+    inactivityDate: null,
   },
   {
     _id: new ObjectID(),
@@ -26,7 +27,8 @@ const userList = [
     employee_id: 12345678,
     sector: '*',
     refreshToken: uuidv4(),
-    role: 'Tech'
+    role: 'Tech',
+    inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
     _id: new ObjectID(),
@@ -37,7 +39,8 @@ const userList = [
       password: '123456'
     },
     refreshToken: uuidv4(),
-    role: 'Tech'
+    role: 'Tech',
+    inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
     _id: new ObjectID(),
@@ -49,7 +52,8 @@ const userList = [
     },
     employee_id: 12345678,
     refreshToken: uuidv4(),
-    role: 'Auxiliaire'
+    role: 'Auxiliaire',
+    inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
     _id: new ObjectID(),
@@ -63,6 +67,7 @@ const userList = [
     employee_id: 12345678,
     refreshToken: uuidv4(),
     role: 'Auxiliaire',
+    inactivityDate: null,
     administrative: {
       contracts: [
         {
