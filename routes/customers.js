@@ -9,7 +9,10 @@ const {
   list,
   show,
   remove,
-  // removeHelper
+  getSubcriptions,
+  addSubscription,
+  updateSubscription,
+  removeSubscription,
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -150,6 +153,78 @@ exports.plugin = {
         auth: 'jwt'
       },
       handler: remove
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/subscriptions',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: getSubcriptions,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/subscriptions',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          },
+          payload: {
+            service: Joi.string().required(),
+            unitTTCRate: Joi.number().required(),
+            estimatedWeeklyVolume: Joi.number().required(),
+            evenings: Joi.boolean().required(),
+            sundays: Joi.boolean().required(),
+          },
+        },
+        auth: 'jwt',
+      },
+      handler: addSubscription,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/subscriptions/{subscriptionId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            subscriptionId: Joi.objectId().required()
+          },
+          payload: {
+            service: Joi.string(),
+            unitTTCRate: Joi.number(),
+            estimatedWeeklyVolume: Joi.number(),
+            evenings: Joi.boolean(),
+            sundays: Joi.boolean(),
+          },
+        },
+        auth: 'jwt',
+      },
+      handler: updateSubscription,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/subscriptions/{subscriptionId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            subscriptionId: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: removeSubscription,
     });
   }
 };
