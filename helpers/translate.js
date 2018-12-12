@@ -157,7 +157,12 @@ module.exports = {
     customerNotFound: 'Customer not found.',
     customerCreated: 'Customer created.',
     customerUpdated: 'Customer updated.',
-    customerHelperDeleted: 'Customer helper deleted.'
+    customerHelperDeleted: 'Customer helper deleted.',
+    customerSubscriptionsFound: 'Customer subscriptions found',
+    customerSubscriptionsNotFound: 'Customer subscriptions not found',
+    customerSubscriptionAdded: 'Customer subscription added',
+    customerSubscriptionUpdated: 'Customer subscription updated',
+    customerSubscriptionRemoved: 'Customer subscription removed',
   },
   'fr-FR': {
     /* Global errors */
@@ -306,6 +311,11 @@ module.exports = {
     customerNotFound: 'Bénéficiaire non trouvé.',
     customerCreated: 'Bénéficiaire créé.',
     customerUpdated: 'Bénéficiaire mis à jour.',
-    customerHelperDeleted: 'Aidant du bénéficiaire supprimé.'
+    customerHelperDeleted: 'Aidant du bénéficiaire supprimé.',
+    customerSubscriptionsFound: 'Abonnements du bénéficiaire trouvés',
+    customerSubscriptionsNotFound: 'Abonnements du bénéficiaire non trouvés',
+    customerSubscriptionAdded: 'Abonnement du bénéficiaire ajouté.',
+    customerSubscriptionUpdated: 'Abonnement du bénéficiaire mis à jour.',
+    customerSubscriptionRemoved: 'Abonnement du bénéficiaire supprimé.',
   }
 };

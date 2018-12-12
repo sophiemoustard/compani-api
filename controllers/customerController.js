@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const flat = require('flat');
+const _ = require('lodash');
 
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
@@ -94,10 +95,117 @@ const update = async (req) => {
   }
 };
 
+  const getSubcriptions = async (req) => {
+    try {
+      const customer = await Customer.findOne(
+        {
+          _id: req.params._id,
+          subscriptions: { $exists: true },
+        }, 
+        { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+        { autopopulate: false }
+      ).lean();
+
+      if (!customer) {
+        return Boom.notFound(translate[language].customerSubscriptionsNotFound);
+      }
+
+      return {
+        message: translate[language].customerSubscriptionsFound,
+        data: {
+          customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+          subscriptions: customer.subscriptions,
+        },
+      };
+    } catch (e) {
+      req.log('error', e);
+      return Boom.badImplementation();
+    }
+  };
+
+  const updateSubscription = async (req) => {
+    try {
+      const payload = { 'subscriptions.$': { ...req.payload } };
+      const customer = await Customer.findOneAndUpdate(
+        { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
+        { $set: flat(payload) },
+        {
+          new: true,
+          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+          autopopulate: false,
+        },
+      );
+
+      if (!customer) {
+        return Boom.notFound(translate[language].customerSubscriptionsNotFound);
+      }
+
+      return {
+        message: translate[language].customerSubscriptionUpdated,
+        data: {
+          customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+          subscriptions: customer.subscriptions,
+        },
+      };
+    } catch (e) {
+      req.log('error', e);
+      return Boom.badImplementation();
+    }
+  };
+
+  const addSubscription = async (req) => {
+    try {
+      const customer = await Customer.findByIdAndUpdate(
+        { _id: req.params._id },
+        { $push: { subscriptions: req.payload } },
+        {
+          new: true,
+          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+          autopopulate: false,
+        },
+      );
+  
+      return {
+        message: translate[language].customerSubscriptionAdded,
+        data: {
+          customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+          subscriptions: customer.subscriptions,
+        },
+      };
+    } catch (e) {
+      req.log('error', e);
+      return Boom.badImplementation();
+    }
+  };
+
+  const removeSubscription = async (req) => {
+    try {
+      await Customer.findByIdAndUpdate(
+        { _id: req.params._id },
+        { $pull: { subscriptions: { _id: req.params.subscriptionId} } },
+        {
+          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+          autopopulate: false,
+        }
+      );
+
+      return {
+        message: translate[language].customerSubscriptionRemoved,
+      };
+    } catch (e) {
+      req.log('error', e);
+      return Boom.badImplementation();
+    }
+  };
+
 module.exports = {
   list,
   show,
   create,
   remove,
-  update
+  update,
+  getSubcriptions,
+  addSubscription,
+  updateSubscription,
+  removeSubscription,
 };

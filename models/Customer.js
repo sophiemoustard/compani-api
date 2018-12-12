@@ -43,7 +43,14 @@ const CustomerSchema = mongoose.Schema({
     iban: String,
     bic: String
   },
-  isActive: Boolean
+  isActive: Boolean,
+  subscriptions: [{
+    service: String,
+    unitTTCRate: Number,
+    estimatedWeeklyVolume: Number,
+    evenings: Boolean,
+    sundays: Boolean,
+  }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Customer', CustomerSchema);
