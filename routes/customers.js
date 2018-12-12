@@ -200,7 +200,9 @@ exports.plugin = {
             subscriptionId: Joi.objectId().required()
           },
           payload: {
-            service: Joi.string(),
+            service: {
+              _id: Joi.objectId().required(),
+            },
             unitTTCRate: Joi.number(),
             estimatedWeeklyVolume: Joi.number(),
             evenings: Joi.boolean(),

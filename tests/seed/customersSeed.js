@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const faker = require('faker');
 
 const Customer = require('../../models/Customer');
+const { companiesList } = require('./companiesSeed');
 
 faker.locale = 'fr';
 
@@ -40,7 +41,7 @@ const customersList = [
     subscriptions: [
       {
         _id: new ObjectID(),
-        service: 'Subscritpion',
+        service: companiesList[0].customersConfig.services[0]._id,
         unitTTCRate: 12,
         estimatedWeeklyVolume: 12,
         evenings: true,

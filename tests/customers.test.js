@@ -12,6 +12,7 @@ const {
   getToken
 } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
+const { populateCompanies, companiesList } = require('./seed/companiesSeed');
 const Customer = require('../models/Customer');
 
 describe('NODE ENV', () => {
@@ -34,6 +35,7 @@ const payload = {
 
 describe('CUSTOMERS ROUTES', () => {
   let token = null;
+  before(populateCompanies);
   before(populateCustomers);
   before(populateRoles);
   before(populateUsers);
@@ -235,9 +237,8 @@ describe('CUSTOMERS ROUTES', () => {
 
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   let token = null;
+  before(populateCompanies);
   before(populateCustomers);
-  before(populateRoles);
-  before(populateUsers);
   beforeEach(async () => {
     token = await getToken();
   });
@@ -245,8 +246,9 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   describe('POST /customers/{id}/subscriptions', () => {
     it('should add subscription to customer', async () => {
       const customer = customersList[1];
+      const company = companiesList[0];
       const payload = {
-        service: "Subscription",
+        service: company.customersConfig.services[0]._id,
         unitTTCRate: 12,
         estimatedWeeklyVolume: 12,
         evenings: true,
