@@ -40,6 +40,7 @@ describe('CUSTOMERS ROUTES', () => {
   beforeEach(async () => {
     token = await getToken();
   });
+
   describe('POST /customers', () => {
     it('should create a new customer', async () => {
       const res = await app.inject({
@@ -228,6 +229,133 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': token }
       });
       expect(res.statusCode).toBe(404);
+    });
+  });
+});
+
+describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
+  let token = null;
+  before(populateCustomers);
+  before(populateRoles);
+  before(populateUsers);
+  beforeEach(async () => {
+    token = await getToken();
+  });
+
+  describe('POST /customers/{id}/subscriptions', () => {
+    it('should add subscription to customer', async () => {
+      const customer = customersList[1];
+      const payload = {
+        service: "Subscription",
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: true,
+        sundays: false,
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/subscriptions`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.subscriptions).toBeDefined();
+      expect(result.result.data.subscriptions[0].unitTTCRate).toEqual(payload.unitTTCRate);
+    });
+  });
+
+  describe('GET /customers/{id}/subscriptions', () => {
+    it('should get customer subscriptions', async () => {
+      const customer = customersList[0];
+
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${customer._id.toHexString()}/subscriptions`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.subscriptions).toBeDefined();
+    });
+
+    it('should return 404 as customer not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${invalidId}/subscriptions`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(404);
+    });
+  });
+
+  describe('PUT /customers/{id}/subscriptions/{subscriptionId}', () => {
+    const payload = {
+      estimatedWeeklyVolume: 24,
+      evenings: false,
+    };
+
+    it('should update customer subscription', async () => {
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[0];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.subscriptions).toBeDefined();
+      expect(result.result.data.subscriptions[0].estimatedWeeklyVolume).toEqual(payload.estimatedWeeklyVolume);
+    });
+
+    it('should return 404 as customer not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[0];
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${invalidId}/subscriptions/${subscription._id.toHexString()}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(404);
+    });
+
+    it('should return 404 as  subscription not found', async () => {
+      const customer = customersList[0];
+      const invalidId = new ObjectID().toHexString();
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id.toHexString()}/subscriptions/${invalidId}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(404);
+    });
+  });
+
+  describe('DELETE /customers/{id}/subscriptions/{subscriptionId}', () => {
+    it('should delete customer subscription', async () => {
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[0];
+
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(200);
     });
   });
 });
