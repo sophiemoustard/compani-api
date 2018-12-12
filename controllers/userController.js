@@ -62,11 +62,9 @@ const authenticate = async (req) => {
 
 // Create a new user
 const create = async (req) => {
-  // Check if users mandatory fields are missing
   try {
     // Create refreshToken and store it
     req.payload.refreshToken = uuidv4();
-    // req.payload.company = 'Alenvi';
     const user = new User(req.payload);
     // Save user
     await user.saveByParams(_.pick(req.payload, ['role', 'company']));
@@ -103,7 +101,7 @@ const create = async (req) => {
   }
 };
 
-// Show all user
+// Show all users
 const list = async (req) => {
   if (req.query.role) {
     req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
@@ -141,6 +139,47 @@ const list = async (req) => {
   };
 };
 
+// Show all active users
+const activeList = async (req) => {
+  if (req.query.role) {
+    req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
+    if (!req.query.role) {
+      return Boom.notFound(translate[language].roleNotFound);
+    }
+  }
+  if (req.query.email) {
+    req.query.local = { email: req.query.email };
+    delete req.query.email;
+  }
+  const params = _.pickBy(req.query);
+  const users = await User.find(params, {
+    planningModification: 0,
+    historyChanges: 0,
+    features: 0,
+  }, { autopopulate: false })
+    .populate({
+      path: 'procedure.task',
+      select: 'name'
+    })
+    .populate({
+      path: 'customers',
+      select: 'identity'
+    });
+
+  if (users.length === 0) {
+    return Boom.notFound(translate[language].userShowAllNotFound);
+  }
+
+  const activeUsers = users.filter(user => user.isActive);
+
+  return {
+    message: translate[language].userShowAllFound,
+    data: {
+      users: activeUsers
+    }
+  };
+};
+
 // Find an user by Id in param URL
 const show = async (req) => {
   try {
@@ -174,10 +213,6 @@ const update = async (req) => {
       req.payload.role = role._id.toString();
     }
     const newBody = flat(req.payload);
-    // User update tracking
-    // const trackingPayload = userUpdateTracking(req.auth.credentials._id, newBody);
-    // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    // const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody, $push: { historyChanges: trackingPayload } }, { new: true });
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true });
     if (!userUpdated) {
       return Boom.notFound(translate[language].userNotFound);
@@ -474,7 +509,6 @@ const uploadFile = async (req) => {
           [administrativeKeys[0]]: {
             driveId: uploadedFile.id,
             link: driveFileInfo.webViewLink,
-            // thumbnailLink: driveFileInfo.thumbnailLink
           }
         }
       };
@@ -832,6 +866,7 @@ module.exports = {
   authenticate,
   create,
   list,
+  activeList,
   show,
   update,
   remove,

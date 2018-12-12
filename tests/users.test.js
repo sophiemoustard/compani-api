@@ -206,6 +206,31 @@ describe('USERS ROUTES', () => {
     });
   });
 
+  describe('GET /users/active', () => {
+    it('should get all active users', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users/active',
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users[0]).toHaveProperty('isActive');
+      expect(res.result.data.users[0].isActive).toBeTruthy();
+    });
+    it('should get all active coachs users', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/users/active?role=Coach',
+        headers: { 'x-access-token': authToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.users[0]).toHaveProperty('role');
+      expect(res.result.data.users[0].role.toHexString()).toEqual(rolesList[2]._id.toHexString());
+      expect(res.result.data.users[0]).toHaveProperty('isActive');
+      expect(res.result.data.users[0].isActive).toBeTruthy();
+    });
+  });
+
   describe('GET /users/:id', () => {
     it('should return user', async () => {
       const res = await app.inject({
