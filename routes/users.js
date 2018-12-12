@@ -7,6 +7,7 @@ const {
   authenticate,
   create,
   list,
+  activeList,
   show,
   update,
   remove,
@@ -121,14 +122,32 @@ exports.plugin = {
             role: Joi.string(),
             email: Joi.string().email(),
             sector: Joi.string(),
-            isActive: Joi.boolean(),
             customers: Joi.objectId()
           }
         },
         auth: { strategy: 'jwt' }
       },
-      handler: list
+      handler: list,
     });
+
+    // Get all active users
+    server.route({
+      method: 'GET',
+      path: '/active',
+      options: {
+        validate: {
+          query: {
+            role: Joi.string(),
+            email: Joi.string().email(),
+            sector: Joi.string(),
+            customers: Joi.objectId()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: activeList,
+    });
+
     // Get user by id
     server.route({
       method: 'GET',
