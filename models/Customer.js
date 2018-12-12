@@ -45,7 +45,9 @@ const CustomerSchema = mongoose.Schema({
   },
   isActive: Boolean,
   subscriptions: [{
-    service: String,
+    service: {
+      type: mongoose.Schema.Types.ObjectId,
+    },
     unitTTCRate: Number,
     estimatedWeeklyVolume: Number,
     evenings: Boolean,

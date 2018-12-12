@@ -4,6 +4,8 @@ const _ = require('lodash');
 
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
+const Company = require('../models/Company');
+const { populateServices } = require('../helpers/populateServices');
 
 const { language } = translate;
 
@@ -110,11 +112,13 @@ const update = async (req) => {
         return Boom.notFound(translate[language].customerSubscriptionsNotFound);
       }
 
+      const subscriptions = await populateServices(customer.subscriptions);
+
       return {
         message: translate[language].customerSubscriptionsFound,
         data: {
           customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-          subscriptions: customer.subscriptions,
+          subscriptions,
         },
       };
     } catch (e) {
@@ -125,7 +129,12 @@ const update = async (req) => {
 
   const updateSubscription = async (req) => {
     try {
-      const payload = { 'subscriptions.$': { ...req.payload } };
+      let payload;
+      if (req.payload.service && req.payload.service._id) {
+        payload = { 'subscriptions.$': { ...req.payload, service: req.payload.service._id } }
+      } else {
+        payload = { 'subscriptions.$': { ...req.payload } };
+      }
       const customer = await Customer.findOneAndUpdate(
         { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
         { $set: flat(payload) },
@@ -134,17 +143,19 @@ const update = async (req) => {
           select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
           autopopulate: false,
         },
-      );
+      ).lean();
 
       if (!customer) {
         return Boom.notFound(translate[language].customerSubscriptionsNotFound);
       }
 
+      const subscriptions = await populateServices(customer.subscriptions);
+
       return {
         message: translate[language].customerSubscriptionUpdated,
         data: {
           customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-          subscriptions: customer.subscriptions,
+          subscriptions,
         },
       };
     } catch (e) {
@@ -155,7 +166,15 @@ const update = async (req) => {
 
   const addSubscription = async (req) => {
     try {
-      const customer = await Customer.findByIdAndUpdate(
+      const serviceId = req.payload.service;
+      const companyService = await Company.findOne({ 'customersConfig.services._id': serviceId });
+      const subscribedService = companyService.customersConfig.services.find(service => service._id == serviceId);
+
+      if (!subscribedService) {
+        return Boom.notFound(translate[language].companyServiceNotFound);
+      }
+
+      const customer = await Customer.findOneAndUpdate(
         { _id: req.params._id },
         { $push: { subscriptions: req.payload } },
         {
@@ -163,13 +182,15 @@ const update = async (req) => {
           select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
           autopopulate: false,
         },
-      );
+      ).lean();
+
+      const subscriptions = await populateServices(customer.subscriptions);
   
       return {
         message: translate[language].customerSubscriptionAdded,
         data: {
           customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-          subscriptions: customer.subscriptions,
+          subscriptions,
         },
       };
     } catch (e) {
