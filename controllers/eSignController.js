@@ -10,7 +10,7 @@ const { language } = translate;
 const generateCustomerSignatureRequest = async (req) => {
   try {
     const payload = {
-      sandbox: process.env.NODE_ENV === 'development' ? 1 : 0,
+      sandbox: process.env.NODE_ENV !== 'production' ? 1 : 0,
       title: `${req.payload.type}-${req.payload.customer.name}-${moment().format('DDMMYYYY-HHmm')}`.toUpperCase(),
       embedded_signing_enabled: 1,
       reminders: 0,
@@ -24,7 +24,7 @@ const generateCustomerSignatureRequest = async (req) => {
         name: req.payload.customer.name,
         email: req.payload.customer.email
       }],
-      fields: [customersSignatureFields[req.payload.type]],
+      fields: process.env.NODE_ENV === 'test' ? [] : [customersSignatureFields[req.payload.type]],
       redirect: req.payload.redirect || '',
       redirect_decline: req.payload.redirectDecline || ''
     };
