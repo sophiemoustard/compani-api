@@ -39,5 +39,56 @@ describe('ESIGN ROUTES', () => {
         embeddedUrl: expect.any(String)
       }));
     });
+
+    it("should return a 400 error if type is not 'devis' or 'sepa' ", async () => {
+      const file64 = await fileToBase64('tests/assets/test_esign.pdf');
+      const payload = {
+        type: 'toto',
+        file: file64,
+        customer: {
+          name: 'Test',
+          email: 'test@test.com'
+        }
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/esign/customers',
+        payload,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 400 error if no customer info is provided', async () => {
+      const file64 = await fileToBase64('tests/assets/test_esign.pdf');
+      const payload = {
+        type: 'toto',
+        file: file64
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/esign/customers',
+        payload,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 400 error if no file is provided', async () => {
+      const payload = {
+        type: 'devis',
+        customer: {
+          name: 'Test',
+          email: 'test@test.com'
+        }
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/esign/customers',
+        payload,
+        headers: { 'x-access-token': authToken }
+      });
+      expect(res.statusCode).toBe(400);
+    });
   });
 });
