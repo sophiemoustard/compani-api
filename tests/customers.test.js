@@ -266,6 +266,26 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.result.data.subscriptions).toBeDefined();
       expect(result.result.data.subscriptions[0].unitTTCRate).toEqual(payload.unitTTCRate);
     });
+
+    it('should return 409 if service already subscribed', async () => {
+      const customer = customersList[0];
+      const payload = {
+        service: customer.subscriptions[0].service,
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: true,
+        sundays: false,
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/subscriptions`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(409);
+    });
   });
 
   describe('GET /customers/{id}/subscriptions', () => {

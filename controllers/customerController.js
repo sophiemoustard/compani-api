@@ -171,13 +171,26 @@ const update = async (req) => {
     try {
       const serviceId = req.payload.service;
       const companyService = await Company.findOne({ 'customersConfig.services._id': serviceId });
+
+      if (!companyService) {
+        return Boom.notFound(translate[language].companyServiceNotFound);
+      }
+
       const subscribedService = companyService.customersConfig.services.find(service => service._id == serviceId);
 
       if (!subscribedService) {
         return Boom.notFound(translate[language].companyServiceNotFound);
       }
 
-      const customer = await Customer.findOneAndUpdate(
+      const customer = await Customer.findById(req.params._id);
+      if (customer.subscriptions && customer.subscriptions.length > 0) {
+        const isServiceAlreadySubscribed = customer.subscriptions.find(subscription => subscription.service.toHexString() === serviceId);
+        if (isServiceAlreadySubscribed) {
+          return Boom.conflict(translate[language].serviceAlreadySubscribed);
+        }
+      }
+
+      const updatedCustomer = await Customer.findOneAndUpdate(
         { _id: req.params._id },
         { $push: { subscriptions: req.payload } },
         {
@@ -187,12 +200,12 @@ const update = async (req) => {
         },
       ).lean();
 
-      const subscriptions = await populateServices(customer.subscriptions);
+      const subscriptions = await populateServices(updatedCustomer.subscriptions);
   
       return {
         message: translate[language].customerSubscriptionAdded,
         data: {
-          customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+          customer: _.pick(updatedCustomer, ['_id', 'identity.lastname', 'identity.firstname']),
           subscriptions,
         },
       };
