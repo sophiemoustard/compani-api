@@ -62,7 +62,7 @@ describe('ESIGN ROUTES', () => {
     it('should return a 400 error if no customer info is provided', async () => {
       const file64 = await fileToBase64('tests/assets/test_esign.pdf');
       const payload = {
-        type: 'toto',
+        type: 'sepa',
         file: file64
       };
       const res = await app.inject({
