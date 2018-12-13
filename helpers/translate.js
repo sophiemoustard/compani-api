@@ -133,6 +133,7 @@ module.exports = {
     companyServiceCreated: 'Company service created.',
     companyServiceDeleted: 'Company service deleted.',
     companyServicesNotFound: 'Company services not found.',
+    companyServiceNotFound: 'Company service not found.',
     companyServicesUpdated: 'Company services updated.',
     /* User contracts */
     userContractsFound: 'User contracts found.',
@@ -158,6 +159,12 @@ module.exports = {
     customerCreated: 'Customer created.',
     customerUpdated: 'Customer updated.',
     customerHelperDeleted: 'Customer helper deleted.',
+    customerSubscriptionsFound: 'Customer subscriptions found',
+    customerSubscriptionsNotFound: 'Customer subscriptions not found',
+    customerSubscriptionAdded: 'Customer subscription added',
+    customerSubscriptionUpdated: 'Customer subscription updated',
+    customerSubscriptionRemoved: 'Customer subscription removed',
+    serviceAlreadySubscribed: 'Service already subscribed',
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
@@ -286,6 +293,7 @@ module.exports = {
     companyServiceCreated: 'Service de l\'entreprise créé.',
     companyServiceDeleted: 'Service de l\'entreprise supprimé.',
     companyServicesNotFound: 'Services de l\'entreprise non trouvés.',
+    companyServiceNotFound: 'Service de l\'entreprise non trouvé.',
     companyServicesUpdated: 'Service de l\'entreprise modifié.',
     /* User contracts */
     userContractsFound: "Contrats de l'utilisateur trouvés.",
@@ -310,6 +318,12 @@ module.exports = {
     customerCreated: 'Bénéficiaire créé.',
     customerUpdated: 'Bénéficiaire mis à jour.',
     customerHelperDeleted: 'Aidant du bénéficiaire supprimé.',
+    customerSubscriptionsFound: 'Abonnements du bénéficiaire trouvés',
+    customerSubscriptionsNotFound: 'Abonnements du bénéficiaire non trouvés',
+    customerSubscriptionAdded: 'Abonnement du bénéficiaire ajouté.',
+    customerSubscriptionUpdated: 'Abonnement du bénéficiaire mis à jour.',
+    customerSubscriptionRemoved: 'Abonnement du bénéficiaire supprimé.',
+    serviceAlreadySubscribed: 'Le bénéficiaire est déjà abonné à ce service',
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',

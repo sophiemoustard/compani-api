@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const faker = require('faker');
 
 const Customer = require('../../models/Customer');
+const { companiesList } = require('./companiesSeed');
 
 faker.locale = 'fr';
 
@@ -36,7 +37,17 @@ const customersList = [
       bankAccountOwner: `${faker.name.firstName()} ${faker.name.lastName()}`,
       iban: faker.finance.iban(),
       bic: faker.finance.bic()
-    }
+    },
+    subscriptions: [
+      {
+        _id: new ObjectID(),
+        service: companiesList[0].customersConfig.services[0]._id,
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: true,
+        sundays: false
+      }
+    ],
   },
   {
     _id: new ObjectID(),
