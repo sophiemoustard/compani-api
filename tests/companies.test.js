@@ -1,7 +1,7 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const { companiesList, populateCompanies } = require('./seed/companiesSeed');
-const {getToken } = require('./seed/usersSeed');
+const { getToken } = require('./seed/usersSeed');
 const app = require('../server');
 
 describe('NODE ENV', () => {
@@ -49,7 +49,7 @@ describe('COMPANIES ROUTES', () => {
       };
       const response = await app.inject({
         method: 'POST',
-        url: `/companies`,
+        url: '/companies',
         headers: { 'x-access-token': authToken },
         payload,
       });
@@ -121,10 +121,10 @@ describe('COMPANIES ROUTES', () => {
 
       const payload = {
         defaultUnitAmount: 12,
-        eveningSurcharge: "",
-        holidaySurcharge: "",
-        name: "Service",
-        nature: "Service",
+        eveningSurcharge: '',
+        holidaySurcharge: '',
+        name: 'Service',
+        nature: 'Service',
         vat: 12,
       };
       const response = await app.inject({
@@ -170,10 +170,10 @@ describe('COMPANIES ROUTES', () => {
       const service = company.customersConfig.services[0];
       const payload = {
         defaultUnitAmount: 15,
-        eveningSurcharge: "",
-        holidaySurcharge: "",
-        name: "Service bis",
-        nature: "Service bis",
+        eveningSurcharge: '',
+        holidaySurcharge: '',
+        name: 'Service bis',
+        nature: 'Service bis',
         vat: 12,
       };
       const response = await app.inject({
@@ -191,10 +191,10 @@ describe('COMPANIES ROUTES', () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
         defaultUnitAmount: 15,
-        eveningSurcharge: "",
-        holidaySurcharge: "",
-        name: "Service bis",
-        nature: "Service bis",
+        eveningSurcharge: '',
+        holidaySurcharge: '',
+        name: 'Service bis',
+        nature: 'Service bis',
         vat: 12,
       };
       const response = await app.inject({

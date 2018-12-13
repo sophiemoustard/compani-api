@@ -165,6 +165,9 @@ module.exports = {
     customerSubscriptionUpdated: 'Customer subscription updated',
     customerSubscriptionRemoved: 'Customer subscription removed',
     serviceAlreadySubscribed: 'Service already subscribed',
+
+    /* ESign */
+    signatureRequestCreated: 'Signature request created.',
   },
   'fr-FR': {
     /* Global errors */
@@ -287,8 +290,8 @@ module.exports = {
     companyDeleted: 'Entreprise supprimée.',
     companyExists: 'Entreprise déjà existante.',
     companyServicesFound: 'Services de l\'entreprise trouvés.',
-    companyServiceCreated:'Service de l\'entreprise créé.',
-    companyServiceDeleted:'Service de l\'entreprise supprimé.',
+    companyServiceCreated: 'Service de l\'entreprise créé.',
+    companyServiceDeleted: 'Service de l\'entreprise supprimé.',
     companyServicesNotFound: 'Services de l\'entreprise non trouvés.',
     companyServiceNotFound: 'Service de l\'entreprise non trouvé.',
     companyServicesUpdated: 'Service de l\'entreprise modifié.',
@@ -321,5 +324,8 @@ module.exports = {
     customerSubscriptionUpdated: 'Abonnement du bénéficiaire mis à jour.',
     customerSubscriptionRemoved: 'Abonnement du bénéficiaire supprimé.',
     serviceAlreadySubscribed: 'Le bénéficiaire est déjà abonné à ce service',
+
+    /* ESign */
+    signatureRequestCreated: 'Demande de signature créée.',
   }
 };
