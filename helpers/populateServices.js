@@ -1,7 +1,7 @@
 const Company = require('../models/Company');
 
 const populateServices = async (subscriptions) => {
-  if (subscriptions.length === 0) return {};
+  if (subscriptions.length === 0) return [];
 
   const company = await Company.findOne({ 'customersConfig.services._id': subscriptions[0].service });
 
