@@ -15,10 +15,10 @@ exports.plugin = {
           payload: {
             type: Joi.string().valid('sepa', 'devis').required(),
             file: Joi.string().required(),
-            customer: {
+            customer: Joi.object().keys({
               name: Joi.string().required(),
               email: Joi.string().email().required()
-            }
+            }).required()
           }
         },
         auth: {
