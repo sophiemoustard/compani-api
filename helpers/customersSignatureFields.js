@@ -7,7 +7,7 @@ exports.customersSignatureFields = {
     height: '35',
     page: '2',
     signer: '1',
-    identifier: 'sign',
+    identifier: 'sepa',
     required: 1
   }],
   sepa: [{
@@ -18,7 +18,7 @@ exports.customersSignatureFields = {
     height: '35',
     page: '2',
     signer: '1',
-    identifier: 'sign',
+    identifier: 'devis',
     required: 1
   }]
 };
