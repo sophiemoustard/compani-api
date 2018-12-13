@@ -157,7 +157,10 @@ module.exports = {
     customerNotFound: 'Customer not found.',
     customerCreated: 'Customer created.',
     customerUpdated: 'Customer updated.',
-    customerHelperDeleted: 'Customer helper deleted.'
+    customerHelperDeleted: 'Customer helper deleted.',
+
+    /* ESign */
+    signatureRequestCreated: 'Signature request created.',
   },
   'fr-FR': {
     /* Global errors */
@@ -280,8 +283,8 @@ module.exports = {
     companyDeleted: 'Entreprise supprimée.',
     companyExists: 'Entreprise déjà existante.',
     companyServicesFound: 'Services de l\'entreprise trouvés.',
-    companyServiceCreated:'Service de l\'entreprise créé.',
-    companyServiceDeleted:'Service de l\'entreprise supprimé.',
+    companyServiceCreated: 'Service de l\'entreprise créé.',
+    companyServiceDeleted: 'Service de l\'entreprise supprimé.',
     companyServicesNotFound: 'Services de l\'entreprise non trouvés.',
     companyServicesUpdated: 'Service de l\'entreprise modifié.',
     /* User contracts */
@@ -306,6 +309,9 @@ module.exports = {
     customerNotFound: 'Bénéficiaire non trouvé.',
     customerCreated: 'Bénéficiaire créé.',
     customerUpdated: 'Bénéficiaire mis à jour.',
-    customerHelperDeleted: 'Aidant du bénéficiaire supprimé.'
+    customerHelperDeleted: 'Aidant du bénéficiaire supprimé.',
+
+    /* ESign */
+    signatureRequestCreated: 'Demande de signature créée.',
   }
 };
