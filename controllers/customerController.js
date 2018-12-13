@@ -31,13 +31,16 @@ const list = async (req) => {
 
 const show = async (req) => {
   try {
-    const customer = await Customer.findOne({ _id: req.params._id });
+    const customer = await Customer.findOne({ _id: req.params._id }).lean();
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
     }
+
+    const subscriptions = await populateServices(customer.subscriptions);
+
     return {
       message: translate[language].customerFound,
-      data: { customer }
+      data: { customer: { ...customer, subscriptions } },
     };
   } catch (e) {
     req.log('error', e);
