@@ -160,5 +160,11 @@ exports.routes = [
     routes: {
       prefix: '/customers'
     }
+  },
+  {
+    plugin: require('./esign'),
+    routes: {
+      prefix: '/esign'
+    }
   }
 ];
