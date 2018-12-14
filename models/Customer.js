@@ -41,7 +41,13 @@ const CustomerSchema = mongoose.Schema({
   payment: {
     bankAccountOwner: String,
     iban: String,
-    bic: String
+    bic: String,
+    sepa: [{
+      rum: String,
+      evenSignId: String,
+      drivId: String,
+      signedAt: Date,
+    }],
   },
   isActive: Boolean,
   subscriptions: [{
