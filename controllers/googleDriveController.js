@@ -33,8 +33,7 @@ const generateDocxFromDrive = async (req, h) => {
   try {
     const payload = {
       file: {
-        fileId: req.params.id,
-        tmpFilePath: '/tmp/template.docx',
+        fileId: req.params.id
       },
       data: req.payload
     };
