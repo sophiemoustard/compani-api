@@ -42,11 +42,15 @@ const CustomerSchema = mongoose.Schema({
     bankAccountOwner: String,
     iban: String,
     bic: String,
-    sepa: [{
+    mandates: [{
       rum: String,
       evenSignId: String,
       drivId: String,
       signedAt: Date,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
     }],
   },
   isActive: Boolean,

@@ -36,7 +36,10 @@ const customersList = [
     payment: {
       bankAccountOwner: `${faker.name.firstName()} ${faker.name.lastName()}`,
       iban: faker.finance.iban(),
-      bic: faker.finance.bic()
+      bic: faker.finance.bic(),
+      mandates: [
+        { rum: faker.helpers.randomize() },
+      ],
     },
     subscriptions: [
       {
@@ -78,7 +81,10 @@ const customersList = [
     payment: {
       bankAccountOwner: `${faker.name.firstName()} ${faker.name.lastName()}`,
       iban: faker.finance.iban(),
-      bic: faker.finance.bic()
+      bic: faker.finance.bic(),
+      mandates: [
+        { rum: faker.helpers.randomize() },
+      ],
     }
   },
   {
@@ -109,8 +115,11 @@ const customersList = [
     },
     payment: {
       bankAccountOwner: `${faker.name.firstName()} ${faker.name.lastName()}`,
-      iban: faker.finance.iban(),
-      bic: faker.finance.bic()
+      iban: '',
+      bic: '',
+      mandates: [
+        { rum: faker.helpers.randomize() },
+      ],
     }
   }
 ];

@@ -6,6 +6,7 @@ const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
 const Company = require('../models/Company');
 const { populateServices } = require('../helpers/populateServices');
+const { generateRum } = require('../helpers/generateRum');
 
 const { language } = translate;
 
@@ -50,7 +51,12 @@ const show = async (req) => {
 
 const create = async (req) => {
   try {
-    const newCustomer = new Customer(req.payload);
+    const mandate = { rum: generateRum() };
+    const payload = {
+      ...req.payload,
+      payment: { mandates: [mandate] },
+    };
+    const newCustomer = new Customer(payload);
     await newCustomer.save();
     return {
       message: translate[language].customerCreated,
@@ -84,7 +90,23 @@ const remove = async (req) => {
 
 const update = async (req) => {
   try {
-    const customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+    let customerUpdated;
+    if (req.payload.payment && req.payload.payment.iban) {
+      const customer = await Customer.findById(req.params._id);
+      if (customer.payment.iban !== '' && customer.payment.iban !== req.payload.payment.iban) {
+        const mandate = { rum: generateRum() };
+        customerUpdated = await Customer.findOneAndUpdate(
+          { _id: req.params._id },
+          { $set: flat(req.payload), $push: { 'payment.mandates': mandate } },
+          { new: true }
+        );
+      } else {
+        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+      }
+    } else {
+      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+    }
+
     if (!customerUpdated) {
       return Boom.notFound(translate[language].customerNotFound);
     }
