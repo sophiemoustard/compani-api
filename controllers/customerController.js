@@ -1,10 +1,12 @@
 const Boom = require('boom');
 const flat = require('flat');
 const _ = require('lodash');
+const moment = require('moment');
 
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
 const Company = require('../models/Company');
+const QuoteNumber = require('../models/QuoteNumber');
 const { populateServices } = require('../helpers/populateServices');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder } = require('../helpers/gdriveStorage');
@@ -287,6 +289,59 @@ const getMandates = async (req) => {
   }
 };
 
+const getCustomerQuotes = async (req) => {
+  try {
+    const quotes = await Customer.findOne({
+      _id: req.params._id,
+      quotes: { $exists: true }
+    }, {
+      'identity.firstname': 1,
+      'identity.lastname': 1,
+      quotes: 1
+    }, { autopopulate: false }).lean();
+    if (!quotes) return Boom.notFound();
+    return {
+      message: translate[language].customerQuotesFound,
+      data: {
+        user: _.pick(quotes, ['_id', 'identity']),
+        quotes: quotes.quotes
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const createCustomerQuote = async (req) => {
+  try {
+    const query = { quoteNumber: { prefix: `DEV${moment().format('MMYY')}` } };
+    const payload = { quoteNumber: { seq: 1 } };
+    const number = await QuoteNumber.findOneAndUpdate(flat(query), { $inc: flat(payload) }, { new: true, upsert: true, setDefaultsOnInsert: true });
+    const quoteNumber = `${number.quoteNumber.prefix}-${number.quoteNumber.seq.toString().padStart(3, '0')}`;
+    req.payload.quoteNumber = quoteNumber;
+    const newQuote = await Customer.findOneAndUpdate({ _id: req.params._id }, { $push: { quotes: req.payload } }, {
+      new: true,
+      select: {
+        'identity.firstname': 1,
+        'identity.lastname': 1,
+        quotes: 1
+      },
+      autopopulate: false
+    });
+    return {
+      message: translate[language].customerQuoteAdded,
+      data: {
+        user: _.pick(newQuote, ['_id', 'identity']),
+        quote: newQuote.quotes.find(quote => quoteNumber === quote.quoteNumber)
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 const updateMandate = async (req) => {
   try {
     const payload = { 'payment.mandates.$': { ...req.payload } };
@@ -309,7 +364,31 @@ const updateMandate = async (req) => {
       data: {
         customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         mandates: customer.payment.mandates,
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const removeCustomerQuote = async (req) => {
+  try {
+    const customer = await Customer.findOneAndUpdate({ _id: req.params._id }, { $pull: { quotes: { _id: req.params.quoteId } } }, {
+      select: {
+        firstname: 1,
+        lastname: 1,
+        quotes: 1
       },
+      autopopulate: false
+    });
+
+    if (!customer) {
+      return Boom.notFound(translate[language].customerNotFound);
+    }
+
+    return {
+      message: translate[language].customerQuoteRemoved,
     };
   } catch (e) {
     req.log('error', e);
@@ -369,4 +448,7 @@ module.exports = {
   getMandates,
   updateMandate,
   createDriveFolder,
+  getCustomerQuotes,
+  createCustomerQuote,
+  removeCustomerQuote
 };

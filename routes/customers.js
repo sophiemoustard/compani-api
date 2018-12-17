@@ -16,6 +16,9 @@ const {
   getMandates,
   updateMandate,
   createDriveFolder,
+  getCustomerQuotes,
+  createCustomerQuote,
+  removeCustomerQuote,
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -259,6 +262,58 @@ exports.plugin = {
         auth: 'jwt',
       },
       handler: updateMandate,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/quotes',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: getCustomerQuotes
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/quotes',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+          payload: Joi.object().keys({
+            subscriptions: Joi.array().items(Joi.object().keys({
+              serviceName: Joi.string(),
+              unitTTCRate: Joi.number(),
+              estimatedWeeklyVolume: Joi.number(),
+              evenings: Joi.boolean(),
+              sundays: Joi.boolean()
+            }))
+          })
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: createCustomerQuote
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/quotes/{quoteId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            quoteId: Joi.objectId().required()
+          }
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: removeCustomerQuote
     });
 
     server.route({
