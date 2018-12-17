@@ -169,6 +169,9 @@ module.exports = {
     customerMandateUpdated: 'Customer mandate updated',
     customerMandatesFound: 'Customer mandates found',
     customerMandateNotFound: 'Customer mandate not found',
+    customerQuotesFound: 'Customer quotes found.',
+    customerQuoteAdded: 'Customer quote added.',
+    customerQuoteRemoved: 'Customer quote removed.',
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
@@ -332,6 +335,9 @@ module.exports = {
     customerMandateUpdated: 'Mandat du bénéficiaire mis à jour',
     customerMandatesFound: 'Mandats du bénéficiaire trouvés',
     customerMandateNotFound: 'Mandat du bénéficiaire non trouvé',
+    customerQuotesFound: 'Devis du bénéficiaire trouvés.',
+    customerQuoteAdded: 'Devis du bénéficiaire ajouté.',
+    customerQuoteRemoved: 'Devis du bénéficiaire supprimé.',
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
