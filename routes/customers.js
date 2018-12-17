@@ -9,7 +9,7 @@ const {
   list,
   show,
   remove,
-  getSubcriptions,
+  getSubscriptions,
   addSubscription,
   updateSubscription,
   removeSubscription,
@@ -166,7 +166,7 @@ exports.plugin = {
         },
         auth: 'jwt',
       },
-      handler: getSubcriptions,
+      handler: getSubscriptions,
     });
 
     server.route({

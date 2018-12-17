@@ -45,7 +45,7 @@ const CustomerSchema = mongoose.Schema({
     mandates: [{
       rum: String,
       everSignId: String,
-      drivId: String,
+      driveId: String,
       signedAt: Date,
       createdAt: {
         type: Date,

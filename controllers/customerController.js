@@ -123,7 +123,7 @@ const update = async (req) => {
   }
 };
 
-const getSubcriptions = async (req) => {
+const getSubscriptions = async (req) => {
   try {
     const customer = await Customer.findOne(
       {
@@ -264,7 +264,7 @@ module.exports = {
   create,
   remove,
   update,
-  getSubcriptions,
+  getSubscriptions,
   addSubscription,
   updateSubscription,
   removeSubscription,
