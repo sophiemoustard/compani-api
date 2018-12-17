@@ -258,6 +258,34 @@ const removeSubscription = async (req) => {
   }
 };
 
+const getMandates = async (req) => {
+  try {
+    const customer = await Customer.findOne(
+      {
+        _id: req.params._id,
+        subscriptions: { $exists: true },
+      },
+      { 'identity.firstname': 1, 'identity.lastname': 1, 'payment.mandates': 1 },
+      { autopopulate: false },
+    ).lean();
+
+    if (!customer) {
+      return Boom.notFound(translate[language].customerNotFound);
+    }
+
+    return {
+      message: translate[language].customerMandatesFound,
+      data: {
+        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        mandates: customer.payment.mandates,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 const updateMandate = async (req) => {
   try {
     const payload = { 'payment.mandates.$': { ...req.payload } };
@@ -294,5 +322,6 @@ module.exports = {
   addSubscription,
   updateSubscription,
   removeSubscription,
+  getMandates,
   updateMandate,
 };
