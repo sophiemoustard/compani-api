@@ -166,6 +166,9 @@ module.exports = {
     customerSubscriptionUpdated: 'Customer subscription updated',
     customerSubscriptionRemoved: 'Customer subscription removed',
     serviceAlreadySubscribed: 'Service already subscribed',
+    customerMandateUpdated: 'Customer mandate updated',
+    customerMandatesFound: 'Customer mandates found',
+    customerMandateNotFound: 'Customer mandate not found',
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
@@ -326,6 +329,9 @@ module.exports = {
     customerSubscriptionUpdated: 'Abonnement du bénéficiaire mis à jour.',
     customerSubscriptionRemoved: 'Abonnement du bénéficiaire supprimé.',
     serviceAlreadySubscribed: 'Le bénéficiaire est déjà abonné à ce service',
+    customerMandateUpdated: 'Mandat du bénéficiaire mis à jour',
+    customerMandatesFound: 'Mandats du bénéficiaire trouvés',
+    customerMandateNotFound: 'Mandat du bénéficiaire non trouvé',
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',

@@ -13,6 +13,8 @@ const {
   addSubscription,
   updateSubscription,
   removeSubscription,
+  getMandates,
+  updateMandate,
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -227,6 +229,35 @@ exports.plugin = {
         auth: 'jwt',
       },
       handler: removeSubscription,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/mandates',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: getMandates,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/mandates/{mandateId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            mandateId: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: updateMandate,
     });
   }
 };

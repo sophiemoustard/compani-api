@@ -414,3 +414,93 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
   });
 });
+
+describe('CUSTOMER MANDATES ROUTES', () => {
+  let token = null;
+  before(populateCompanies);
+  beforeEach(populateCustomers);
+  beforeEach(async () => {
+    token = await getToken();
+  });
+
+  describe('GET /customers/{_id}/mandates', () => {
+    it('should return customer mandates', async () => {
+      const customer = customersList[0];
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${customer._id}/mandates`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.mandates).toBeDefined();
+      expect(result.result.data.mandates.length).toEqual(customer.payment.mandates.length);
+    });
+
+    it('should return 404 if customer not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${invalidId}/mandates`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(404);
+    });
+  });
+
+  describe('PUT /customers/{_id}/mandates/{mandateId}', () => {
+    it('should update customer mandate', async () => {
+      const customer = customersList[0];
+      const mandate = customer.payment.mandates[0];
+      const payload = {
+        signedAt: faker.date.past(1),
+      };
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(result.statusCode).toEqual(200);
+      expect(result.result.data.mandates).toBeDefined();
+      expect(result.result.data.mandates[0].signedAt).toBeDefined();
+    });
+
+    it('should return 404 if customer not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const mandate = customersList[0].payment.mandates[0];
+      const payload = {
+        signedAt: faker.date.past(1),
+      };
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${invalidId}/mandates/${mandate._id.toHexString()}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(result.statusCode).toEqual(404);
+    });
+
+    it('should return 404 if mandate not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const customer = customersList[0];
+      const payload = {
+        signedAt: faker.date.past(1),
+      };
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id.toHexString()}/mandates/${invalidId}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+
+      expect(result.statusCode).toEqual(404);
+    });
+  });
+});
