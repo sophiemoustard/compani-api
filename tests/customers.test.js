@@ -21,27 +21,28 @@ describe('NODE ENV', () => {
   });
 });
 
-const payload = {
-  identity: { lastname: faker.name.lastName() },
-  contact: {
-    ogustAddressId: faker.random.number({ max: 8 }).toString(),
-    address: {
-      street: faker.address.streetAddress(),
-      zipCode: faker.address.zipCode(),
-      city: faker.address.city()
-    }
-  }
-};
-
 describe('CUSTOMERS ROUTES', () => {
   let token = null;
   before(populateCompanies);
-  before(populateCustomers);
+  beforeEach(populateCustomers);
   before(populateRoles);
-  before(populateUsers);
+  beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();
   });
+
+
+  const payload = {
+    identity: { lastname: faker.name.lastName() },
+    contact: {
+      ogustAddressId: faker.random.number({ max: 8 }).toString(),
+      address: {
+        street: faker.address.streetAddress(),
+        zipCode: faker.address.zipCode(),
+        city: faker.address.city()
+      }
+    }
+  };
 
   describe('POST /customers', () => {
     it('should create a new customer', async () => {
@@ -66,6 +67,9 @@ describe('CUSTOMERS ROUTES', () => {
           })
         })
       }));
+      expect(res.result.data.customer.payment.mandates).toBeDefined();
+      expect(res.result.data.customer.payment.mandates.length).toEqual(1);
+      expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
       const customers = await Customer.find({});
       expect(customers).toHaveLength(customersList.length + 1);
     });
@@ -131,7 +135,7 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': token }
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers).toHaveLength(4);
+      expect(res.result.data.customers).toHaveLength(customersList.length);
     });
   });
 
@@ -204,6 +208,35 @@ describe('CUSTOMERS ROUTES', () => {
         })
       }));
     });
+    it('should not create new rum if iban is set for the first time', async () => {
+      const customer = customersList[2];
+      const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        headers: { 'x-access-token': token },
+        payload: ibanPayload,
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.customer.payment.mandates).toBeDefined();
+      expect(result.result.data.customer.payment.mandates.length).toEqual(1);
+    });
+    it('should create new rum if iban updated', async () => {
+      const customer = customersList[1];
+      const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customer._id}`,
+        headers: { 'x-access-token': token },
+        payload: ibanPayload,
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.customer.payment.mandates).toBeDefined();
+      expect(result.result.data.customer.payment.mandates.length).toEqual(2);
+      expect(result.result.data.customer.payment.mandates[1].rum).toBeDefined();
+    });
     it('should return a 404 error if no customer found', async () => {
       const res = await app.inject({
         method: 'PUT',
@@ -238,7 +271,7 @@ describe('CUSTOMERS ROUTES', () => {
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   let token = null;
   before(populateCompanies);
-  before(populateCustomers);
+  beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
   });
