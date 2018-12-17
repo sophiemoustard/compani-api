@@ -18,13 +18,33 @@ describe('ESIGN ROUTES', () => {
 
   describe('POST /esign/customers', () => {
     it('should create a customer signature request', async () => {
-      const file64 = await fileToBase64('tests/assets/test_esign.pdf');
       const payload = {
         type: 'sepa',
-        file: file64,
+        fileId: process.env.ESIGN_TEST_DOC_DRIVEID,
         customer: {
           name: 'Test',
           email: 'test@test.com'
+        },
+        fields: {
+          title: 'Mme',
+          firstname: 'Test',
+          lastname: 'Test',
+          address: '15 rue du test',
+          city: 'Test city',
+          zipCode: '34000',
+          birthDate: '15/07/88',
+          birthCountry: 'France',
+          birthState: '93',
+          nationality: 'Française',
+          SSN: '12345678909876543',
+          grossHourlyRate: 24,
+          monthlyHours: 56,
+          salary: 1500,
+          startDate: '18/12/2018',
+          weeklyHours: 35,
+          yearlyHours: 1200,
+          uploadDate: '18/12/2018',
+          initialContractStartDate: '16/12/2018'
         }
       };
       const res = await app.inject({

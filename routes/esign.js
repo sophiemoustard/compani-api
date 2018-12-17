@@ -14,11 +14,12 @@ exports.plugin = {
         validate: {
           payload: {
             type: Joi.string().valid('sepa', 'devis').required(),
-            file: Joi.string().required(),
+            fileId: Joi.string().required(),
             customer: Joi.object().keys({
               name: Joi.string().required(),
               email: Joi.string().email().required()
-            }).required()
+            }).required(),
+            fields: Joi.object().required()
           }
         },
         auth: {

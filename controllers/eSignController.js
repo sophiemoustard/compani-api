@@ -4,11 +4,19 @@ const moment = require('moment');
 const translate = require('../helpers/translate');
 const { createDocument } = require('../models/ESign');
 const { customersSignatureFields } = require('../helpers/customersSignatureFields');
+const { fileToBase64 } = require('../helpers/fileToBase64');
+const { generateDocx } = require('../helpers/generateDocx');
 
 const { language } = translate;
 
 const generateCustomerSignatureRequest = async (req) => {
   try {
+    const docxPayload = {
+      file: { fileId: req.payload.fileId },
+      data: req.payload.fields
+    };
+    const filePath = await generateDocx(docxPayload);
+    const file64 = await fileToBase64(filePath);
     const payload = {
       sandbox: process.env.NODE_ENV !== 'production' ? 1 : 0,
       title: `${req.payload.type}-${req.payload.customer.name}-${moment().format('DDMMYYYY-HHmm')}`.toUpperCase(),
@@ -17,7 +25,7 @@ const generateCustomerSignatureRequest = async (req) => {
       meta: { docType: req.payload.type, customerId: req.payload.customer._id },
       files: [{
         name: `${req.payload.type}-${moment().format('DDMMYYYY-HHmm')}`,
-        file_base64: req.payload.file
+        file_base64: file64
       }],
       signers: [{
         id: '1',

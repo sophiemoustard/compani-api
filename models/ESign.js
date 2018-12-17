@@ -6,4 +6,3 @@ exports.createDocument = async data => axios.post('https://api.eversign.com/api/
     business_id: process.env.EVERSIGN_BUSINESS_ID
   }
 });
-
