@@ -1,7 +1,5 @@
 const Boom = require('boom');
 const moment = require('moment');
-// const FormData = require('form-data');
-// const fs = require('fs');
 
 const translate = require('../helpers/translate');
 const { createDocument } = require('../models/ESign');
