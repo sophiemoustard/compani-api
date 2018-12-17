@@ -38,7 +38,10 @@ const customersList = [
       iban: faker.finance.iban(),
       bic: faker.finance.bic(),
       mandates: [
-        { rum: faker.helpers.randomize() },
+        {
+          rum: faker.helpers.randomize(),
+          _id: new ObjectID(),
+        },
       ],
     },
     subscriptions: [

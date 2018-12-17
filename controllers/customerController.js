@@ -299,6 +299,10 @@ const updateMandate = async (req) => {
       },
     ).lean();
 
+    if (!customer) {
+      return Boom.notFound(translate[language].customerMandateNotFound);
+    }
+
     return {
       message: translate[language].customerMandateUpdated,
       data: {
