@@ -154,9 +154,7 @@ const getEmployeeSalaries = async (req) => {
 const create = async (req) => {
   try {
     const query = {
-      idNumber: {
-        prefix: `SA${moment().format('YYMM')}`
-      }
+      idNumber: { prefix: `SA${moment().format('YYMM')}` },
     };
     const payload = {
       idNumber: { seq: 1 }

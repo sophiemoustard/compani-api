@@ -24,9 +24,9 @@ describe('NODE ENV', () => {
 describe('CUSTOMERS ROUTES', () => {
   let token = null;
   before(populateCompanies);
-  before(populateCustomers);
+  beforeEach(populateCustomers);
   before(populateRoles);
-  before(populateUsers);
+  beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();
   });
@@ -135,7 +135,7 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': token }
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers).toHaveLength(4);
+      expect(res.result.data.customers).toHaveLength(customersList.length);
     });
   });
 
@@ -271,7 +271,7 @@ describe('CUSTOMERS ROUTES', () => {
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   let token = null;
   before(populateCompanies);
-  before(populateCustomers);
+  beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
   });

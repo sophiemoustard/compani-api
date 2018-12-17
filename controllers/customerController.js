@@ -51,7 +51,7 @@ const show = async (req) => {
 
 const create = async (req) => {
   try {
-    const mandate = { rum: generateRum() };
+    const mandate = { rum: await generateRum() };
     const payload = {
       ...req.payload,
       payment: { mandates: [mandate] },
@@ -95,7 +95,7 @@ const update = async (req) => {
       const customer = await Customer.findById(req.params._id);
       // if the user updates its RIB, we should generate a new mandate.
       if (customer.payment.iban !== '' && customer.payment.iban !== req.payload.payment.iban) {
-        const mandate = { rum: generateRum() };
+        const mandate = { rum: await generateRum() };
         customerUpdated = await Customer.findOneAndUpdate(
           { _id: req.params._id },
           { $set: flat(req.payload), $push: { 'payment.mandates': mandate } },
