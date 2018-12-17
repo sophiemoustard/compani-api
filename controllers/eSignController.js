@@ -18,10 +18,7 @@ const generateCustomerSignatureRequest = async (req) => {
       data: req.payload.fields
     };
     const filePath = await generateDocx(docxPayload);
-    // const form = new FormData();
-    // form.append('upload', fs.createReadStream(filePath));
     const file64 = await fileToBase64(filePath);
-    // const document = await uploadFile(form, form.getHeaders());
     const payload = {
       sandbox: process.env.NODE_ENV !== 'production' ? 1 : 0,
       title: `${req.payload.type}-${req.payload.customer.name}-${moment().format('DDMMYYYY-HHmm')}`.toUpperCase(),
@@ -30,7 +27,6 @@ const generateCustomerSignatureRequest = async (req) => {
       meta: { docType: req.payload.type, customerId: req.payload.customer._id },
       files: [{
         name: `${req.payload.type}-${moment().format('DDMMYYYY-HHmm')}`,
-        // file_id: document.data.file_id
         file_base64: file64
       }],
       signers: [{

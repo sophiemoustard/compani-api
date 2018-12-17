@@ -30,7 +30,6 @@
     "faker": "^4.1.0",
     "feedparser-promised": "^1.5.0",
     "flat": "^4.0.0",
-    "form-data": "^2.3.3",
     "good": "^8.1.1",
     "good-console": "^7.1.0",
     "good-squeeze": "^5.1.0",
