@@ -54,6 +54,18 @@ const customersList = [
         sundays: false
       }
     ],
+    quotes: [{
+      _id: new ObjectID(),
+      subscriptions: [{
+        serviceName: 'Test',
+        unitTTCRate: 23,
+        estimatedWeeklyVolume: 3
+      }, {
+        serviceName: 'Test2',
+        unitTTCRate: 30,
+        estimatedWeeklyVolume: 10
+      }]
+    }]
   },
   {
     _id: new ObjectID(),

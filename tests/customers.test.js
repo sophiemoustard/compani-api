@@ -504,3 +504,112 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     });
   });
 });
+
+describe('CUSTOMERS QUOTES ROUTES', () => {
+  let token = null;
+  before(populateCompanies);
+  beforeEach(populateCustomers);
+  beforeEach(async () => {
+    token = await getToken();
+  });
+
+  describe('GET customers/:id/quotes', () => {
+    it('should return customer quotes', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.user).toBeDefined();
+      expect(res.result.data.quotes).toBeDefined();
+      expect(res.result.data.quotes.length).toEqual(customersList[0].quotes.length);
+      expect(res.result.data.quotes[0]._id).toEqual(customersList[0].quotes[0]._id);
+      expect(res.result.data.user._id).toEqual(customersList[0]._id);
+    });
+    it('should return 404 error if no user found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const res = await app.inject({
+        method: 'GET',
+        url: `/customers/${invalidId}/quotes`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('POST customers/:id/quotes', () => {
+    it('should create a customer quote', async () => {
+      const payload = {
+        subscriptions: [{
+          serviceName: 'TestTest',
+          unitTTCRate: 23,
+          estimatedWeeklyVolume: 3
+        }, {
+          serviceName: 'TestTest2',
+          unitTTCRate: 30,
+          estimatedWeeklyVolume: 10
+        }]
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.user).toBeDefined();
+      expect(res.result.data.quote).toBeDefined();
+      expect(res.result.data.user._id).toEqual(customersList[1]._id);
+      expect(res.result.data.quote.quoteNumber).toEqual(expect.any(String));
+      expect(res.result.data.quote.subscriptions).toEqual(expect.arrayContaining([
+        expect.objectContaining(payload.subscriptions[0]),
+        expect.objectContaining(payload.subscriptions[1])
+      ]));
+    });
+    it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+        payload: {},
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('DELETE customers/:id/quotes/:quoteId', () => {
+    it('should delete a customer quote', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[0]._id.toHexString()}/quotes/${customersList[0].quotes[0]._id.toHexString()}`,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(200);
+      const customer = await Customer.findById(customersList[0]._id);
+      expect(customer.quotes.length).toBe(customersList[0].quotes.length - 1);
+    });
+    it('should return a 404 error if user is not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${invalidId}/quotes/${customersList[0].quotes[0]._id.toHexString()}`,
+        payload: {},
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+    it('should return a 404 error if quote does not exist', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[0]._id.toHexString()}/quotes/${invalidId}`,
+        payload: {},
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+});
