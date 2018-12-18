@@ -78,7 +78,10 @@ const CustomerSchema = mongoose.Schema({
     }],
     everSignId: String,
     driveId: String,
-    signedAt: Date
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
   }]
 }, { timestamps: true });
 
