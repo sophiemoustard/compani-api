@@ -20,6 +20,7 @@ const {
   createCustomerQuote,
   removeCustomerQuote,
   uploadFile,
+  saveSignedDocument
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -352,6 +353,26 @@ exports.plugin = {
           strategy: 'jwt',
         }
       }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/savesigneddoc',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          },
+          payload: {
+            docId: Joi.string().required(),
+            type: Joi.string().valid('quotes', 'mandates'),
+            quoteId: Joi.objectId().when('type', { is: 'Devis', then: Joi.required() }),
+            mandateId: Joi.objectId().when('type', { is: 'Mandat', then: Joi.required() }),
+          },
+        },
+        auth: 'jwt',
+      },
+      handler: saveSignedDocument,
     });
   }
 };

@@ -7,10 +7,12 @@ const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
 const Company = require('../models/Company');
 const QuoteNumber = require('../models/QuoteNumber');
+const ESign = require('../models/ESign');
+const Drive = require('../models/GoogleDrive');
 const { populateServices } = require('../helpers/populateServices');
 const { generateRum } = require('../helpers/generateRum');
-const { handleFile, createFolder } = require('../helpers/gdriveStorage');
-const drive = require('../models/GoogleDrive');
+const { createFolder, handleFile } = require('../helpers/gdriveStorage');
+const { createAndReadFile } = require('../helpers/createAndReadFile');
 
 const { language } = translate;
 
@@ -454,7 +456,7 @@ const uploadFile = async (req) => {
 
     let driveFileInfo = null;
     try {
-      driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
+      driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
     } catch (e) {
       req.log(['error', 'gdrive'], e);
       return Boom.notFound(translate[language].googleDriveFileNotFound);
@@ -490,6 +492,42 @@ const uploadFile = async (req) => {
   }
 };
 
+const saveSignedDocument = async (req) => {
+  try {
+    const customer = await Customer.findById(req.params._id);
+    if (!customer) {
+      return Boom.notFound();
+    }
+    const docToUpdateIndex = customer[req.payload.type].findIndex(doc => doc._id.toHexString() === (req.payload.quoteId || req.payload.mandateId));
+    if (docToUpdateIndex === -1) return Boom.notFound();
+    const finalPDF = await ESign.downloadFinalDocument(req.payload.docId);
+    const tmpPath = `/tmp/signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`;
+    const file = await createAndReadFile(finalPDF.data, tmpPath);
+    const uploadedFile = await handleFile({
+      driveFolderId: customer.driveFolder.id,
+      name: req.payload.type === 'quotes' ? customer.quotes[docToUpdateIndex].quoteNumber : customer.mandates[docToUpdateIndex].rum,
+      type: 'application/pdf',
+      body: file
+    });
+    const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
+    customer[req.payload.type][docToUpdateIndex].drive = {
+      id: uploadedFile.id,
+      link: driveFileInfo.webViewLink
+    };
+    await customer.save();
+    return {
+      message: 'ok',
+      data: {
+        user: _.pick(customer, ['_id', 'identity']),
+        quote: customer.quotes.find(quote => req.payload.quoteId === quote._id.toHexString())
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
@@ -507,4 +545,5 @@ module.exports = {
   createCustomerQuote,
   removeCustomerQuote,
   uploadFile,
+  saveSignedDocument
 };
