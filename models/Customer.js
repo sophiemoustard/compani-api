@@ -49,7 +49,10 @@ const CustomerSchema = mongoose.Schema({
     mandates: [{
       rum: String,
       everSignId: String,
-      driveId: String,
+      drive: {
+        id: String,
+        link: String
+      },
       signedAt: Date,
       createdAt: {
         type: Date,

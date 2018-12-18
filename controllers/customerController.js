@@ -1,7 +1,6 @@
 const Boom = require('boom');
 const flat = require('flat');
 const _ = require('lodash');
-const mongoose = require('mongoose');
 const moment = require('moment');
 
 const translate = require('../helpers/translate');
@@ -441,16 +440,16 @@ const createDriveFolder = async (req) => {
 const uploadFile = async (req) => {
   try {
     const allowedFields = ['signedMandate', 'signedQuote'];
-    const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
-    if (administrativeKeys.length === 0) {
+    const docKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
+    if (docKeys.length === 0) {
       Boom.forbidden('Upload not allowed');
     }
 
     const uploadedFile = await handleFile({
       driveFolderId: req.params.driveId,
-      name: req.payload.fileName || req.payload[administrativeKeys[0]].hapi.filename,
+      name: req.payload.fileName || req.payload[docKeys[0]].hapi.filename,
       type: req.payload['Content-Type'],
-      body: req.payload[administrativeKeys[0]]
+      body: req.payload[docKeys[0]]
     });
 
     let driveFileInfo = null;
@@ -458,21 +457,28 @@ const uploadFile = async (req) => {
       driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
     } catch (e) {
       req.log(['error', 'gdrive'], e);
+      return Boom.notFound(translate[language].googleDriveFileNotFound);
     }
 
-    const payload = {
-      'quotes.$': { _id: req.payload.quoteId, drive: { id: uploadedFile.id, link: driveFileInfo.webViewLink } },
-    };
+    let payload;
+    let params = { _id: req.params._id };
+    if (docKeys[0] === 'signedQuote') {
+      payload = {
+        'quotes.$': { _id: req.payload.quoteId, drive: { id: uploadedFile.id, link: driveFileInfo.webViewLink } },
+      };
+      params = { ...params, 'quotes._id': req.payload.quoteId };
+    } else {
+      payload = {
+        'payment.mandates.$': { _id: req.payload.mandateId, drive: { id: uploadedFile.id, link: driveFileInfo.webViewLink } },
+      };
+      params = { ...params, 'payment.mandates._id': req.payload.mandateId };
+    }
 
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'quotes._id': req.payload.quoteId },
+    await Customer.findOneAndUpdate(
+      { ...params },
       { $set: flat(payload) },
-      {
-        new: true,
-        autopopulate: false,
-      },
+      { new: true, autopopulate: false },
     );
-    console.log(customer.quotes);
 
     return {
       message: translate[language].fileCreated,
