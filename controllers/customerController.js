@@ -405,7 +405,8 @@ const createDriveFolder = async (req) => {
     let updatedCustomer;
 
     if (customer.identity.firstname && customer.identity.lastname) {
-      const { folder, folderLink } = await createFolder(customer.identity, req.payload.parentFolderId);
+      const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID;
+      const { folder, folderLink } = await createFolder(customer.identity, parentFolderId);
       const folderPayload = {
         driveFolder: { id: folder.id, link: folderLink.webViewLink },
       };
