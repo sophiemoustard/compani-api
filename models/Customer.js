@@ -77,7 +77,10 @@ const CustomerSchema = mongoose.Schema({
       sundays: Boolean
     }],
     everSignId: String,
-    driveId: String,
+    drive: {
+      id: String,
+      link: String
+    },
     createdAt: {
       type: Date,
       default: Date.now
