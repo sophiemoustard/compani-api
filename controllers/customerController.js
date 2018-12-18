@@ -374,7 +374,7 @@ const updateMandate = async (req) => {
 
 const removeCustomerQuote = async (req) => {
   try {
-    const customer = await Customer.findOneAndUpdate({ _id: req.params._id }, { $pull: { quotes: { _id: req.params.quoteId } } }, {
+    const customer = await Customer.findOneAndUpdate({ _id: req.params._id, 'quotes._id': req.params.quoteId }, { $pull: { quotes: { _id: req.params.quoteId } } }, {
       select: {
         firstname: 1,
         lastname: 1,
