@@ -172,6 +172,10 @@ module.exports = {
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
+
+    /* Google drive */
+    googleDriveFolderCreationFailed: 'Google drive folder creation failed.',
+    googleDriveFolderNotFound: 'Google drive folder not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -335,5 +339,9 @@ module.exports = {
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
+
+    /* Google drive */
+    googleDriveFolderCreationFailed: 'Echec de la création du dossier google drive.',
+    googleDriveFolderNotFound: 'Dossier google drive non trouvé.',
   }
 };

@@ -63,6 +63,10 @@ const CustomerSchema = mongoose.Schema({
     evenings: Boolean,
     sundays: Boolean,
   }],
+  driveFolder: {
+    id: String,
+    link: String
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Customer', CustomerSchema);
