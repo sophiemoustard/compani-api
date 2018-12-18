@@ -479,7 +479,6 @@ const uploadFile = async (req) => {
         'administrative.certificates': {
           driveId: uploadedFile.id,
           link: driveFileInfo.webViewLink,
-          // thumbnailLink: driveFileInfo.thumbnailLink
         }
       };
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true, autopopulate: false });
