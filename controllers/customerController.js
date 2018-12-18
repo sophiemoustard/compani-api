@@ -289,6 +289,36 @@ const getMandates = async (req) => {
   }
 };
 
+const updateMandate = async (req) => {
+  try {
+    const payload = { 'payment.mandates.$': { ...req.payload } };
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id, 'payment.mandates._id': req.params.mandateId },
+      { $set: flat(payload) },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, 'payment.mandates': 1 },
+        autopopulate: false,
+      },
+    ).lean();
+
+    if (!customer) {
+      return Boom.notFound(translate[language].customerMandateNotFound);
+    }
+
+    return {
+      message: translate[language].customerMandateUpdated,
+      data: {
+        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        mandates: customer.payment.mandates,
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 const getCustomerQuotes = async (req) => {
   try {
     const quotes = await Customer.findOne({
@@ -334,36 +364,6 @@ const createCustomerQuote = async (req) => {
       data: {
         user: _.pick(newQuote, ['_id', 'identity']),
         quote: newQuote.quotes.find(quote => quoteNumber === quote.quoteNumber)
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const updateMandate = async (req) => {
-  try {
-    const payload = { 'payment.mandates.$': { ...req.payload } };
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'payment.mandates._id': req.params.mandateId },
-      { $set: flat(payload) },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, 'payment.mandates': 1 },
-        autopopulate: false,
-      },
-    ).lean();
-
-    if (!customer) {
-      return Boom.notFound(translate[language].customerMandateNotFound);
-    }
-
-    return {
-      message: translate[language].customerMandateUpdated,
-      data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-        mandates: customer.payment.mandates,
       }
     };
   } catch (e) {
