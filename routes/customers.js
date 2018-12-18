@@ -15,6 +15,7 @@ const {
   removeSubscription,
   getMandates,
   updateMandate,
+  createDriveFolder,
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -258,6 +259,26 @@ exports.plugin = {
         auth: 'jwt',
       },
       handler: updateMandate,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/drivefolder',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId()
+          },
+          payload: Joi.object().keys({
+            parentFolderId: Joi.string(),
+            _id: Joi.objectId()
+          })
+        },
+        auth: {
+          strategy: 'jwt'
+        }
+      },
+      handler: createDriveFolder,
     });
   }
 };

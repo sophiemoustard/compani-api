@@ -13,7 +13,7 @@ const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer'
 const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const tokenProcess = require('../helpers/tokenProcess');
-const { handleFile } = require('../helpers/gdriveStorage');
+const { handleFile, createFolder } = require('../helpers/gdriveStorage');
 const { endUserContract, updateContract } = require('../helpers/userContracts');
 
 const { language } = translate;
@@ -545,47 +545,35 @@ const uploadImage = async (req) => {
 const createDriveFolder = async (req) => {
   try {
     const user = await User.findOne({ _id: req.params._id });
-    let folderPayload = {};
     let updatedUser;
+
     if (user.firstname && user.lastname) {
-      const folder = await drive.add({
-        name: `${user.lastname.toUpperCase()} ${user.firstname}`,
-        parentFolderId: req.payload.parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID,
-        folder: true
-      });
-      if (!folder) {
-        req.log('error', 'Google drive folder creation failed.');
-        return Boom.failedDependency('Google drive folder creation failed.');
-      }
-      const folderLink = await drive.getFileById({ fileId: folder.id });
-      if (!folderLink) {
-        req.log('error', 'Google drive folder creation failed.');
-        return Boom.notFound('Google drive folder not found.');
-      }
-      if (user.administrative) {
-        folderPayload.administrative = user.administrative;
-        folderPayload.administrative.driveFolder = {
-          id: folder.id,
-          link: folderLink.webViewLink
-        };
-      } else {
-        folderPayload = {
-          administrative: {
-            driveFolder: {
-              id: folder.id,
-              link: folderLink.webViewLink
-            }
-          }
-        };
-      }
+      const { folder, folderLink } = await createFolder(user, req.payload.parentFolderId);
+
+      const folderPayload = {};
+      folderPayload.administrative = user.administrative || { driveFolder: {} };
+      folderPayload.administrative.driveFolder = {
+        id: folder.id,
+        link: folderLink.webViewLink
+      };
+
       updatedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: folderPayload }, { new: true, autopopulate: false });
     }
+
     return {
       message: translate[language].userUpdated,
       data: { updatedUser }
     };
   } catch (e) {
     req.log('error', e);
+    if (e.output && e.output.statusCode === 424) {
+      return Boom.failedDependency(translate[language].googleDriveFolderCreationFailed);
+    }
+
+    if (e.output && e.output.statusCode === 404) {
+      return Boom.notFound(translate[language].googleDriveFolderNotFound);
+    }
+
     return Boom.badImplementation();
   }
 };

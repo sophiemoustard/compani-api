@@ -7,6 +7,7 @@ const Customer = require('../models/Customer');
 const Company = require('../models/Company');
 const { populateServices } = require('../helpers/populateServices');
 const { generateRum } = require('../helpers/generateRum');
+const { createFolder } = require('../helpers/gdriveStorage');
 
 const { language } = translate;
 
@@ -316,6 +317,45 @@ const updateMandate = async (req) => {
   }
 };
 
+const createDriveFolder = async (req) => {
+  try {
+    const customer = await Customer.findOne(
+      { _id: req.params._id },
+      { 'identity.firstname': 1, 'identity.lastname': 1 },
+    );
+    let updatedCustomer;
+
+    if (customer.identity.firstname && customer.identity.lastname) {
+      const { folder, folderLink } = await createFolder(customer.identity, req.payload.parentFolderId);
+      const folderPayload = {
+        driveFolder: { id: folder.id, link: folderLink.webViewLink },
+      };
+
+      updatedCustomer = await Customer.findOneAndUpdate(
+        { _id: customer._id },
+        { $set: folderPayload },
+        { new: true, autopopulate: false },
+      );
+    }
+
+    return {
+      message: translate[language].customerUpdated,
+      data: { updatedCustomer },
+    };
+  } catch (e) {
+    req.log('error', e);
+    if (e.output && e.output.statusCode === 424) {
+      return Boom.failedDependency(translate[language].googleDriveFolderCreationFailed);
+    }
+
+    if (e.output && e.output.statusCode === 404) {
+      return Boom.notFound(translate[language].googleDriveFolderNotFound);
+    }
+
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
@@ -328,4 +368,5 @@ module.exports = {
   removeSubscription,
   getMandates,
   updateMandate,
+  createDriveFolder,
 };
