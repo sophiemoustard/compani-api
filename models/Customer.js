@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 const CustomerSchema = mongoose.Schema({
   customerId: String,
+  driveFolder: {
+    id: String,
+    link: String
+  },
   email: {
     type: String,
     lowercase: true,
@@ -63,10 +67,22 @@ const CustomerSchema = mongoose.Schema({
     evenings: Boolean,
     sundays: Boolean,
   }],
-  driveFolder: {
-    id: String,
-    link: String
-  },
+  quotes: [{
+    quoteNumber: String,
+    subscriptions: [{
+      serviceName: String,
+      unitTTCRate: Number,
+      estimatedWeeklyVolume: Number,
+      evenings: Boolean,
+      sundays: Boolean
+    }],
+    everSignId: String,
+    driveId: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Customer', CustomerSchema);
