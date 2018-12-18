@@ -293,7 +293,7 @@ exports.plugin = {
               estimatedWeeklyVolume: Joi.number(),
               evenings: Joi.boolean(),
               sundays: Joi.boolean()
-            }))
+            })).required()
           })
         },
         auth: { strategy: 'jwt' }
