@@ -19,7 +19,9 @@ exports.plugin = {
               name: Joi.string().required(),
               email: Joi.string().email().required()
             }).required(),
-            fields: Joi.object().required()
+            fields: Joi.object().required(),
+            redirect: Joi.string(),
+            redirectDecline: Joi.string()
           }
         },
         auth: {

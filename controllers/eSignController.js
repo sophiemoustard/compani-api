@@ -22,7 +22,6 @@ const generateCustomerSignatureRequest = async (req) => {
       title: `${req.payload.type}-${req.payload.customer.name}-${moment().format('DDMMYYYY-HHmm')}`.toUpperCase(),
       embedded_signing_enabled: 1,
       reminders: 0,
-      meta: { docType: req.payload.type, customerId: req.payload.customer._id },
       files: [{
         name: `${req.payload.type}-${moment().format('DDMMYYYY-HHmm')}`,
         file_base64: file64
