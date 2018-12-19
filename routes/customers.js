@@ -188,8 +188,8 @@ exports.plugin = {
             service: Joi.string().required(),
             unitTTCRate: Joi.number().required(),
             estimatedWeeklyVolume: Joi.number().required(),
-            evenings: Joi.boolean().required(),
-            sundays: Joi.boolean().required(),
+            evenings: Joi.number(),
+            sundays: Joi.number(),
           },
         },
         auth: 'jwt',
@@ -212,8 +212,8 @@ exports.plugin = {
             },
             unitTTCRate: Joi.number(),
             estimatedWeeklyVolume: Joi.number(),
-            evenings: Joi.boolean(),
-            sundays: Joi.boolean(),
+            evenings: Joi.number(),
+            sundays: Joi.number(),
           },
         },
         auth: 'jwt',
@@ -292,8 +292,8 @@ exports.plugin = {
               serviceName: Joi.string(),
               unitTTCRate: Joi.number(),
               estimatedWeeklyVolume: Joi.number(),
-              evenings: Joi.boolean(),
-              sundays: Joi.boolean()
+              evenings: Joi.number(),
+              sundays: Joi.number()
             })).required()
           })
         },

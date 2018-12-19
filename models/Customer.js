@@ -67,8 +67,8 @@ const CustomerSchema = mongoose.Schema({
     },
     unitTTCRate: Number,
     estimatedWeeklyVolume: Number,
-    evenings: Boolean,
-    sundays: Boolean,
+    evenings: Number,
+    sundays: Number,
   }],
   quotes: [{
     quoteNumber: String,
@@ -76,8 +76,8 @@ const CustomerSchema = mongoose.Schema({
       serviceName: String,
       unitTTCRate: Number,
       estimatedWeeklyVolume: Number,
-      evenings: Boolean,
-      sundays: Boolean
+      evenings: Number,
+      sundays: Number,
     }],
     everSignId: String,
     drive: {
