@@ -522,7 +522,7 @@ const saveSignedDocument = async (req) => {
     await customer.save();
 
     return {
-      message: 'ok',
+      message: translate[language].signedDocumentSaved,
       data: {
         user: _.pick(customer, ['_id', 'identity']),
         quote: customer.quotes.find(quote => req.payload.quoteId === quote._id.toHexString())
