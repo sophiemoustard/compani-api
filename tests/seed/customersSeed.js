@@ -50,8 +50,8 @@ const customersList = [
         service: companiesList[0].customersConfig.services[0]._id,
         unitTTCRate: 12,
         estimatedWeeklyVolume: 12,
-        evenings: true,
-        sundays: false
+        evenings: 2,
+        sundays: 1
       }
     ],
     quotes: [{

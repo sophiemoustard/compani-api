@@ -284,8 +284,8 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         service: company.customersConfig.services[0]._id,
         unitTTCRate: 12,
         estimatedWeeklyVolume: 12,
-        evenings: true,
-        sundays: false,
+        evenings: 2,
+        sundays: 1,
       };
 
       const result = await app.inject({
@@ -306,8 +306,8 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
         service: customer.subscriptions[0].service,
         unitTTCRate: 12,
         estimatedWeeklyVolume: 12,
-        evenings: true,
-        sundays: false,
+        evenings: 3,
+        sundays: 2,
       };
 
       const result = await app.inject({
@@ -350,7 +350,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   describe('PUT /customers/{id}/subscriptions/{subscriptionId}', () => {
     const payload = {
       estimatedWeeklyVolume: 24,
-      evenings: false,
+      evenings: 3,
     };
 
     it('should update customer subscription', async () => {
