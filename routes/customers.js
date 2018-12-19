@@ -366,8 +366,8 @@ exports.plugin = {
           payload: {
             docId: Joi.string().required(),
             type: Joi.string().valid('quotes', 'mandates'),
-            quoteId: Joi.objectId().when('type', { is: 'Devis', then: Joi.required() }),
-            mandateId: Joi.objectId().when('type', { is: 'Mandat', then: Joi.required() }),
+            quoteId: Joi.objectId().when('type', { is: 'quotes', then: Joi.required() }),
+            mandateId: Joi.objectId().when('type', { is: 'mandates', then: Joi.required() }),
           },
         },
         auth: 'jwt',
