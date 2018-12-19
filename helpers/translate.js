@@ -179,6 +179,7 @@ module.exports = {
     /* Google drive */
     googleDriveFolderCreationFailed: 'Google drive folder creation failed.',
     googleDriveFolderNotFound: 'Google drive folder not found.',
+    googleDriveFileNotFound: 'Google drive file not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -349,5 +350,6 @@ module.exports = {
     /* Google drive */
     googleDriveFolderCreationFailed: 'Echec de la création du dossier google drive.',
     googleDriveFolderNotFound: 'Dossier google drive non trouvé.',
+    googleDriveFileNotFound: 'Fichier google drive non trouvé.',
   }
 };

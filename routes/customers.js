@@ -19,6 +19,7 @@ const {
   getCustomerQuotes,
   createCustomerQuote,
   removeCustomerQuote,
+  uploadFile,
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -334,6 +335,23 @@ exports.plugin = {
         }
       },
       handler: createDriveFolder,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/gdrive/{driveId}/upload',
+      handler: uploadFile,
+      options: {
+        payload: {
+          output: 'stream',
+          parse: true,
+          allow: 'multipart/form-data',
+          maxBytes: 5242880
+        },
+        auth: {
+          strategy: 'jwt',
+        }
+      }
     });
   }
 };

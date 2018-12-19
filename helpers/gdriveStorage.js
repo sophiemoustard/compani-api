@@ -16,7 +16,7 @@ exports.handleFile = async (params) => {
 exports.createFolder = async (identity, parentFolderId) => {
   const folder = await Gdrive.add({
     name: `${identity.lastname.toUpperCase()} ${identity.firstname}`,
-    parentFolderId: parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID,
+    parentFolderId,
     folder: true
   });
 

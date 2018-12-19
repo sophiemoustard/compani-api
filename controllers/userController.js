@@ -479,7 +479,6 @@ const uploadFile = async (req) => {
         'administrative.certificates': {
           driveId: uploadedFile.id,
           link: driveFileInfo.webViewLink,
-          // thumbnailLink: driveFileInfo.thumbnailLink
         }
       };
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true, autopopulate: false });
@@ -548,7 +547,8 @@ const createDriveFolder = async (req) => {
     let updatedUser;
 
     if (user.firstname && user.lastname) {
-      const { folder, folderLink } = await createFolder(user, req.payload.parentFolderId);
+      const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID;
+      const { folder, folderLink } = await createFolder(user, parentFolderId);
 
       const folderPayload = {};
       folderPayload.administrative = user.administrative || { driveFolder: {} };
