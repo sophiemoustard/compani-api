@@ -20,7 +20,10 @@ const {
   createCustomerQuote,
   removeCustomerQuote,
   uploadFile,
-  saveSignedDocument
+  generateMandateSignatureRequest,
+  generateQuoteSignatureRequest,
+  saveSignedMandate,
+  saveSignedQuote
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -267,6 +270,33 @@ exports.plugin = {
     });
 
     server.route({
+      method: 'POST',
+      path: '/{_id}/mandates/{mandateId}/esign',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            mandateId: Joi.objectId().required()
+          },
+          payload: {
+            fileId: Joi.string().required(),
+            customer: Joi.object().keys({
+              name: Joi.string().required(),
+              email: Joi.string().email().required()
+            }).required(),
+            fields: Joi.object().required(),
+            redirect: Joi.string(),
+            redirectDecline: Joi.string()
+          }
+        },
+        auth: {
+          strategy: 'jwt'
+        }
+      },
+      handler: generateMandateSignatureRequest
+    });
+
+    server.route({
       method: 'GET',
       path: '/{_id}/quotes',
       options: {
@@ -320,6 +350,33 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
+      path: '/{_id}/quotes/{quoteId}/esign',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            quoteId: Joi.objectId().required()
+          },
+          payload: {
+            fileId: Joi.string().required(),
+            customer: Joi.object().keys({
+              name: Joi.string().required(),
+              email: Joi.string().email().required()
+            }).required(),
+            fields: Joi.object().required(),
+            redirect: Joi.string(),
+            redirectDecline: Joi.string()
+          }
+        },
+        auth: {
+          strategy: 'jwt'
+        }
+      },
+      handler: generateQuoteSignatureRequest
+    });
+
+    server.route({
+      method: 'POST',
       path: '/{_id}/drivefolder',
       options: {
         validate: {
@@ -357,22 +414,30 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/savesigneddoc',
+      path: '/{_id}/mandates/{mandateId}/savesigneddoc',
       options: {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          },
-          payload: {
-            docId: Joi.string().required(),
-            type: Joi.string().valid('quotes', 'mandates'),
-            quoteId: Joi.objectId().when('type', { is: 'quotes', then: Joi.required() }),
-            mandateId: Joi.objectId().when('type', { is: 'mandates', then: Joi.required() }),
-          },
+          }
         },
         auth: 'jwt',
       },
-      handler: saveSignedDocument,
+      handler: saveSignedMandate
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/quotes/{quoteId}/savesigneddoc',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: saveSignedQuote
     });
   }
 };

@@ -1,5 +1,5 @@
 exports.customersSignatureFields = {
-  devis: [{
+  quote: [{
     type: 'signature',
     x: '120.43',
     y: '479.02',
@@ -10,7 +10,7 @@ exports.customersSignatureFields = {
     identifier: 'sepa',
     required: 1
   }],
-  sepa: [{
+  mandate: [{
     type: 'signature',
     x: '120.43',
     y: '479.02',
