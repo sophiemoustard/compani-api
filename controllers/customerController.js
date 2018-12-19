@@ -2,6 +2,8 @@ const Boom = require('boom');
 const flat = require('flat');
 const _ = require('lodash');
 const moment = require('moment');
+const path = require('path');
+const os = require('os');
 
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
@@ -500,8 +502,10 @@ const saveSignedDocument = async (req) => {
     }
     const docToUpdateIndex = customer[req.payload.type].findIndex(doc => doc._id.toHexString() === (req.payload.quoteId || req.payload.mandateId));
     if (docToUpdateIndex === -1) return Boom.notFound();
+
     const finalPDF = await ESign.downloadFinalDocument(req.payload.docId);
-    const tmpPath = `/tmp/signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`;
+    const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
+    console.log('tmp', tmpPath);
     const file = await createAndReadFile(finalPDF.data, tmpPath);
     const uploadedFile = await handleFile({
       driveFolderId: customer.driveFolder.id,
@@ -514,7 +518,9 @@ const saveSignedDocument = async (req) => {
       id: uploadedFile.id,
       link: driveFileInfo.webViewLink
     };
+
     await customer.save();
+
     return {
       message: 'ok',
       data: {
