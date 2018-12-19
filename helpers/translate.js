@@ -172,6 +172,7 @@ module.exports = {
     customerQuotesFound: 'Customer quotes found.',
     customerQuoteAdded: 'Customer quote added.',
     customerQuoteRemoved: 'Customer quote removed.',
+    signedDocumentSaved: 'Signed document saved.',
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
@@ -343,6 +344,7 @@ module.exports = {
     customerQuotesFound: 'Devis du bénéficiaire trouvés.',
     customerQuoteAdded: 'Devis du bénéficiaire ajouté.',
     customerQuoteRemoved: 'Devis du bénéficiaire supprimé.',
+    signedDocumentSaved: 'Document signé enregistré.',
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
