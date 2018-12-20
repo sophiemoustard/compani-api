@@ -19,3 +19,8 @@ exports.downloadFinalDocument = async (docId) => {
     params: EVERSIGN_PARAMS
   });
 };
+
+exports.getDocument = async (docId) => {
+  EVERSIGN_PARAMS.document_hash = docId;
+  return axios.get(`${EVERSIGN_API_URL}document`, { params: EVERSIGN_PARAMS });
+};

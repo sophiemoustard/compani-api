@@ -329,9 +329,9 @@ const updateMandate = async (req) => {
 
 const generateMandateSignatureRequest = async (req) => {
   try {
-    const customer = await Customer.findById(req.payload._id);
+    const customer = await Customer.findById(req.params._id);
     if (!customer) return Boom.notFound();
-    const mandateIndex = customer.mandates.findIndex(mandate => mandate._id.toHexString() === req.payload.mandateId);
+    const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound('Mandate not found');
     const docxPayload = {
       file: { fileId: req.payload.fileId },
@@ -341,14 +341,14 @@ const generateMandateSignatureRequest = async (req) => {
     const file64 = await fileToBase64(filePath);
     const doc = await generateSignatureRequest({
       type: 'mandate',
-      title: `MANDAT SEPA ${customer.mandates[mandateIndex].rum}`,
+      title: `MANDAT SEPA ${customer.payment.mandates[mandateIndex].rum}`,
       file: file64,
       signer: {
         name: req.payload.customer.name,
         email: req.payload.customer.email
       }
     });
-    customer.mandates[mandateIndex].everSignId = doc.data.document_hash;
+    customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
     await customer.save();
     return {
       message: translate[language].signatureRequestCreated,
@@ -430,39 +430,6 @@ const removeCustomerQuote = async (req) => {
 
     return {
       message: translate[language].customerQuoteRemoved,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const generateQuoteSignatureRequest = async (req) => {
-  try {
-    const customer = await Customer.findById(req.payload._id);
-    if (!customer) return Boom.notFound();
-    const quoteIndex = customer.quotes.findIndex(quote => quote._id.toHexString() === req.payload.quoteId);
-    if (quoteIndex === -1) return Boom.notFound('Quote not found');
-    const docxPayload = {
-      file: { fileId: req.payload.fileId },
-      data: req.payload.fields
-    };
-    const filePath = await generateDocx(docxPayload);
-    const file64 = await fileToBase64(filePath);
-    const doc = await generateSignatureRequest({
-      type: 'quote',
-      title: customer.quotes[quoteIndex].quoteNumber,
-      file: file64,
-      signer: {
-        name: req.payload.customer.name,
-        email: req.payload.customer.email
-      }
-    });
-    customer.quotes[quoteIndex].everSignId = doc.data.document_hash;
-    await customer.save();
-    return {
-      message: translate[language].signatureRequestCreated,
-      data: { signatureRequest: { embeddedUrl: doc.data.signers[0].embedded_signing_url } }
     };
   } catch (e) {
     req.log('error', e);
@@ -569,20 +536,21 @@ const saveSignedMandate = async (req) => {
     if (!customer) {
       return Boom.notFound();
     }
-    const mandateIndex = customer.mandates.findIndex(doc => doc._id.toHexString() === req.params.mandateId);
+    const mandateIndex = customer.payment.mandates.findIndex(doc => doc._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound();
-
-    const finalPDF = await ESign.downloadFinalDocument(customer.mandates[mandateIndex].everSignId);
+    const everSignDoc = await ESign.getDocument(customer.payment.mandates[mandateIndex].everSignId);
+    if (!everSignDoc.data.log.some(type => type.event === 'document_signed')) return Boom.serverUnavailable();
+    const finalPDF = await ESign.downloadFinalDocument(customer.payment.mandates[mandateIndex].everSignId);
     const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
     const file = await createAndReadFile(finalPDF.data, tmpPath);
     const uploadedFile = await handleFile({
       driveFolderId: customer.driveFolder.id,
-      name: customer.mandates[mandateIndex].rum,
+      name: customer.payment.mandates[mandateIndex].rum,
       type: 'application/pdf',
       body: file
     });
     const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
-    customer.mandates[mandateIndex].drive = {
+    customer.payment.mandates[mandateIndex].drive = {
       id: uploadedFile.id,
       link: driveFileInfo.webViewLink
     };
@@ -602,44 +570,6 @@ const saveSignedMandate = async (req) => {
   }
 };
 
-const saveSignedQuote = async (req) => {
-  try {
-    const customer = await Customer.findById(req.params._id);
-    if (!customer) {
-      return Boom.notFound();
-    }
-    const quoteIndex = customer.quotes.findIndex(doc => doc._id.toHexString() === req.params.quoteId);
-    if (quoteIndex === -1) return Boom.notFound();
-
-    const finalPDF = await ESign.downloadFinalDocument(customer.quotes[quoteIndex].everSignId);
-    const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-    const file = await createAndReadFile(finalPDF.data, tmpPath);
-    const uploadedFile = await handleFile({
-      driveFolderId: customer.driveFolder.id,
-      name: customer.quotes[quoteIndex].quoteNumber,
-      type: 'application/pdf',
-      body: file
-    });
-    const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
-    customer.quotes[quoteIndex].drive = {
-      id: uploadedFile.id,
-      link: driveFileInfo.webViewLink
-    };
-
-    await customer.save();
-
-    return {
-      message: translate[language].signedDocumentSaved,
-      data: {
-        user: _.pick(customer, ['_id', 'identity']),
-        quote: customer.quotes.find(quote => req.params.quoteId === quote._id.toHexString())
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
 
 module.exports = {
   list,
@@ -659,7 +589,5 @@ module.exports = {
   removeCustomerQuote,
   uploadFile,
   generateMandateSignatureRequest,
-  generateQuoteSignatureRequest,
-  saveSignedMandate,
-  saveSignedQuote
+  saveSignedMandate
 };

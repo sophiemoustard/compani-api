@@ -21,9 +21,7 @@ const {
   removeCustomerQuote,
   uploadFile,
   generateMandateSignatureRequest,
-  generateQuoteSignatureRequest,
   saveSignedMandate,
-  saveSignedQuote
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -348,32 +346,6 @@ exports.plugin = {
       handler: removeCustomerQuote
     });
 
-    server.route({
-      method: 'POST',
-      path: '/{_id}/quotes/{quoteId}/esign',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            quoteId: Joi.objectId().required()
-          },
-          payload: {
-            fileId: Joi.string().required(),
-            customer: Joi.object().keys({
-              name: Joi.string().required(),
-              email: Joi.string().email().required()
-            }).required(),
-            fields: Joi.object().required(),
-            redirect: Joi.string(),
-            redirectDecline: Joi.string()
-          }
-        },
-        auth: {
-          strategy: 'jwt'
-        }
-      },
-      handler: generateQuoteSignatureRequest
-    });
 
     server.route({
       method: 'POST',
@@ -418,26 +390,14 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
+            mandateId: Joi.objectId().required()
+
           }
         },
         auth: 'jwt',
       },
       handler: saveSignedMandate
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/quotes/{quoteId}/savesigneddoc',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required()
-          }
-        },
-        auth: 'jwt',
-      },
-      handler: saveSignedQuote
     });
   }
 };
