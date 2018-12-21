@@ -444,25 +444,17 @@ const createDriveFolder = async (req) => {
       { _id: req.params._id },
       { 'identity.firstname': 1, 'identity.lastname': 1 },
     );
-    let updatedCustomer;
 
     if (customer.identity.firstname && customer.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID;
       const { folder, folderLink } = await createFolder(customer.identity, parentFolderId);
-      const folderPayload = {
-        driveFolder: { id: folder.id, link: folderLink.webViewLink },
-      };
-
-      updatedCustomer = await Customer.findOneAndUpdate(
-        { _id: customer._id },
-        { $set: folderPayload },
-        { new: true, autopopulate: false },
-      );
+      customer.driveFolder = { id: folder.id, link: folderLink.webViewLink };
+      await customer.save();
     }
 
     return {
       message: translate[language].customerUpdated,
-      data: { updatedCustomer },
+      data: { updatedCustomer: customer },
     };
   } catch (e) {
     req.log('error', e);

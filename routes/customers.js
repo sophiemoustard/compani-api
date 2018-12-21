@@ -353,11 +353,10 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId()
+            _id: Joi.objectId().required()
           },
           payload: Joi.object().keys({
-            parentFolderId: Joi.string(),
-            _id: Joi.objectId()
+            parentFolderId: Joi.string()
           })
         },
         auth: {
