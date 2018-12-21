@@ -22,6 +22,7 @@ const {
   uploadFile,
   generateMandateSignatureRequest,
   saveSignedMandate,
+  createHistorySubscription
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -397,6 +398,34 @@ exports.plugin = {
         auth: 'jwt',
       },
       handler: saveSignedMandate
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/subscriptionshistory',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+          payload: Joi.object().keys({
+            subscriptions: Joi.array().items(Joi.object().keys({
+              service: Joi.string(),
+              unitTTCRate: Joi.number(),
+              estimatedWeeklyVolume: Joi.number(),
+              evenings: Joi.number(),
+              sundays: Joi.number()
+            })).required(),
+            helper: Joi.object().keys({
+              firstname: Joi.string(),
+              lastname: Joi.string(),
+              title: Joi.string()
+            }).required()
+          })
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: createHistorySubscription
     });
   }
 };

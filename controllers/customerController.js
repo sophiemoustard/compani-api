@@ -564,6 +564,30 @@ const saveSignedMandate = async (req) => {
   }
 };
 
+const createHistorySubscription = async (req) => {
+  try {
+    const customer = await Customer.findOneAndUpdate({ _id: req.params._id }, { $push: { subscriptionsHistory: req.payload } }, {
+      new: true,
+      select: {
+        'identity.firstname': 1,
+        'identity.lastname': 1,
+        subscriptionsHistory: 1
+      },
+      autopopulate: false
+    });
+    return {
+      message: translate[language].customerSubscriptionHistoryAdded,
+      data: {
+        user: _.pick(customer, ['_id', 'identity']),
+        subscriptionHistory: customer.subscriptionsHistory.find(sub => moment(sub.approvalDate).isSame(moment(), 'day'))
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 
 module.exports = {
   list,
@@ -583,5 +607,6 @@ module.exports = {
   removeCustomerQuote,
   uploadFile,
   generateMandateSignatureRequest,
-  saveSignedMandate
+  saveSignedMandate,
+  createHistorySubscription
 };
