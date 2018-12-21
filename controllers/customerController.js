@@ -348,7 +348,7 @@ const generateMandateSignatureRequest = async (req) => {
         email: req.payload.customer.email
       }
     });
-    if (!doc.data.success) return Boom.notFound(translate[language].documentNotFound);
+    if (doc.data.error) return Boom.notFound(translate[language].documentNotFound);
     customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
     await customer.save();
     return {
@@ -540,7 +540,7 @@ const saveSignedMandate = async (req) => {
     const mandateIndex = customer.payment.mandates.findIndex(doc => doc._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
     const everSignDoc = await ESign.getDocument(customer.payment.mandates[mandateIndex].everSignId);
-    if (!everSignDoc.data.success) return Boom.notFound(translate[language].documentNotFound);
+    if (everSignDoc.data.error) return Boom.notFound(translate[language].documentNotFound);
     if (!everSignDoc.data.log.some(type => type.event === 'document_signed')) return Boom.serverUnavailable();
     const finalPDF = await ESign.downloadFinalDocument(customer.payment.mandates[mandateIndex].everSignId);
     const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);

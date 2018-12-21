@@ -542,6 +542,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         payload,
         headers: { 'x-access-token': token }
       });
+      console.log('RES', res.result);
       expect(res.statusCode).toBe(200);
       expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
         embeddedUrl: expect.any(String)
