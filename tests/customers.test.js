@@ -503,6 +503,55 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       expect(result.statusCode).toEqual(404);
     });
   });
+
+  describe('POST customers/:id/mandates/:id/esign', () => {
+    it('should create a mandate signature request', async () => {
+      const payload = {
+        fileId: process.env.ESIGN_TEST_DOC_DRIVEID,
+        customer: {
+          name: 'Test',
+          email: 'test@test.com'
+        },
+        fields: {
+          title: 'Mme',
+          firstname: 'Test',
+          lastname: 'Test',
+          address: '15 rue du test',
+          city: 'Test city',
+          zipCode: '34000',
+          birthDate: '15/07/88',
+          birthCountry: 'France',
+          birthState: '93',
+          nationality: 'Française',
+          SSN: '12345678909876543',
+          grossHourlyRate: 24,
+          monthlyHours: 56,
+          salary: 1500,
+          startDate: '18/12/2018',
+          weeklyHours: 35,
+          yearlyHours: 1200,
+          uploadDate: '18/12/2018',
+          initialContractStartDate: '16/12/2018'
+        }
+      };
+      const customerId = customersList[0]._id.toHexString();
+      const mandateId = customersList[0].payment.mandates[0]._id.toHexString();
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customerId}/mandates/${mandateId}/esign`,
+        payload,
+        headers: { 'x-access-token': token }
+      });
+      console.log('RES', res.result);
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
+        embeddedUrl: expect.any(String)
+      }));
+      const customer = await Customer.findById(customerId);
+      console.log('TEST', customer.payment.mandates[0].everSignId);
+      expect(customer.payment.mandates[0].everSignId).toBeDefined();
+    });
+  });
 });
 
 describe('CUSTOMERS QUOTES ROUTES', () => {

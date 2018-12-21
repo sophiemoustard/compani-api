@@ -176,6 +176,7 @@ module.exports = {
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
+    documentNotFound: 'Eversign document not found.',
 
     /* Google drive */
     googleDriveFolderCreationFailed: 'Google drive folder creation failed.',
@@ -348,6 +349,7 @@ module.exports = {
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
+    documentNotFound: 'Document eversign non trouvé.',
 
     /* Google drive */
     googleDriveFolderCreationFailed: 'Echec de la création du dossier google drive.',

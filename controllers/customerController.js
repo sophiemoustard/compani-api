@@ -15,6 +15,9 @@ const { populateServices } = require('../helpers/populateServices');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, handleFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/createAndReadFile');
+const { fileToBase64 } = require('../helpers/fileToBase64');
+const { generateDocx } = require('../helpers/generateDocx');
+const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
 
@@ -324,6 +327,40 @@ const updateMandate = async (req) => {
   }
 };
 
+const generateMandateSignatureRequest = async (req) => {
+  try {
+    const customer = await Customer.findById(req.params._id);
+    if (!customer) return Boom.notFound();
+    const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
+    if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
+    const docxPayload = {
+      file: { fileId: req.payload.fileId },
+      data: req.payload.fields
+    };
+    const filePath = await generateDocx(docxPayload);
+    const file64 = await fileToBase64(filePath);
+    const doc = await generateSignatureRequest({
+      type: 'mandate',
+      title: `MANDAT SEPA ${customer.payment.mandates[mandateIndex].rum}`,
+      file: file64,
+      signer: {
+        name: req.payload.customer.name,
+        email: req.payload.customer.email
+      }
+    });
+    if (doc.data.error) return Boom.notFound(translate[language].documentNotFound);
+    customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
+    await customer.save();
+    return {
+      message: translate[language].signatureRequestCreated,
+      data: { signatureRequest: { embeddedUrl: doc.data.signers[0].embedded_signing_url } }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 const getCustomerQuotes = async (req) => {
   try {
     const quotes = await Customer.findOne({
@@ -494,27 +531,28 @@ const uploadFile = async (req) => {
   }
 };
 
-const saveSignedDocument = async (req) => {
+const saveSignedMandate = async (req) => {
   try {
     const customer = await Customer.findById(req.params._id);
     if (!customer) {
       return Boom.notFound();
     }
-    const docToUpdateIndex = customer[req.payload.type].findIndex(doc => doc._id.toHexString() === (req.payload.quoteId || req.payload.mandateId));
-    if (docToUpdateIndex === -1) return Boom.notFound();
-
-    const finalPDF = await ESign.downloadFinalDocument(req.payload.docId);
+    const mandateIndex = customer.payment.mandates.findIndex(doc => doc._id.toHexString() === req.params.mandateId);
+    if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
+    const everSignDoc = await ESign.getDocument(customer.payment.mandates[mandateIndex].everSignId);
+    if (everSignDoc.data.error) return Boom.notFound(translate[language].documentNotFound);
+    if (!everSignDoc.data.log.some(type => type.event === 'document_signed')) return Boom.serverUnavailable();
+    const finalPDF = await ESign.downloadFinalDocument(customer.payment.mandates[mandateIndex].everSignId);
     const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-    console.log('tmp', tmpPath);
     const file = await createAndReadFile(finalPDF.data, tmpPath);
     const uploadedFile = await handleFile({
       driveFolderId: customer.driveFolder.id,
-      name: req.payload.type === 'quotes' ? customer.quotes[docToUpdateIndex].quoteNumber : customer.mandates[docToUpdateIndex].rum,
+      name: customer.payment.mandates[mandateIndex].rum,
       type: 'application/pdf',
       body: file
     });
     const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
-    customer[req.payload.type][docToUpdateIndex].drive = {
+    customer.payment.mandates[mandateIndex].drive = {
       id: uploadedFile.id,
       link: driveFileInfo.webViewLink
     };
@@ -534,6 +572,7 @@ const saveSignedDocument = async (req) => {
   }
 };
 
+
 module.exports = {
   list,
   show,
@@ -551,5 +590,6 @@ module.exports = {
   createCustomerQuote,
   removeCustomerQuote,
   uploadFile,
-  saveSignedDocument
+  generateMandateSignatureRequest,
+  saveSignedMandate
 };
