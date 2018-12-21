@@ -662,3 +662,109 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
     });
   });
 });
+
+describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
+  let token = null;
+  before(populateCompanies);
+  beforeEach(populateCustomers);
+  beforeEach(async () => {
+    token = await getToken();
+  });
+
+  describe('POST customers/:id/subscriptionshistory', () => {
+    it('should create a customer subscription history', async () => {
+      const payload = {
+        subscriptions: [{
+          service: 'TestTest',
+          unitTTCRate: 23,
+          estimatedWeeklyVolume: 3
+        }, {
+          service: 'TestTest2',
+          unitTTCRate: 30,
+          estimatedWeeklyVolume: 10
+        }],
+        helper: {
+          firstname: faker.name.firstName(),
+          lastname: faker.name.lastName(),
+          title: 'Mme'
+        }
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.user).toBeDefined();
+      expect(res.result.data.subscriptionHistory).toBeDefined();
+      expect(res.result.data.user._id).toEqual(customersList[0]._id);
+      expect(res.result.data.subscriptionHistory.subscriptions).toEqual(expect.arrayContaining([
+        expect.objectContaining(payload.subscriptions[0]),
+        expect.objectContaining(payload.subscriptions[1])
+      ]));
+      expect(res.result.data.subscriptionHistory.helper).toEqual(expect.objectContaining(payload.helper));
+      expect(res.result.data.subscriptionHistory.approvalDate).toEqual(expect.any(Date));
+    });
+    it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[1]._id.toHexString()}/subscriptionshistory`,
+        payload: {
+          helper: {
+            firstname: faker.name.firstName(),
+            lastname: faker.name.lastName(),
+            title: 'Mme'
+          }
+        },
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+    it("should return a 400 error if 'helper' object is missing from payload", async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[1]._id.toHexString()}/subscriptionshistory`,
+        payload: {
+          subscriptions: [{
+            service: 'TestTest',
+            unitTTCRate: 23,
+            estimatedWeeklyVolume: 3
+          }, {
+            service: 'TestTest2',
+            unitTTCRate: 30,
+            estimatedWeeklyVolume: 10
+          }]
+        },
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+    it('should return a 404 error if user does not exist', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const payload = {
+        subscriptions: [{
+          service: 'TestTest',
+          unitTTCRate: 23,
+          estimatedWeeklyVolume: 3
+        }, {
+          service: 'TestTest2',
+          unitTTCRate: 30,
+          estimatedWeeklyVolume: 10
+        }],
+        helper: {
+          firstname: faker.name.firstName(),
+          lastname: faker.name.lastName(),
+          title: 'Mme'
+        }
+      };
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${invalidId}/subscriptionshistory`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+});

@@ -70,6 +70,24 @@ const CustomerSchema = mongoose.Schema({
     evenings: Number,
     sundays: Number,
   }],
+  subscriptionsHistory: [{
+    subscriptions: [{
+      service: String,
+      unitTTCRate: Number,
+      estimatedWeeklyVolume: Number,
+      evenings: Number,
+      sundays: Number
+    }],
+    helper: {
+      firstname: String,
+      lastname: String,
+      title: String
+    },
+    approvalDate: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   quotes: [{
     quoteNumber: String,
     subscriptions: [{
@@ -79,7 +97,6 @@ const CustomerSchema = mongoose.Schema({
       evenings: Number,
       sundays: Number,
     }],
-    everSignId: String,
     drive: {
       id: String,
       link: String

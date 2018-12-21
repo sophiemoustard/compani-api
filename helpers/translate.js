@@ -173,6 +173,7 @@ module.exports = {
     customerQuoteAdded: 'Customer quote added.',
     customerQuoteRemoved: 'Customer quote removed.',
     signedDocumentSaved: 'Signed document saved.',
+    customerSubscriptionHistoryAdded: 'Customer subscription history added.',
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
@@ -346,6 +347,7 @@ module.exports = {
     customerQuoteAdded: 'Devis du bénéficiaire ajouté.',
     customerQuoteRemoved: 'Devis du bénéficiaire supprimé.',
     signedDocumentSaved: 'Document signé enregistré.',
+    customerSubscriptionHistoryAdded: "Historique de l'abonnement du bénéficiaire ajouté.",
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
