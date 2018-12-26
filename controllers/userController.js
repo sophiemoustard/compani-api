@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 const moment = require('moment');
 const mongoose = require('mongoose');
 
-const { clean } = require('../helpers/clean');
+const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/populateRole');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
 const { userUpdateTracking } = require('../helpers/userUpdateTracking');

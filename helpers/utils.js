@@ -8,7 +8,7 @@ const moment = require('moment-timezone');
 ** --- slotToAdd (time in number to add)
 ** --- intervalType: "day", "week", "year", "hour"...
 */
-exports.getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
+const getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
   const dateNow = moment().tz('Europe/Paris');
   slotToSub = Math.abs(slotToSub);
   slotToAdd = Math.abs(slotToAdd);
@@ -18,4 +18,18 @@ exports.getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
     intervalFwd: dateNow.add(slotToAdd + slotToSub, intervalType).format('YYYYMMDDHHmm')
   };
   return finalInterval;
+};
+
+const clean = (obj) => {
+  for (const k in obj) {
+    if (obj[k] === undefined || obj[k] === '' || obj[k] === {} || obj[k] === []) {
+      delete obj[k];
+    }
+  }
+  return obj;
+};
+
+module.exports = {
+  getIntervalInRange,
+  clean,
 };

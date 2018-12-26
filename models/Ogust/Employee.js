@@ -1,7 +1,7 @@
 const { Ogust } = require('../../config/config');
 const axios = require('axios');
 
-const { getIntervalInRange } = require('../../helpers/intervalInRange');
+const { getIntervalInRange } = require('../../helpers/utils');
 
 // Get all employees
 exports.getEmployees = async payload => axios.post(`${Ogust.API_LINK}searchEmployee`, payload);
