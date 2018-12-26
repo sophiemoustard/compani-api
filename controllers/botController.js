@@ -1,7 +1,7 @@
 const Boom = require('boom');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
-const tokenProcess = require('../helpers/tokenProcess');
+const { encode } = require('../helpers/authentification');
 
 const User = require('../models/User');
 const Role = require('../models/Role');
@@ -46,7 +46,7 @@ module.exports = {
         createdAt: user.createdAt,
       };
       const newPayload = _.pickBy(payload);
-      const token = tokenProcess.encode(newPayload);
+      const token = encode(newPayload);
       req.log('info', `${req.payload.email} connected`);
       return { message: translate[language].userAuthentified, data: { token, user } };
     } catch (e) {
@@ -69,7 +69,7 @@ module.exports = {
       if (!user) {
         return Boom.notFound(translate[language].userNotFound);
       }
-      const alenviToken = tokenProcess.encode({ _id: user._id, role: user.role.name });
+      const alenviToken = encode({ _id: user._id, role: user.role.name });
       const payload = {
         firstname: user.firstname,
         lastname: user.lastname,

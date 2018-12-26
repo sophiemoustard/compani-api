@@ -1,7 +1,7 @@
 const randomize = require('randomatic');
 const Boom = require('boom');
 
-const tokenProcess = require('../helpers/tokenProcess');
+const { encode } = require('../helpers/authentification');
 const ActivationCode = require('../models/ActivationCode');
 const translate = require('../helpers/translate');
 
@@ -32,7 +32,7 @@ const checkActivationCode = async (req) => {
       _id: activationData.newUserId,
       userEmail: activationData.userEmail,
     };
-    const token = tokenProcess.encode(tokenPayload, expireTime);
+    const token = encode(tokenPayload, expireTime);
     return { message: translate[language].activationCodeValidated, data: { activationData, token } };
   } catch (e) {
     req.log('error', e);
