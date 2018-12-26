@@ -18,7 +18,7 @@ const { createAndReadFile } = require('../helpers/createAndReadFile');
 const { fileToBase64 } = require('../helpers/fileToBase64');
 const { generateDocx } = require('../helpers/generateDocx');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
-const { hasAgreedConditions } = require('../helpers/customerConditionAgreement');
+const { subscriptionsAccepted } = require('../helpers/customerConditionAgreement');
 
 const { language } = translate;
 
@@ -50,13 +50,11 @@ const show = async (req) => {
     }
 
     customer = customer.toObject();
-
-    const subscriptions = await populateServices(customer.subscriptions);
-    customer = await hasAgreedConditions(customer);
+    customer = await subscriptionsAccepted(customer);
 
     return {
       message: translate[language].customerFound,
-      data: { customer: { ...customer, subscriptions } },
+      data: { customer: { ...customer, subscriptions: customer.subscriptions } },
     };
   } catch (e) {
     req.log('error', e);
