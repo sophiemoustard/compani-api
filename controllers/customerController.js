@@ -18,6 +18,7 @@ const { createAndReadFile } = require('../helpers/createAndReadFile');
 const { fileToBase64 } = require('../helpers/fileToBase64');
 const { generateDocx } = require('../helpers/generateDocx');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { hasAgreedConditions } = require('../helpers/customerConditionAgreement');
 
 const { language } = translate;
 
@@ -43,12 +44,15 @@ const list = async (req) => {
 
 const show = async (req) => {
   try {
-    const customer = await Customer.findOne({ _id: req.params._id }).lean();
+    let customer = await Customer.findOne({ _id: req.params._id });
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
     }
 
+    customer = customer.toObject();
+
     const subscriptions = await populateServices(customer.subscriptions);
+    customer = await hasAgreedConditions(customer);
 
     return {
       message: translate[language].customerFound,
