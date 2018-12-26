@@ -425,9 +425,11 @@ async function findOneAndUpdate(next) {
   }
 }
 
-UserSchema.virtual('isActive').get(function() {
-  return this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()) ? false : true;
-})
+function setIsActive() {
+  return this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment());
+}
+
+UserSchema.virtual('isActive').get(setIsActive);
 
 UserSchema.statics.findUserAddressByEmployeeId = findUserAddressByEmployeeId;
 UserSchema.methods.saveByParams = saveByParams;
