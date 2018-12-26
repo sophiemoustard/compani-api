@@ -65,6 +65,22 @@ const customersList = [
         unitTTCRate: 30,
         estimatedWeeklyVolume: 10
       }]
+    }],
+    subscriptionsHistory: [{
+      subscriptions: [{
+        service: 'TestTest',
+        unitTTCRate: 23,
+        estimatedWeeklyVolume: 3
+      }, {
+        service: 'TestTest2',
+        unitTTCRate: 30,
+        estimatedWeeklyVolume: 10
+      }],
+      helper: {
+        firstname: faker.name.firstName(),
+        lastname: faker.name.lastName(),
+        title: 'Mme'
+      }
     }]
   },
   {
