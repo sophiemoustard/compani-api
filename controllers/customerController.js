@@ -14,9 +14,7 @@ const Drive = require('../models/GoogleDrive');
 const { populateServices } = require('../helpers/populateServices');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, handleFile } = require('../helpers/gdriveStorage');
-const { createAndReadFile } = require('../helpers/createAndReadFile');
-const { fileToBase64 } = require('../helpers/fileToBase64');
-const { generateDocx } = require('../helpers/generateDocx');
+const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;

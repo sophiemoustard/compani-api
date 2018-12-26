@@ -46,30 +46,8 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       }
     });
-
-    // server.route({
-    //   method: 'POST',
-    //   path: '/{_id}/cloudinary/uploadImage',
-    //   handler: uploadImage,
-    //   options: {
-    //     validate: {
-    //       params: { _id: Joi.objectId().required() }
-    //     },
-    //     payload: {
-    //       output: 'stream',
-    //       parse: true,
-    //       allow: 'multipart/form-data',
-    //       maxBytes: 5242880
-    //     },
-    //     auth: {
-    //       strategy: 'jwt',
-    //       // scope: process.env.NODE_ENV ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
-    //     }
-    //   }
-    // });
   }
 };
