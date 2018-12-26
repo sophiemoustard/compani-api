@@ -81,29 +81,3 @@ exports.downloadFileById = params => new Promise((resolve, reject) => {
     }).pipe(dest);
   });
 });
-
-// exports.addFile = params => new Promise((resolve, reject) => {
-//   const fileMetadata = {
-//     name: params.fileName,
-//     parents: [params.parentFolderId] || []
-//   };
-//   const media = {
-//     mimeType: params.type,
-//     body: fs.createReadStream(params.file)
-//   };
-//   media.body.on('error', (err) => {
-//     reject(err);
-//   });
-//   drive.files.create({
-//     auth: jwtClient,
-//     resource: fileMetadata,
-//     media,
-//     fields: 'id'
-//   }, (err, file) => {
-//     if (err) {
-//       reject(err);
-//     } else {
-//       resolve(file.data);
-//     }
-//   });
-// });

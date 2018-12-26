@@ -1,7 +1,7 @@
 const { Ogust } = require('../../config/config');
 const axios = require('axios');
 
-const { getIntervalInRange } = require('../../helpers/intervalInRange');
+const { getIntervalInRange } = require('../../helpers/utils');
 
 /*
 ** Get all services in range or by date

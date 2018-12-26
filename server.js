@@ -4,7 +4,7 @@ require('dotenv').config();
 const Hapi = require('hapi');
 
 const { mongooseConnection } = require('./config/mongoose');
-const { validate } = require('./helpers/authValidate');
+const { validate } = require('./helpers/authentification');
 const { routes } = require('./routes/index');
 const { plugins } = require('./plugins/index');
 

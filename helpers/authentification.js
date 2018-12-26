@@ -1,7 +1,10 @@
 const Role = require('../models/Role');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
-exports.validate = async (decoded, req) => {
+const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
+
+const validate = async (decoded, req) => {
   try {
     if (req.route.path === '/ogust/token') {
       if (decoded) {
@@ -45,4 +48,9 @@ exports.validate = async (decoded, req) => {
       isValid: false
     };
   }
+};
+
+module.exports = {
+  encode,
+  validate
 };

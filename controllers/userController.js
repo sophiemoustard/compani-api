@@ -7,15 +7,14 @@ const nodemailer = require('nodemailer');
 const moment = require('moment');
 const mongoose = require('mongoose');
 
-const { clean } = require('../helpers/clean');
+const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/populateRole');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
 const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
-const tokenProcess = require('../helpers/tokenProcess');
+const { encode } = require('../helpers/authentification');
 const { handleFile, createFolder } = require('../helpers/gdriveStorage');
 const { endUserContract, updateContract } = require('../helpers/userContracts');
-
 const { language } = translate;
 
 const User = require('../models/User');
@@ -45,7 +44,7 @@ const authenticate = async (req) => {
     };
     const user = clean(payload);
     const expireTime = process.env.NODE_ENV === 'development' && payload.role === 'Admin' ? 86400 : 3600;
-    const token = tokenProcess.encode(user, expireTime);
+    const token = encode(user, expireTime);
     const { refreshToken } = alenviUser;
     req.log('info', `${req.payload.email} connected`);
     return {
@@ -80,7 +79,7 @@ const create = async (req) => {
     };
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
-    const token = tokenProcess.encode(userPayload, expireTime);
+    const token = encode(userPayload, expireTime);
     return {
       message: translate[language].userSaved,
       data: {
@@ -358,7 +357,7 @@ const refreshToken = async (req) => {
     };
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
-    const token = tokenProcess.encode(userPayload, expireTime);
+    const token = encode(userPayload, expireTime);
     // return the information including token as JSON
     return {
       message: translate[language].userAuthentified,
@@ -424,7 +423,7 @@ const checkResetPasswordToken = async (req) => {
     };
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
-    const token = tokenProcess.encode(userPayload, expireTime);
+    const token = encode(userPayload, expireTime);
     // return the information including token as JSON
     return { message: translate[language].resetPasswordTokenFound, data: { token, user: userPayload } };
   } catch (e) {
