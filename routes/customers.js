@@ -410,12 +410,12 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             subscriptions: Joi.array().items(Joi.object().keys({
-              service: Joi.string().required(),
-              unitTTCRate: Joi.number().required(),
-              estimatedWeeklyVolume: Joi.number().required(),
+              service: Joi.string(),
+              unitTTCRate: Joi.number(),
+              estimatedWeeklyVolume: Joi.number(),
               evenings: Joi.number(),
               sundays: Joi.number()
-            })),
+            })).required(),
             helper: Joi.object().keys({
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string(),
