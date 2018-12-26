@@ -426,7 +426,7 @@ async function findOneAndUpdate(next) {
 }
 
 function setIsActive() {
-  return this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment());
+  return !(this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()));
 }
 
 UserSchema.virtual('isActive').get(setIsActive);
