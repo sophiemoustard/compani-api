@@ -28,7 +28,6 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: sendWelcome
@@ -45,7 +44,6 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach', 'Auxiliaire']
         }
       },
       handler: sendAuxiliaryWelcome

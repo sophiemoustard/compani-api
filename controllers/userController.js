@@ -15,6 +15,7 @@ const translate = require('../helpers/translate');
 const tokenProcess = require('../helpers/tokenProcess');
 const { handleFile, createFolder } = require('../helpers/gdriveStorage');
 const { endUserContract, updateContract } = require('../helpers/userContracts');
+const { forgetPasswordEmail } = require('../helpers/emailOptions');
 
 const { language } = translate;
 
@@ -386,17 +387,15 @@ const forgotPassword = async (req) => {
       return Boom.notFound(translate[language].userNotFound);
     }
     const mailOptions = {
-      from: 'support@alenvi.io', // sender address
-      to: req.payload.email, // list of receivers
-      subject: 'Changement de mot de passe de votre compte Compani', // Subject line
-      html: `<p>Bonjour,</p>
-             <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
-             <p><a href="${process.env.WEBSITE_HOSTNAME}/resetPassword/${payload.resetPassword.token}">${process.env.WEBSITE_HOSTNAME}/resetPassword/${payload.resetPassword.token}</a></p>
-             <p>Si vous n'êtes pas à l'origine de cette demande, veuillez ne pas tenir compte de cet email.</p>
-             <p>Bien cordialement,<br>
-                L'équipe Compani</p>` // html body
+      from: 'support@alenvi.io',
+      to: req.payload.email,
+      subject: 'Changement de mot de passe de votre compte Compani',
+      html: forgetPasswordEmail(payload.resetPassword)
     };
-    const mailInfo = process.env.NODE_ENV !== 'test' ? await sendGridTransporter.sendMail(mailOptions) : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+    const mailInfo = process.env.NODE_ENV !== 'test'
+      ? await sendGridTransporter.sendMail(mailOptions)
+      : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
     req.log('error', e);
