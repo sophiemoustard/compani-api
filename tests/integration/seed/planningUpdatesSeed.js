@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 
 const { userList } = require('./usersSeed');
-const User = require('../../models/User');
+const User = require('../../../models/User');
 
 const planningUpdatesList = [{
   _id: new ObjectID(),

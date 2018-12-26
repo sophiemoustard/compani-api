@@ -1,8 +1,8 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
 
-const User = require('../../models/User');
-const app = require('../../server');
+const User = require('../../../models/User');
+const app = require('../../../server');
 
 const userList = [
   {

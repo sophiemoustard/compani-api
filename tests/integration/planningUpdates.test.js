@@ -1,6 +1,6 @@
 const expect = require('expect');
 
-const app = require('../server');
+const app = require('../../server');
 const { getToken, populateUsers, userList } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
 const {
@@ -9,7 +9,7 @@ const {
   planningUpdatesList,
   statusPayload
 } = require('./seed/planningUpdatesSeed');
-const User = require('../models/User');
+const User = require('../../models/User');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

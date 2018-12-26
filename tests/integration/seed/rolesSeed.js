@@ -1,23 +1,7 @@
 const { ObjectID } = require('mongodb');
 
-const Role = require('../../models/Role');
-const Right = require('../../models/Right');
-// const Feature = require('../../models/Feature');
-
-// const featuresList = [
-//   {
-//     _id: new ObjectID(),
-//     name: 'feature1',
-//   },
-//   {
-//     _id: new ObjectID(),
-//     name: 'feature2',
-//   },
-//   {
-//     _id: new ObjectID(),
-//     name: 'feature3',
-//   }
-// ];
+const Role = require('../../../models/Role');
+const Right = require('../../../models/Right');
 
 const rightsList = [
   {
@@ -165,20 +149,16 @@ const rightPayload = { name: 'Test', description: 'test', permission: 'test:read
 const populateRoles = async () => {
   await Role.remove({});
   await Right.remove({});
-  // await Feature.remove({});
 
-  // await Feature.insertMany(featuresList);
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
 };
 
 module.exports = {
   rolesList,
-  // featuresList,
   rightsList,
   rolePayload,
   wrongRolePayload,
   populateRoles,
-  rightPayload
-  // featurePayload
+  rightPayload,
 };

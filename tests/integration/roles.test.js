@@ -1,7 +1,7 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
-const app = require('../server');
+const app = require('../../server');
 const { getToken, populateUsers } = require('./seed/usersSeed');
 const {
   populateRoles,
@@ -9,7 +9,7 @@ const {
   rightsList,
   rolesList
 } = require('./seed/rolesSeed');
-const Role = require('../models/Role');
+const Role = require('../../models/Role');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

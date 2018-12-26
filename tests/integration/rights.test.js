@@ -1,12 +1,11 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
-const app = require('../server');
+const app = require('../../server');
 const { getToken, populateUsers } = require('./seed/usersSeed');
 const { populateRoles, rightPayload, rightsList } = require('./seed/rolesSeed');
-const Role = require('../models/Role');
-const Right = require('../models/Right');
-// const Feature = require('../models/Feature');
+const Role = require('../../models/Role');
+const Right = require('../../models/Right');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -70,15 +69,6 @@ describe('RIGHTS ROUTES', () => {
       ]));
     });
 
-    // const missingParams = [{
-    //   name: 'name',
-    //   payload: { permission: 'test:read' }
-    // }, {
-    //   name: 'permission',
-    //   payload: { name: 'Test Right' }
-    // }];
-
-    // missingParams.forEach((param) => {
     it("should return a 400 error if 'permission' param is missing", async () => {
       const response = await app.inject({
         method: 'POST',

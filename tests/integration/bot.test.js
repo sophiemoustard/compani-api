@@ -1,8 +1,8 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 
-const app = require('../server');
-const User = require('../models/User');
+const app = require('../../server');
+const User = require('../../models/User');
 const { userList, populateUsers } = require('./seed/usersSeed');
 const { populateRoles, rolesList } = require('./seed/rolesSeed');
 

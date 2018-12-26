@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 
 const { userList } = require('./usersSeed');
-const MessageToBot = require('../../models/MessageToBot');
+const MessageToBot = require('../../../models/MessageToBot');
 
 const messagesList = [
   {
