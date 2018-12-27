@@ -31,7 +31,9 @@ const list = async (req) => {
     if (firstname) {
       payload['identity.firstname'] = { $regex: firstname, $options: 'i' };
     }
-    const customers = await Customer.find(payload);
+    const customersRaw = await Customer.find(payload).lean();
+    const customersPromises = customersRaw.map(subscriptionsAccepted);
+    const [...customers] = await Promise.all(customersPromises);
     return {
       message: translate[language].customersShowAllFound,
       data: { customers }
