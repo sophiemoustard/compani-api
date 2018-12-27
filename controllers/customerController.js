@@ -16,6 +16,7 @@ const { generateRum } = require('../helpers/generateRum');
 const { createFolder, handleFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { subscriptionsAccepted } = require('../helpers/customerConditionAgreement');
 
 const { language } = translate;
 
@@ -28,7 +29,9 @@ const list = async (req) => {
     if (firstname) {
       payload['identity.firstname'] = { $regex: firstname, $options: 'i' };
     }
-    const customers = await Customer.find(payload);
+    const customersRaw = await Customer.find(payload).lean();
+    const customersPromises = customersRaw.map(subscriptionsAccepted);
+    const [...customers] = await Promise.all(customersPromises);
     return {
       message: translate[language].customersShowAllFound,
       data: { customers }
@@ -41,16 +44,17 @@ const list = async (req) => {
 
 const show = async (req) => {
   try {
-    const customer = await Customer.findOne({ _id: req.params._id }).lean();
+    let customer = await Customer.findOne({ _id: req.params._id });
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
     }
 
-    const subscriptions = await populateServices(customer.subscriptions);
+    customer = customer.toObject();
+    customer = await subscriptionsAccepted(customer);
 
     return {
       message: translate[language].customerFound,
-      data: { customer: { ...customer, subscriptions } },
+      data: { customer: { ...customer, subscriptions: customer.subscriptions } },
     };
   } catch (e) {
     req.log('error', e);

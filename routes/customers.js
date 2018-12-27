@@ -417,7 +417,7 @@ exports.plugin = {
               sundays: Joi.number()
             })).required(),
             helper: Joi.object().keys({
-              firstname: Joi.string(),
+              firstname: Joi.string().allow(null, ''),
               lastname: Joi.string(),
               title: Joi.string()
             }).required()
