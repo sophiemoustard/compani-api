@@ -16,7 +16,7 @@ exports.customersSignatureFields = {
     y: '479.02',
     width: '120',
     height: '35',
-    page: '2',
+    page: '1',
     signer: '1',
     identifier: 'devis',
     required: 1
