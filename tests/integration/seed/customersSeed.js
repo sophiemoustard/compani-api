@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const faker = require('faker');
 
-const Customer = require('../../models/Customer');
+const Customer = require('../../../models/Customer');
 const { companiesList } = require('./companiesSeed');
 
 faker.locale = 'fr';

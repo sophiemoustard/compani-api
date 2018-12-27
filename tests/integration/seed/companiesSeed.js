@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const Company = require('../../models/Company');
+const Company = require('../../../models/Company');
 
 const companiesList = [
   {

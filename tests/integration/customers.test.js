@@ -2,7 +2,7 @@ const expect = require('expect');
 const faker = require('faker');
 const { ObjectID } = require('mongodb');
 
-const app = require('../server');
+const app = require('../../server');
 const {
   populateCustomers,
   customersList
@@ -13,7 +13,7 @@ const {
 } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
 const { populateCompanies, companiesList } = require('./seed/companiesSeed');
-const Customer = require('../models/Customer');
+const Customer = require('../../models/Customer');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -542,13 +542,12 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         payload,
         headers: { 'x-access-token': token }
       });
-      console.log('RES', res.result);
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
         embeddedUrl: expect.any(String)
       }));
       const customer = await Customer.findById(customerId);
-      console.log('TEST', customer.payment.mandates[0].everSignId);
       expect(customer.payment.mandates[0].everSignId).toBeDefined();
     });
   });

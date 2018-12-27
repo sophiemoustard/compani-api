@@ -1,10 +1,8 @@
 const { ObjectID } = require('mongodb');
-// const axios = require('axios');
-// const nodemailer = require('nodemailer');
 const expect = require('expect');
 const moment = require('moment');
-const app = require('../server');
-const User = require('../models/User');
+const app = require('../../server');
+const User = require('../../models/User');
 const {
   userList, userPayload, populateUsers, getToken
 } = require('./seed/usersSeed');

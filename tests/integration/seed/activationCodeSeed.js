@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
 
-const ActivationCode = require('../../models/ActivationCode');
+const ActivationCode = require('../../../models/ActivationCode');
 
 const activationCode = {
   _id: new ObjectID(),

@@ -1,11 +1,11 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 
-const app = require('../server');
+const app = require('../../server');
 const { populateUsers, getToken, userList } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
 const { populateMessagesToBot, messagePayload, messagesList } = require('./seed/messageToBotSeed');
-const MessageToBot = require('../models/MessageToBot');
+const MessageToBot = require('../../models/MessageToBot');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
