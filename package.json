@@ -4,7 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha --timeout 999999 --colors --exit tests/*/*.test.js",
+    "test:unit": "NODE_ENV=test mocha --timeout 999999 --colors --recursive --exit tests/unit/*",
+    "test:integration": "NODE_ENV=test mocha --timeout 999999 --colors --exit tests/integration/*",
+    "test": "NODE_ENV=test mocha --timeout 999999 --colors --recursive --exit tests/*",
     "test-watch": "nodemon --exec 'npm test'"
   },
   "repository": {
