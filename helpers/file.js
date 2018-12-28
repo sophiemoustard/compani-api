@@ -1,4 +1,6 @@
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const JSZip = require('jszip');
 const DocxTemplater = require('docxtemplater');
 const drive = require('../models/GoogleDrive');
@@ -6,7 +8,7 @@ const drive = require('../models/GoogleDrive');
 const fsPromises = fs.promises;
 
 const generateDocx = async (params) => {
-  params.file.tmpFilePath = '/tmp/template.docx';
+  params.file.tmpFilePath = path.join(os.tmpdir(), 'template.docx');
   await drive.downloadFileById(params.file);
   const file = await fsPromises.readFile(params.file.tmpFilePath, 'binary');
   const zip = new JSZip(file);
@@ -18,7 +20,7 @@ const generateDocx = async (params) => {
     type: 'nodebuffer'
   });
   const date = new Date();
-  const tmpOutputPath = `/tmp/template-filled-${date.getTime()}.docx`;
+  const tmpOutputPath = path.join(os.tmpdir(), `template-filled-${date.getTime()}.docx`);
   await fsPromises.writeFile(tmpOutputPath, filledZip);
   return tmpOutputPath;
 };
@@ -32,9 +34,9 @@ const createAndReadFile = async (stream, outputPath) => new Promise((resolve, re
   tmpFile.on('error', err => reject(err));
 });
 
-const fileToBase64 = path => new Promise((resolve, reject) => {
+const fileToBase64 = filePath => new Promise((resolve, reject) => {
   const buffers = [];
-  const fileStream = fs.createReadStream(path);
+  const fileStream = fs.createReadStream(filePath);
   fileStream.on('data', (chunk) => { buffers.push(chunk); });
   fileStream.once('end', () => {
     const buffer = Buffer.concat(buffers);
