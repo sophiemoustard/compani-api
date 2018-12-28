@@ -46,7 +46,7 @@ const formatRight = (roleRight, rightToUpdate = roleRight) => ({
 const formatRoleRights = (rights, rightsUpdateData) => {
   if (rights.length > 0) {
     rights = rights.map((roleRight) => {
-      const rightToUpdate = rightsUpdateData.find(right => right.right_id === roleRight.right_id);
+      const rightToUpdate = rightsUpdateData.find(right => right.right_id == roleRight.right_id);
       if (!rightToUpdate) return roleRight;
 
       return formatRight(roleRight, rightToUpdate);
