@@ -348,7 +348,9 @@ const generateMandateSignatureRequest = async (req) => {
       signer: {
         name: req.payload.customer.name,
         email: req.payload.customer.email
-      }
+      },
+      redirect: req.payload.redirect,
+      redirectDecline: req.payload.redirectDecline
     });
     if (doc.data.error) return Boom.notFound(translate[language].documentNotFound);
     customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
