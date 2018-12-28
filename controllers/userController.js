@@ -29,26 +29,21 @@ const cloudinary = require('../models/Cloudinary');
 const authenticate = async (req) => {
   try {
     const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() });
-    if (!alenviUser) {
-      return Boom.notFound();
-    }
-    // Check if user is allowed to (re)connect
-    if (!alenviUser.refreshToken) {
-      return Boom.forbidden();
-    }
-    // check if password matches
+    if (!alenviUser) return Boom.notFound();
+
+    if (!alenviUser.refreshToken) return Boom.forbidden();
+
     if (!await bcrypt.compare(req.payload.password, alenviUser.local.password)) {
       return Boom.unauthorized();
     }
-    const payload = {
-      _id: alenviUser._id.toHexString(),
-      role: alenviUser.role.name,
-    };
+
+    const payload = { _id: alenviUser._id.toHexString(), role: alenviUser.role.name };
     const user = clean(payload);
     const expireTime = process.env.NODE_ENV === 'development' && payload.role === 'Admin' ? 86400 : 3600;
     const token = encode(user, expireTime);
     const { refreshToken } = alenviUser;
     req.log('info', `${req.payload.email} connected`);
+
     return {
       message: translate[language].userAuthentified,
       data: {
@@ -61,16 +56,12 @@ const authenticate = async (req) => {
   }
 };
 
-// Create a new user
 const create = async (req) => {
   try {
-    // Create refreshToken and store it
     req.payload.refreshToken = uuidv4();
     const user = new User(req.payload);
-    // Save user
     await user.saveByParams(_.pick(req.payload, ['role', 'company']));
     const leanUser = user;
-    // Add tasks + drive (auxiliary) folder to newly created user
     const tasks = await Task.find({});
     const taskIds = tasks.map(task => ({ task: task._id }));
     const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $push: { procedure: { $each: taskIds } } }, { new: true });
@@ -102,96 +93,75 @@ const create = async (req) => {
   }
 };
 
-// Show all users
 const list = async (req) => {
   if (req.query.role) {
     req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
-    if (!req.query.role) {
-      return Boom.notFound(translate[language].roleNotFound);
-    }
+    if (!req.query.role) return Boom.notFound(translate[language].roleNotFound);
   }
+
   if (req.query.email) {
     req.query.local = { email: req.query.email };
     delete req.query.email;
   }
+
   const params = _.pickBy(req.query);
-  // We populate the user with role data and then we populate the role with rights data
-  const users = await User.find(params, {
-    planningModification: 0,
-    historyChanges: 0,
-    features: 0,
-  }, { autopopulate: false })
-    .populate({
-      path: 'procedure.task',
-      select: 'name'
-    })
-    .populate({
-      path: 'customers',
-      select: 'identity'
-    });
-  if (users.length === 0) {
-    return Boom.notFound(translate[language].userShowAllNotFound);
-  }
+  const users = await User
+    .find(
+      params,
+      { planningModification: 0, historyChanges: 0, features: 0, },
+      { autopopulate: false }
+    )
+    .populate({ path: 'procedure.task', select: 'name' })
+    .populate({ path: 'customers', select: 'identity' });
+  if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
+
   return {
     message: translate[language].userShowAllFound,
-    data: {
-      users
-    }
+    data: { users }
   };
 };
 
-// Show all active users
 const activeList = async (req) => {
   if (req.query.role) {
     req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
-    if (!req.query.role) {
-      return Boom.notFound(translate[language].roleNotFound);
-    }
+    if (!req.query.role) return Boom.notFound(translate[language].roleNotFound);
   }
+
   if (req.query.email) {
     req.query.local = { email: req.query.email };
     delete req.query.email;
   }
-  const params = _.pickBy(req.query);
-  const users = await User.find(params, {
-    planningModification: 0,
-    historyChanges: 0,
-    features: 0,
-  }, { autopopulate: false })
-    .populate({
-      path: 'procedure.task',
-      select: 'name'
-    })
-    .populate({
-      path: 'customers',
-      select: 'identity'
-    });
 
-  if (users.length === 0) {
-    return Boom.notFound(translate[language].userShowAllNotFound);
-  }
+  const params = _.pickBy(req.query);
+  const users = await User
+    .find(
+      params,
+      { planningModification: 0, historyChanges: 0, features: 0, },
+      { autopopulate: false }
+    )
+    .populate({ path: 'procedure.task', select: 'name' })
+    .populate({ path: 'customers', select: 'identity' });
+
+  if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
 
   const activeUsers = users.filter(user => user.isActive);
 
   return {
     message: translate[language].userShowAllFound,
-    data: {
-      users: activeUsers
-    }
+    data: { users: activeUsers }
   };
 };
 
-// Find an user by Id in param URL
 const show = async (req) => {
   try {
     let user = await User.findOne({ _id: req.params._id }).populate('customers');
-    if (!user) {
-      return Boom.notFound(translate[language].userNotFound);
-    }
+    if (!user) return Boom.notFound(translate[language].userNotFound);
+
     user = user.toObject();
     if (user.role && user.role.rights.length > 0) {
       user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
     }
+
     return {
       message: translate[language].userFound,
       data: { user }
@@ -202,25 +172,24 @@ const show = async (req) => {
   }
 };
 
-// Update an user by id
+
 const update = async (req) => {
   try {
     let role = null;
     if (req.payload.role) {
       role = await Role.findOne({ name: req.payload.role });
-      if (!role) {
-        return Boom.notFound(translate[language].roleNotFound);
-      }
+      if (!role) return Boom.notFound(translate[language].roleNotFound);
       req.payload.role = role._id.toString();
     }
+
     const newBody = flat(req.payload);
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true });
-    if (!userUpdated) {
-      return Boom.notFound(translate[language].userNotFound);
-    }
+    if (!userUpdated) return Boom.notFound(translate[language].userNotFound);
+
     if (userUpdated.role && userUpdated.role.rights.length > 0) {
       userUpdated.role.rights = populateRole(userUpdated.role.rights, { onlyGrantedRights: true });
     }
+
     return {
       message: translate[language].userUpdated,
       data: { userUpdated }
@@ -236,17 +205,14 @@ const update = async (req) => {
   }
 };
 
-// Update an user certificates
 const updateCertificates = async (req) => {
   try {
     delete req.payload._id;
-    // User update tracking
     const trackingPayload = userUpdateTracking(req.auth.credentials._id, req.payload);
     // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload, $push: { historyChanges: trackingPayload } }, { new: true });
-    if (!userUpdated) {
-      return Boom.notFound(translate[language].userNotFound);
-    }
+    if (!userUpdated) return Boom.notFound(translate[language].userNotFound);
+
     if (userUpdated.role && userUpdated.role.rights.length > 0) {
       userUpdated.role.rights = populateRole(userUpdated.role.rights, { onlyGrantedRights: true });
     }
@@ -260,13 +226,11 @@ const updateCertificates = async (req) => {
   }
 };
 
-// Remove an user by param id
 const remove = async (req) => {
   try {
     const userDeleted = await User.findByIdAndRemove({ _id: req.params._id });
-    if (!userDeleted) {
-      return Boom.notFound(translate[language].userNotFound);
-    }
+    if (!userDeleted) return Boom.notFound(translate[language].userNotFound);
+
     return {
       message: translate[language].userRemoved,
       data: { userDeleted }
@@ -287,12 +251,14 @@ const getPresentation = async (req) => {
     const roleIds = await Role.find({ name: params.role }, { _id: 1 });
     params.role = { $in: roleIds };
     const payload = _.pickBy(params);
-    const users = await User.find(payload, {
-      _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1
-    });
-    if (users.length === 0) {
-      return Boom.notFound(translate[language].userShowAllNotFound);
-    }
+    const users = await User.find(
+      payload,
+      {
+        _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1
+      }
+    );
+    if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
+
     return {
       message: translate[language].userShowAllFound,
       data: { users }
@@ -322,14 +288,10 @@ const updateTask = async (req) => {
 
 const getUserTasks = async (req) => {
   try {
-    const tasks = await User.findOne({
-      _id: req.params._id,
-      procedure: { $exists: true },
-    }, {
-      firstname: 1,
-      lastname: 1,
-      procedure: 1
-    });
+    const tasks = await User.findOne(
+      { _id: req.params._id, procedure: { $exists: true }, },
+      { firstname: 1, lastname: 1, procedure: 1 }
+    );
 
     if (!tasks) return Boom.notFound();
 
@@ -346,21 +308,16 @@ const getUserTasks = async (req) => {
   }
 };
 
-// Refresh token
 const refreshToken = async (req) => {
   try {
     const user = await User.findOne({ refreshToken: req.payload.refreshToken });
-    if (!user) {
-      return Boom.notFound(translate[language].refreshTokenNotFound);
-    }
-    const payload = {
-      _id: user._id,
-      role: user.role.name,
-    };
+    if (!user) return Boom.notFound(translate[language].refreshTokenNotFound);
+
+    const payload = { _id: user._id, role: user.role.name };
     const userPayload = _.pickBy(payload);
     const expireTime = 3600;
     const token = encode(userPayload, expireTime);
-    // return the information including token as JSON
+
     return {
       message: translate[language].userAuthentified,
       data: {
@@ -383,9 +340,8 @@ const forgotPassword = async (req) => {
       }
     };
     const user = await User.findOneAndUpdate({ 'local.email': req.payload.email }, { $set: payload }, { new: true });
-    if (!user) {
-      return Boom.notFound(translate[language].userNotFound);
-    }
+    if (!user) return Boom.notFound(translate[language].userNotFound);
+
     const mailOptions = {
       from: 'support@alenvi.io',
       to: req.payload.email,
@@ -412,9 +368,8 @@ const checkResetPasswordToken = async (req) => {
       }
     };
     const user = await User.findOne(flat(filter, { maxDepth: 2 }));
-    if (!user) {
-      return Boom.notFound(translate[language].resetPasswordTokenNotFound);
-    }
+    if (!user) return Boom.notFound(translate[language].resetPasswordTokenNotFound);
+
     const payload = {
       _id: user._id,
       email: user.local.email,
@@ -533,7 +488,11 @@ const uploadImage = async (req) => {
       }
     };
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
-    return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
+
+    return {
+      message: translate[language].fileCreated,
+      data: { picture: payload.picture, userUpdated }
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -579,15 +538,13 @@ const createDriveFolder = async (req) => {
 
 const getUserContracts = async (req) => {
   try {
-    const contracts = await User.findOne({
-      _id: req.params._id,
-      'administrative.contracts': { $exists: true }
-    }, {
-      firstname: 1,
-      lastname: 1,
-      'administrative.contracts': 1
-    }, { autopopulate: false }).lean();
+    const contracts = await User.findOne(
+      { _id: req.params._id, 'administrative.contracts': { $exists: true } },
+      { firstname: 1, lastname: 1, 'administrative.contracts': 1 },
+      { autopopulate: false }
+    ).lean();
     if (!contracts) return Boom.notFound();
+
     return {
       message: translate[language].userContractsFound,
       data: {
@@ -610,9 +567,7 @@ const updateUserContract = async (req) => {
       updatedUser = await updateContract(req.params, req.payload);
     }
 
-    if (!updatedUser) {
-      return Boom.notFound(translate[language].contractNotFound);
-    }
+    if (!updatedUser) return Boom.notFound(translate[language].contractNotFound);
 
     return {
       message: translate[language].userContractUpdated,
@@ -635,15 +590,16 @@ const createUserContract = async (req) => {
       grossHourlyRate: req.payload.grossHourlyRate,
       ogustContractId: req.payload.ogustContractId
     }];
-    const newContract = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.contracts': req.payload }, $set: { inactivityDate: null } }, {
-      new: true,
-      select: {
-        firstname: 1,
-        lastname: 1,
-        'administrative.contracts': 1
-      },
-      autopopulate: false
-    });
+    const newContract = await User.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { 'administrative.contracts': req.payload }, $set: { inactivityDate: null } },
+      {
+        new: true,
+        select: { firstname: 1, lastname: 1, 'administrative.contracts': 1 },
+        autopopulate: false
+      }
+    );
+
     return {
       message: translate[language].userContractAdded,
       data: {
@@ -659,18 +615,16 @@ const createUserContract = async (req) => {
 
 const removeUserContract = async (req) => {
   try {
-    const user = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: { 'administrative.contracts': { _id: req.params.contractId } } }, {
-      select: {
-        firstname: 1,
-        lastname: 1,
-        administrative: 1
-      },
-      autopopulate: false
-    });
+    const user = await User.findOneAndUpdate(
+      { _id: req.params._id },
+      { $pull: { 'administrative.contracts': { _id: req.params.contractId } } },
+      {
+        select: { firstname: 1, lastname: 1, administrative: 1 },
+        autopopulate: false
+      }
+    );
 
-    if (!user) {
-      return Boom.notFound(translate[language].userNotFound);
-    }
+    if (!user) return Boom.notFound(translate[language].userNotFound);
 
     return {
       message: translate[language].userContractRemoved,
@@ -683,18 +637,16 @@ const removeUserContract = async (req) => {
 
 const createUserContractVersion = async (req) => {
   try {
-    const newContract = await User.findOneAndUpdate({
-      _id: req.params._id,
-      'administrative.contracts._id': req.params.contractId
-    }, { $push: { 'administrative.contracts.$.versions': req.payload } }, {
-      new: true,
-      select: {
-        firstname: 1,
-        lastname: 1,
-        administrative: 1
-      },
-      autopopulate: false
-    });
+    const newContract = await User.findOneAndUpdate(
+      { _id: req.params._id, 'administrative.contracts._id': req.params.contractId },
+      { $push: { 'administrative.contracts.$.versions': req.payload } },
+      {
+        new: true,
+        select: { firstname: 1, lastname: 1, administrative: 1 },
+        autopopulate: false
+      }
+    );
+
     return { message: translate[language].userContractVersionAdded, data: { contract: newContract } };
   } catch (e) {
     req.log('error', e);
@@ -705,17 +657,23 @@ const createUserContractVersion = async (req) => {
 const updateUserContractVersion = async (req) => {
   try {
     const payload = { 'administrative.contracts.$[contract].versions.$[version]': { ...req.payload } };
-    const updatedVersion = await User.findOneAndUpdate({
-      _id: req.params._id,
-    }, { $set: flat(payload) }, {
-      // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
-      arrayFilters: [{ 'contract._id': mongoose.Types.ObjectId(req.params.contractId) }, { 'version._id': mongoose.Types.ObjectId(req.params.versionId) }],
-      new: true,
-      autopopulate: false,
-      firstname: 1,
-      lastname: 1,
-      'administrative.contracts': 1
-    });
+    const updatedVersion = await User.findOneAndUpdate(
+      { _id: req.params._id, },
+      { $set: flat(payload) },
+      {
+        // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
+        arrayFilters: [
+          { 'contract._id': mongoose.Types.ObjectId(req.params.contractId) },
+          { 'version._id': mongoose.Types.ObjectId(req.params.versionId) }
+        ],
+        new: true,
+        autopopulate: false,
+        firstname: 1,
+        lastname: 1,
+        'administrative.contracts': 1
+      }
+    );
+
     return {
       message: translate[language].userContractVersionUpdated,
       data: {
@@ -731,17 +689,15 @@ const updateUserContractVersion = async (req) => {
 
 const removeUserContractVersion = async (req) => {
   try {
-    await User.findOneAndUpdate({
-      _id: req.params._id,
-      'administrative.contracts._id': req.params.contractId,
-    }, { $pull: { 'administrative.contracts.$.versions': { _id: req.params.versionId } } }, {
-      select: {
-        firstname: 1,
-        lastname: 1,
-        administrative: 1
-      },
-      autopopulate: true
-    });
+    await User.findOneAndUpdate(
+      { _id: req.params._id, 'administrative.contracts._id': req.params.contractId },
+      { $pull: { 'administrative.contracts.$.versions': { _id: req.params.versionId } } },
+      {
+        select: { firstname: 1, lastname: 1, administrative: 1 },
+        autopopulate: true
+      }
+    );
+
     return {
       message: translate[language].userContractVersionRemoved,
     };
@@ -753,15 +709,13 @@ const removeUserContractVersion = async (req) => {
 
 const getUserAbsences = async (req) => {
   try {
-    const user = await User.findOne({
-      _id: req.params._id,
-      'administrative.absences': { $exists: true }
-    }, {
-      firstname: 1,
-      lastname: 1,
-      'administrative.absences': 1
-    }, { autopopulate: false }).lean();
+    const user = await User.findOne(
+      { _id: req.params._id, 'administrative.absences': { $exists: true } },
+      { firstname: 1, lastname: 1, 'administrative.absences': 1 },
+      { autopopulate: false }
+    ).lean();
     if (!user) return Boom.notFound();
+
     return {
       message: translate[language].userAbsencesFound,
       data: {
@@ -778,21 +732,21 @@ const getUserAbsences = async (req) => {
 const updateUserAbsence = async (req) => {
   try {
     const payload = { 'administrative.absences.$': { ...req.payload } };
-    const absenceUpdated = await User.findOneAndUpdate({
-      _id: req.params._id,
-      'administrative.absences._id': req.params.absenceId
-    }, { $set: flat(payload) }, {
-      new: true,
-      select: {
-        firstname: 1,
-        lastname: 1,
-        employee_id: 1,
-        'administrative.absences': 1
+    const absenceUpdated = await User.findOneAndUpdate(
+      { _id: req.params._id, 'administrative.absences._id': req.params.absenceId },
+      { $set: flat(payload) },
+      {
+        new: true,
+        select: {
+          firstname: 1,
+          lastname: 1,
+          employee_id: 1,
+          'administrative.absences': 1
+        }
       }
-    }).lean();
-    if (!absenceUpdated) {
-      return Boom.notFound(translate[language].absenceNotFound);
-    }
+    ).lean();
+    if (!absenceUpdated) return Boom.notFound(translate[language].absenceNotFound);
+
     return {
       message: translate[language].userAbsenceUpdated,
       data: {
@@ -808,15 +762,16 @@ const updateUserAbsence = async (req) => {
 
 const createUserAbsence = async (req) => {
   try {
-    const newAbsence = await User.findOneAndUpdate({ _id: req.params._id }, { $push: { 'administrative.absences': req.payload } }, {
-      new: true,
-      select: {
-        firstname: 1,
-        lastname: 1,
-        'administrative.absences': 1
-      },
-      autopopulate: false
-    });
+    const newAbsence = await User.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { 'administrative.absences': req.payload } },
+      {
+        new: true,
+        select: { firstname: 1, lastname: 1, 'administrative.absences': 1 },
+        autopopulate: false
+      }
+    );
+
     return {
       message: translate[language].userAbsenceAdded,
       data: {
@@ -832,14 +787,15 @@ const createUserAbsence = async (req) => {
 
 const removeUserAbsence = async (req) => {
   try {
-    await User.findOneAndUpdate({ _id: req.params._id }, { $pull: { 'administrative.absences': { _id: req.params.absenceId } } }, {
-      select: {
-        firstname: 1,
-        lastname: 1,
-        administrative: 1
-      },
-      autopopulate: false
-    });
+    await User.findOneAndUpdate(
+      { _id: req.params._id },
+      { $pull: { 'administrative.absences': { _id: req.params.absenceId } } },
+      {
+        select: { firstname: 1, lastname: 1, administrative: 1 },
+        autopopulate: false
+      }
+    );
+
     return {
       message: translate[language].userAbsenceRemoved
     };
