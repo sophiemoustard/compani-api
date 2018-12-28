@@ -6,7 +6,7 @@ const { encode } = require('../helpers/authentification');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Right = require('../models/Right');
-const { populateRole } = require('../helpers/populateRole');
+const { populateRole } = require('../helpers/roles');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
