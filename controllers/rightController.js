@@ -13,34 +13,19 @@ const create = async (req) => {
     await right.save();
     const roles = await Role.find();
     if (roles.length > 0) {
-      await Role.updateMany({
-        name: {
-          $not: /^Admin$/
-        }
-      }, {
-        $push: {
-          rights: {
-            right_id: right._id,
-            hasAccess: false
-          }
-        }
-      });
-      await Role.update({
-        name: 'Admin'
-      }, {
-        $push: {
-          rights: {
-            right_id: right._id,
-            hasAccess: true
-          }
-        }
-      });
+      await Role.updateMany(
+        { name: { $not: /^Admin$/ } },
+        { $push: { rights: { right_id: right._id, hasAccess: false } } }
+      );
+      await Role.update(
+        { name: 'Admin' },
+        { $push: { rights: { right_id: right._id, hasAccess: true } } }
+      );
     }
+
     return {
       message: translate[language].rightCreated,
-      data: {
-        right
-      }
+      data: { right }
     };
   } catch (e) {
     if (e.code === 11000) {
@@ -56,21 +41,16 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const rightUpdated = await Right.findOneAndUpdate({
-      _id: req.params._id
-    }, {
-      $set: flat(req.payload)
-    }, {
-      new: true
-    });
-    if (!rightUpdated) {
-      return Boom.notFound(translate[language].rightNotFound);
-    }
+    const rightUpdated = await Right.findOneAndUpdate(
+      { _id: req.params._id },
+      { $set: flat(req.payload) },
+      { new: true }
+    );
+    if (!rightUpdated) return Boom.notFound(translate[language].rightNotFound);
+
     return {
       message: translate[language].rightUpdated,
-      data: {
-        right: rightUpdated
-      }
+      data: { right: rightUpdated }
     };
   } catch (e) {
     if (e.code === 11000) {
@@ -85,14 +65,11 @@ const update = async (req) => {
 const showAll = async (req) => {
   try {
     const rights = await Right.find(req.query).lean();
-    if (rights.length === 0) {
-      return Boom.notFound(translate[language].rightsShowAllNotFound);
-    }
+    if (rights.length === 0) return Boom.notFound(translate[language].rightsShowAllNotFound);
+
     return {
       message: translate[language].rightsShowAllFound,
-      data: {
-        rights
-      }
+      data: { rights }
     };
   } catch (e) {
     req.log('error', e);
@@ -102,18 +79,13 @@ const showAll = async (req) => {
 
 const showById = async (req) => {
   try {
-    const right = await Right.findOne({
-      _id: req.params._id
-    }).lean();
-    if (!right) {
-      return Boom.notFound(translate[language].rightNotFound);
-    }
+    const right = await Right.findOne({ _id: req.params._id }).lean();
+    if (!right) return Boom.notFound(translate[language].rightNotFound);
+
     return {
       success: true,
       message: translate[language].rightFound,
-      data: {
-        right
-      }
+      data: { right }
     };
   } catch (e) {
     req.log('error', e);
@@ -123,26 +95,18 @@ const showById = async (req) => {
 
 const remove = async (req) => {
   try {
-    const rightDeleted = await Right.findByIdAndRemove({
-      _id: req.params._id
-    });
-    if (!rightDeleted) {
-      return Boom.notFound(translate[language].rightNotFound);
-    }
-    await Role.update({}, {
-      $pull: {
-        rights: {
-          right_id: req.params._id
-        }
-      }
-    }, {
-      multi: true
-    });
+    const rightDeleted = await Right.findByIdAndRemove({ _id: req.params._id });
+    if (!rightDeleted) return Boom.notFound(translate[language].rightNotFound);
+
+    await Role.update(
+      {},
+      { $pull: { rights: { right_id: req.params._id } } },
+      { multi: true }
+    );
+
     return {
       message: translate[language].rightRemoved,
-      data: {
-        rightDeleted
-      }
+      data: { rightDeleted }
     };
   } catch (e) {
     req.log('error', e);
