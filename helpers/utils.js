@@ -22,7 +22,6 @@ const getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
 
 const clean = (obj) => {
   for (const k in obj) {
-    console.log(obj[k]);
     if (obj[k] === undefined || obj[k] === '' || obj[k] === {} || obj[k] === []) {
       delete obj[k];
     }

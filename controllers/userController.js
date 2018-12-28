@@ -13,14 +13,13 @@ const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer'
 const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
-const { handleFile, createFolder } = require('../helpers/gdriveStorage');
+const { createFolder } = require('../helpers/gdriveStorage');
 const { endUserContract, updateContract } = require('../helpers/userContracts');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
-const { getUsers } = require('../helpers/users');
+const { getUsers, createAndSaveFile } = require('../helpers/users');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
-const drive = require('../models/GoogleDrive');
 const cloudinary = require('../models/Cloudinary');
 
 const { language } = translate;
@@ -373,64 +372,16 @@ const uploadFile = async (req) => {
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) {
-      Boom.forbidden('Upload not allowed');
+      return Boom.forbidden(translate[language].uploadNotAllowed);
     }
     if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedVersion') {
       if (!req.payload.contractId && !req.payload.versionId) {
         return Boom.badRequest();
       }
     }
-    const uploadedFile = await handleFile({
-      driveFolderId: req.params.driveId,
-      name: req.payload.fileName || req.payload[administrativeKeys[0]].hapi.filename,
-      type: req.payload['Content-Type'],
-      body: req.payload[administrativeKeys[0]]
-    });
-    let driveFileInfo = null;
-    try {
-      driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
-    } catch (e) {
-      req.log(['error', 'gdrive'], e);
-    }
-    if (administrativeKeys[0] === 'certificates') {
-      const payload = {
-        'administrative.certificates': {
-          driveId: uploadedFile.id,
-          link: driveFileInfo.webViewLink,
-        }
-      };
-      await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true, autopopulate: false });
-    } else if (administrativeKeys[0] === 'absenceReason') {
-      const payload = {
-        'administrative.absences.$': {
-          driveId: uploadedFile.id,
-          link: driveFileInfo.webViewLink,
-        }
-      };
-      await User.findOneAndUpdate({ _id: req.params._id, 'administrative.absences._id': req.payload.absenceId }, { $set: flat(payload) }, { new: true });
-    } else if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedVersion') {
-      const payload = {
-        'administrative.contracts.$[contract].versions.$[version]': {
-          driveId: uploadedFile.id,
-          link: driveFileInfo.webViewLink,
-        }
-      };
-      await User.findOneAndUpdate({ _id: req.params._id, }, { $set: flat(payload) }, {
-        new: true,
-        arrayFilters: [{ 'contract._id': mongoose.Types.ObjectId(req.payload.contractId) }, { 'version._id': mongoose.Types.ObjectId(req.payload.versionId) }],
-        autopopulate: false
-      });
-    } else {
-      const payload = {
-        administrative: {
-          [administrativeKeys[0]]: {
-            driveId: uploadedFile.id,
-            link: driveFileInfo.webViewLink,
-          }
-        }
-      };
-      await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true, autopopulate: false });
-    }
+
+    const uploadedFile = await createAndSaveFile(administrativeKeys, req.params, req.payload);
+
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);

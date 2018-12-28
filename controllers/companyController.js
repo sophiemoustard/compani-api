@@ -2,7 +2,7 @@ const Boom = require('boom');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
-const { handleFile } = require('../helpers/gdriveStorage');
+const { addFile } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
 const drive = require('../models/GoogleDrive');
 
@@ -115,7 +115,7 @@ const uploadFile = async (req) => {
     if (keys.length === 0) {
       Boom.forbidden('Upload not allowed');
     }
-    const uploadedFile = await handleFile({
+    const uploadedFile = await addFile({
       driveFolderId: req.params.driveId,
       name: req.payload.fileName || req.payload[keys[0]].hapi.filename,
       type: req.payload['Content-Type'],
