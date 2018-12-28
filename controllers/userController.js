@@ -16,16 +16,15 @@ const { encode } = require('../helpers/authentification');
 const { handleFile, createFolder } = require('../helpers/gdriveStorage');
 const { endUserContract, updateContract } = require('../helpers/userContracts');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
-
-const { language } = translate;
-
+const { getUsers } = require('../helpers/users');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
 const drive = require('../models/GoogleDrive');
 const cloudinary = require('../models/Cloudinary');
 
-// Authenticate the user locally
+const { language } = translate;
+
 const authenticate = async (req) => {
   try {
     const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() });
@@ -94,25 +93,7 @@ const create = async (req) => {
 };
 
 const list = async (req) => {
-  if (req.query.role) {
-    req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
-    if (!req.query.role) return Boom.notFound(translate[language].roleNotFound);
-  }
-
-  if (req.query.email) {
-    req.query.local = { email: req.query.email };
-    delete req.query.email;
-  }
-
-  const params = _.pickBy(req.query);
-  const users = await User
-    .find(
-      params,
-      { planningModification: 0, historyChanges: 0, features: 0, },
-      { autopopulate: false }
-    )
-    .populate({ path: 'procedure.task', select: 'name' })
-    .populate({ path: 'customers', select: 'identity' });
+  const users = await getUsers(req.query);
   if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
 
   return {
@@ -122,26 +103,7 @@ const list = async (req) => {
 };
 
 const activeList = async (req) => {
-  if (req.query.role) {
-    req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
-    if (!req.query.role) return Boom.notFound(translate[language].roleNotFound);
-  }
-
-  if (req.query.email) {
-    req.query.local = { email: req.query.email };
-    delete req.query.email;
-  }
-
-  const params = _.pickBy(req.query);
-  const users = await User
-    .find(
-      params,
-      { planningModification: 0, historyChanges: 0, features: 0, },
-      { autopopulate: false }
-    )
-    .populate({ path: 'procedure.task', select: 'name' })
-    .populate({ path: 'customers', select: 'identity' });
-
+  const users = await getUsers(req.query);
   if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
 
   const activeUsers = users.filter(user => user.isActive);
@@ -272,11 +234,13 @@ const getPresentation = async (req) => {
 const updateTask = async (req) => {
   try {
     req.payload.at = Date.now();
-    const tasks = await User.findOneAndUpdate(
-      { _id: req.params.user_id, 'procedure.task': req.params.task_id },
-      { $set: { 'procedure.$.check': req.payload } },
-      { new: true }
-    ).select('procedure');
+    const tasks = await User
+      .findOneAndUpdate(
+        { _id: req.params.user_id, 'procedure.task': req.params.task_id },
+        { $set: { 'procedure.$.check': req.payload } },
+        { new: true }
+      )
+      .select('procedure');
     return {
       data: { tasks }
     };
