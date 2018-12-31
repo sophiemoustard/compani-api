@@ -13,19 +13,15 @@ const create = async (req) => {
     await task.save();
     const users = await User.find();
     if (users.length > 0) {
-      await User.updateMany({}, {
-        $push: {
-          procedure: {
-            task: task._id,
-          }
-        }
-      });
+      await User.updateMany(
+        {},
+        { $push: { procedure: { task: task._id } } }
+      );
     }
+
     return {
       message: translate[language].taskCreated,
-      data: {
-        task
-      }
+      data: { task }
     };
   } catch (e) {
     req.log('error', e);
@@ -35,21 +31,16 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const taskUpdated = await Task.findOneAndUpdate({
-      _id: req.params._id
-    }, {
-      $set: flat(req.payload)
-    }, {
-      new: true
-    });
-    if (!taskUpdated) {
-      return Boom.notFound(translate[language].taskNotFound);
-    }
+    const taskUpdated = await Task.findOneAndUpdate(
+      { _id: req.params._id },
+      { $set: flat(req.payload) },
+      { new: true }
+    );
+    if (!taskUpdated) return Boom.notFound(translate[language].taskNotFound);
+
     return {
       message: translate[language].taskUpdated,
-      data: {
-        task: taskUpdated
-      }
+      data: { task: taskUpdated }
     };
   } catch (e) {
     req.log('error', e);
@@ -60,14 +51,11 @@ const update = async (req) => {
 const showAll = async (req) => {
   try {
     const tasks = await Task.find(req.query).select('_id name').lean();
-    if (tasks.length === 0) {
-      return Boom.notFound(translate[language].tasksShowAllNotFound);
-    }
+    if (tasks.length === 0) return Boom.notFound(translate[language].tasksShowAllNotFound);
+
     return {
       message: translate[language].tasksShowAllFound,
-      data: {
-        tasks
-      }
+      data: { tasks }
     };
   } catch (e) {
     req.log('error', e);
@@ -77,18 +65,13 @@ const showAll = async (req) => {
 
 const showById = async (req) => {
   try {
-    const task = await Task.findOne({
-      _id: req.params._id
-    }).lean();
-    if (!task) {
-      return Boom.notFound(translate[language].taskNotFound);
-    }
+    const task = await Task.findOne({ _id: req.params._id }).lean();
+    if (!task) return Boom.notFound(translate[language].taskNotFound);
+
     return {
       success: true,
       message: translate[language].taskFound,
-      data: {
-        task
-      }
+      data: { task }
     };
   } catch (e) {
     req.log('error', e);
@@ -98,26 +81,18 @@ const showById = async (req) => {
 
 const remove = async (req) => {
   try {
-    const taskDeleted = await Task.findByIdAndRemove({
-      _id: req.params._id
-    });
-    if (!taskDeleted) {
-      return Boom.notFound(translate[language].taskNotFound);
-    }
-    await User.update({}, {
-      $pull: {
-        procedure: {
-          task: req.params._id
-        }
-      }
-    }, {
-      multi: true
-    });
+    const taskDeleted = await Task.findByIdAndRemove({ _id: req.params._id });
+    if (!taskDeleted) return Boom.notFound(translate[language].taskNotFound);
+
+    await User.update(
+      {},
+      { $pull: { procedure: { task: req.params._id } } },
+      { multi: true }
+    );
+
     return {
       message: translate[language].taskRemoved,
-      data: {
-        taskDeleted
-      }
+      data: { taskDeleted }
     };
   } catch (e) {
     req.log('error', e);
