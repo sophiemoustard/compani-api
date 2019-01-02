@@ -16,6 +16,8 @@ async function subscriptionsAccepted(customer) {
       const lastSubscriptionHistory = customer.subscriptionsHistory.sort((a, b) => new Date(b.approvalDate) - new Date(a.approvalDate))[0];
       const lastSubscriptions = lastSubscriptionHistory.subscriptions.map(sub => _.omit(sub, ['_id']));
       customer.subscriptionsAccepted = _.isEqual(subscriptions, lastSubscriptions);
+    } else {
+      customer.subscriptionsAccepted = false;
     }
   }
   return customer;
