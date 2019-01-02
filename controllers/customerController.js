@@ -107,7 +107,7 @@ const update = async (req) => {
     if (req.payload.payment && req.payload.payment.iban) {
       const customer = await Customer.findById(req.params._id);
       // if the user updates its RIB, we should generate a new mandate.
-      if (customer.payment.iban !== '' && customer.payment.iban !== req.payload.payment.iban) {
+      if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== req.payload.payment.iban) {
         const mandate = { rum: await generateRum() };
         customerUpdated = await Customer.findOneAndUpdate(
           { _id: req.params._id },

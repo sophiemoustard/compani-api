@@ -11,37 +11,33 @@ const create = async (req) => {
   try {
     const feature = new Feature(req.payload);
     await feature.save();
-    const payload = {
-      _id: feature._id,
-      name: feature.name,
-    };
-    await Role.updateMany({
-      name: {
-        $not: /^Admin$/
-      }
-    }, {
-      $push: {
-        features: {
-          feature_id: payload._id,
-          permission_level: 0
+    const payload = { _id: feature._id, name: feature.name };
+    await Role.updateMany(
+      { name: { $not: /^Admin$/ } },
+      {
+        $push: {
+          features: {
+            feature_id: payload._id,
+            permission_level: 0
+          }
         }
       }
-    });
-    await Role.update({
-      name: 'Admin'
-    }, {
-      $push: {
-        features: {
-          feature_id: payload._id,
-          permission_level: 2
+    );
+    await Role.update(
+      { name: 'Admin' },
+      {
+        $push: {
+          features: {
+            feature_id: payload._id,
+            permission_level: 2
+          }
         }
       }
-    });
+    );
+
     return {
       message: translate[language].featureCreated,
-      data: {
-        feature: payload
-      }
+      data: { feature: payload }
     };
   } catch (e) {
     if (e.code === 11000) {
@@ -56,21 +52,16 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const featureUpdated = await Feature.findOneAndUpdate({
-      _id: req.params._id
-    }, {
-      $set: flat(req.payload)
-    }, {
-      new: true
-    });
-    if (!featureUpdated) {
-      return Boom.notFound(translate[language].featureNotFound);
-    }
+    const featureUpdated = await Feature.findOneAndUpdate(
+      { _id: req.params._id },
+      { $set: flat(req.payload) },
+      { new: true }
+    );
+    if (!featureUpdated) return Boom.notFound(translate[language].featureNotFound);
+
     return {
       message: translate[language].featureUpdated,
-      data: {
-        feature: featureUpdated
-      }
+      data: { feature: featureUpdated }
     };
   } catch (e) {
     if (e.code === 11000) {
@@ -85,14 +76,11 @@ const update = async (req) => {
 const showAll = async (req) => {
   try {
     const features = await Feature.find(req.query).select('_id name').lean();
-    if (features.length === 0) {
-      return Boom.notFound(translate[language].featuresShowAllNotFound);
-    }
+    if (features.length === 0) return Boom.notFound(translate[language].featuresShowAllNotFound);
+
     return {
       message: translate[language].featuresShowAllFound,
-      data: {
-        features
-      }
+      data: { features }
     };
   } catch (e) {
     req.log('error', e);
@@ -102,18 +90,13 @@ const showAll = async (req) => {
 
 const showById = async (req) => {
   try {
-    const feature = await Feature.findOne({
-      _id: req.params._id
-    }).lean();
-    if (!feature) {
-      return Boom.notFound(translate[language].featureNotFound);
-    }
+    const feature = await Feature.findOne({ _id: req.params._id }).lean();
+    if (!feature) return Boom.notFound(translate[language].featureNotFound);
+
     return {
       success: true,
       message: translate[language].featureFound,
-      data: {
-        feature
-      }
+      data: { feature }
     };
   } catch (e) {
     req.log('error', e);
@@ -123,26 +106,18 @@ const showById = async (req) => {
 
 const remove = async (req) => {
   try {
-    const featureDeleted = await Feature.findByIdAndRemove({
-      _id: req.params._id
-    });
-    if (!featureDeleted) {
-      return Boom.notFound(translate[language].featureNotFound);
-    }
-    await Role.update({}, {
-      $pull: {
-        features: {
-          feature_id: req.params._id
-        }
-      }
-    }, {
-      multi: true
-    });
+    const featureDeleted = await Feature.findByIdAndRemove({ _id: req.params._id });
+    if (!featureDeleted) return Boom.notFound(translate[language].featureNotFound);
+
+    await Role.update(
+      {},
+      { $pull: { features: { feature_id: req.params._id } } },
+      { multi: true }
+    );
+
     return {
       message: translate[language].featureRemoved,
-      data: {
-        featureDeleted
-      }
+      data: { featureDeleted }
     };
   } catch (e) {
     req.log('error', e);
