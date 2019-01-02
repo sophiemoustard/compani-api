@@ -41,19 +41,11 @@ exports.plugin = {
             _id: Joi.objectId().required()
           },
           payload: Joi.object().keys({
-            name: Joi.string().required() // .optional(),
-            // rights: Joi.array().invalid([]).items(Joi.object().keys({
-            //   right_id: Joi.objectId().required(),
-            //   hasAccess: Joi.boolean().required(),
-            //   rolesConcerned: Joi.array().items(Joi.object().keys({
-            //     role_id: Joi.objectId(),
-            //     name: Joi.string()
-            //   }))
-          }) // ).optional()
+            name: Joi.string().required()
+          })
         },
         auth: {
           strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: update
