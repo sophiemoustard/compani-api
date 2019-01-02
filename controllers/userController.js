@@ -8,7 +8,7 @@ const moment = require('moment');
 const mongoose = require('mongoose');
 
 const { clean } = require('../helpers/utils');
-const { populateRole } = require('../helpers/populateRole');
+const { populateRole } = require('../helpers/roles');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
 const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
