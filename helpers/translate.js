@@ -122,6 +122,7 @@ module.exports = {
     folderCreated: 'Folder successfully created.',
     folderCreationFailure: 'Folder creation Failed.',
     fileCreated: 'File successfully created.',
+    uploadNotAllowed: 'Upload not allowed',
     /* Company */
     companiesShowAllFound: 'Companies found.',
     companyFound: 'Company found.',
@@ -305,6 +306,7 @@ module.exports = {
     folderCreated: 'Dossier créé.',
     folderCreationFailure: 'La création de dossier a échouée.',
     fileCreated: 'Fichier créé.',
+    uploadNotAllowed: 'Téléchargement non autorisé.',
     /* Company */
     companiesShowAllFound: 'Entreprises trouvées.',
     companyFound: 'Entreprise trouvée.',

@@ -3,7 +3,7 @@ const moment = require('moment');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
-const { handleFile } = require('../helpers/gdriveStorage');
+const { addFile } = require('../helpers/gdriveStorage');
 const drive = require('../models/GoogleDrive');
 const cloudinary = require('../models/Cloudinary');
 const User = require('../models/User');
@@ -24,7 +24,7 @@ const uploadFile = async (req) => {
       'vitalCard',
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
-    const uploadedFile = await handleFile({
+    const uploadedFile = await addFile({
       _id: req.params._id,
       name: req.payload.fileName || req.payload[administrativeKeys[0]].hapi.filename,
       type: req.payload['Content-Type'],

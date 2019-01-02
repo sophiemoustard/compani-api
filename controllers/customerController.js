@@ -13,7 +13,7 @@ const ESign = require('../models/ESign');
 const Drive = require('../models/GoogleDrive');
 const { populateServices } = require('../helpers/populateServices');
 const { generateRum } = require('../helpers/generateRum');
-const { createFolder, handleFile } = require('../helpers/gdriveStorage');
+const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 const { subscriptionsAccepted } = require('../helpers/customerConditionAgreement');
@@ -482,7 +482,7 @@ const uploadFile = async (req) => {
       Boom.forbidden('Upload not allowed');
     }
 
-    const uploadedFile = await handleFile({
+    const uploadedFile = await addFile({
       driveFolderId: req.params.driveId,
       name: req.payload.fileName || req.payload[docKeys[0]].hapi.filename,
       type: req.payload['Content-Type'],
@@ -541,7 +541,7 @@ const saveSignedMandate = async (req) => {
     const finalPDF = await ESign.downloadFinalDocument(customer.payment.mandates[mandateIndex].everSignId);
     const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
     const file = await createAndReadFile(finalPDF.data, tmpPath);
-    const uploadedFile = await handleFile({
+    const uploadedFile = await addFile({
       driveFolderId: customer.driveFolder.id,
       name: customer.payment.mandates[mandateIndex].rum,
       type: 'application/pdf',
