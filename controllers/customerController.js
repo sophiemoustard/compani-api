@@ -352,7 +352,7 @@ const generateMandateSignatureRequest = async (req) => {
       redirect: req.payload.redirect,
       redirectDecline: req.payload.redirectDecline
     });
-    if (doc.data.error) return Boom.notFound(translate[language].documentNotFound);
+    if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
     customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
     await customer.save();
     return {
@@ -552,6 +552,7 @@ const saveSignedMandate = async (req) => {
       id: uploadedFile.id,
       link: driveFileInfo.webViewLink
     };
+    customer.payment.mandates[mandateIndex].signedAt = moment.utc().toDate();
 
     await customer.save();
 
@@ -559,7 +560,7 @@ const saveSignedMandate = async (req) => {
       message: translate[language].signedDocumentSaved,
       data: {
         user: _.pick(customer, ['_id', 'identity']),
-        quote: customer.quotes.find(quote => req.payload.quoteId === quote._id.toHexString())
+        mandate: customer.payment.mandates.find(mandate => req.params.mandateId === mandate._id.toHexString())
       }
     };
   } catch (e) {
