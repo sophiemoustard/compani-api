@@ -13,7 +13,7 @@ exports.customersSignatureFields = {
   mandate: [{
     type: 'signature',
     x: '120.43',
-    y: '479.02',
+    y: '520',
     width: '120',
     height: '35',
     page: '1',
