@@ -5,6 +5,7 @@ exports.generateSignatureRequest = async (params) => {
     sandbox: process.env.NODE_ENV !== 'production' ? 1 : 0,
     title: params.title,
     embedded_signing_enabled: 1,
+    use_hidden_tags: 1,
     reminders: 0,
     files: [{
       name: params.title,
