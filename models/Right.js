@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// Feature schema
 const RightSchema = mongoose.Schema({
   name: {
     type: String,

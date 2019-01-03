@@ -78,9 +78,8 @@ describe('RIGHTS ROUTES', () => {
       });
       expect(response.statusCode).toBe(400);
     });
-    // });
 
-    it('should return a 409 error if feature already exists', async () => {
+    it('should return a 409 error if right already exists', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/rights',
@@ -194,7 +193,7 @@ describe('RIGHTS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 404 error if feature does not exist', async () => {
+    it('should return a 404 error if right does not exist', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/rights/${new ObjectID()}`,

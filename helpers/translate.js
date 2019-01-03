@@ -89,17 +89,7 @@ module.exports = {
     roleNotFound: 'Role not found',
     roleExists: 'Role already exists.',
     roleRemoved: 'Role removed.',
-    /* Feature */
-    featureCreated: 'Feature created.',
-    featureDeleted: 'Feature deleted.',
-    featureUpdated: 'Feature updated.',
-    featuresShowAllNotFound: 'Features not found.',
-    featureNotFound: 'Feature not found',
-    featureExists: 'Feature already exists.',
-    featuresDoNotExist: 'Features do not exist.',
-    featureRemoved: 'Feature removed.',
-    invalidPermLevel: 'Invalid feature permission level.',
-    /* Feature */
+    /* Right */
     rightCreated: 'Right created.',
     rightDeleted: 'Right deleted.',
     rightUpdated: 'Right updated.',
@@ -275,16 +265,6 @@ module.exports = {
     roleNotFound: 'Role non trouvé.',
     roleExists: 'Role déjà existant.',
     roleRemoved: 'Role supprimé.',
-    /* Feature */
-    featureCreated: 'Feature créée.',
-    featureDeleted: 'Feature effacée.',
-    featureUpdated: 'Feature mise à jour.',
-    featuresShowAllNotFound: 'Features non trouvées.',
-    featureNotFound: 'Feature non trouvée.',
-    featureExists: 'Feature déjà existante.',
-    featuresDoNotExist: "Features n'existent pas.",
-    featureRemoved: 'Feature supprimé.',
-    invalidPermLevel: 'Permission de la feature invalide.',
     /* Droits */
     rightCreated: 'Droit crée.',
     rightRemoved: 'Droit supprimé.',
