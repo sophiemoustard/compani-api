@@ -1,5 +1,4 @@
 const { createDocument } = require('../models/ESign');
-const { customersSignatureFields } = require('../helpers/customersSignatureFields');
 
 exports.generateSignatureRequest = async (params) => {
   const payload = {
@@ -16,7 +15,6 @@ exports.generateSignatureRequest = async (params) => {
       name: params.signer.name,
       email: params.signer.email
     }],
-    fields: process.env.NODE_ENV === 'test' ? [] : [customersSignatureFields[params.type]],
     redirect: params.redirect || '',
     redirect_decline: params.redirectDecline || ''
   };
