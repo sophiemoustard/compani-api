@@ -419,7 +419,7 @@ exports.plugin = {
             helper: Joi.object().keys({
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string(),
-              title: Joi.string()
+              title: Joi.string().allow(null, ''),
             }).required()
           })
         },
