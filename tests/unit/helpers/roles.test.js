@@ -82,7 +82,6 @@ describe('updateRights', () => {
     Role.findById = () => ({
       name: 'Test',
       _id: '5c261f6d1541d61c47d51085',
-      features: [],
     });
 
     Right.find = () => ([]);

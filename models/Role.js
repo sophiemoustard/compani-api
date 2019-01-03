@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const autopopulate = require('mongoose-autopopulate');
 
-// Feature schema
 const RoleSchema = mongoose.Schema({
   name: {
     type: String,
@@ -27,19 +26,6 @@ const RoleSchema = mongoose.Schema({
       name: String
     }]
   }],
-  features: [{
-    feature_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      // ref: 'Feature',
-      // autopopulate: { select: 'name _id' }
-    },
-    permission_level: {
-      type: Number,
-      default: 0,
-      min: [0, 'Value must be between 0 and 2'],
-      max: [2, 'Value must be between 0 and 2']
-    }
-  }]
 }, { timestamps: true });
 
 RoleSchema.plugin(autopopulate);

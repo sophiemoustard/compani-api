@@ -25,7 +25,7 @@ const getUsers = async (query) => {
   return User
     .find(
       params,
-      { planningModification: 0, historyChanges: 0, features: 0, },
+      { planningModification: 0, historyChanges: 0 },
       { autopopulate: false }
     )
     .populate({ path: 'procedure.task', select: 'name' })
