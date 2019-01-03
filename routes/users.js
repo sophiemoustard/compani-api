@@ -105,7 +105,8 @@ exports.plugin = {
                 transportType: Joi.string()
               })
             }),
-            customers: Joi.array()
+            customers: Joi.array(),
+            company: Joi.string()
           }).required()
         },
         auth: false

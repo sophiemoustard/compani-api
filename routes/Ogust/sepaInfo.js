@@ -73,6 +73,8 @@ exports.plugin = {
             id_tiers: [Joi.string().required(), Joi.number().required()],
             society: Joi.string().default('06540101'),
             ics: Joi.string().default('FR33ZZZ80B7BA'),
+            rum: Joi.string(),
+            signature_date: Joi.string()
           })
         },
         auth: false
