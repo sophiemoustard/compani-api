@@ -7,7 +7,12 @@ async function subscriptionsAccepted(customer) {
     customer.subscriptions = await populateServices(customer.subscriptions);
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = _.map(customer.subscriptions, (subscription) => {
-        const { service, _id, ...sub } = subscription;
+        const {
+          service,
+          _id,
+          createdAt,
+          ...sub
+        } = subscription;
         return {
           ...sub,
           service: service.name
