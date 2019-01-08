@@ -93,7 +93,7 @@ exports.plugin = {
             title: Joi.string().required(),
             last_name: Joi.string().required(),
             first_name: Joi.string(),
-            origin: Joi.string().default('341266'),
+            origin: Joi.string().default('253195735'),
             method_of_payment: Joi.string().default('112539'),
             manager: Joi.string().default('302007671'),
             type: Joi.string().default('C'),
