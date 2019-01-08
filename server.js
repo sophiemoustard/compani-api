@@ -23,7 +23,16 @@ const server = Hapi.server({
 
 const init = async () => {
   await server.register([...plugins]);
+  const io = require('socket.io')(server.listener);
 
+  io.on('connection', (socket) => {
+    console.log('connected');
+    socket.on('SEND_MESSAGE', (data) => {
+      console.log(`client saying ${data.user}`);
+      socket.emit('MESSAGE', data);
+    });
+    io.emit('MESSAGE', 'test');
+  });
   server.auth.strategy('jwt', 'jwt', {
     key: process.env.TOKEN_SECRET,
     headerKey: 'x-access-token',
