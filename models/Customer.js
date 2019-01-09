@@ -1,4 +1,8 @@
 const mongoose = require('mongoose');
+const _ = require('lodash');
+
+const SubscriptionsLog = require('./SubscriptionsLog');
+const { populateServices } = require('../helpers/populateServices');
 
 const CustomerSchema = mongoose.Schema({
   customerId: String,
@@ -111,5 +115,35 @@ const CustomerSchema = mongoose.Schema({
     }
   }]
 }, { timestamps: true });
+
+async function saveSubscriptionsChanges(doc, next) {
+  if (this.getUpdate().$pull && this.getUpdate().$pull.subscriptions) {
+    console.log(this.getUpdate().$pull.subscriptions);
+    const subscriptions = doc.subscriptions.toObject();
+    const deletedSub = subscriptions.filter(sub => sub._id.toHexString() === this.getUpdate().$pull.subscriptions._id.toHexString());
+    const populatedDeletedSub = await populateServices(deletedSub);
+    if (!deletedSub) return next();
+    const payload = {
+      customer: {
+        firstname: doc.identity.firstname,
+        lastname: doc.identity.lastname,
+        ogustId: doc.customerId
+      },
+      subscriptions: {
+        name: populatedDeletedSub[0].service.name,
+        unitTTCRate: populatedDeletedSub[0].unitTTCRate,
+        estimatedWeeklyVolume: populatedDeletedSub[0].estimatedWeeklyVolume,
+        evenings: populatedDeletedSub[0].evenings,
+        sundays: populatedDeletedSub[0].sundays
+      }
+    };
+    const cleanPayload = _.pickBy(payload);
+    const newLog = new SubscriptionsLog(cleanPayload);
+    await newLog.save();
+  }
+  next();
+}
+
+CustomerSchema.post('findOneAndUpdate', saveSubscriptionsChanges);
 
 module.exports = mongoose.model('Customer', CustomerSchema);

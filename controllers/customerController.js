@@ -257,7 +257,12 @@ const removeSubscription = async (req) => {
       { _id: req.params._id },
       { $pull: { subscriptions: { _id: req.params.subscriptionId } } },
       {
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+        select: {
+          'identity.firstname': 1,
+          'identity.lastname': 1,
+          subscriptions: 1,
+          customerId: 1
+        },
         autopopulate: false,
       }
     );
