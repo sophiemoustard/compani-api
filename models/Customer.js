@@ -118,7 +118,6 @@ const CustomerSchema = mongoose.Schema({
 
 async function saveSubscriptionsChanges(doc, next) {
   if (this.getUpdate().$pull && this.getUpdate().$pull.subscriptions) {
-    console.log(this.getUpdate().$pull.subscriptions);
     const subscriptions = doc.subscriptions.toObject();
     const deletedSub = subscriptions.filter(sub => sub._id.toHexString() === this.getUpdate().$pull.subscriptions._id.toHexString());
     const populatedDeletedSub = await populateServices(deletedSub);
