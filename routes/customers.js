@@ -86,7 +86,7 @@ exports.plugin = {
               phone: Joi.string().allow('', null),
               address: {
                 street: Joi.string().required(),
-                additionalAddress: Joi.string(),
+                additionalAddress: Joi.string().allow('', null),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),
