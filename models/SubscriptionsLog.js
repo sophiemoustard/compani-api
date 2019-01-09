@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const SubscriptionsLogSchema = mongoose.Schema({
   customer: {
+    customerId: { type: mongoose.Schema.Types.ObjectId },
     firstname: String,
     lastname: String,
     ogustId: String

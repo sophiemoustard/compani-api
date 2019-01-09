@@ -124,6 +124,7 @@ async function saveSubscriptionsChanges(doc, next) {
     if (!deletedSub) return next();
     const payload = {
       customer: {
+        customerId: doc._id,
         firstname: doc.identity.firstname,
         lastname: doc.identity.lastname,
         ogustId: doc.customerId
