@@ -36,7 +36,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             identity: {
               title: Joi.string(),
-              firstname: Joi.string(),
+              firstname: Joi.string().allow(null, ''),
               lastname: Joi.string().required()
             },
             contact: Joi.object().keys({
