@@ -8,8 +8,9 @@ const EventSchema = mongoose.Schema({
   subType: String,
   startDate: Date,
   endDate: Date,
-  auxilary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+  subscription: { type: mongoose.Schema.Types.ObjectId },
   location: {
     street: String,
     fullAddress: String,

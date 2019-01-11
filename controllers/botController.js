@@ -95,7 +95,7 @@ const getUserByParamId = async (req) => {
   }
 };
 
-const showAll =  async (req) => {
+const showAll = async (req) => {
   try {
     if (req.query.role) {
       req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();

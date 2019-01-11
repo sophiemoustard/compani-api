@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
+  list,
   create,
 } = require('../controllers/eventController');
 
@@ -40,6 +41,23 @@ exports.plugin = {
         }
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        validate: {
+          query: {
+            startDate: Joi.string(),
+            endDate: Joi.string(),
+          },
+        },
+        auth: {
+          strategy: 'jwt',
+        }
+      },
+      handler: list,
     });
   },
 };
