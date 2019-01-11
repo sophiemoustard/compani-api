@@ -11,9 +11,7 @@ const populateEventSubscription = (event) => {
     .find(sub => sub._id.toHexString() === event.subscription.toHexString());
   if (!subscription) throw Boom.notFound(translate[language].subscriptionNotFound);
 
-  event.subscription = subscription;
-
-  return event;
+  return { ...event, subscription };
 };
 
 const populateEventsListSubscription = events => events.map(event => populateEventSubscription(event.toObject()));

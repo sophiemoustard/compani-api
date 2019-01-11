@@ -5,6 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
   create,
+  update,
 } = require('../controllers/eventController');
 
 exports.plugin = {
@@ -58,6 +59,39 @@ exports.plugin = {
         }
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: { _id: Joi.objectId() },
+          payload: Joi.object().keys({
+            subType: Joi.string(),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
+            auxiliary: Joi.objectId(),
+            customer: Joi.objectId(),
+            location: Joi.object().keys({
+              street: Joi.string(),
+              zipCode: Joi.string(),
+              city: Joi.string(),
+              fullAddress: Joi.string(),
+              location: {
+                type: Joi.string(),
+                coordinates: Joi.array()
+              },
+            }),
+            misc: Joi.string().allow(null, ''),
+            subscription: Joi.objectId(),
+          })
+        },
+        auth: {
+          strategy: 'jwt',
+        }
+      },
+      handler: update,
     });
   },
 };
