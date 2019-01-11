@@ -59,12 +59,6 @@ exports.routes = [
       prefix: '/messageToBot'
     }
   },
-  // {
-  //   plugin: require('./uploader'),
-  //   routes: {
-  //     prefix: '/uploader'
-  //   }
-  // },
   {
     plugin: require('./gdrive'),
     routes: {
@@ -165,6 +159,12 @@ exports.routes = [
     plugin: require('./Esign'),
     routes: {
       prefix: '/esign'
+    }
+  },
+  {
+    plugin: require('./events'),
+    routes: {
+      prefix: '/events'
     }
   }
 ];

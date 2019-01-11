@@ -175,6 +175,14 @@ module.exports = {
     googleDriveFolderCreationFailed: 'Google drive folder creation failed.',
     googleDriveFolderNotFound: 'Google drive folder not found.',
     googleDriveFileNotFound: 'Google drive file not found.',
+
+    /* Events */
+    eventsNotFound: 'Events not found',
+    eventNotFound: 'Event not found',
+    eventsFound: 'Event found',
+    eventCreated: 'Event created',
+    eventUpdated: 'Event updated',
+    eventDeleted: 'Event deleted',
   },
   'fr-FR': {
     /* Global errors */
@@ -349,5 +357,13 @@ module.exports = {
     googleDriveFolderCreationFailed: 'Echec de la création du dossier google drive.',
     googleDriveFolderNotFound: 'Dossier google drive non trouvé.',
     googleDriveFileNotFound: 'Fichier google drive non trouvé.',
+
+    /* Events */
+    eventsNotFound: 'Evènements non trouvés',
+    eventNotFound: 'Evènement non trouvé',
+    eventsFound: 'Evènement trouvé',
+    eventCreated: 'Evènement crée',
+    eventUpdated: 'Evènement mis à jour',
+    eventDeleted: 'Evènement supprimé',
   }
 };
