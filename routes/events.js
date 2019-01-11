@@ -1,0 +1,45 @@
+'use strict';
+
+const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
+const {
+  create,
+} = require('../controllers/eventController');
+
+exports.plugin = {
+  name: 'routes-event',
+  register: async (server) => {
+    server.route({
+      method: 'POST',
+      path: '/',
+      options: {
+        validate: {
+          payload: Joi.object().keys({
+            type: Joi.string().required().valid('intervention', 'absence', 'internalHour', 'unavailability'),
+            subType: Joi.string().required(),
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+            auxiliary: Joi.objectId().required(),
+            customer: Joi.objectId().when('type', { is: Joi.valid('intervention'), then: Joi.required() }),
+            location: Joi.object().keys({
+              street: Joi.string(),
+              zipCode: Joi.string(),
+              city: Joi.string(),
+              fullAddress: Joi.string(),
+              location: {
+                type: Joi.string(),
+                coordinates: Joi.array()
+              },
+            }),
+            misc: Joi.string().allow(null, ''),
+            subscription: Joi.objectId().when('type', { is: Joi.valid('intervention'), then: Joi.required() }),
+          })
+        },
+        auth: {
+          strategy: 'jwt',
+        }
+      },
+      handler: create,
+    });
+  },
+};

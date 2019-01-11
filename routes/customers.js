@@ -392,7 +392,6 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             mandateId: Joi.objectId().required()
-
           }
         },
         auth: 'jwt',
