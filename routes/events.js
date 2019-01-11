@@ -6,6 +6,7 @@ const {
   list,
   create,
   update,
+  remove,
 } = require('../controllers/eventController');
 
 exports.plugin = {
@@ -92,6 +93,20 @@ exports.plugin = {
         }
       },
       handler: update,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: { _id: Joi.objectId() },
+        },
+        auth: {
+          strategy: 'jwt',
+        }
+      },
+      handler: remove,
     });
   },
 };

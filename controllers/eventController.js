@@ -15,7 +15,8 @@ const list = async (req) => {
 
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'firstname lastname' })
-      .populate({ path: 'customer', select: 'identity subscriptions' });
+      .populate({ path: 'customer', select: 'identity subscriptions' })
+      .lean();
 
     if (events.length === 0) return Boom.notFound(translate[language].eventsNotFound);
 
@@ -78,9 +79,6 @@ const update = async (req) => {
   }
 };
 
-<<<<<<< Updated upstream
-const remove = async (req) => {};
-=======
 const remove = async (req) => {
   try {
     const event = await Event.findByIdAndRemove({ _id: req.params._id });
@@ -95,7 +93,6 @@ const remove = async (req) => {
     return Boom.badImplementation();
   }
 };
->>>>>>> Stashed changes
 
 module.exports = {
   list,

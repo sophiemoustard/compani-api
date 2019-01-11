@@ -14,7 +14,7 @@ const populateEventSubscription = (event) => {
   return { ...event, subscription };
 };
 
-const populateEventsListSubscription = events => events.map(event => populateEventSubscription(event.toObject()));
+const populateEventsListSubscription = events => events.map(event => populateEventSubscription(event));
 
 module.exports = {
   populateEventSubscription,
