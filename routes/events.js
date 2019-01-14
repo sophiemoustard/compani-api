@@ -8,6 +8,12 @@ const {
   update,
   remove,
 } = require('../controllers/eventController');
+const {
+  INTERNAL_HOUR,
+  ABSENCE,
+  UNAVAILABILITY,
+  INTERVENTION
+} = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-event',
@@ -18,12 +24,12 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            type: Joi.string().required().valid('intervention', 'absence', 'internalHour', 'unavailability'),
+            type: Joi.string().required().valid(INTERNAL_HOUR, INTERVENTION, ABSENCE, UNAVAILABILITY),
             subType: Joi.string().required(),
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
             auxiliary: Joi.objectId().required(),
-            customer: Joi.objectId().when('type', { is: Joi.valid('intervention'), then: Joi.required() }),
+            customer: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             location: Joi.object().keys({
               street: Joi.string(),
               zipCode: Joi.string(),
@@ -34,8 +40,9 @@ exports.plugin = {
                 coordinates: Joi.array()
               },
             }),
+            sector: Joi.string().required(),
             misc: Joi.string().allow(null, ''),
-            subscription: Joi.objectId().when('type', { is: Joi.valid('intervention'), then: Joi.required() }),
+            subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           })
         },
         auth: {
@@ -73,6 +80,7 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date(),
             auxiliary: Joi.objectId(),
+            sector: Joi.string(),
             customer: Joi.objectId(),
             location: Joi.object().keys({
               street: Joi.string(),
