@@ -1,5 +1,7 @@
-// EVENTS
-export const INTERVENTION = 'intervention';
-export const ABSENCE = 'absence';
-export const UNAVAILABILITY = 'unavailability';
-export const INTERNAL_HOUR = 'internalHour';
+module.exports = {
+  // EVENTS
+  INTERVENTION: 'intervention',
+  ABSENCE: 'absence',
+  UNAVAILABILITY: 'unavailability',
+  INTERNAL_HOUR: 'internalHour',
+};

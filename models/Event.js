@@ -15,6 +15,7 @@ const EventSchema = mongoose.Schema({
   startDate: Date,
   endDate: Date,
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  sector: String,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   subscription: { type: mongoose.Schema.Types.ObjectId },
   location: {

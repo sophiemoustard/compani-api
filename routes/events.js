@@ -40,6 +40,7 @@ exports.plugin = {
                 coordinates: Joi.array()
               },
             }),
+            sector: Joi.string().required(),
             misc: Joi.string().allow(null, ''),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           })
@@ -79,6 +80,7 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date(),
             auxiliary: Joi.objectId(),
+            sector: Joi.string(),
             customer: Joi.objectId(),
             location: Joi.object().keys({
               street: Joi.string(),
