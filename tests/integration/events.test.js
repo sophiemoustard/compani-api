@@ -77,6 +77,7 @@ describe('EVENTS ROUTES', () => {
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
         customer: customer._id,
+        sector: '1b*',
         location: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
