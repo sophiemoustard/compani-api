@@ -14,7 +14,7 @@ const list = async (req) => {
     if (req.query.endDate) query.endDate = { $lte: moment(req.query.endDate, 'YYYYMMDD').toDate() };
 
     const events = await Event.find(query)
-      .populate({ path: 'auxiliary', select: 'firstname lastname' })
+      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
@@ -37,7 +37,7 @@ const create = async (req) => {
     let event = new Event(req.payload);
     await event.save();
     event = await Event.findOne({ _id: event._id })
-      .populate({ path: 'auxiliary', select: 'firstname lastname' })
+      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
@@ -61,7 +61,7 @@ const update = async (req) => {
         { $set: flat(req.payload) },
         { autopopulate: false, new: true }
       )
-      .populate({ path: 'auxiliary', select: 'firstname lastname' })
+      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
