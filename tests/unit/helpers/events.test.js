@@ -52,7 +52,7 @@ describe('populateEventSubscription', () => {
     try {
       populateEventSubscription(event);
     } catch (e) {
-      expect(e.output.statusCode).toEqual(409);
+      expect(e.output.statusCode).toEqual(500);
     }
   });
 
@@ -77,7 +77,7 @@ describe('populateEventSubscription', () => {
     try {
       populateEventSubscription(event);
     } catch (e) {
-      expect(e.output.statusCode).toEqual(409);
+      expect(e.output.statusCode).toEqual(500);
     }
   });
 });
