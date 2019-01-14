@@ -1,9 +1,15 @@
 const mongoose = require('mongoose');
+const {
+  INTERNAL_HOUR,
+  ABSENCE,
+  UNAVAILABILITY,
+  INTERVENTION
+} = require('../helpers/constants');
 
 const EventSchema = mongoose.Schema({
   type: {
     type: String,
-    enum: ['absence', 'intervention', 'unavailability', 'internalHour']
+    enum: [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY]
   },
   subType: String,
   startDate: Date,
