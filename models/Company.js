@@ -61,6 +61,29 @@ const CompanySchema = mongoose.Schema({
         link: String,
       },
     },
+    thirdPartyPayers: [{
+      name: String,
+      address: {
+        street: String,
+        fullAddress: String,
+        zipCode: String,
+        city: String
+      },
+      email: String,
+      unitPrice: Number,
+      billingMode: String,
+      logo: {
+        publicId: String,
+        link: {
+          type: String,
+          trim: true
+        }
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }]
   },
 }, {
   timestamps: true

@@ -134,6 +134,11 @@ module.exports = {
     companyInternalHourRemoved: 'Company internal hour removed.',
     companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed',
     companyInternalHourDeletionNotAllowed: 'Company internal hour deletion not allowed',
+    companyThirdPartyPayerCreated: 'Company third party payer created.',
+    companyThirdPartyPayersFound: 'Company third party payers found.',
+    companyThirdPartyPayersNotFound: 'Company third party payers not found.',
+    companyThirdPartyPayerUpdated: 'Company third party payer updated.',
+    companyThirdPartyPayerDeleted: 'Company third party payer deleted.',
     /* User contracts */
     userContractsFound: 'User contracts found.',
     userContractUpdated: 'User contract updated.',
@@ -325,6 +330,11 @@ module.exports = {
     companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
     companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
     companyInternalHourDeletionNotAllowed: 'Suppression de l\'heure interne non autorisée.',
+    companyThirdPartyPayerCreated: 'Tiers payeur de l\'entreprise créé.',
+    companyThirdPartyPayersFound: 'Tiers payeurs de l\'entreprise trouvés.',
+    companyThirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
+    companyThirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
+    companyThirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
     /* User contracts */
     userContractsFound: "Contrats de l'utilisateur trouvés.",
     userContractUpdated: "Contrat de l'utilisateur mis à jour.",

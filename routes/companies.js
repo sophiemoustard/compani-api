@@ -18,7 +18,11 @@ const {
   addInternalHour,
   updateInternalHour,
   getInternalHours,
-  removeInternalHour
+  removeInternalHour,
+  createCompanyThirdPartyPayers,
+  getCompanyThirdPartyPayers,
+  updateCompanyThirdPartyPayer,
+  deleteCompanyThirdPartyPayer
 } = require('../controllers/companyController');
 
 exports.plugin = {
@@ -319,6 +323,88 @@ exports.plugin = {
             internalHourId: Joi.objectId().required(),
           },
         },
+      }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/thirdparty',
+      handler: createCompanyThirdPartyPayers,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: { _id: Joi.objectId().required() },
+          payload: Joi.object().keys({
+            name: Joi.string().required(),
+            address: Joi.object().keys({
+              street: Joi.string(),
+              fullAddress: Joi.string(),
+              zipCode: Joi.string(),
+              city: Joi.string()
+            }),
+            email: Joi.string().email(),
+            unitPrice: Joi.number(),
+            billingMode: Joi.string().valid('directe', 'indirecte')
+          })
+        }
+      }
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/thirdparty',
+      handler: getCompanyThirdPartyPayers,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: { _id: Joi.objectId().required() },
+        }
+      }
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/thirdparty/{thirdPartyPayerId}',
+      handler: updateCompanyThirdPartyPayer,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            thirdPartyPayerId: Joi.objectId().required()
+          },
+          payload: Joi.object().keys({
+            name: Joi.string(),
+            address: Joi.object().keys({
+              street: Joi.string(),
+              fullAddress: Joi.string(),
+              zipCode: Joi.string(),
+              city: Joi.string()
+            }),
+            email: Joi.string().email(),
+            unitPrice: Joi.number(),
+            billingMode: Joi.string().valid('directe', 'indirecte'),
+            logo: Joi.object().keys({
+              publicId: Joi.string(),
+              link: Joi.string()
+            })
+          })
+        }
+      }
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/thirdparty/{thirdPartyPayerId}',
+      handler: deleteCompanyThirdPartyPayer,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            thirdPartyPayerId: Joi.objectId().required()
+          }
+        }
       }
     });
   }
