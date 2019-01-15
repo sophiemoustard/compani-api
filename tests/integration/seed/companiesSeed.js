@@ -18,6 +18,13 @@ const companiesList = [
         },
       ],
     },
+    rhConfig: {
+      internalHours: [
+        { name: 'Formation', default: true, _id: new ObjectID() },
+        { name: 'Code', default: false, _id: new ObjectID() },
+        { name: 'Gouter', default: false, _id: new ObjectID() },
+      ],
+    },
   },
 ];
 
