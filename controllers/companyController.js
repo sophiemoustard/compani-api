@@ -5,6 +5,7 @@ const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
 const drive = require('../models/GoogleDrive');
+const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -225,7 +226,12 @@ const deleteCompanyService = async (req) => {
 
 const addInternalHour = async (req) => {
   try {
-    const company = await Company.findOneAndUpdate(
+    const company = await Company.findOne({ _id: req.params._id });
+    if (company.rhConfig && company.rhConfig.internalHours && company.rhConfig.internalHours.length >= MAX_INTERNAL_HOURS_NUMBER) {
+      return Boom.forbidden(translate[language].companyInternalHourCreationNotAllowed);
+    }
+
+    const updatedCompany = await Company.findOneAndUpdate(
       { _id: req.params._id },
       { $push: { 'rhConfig.internalHours': req.payload } },
       {
@@ -236,7 +242,7 @@ const addInternalHour = async (req) => {
 
     return {
       message: translate[language].companyInternalHourCreated,
-      data: { internalHours: company.rhConfig.internalHours },
+      data: { internalHours: updatedCompany.rhConfig.internalHours },
     };
   } catch (e) {
     req.log('error', e);

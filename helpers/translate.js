@@ -132,6 +132,7 @@ module.exports = {
     companyInternalHoursNotFound: 'Company internal hours not found.',
     companyInternalHoursFound: 'Company internal hours found.',
     companyInternalHourRemoved: 'Company internal hour removed.',
+    companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed',
     /* User contracts */
     userContractsFound: 'User contracts found.',
     userContractUpdated: 'User contract updated.',
@@ -320,7 +321,8 @@ module.exports = {
     companyInternalHourUpdated: 'Heure interne de l\'entreprise modifiée.',
     companyInternalHoursNotFound: 'Heures internes de l\'entreprise non trouvées.',
     companyInternalHoursFound: 'Heures internes de l\'entreprise trouvées.',
-    companyInternalHourRemoved: 'heure interne de l\'entreprise supprimé.',
+    companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
+    companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
     /* User contracts */
     userContractsFound: "Contrats de l'utilisateur trouvés.",
     userContractUpdated: "Contrat de l'utilisateur mis à jour.",
