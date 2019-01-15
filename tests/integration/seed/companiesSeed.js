@@ -17,6 +17,12 @@ const companiesList = [
           vat: 12,
         },
       ],
+      thirdPartyPayers: [
+        {
+          _id: new ObjectID(),
+          name: 'Toto'
+        }
+      ]
     },
     rhConfig: {
       internalHours: [
