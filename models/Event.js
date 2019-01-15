@@ -18,6 +18,7 @@ const EventSchema = mongoose.Schema({
   sector: String,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   subscription: { type: mongoose.Schema.Types.ObjectId },
+  internalHour: { type: mongoose.Schema.Types.ObjectId },
   location: {
     street: String,
     fullAddress: String,

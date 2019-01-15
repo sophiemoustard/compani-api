@@ -5,7 +5,7 @@ const Event = require('../models/Event');
 const GoogleDrive = require('../models/GoogleDrive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
-const { populateEventsListSubscription, populateEventSubscription } = require('../helpers/events');
+const { populateEvents, populateEvent } = require('../helpers/events');
 
 const { language } = translate;
 
@@ -16,13 +16,13 @@ const list = async (req) => {
     if (req.query.endDate) query.endDate = { $lte: moment(req.query.endDate, 'YYYYMMDD').toDate() };
 
     const events = await Event.find(query)
-      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder' })
+      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder company' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
     if (events.length === 0) return Boom.notFound(translate[language].eventsNotFound);
 
-    const populatedEvents = await populateEventsListSubscription(events);
+    const populatedEvents = await populateEvents(events);
 
     return {
       message: translate[language].eventsFound,
@@ -39,11 +39,11 @@ const create = async (req) => {
     let event = new Event(req.payload);
     await event.save();
     event = await Event.findOne({ _id: event._id })
-      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder' })
+      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder company' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
-    const populatedEvent = populateEventSubscription(event);
+    const populatedEvent = await populateEvent(event);
 
     return {
       message: translate[language].eventCreated,
@@ -63,13 +63,13 @@ const update = async (req) => {
         { $set: flat(req.payload) },
         { autopopulate: false, new: true }
       )
-      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder' })
+      .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder company' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    const populatedEvent = populateEventSubscription(event);
+    const populatedEvent = await populateEvent(event);
 
     return {
       message: translate[language].eventUpdated,
