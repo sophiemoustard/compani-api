@@ -15,6 +15,10 @@ const {
   getCompanyServices,
   deleteCompanyService,
   updateCompanyService,
+  addInternalHour,
+  updateInternalHour,
+  getInternalHours,
+  removeInternalHour
 } = require('../controllers/companyController');
 
 exports.plugin = {
@@ -252,6 +256,70 @@ exports.plugin = {
           }),
         },
       },
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/internalHours',
+      handler: addInternalHour,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+          payload: Joi.object().keys({
+            name: Joi.string().required(),
+            default: Joi.boolean(),
+          }),
+        },
+      }
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/internalHours/{internalHourId}',
+      handler: updateInternalHour,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            internalHourId: Joi.objectId().required(),
+          },
+          payload: Joi.object().keys({
+            name: Joi.string(),
+            default: Joi.boolean(),
+          }),
+        },
+      }
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/internalHours',
+      handler: getInternalHours,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: { _id: Joi.objectId().required() },
+        },
+      }
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/internalHours/{internalHourId}',
+      handler: removeInternalHour,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            internalHourId: Joi.objectId().required(),
+          },
+        },
+      }
     });
   }
 };

@@ -5,12 +5,14 @@ const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
 const drive = require('../models/GoogleDrive');
+const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
     const companies = await Company.find(req.query);
+
     return {
       message: translate[language].companiesShowAllFound,
       data: companies
@@ -24,9 +26,8 @@ const list = async (req) => {
 const show = async (req) => {
   try {
     const company = await Company.findOne({ _id: req.params._id });
-    if (!company) {
-      return Boom.notFound(translate[language].companyNotFound);
-    }
+    if (!company) return Boom.notFound(translate[language].companyNotFound);
+
     return {
       message: translate[language].companyFound,
       data: { company }
@@ -41,11 +42,10 @@ const create = async (req) => {
   try {
     const newCompany = new Company(req.payload);
     await newCompany.save();
+
     return {
       message: translate[language].companyCreated,
-      data: {
-        company: newCompany
-      }
+      data: { company: newCompany }
     };
   } catch (e) {
     req.log('error', e);
@@ -94,9 +94,8 @@ const update = async (req) => {
 const remove = async (req) => {
   try {
     await Company.findOneAndRemove({ _id: req.params._id });
-    return {
-      message: translate[language].companyDeleted
-    };
+
+    return { message: translate[language].companyDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -146,21 +145,14 @@ const getCompanyServices = async (req) => {
         _id: req.params._id,
         'customersConfig.services': { $exists: true },
       },
-      {
-        name: 1,
-        'customersConfig.services': 1
-      },
+      { name: 1, 'customersConfig.services': 1 },
     );
 
-    if (!company) {
-      return Boom.notFound();
-    }
+    if (!company) return Boom.notFound(translate[language].companyServicesNotFound);
 
     return {
       message: translate[language].companyServicesFound,
-      data: {
-        services: company.customersConfig.services,
-      },
+      data: { services: company.customersConfig.services },
     };
   } catch (e) {
     req.log('error', e);
@@ -175,18 +167,13 @@ const createCompanyService = async (req) => {
       { $push: { 'customersConfig.services': req.payload } },
       {
         new: true,
-        select: {
-          name: 1,
-          'customersConfig.services': 1
-        },
+        select: { name: 1, 'customersConfig.services': 1 },
       },
     );
-  
+
     return {
       message: translate[language].companyServiceCreated,
-      data: {
-        services: company.customersConfig.services,
-      },
+      data: { services: company.customersConfig.services },
     };
   } catch (e) {
     req.log('error', e);
@@ -205,22 +192,15 @@ const updateCompanyService = async (req) => {
       { $set: flat(payload) },
       {
         new: true,
-        select: {
-          name: 1,
-          'customersConfig.services': 1
-        },
+        select: { name: 1, 'customersConfig.services': 1 },
       },
     );
 
-    if (!company) {
-      return Boom.notFound(translate[lamguage].companyServicesNotFound);
-    }
+    if (!company) return Boom.notFound(translate[language].companyServicesNotFound);
 
     return {
       message: translate[language].companyServicesUpdated,
-      data: {
-        services: company.customersConfig.services,
-      }
+      data: { services: company.customersConfig.services },
     };
   } catch (e) {
     req.log('error', e);
@@ -244,6 +224,105 @@ const deleteCompanyService = async (req) => {
   }
 };
 
+const addInternalHour = async (req) => {
+  try {
+    const company = await Company.findOne({ _id: req.params._id });
+    if (!company) return Boom.notFound(translate[language].companyNotFound);
+
+    if (company.rhConfig && company.rhConfig.internalHours && company.rhConfig.internalHours.length >= MAX_INTERNAL_HOURS_NUMBER) {
+      return Boom.forbidden(translate[language].companyInternalHourCreationNotAllowed);
+    }
+
+    const updatedCompany = await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { 'rhConfig.internalHours': req.payload } },
+      {
+        new: true,
+        select: { name: 1, 'rhConfig.internalHours': 1 },
+      },
+    );
+
+    return {
+      message: translate[language].companyInternalHourCreated,
+      data: { internalHours: updatedCompany.rhConfig.internalHours },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateInternalHour = async (req) => {
+  try {
+    const payload = { 'rhConfig.internalHours.$': { ...req.payload } };
+    const company = await Company.findOneAndUpdate(
+      {
+        _id: req.params._id,
+        'rhConfig.internalHours._id': req.params.internalHourId,
+      },
+      { $set: flat(payload) },
+      {
+        new: true,
+        select: { name: 1, 'rhConfig.internalHours': 1 },
+      },
+    );
+
+    if (!company) return Boom.notFound(translate[language].companyInternalHourNotFound);
+
+    return {
+      message: translate[language].companyInternalHourUpdated,
+      data: { internalHours: company.rhConfig.internalHours },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const getInternalHours = async (req) => {
+  try {
+    const company = await Company.findOne(
+      {
+        _id: req.params._id,
+        'rhConfig.internalHours': { $exists: true },
+      },
+      { name: 1, 'rhConfig.internalHours': 1 },
+    );
+
+    if (!company) return Boom.notFound(translate[language].companyInternalHoursNotFound);
+
+    return {
+      message: translate[language].companyInternalHoursFound,
+      data: { internalHours: company.rhConfig.internalHours },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+const removeInternalHour = async (req) => {
+  try {
+    const company = await Company.findOne({ _id: req.params._id });
+    if (!company || !company.rhConfig || !company.rhConfig.internalHours) return Boom.notFound(translate[language].companyInternalHourNotFound);
+
+    const internalHour = company.rhConfig.internalHours.find(hour => hour._id.toHexString() === req.params.internalHourId);
+    if (!internalHour) return Boom.notFound(translate[language].companyInternalHourNotFound);
+    if (internalHour.default) return Boom.forbidden();
+
+    await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $pull: { 'rhConfig.internalHours': { _id: req.params.internalHourId } } },
+    );
+
+    return {
+      message: translate[language].companyInternalHourRemoved,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
@@ -255,4 +334,8 @@ module.exports = {
   createCompanyService,
   deleteCompanyService,
   updateCompanyService,
+  addInternalHour,
+  updateInternalHour,
+  getInternalHours,
+  removeInternalHour
 };
