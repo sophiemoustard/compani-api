@@ -227,6 +227,8 @@ const deleteCompanyService = async (req) => {
 const addInternalHour = async (req) => {
   try {
     const company = await Company.findOne({ _id: req.params._id });
+    if (!company) return Boom.notFound(translate[language].companyNotFound);
+
     if (company.rhConfig && company.rhConfig.internalHours && company.rhConfig.internalHours.length >= MAX_INTERNAL_HOURS_NUMBER) {
       return Boom.forbidden(translate[language].companyInternalHourCreationNotAllowed);
     }
@@ -300,6 +302,13 @@ const getInternalHours = async (req) => {
 };
 const removeInternalHour = async (req) => {
   try {
+    const company = await Company.findOne({ _id: req.params._id });
+    if (!company || !company.rhConfig || !company.rhConfig.internalHours) return Boom.notFound(translate[language].companyInternalHourNotFound);
+
+    const internalHour = company.rhConfig.internalHours.find(hour => hour._id.toHexString() === req.params.internalHourId);
+    if (!internalHour) return Boom.notFound(translate[language].companyInternalHourNotFound);
+    if (internalHour.default) return Boom.forbidden();
+
     await Company.findOneAndUpdate(
       { _id: req.params._id },
       { $pull: { 'rhConfig.internalHours': { _id: req.params.internalHourId } } },
