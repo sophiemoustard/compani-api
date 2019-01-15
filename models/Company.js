@@ -36,6 +36,10 @@ const CompanySchema = mongoose.Schema({
         link: String
       },
     },
+    internalHours: [{
+      name: String,
+      default: { type: Boolean, default: false },
+    }]
   },
   customersConfig: {
     services: [{
