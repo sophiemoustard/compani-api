@@ -7,6 +7,7 @@ const {
   create,
   update,
   remove,
+  uploadFile,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -115,6 +116,21 @@ exports.plugin = {
         }
       },
       handler: remove,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/gdrive/{driveId}/upload',
+      handler: uploadFile,
+      options: {
+        payload: {
+          output: 'stream',
+          parse: true,
+          allow: 'multipart/form-data',
+          maxBytes: 5242880,
+        },
+        auth: { strategy: 'jwt' },
+      }
     });
   },
 };

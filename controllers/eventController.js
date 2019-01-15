@@ -1,8 +1,10 @@
 const Boom = require('boom');
 const moment = require('moment');
 const flat = require('flat');
-const translate = require('../helpers/translate');
 const Event = require('../models/Event');
+const GoogleDrive = require('../models/GoogleDrive');
+const translate = require('../helpers/translate');
+const { addFile } = require('../helpers/gdriveStorage');
 const { populateEventsListSubscription, populateEventSubscription } = require('../helpers/events');
 
 const { language } = translate;
@@ -94,9 +96,35 @@ const remove = async (req) => {
   }
 };
 
+const uploadFile = async (req) => {
+  try {
+    if (!req.payload.proofOfAbsence) return Boom.forbidden(translate[language].uploadNotAllowed);
+
+    const uploadedFile = await addFile({
+      driveFolderId: req.params.driveId,
+      name: req.payload.fileName,
+      type: req.payload['Content-Type'],
+      body: req.payload.proofOfAbsence,
+    });
+    const driveFileInfo = await GoogleDrive.getFileById({ fileId: uploadedFile.id });
+    const file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
+
+    const payload = { attachment: file };
+
+    return {
+      message: translate[language].fileCreated,
+      data: { payload },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   create,
   update,
   remove,
+  uploadFile,
 };
