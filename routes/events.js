@@ -61,6 +61,7 @@ exports.plugin = {
           query: {
             startDate: Joi.string(),
             endDate: Joi.string(),
+            sector: Joi.string(),
           },
         },
         auth: {
