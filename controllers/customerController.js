@@ -111,7 +111,7 @@ const update = async (req) => {
         const mandate = { rum: await generateRum() };
         customerUpdated = await Customer.findOneAndUpdate(
           { _id: req.params._id },
-          { $set: flat(req.payload), $push: { 'payment.mandates': mandate } },
+          { $set: flat(req.payload), $push: { 'payment.mandates': mandate }, $unset: { 'payment.bic': '' } },
           { new: true }
         );
       } else {
