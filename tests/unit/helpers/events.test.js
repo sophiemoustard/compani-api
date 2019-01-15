@@ -1,9 +1,10 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateEventSubscription, populateEventsListSubscription } = require('../../../helpers/events');
+const { populateEvent, populateEvents } = require('../../../helpers/events');
+const Company = require('../../../models/Company');
 
-describe('populateEventSubscription', () => {
-  it('should populate subscription as event is an intervention', () => {
+describe('populateEvent', () => {
+  it('should populate subscription as event is an intervention', async () => {
     const event = {
       type: 'intervention',
       customer: {
@@ -29,34 +30,52 @@ describe('populateEventSubscription', () => {
       subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
     };
 
-    const result = populateEventSubscription(event);
+    const result = await populateEvent(event);
     expect(result.subscription).toBeDefined();
     expect(result.subscription._id).toEqual(event.subscription);
   });
 
-  it('should not modify the input as event is not an intervention', () => {
+  it('should populate internalHour', async () => {
+    const internalHourId = new ObjectID();
+    const event = {
+      type: 'internalHour',
+      internalHour: internalHourId,
+      auxiliary: {
+        comapny: new ObjectID(),
+      },
+    };
+
+    Company.findOne = () => ({
+      internalHours: [
+        { _id: internalHourId, name: 'Formation' },
+        { _id: new ObjectID(), name: 'Gros run' },
+      ],
+    });
+  });
+
+  it('should not modify the input as event is not an intervention', async () => {
     const event = {
       type: 'absence',
     };
 
-    const result = populateEventSubscription(event);
+    const result = await populateEvent(event);
     expect(result.subscription).not.toBeDefined();
     expect(result).toEqual(event);
   });
 
-  it('should return an error as event is intervention but customer is undefined', () => {
+  it('should return an error as event is intervention but customer is undefined', async () => {
     const event = {
       type: 'intervention',
     };
 
     try {
-      populateEventSubscription(event);
+      await populateEvent(event);
     } catch (e) {
       expect(e.output.statusCode).toEqual(500);
     }
   });
 
-  it('should throw an error as no corresopnding subscription is found in the customer', () => {
+  it('should throw an error as no corresopnding subscription is found in the customer', async () => {
     const event = {
       type: 'intervention',
       customer: {
@@ -75,15 +94,15 @@ describe('populateEventSubscription', () => {
     };
 
     try {
-      populateEventSubscription(event);
+      await populateEvent(event);
     } catch (e) {
       expect(e.output.statusCode).toEqual(500);
     }
   });
 });
 
-describe('populateEventsListSubscription', () => {
-  it('should populate subscription as event is an intervention', () => {
+describe('populateEvents', () => {
+  it('should populate subscription as event is an intervention', async () => {
     const events = [
       {
         type: 'intervention',
@@ -135,7 +154,7 @@ describe('populateEventsListSubscription', () => {
       }
     ];
 
-    const result = populateEventsListSubscription(events);
+    const result = await populateEvents(events);
     expect(result[0].subscription).toBeDefined();
     expect(result[1].subscription).toBeDefined();
     expect(result[0].subscription._id).toEqual(events[0].subscription);
