@@ -21,6 +21,9 @@ exports.addImage = async params => new Promise((resolve, reject) => {
     case 'Auxiliaire':
       folder = 'images/users/auxiliaries';
       break;
+    case 'ThirdPartyPayers':
+      folder = 'images/thirdpartypayers_logo';
+      break;
     default:
       folder = 'images/users/auxiliaries';
       break;

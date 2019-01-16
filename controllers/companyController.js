@@ -324,6 +324,115 @@ const removeInternalHour = async (req) => {
   }
 };
 
+const createCompanyThirdPartyPayers = async (req) => {
+  try {
+    const company = await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { 'customersConfig.thirdPartyPayers': req.payload } },
+      {
+        new: true,
+        select: {
+          name: 1,
+          'customersConfig.thirdPartyPayers': 1
+        },
+      },
+    );
+
+    if (!company) return Boom.notFound(translate[language].companyNotFound);
+
+    return {
+      message: translate[language].companyThirdPartyPayerCreated,
+      data: {
+        thirdPartyPayers: company.customersConfig.thirdPartyPayers
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const getCompanyThirdPartyPayers = async (req) => {
+  try {
+    const company = await Company.findOne(
+      {
+        _id: req.params._id,
+        'customersConfig.thirdPartyPayers': { $exists: true },
+      },
+      {
+        name: 1,
+        'customersConfig.thirdPartyPayers': 1
+      },
+    );
+
+    if (!company) {
+      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
+    }
+
+    return {
+      message: translate[language].companyThirdPartyPayersFound,
+      data: {
+        thirdPartyPayers: company.customersConfig.thirdPartyPayers,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateCompanyThirdPartyPayer = async (req) => {
+  try {
+    const payload = { 'customersConfig.thirdPartyPayers.$': { ...req.payload } };
+    const company = await Company.findOneAndUpdate(
+      {
+        _id: req.params._id,
+        'customersConfig.thirdPartyPayers._id': req.params.thirdPartyPayerId,
+      },
+      { $set: flat(payload) },
+      {
+        new: true,
+        select: {
+          name: 1,
+          'customersConfig.thirdPartyPayers': 1
+        },
+      },
+    );
+
+    if (!company) {
+      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
+    }
+    return {
+      message: translate[language].companyThirdPartyPayersUpdated,
+      data: {
+        thirdPartyPayers: company.customersConfig.thirdPartyPayers.find(thirdPartyPayer => thirdPartyPayer._id.toHexString() === req.params.thirdPartyPayerId),
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const deleteCompanyThirdPartyPayer = async (req) => {
+  try {
+    const company = await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $pull: { 'customersConfig.thirdPartyPayers': { _id: req.params.thirdPartyPayerId } } },
+    );
+
+    if (!company) {
+      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
+    }
+    return {
+      message: translate[language].companyThirdPartyPayerDeleted
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
@@ -338,5 +447,9 @@ module.exports = {
   addInternalHour,
   updateInternalHour,
   getInternalHours,
-  removeInternalHour
+  removeInternalHour,
+  createCompanyThirdPartyPayers,
+  getCompanyThirdPartyPayers,
+  updateCompanyThirdPartyPayer,
+  deleteCompanyThirdPartyPayer
 };

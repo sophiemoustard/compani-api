@@ -427,3 +427,198 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
     });
   });
 });
+
+describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
+  let authToken = null;
+  beforeEach(populateCompanies);
+  beforeEach(async () => {
+    authToken = await getToken();
+  });
+
+  describe('POST /companies/:id/thirdpartypayers', () => {
+    it('should create a new third party payer', async () => {
+      const company = companiesList[0];
+      const initialThirdPartyPayerNumber = company.customersConfig.thirdPartyPayers.length;
+
+      const payload = {
+        name: 'Test',
+        address: {
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris'
+        },
+        email: 'test@test.com',
+        unitTTCPrice: 75,
+        billingMode: 'directe',
+        logo: {
+          publicId: 'test',
+          link: 'https://pic.test.com'
+        }
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/companies/${company._id.toHexString()}/thirdpartypayers`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.thirdPartyPayers.length).toEqual(initialThirdPartyPayerNumber + 1);
+    });
+    it("should return a 400 error if 'name' params is missing", async () => {
+      const company = companiesList[0];
+      const payload = {
+        address: {
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris'
+        },
+        email: 'test@test.com',
+        unitTTCPrice: 75,
+        billingMode: 'directe'
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/companies/${company._id.toHexString()}/thirdpartypayers`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+    it('should return a 404 error if company does not exist', async () => {
+      const payload = {
+        name: 'Test',
+        address: {
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris'
+        },
+        email: 'test@test.com',
+        unitTTCPrice: 75,
+        billingMode: 'directe'
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/companies/${new ObjectID().toHexString()}/thirdpartypayers`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('GET /companies/:id/thirdpartypayers', () => {
+    it('should get company third party payers', async () => {
+      const company = companiesList[0];
+      const thirdPartyPayerNumber = company.customersConfig.thirdPartyPayers.length;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${company._id.toHexString()}/thirdpartypayers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.thirdPartyPayers.length).toEqual(thirdPartyPayerNumber);
+    });
+
+    it('should return a 404 error if company does not exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${new ObjectID().toHexString()}/thirdpartypayers`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('PUT /companies/:id/thirdpartypayers/:thirdPartyPayerId', () => {
+    it('should update a third party payer', async () => {
+      const company = companiesList[0];
+
+      const payload = {
+        name: 'SuperTest',
+        address: {
+          fullAddress: '4 rue du test 92160 Antony',
+          street: '4 rue du test',
+          zipCode: '92160',
+          city: 'Antony'
+        },
+        email: 't@t.com',
+        unitTTCPrice: 89,
+        billingMode: 'indirecte',
+        logo: {
+          publicId: 'test',
+          link: 'https://pic.test.com'
+        }
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id.toHexString()}/thirdpartypayers/${company.customersConfig.thirdPartyPayers[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.thirdPartyPayers).toMatchObject(payload);
+    });
+    it('should return a 404 error if company does not exist', async () => {
+      const company = companiesList[0];
+      const payload = {
+        name: 'SuperTest',
+        address: {
+          fullAddress: '4 rue du test 92160 Antony',
+          street: '4 rue du test',
+          zipCode: '92160',
+          city: 'Antony'
+        },
+        email: 't@t.com',
+        unitTTCPrice: 89,
+        billingMode: 'indirecte',
+        logo: {
+          publicId: 'test',
+          link: 'https://pic.test.com'
+        }
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${new ObjectID().toHexString()}/thirdpartypayers/${company.customersConfig.thirdPartyPayers[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('DELETE /companies/:id/thirdpartypayers/:thirdPartyPayerId', () => {
+    it('should delete company thirdPartyPayer', async () => {
+      const company = companiesList[0];
+      const thirdPartyPayer = company.customersConfig.thirdPartyPayers[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/companies/${company._id.toHexString()}/thirdpartypayers/${thirdPartyPayer._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(200);
+    });
+    it('should return a 404 error if company does not exist', async () => {
+      const company = companiesList[0];
+      const thirdPartyPayer = company.customersConfig.thirdPartyPayers[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/companies/${new ObjectID().toHexString()}/thirdpartypayers/${thirdPartyPayer._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
+});
