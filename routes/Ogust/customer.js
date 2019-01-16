@@ -97,6 +97,7 @@ exports.plugin = {
             method_of_payment: Joi.string().default('112539'),
             manager: Joi.string().default('302007671'),
             type: Joi.string().default('C'),
+            exoneration: Joi.string().default('D'),
             main_address: Joi.object().keys({
               line: Joi.string(),
               supplement: Joi.string(),
