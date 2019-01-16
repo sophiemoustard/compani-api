@@ -44,6 +44,7 @@ exports.plugin = {
             sector: Joi.string().required(),
             misc: Joi.string().allow(null, ''),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
+            internalHour: Joi.objectId().when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
           })
         },
         auth: {
@@ -96,6 +97,7 @@ exports.plugin = {
             }),
             misc: Joi.string().allow(null, ''),
             subscription: Joi.objectId(),
+            internalHour: Joi.objectId(),
           })
         },
         auth: {
