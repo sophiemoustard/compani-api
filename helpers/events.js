@@ -57,7 +57,7 @@ const populateEvents = async (events) => {
 };
 
 const setInternalHourTypeToDefault = async (deletedInternalHourId, defaultInternalHour) => {
-  const payload = { internalHour: defaultInternalHour._id, subType: defaultInternalHour.name };
+  const payload = { internalHour: defaultInternalHour._id };
   await Event.update(
     {
       type: INTERNAL_HOUR,

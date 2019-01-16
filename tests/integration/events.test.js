@@ -72,7 +72,6 @@ describe('EVENTS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         type: 'intervention',
-        subType: 'Temps de qualité - Autonomie',
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
@@ -99,7 +98,6 @@ describe('EVENTS ROUTES', () => {
     it('should return a 400 error as payload is invalid (subscription missing with type intervention)', async () => {
       const payload = {
         type: 'intervention',
-        subType: 'Temps de qualité - Autonomie',
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: '5c0002a5086ec30013f7f436',
