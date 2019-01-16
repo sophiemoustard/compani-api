@@ -120,12 +120,14 @@ describe('COMPANIES SERVICES ROUTES', () => {
       const initialServicesNumber = company.customersConfig.services.length;
 
       const payload = {
-        defaultUnitAmount: 12,
-        eveningSurcharge: '',
-        holidaySurcharge: '',
-        name: 'Service',
+        versions: [{
+          defaultUnitAmount: 12,
+          eveningSurcharge: '',
+          holidaySurcharge: '',
+          name: 'Service',
+          vat: 12,
+        }],
         nature: 'Service',
-        vat: 12,
       };
       const response = await app.inject({
         method: 'POST',
@@ -173,7 +175,7 @@ describe('COMPANIES SERVICES ROUTES', () => {
         eveningSurcharge: '',
         holidaySurcharge: '',
         name: 'Service bis',
-        nature: 'Service bis',
+        startDate: '2019-01-16 17:58:15.519',
         vat: 12,
       };
       const response = await app.inject({
@@ -184,7 +186,8 @@ describe('COMPANIES SERVICES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.services[0].name).toEqual(payload.name);
+      expect(response.result.data.services[0].versions).toBeDefined();
+      expect(response.result.data.services[0].versions.length).toEqual(service.versions.length + 1);
     });
 
     it('should return 404 if no company found', async () => {

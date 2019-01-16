@@ -7,11 +7,16 @@ const populateServices = async (subscriptions) => {
 
   return subscriptions.map((subscription) => {
     const serviceId = subscription.service;
-    const subscribedService = company.customersConfig.services.find(service => service._id.toHexString() == serviceId);
+    const service = company.customersConfig.services.find(ser => ser._id.toHexString() == serviceId);
+    const lastVersion = service.versions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
     return {
       ...subscription,
-      service: subscribedService,
+      service: {
+        _id: service._id,
+        name: lastVersion.name,
+        nature: service.nature,
+      },
     };
   });
 };
