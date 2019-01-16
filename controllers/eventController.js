@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const moment = require('moment');
+const _ = require('lodash');
 const flat = require('flat');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/GoogleDrive');
@@ -13,7 +14,10 @@ const list = async (req) => {
   try {
     const query = { ...req.query };
     if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD').toDate() };
-    if (req.query.endDate) query.endDate = { $lte: moment(req.query.endDate, 'YYYYMMDD').toDate() };
+    if (req.query.endStartDate) {
+      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD').toDate() };
+      _.unset(query, 'endStartDate');
+    }
 
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'firstname lastname administrative.driveFolder company' })

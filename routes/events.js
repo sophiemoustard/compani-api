@@ -65,7 +65,7 @@ exports.plugin = {
         validate: {
           query: {
             startDate: Joi.string(),
-            endDate: Joi.string(),
+            endStartDate: Joi.string(),
             sector: Joi.string(),
           },
         },
