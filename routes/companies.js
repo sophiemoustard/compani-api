@@ -25,6 +25,8 @@ const {
   deleteCompanyThirdPartyPayer
 } = require('../controllers/companyController');
 
+const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+
 exports.plugin = {
   name: 'routes-companies',
   register: async (server) => {
@@ -328,7 +330,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/{_id}/thirdparty',
+      path: '/{_id}/thirdpartypayers',
       handler: createCompanyThirdPartyPayers,
       options: {
         auth: { strategy: 'jwt' },
@@ -343,8 +345,8 @@ exports.plugin = {
               city: Joi.string()
             }),
             email: Joi.string().email(),
-            unitPrice: Joi.number(),
-            billingMode: Joi.string().valid('directe', 'indirecte')
+            unitTTCPrice: Joi.number(),
+            billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT)
           })
         }
       }
@@ -352,7 +354,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/{_id}/thirdparty',
+      path: '/{_id}/thirdpartypayers',
       handler: getCompanyThirdPartyPayers,
       options: {
         auth: { strategy: 'jwt' },
@@ -364,7 +366,7 @@ exports.plugin = {
 
     server.route({
       method: 'PUT',
-      path: '/{_id}/thirdparty/{thirdPartyPayerId}',
+      path: '/{_id}/thirdpartypayers/{thirdPartyPayerId}',
       handler: updateCompanyThirdPartyPayer,
       options: {
         auth: { strategy: 'jwt' },
@@ -382,8 +384,8 @@ exports.plugin = {
               city: Joi.string()
             }),
             email: Joi.string().email(),
-            unitPrice: Joi.number(),
-            billingMode: Joi.string().valid('directe', 'indirecte'),
+            unitTTCPrice: Joi.number(),
+            billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
             logo: Joi.object().keys({
               publicId: Joi.string(),
               link: Joi.string()
@@ -395,7 +397,7 @@ exports.plugin = {
 
     server.route({
       method: 'DELETE',
-      path: '/{_id}/thirdparty/{thirdPartyPayerId}',
+      path: '/{_id}/thirdpartypayers/{thirdPartyPayerId}',
       handler: deleteCompanyThirdPartyPayer,
       options: {
         auth: { strategy: 'jwt' },

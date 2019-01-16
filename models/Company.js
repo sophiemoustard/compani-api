@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+
 const CompanySchema = mongoose.Schema({
   name: {
     type: String,
@@ -70,8 +72,11 @@ const CompanySchema = mongoose.Schema({
         city: String
       },
       email: String,
-      unitPrice: Number,
-      billingMode: String,
+      unitTTCPrice: Number,
+      billingMode: {
+        type: String,
+        enum: [BILLING_DIRECT, BILLING_INDIRECT]
+      },
       logo: {
         publicId: String,
         link: {

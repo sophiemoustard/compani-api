@@ -338,6 +338,8 @@ const createCompanyThirdPartyPayers = async (req) => {
       },
     );
 
+    if (!company) return Boom.notFound(translate[language].companyThirdPartyPayerNotFound);
+
     return {
       message: translate[language].companyThirdPartyPayerCreated,
       data: {
@@ -364,7 +366,7 @@ const getCompanyThirdPartyPayers = async (req) => {
     );
 
     if (!company) {
-      return Boom.notFound();
+      return Boom.notFound(translate[language].companyThirdPartyPayerNotFound);
     }
 
     return {
