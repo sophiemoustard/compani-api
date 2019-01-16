@@ -300,6 +300,7 @@ const getInternalHours = async (req) => {
     return Boom.badImplementation();
   }
 };
+
 const removeInternalHour = async (req) => {
   try {
     const company = await Company.findOne({ _id: req.params._id });
@@ -307,7 +308,7 @@ const removeInternalHour = async (req) => {
 
     const internalHour = company.rhConfig.internalHours.find(hour => hour._id.toHexString() === req.params.internalHourId);
     if (!internalHour) return Boom.notFound(translate[language].companyInternalHourNotFound);
-    if (internalHour.default) return Boom.forbidden();
+    if (internalHour.default) return Boom.forbidden(translate[language].companyInternalHourDeletionNotAllowed);
 
     await Company.findOneAndUpdate(
       { _id: req.params._id },
