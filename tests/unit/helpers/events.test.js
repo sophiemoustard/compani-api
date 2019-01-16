@@ -1,7 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const { populateEventSubscription, populateEvents } = require('../../../helpers/events');
-const Company = require('../../../models/Company');
 
 describe('populateEvent', () => {
   it('should populate subscription as event is an intervention', async () => {

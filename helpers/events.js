@@ -27,12 +27,12 @@ const populateEvents = async (events) => {
   return populatedEvents;
 };
 
-const setInternalHourTypeToDefault = async (deletedInternalHourId, defaultInternalHour) => {
-  const payload = { internalHour: defaultInternalHour };
+const updateEventsInternalHourType = async (oldInternalHourId, newInternalHour) => {
+  const payload = { internalHour: newInternalHour };
   await Event.update(
     {
       type: INTERNAL_HOUR,
-      'internalHour._id': deletedInternalHourId,
+      'internalHour._id': oldInternalHourId,
       startDate: { $gte: moment().toDate() }
     },
     { $set: payload },
@@ -43,5 +43,5 @@ const setInternalHourTypeToDefault = async (deletedInternalHourId, defaultIntern
 module.exports = {
   populateEventSubscription,
   populateEvents,
-  setInternalHourTypeToDefault,
+  updateEventsInternalHourType,
 };
