@@ -346,7 +346,11 @@ exports.plugin = {
             }),
             email: Joi.string().email(),
             unitTTCPrice: Joi.number(),
-            billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT)
+            billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
+            logo: Joi.object().keys({
+              publicId: Joi.string(),
+              link: Joi.string()
+            })
           })
         }
       }

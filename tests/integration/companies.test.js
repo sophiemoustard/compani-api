@@ -450,7 +450,11 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         },
         email: 'test@test.com',
         unitTTCPrice: 75,
-        billingMode: 'directe'
+        billingMode: 'directe',
+        logo: {
+          publicId: 'test',
+          link: 'https://pic.test.com'
+        }
       };
       const response = await app.inject({
         method: 'POST',

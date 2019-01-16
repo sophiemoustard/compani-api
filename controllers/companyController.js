@@ -366,7 +366,7 @@ const getCompanyThirdPartyPayers = async (req) => {
     );
 
     if (!company) {
-      return Boom.notFound(translate[language].companyThirdPartyPayerNotFound);
+      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
     }
 
     return {
@@ -400,7 +400,7 @@ const updateCompanyThirdPartyPayer = async (req) => {
     );
 
     if (!company) {
-      return Boom.notFound(translate[language].companyThirdPartyPayerNotFound);
+      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
     }
     return {
       message: translate[language].companyThirdPartyPayersUpdated,
@@ -422,7 +422,7 @@ const deleteCompanyThirdPartyPayer = async (req) => {
     );
 
     if (!company) {
-      return Boom.notFound(translate[language].companyThirdPartyPayerNotFound);
+      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
     }
     return {
       message: translate[language].companyThirdPartyPayerDeleted
