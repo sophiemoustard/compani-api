@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const moment = require('moment');
 const {
   INTERVENTION,
   INTERNAL_HOUR,
@@ -6,6 +7,7 @@ const {
   ABSENCE
 } = require('./constants');
 const Company = require('../models/Company');
+const Event = require('../models/Event');
 
 const populateEventSubscription = (event) => {
   if (event.type !== INTERVENTION) return event;
@@ -54,7 +56,21 @@ const populateEvents = async (events) => {
   return populatedEvents;
 };
 
+const setInternalHourTypeToDefault = async (deletedInternalHourId, defaultInternalHour) => {
+  const payload = { internalHour: defaultInternalHour._id, subType: defaultInternalHour.name };
+  await Event.update(
+    {
+      type: INTERNAL_HOUR,
+      internalHour: deletedInternalHourId,
+      startDate: { $gte: moment().toDate() }
+    },
+    { $set: payload },
+    { multi: true },
+  );
+};
+
 module.exports = {
   populateEvent,
   populateEvents,
+  setInternalHourTypeToDefault,
 };
