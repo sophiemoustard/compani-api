@@ -1,7 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateEvent, populateEvents } = require('../../../helpers/events');
-const Company = require('../../../models/Company');
+const { populateEventSubscription, populateEvents } = require('../../../helpers/events');
 
 describe('populateEvent', () => {
   it('should populate subscription as event is an intervention', async () => {
@@ -30,27 +29,9 @@ describe('populateEvent', () => {
       subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
     };
 
-    const result = await populateEvent(event);
+    const result = await populateEventSubscription(event);
     expect(result.subscription).toBeDefined();
     expect(result.subscription._id).toEqual(event.subscription);
-  });
-
-  it('should populate internalHour', async () => {
-    const internalHourId = new ObjectID();
-    const event = {
-      type: 'internalHour',
-      internalHour: internalHourId,
-      auxiliary: {
-        comapny: new ObjectID(),
-      },
-    };
-
-    Company.findOne = () => ({
-      internalHours: [
-        { _id: internalHourId, name: 'Formation' },
-        { _id: new ObjectID(), name: 'Gros run' },
-      ],
-    });
   });
 
   it('should not modify the input as event is not an intervention', async () => {
@@ -58,7 +39,7 @@ describe('populateEvent', () => {
       type: 'absence',
     };
 
-    const result = await populateEvent(event);
+    const result = await populateEventSubscription(event);
     expect(result.subscription).not.toBeDefined();
     expect(result).toEqual(event);
   });
@@ -69,7 +50,7 @@ describe('populateEvent', () => {
     };
 
     try {
-      await populateEvent(event);
+      await populateEventSubscription(event);
     } catch (e) {
       expect(e.output.statusCode).toEqual(500);
     }
@@ -94,7 +75,7 @@ describe('populateEvent', () => {
     };
 
     try {
-      await populateEvent(event);
+      await populateEventSubscription(event);
     } catch (e) {
       expect(e.output.statusCode).toEqual(500);
     }

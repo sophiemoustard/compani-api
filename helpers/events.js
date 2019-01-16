@@ -1,11 +1,10 @@
 const Boom = require('boom');
+const moment = require('moment');
 const {
   INTERVENTION,
   INTERNAL_HOUR,
-  UNAVAILABILITY,
-  ABSENCE
 } = require('./constants');
-const Company = require('../models/Company');
+const Event = require('../models/Event');
 
 const populateEventSubscription = (event) => {
   if (event.type !== INTERVENTION) return event;
@@ -18,43 +17,31 @@ const populateEventSubscription = (event) => {
   return { ...event, subscription };
 };
 
-const populateEventInternalHour = async (event) => {
-  if (event.type !== INTERNAL_HOUR) return event;
-  if (!event.auxiliary || !event.auxiliary.company || !event.auxiliary.company) return Boom.badImplementation();
-
-  const company = await Company.findOne({ _id: event.auxiliary.company });
-
-  const internalHour = company.rhConfig.internalHours
-    .find(hour => hour._id.toHexString() === event.internalHour.toHexString());
-  if (!internalHour) throw Boom.badImplementation();
-
-  return { ...event, internalHour };
-};
-
-const populateEvent = async (event) => {
-  switch (event.type) {
-    case INTERVENTION:
-      return populateEventSubscription(event);
-    case INTERNAL_HOUR:
-      return populateEventInternalHour(event);
-    case UNAVAILABILITY:
-    case ABSENCE:
-    default:
-      return event;
-  }
-};
-
 const populateEvents = async (events) => {
   const populatedEvents = [];
   for (let i = 0; i < events.length; i++) {
-    const event = await populateEvent(events[i]);
+    const event = await populateEventSubscription(events[i]);
     populatedEvents.push(event);
   }
 
   return populatedEvents;
 };
 
+const updateEventsInternalHourType = async (oldInternalHourId, newInternalHour) => {
+  const payload = { internalHour: newInternalHour };
+  await Event.update(
+    {
+      type: INTERNAL_HOUR,
+      'internalHour._id': oldInternalHourId,
+      startDate: { $gte: moment().toDate() }
+    },
+    { $set: payload },
+    { multi: true },
+  );
+};
+
 module.exports = {
-  populateEvent,
+  populateEventSubscription,
   populateEvents,
+  updateEventsInternalHourType,
 };

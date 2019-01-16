@@ -26,7 +26,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(INTERNAL_HOUR, INTERVENTION, ABSENCE, UNAVAILABILITY),
-            subType: Joi.string().required(),
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
             auxiliary: Joi.objectId().required(),
@@ -44,7 +43,12 @@ exports.plugin = {
             sector: Joi.string().required(),
             misc: Joi.string().allow(null, ''),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
-            internalHour: Joi.objectId().when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
+            internalHour: Joi.object().keys({
+              name: Joi.string(),
+              _id: Joi.objectId(),
+              default: Joi.boolean(),
+            }).when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
+            absence: Joi.string().when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
           })
         },
         auth: {
@@ -79,7 +83,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId() },
           payload: Joi.object().keys({
-            subType: Joi.string(),
             startDate: Joi.date(),
             endDate: Joi.date(),
             auxiliary: Joi.objectId(),
@@ -98,6 +101,7 @@ exports.plugin = {
             misc: Joi.string().allow(null, ''),
             subscription: Joi.objectId(),
             internalHour: Joi.objectId(),
+            absence: Joi.string(),
           })
         },
         auth: {

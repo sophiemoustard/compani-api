@@ -6,6 +6,7 @@ const { addFile } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
 const drive = require('../models/GoogleDrive');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
+const { updateEventsInternalHourType } = require('../helpers/events');
 
 const { language } = translate;
 
@@ -254,11 +255,12 @@ const addInternalHour = async (req) => {
 
 const updateInternalHour = async (req) => {
   try {
+    const { _id: companyId, internalHourId } = req.params;
     const payload = { 'rhConfig.internalHours.$': { ...req.payload } };
     const company = await Company.findOneAndUpdate(
       {
-        _id: req.params._id,
-        'rhConfig.internalHours._id': req.params.internalHourId,
+        _id: companyId,
+        'rhConfig.internalHours._id': internalHourId,
       },
       { $set: flat(payload) },
       {
@@ -268,6 +270,11 @@ const updateInternalHour = async (req) => {
     );
 
     if (!company) return Boom.notFound(translate[language].companyInternalHourNotFound);
+
+    if (req.payload.name) {
+      const updatedInternalHour = company.rhConfig.internalHours.find(hour => hour._id.toHexString() === internalHourId);
+      await updateEventsInternalHourType(updatedInternalHour._id, updateInternalHour);
+    }
 
     return {
       message: translate[language].companyInternalHourUpdated,
@@ -303,16 +310,23 @@ const getInternalHours = async (req) => {
 
 const removeInternalHour = async (req) => {
   try {
-    const company = await Company.findOne({ _id: req.params._id });
+    const { _id: companyId, internalHourId } = req.params;
+
+    const company = await Company.findOne({ _id: companyId });
     if (!company || !company.rhConfig || !company.rhConfig.internalHours) return Boom.notFound(translate[language].companyInternalHourNotFound);
 
-    const internalHour = company.rhConfig.internalHours.find(hour => hour._id.toHexString() === req.params.internalHourId);
+    const internalHour = company.rhConfig.internalHours.find(hour => hour._id.toHexString() === internalHourId);
     if (!internalHour) return Boom.notFound(translate[language].companyInternalHourNotFound);
     if (internalHour.default) return Boom.forbidden(translate[language].companyInternalHourDeletionNotAllowed);
 
+    const defaultType = company.rhConfig.internalHours.find(hour => hour.default);
+    if (!defaultType) return Boom.badImplementation();
+
+    await updateEventsInternalHourType(internalHourId, defaultType);
+
     await Company.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: { 'rhConfig.internalHours': { _id: req.params.internalHourId } } },
+      { _id: companyId },
+      { $pull: { 'rhConfig.internalHours': { _id: internalHourId } } },
     );
 
     return {

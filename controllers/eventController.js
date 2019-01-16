@@ -5,7 +5,7 @@ const Event = require('../models/Event');
 const GoogleDrive = require('../models/GoogleDrive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
-const { populateEvents, populateEvent } = require('../helpers/events');
+const { populateEvents, populateEventSubscription } = require('../helpers/events');
 
 const { language } = translate;
 
@@ -43,7 +43,7 @@ const create = async (req) => {
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
-    const populatedEvent = await populateEvent(event);
+    const populatedEvent = await populateEventSubscription(event);
 
     return {
       message: translate[language].eventCreated,
@@ -69,7 +69,7 @@ const update = async (req) => {
 
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    const populatedEvent = await populateEvent(event);
+    const populatedEvent = await populateEventSubscription(event);
 
     return {
       message: translate[language].eventUpdated,
