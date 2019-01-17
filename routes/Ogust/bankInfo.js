@@ -4,7 +4,7 @@ const Joi = require('joi');
 
 const {
   getById,
-  updateByEmployeeId
+  updateById
 } = require('../../controllers/Ogust/bankInfoController');
 
 exports.plugin = {
@@ -43,7 +43,7 @@ exports.plugin = {
         },
         auth: false
       },
-      handler: updateByEmployeeId
+      handler: updateById
     });
   },
 };
