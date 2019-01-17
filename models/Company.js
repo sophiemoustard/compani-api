@@ -81,13 +81,6 @@ const CompanySchema = mongoose.Schema({
         type: String,
         enum: [BILLING_DIRECT, BILLING_INDIRECT]
       },
-      logo: {
-        publicId: String,
-        link: {
-          type: String,
-          trim: true
-        }
-      },
       createdAt: {
         type: Date,
         default: Date.now
