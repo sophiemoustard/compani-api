@@ -9,12 +9,15 @@ const companiesList = [
       services: [
         {
           _id: new ObjectID(),
-          defaultUnitAmount: 12,
-          eveningSurcharge: '',
-          holidaySurcharge: '',
-          name: 'Service 1',
+          versions: [{
+            defaultUnitAmount: 12,
+            eveningSurcharge: '',
+            holidaySurcharge: '',
+            name: 'Service 1',
+            startDate: '2019-01-16 17:58:15.519',
+            vat: 12,
+          }],
           nature: 'Service 1',
-          vat: 12,
         },
       ],
       thirdPartyPayers: [

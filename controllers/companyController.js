@@ -184,13 +184,9 @@ const createCompanyService = async (req) => {
 
 const updateCompanyService = async (req) => {
   try {
-    const payload = { 'customersConfig.services.$': { ...req.payload } };
     const company = await Company.findOneAndUpdate(
-      {
-        _id: req.params._id,
-        'customersConfig.services._id': req.params.serviceId,
-      },
-      { $set: flat(payload) },
+      { _id: req.params._id, 'customersConfig.services._id': req.params.serviceId },
+      { $push: { 'customersConfig.services.$.versions': req.payload } },
       {
         new: true,
         select: { name: 1, 'customersConfig.services': 1 },

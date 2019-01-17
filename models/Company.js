@@ -45,12 +45,16 @@ const CompanySchema = mongoose.Schema({
   },
   customersConfig: {
     services: [{
-      name: String,
       nature: String,
-      defaultUnitAmount: Number,
-      vat: Number,
-      holidaySurcharge: Number,
-      eveningSurcharge: Number,
+      versions: [{
+        defaultUnitAmount: Number,
+        vat: Number,
+        holidaySurcharge: Number,
+        eveningSurcharge: Number,
+        startDate: { type: Date, default: Date.now },
+        name: String,
+        createdAt: { type: Date, default: Date.now }
+      }],
     }],
     templates: {
       folderId: String,

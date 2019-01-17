@@ -58,7 +58,6 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
         }
       },
       handler: create
@@ -203,12 +202,14 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: Joi.object().keys({
-            defaultUnitAmount: Joi.number().required(),
-            eveningSurcharge: Joi.number().allow('', null),
-            holidaySurcharge: Joi.number().allow('', null),
-            name: Joi.string().required(),
+            versions: Joi.array().items({
+              defaultUnitAmount: Joi.number().required(),
+              eveningSurcharge: Joi.number().allow('', null),
+              holidaySurcharge: Joi.number().allow('', null),
+              name: Joi.string().required(),
+              vat: Joi.number().required(),
+            }),
             nature: Joi.string().required(),
-            vat: Joi.number().required(),
           }),
         },
       },
@@ -253,11 +254,11 @@ exports.plugin = {
             serviceId: Joi.objectId().required()
           },
           payload: Joi.object().keys({
+            startDate: Joi.date().required(),
             defaultUnitAmount: Joi.number(),
             eveningSurcharge: Joi.number().allow('', null),
             holidaySurcharge: Joi.number().allow('', null),
             name: Joi.string(),
-            nature: Joi.string(),
             vat: Joi.number(),
           }),
         },
