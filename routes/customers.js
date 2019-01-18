@@ -184,15 +184,15 @@ exports.plugin = {
       path: '/{_id}/subscriptions',
       options: {
         validate: {
-          params: {
-            _id: Joi.objectId().required()
-          },
+          params: { _id: Joi.objectId().required() },
           payload: {
             service: Joi.string().required(),
-            unitTTCRate: Joi.number().required(),
-            estimatedWeeklyVolume: Joi.number().required(),
-            evenings: Joi.number(),
-            sundays: Joi.number(),
+            versions: Joi.array().items({
+              unitTTCRate: Joi.number().required(),
+              estimatedWeeklyVolume: Joi.number().required(),
+              evenings: Joi.number(),
+              sundays: Joi.number(),
+            }),
           },
         },
         auth: 'jwt',
@@ -210,13 +210,11 @@ exports.plugin = {
             subscriptionId: Joi.objectId().required()
           },
           payload: {
-            service: {
-              _id: Joi.objectId().required(),
-            },
             unitTTCRate: Joi.number(),
             estimatedWeeklyVolume: Joi.number(),
             evenings: Joi.number(),
             sundays: Joi.number(),
+            startDate: Joi.date().required(),
           },
         },
         auth: 'jwt',

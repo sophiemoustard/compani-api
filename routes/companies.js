@@ -379,10 +379,10 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string(),
             address: Joi.object().keys({
-              street: Joi.string(),
-              fullAddress: Joi.string(),
-              zipCode: Joi.string(),
-              city: Joi.string()
+              street: Joi.string().allow(null, ''),
+              fullAddress: Joi.string().allow(null, ''),
+              zipCode: Joi.string().allow(null, ''),
+              city: Joi.string().allow(null, ''),
             }),
             email: Joi.string().email(),
             unitTTCPrice: Joi.number(),

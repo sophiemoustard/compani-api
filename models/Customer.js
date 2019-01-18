@@ -66,17 +66,16 @@ const CustomerSchema = mongoose.Schema({
   },
   isActive: Boolean,
   subscriptions: [{
-    service: {
-      type: mongoose.Schema.Types.ObjectId,
-    },
-    unitTTCRate: Number,
-    estimatedWeeklyVolume: Number,
-    evenings: Number,
-    sundays: Number,
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
+    service: { type: mongoose.Schema.Types.ObjectId },
+    versions: [{
+      unitTTCRate: Number,
+      estimatedWeeklyVolume: Number,
+      evenings: Number,
+      sundays: Number,
+      startDate: { type: Date, default: Date.now },
+      createdAt: { type: Date, default: Date.now },
+    }],
+    createdAt: { type: Date, default: Date.now }
   }],
   subscriptionsHistory: [{
     subscriptions: [{
@@ -109,10 +108,7 @@ const CustomerSchema = mongoose.Schema({
       id: String,
       link: String
     },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
+    createdAt: { type: Date, default: Date.now }
   }]
 }, { timestamps: true });
 

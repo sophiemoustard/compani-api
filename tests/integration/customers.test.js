@@ -282,10 +282,12 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const company = companiesList[0];
       const payload = {
         service: company.customersConfig.services[0]._id,
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
       };
 
       const result = await app.inject({
@@ -297,17 +299,20 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       expect(result.statusCode).toBe(200);
       expect(result.result.data.subscriptions).toBeDefined();
-      expect(result.result.data.subscriptions[0].unitTTCRate).toEqual(payload.unitTTCRate);
+      expect(result.result.data.subscriptions[0].service._id).toEqual(payload.service);
+      expect(result.result.data.subscriptions[0].versions[0].unitTTCRate).toEqual(payload.versions[0].unitTTCRate);
     });
 
     it('should return 409 if service already subscribed', async () => {
       const customer = customersList[0];
       const payload = {
         service: customer.subscriptions[0].service,
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 3,
-        sundays: 2,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
       };
 
       const result = await app.inject({
@@ -351,6 +356,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     const payload = {
       estimatedWeeklyVolume: 24,
       evenings: 3,
+      startDate: '2019-01-18T10:07:56.707Z',
     };
 
     it('should update customer subscription', async () => {
@@ -366,7 +372,8 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
       expect(result.statusCode).toBe(200);
       expect(result.result.data.subscriptions).toBeDefined();
-      expect(result.result.data.subscriptions[0].estimatedWeeklyVolume).toEqual(payload.estimatedWeeklyVolume);
+      expect(result.result.data.subscriptions[0].versions).toBeDefined();
+      expect(result.result.data.subscriptions[0].versions.length).toEqual(subscription.versions.length + 1);
     });
 
     it('should return 404 as customer not found', async () => {
