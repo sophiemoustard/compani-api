@@ -16,6 +16,10 @@ const populateServices = async (subscriptions) => {
         _id: service._id,
         name: lastVersion.name,
         nature: service.nature,
+        defaultUnitAmount: lastVersion.defaultUnitAmount,
+        vat: lastVersion.vat,
+        holidaySurcharge: lastVersion.holidaySurcharge,
+        eveningSurcharge: lastVersion.eveningSurcharge,
       },
     };
   });
