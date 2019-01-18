@@ -1,3 +1,4 @@
+const moment = require('moment');
 const Company = require('../models/Company');
 
 const populateServices = async (subscriptions) => {
@@ -8,14 +9,20 @@ const populateServices = async (subscriptions) => {
   return subscriptions.map((subscription) => {
     const serviceId = subscription.service;
     const service = company.customersConfig.services.find(ser => ser._id.toHexString() == serviceId);
-    const lastVersion = service.versions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    const currentVersion = service.versions
+      .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
     return {
       ...subscription,
       service: {
         _id: service._id,
-        name: lastVersion.name,
+        name: currentVersion.name,
         nature: service.nature,
+        defaultUnitAmount: currentVersion.defaultUnitAmount,
+        vat: currentVersion.vat,
+        holidaySurcharge: currentVersion.holidaySurcharge,
+        eveningSurcharge: currentVersion.eveningSurcharge,
       },
     };
   });

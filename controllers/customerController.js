@@ -148,9 +148,7 @@ const getSubscriptions = async (req) => {
       { autopopulate: false }
     ).lean();
 
-    if (!customer) {
-      return Boom.notFound(translate[language].customerSubscriptionsNotFound);
-    }
+    if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
     const subscriptions = await populateServices(customer.subscriptions);
 
@@ -169,15 +167,9 @@ const getSubscriptions = async (req) => {
 
 const updateSubscription = async (req) => {
   try {
-    let payload;
-    if (req.payload.service && req.payload.service._id) {
-      payload = { 'subscriptions.$': { ...req.payload, service: req.payload.service._id } };
-    } else {
-      payload = { 'subscriptions.$': { ...req.payload } };
-    }
     const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
-      { $set: flat(payload) },
+      { $push: { 'subscriptions.$.versions': req.payload } },
       {
         new: true,
         select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
@@ -185,9 +177,7 @@ const updateSubscription = async (req) => {
       },
     ).lean();
 
-    if (!customer) {
-      return Boom.notFound(translate[language].customerSubscriptionsNotFound);
-    }
+    if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
     const subscriptions = await populateServices(customer.subscriptions);
 
@@ -207,24 +197,17 @@ const updateSubscription = async (req) => {
 const addSubscription = async (req) => {
   try {
     const serviceId = req.payload.service;
-    const companyService = await Company.findOne({ 'customersConfig.services._id': serviceId });
+    const company = await Company.findOne({ 'customersConfig.services._id': serviceId });
 
-    if (!companyService) {
-      return Boom.notFound(translate[language].companyServiceNotFound);
-    }
+    if (!company) return Boom.notFound(translate[language].companyServiceNotFound);
 
-    const subscribedService = companyService.customersConfig.services.find(service => service._id == serviceId);
-
-    if (!subscribedService) {
-      return Boom.notFound(translate[language].companyServiceNotFound);
-    }
+    const subscribedService = company.customersConfig.services.find(service => service._id == serviceId);
+    if (!subscribedService) return Boom.notFound(translate[language].companyServiceNotFound);
 
     const customer = await Customer.findById(req.params._id);
     if (customer.subscriptions && customer.subscriptions.length > 0) {
       const isServiceAlreadySubscribed = customer.subscriptions.find(subscription => subscription.service.toHexString() === serviceId);
-      if (isServiceAlreadySubscribed) {
-        return Boom.conflict(translate[language].serviceAlreadySubscribed);
-      }
+      if (isServiceAlreadySubscribed) return Boom.conflict(translate[language].serviceAlreadySubscribed);
     }
 
     const updatedCustomer = await Customer.findOneAndUpdate(

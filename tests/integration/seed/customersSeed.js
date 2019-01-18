@@ -48,10 +48,12 @@ const customersList = [
       {
         _id: new ObjectID(),
         service: companiesList[0].customersConfig.services[0]._id,
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
       }
     ],
     quotes: [{
