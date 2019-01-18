@@ -454,10 +454,6 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         email: 'test@test.com',
         unitTTCPrice: 75,
         billingMode: 'directe',
-        logo: {
-          publicId: 'test',
-          link: 'https://pic.test.com'
-        }
       };
       const response = await app.inject({
         method: 'POST',
@@ -556,10 +552,6 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         email: 't@t.com',
         unitTTCPrice: 89,
         billingMode: 'indirecte',
-        logo: {
-          publicId: 'test',
-          link: 'https://pic.test.com'
-        }
       };
       const response = await app.inject({
         method: 'PUT',
@@ -584,10 +576,6 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         email: 't@t.com',
         unitTTCPrice: 89,
         billingMode: 'indirecte',
-        logo: {
-          publicId: 'test',
-          link: 'https://pic.test.com'
-        }
       };
       const response = await app.inject({
         method: 'PUT',
