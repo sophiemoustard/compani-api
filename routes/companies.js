@@ -384,8 +384,8 @@ exports.plugin = {
               zipCode: Joi.string().allow(null, ''),
               city: Joi.string().allow(null, ''),
             }),
-            email: Joi.string().email(),
-            unitTTCPrice: Joi.number(),
+            email: Joi.string().email().allow(null, ''),
+            unitTTCPrice: Joi.number().default(0),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
           })
         }
