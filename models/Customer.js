@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const _ = require('lodash');
 
 const SubscriptionsLog = require('./SubscriptionsLog');
-const { populateServices } = require('../helpers/populateServices');
+const { populateServices } = require('../helpers/subscriptions');
 
 const CustomerSchema = mongoose.Schema({
   customerId: String,
