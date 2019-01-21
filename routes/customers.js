@@ -411,7 +411,8 @@ exports.plugin = {
               unitTTCRate: Joi.number(),
               estimatedWeeklyVolume: Joi.number(),
               evenings: Joi.number(),
-              sundays: Joi.number()
+              sundays: Joi.number(),
+              startDate: Joi.date(),
             })).required(),
             helper: Joi.object().keys({
               firstname: Joi.string().allow(null, ''),

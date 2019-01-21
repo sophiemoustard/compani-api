@@ -11,12 +11,11 @@ const Company = require('../models/Company');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/GoogleDrive');
-const { populateServices } = require('../helpers/populateServices');
+const { populateServices, subscriptionsAccepted } = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
-const { subscriptionsAccepted } = require('../helpers/customerConditionAgreement');
 
 const { language } = translate;
 
