@@ -83,7 +83,8 @@ const CustomerSchema = mongoose.Schema({
       unitTTCRate: Number,
       estimatedWeeklyVolume: Number,
       evenings: Number,
-      sundays: Number
+      sundays: Number,
+      startDate: Date,
     }],
     helper: {
       firstname: String,
