@@ -24,7 +24,16 @@ const {
   generateMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
+  createCustomerFunding
 } = require('../controllers/customerController');
+
+const {
+  MONTHLY,
+  WEEKLY,
+  ONCE,
+  HOURLY,
+  ONE_TIME
+} = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -442,6 +451,39 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: createHistorySubscription
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/fundings',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+          payload: Joi.object().keys({
+            nature: Joi.string().valid(HOURLY, ONE_TIME),
+            versions: Joi.array().items(Joi.object().keys({
+              thirdPartyPayer: Joi.objectId().required(),
+              folderNumber: Joi.string(),
+              startDate: Joi.date(),
+              endDate: Joi.date(),
+              frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE),
+              amountTTC: Joi.number(),
+              unitTTCPrice: Joi.number(),
+              careHours: Joi.number(),
+              careDays: Joi.array().items(Joi.number().min(0).max(6)),
+              customerParticipationRate: Joi.number(),
+              subscriptions: Joi.array().items({
+                subscriptionId: Joi.objectId(),
+                serviceName: Joi.string()
+              }).required(),
+            }))
+          })
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: createCustomerFunding
     });
   }
 };

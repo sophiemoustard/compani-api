@@ -12,6 +12,7 @@ const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/GoogleDrive');
 const { populateServices, subscriptionsAccepted } = require('../helpers/subscriptions');
+const { populateThirdPartyPayers } = require('../helpers/populateThirdPartyPayers');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
@@ -571,6 +572,35 @@ const createHistorySubscription = async (req) => {
   }
 };
 
+const createCustomerFunding = async (req) => {
+  try {
+    const updatedCustomer = await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { fundings: req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+        autopopulate: false,
+      },
+    ).lean();
+
+    if (!updatedCustomer) return Boom.notFound(translate[language].customerNotFound);
+
+    let funding = updatedCustomer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    funding = await populateThirdPartyPayers(funding);
+
+    return {
+      data: {
+        user: _.pick(updatedCustomer, ['_id', 'identity']),
+        funding
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 
 module.exports = {
   list,
@@ -593,4 +623,5 @@ module.exports = {
   generateMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
+  createCustomerFunding
 };

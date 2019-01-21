@@ -8,5 +8,11 @@ module.exports = {
   MAX_INTERNAL_HOURS_NUMBER: 9,
   // COMPANY THIRD PARTY PAYERS
   BILLING_INDIRECT: 'indirecte',
-  BILLING_DIRECT: 'directe'
+  BILLING_DIRECT: 'directe',
+  // CUSTOMER FUNDINGS
+  MONTHLY: 'mensuelle',
+  WEEKLY: 'hebdomadaire',
+  ONCE: 'une seule fois',
+  HOURLY: 'horaire',
+  ONE_TIME: 'forfaitaire'
 };
