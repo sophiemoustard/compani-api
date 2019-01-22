@@ -573,11 +573,11 @@ const createHistorySubscription = async (req) => {
   }
 };
 
-const createCustomerFunding = async (req) => {
+const createFunding = async (req) => {
   try {
     const check = await checkSubscriptionFunding(req.params._id, req.payload.versions[0]);
-    if (!check) return Boom.conflict();
-    const updatedCustomer = await Customer.findOneAndUpdate(
+    if (!check) return Boom.conflict(translate[language].customerFundingConflict);
+    const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id },
       { $push: { fundings: req.payload } },
       {
@@ -587,17 +587,55 @@ const createCustomerFunding = async (req) => {
       },
     ).lean();
 
-    if (!updatedCustomer) return Boom.notFound(translate[language].customerNotFound);
+    if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
-    let funding = updatedCustomer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    let funding = customer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
     funding = await populateThirdPartyPayers(funding);
     funding.versions[0].subscriptions = await populateFundingsServices(funding.versions[0].subscriptions);
 
     return {
+      message: translate[language].customerFundingCreated,
       data: {
-        user: _.pick(updatedCustomer, ['_id', 'identity']),
+        customer: _.pick(customer, ['_id', 'identity']),
         funding
       }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateFunding = async (req) => {
+  try {
+    if (req.payload.subscriptions) {
+      const check = await checkSubscriptionFunding(req.params._id, req.payload);
+      if (!check) return Boom.conflict(translate[language].customerFundingConflict);
+    }
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id, 'fundings._id': req.params.fundingId },
+      { $push: { 'fundings.$.versions': req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+        autopopulate: false,
+      },
+    ).lean();
+
+    if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
+
+    let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);
+    funding = await populateThirdPartyPayers(funding);
+    for (const version of funding.versions) {
+      version.subscriptions = await populateFundingsServices(version.subscriptions);
+    }
+
+    return {
+      message: translate[language].customerFundingUpdated,
+      data: {
+        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        funding,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -627,5 +665,6 @@ module.exports = {
   generateMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
-  createCustomerFunding
+  createFunding,
+  updateFunding
 };

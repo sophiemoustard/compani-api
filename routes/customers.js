@@ -24,7 +24,8 @@ const {
   generateMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
-  createCustomerFunding
+  createFunding,
+  updateFunding
 } = require('../controllers/customerController');
 
 const {
@@ -480,7 +481,35 @@ exports.plugin = {
         },
         auth: { strategy: 'jwt' }
       },
-      handler: createCustomerFunding
+      handler: createFunding
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/fundings/{fundingId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            fundingId: Joi.objectId().required()
+          },
+          payload: Joi.object().keys({
+            thirdPartyPayer: Joi.objectId(),
+            folderNumber: Joi.string(),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
+            frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE),
+            amountTTC: Joi.number(),
+            unitTTCPrice: Joi.number(),
+            careHours: Joi.number(),
+            careDays: Joi.array().items(Joi.number().min(0).max(6)),
+            customerParticipationRate: Joi.number(),
+            subscriptions: Joi.array().items(Joi.objectId()).min(1),
+          })
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: updateFunding
     });
   }
 };

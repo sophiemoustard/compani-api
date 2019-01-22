@@ -1,8 +1,10 @@
 const { ObjectID } = require('mongodb');
 const faker = require('faker');
+const moment = require('moment');
 
 const Customer = require('../../../models/Customer');
 const { companiesList } = require('./companiesSeed');
+const { MONTHLY, ONE_TIME } = require('../../../helpers/constants');
 
 faker.locale = 'fr';
 
@@ -102,7 +104,24 @@ const customersList = [
       mandates: [
         { rum: faker.helpers.randomize() },
       ],
-    }
+    },
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: ONE_TIME,
+        versions: [{
+          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+          folderNumber: 'D123456',
+          frequency: MONTHLY,
+          startDate: moment.utc().toDate(),
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+          subscriptions: [companiesList[0].customersConfig.services[0]._id]
+        }]
+      }
+    ]
   },
   {
     _id: new ObjectID(),
