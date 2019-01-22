@@ -35,10 +35,6 @@ exports.plugin = {
               zipCode: Joi.string(),
               city: Joi.string(),
               fullAddress: Joi.string(),
-              location: {
-                type: Joi.string(),
-                coordinates: Joi.array()
-              },
             }),
             sector: Joi.string().required(),
             misc: Joi.string().allow(null, ''),
@@ -49,6 +45,10 @@ exports.plugin = {
               default: Joi.boolean(),
             }).when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
             absence: Joi.string().when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
+            attachment: Joi.object().keys({
+              driveId: Joi.string(),
+              link: Joi.string(),
+            }),
           })
         },
         auth: {
@@ -87,21 +87,19 @@ exports.plugin = {
             endDate: Joi.date(),
             auxiliary: Joi.objectId(),
             sector: Joi.string(),
-            customer: Joi.objectId(),
             location: Joi.object().keys({
               street: Joi.string(),
               zipCode: Joi.string(),
               city: Joi.string(),
               fullAddress: Joi.string(),
-              location: {
-                type: Joi.string(),
-                coordinates: Joi.array()
-              },
             }),
-            misc: Joi.string().allow(null, ''),
             subscription: Joi.objectId(),
-            internalHour: Joi.objectId(),
+            internalHour: Joi.object(),
             absence: Joi.string(),
+            attachment: Joi.object().keys({
+              driveId: Joi.string(),
+              link: Joi.string(),
+            }),
           })
         },
         auth: {
