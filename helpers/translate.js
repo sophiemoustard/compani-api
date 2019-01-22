@@ -182,6 +182,7 @@ module.exports = {
     customerFundingNotFound: 'Customer funding not found.',
     customerFundingCreated: 'Customer funding created.',
     customerFundingUpdated: 'Customer funding updated.',
+    customerFundingsFound: 'Customer fundings found.',
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
@@ -381,6 +382,7 @@ module.exports = {
     customerFundingNotFound: 'Financement du bénéficiaire non trouvé.',
     customerFundingCreated: 'Financement du bénéficiaire créé.',
     customerFundingUpdated: 'Financement du bénéficiaire modifié.',
+    customerFundingsFound: 'Financements du bénéficiaire trouvés.',
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',

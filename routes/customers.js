@@ -25,7 +25,8 @@ const {
   saveSignedMandate,
   createHistorySubscription,
   createFunding,
-  updateFunding
+  updateFunding,
+  getFundings
 } = require('../controllers/customerController');
 
 const {
@@ -510,6 +511,20 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: updateFunding
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/fundings',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: getFundings,
     });
   }
 };

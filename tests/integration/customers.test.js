@@ -980,4 +980,30 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
   });
+
+  describe('GET /customers/{id}/fundings', () => {
+    it('should get customer fundings', async () => {
+      const customer = customersList[1];
+
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${customer._id.toHexString()}/fundings`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.fundings).toBeDefined();
+    });
+
+    it('should return 404 as customer not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${invalidId}/fundings`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(404);
+    });
+  });
 });

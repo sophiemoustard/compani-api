@@ -12,7 +12,7 @@ const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/GoogleDrive');
 const { populateServices, subscriptionsAccepted } = require('../helpers/subscriptions');
-const { populateThirdPartyPayers } = require('../helpers/populateThirdPartyPayers');
+const { populateFundings } = require('../helpers/populateFundings');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
@@ -590,8 +590,7 @@ const createFunding = async (req) => {
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     let funding = customer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-    funding = await populateThirdPartyPayers(funding);
-    funding.versions[0].subscriptions = await populateFundingsServices(funding.versions[0].subscriptions);
+    funding = await populateFundings(funding);
 
     return {
       message: translate[language].customerFundingCreated,
@@ -625,16 +624,41 @@ const updateFunding = async (req) => {
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
     let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);
-    funding = await populateThirdPartyPayers(funding);
-    for (const version of funding.versions) {
-      version.subscriptions = await populateFundingsServices(version.subscriptions);
-    }
+    funding = await populateFundings(funding);
 
     return {
       message: translate[language].customerFundingUpdated,
       data: {
         customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         funding,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const getFundings = async (req) => {
+  try {
+    const customer = await Customer.findOne(
+      { _id: req.params._id, fundings: { $exists: true } },
+      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+      { autopopulate: false },
+    ).lean();
+
+    if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
+
+    const versions = [];
+    for (const funding of customer.fundings) {
+      customer.fundings.versions = versions.push(await populateFundings(funding));
+    }
+
+    return {
+      message: translate[language].customerFundingsFound,
+      data: {
+        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        fundings: customer.fundings,
       },
     };
   } catch (e) {
@@ -666,5 +690,6 @@ module.exports = {
   saveSignedMandate,
   createHistorySubscription,
   createFunding,
-  updateFunding
+  updateFunding,
+  getFundings
 };
