@@ -64,6 +64,10 @@ const CustomerSchema = mongoose.Schema({
       },
     }],
   },
+  financialCertificates: [{
+    driveId: String,
+    link: String
+  }],
   isActive: Boolean,
   subscriptions: [{
     service: { type: mongoose.Schema.Types.ObjectId },

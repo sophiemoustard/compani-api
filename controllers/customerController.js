@@ -16,6 +16,7 @@ const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { createAndSaveFile } = require('../helpers/customers');
 
 const { language } = translate;
 
@@ -464,46 +465,11 @@ const createDriveFolder = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = ['signedMandate', 'signedQuote'];
+    const allowedFields = ['signedMandate', 'signedQuote', 'financialCertificates'];
     const docKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
-    if (docKeys.length === 0) {
-      Boom.forbidden('Upload not allowed');
-    }
+    if (docKeys.length === 0) Boom.forbidden('Upload not allowed');
 
-    const uploadedFile = await addFile({
-      driveFolderId: req.params.driveId,
-      name: req.payload.fileName || req.payload[docKeys[0]].hapi.filename,
-      type: req.payload['Content-Type'],
-      body: req.payload[docKeys[0]]
-    });
-
-    let driveFileInfo = null;
-    try {
-      driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
-    } catch (e) {
-      req.log(['error', 'gdrive'], e);
-      return Boom.notFound(translate[language].googleDriveFileNotFound);
-    }
-
-    let payload;
-    let params = { _id: req.params._id };
-    if (docKeys[0] === 'signedQuote') {
-      payload = {
-        'quotes.$': { _id: req.payload.quoteId, drive: { id: uploadedFile.id, link: driveFileInfo.webViewLink } },
-      };
-      params = { ...params, 'quotes._id': req.payload.quoteId };
-    } else {
-      payload = {
-        'payment.mandates.$': { _id: req.payload.mandateId, drive: { id: uploadedFile.id, link: driveFileInfo.webViewLink } },
-      };
-      params = { ...params, 'payment.mandates._id': req.payload.mandateId };
-    }
-
-    await Customer.findOneAndUpdate(
-      { ...params },
-      { $set: flat(payload) },
-      { new: true, autopopulate: false },
-    );
+    const uploadedFile = await createAndSaveFile(docKeys, req.params, req.payload);
 
     return {
       message: translate[language].fileCreated,
