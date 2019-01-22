@@ -18,6 +18,7 @@ const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 const { createAndSaveFile } = require('../helpers/customers');
+const { checkSubscriptionFunding } = require('../helpers/checkSubscriptionFunding');
 
 const { language } = translate;
 
@@ -574,6 +575,8 @@ const createHistorySubscription = async (req) => {
 
 const createCustomerFunding = async (req) => {
   try {
+    const check = await checkSubscriptionFunding(req.params._id, req.payload.versions[0]);
+    if (!check) return Boom.conflict();
     const updatedCustomer = await Customer.findOneAndUpdate(
       { _id: req.params._id },
       { $push: { fundings: req.payload } },
@@ -588,6 +591,7 @@ const createCustomerFunding = async (req) => {
 
     let funding = updatedCustomer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
     funding = await populateThirdPartyPayers(funding);
+    funding.versions[0].subscriptions = await populateFundingsServices(funding.versions[0].subscriptions);
 
     return {
       data: {

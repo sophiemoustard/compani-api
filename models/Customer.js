@@ -141,10 +141,7 @@ const CustomerSchema = mongoose.Schema({
       careHours: Number,
       careDays: [Number],
       customerParticipationRate: Number,
-      subscriptions: [{
-        subscriptionId: { type: mongoose.Schema.Types.ObjectId },
-        serviceName: String
-      }],
+      subscriptions: [{ type: mongoose.Schema.Types.ObjectId }],
       createdAt: {
         type: Date,
         default: Date.now
