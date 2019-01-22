@@ -54,6 +54,11 @@ const show = async (req) => {
     customer = customer.toObject();
     customer = await subscriptionsAccepted(customer);
 
+    const fundingsVersions = [];
+    for (const funding of customer.fundings) {
+      customer.fundings.versions = fundingsVersions.push(await populateFundings(funding));
+    }
+
     return {
       message: translate[language].customerFound,
       data: { customer: { ...customer, subscriptions: customer.subscriptions } },
