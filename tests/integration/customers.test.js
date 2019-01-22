@@ -795,14 +795,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           folderNumber: 'D123456',
           frequency: MONTHLY,
           startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'm').toDate(),
+          endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          subscriptions: [{
-            subscriptionId: companiesList[0].customersConfig.services[0]._id,
-            serviceName: 'Service 1'
-          }]
+          subscriptions: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -816,8 +813,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.funding).toBeDefined();
       expect(res.result.data.user._id).toEqual(customersList[0]._id);
       expect(res.result.data.funding.versions[0]).toMatchObject({
-        ..._.omit(payload.versions[0], 'thirdPartyPayer'),
+        ..._.omit(payload.versions[0], ['thirdPartyPayer', 'subscriptions']),
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0].name,
+        subscriptions: expect.arrayContaining([expect.objectContaining({
+          name: companiesList[0].customersConfig.services[0].versions[0].name
+        })])
       });
     });
     it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
@@ -828,8 +828,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           folderNumber: 'D123456',
           frequency: MONTHLY,
           startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'm'),
-          amountTTC: '120',
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5]
         }]
@@ -849,14 +849,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           folderNumber: 'D123456',
           frequency: MONTHLY,
           startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'm'),
-          amountTTC: '120',
+          endDate: moment.utc().add(6, 'months'),
+          amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          subscriptions: [{
-            subscriptionId: companiesList[0].customersConfig.services[0]._id,
-            serviceName: 'Service 1'
-          }]
+          subscriptions: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -876,23 +873,24 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           folderNumber: 'D123456',
           frequency: MONTHLY,
           startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'm'),
-          amountTTC: '120',
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          subscriptions: [{
-            subscriptionId: companiesList[0].customersConfig.services[0]._id,
-            serviceName: 'Service 1'
-          }]
+          subscriptions: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
-      const res = await app.inject({
-        method: 'POST',
-        url: `/customers/${invalidId}/fundings`,
-        payload,
-        headers: { 'x-access-token': token },
-      });
-      expect(res.statusCode).toBe(404);
+      try {
+        const res = await app.inject({
+          method: 'POST',
+          url: `/customers/${invalidId}/fundings`,
+          payload,
+          headers: { 'x-access-token': token },
+        });
+        expect(res.statusCode).toBe(404);
+      } catch (e) {
+        expect(e).toBe('Error while checking subscription funding: customer not found.');
+      }
     });
   });
 });
