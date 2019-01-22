@@ -26,7 +26,8 @@ const {
   createHistorySubscription,
   createFunding,
   updateFunding,
-  getFundings
+  getFundings,
+  removeFunding
 } = require('../controllers/customerController');
 
 const {
@@ -525,6 +526,21 @@ exports.plugin = {
         auth: 'jwt',
       },
       handler: getFundings,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/fundings/{fundingId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            fundingId: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: removeFunding,
     });
   }
 };

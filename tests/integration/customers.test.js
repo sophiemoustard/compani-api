@@ -1006,4 +1006,19 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(result.statusCode).toBe(404);
     });
   });
+
+  describe('DELETE /customers/{id}/fundings/{fundingId}', () => {
+    it('should delete customer funding', async () => {
+      const customer = customersList[1];
+      const funding = customer.fundings[0];
+
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(200);
+    });
+  });
 });

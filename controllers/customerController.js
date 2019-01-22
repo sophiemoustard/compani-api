@@ -667,6 +667,31 @@ const getFundings = async (req) => {
   }
 };
 
+const removeFunding = async (req) => {
+  try {
+    await Customer.findByIdAndUpdate(
+      { _id: req.params._id },
+      { $pull: { fundings: { _id: req.params.fundingId } } },
+      {
+        select: {
+          'identity.firstname': 1,
+          'identity.lastname': 1,
+          fundings: 1,
+          customerId: 1
+        },
+        autopopulate: false,
+      }
+    );
+
+    return {
+      message: translate[language].customerFundingRemoved,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 
 module.exports = {
   list,
@@ -691,5 +716,6 @@ module.exports = {
   createHistorySubscription,
   createFunding,
   updateFunding,
-  getFundings
+  getFundings,
+  removeFunding
 };
