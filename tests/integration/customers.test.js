@@ -903,13 +903,17 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
-      const res = await app.inject({
-        method: 'POST',
-        url: `/customers/${invalidId}/fundings`,
-        payload,
-        headers: { 'x-access-token': token },
-      });
-      expect(res.statusCode).toBe(404);
+      try {
+        const res = await app.inject({
+          method: 'POST',
+          url: `/customers/${invalidId}/fundings`,
+          payload,
+          headers: { 'x-access-token': token },
+        });
+        expect(res.statusCode).toBe(404);
+      } catch (e) {
+        expect(e).toBe('Error while checking subscription funding: customer not found.');
+      }
     });
   });
 
