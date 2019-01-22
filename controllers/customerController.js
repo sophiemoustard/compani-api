@@ -409,14 +409,14 @@ const createCustomerQuote = async (req) => {
 
 const removeCustomerQuote = async (req) => {
   try {
-    const customer = await Customer.findOneAndUpdate({ _id: req.params._id, 'quotes._id': req.params.quoteId }, { $pull: { quotes: { _id: req.params.quoteId } } }, {
-      select: {
-        firstname: 1,
-        lastname: 1,
-        quotes: 1
-      },
-      autopopulate: false
-    });
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id, 'quotes._id': req.params.quoteId },
+      { $pull: { quotes: { _id: req.params.quoteId } } },
+      {
+        select: { firstname: 1, lastname: 1, quotes: 1 },
+        autopopulate: false
+      }
+    );
 
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
@@ -474,6 +474,30 @@ const uploadFile = async (req) => {
     return {
       message: translate[language].fileCreated,
       data: { uploadedFile },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateCertificates = async (req) => {
+  try {
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $pull: req.payload },
+      {
+        select: { firstname: 1, lastname: 1, financialCertificates: 1 },
+        autopopulate: false
+      }
+    );
+
+    if (!customer) {
+      return Boom.notFound(translate[language].customerNotFound);
+    }
+
+    return {
+      message: translate[language].customerFinancialCertificateRemoved,
     };
   } catch (e) {
     req.log('error', e);
@@ -565,7 +589,8 @@ module.exports = {
   createCustomerQuote,
   removeCustomerQuote,
   uploadFile,
+  updateCertificates,
   generateMandateSignatureRequest,
   saveSignedMandate,
-  createHistorySubscription
+  createHistorySubscription,
 };

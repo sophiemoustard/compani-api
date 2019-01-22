@@ -20,9 +20,10 @@ const {
   createCustomerQuote,
   removeCustomerQuote,
   uploadFile,
+  updateCertificates,
   generateMandateSignatureRequest,
   saveSignedMandate,
-  createHistorySubscription
+  createHistorySubscription,
 } = require('../controllers/customerController');
 
 exports.plugin = {
@@ -380,6 +381,23 @@ exports.plugin = {
           strategy: 'jwt',
         }
       }
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/certificates',
+      options: {
+        validate: {
+          params: { _id: Joi.objectId().required() },
+          payload: Joi.object().keys({
+            financialCertificates: Joi.object().keys({
+              driveId: Joi.string().required(),
+            }),
+          }),
+        },
+        auth: { strategy: 'jwt' },
+      },
+      handler: updateCertificates,
     });
 
     server.route({
