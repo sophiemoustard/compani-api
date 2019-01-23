@@ -121,8 +121,10 @@ async function saveSubscriptionsChanges(doc, next) {
   if (this.getUpdate().$pull && this.getUpdate().$pull.subscriptions) {
     const subscriptions = doc.subscriptions.toObject();
     const deletedSub = subscriptions.filter(sub => sub._id.toHexString() === this.getUpdate().$pull.subscriptions._id.toHexString());
-    const populatedDeletedSub = await populateServices(deletedSub);
     if (!deletedSub) return next();
+
+    const populatedDeletedSub = await populateServices(deletedSub);
+    const lastVersion = populatedDeletedSub[0].versions.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
     const payload = {
       customer: {
         customerId: doc._id,
@@ -132,10 +134,10 @@ async function saveSubscriptionsChanges(doc, next) {
       },
       subscriptions: {
         name: populatedDeletedSub[0].service.name,
-        unitTTCRate: populatedDeletedSub[0].unitTTCRate,
-        estimatedWeeklyVolume: populatedDeletedSub[0].estimatedWeeklyVolume,
-        evenings: populatedDeletedSub[0].evenings,
-        sundays: populatedDeletedSub[0].sundays
+        unitTTCRate: lastVersion.unitTTCRate,
+        estimatedWeeklyVolume: lastVersion.estimatedWeeklyVolume,
+        evenings: lastVersion.evenings,
+        sundays: lastVersion.sundays
       }
     };
     const cleanPayload = _.pickBy(payload);
