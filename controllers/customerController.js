@@ -12,13 +12,12 @@ const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/GoogleDrive');
 const { populateServices, subscriptionsAccepted } = require('../helpers/subscriptions');
-const { populateFundings } = require('../helpers/populateFundings');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 const { createAndSaveFile } = require('../helpers/customers');
-const { checkSubscriptionFunding } = require('../helpers/checkSubscriptionFunding');
+const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
 
 const { language } = translate;
 
@@ -682,7 +681,6 @@ const removeFunding = async (req) => {
           'identity.firstname': 1,
           'identity.lastname': 1,
           fundings: 1,
-          customerId: 1
         },
         autopopulate: false,
       }
