@@ -45,6 +45,7 @@ const populateFundings = async (funding) => {
   const populatedVersions = funding.versions.map((version) => {
     const thirdPartyPayer = thirdPartyPayers.find(tpp => tpp._id.toHexString() === version.thirdPartyPayer.toHexString());
     return {
+      ...version,
       thirdPartyPayer: thirdPartyPayer.name,
       subscriptions: populateServices(services, version.subscriptions)
     };
