@@ -799,7 +799,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          subscriptions: [companiesList[0].customersConfig.services[0]._id]
+          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -813,9 +813,9 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.funding).toBeDefined();
       expect(res.result.data.customer._id).toEqual(customersList[0]._id);
       expect(res.result.data.funding.versions[0]).toMatchObject({
-        ..._.omit(payload.versions[0], ['thirdPartyPayer', 'subscriptions']),
+        ..._.omit(payload.versions[0], ['thirdPartyPayer', 'services']),
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0].name,
-        subscriptions: expect.arrayContaining([expect.objectContaining({
+        services: expect.arrayContaining([expect.objectContaining({
           name: companiesList[0].customersConfig.services[0].versions[0].name
         })])
       });
@@ -832,7 +832,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          subscriptions: [companiesList[0].customersConfig.services[0]._id]
+          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -843,7 +843,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       });
       expect(res.statusCode).toBe(409);
     });
-    it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
+    it("should return a 400 error if 'services' array is missing from payload", async () => {
       const payload = {
         nature: ONE_TIME,
         versions: [{
@@ -876,7 +876,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          subscriptions: [companiesList[0].customersConfig.services[0]._id]
+          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -900,7 +900,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          subscriptions: [companiesList[0].customersConfig.services[0]._id]
+          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -924,7 +924,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         startDate: moment.utc().add(7, 'months').toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
-        subscriptions: [companiesList[0].customersConfig.services[0]._id]
+        services: [companiesList[0].customersConfig.services[0]._id]
       };
       const res = await app.inject({
         method: 'PUT',
@@ -948,7 +948,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         startDate: moment.utc().toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
-        subscriptions: [companiesList[0].customersConfig.services[0]._id]
+        services: [companiesList[0].customersConfig.services[0]._id]
       };
       const res = await app.inject({
         method: 'PUT',
@@ -969,7 +969,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         startDate: moment.utc().add(7, 'months').toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
-        subscriptions: [companiesList[0].customersConfig.services[0]._id]
+        services: [companiesList[0].customersConfig.services[0]._id]
       };
       const res = await app.inject({
         method: 'PUT',

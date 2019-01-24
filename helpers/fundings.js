@@ -13,17 +13,17 @@ const checkSubscriptionFunding = async (customerId, payloadVersion) => {
   const lastVersions = customer.fundings.map(funding => getLastVersion(funding.versions, 'createdAt'));
 
   return lastVersions
-    .filter(version => version.subscriptions.some(sub => payloadVersion.subscriptions.includes(sub.toHexString())))
+    .filter(version => version.services.some(sub => payloadVersion.services.includes(sub.toHexString())))
     .every((el) => {
       return el.endDate ? moment(el.endDate).isBefore(payloadVersion.startDate, 'day') : false;
     });
 };
 
-const populateServices = (services, subscriptions) => {
-  if (!subscriptions || subscriptions.length === 0) return [];
+const populateServices = (services, fundingServices) => {
+  if (!fundingServices || fundingServices.length === 0) return [];
 
-  return subscriptions.map((subscription) => {
-    const serviceId = subscription;
+  return fundingServices.map((fundingService) => {
+    const serviceId = fundingService;
     const service = services.find(ser => ser._id.toHexString() == serviceId);
     const currentVersion = service.versions
       .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
@@ -47,7 +47,7 @@ const populateFundings = async (funding) => {
     return {
       ...version,
       thirdPartyPayer: thirdPartyPayer.name,
-      subscriptions: populateServices(services, version.subscriptions)
+      services: populateServices(services, version.services)
     };
   });
 

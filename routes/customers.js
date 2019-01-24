@@ -477,7 +477,7 @@ exports.plugin = {
               careHours: Joi.number(),
               careDays: Joi.array().items(Joi.number().min(0).max(7)),
               customerParticipationRate: Joi.number().default(0),
-              subscriptions: Joi.array().items(Joi.objectId()).required(),
+              services: Joi.array().items(Joi.objectId()).required(),
             }))
           })
         },
@@ -506,7 +506,7 @@ exports.plugin = {
             careHours: Joi.number(),
             careDays: Joi.array().items(Joi.number().min(0).max(7)),
             customerParticipationRate: Joi.number().default(0),
-            subscriptions: Joi.array().items(Joi.objectId()).min(1),
+            services: Joi.array().items(Joi.objectId()).min(1),
           })
         },
         auth: { strategy: 'jwt' }

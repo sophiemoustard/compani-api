@@ -118,7 +118,7 @@ const customersList = [
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          subscriptions: [companiesList[0].customersConfig.services[0]._id]
+          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       }
     ]
