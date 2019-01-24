@@ -24,7 +24,19 @@ const {
   generateMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
+  createFunding,
+  updateFunding,
+  getFundings,
+  removeFunding
 } = require('../controllers/customerController');
+
+const {
+  MONTHLY,
+  WEEKLY,
+  ONCE,
+  HOURLY,
+  ONE_TIME
+} = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -442,6 +454,93 @@ exports.plugin = {
         auth: { strategy: 'jwt' }
       },
       handler: createHistorySubscription
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/fundings',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+          payload: Joi.object().keys({
+            nature: Joi.string().valid(HOURLY, ONE_TIME),
+            versions: Joi.array().items(Joi.object().keys({
+              thirdPartyPayer: Joi.objectId().required(),
+              folderNumber: Joi.string(),
+              startDate: Joi.date(),
+              endDate: Joi.date(),
+              frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE),
+              amountTTC: Joi.number(),
+              unitTTCPrice: Joi.number(),
+              careHours: Joi.number(),
+              careDays: Joi.array().items(Joi.number().min(0).max(7)),
+              customerParticipationRate: Joi.number().default(0),
+              services: Joi.array().items(Joi.objectId()).required(),
+            }))
+          })
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: createFunding
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/fundings/{fundingId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            fundingId: Joi.objectId().required()
+          },
+          payload: Joi.object().keys({
+            thirdPartyPayer: Joi.objectId(),
+            folderNumber: Joi.string(),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
+            frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE),
+            amountTTC: Joi.number(),
+            unitTTCPrice: Joi.number(),
+            careHours: Joi.number(),
+            careDays: Joi.array().items(Joi.number().min(0).max(7)),
+            customerParticipationRate: Joi.number().default(0),
+            services: Joi.array().items(Joi.objectId()).min(1),
+          })
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: updateFunding
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/fundings',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: getFundings,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/fundings/{fundingId}',
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            fundingId: Joi.objectId().required()
+          }
+        },
+        auth: 'jwt',
+      },
+      handler: removeFunding,
     });
   }
 };

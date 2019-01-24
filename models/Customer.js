@@ -3,6 +3,13 @@ const _ = require('lodash');
 
 const SubscriptionsLog = require('./SubscriptionsLog');
 const { populateServices } = require('../helpers/subscriptions');
+const {
+  MONTHLY,
+  WEEKLY,
+  ONCE,
+  HOURLY,
+  ONE_TIME
+} = require('../helpers/constants');
 
 const CustomerSchema = mongoose.Schema({
   customerId: String,
@@ -114,6 +121,36 @@ const CustomerSchema = mongoose.Schema({
       link: String
     },
     createdAt: { type: Date, default: Date.now }
+  }],
+  fundings: [{
+    nature: {
+      type: String,
+      enum: [HOURLY, ONE_TIME]
+    },
+    versions: [{
+      thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
+      folderNumber: String,
+      startDate: Date,
+      endDate: Date,
+      frequency: {
+        type: String,
+        enum: [MONTHLY, WEEKLY, ONCE]
+      },
+      amountTTC: Number,
+      unitTTCPrice: Number,
+      careHours: Number,
+      careDays: [Number],
+      customerParticipationRate: Number,
+      services: [{ type: mongoose.Schema.Types.ObjectId }],
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
   }]
 }, { timestamps: true });
 

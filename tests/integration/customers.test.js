@@ -1,6 +1,8 @@
 const expect = require('expect');
 const faker = require('faker');
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
+const _ = require('lodash');
 
 const app = require('../../server');
 const {
@@ -14,6 +16,7 @@ const {
 const { populateRoles } = require('./seed/rolesSeed');
 const { populateCompanies, companiesList } = require('./seed/companiesSeed');
 const Customer = require('../../models/Customer');
+const { MONTHLY, ONE_TIME } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -771,6 +774,251 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(404);
+    });
+  });
+});
+
+describe('CUSTOMERS FUNDINGS ROUTES', () => {
+  let token = null;
+  before(populateCompanies);
+  beforeEach(populateCustomers);
+  beforeEach(async () => {
+    token = await getToken();
+  });
+
+  describe('POST customers/:id/fundings', () => {
+    it('should create a customer funding', async () => {
+      const payload = {
+        nature: ONE_TIME,
+        versions: [{
+          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+          folderNumber: 'D123456',
+          frequency: MONTHLY,
+          startDate: moment.utc().toDate(),
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+          services: [companiesList[0].customersConfig.services[0]._id]
+        }]
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customer).toBeDefined();
+      expect(res.result.data.funding).toBeDefined();
+      expect(res.result.data.customer._id).toEqual(customersList[0]._id);
+      expect(res.result.data.funding.versions[0]).toMatchObject({
+        ..._.omit(payload.versions[0], ['thirdPartyPayer', 'services']),
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0].name,
+        services: expect.arrayContaining([expect.objectContaining({
+          name: companiesList[0].customersConfig.services[0].versions[0].name
+        })])
+      });
+    });
+    it('should return a 409 error if subscription is used by another funding', async () => {
+      const payload = {
+        nature: ONE_TIME,
+        versions: [{
+          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+          folderNumber: 'D123456',
+          frequency: MONTHLY,
+          startDate: moment.utc().toDate(),
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+          services: [companiesList[0].customersConfig.services[0]._id]
+        }]
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[1]._id.toHexString()}/fundings`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(409);
+    });
+    it("should return a 400 error if 'services' array is missing from payload", async () => {
+      const payload = {
+        nature: ONE_TIME,
+        versions: [{
+          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+          folderNumber: 'D123456',
+          frequency: MONTHLY,
+          startDate: moment.utc().toDate(),
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5]
+        }]
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+    it("should return a 400 error if 'thirdPartyPayer' object is missing from payload", async () => {
+      const payload = {
+        nature: ONE_TIME,
+        versions: [{
+          folderNumber: 'D123456',
+          frequency: MONTHLY,
+          startDate: moment.utc().toDate(),
+          endDate: moment.utc().add(6, 'months'),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+          services: [companiesList[0].customersConfig.services[0]._id]
+        }]
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+    it('should return a 404 error if customer does not exist', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const payload = {
+        nature: ONE_TIME,
+        versions: [{
+          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+          folderNumber: 'D123456',
+          frequency: MONTHLY,
+          startDate: moment.utc().toDate(),
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+          services: [companiesList[0].customersConfig.services[0]._id]
+        }]
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${invalidId}/fundings`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('PUT customers/:id/fundings', () => {
+    it('should add a customer funding version', async () => {
+      const payload = {
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        folderNumber: 'D0987654321',
+        amountTTC: 90,
+        customerParticipationRate: 20,
+        frequency: MONTHLY,
+        startDate: moment.utc().add(7, 'months').toDate(),
+        endDate: moment.utc().add(1, 'year').toDate(),
+        careDays: [1, 3],
+        services: [companiesList[0].customersConfig.services[0]._id]
+      };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customersList[1]._id.toHexString()}/fundings/${customersList[1].fundings[0]._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customer).toBeDefined();
+      expect(res.result.data.funding).toBeDefined();
+      expect(res.result.data.customer._id).toEqual(customersList[1]._id);
+      expect(res.result.data.funding.versions.length).toBe(customersList[1].fundings[0].versions.length + 1);
+    });
+    it('should return a 409 error if subscription is used by another funding', async () => {
+      const payload = {
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        folderNumber: 'D0987654321',
+        amountTTC: 90,
+        customerParticipationRate: 20,
+        frequency: MONTHLY,
+        startDate: moment.utc().toDate(),
+        endDate: moment.utc().add(1, 'year').toDate(),
+        careDays: [1, 3],
+        services: [companiesList[0].customersConfig.services[0]._id]
+      };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${customersList[1]._id.toHexString()}/fundings/${customersList[1].fundings[0]._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(409);
+    });
+    it('should return a 404 error if customer does not exist', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const payload = {
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        folderNumber: 'D0987654321',
+        amountTTC: 90,
+        customerParticipationRate: 20,
+        frequency: MONTHLY,
+        startDate: moment.utc().add(7, 'months').toDate(),
+        endDate: moment.utc().add(1, 'year').toDate(),
+        careDays: [1, 3],
+        services: [companiesList[0].customersConfig.services[0]._id]
+      };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${invalidId}/fundings/${customersList[1].fundings[0]._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': token },
+      });
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe('GET /customers/{id}/fundings', () => {
+    it('should get customer fundings', async () => {
+      const customer = customersList[1];
+
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${customer._id.toHexString()}/fundings`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.fundings).toBeDefined();
+    });
+
+    it('should return 404 as customer not found', async () => {
+      const invalidId = new ObjectID().toHexString();
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${invalidId}/fundings`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(404);
+    });
+  });
+
+  describe('DELETE /customers/{id}/fundings/{fundingId}', () => {
+    it('should delete customer funding', async () => {
+      const customer = customersList[1];
+      const funding = customer.fundings[0];
+
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(result.statusCode).toBe(200);
     });
   });
 });

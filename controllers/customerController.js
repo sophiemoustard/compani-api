@@ -17,6 +17,7 @@ const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 const { createAndSaveFile } = require('../helpers/customers');
+const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
 
 const { language } = translate;
 
@@ -51,6 +52,11 @@ const show = async (req) => {
 
     customer = customer.toObject();
     customer = await subscriptionsAccepted(customer);
+
+    const fundingsVersions = [];
+    for (const funding of customer.fundings) {
+      customer.fundings.versions = fundingsVersions.push(await populateFundings(funding));
+    }
 
     return {
       message: translate[language].customerFound,
@@ -571,6 +577,124 @@ const createHistorySubscription = async (req) => {
   }
 };
 
+const createFunding = async (req) => {
+  try {
+    const check = await checkSubscriptionFunding(req.params._id, req.payload.versions[0]);
+    if (!check) return Boom.conflict(translate[language].customerFundingConflict);
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { fundings: req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+        autopopulate: false,
+      },
+    ).lean();
+
+    if (!customer) return Boom.notFound(translate[language].customerNotFound);
+
+    let funding = customer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    funding = await populateFundings(funding);
+
+    return {
+      message: translate[language].customerFundingCreated,
+      data: {
+        customer: _.pick(customer, ['_id', 'identity']),
+        funding
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const updateFunding = async (req) => {
+  try {
+    if (req.payload.services) {
+      const check = await checkSubscriptionFunding(req.params._id, req.payload);
+      if (!check) return Boom.conflict(translate[language].customerFundingConflict);
+    }
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id, 'fundings._id': req.params.fundingId },
+      { $push: { 'fundings.$.versions': req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+        autopopulate: false,
+      },
+    ).lean();
+
+    if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
+
+    let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);
+    funding = await populateFundings(funding);
+
+    return {
+      message: translate[language].customerFundingUpdated,
+      data: {
+        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        funding,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const getFundings = async (req) => {
+  try {
+    const customer = await Customer.findOne(
+      { _id: req.params._id, fundings: { $exists: true } },
+      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+      { autopopulate: false },
+    ).lean();
+
+    if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
+
+    const versions = [];
+    for (const funding of customer.fundings) {
+      customer.fundings.versions = versions.push(await populateFundings(funding));
+    }
+
+    return {
+      message: translate[language].customerFundingsFound,
+      data: {
+        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        fundings: customer.fundings,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const removeFunding = async (req) => {
+  try {
+    await Customer.findByIdAndUpdate(
+      { _id: req.params._id },
+      { $pull: { fundings: { _id: req.params.fundingId } } },
+      {
+        select: {
+          'identity.firstname': 1,
+          'identity.lastname': 1,
+          fundings: 1,
+        },
+        autopopulate: false,
+      }
+    );
+
+    return {
+      message: translate[language].customerFundingRemoved,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 
 module.exports = {
   list,
@@ -593,4 +717,8 @@ module.exports = {
   generateMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
+  createFunding,
+  updateFunding,
+  getFundings,
+  removeFunding
 };

@@ -178,6 +178,12 @@ module.exports = {
     customerQuoteRemoved: 'Customer quote removed.',
     signedDocumentSaved: 'Signed document saved.',
     customerSubscriptionHistoryAdded: 'Customer subscription history added.',
+    customerFundingConflict: 'Subscription is already used by another funding.',
+    customerFundingNotFound: 'Customer funding not found.',
+    customerFundingCreated: 'Customer funding created.',
+    customerFundingUpdated: 'Customer funding updated.',
+    customerFundingsFound: 'Customer fundings found.',
+    customerFundingRemoved: 'Customer funding removed.',
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
@@ -373,6 +379,12 @@ module.exports = {
     customerQuoteRemoved: 'Devis du bénéficiaire supprimé.',
     signedDocumentSaved: 'Document signé enregistré.',
     customerSubscriptionHistoryAdded: "Historique de l'abonnement du bénéficiaire ajouté.",
+    customerFundingConflict: 'Le service est déjà utilisé par un autre financement.',
+    customerFundingNotFound: 'Financement du bénéficiaire non trouvé.',
+    customerFundingCreated: 'Financement du bénéficiaire créé.',
+    customerFundingUpdated: 'Financement du bénéficiaire modifié.',
+    customerFundingsFound: 'Financements du bénéficiaire trouvés.',
+    customerFundingRemoved: 'Financement du bénéficiaire supprimé.',
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
