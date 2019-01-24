@@ -924,7 +924,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         startDate: moment.utc().add(7, 'months').toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
-        subscriptions: [companiesList[0].customersConfig.services[0]._id]
+        services: [companiesList[0].customersConfig.services[0]._id]
       };
       const res = await app.inject({
         method: 'PUT',
@@ -948,7 +948,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         startDate: moment.utc().toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
-        subscriptions: [companiesList[0].customersConfig.services[0]._id]
+        services: [companiesList[0].customersConfig.services[0]._id]
       };
       const res = await app.inject({
         method: 'PUT',
@@ -969,7 +969,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         startDate: moment.utc().add(7, 'months').toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
-        subscriptions: [companiesList[0].customersConfig.services[0]._id]
+        services: [companiesList[0].customersConfig.services[0]._id]
       };
       const res = await app.inject({
         method: 'PUT',
