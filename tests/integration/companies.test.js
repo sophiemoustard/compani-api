@@ -453,7 +453,7 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         },
         email: 'test@test.com',
         unitTTCPrice: 75,
-        billingMode: 'directe',
+        billingMode: 'direct',
       };
       const response = await app.inject({
         method: 'POST',
@@ -476,7 +476,7 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         },
         email: 'test@test.com',
         unitTTCPrice: 75,
-        billingMode: 'directe'
+        billingMode: 'direct'
       };
       const response = await app.inject({
         method: 'POST',
@@ -498,7 +498,7 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         },
         email: 'test@test.com',
         unitTTCPrice: 75,
-        billingMode: 'directe'
+        billingMode: 'direct'
       };
       const response = await app.inject({
         method: 'POST',
@@ -551,7 +551,7 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         },
         email: 't@t.com',
         unitTTCPrice: 89,
-        billingMode: 'indirecte',
+        billingMode: 'indirect',
       };
       const response = await app.inject({
         method: 'PUT',
@@ -575,7 +575,7 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
         },
         email: 't@t.com',
         unitTTCPrice: 89,
-        billingMode: 'indirecte',
+        billingMode: 'indirect',
       };
       const response = await app.inject({
         method: 'PUT',
