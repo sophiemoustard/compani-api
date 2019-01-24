@@ -9,9 +9,13 @@ const populateServices = (services, subscriptions) => {
   return subscriptions.map((subscription) => {
     const serviceId = subscription;
     const service = services.find(ser => ser._id.toHexString() == serviceId);
-    return service.versions
+    const currentVersion = service.versions
       .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    return {
+      ...currentVersion,
+      _id: service._id
+    };
   });
 };
 
