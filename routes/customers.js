@@ -475,8 +475,8 @@ exports.plugin = {
               amountTTC: Joi.number(),
               unitTTCPrice: Joi.number(),
               careHours: Joi.number(),
-              careDays: Joi.array().items(Joi.number().min(0).max(6)),
-              customerParticipationRate: Joi.number(),
+              careDays: Joi.array().items(Joi.number().min(0).max(7)),
+              customerParticipationRate: Joi.number().default(0),
               subscriptions: Joi.array().items(Joi.objectId()).required(),
             }))
           })
@@ -504,8 +504,8 @@ exports.plugin = {
             amountTTC: Joi.number(),
             unitTTCPrice: Joi.number(),
             careHours: Joi.number(),
-            careDays: Joi.array().items(Joi.number().min(0).max(6)),
-            customerParticipationRate: Joi.number(),
+            careDays: Joi.array().items(Joi.number().min(0).max(7)),
+            customerParticipationRate: Joi.number().default(0),
             subscriptions: Joi.array().items(Joi.objectId()).min(1),
           })
         },
