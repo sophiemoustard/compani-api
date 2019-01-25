@@ -14,9 +14,7 @@ const checkSubscriptionFunding = async (customerId, payloadVersion) => {
 
   return lastVersions
     .filter(version => version.services.some(sub => payloadVersion.services.includes(sub.toHexString())))
-    .every((el) => {
-      return el.endDate ? moment(el.endDate).isBefore(payloadVersion.startDate, 'day') : false;
-    });
+    .every(el => (el.endDate ? moment(el.endDate).isBefore(payloadVersion.startDate, 'day') : false));
 };
 
 const populateServices = (services, fundingServices) => {
