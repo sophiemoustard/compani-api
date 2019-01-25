@@ -4,6 +4,7 @@ const moment = require('moment');
 const Customer = require('../models/Customer');
 const Company = require('../models/Company');
 const { getLastVersion } = require('./utils');
+const { populateServices } = require('./subscriptions');
 
 const checkSubscriptionFunding = async (customerId, payloadVersion) => {
   const customer = await Customer.findById(customerId).lean();
@@ -17,39 +18,29 @@ const checkSubscriptionFunding = async (customerId, payloadVersion) => {
     .every(el => (el.endDate ? moment(el.endDate).isBefore(payloadVersion.startDate, 'day') : false));
 };
 
-const populateServices = (services, fundingServices) => {
-  if (!fundingServices || fundingServices.length === 0) return [];
-
-  return fundingServices.map((fundingService) => {
-    const serviceId = fundingService;
-    const service = services.find(ser => ser._id.toHexString() == serviceId);
-    const currentVersion = service.versions
-      .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-    return {
-      ...currentVersion,
-      _id: service._id
-    };
-  });
-};
-
 const populateFundings = async (funding) => {
   if (!funding) return false;
 
   const company = await Company.findOne({ 'customersConfig.thirdPartyPayers._id': funding.versions[0].thirdPartyPayer }).lean();
+  const { thirdPartyPayers, services: companyServices } = company.customersConfig;
 
-  const { thirdPartyPayers, services } = company.customersConfig;
 
-  const populatedVersions = funding.versions.map((version) => {
+  const populatedVersions = funding.versions.map(async (version) => {
     const thirdPartyPayer = thirdPartyPayers.find(tpp => tpp._id.toHexString() === version.thirdPartyPayer.toHexString());
+
+    const fundingServices = [];
+    for (const serviceId of version.services) {
+      fundingServices.push(await populateServices(serviceId, companyServices));
+    }
+
     return {
       ...version,
       thirdPartyPayer: thirdPartyPayer.name,
-      services: populateServices(services, version.services)
+      services: [...fundingServices],
     };
   });
 
-  funding.versions = populatedVersions;
+  funding.versions = await Promise.all(populatedVersions);
 
   return funding;
 };

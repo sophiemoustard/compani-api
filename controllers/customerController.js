@@ -11,7 +11,7 @@ const Company = require('../models/Company');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/GoogleDrive');
-const { populateServices, subscriptionsAccepted } = require('../helpers/subscriptions');
+const { subscriptionsAccepted, populateSubscriptionsSerivces } = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
@@ -29,7 +29,7 @@ const list = async (req) => {
 
     const customersRaw = await Customer.find(payload).lean();
 
-    const customersSubscriptionsPromises = customersRaw.map(populateServices);
+    const customersSubscriptionsPromises = customersRaw.map(populateSubscriptionsSerivces);
     let [...customers] = await Promise.all(customersSubscriptionsPromises);
     const customersApprovalPromises = customers.map(subscriptionsAccepted);
     [...customers] = await Promise.all(customersApprovalPromises);
@@ -52,7 +52,7 @@ const show = async (req) => {
     }
 
     customer = customer.toObject();
-    customer = await populateServices(customer);
+    customer = await populateSubscriptionsSerivces(customer);
     customer = await subscriptionsAccepted(customer);
 
     const fundingsVersions = [];
@@ -158,7 +158,7 @@ const getSubscriptions = async (req) => {
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const subscriptions = await populateServices(customer.subscriptions);
+    const { subscriptions } = await populateSubscriptionsSerivces(customer);
 
     return {
       message: translate[language].customerSubscriptionsFound,
@@ -187,7 +187,7 @@ const updateSubscription = async (req) => {
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const subscriptions = await populateServices(customer.subscriptions);
+    const { subscriptions } = await populateSubscriptionsSerivces(customer);
 
     return {
       message: translate[language].customerSubscriptionUpdated,
@@ -228,7 +228,7 @@ const addSubscription = async (req) => {
       },
     ).lean();
 
-    const subscriptions = await populateServices(updatedCustomer.subscriptions);
+    const { subscriptions } = await populateSubscriptionsSerivces(updatedCustomer);
 
     return {
       message: translate[language].customerSubscriptionAdded,
