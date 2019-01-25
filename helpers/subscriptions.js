@@ -33,7 +33,7 @@ const populateSubscriptionsSerivces = async (customer) => {
     });
   }
 
-  return { ...customer, subscriptions: [...subscriptions] };
+  return { ...customer, subscriptions };
 };
 
 async function subscriptionsAccepted(customer) {
