@@ -2,36 +2,42 @@ const moment = require('moment');
 const _ = require('lodash');
 const Company = require('../models/Company');
 
-const populateServices = async (subscriptions) => {
-  if (!subscriptions || subscriptions.length === 0) return [];
+const populateServices = async (serviceId, services) => {
+  const service = services.find(ser => ser._id.toHexString() == serviceId);
+  const currentVersion = service.versions
+    .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
-  const company = await Company.findOne({ 'customersConfig.services._id': subscriptions[0].service });
+  return {
+    _id: service._id,
+    name: currentVersion.name,
+    nature: service.nature,
+    defaultUnitAmount: currentVersion.defaultUnitAmount,
+    vat: currentVersion.vat,
+    holidaySurcharge: currentVersion.holidaySurcharge,
+    eveningSurcharge: currentVersion.eveningSurcharge,
+  };
+};
 
-  return subscriptions.map((subscription) => {
-    const serviceId = subscription.service;
-    const service = company.customersConfig.services.find(ser => ser._id.toHexString() == serviceId);
-    const currentVersion = service.versions
-      .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+const populateSubscriptionsSerivces = async (customer) => {
+  if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
 
-    return {
+  const company = await Company.findOne({ 'customersConfig.services._id': customer.subscriptions[0].service });
+  const { services } = company.customersConfig;
+
+  const subscriptions = [];
+  for (const subscription of customer.subscriptions) {
+    subscriptions.push({
       ...subscription,
-      service: {
-        _id: service._id,
-        name: currentVersion.name,
-        nature: service.nature,
-        defaultUnitAmount: currentVersion.defaultUnitAmount,
-        vat: currentVersion.vat,
-        holidaySurcharge: currentVersion.holidaySurcharge,
-        eveningSurcharge: currentVersion.eveningSurcharge,
-      },
-    };
-  });
+      service: await populateServices(subscription.service, services),
+    });
+  }
+
+  return { ...customer, subscriptions: [...subscriptions] };
 };
 
 async function subscriptionsAccepted(customer) {
   if (customer.subscriptions && customer.subscriptions.length > 0) {
-    customer.subscriptions = await populateServices(customer.subscriptions);
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = _.map(customer.subscriptions, (subscription) => {
         const { service } = subscription;
@@ -53,5 +59,6 @@ async function subscriptionsAccepted(customer) {
 
 module.exports = {
   populateServices,
+  populateSubscriptionsSerivces,
   subscriptionsAccepted,
 };
