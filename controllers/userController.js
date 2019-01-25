@@ -17,6 +17,7 @@ const { createFolder } = require('../helpers/gdriveStorage');
 const { endUserContract, updateContract } = require('../helpers/userContracts');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
+const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
@@ -121,6 +122,10 @@ const show = async (req) => {
     user = user.toObject();
     if (user.role && user.role.rights.length > 0) {
       user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
+    }
+
+    if (user.company && user.company.customersConfig && user.company.customersConfig.thirdPartyPayers) {
+      user.company.customersConfig.thirdPartyPayers = await isUsedInFundings(user.company.customersConfig.thirdPartyPayers);
     }
 
     return {
