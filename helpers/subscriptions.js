@@ -2,36 +2,38 @@ const moment = require('moment');
 const _ = require('lodash');
 const Company = require('../models/Company');
 
-const populateServices = async (subscriptions) => {
-  if (!subscriptions || subscriptions.length === 0) return [];
+const populateServices = async (customer) => {
+  if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
 
-  const company = await Company.findOne({ 'customersConfig.services._id': subscriptions[0].service });
+  const company = await Company.findOne({ 'customersConfig.services._id': customer.subscriptions[0].service });
 
-  return subscriptions.map((subscription) => {
-    const serviceId = subscription.service;
-    const service = company.customersConfig.services.find(ser => ser._id.toHexString() == serviceId);
-    const currentVersion = service.versions
-      .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+  return {
+    ...customer,
+    subscriptions: customer.subscriptions.map((subscription) => {
+      const serviceId = subscription.service;
+      const service = company.customersConfig.services.find(ser => ser._id.toHexString() == serviceId);
+      const currentVersion = service.versions
+        .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
-    return {
-      ...subscription,
-      service: {
-        _id: service._id,
-        name: currentVersion.name,
-        nature: service.nature,
-        defaultUnitAmount: currentVersion.defaultUnitAmount,
-        vat: currentVersion.vat,
-        holidaySurcharge: currentVersion.holidaySurcharge,
-        eveningSurcharge: currentVersion.eveningSurcharge,
-      },
-    };
-  });
+      return {
+        ...subscription,
+        service: {
+          _id: service._id,
+          name: currentVersion.name,
+          nature: service.nature,
+          defaultUnitAmount: currentVersion.defaultUnitAmount,
+          vat: currentVersion.vat,
+          holidaySurcharge: currentVersion.holidaySurcharge,
+          eveningSurcharge: currentVersion.eveningSurcharge,
+        },
+      };
+    }),
+  };
 };
 
 async function subscriptionsAccepted(customer) {
   if (customer.subscriptions && customer.subscriptions.length > 0) {
-    customer.subscriptions = await populateServices(customer.subscriptions);
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = _.map(customer.subscriptions, (subscription) => {
         const { service } = subscription;

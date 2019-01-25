@@ -24,15 +24,16 @@ const { language } = translate;
 const list = async (req) => {
   try {
     const { lastname, firstname, ...payload } = req.query;
-    if (lastname) {
-      payload['identity.lastname'] = { $regex: lastname, $options: 'i' };
-    }
-    if (firstname) {
-      payload['identity.firstname'] = { $regex: firstname, $options: 'i' };
-    }
+    if (lastname) payload['identity.lastname'] = { $regex: lastname, $options: 'i' };
+    if (firstname) payload['identity.firstname'] = { $regex: firstname, $options: 'i' };
+
     const customersRaw = await Customer.find(payload).lean();
-    const customersPromises = customersRaw.map(subscriptionsAccepted);
-    const [...customers] = await Promise.all(customersPromises);
+
+    const customersSubscriptionsPromises = customersRaw.map(populateServices);
+    let [...customers] = await Promise.all(customersSubscriptionsPromises);
+    const customersApprovalPromises = customers.map(subscriptionsAccepted);
+    [...customers] = await Promise.all(customersApprovalPromises);
+
     return {
       message: translate[language].customersShowAllFound,
       data: { customers }
@@ -51,6 +52,7 @@ const show = async (req) => {
     }
 
     customer = customer.toObject();
+    customer = await populateServices(customer);
     customer = await subscriptionsAccepted(customer);
 
     const fundingsVersions = [];
