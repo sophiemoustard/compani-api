@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const _ = require('lodash');
 
 const SubscriptionsLog = require('./SubscriptionsLog');
-const { populateServices } = require('../helpers/subscriptions');
+const { populateSubscriptionsSerivces } = require('../helpers/subscriptions');
 const {
   MONTHLY,
   WEEKLY,
@@ -160,7 +160,7 @@ async function saveSubscriptionsChanges(doc, next) {
     const deletedSub = subscriptions.filter(sub => sub._id.toHexString() === this.getUpdate().$pull.subscriptions._id.toHexString());
     if (!deletedSub) return next();
 
-    const populatedDeletedSub = await populateServices(deletedSub);
+    const { subscriptions: populatedDeletedSub } = await populateSubscriptionsSerivces({ subscriptions: [...deletedSub] });
     const lastVersion = populatedDeletedSub[0].versions.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
     const payload = {
       customer: {
