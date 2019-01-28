@@ -46,19 +46,20 @@ const list = async (req) => {
 
 const show = async (req) => {
   try {
-    let customer = await Customer.findOne({ _id: req.params._id });
+    let customer = await Customer.findOne({ _id: req.params._id }).lean();
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
     }
 
-    customer = customer.toObject();
     customer = await populateSubscriptionsSerivces(customer);
     customer = await subscriptionsAccepted(customer);
 
     const fundingsVersions = [];
     for (const funding of customer.fundings) {
-      customer.fundings.versions = fundingsVersions.push(await populateFundings(funding));
+      fundingsVersions.push(await populateFundings(funding));
+      customer.fundings = fundingsVersions;
     }
+
 
     return {
       message: translate[language].customerFound,
@@ -581,6 +582,7 @@ const createHistorySubscription = async (req) => {
 
 const createFunding = async (req) => {
   try {
+    req.payload.versions[0].effectiveDate = moment.utc().toDate();
     const check = await checkSubscriptionFunding(req.params._id, req.payload.versions[0]);
     if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     const customer = await Customer.findOneAndUpdate(
@@ -657,7 +659,8 @@ const getFundings = async (req) => {
 
     const versions = [];
     for (const funding of customer.fundings) {
-      customer.fundings.versions = versions.push(await populateFundings(funding));
+      versions.push(await populateFundings(funding));
+      customer.fundings = versions;
     }
 
     return {
