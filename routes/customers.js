@@ -468,7 +468,7 @@ exports.plugin = {
             nature: Joi.string().valid(HOURLY, ONE_TIME),
             thirdPartyPayer: Joi.objectId().required(),
             folderNumber: Joi.string(),
-            startDate: Joi.date(),
+            startDate: Joi.date().default(new Date()),
             versions: Joi.array().items(Joi.object().keys({
               endDate: Joi.date(),
               frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE),
