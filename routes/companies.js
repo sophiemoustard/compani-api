@@ -346,7 +346,7 @@ exports.plugin = {
               city: Joi.string()
             }),
             email: Joi.string().email(),
-            unitTTCPrice: Joi.number(),
+            unitTTCRate: Joi.number(),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
           })
         }
@@ -385,7 +385,7 @@ exports.plugin = {
               city: Joi.string().allow(null, ''),
             }),
             email: Joi.string().email().allow(null, ''),
-            unitTTCPrice: Joi.number().default(0),
+            unitTTCRate: Joi.number().default(0),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
           })
         }
