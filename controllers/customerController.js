@@ -55,11 +55,12 @@ const show = async (req) => {
     customer = await subscriptionsAccepted(customer);
 
     const fundingsVersions = [];
-    for (const funding of customer.fundings) {
-      fundingsVersions.push(await populateFundings(funding));
+    if (customer.fundings && customer.fundings.length > 0) {
+      for (const funding of customer.fundings) {
+        fundingsVersions.push(await populateFundings(funding));
+      }
       customer.fundings = fundingsVersions;
     }
-
 
     return {
       message: translate[language].customerFound,
@@ -660,8 +661,8 @@ const getFundings = async (req) => {
     const versions = [];
     for (const funding of customer.fundings) {
       versions.push(await populateFundings(funding));
-      customer.fundings = versions;
     }
+    customer.fundings = versions;
 
     return {
       message: translate[language].customerFundingsFound,
