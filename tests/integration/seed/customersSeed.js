@@ -115,6 +115,7 @@ const customersList = [
         versions: [{
           frequency: MONTHLY,
           endDate: moment.utc().add(6, 'months').toDate(),
+          effectiveDate: moment.utc().toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
