@@ -583,7 +583,9 @@ const createHistorySubscription = async (req) => {
 
 const createFunding = async (req) => {
   try {
-    req.payload.versions[0].effectiveDate = moment.utc().toDate();
+    if (req.payload.startDate) {
+      req.payload.versions[0].effectiveDate = req.payload.startDate;
+    }
     const check = await checkSubscriptionFunding(req.params._id, req.payload.versions[0]);
     if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     const customer = await Customer.findOneAndUpdate(
