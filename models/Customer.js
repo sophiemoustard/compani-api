@@ -137,7 +137,7 @@ const CustomerSchema = mongoose.Schema({
         enum: [MONTHLY, WEEKLY, ONCE]
       },
       amountTTC: Number,
-      unitTTCPrice: Number,
+      unitTTCRate: Number,
       careHours: Number,
       careDays: [Number],
       customerParticipationRate: Number,

@@ -76,7 +76,7 @@ const CompanySchema = mongoose.Schema({
         city: String
       },
       email: String,
-      unitTTCPrice: Number,
+      unitTTCRate: Number,
       billingMode: {
         type: String,
         enum: [BILLING_DIRECT, BILLING_INDIRECT]
