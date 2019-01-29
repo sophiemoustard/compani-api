@@ -127,10 +127,10 @@ const CustomerSchema = mongoose.Schema({
       type: String,
       enum: [HOURLY, ONE_TIME]
     },
+    startDate: Date,
+    thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
+    folderNumber: String,
     versions: [{
-      thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
-      folderNumber: String,
-      startDate: Date,
       endDate: Date,
       frequency: {
         type: String,
@@ -142,6 +142,7 @@ const CustomerSchema = mongoose.Schema({
       careDays: [Number],
       customerParticipationRate: Number,
       services: [{ type: mongoose.Schema.Types.ObjectId }],
+      effectiveDate: Date,
       createdAt: {
         type: Date,
         default: Date.now

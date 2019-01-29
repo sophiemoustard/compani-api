@@ -466,10 +466,10 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             nature: Joi.string().valid(HOURLY, ONE_TIME),
+            thirdPartyPayer: Joi.objectId().required(),
+            folderNumber: Joi.string(),
+            startDate: Joi.date(),
             versions: Joi.array().items(Joi.object().keys({
-              thirdPartyPayer: Joi.objectId().required(),
-              folderNumber: Joi.string(),
-              startDate: Joi.date(),
               endDate: Joi.date(),
               frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE),
               amountTTC: Joi.number(),
@@ -496,10 +496,8 @@ exports.plugin = {
             fundingId: Joi.objectId().required()
           },
           payload: Joi.object().keys({
-            thirdPartyPayer: Joi.objectId(),
-            folderNumber: Joi.string(),
-            startDate: Joi.date(),
             endDate: Joi.date(),
+            effectiveDate: Joi.date(),
             frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE),
             amountTTC: Joi.number(),
             unitTTCPrice: Joi.number(),

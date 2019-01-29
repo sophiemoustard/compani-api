@@ -790,11 +790,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should create a customer funding', async () => {
       const payload = {
         nature: ONE_TIME,
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
         versions: [{
-          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-          folderNumber: 'D123456',
           frequency: MONTHLY,
-          startDate: moment.utc().toDate(),
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
@@ -812,9 +812,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.funding).toBeDefined();
       expect(res.result.data.customer._id).toEqual(customersList[0]._id);
+      expect(res.result.data.funding.thirdPartyPayer.name).toEqual(companiesList[0].customersConfig.thirdPartyPayers[0].name);
+      expect(res.result.data.funding.nature).toEqual(payload.nature);
+      expect(res.result.data.funding.startDate).toEqual(payload.startDate);
       expect(res.result.data.funding.versions[0]).toMatchObject({
-        ..._.omit(payload.versions[0], ['thirdPartyPayer', 'services']),
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0].name,
+        ..._.omit(payload.versions[0], ['services']),
         services: expect.arrayContaining([expect.objectContaining({
           name: companiesList[0].customersConfig.services[0].versions[0].name
         })])
@@ -823,11 +825,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 409 error if subscription is used by another funding', async () => {
       const payload = {
         nature: ONE_TIME,
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
         versions: [{
-          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-          folderNumber: 'D123456',
           frequency: MONTHLY,
-          startDate: moment.utc().toDate(),
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
@@ -846,11 +848,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it("should return a 400 error if 'services' array is missing from payload", async () => {
       const payload = {
         nature: ONE_TIME,
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
         versions: [{
-          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-          folderNumber: 'D123456',
           frequency: MONTHLY,
-          startDate: moment.utc().toDate(),
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
@@ -868,10 +870,10 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it("should return a 400 error if 'thirdPartyPayer' object is missing from payload", async () => {
       const payload = {
         nature: ONE_TIME,
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
         versions: [{
-          folderNumber: 'D123456',
           frequency: MONTHLY,
-          startDate: moment.utc().toDate(),
           endDate: moment.utc().add(6, 'months'),
           amountTTC: 120,
           customerParticipationRate: 10,
@@ -891,11 +893,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
         nature: ONE_TIME,
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
         versions: [{
-          thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-          folderNumber: 'D123456',
           frequency: MONTHLY,
-          startDate: moment.utc().toDate(),
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
@@ -916,13 +918,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   describe('PUT customers/:id/fundings', () => {
     it('should add a customer funding version', async () => {
       const payload = {
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        folderNumber: 'D0987654321',
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
-        startDate: moment.utc().add(7, 'months').toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
+        effectiveDate: moment.utc().add(7, 'months').toDate(),
         careDays: [1, 3],
         services: [companiesList[0].customersConfig.services[0]._id]
       };
@@ -940,13 +940,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
     it('should return a 409 error if subscription is used by another funding', async () => {
       const payload = {
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        folderNumber: 'D0987654321',
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
-        startDate: moment.utc().toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
+        effectiveDate: moment.utc().add(6, 'months').toDate(),
         careDays: [1, 3],
         services: [companiesList[0].customersConfig.services[0]._id]
       };
@@ -961,12 +959,10 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        folderNumber: 'D0987654321',
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
-        startDate: moment.utc().add(7, 'months').toDate(),
+        effectiveDate: moment.utc().add(6, 'months').toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
         services: [companiesList[0].customersConfig.services[0]._id]

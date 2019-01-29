@@ -15,19 +15,19 @@ const checkSubscriptionFunding = async (customerId, payloadVersion) => {
 
   return lastVersions
     .filter(version => version.services.some(sub => payloadVersion.services.includes(sub.toHexString())))
-    .every(el => (el.endDate ? moment(el.endDate).isBefore(payloadVersion.startDate, 'day') : false));
+    .every(el => (el.endDate ? moment(el.endDate).isBefore(payloadVersion.effectiveDate, 'day') : false));
 };
 
 const populateFundings = async (funding) => {
   if (!funding) return false;
 
-  const company = await Company.findOne({ 'customersConfig.thirdPartyPayers._id': funding.versions[0].thirdPartyPayer }).lean();
+  const company = await Company.findOne({ 'customersConfig.thirdPartyPayers._id': funding.thirdPartyPayer }).lean();
   const { thirdPartyPayers, services: companyServices } = company.customersConfig;
 
 
+  const thirdPartyPayer = thirdPartyPayers.find(tpp => tpp._id.toHexString() === funding.thirdPartyPayer.toHexString());
+  funding.thirdPartyPayer = { _id: thirdPartyPayer._id, name: thirdPartyPayer.name };
   const populatedVersions = funding.versions.map(async (version) => {
-    const thirdPartyPayer = thirdPartyPayers.find(tpp => tpp._id.toHexString() === version.thirdPartyPayer.toHexString());
-
     const fundingServices = [];
     for (const serviceId of version.services) {
       fundingServices.push(await populateServices(serviceId, companyServices));
@@ -35,7 +35,6 @@ const populateFundings = async (funding) => {
 
     return {
       ...version,
-      thirdPartyPayer: thirdPartyPayer.name,
       services: [...fundingServices],
     };
   });
