@@ -619,7 +619,7 @@ const createFunding = async (req) => {
 const updateFunding = async (req) => {
   try {
     if (req.payload.services) {
-      const check = await checkSubscriptionFunding(req.params._id, req.payload);
+      const check = await checkSubscriptionFunding(req.params._id, req.payload, req.params.fundingId);
       if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     }
     const customer = await Customer.findOneAndUpdate(

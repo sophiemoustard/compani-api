@@ -6,13 +6,20 @@ const Company = require('../models/Company');
 const { getLastVersion } = require('./utils');
 const { populateServices } = require('./subscriptions');
 
-const checkSubscriptionFunding = async (customerId, payloadVersion) => {
+const checkSubscriptionFunding = async (customerId, payloadVersion, fundingId = null) => {
   const customer = await Customer.findById(customerId).lean();
   if (!customer) return Boom.notFound('Error while checking subscription funding: customer not found.');
 
+  console.log('fundingId', fundingId);
   if (!customer.fundings || customer.fundings.length === 0) return true;
-  const lastVersions = customer.fundings.map(funding => getLastVersion(funding.versions, 'createdAt'));
+  const lastVersions = customer.fundings.map(funding => ({ ...getLastVersion(funding.versions, 'createdAt'), fundingId: funding._id }));
+  console.log('last', lastVersions);
 
+  if (fundingId) {
+    return lastVersions
+      .filter(version => version.services.some(sub => payloadVersion.services.includes(sub.toHexString()) && fundingId !== version.fundingId.toHexString()))
+      .every(el => (el.endDate ? moment(el.endDate).isBefore(payloadVersion.effectiveDate, 'day') : false));
+  }
   return lastVersions
     .filter(version => version.services.some(sub => payloadVersion.services.includes(sub.toHexString())))
     .every(el => (el.endDate ? moment(el.endDate).isBefore(payloadVersion.effectiveDate, 'day') : false));
