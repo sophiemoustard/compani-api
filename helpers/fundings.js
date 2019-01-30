@@ -10,10 +10,8 @@ const checkSubscriptionFunding = async (customerId, payloadVersion, fundingId = 
   const customer = await Customer.findById(customerId).lean();
   if (!customer) return Boom.notFound('Error while checking subscription funding: customer not found.');
 
-  console.log('fundingId', fundingId);
   if (!customer.fundings || customer.fundings.length === 0) return true;
   const lastVersions = customer.fundings.map(funding => ({ ...getLastVersion(funding.versions, 'createdAt'), fundingId: funding._id }));
-  console.log('last', lastVersions);
 
   if (fundingId) {
     return lastVersions
