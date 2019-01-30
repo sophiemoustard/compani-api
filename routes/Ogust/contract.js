@@ -78,7 +78,8 @@ exports.plugin = {
             contractual_salary: Joi.string(),
             contract_hours: Joi.string(),
             status: Joi.string(),
-            type_renumeration: Joi.string()
+            type_renumeration: Joi.string(),
+            due: Joi.string().when('status', { is: Joi.string().valid('V'), then: Joi.string().default('1') })
           })
         },
         auth: false
