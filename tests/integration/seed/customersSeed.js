@@ -121,6 +121,22 @@ const customersList = [
           careDays: [2, 5],
           services: [companiesList[0].customersConfig.services[0]._id]
         }]
+      },
+      {
+        _id: new ObjectID(),
+        nature: ONE_TIME,
+        folderNumber: 'D7890',
+        startDate: moment.utc().toDate(),
+        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        versions: [{
+          frequency: MONTHLY,
+          endDate: moment.utc().add(2, 'years').toDate(),
+          effectiveDate: moment.utc().add(1, 'year').toDate(),
+          amountTTC: 90,
+          customerParticipationRate: 0,
+          careDays: [5, 6],
+          services: [companiesList[0].customersConfig.services[0]._id]
+        }]
       }
     ]
   },

@@ -921,8 +921,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
-        endDate: moment.utc().add(1, 'year').toDate(),
-        effectiveDate: moment.utc().add(7, 'months').toDate(),
+        endDate: moment.utc().add(4, 'years').toDate(),
+        effectiveDate: moment.utc().add(3, 'years').toDate(),
         careDays: [1, 3],
         services: [companiesList[0].customersConfig.services[0]._id]
       };
@@ -944,7 +944,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         customerParticipationRate: 20,
         frequency: MONTHLY,
         endDate: moment.utc().add(1, 'year').toDate(),
-        effectiveDate: moment.utc().add(6, 'months').toDate(),
+        effectiveDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
         services: [companiesList[0].customersConfig.services[0]._id]
       };
