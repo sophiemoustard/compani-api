@@ -4,7 +4,7 @@ const moment = require('moment');
 
 const Customer = require('../../../models/Customer');
 const { companiesList } = require('./companiesSeed');
-const { MONTHLY, ONE_TIME } = require('../../../helpers/constants');
+const { MONTHLY, FIXED } = require('../../../helpers/constants');
 
 faker.locale = 'fr';
 
@@ -108,7 +108,7 @@ const customersList = [
     fundings: [
       {
         _id: new ObjectID(),
-        nature: ONE_TIME,
+        nature: FIXED,
         folderNumber: 'D123456',
         startDate: moment.utc().toDate(),
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
@@ -124,7 +124,7 @@ const customersList = [
       },
       {
         _id: new ObjectID(),
-        nature: ONE_TIME,
+        nature: FIXED,
         folderNumber: 'D7890',
         startDate: moment.utc().toDate(),
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,

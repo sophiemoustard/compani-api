@@ -14,5 +14,5 @@ module.exports = {
   WEEKLY: 'weekly',
   ONCE: 'once',
   HOURLY: 'hourly',
-  ONE_TIME: 'one_time'
+  FIXED: 'fixed'
 };
