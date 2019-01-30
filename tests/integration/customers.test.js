@@ -16,7 +16,7 @@ const {
 const { populateRoles } = require('./seed/rolesSeed');
 const { populateCompanies, companiesList } = require('./seed/companiesSeed');
 const Customer = require('../../models/Customer');
-const { MONTHLY, ONE_TIME } = require('../../helpers/constants');
+const { MONTHLY, FIXED } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -789,7 +789,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   describe('POST customers/:id/fundings', () => {
     it('should create a customer funding', async () => {
       const payload = {
-        nature: ONE_TIME,
+        nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
         folderNumber: 'D123456',
         startDate: moment.utc().toDate(),
@@ -824,7 +824,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
     it('should return a 409 error if subscription is used by another funding', async () => {
       const payload = {
-        nature: ONE_TIME,
+        nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
         folderNumber: 'D123456',
         startDate: moment.utc().toDate(),
@@ -847,7 +847,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
     it("should return a 400 error if 'services' array is missing from payload", async () => {
       const payload = {
-        nature: ONE_TIME,
+        nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
         folderNumber: 'D123456',
         startDate: moment.utc().toDate(),
@@ -869,7 +869,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     });
     it("should return a 400 error if 'thirdPartyPayer' object is missing from payload", async () => {
       const payload = {
-        nature: ONE_TIME,
+        nature: FIXED,
         folderNumber: 'D123456',
         startDate: moment.utc().toDate(),
         versions: [{
@@ -892,7 +892,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
-        nature: ONE_TIME,
+        nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
         folderNumber: 'D123456',
         startDate: moment.utc().toDate(),

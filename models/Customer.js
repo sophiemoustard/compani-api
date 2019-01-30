@@ -10,7 +10,7 @@ const {
   WEEKLY,
   ONCE,
   HOURLY,
-  ONE_TIME,
+  FIXED,
 } = require('../helpers/constants');
 
 const CustomerSchema = mongoose.Schema({
@@ -127,7 +127,7 @@ const CustomerSchema = mongoose.Schema({
   fundings: [{
     nature: {
       type: String,
-      enum: [HOURLY, ONE_TIME]
+      enum: [HOURLY, FIXED]
     },
     startDate: Date,
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },

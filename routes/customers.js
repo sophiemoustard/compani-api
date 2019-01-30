@@ -35,7 +35,7 @@ const {
   WEEKLY,
   ONCE,
   HOURLY,
-  ONE_TIME
+  FIXED
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -465,7 +465,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            nature: Joi.string().valid(HOURLY, ONE_TIME).required(),
+            nature: Joi.string().valid(HOURLY, FIXED).required(),
             thirdPartyPayer: Joi.objectId().required(),
             folderNumber: Joi.string(),
             startDate: Joi.date(),
