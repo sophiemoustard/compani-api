@@ -465,7 +465,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            nature: Joi.string().valid(HOURLY, ONE_TIME),
+            nature: Joi.string().valid(HOURLY, ONE_TIME).required(),
             thirdPartyPayer: Joi.objectId().required(),
             folderNumber: Joi.string(),
             startDate: Joi.date(),
