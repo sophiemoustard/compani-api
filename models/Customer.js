@@ -1,14 +1,16 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
-
 const SubscriptionsLog = require('./SubscriptionsLog');
+const FundingLog = require('./FundingLog');
+const Company = require('./Company');
 const { populateSubscriptionsSerivces } = require('../helpers/subscriptions');
+const { getLastVersion } = require('../helpers/utils');
 const {
   MONTHLY,
   WEEKLY,
   ONCE,
   HOURLY,
-  ONE_TIME
+  ONE_TIME,
 } = require('../helpers/constants');
 
 const CustomerSchema = mongoose.Schema({
@@ -168,14 +170,14 @@ async function saveSubscriptionsChanges(doc, next) {
         customerId: doc._id,
         firstname: doc.identity.firstname,
         lastname: doc.identity.lastname,
-        ogustId: doc.customerId
+        ogustId: doc.customerId,
       },
       subscriptions: {
         name: populatedDeletedSub[0].service.name,
         unitTTCRate: lastVersion.unitTTCRate,
         estimatedWeeklyVolume: lastVersion.estimatedWeeklyVolume,
         evenings: lastVersion.evenings,
-        sundays: lastVersion.sundays
+        sundays: lastVersion.sundays,
       }
     };
     const cleanPayload = _.pickBy(payload);
@@ -185,6 +187,47 @@ async function saveSubscriptionsChanges(doc, next) {
   next();
 }
 
+async function saveFundingChanges(doc, next) {
+  if (this.getUpdate().$pull && this.getUpdate().$pull.fundings) {
+    const fundings = doc.fundings.toObject();
+
+    const deletedFunding = fundings.find(fund => fund._id.toHexString() === this.getUpdate().$pull.fundings._id.toHexString());
+    if (!deletedFunding) return next();
+
+    const company = await Company.findOne({ 'customersConfig.thirdPartyPayers._id': deletedFunding.thirdPartyPayer }).lean();
+    const { thirdPartyPayers: companyThirdPartyPayers, services: companyServices } = company.customersConfig;
+
+    const {
+      versions,
+      thirdPartyPayer,
+      folderNumber,
+      nature,
+    } = deletedFunding;
+    const { _id, createdAt, ...lastVersion } = getLastVersion(versions, 'effectiveDate');
+    const fundingServices = lastVersion.services.map(ser => companyServices.find(s => s._id.toHexString() === ser._id.toHexString()));
+    const payload = {
+      customer: {
+        customerId: doc._id,
+        firstname: doc.identity.firstname,
+        lastname: doc.identity.lastname,
+        ogustId: doc.customerId,
+      },
+      funding: {
+        services: fundingServices.map(service => getLastVersion(service.versions, 'startDate').name),
+        thirdPartyPayer: companyThirdPartyPayers.find(tpp => tpp._id.toHexString() === thirdPartyPayer.toHexString()).name,
+        folderNumber,
+        nature,
+        ...lastVersion,
+      },
+    };
+
+    const newLog = new FundingLog(_.pickBy(payload));
+    await newLog.save();
+  }
+  next();
+}
+
 CustomerSchema.post('findOneAndUpdate', saveSubscriptionsChanges);
+CustomerSchema.post('findOneAndUpdate', saveFundingChanges);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
