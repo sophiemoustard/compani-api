@@ -791,15 +791,15 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
+        services: [companiesList[0].customersConfig.services[0]._id],
         versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
           frequency: MONTHLY,
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -814,27 +814,23 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer._id).toEqual(customersList[0]._id);
       expect(res.result.data.funding.thirdPartyPayer.name).toEqual(companiesList[0].customersConfig.thirdPartyPayers[0].name);
       expect(res.result.data.funding.nature).toEqual(payload.nature);
-      expect(res.result.data.funding.startDate).toEqual(payload.startDate);
-      expect(res.result.data.funding.versions[0]).toMatchObject({
-        ..._.omit(payload.versions[0], ['services']),
-        services: expect.arrayContaining([expect.objectContaining({
-          name: companiesList[0].customersConfig.services[0].versions[0].name
-        })])
-      });
+      expect(res.result.data.funding.services[0]._id).toEqual(payload.services[0]);
+      expect(res.result.data.funding.versions[0]).toMatchObject(payload.versions[0]);
     });
+
     it('should return a 409 error if subscription is used by another funding', async () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
+        services: [companiesList[0].customersConfig.services[0]._id],
         versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
           frequency: MONTHLY,
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -845,13 +841,14 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       });
       expect(res.statusCode).toBe(409);
     });
+
     it("should return a 400 error if 'services' array is missing from payload", async () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
         versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
           frequency: MONTHLY,
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
@@ -867,18 +864,19 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       });
       expect(res.statusCode).toBe(400);
     });
+
     it("should return a 400 error if 'thirdPartyPayer' object is missing from payload", async () => {
       const payload = {
         nature: FIXED,
-        folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
+        services: [companiesList[0].customersConfig.services[0]._id],
         versions: [{
           frequency: MONTHLY,
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
           endDate: moment.utc().add(6, 'months'),
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -889,20 +887,21 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       });
       expect(res.statusCode).toBe(400);
     });
+
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
+        services: [companiesList[0].customersConfig.services[0]._id],
         nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
         versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
           frequency: MONTHLY,
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       };
       const res = await app.inject({
@@ -922,9 +921,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         customerParticipationRate: 20,
         frequency: MONTHLY,
         endDate: moment.utc().add(4, 'years').toDate(),
-        effectiveDate: moment.utc().add(3, 'years').toDate(),
+        startDate: moment.utc().add(3, 'years').toDate(),
         careDays: [1, 3],
-        services: [companiesList[0].customersConfig.services[0]._id]
       };
       const res = await app.inject({
         method: 'PUT',
@@ -938,34 +936,15 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer._id).toEqual(customersList[1]._id);
       expect(res.result.data.funding.versions.length).toBe(customersList[1].fundings[0].versions.length + 1);
     });
-    it('should return a 409 error if subscription is used by another funding', async () => {
-      const payload = {
-        amountTTC: 90,
-        customerParticipationRate: 20,
-        frequency: MONTHLY,
-        endDate: moment.utc().add(1, 'year').toDate(),
-        effectiveDate: moment.utc().add(1, 'year').toDate(),
-        careDays: [1, 3],
-        services: [companiesList[0].customersConfig.services[0]._id]
-      };
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${customersList[1]._id.toHexString()}/fundings/${customersList[1].fundings[0]._id.toHexString()}`,
-        payload,
-        headers: { 'x-access-token': token },
-      });
-      expect(res.statusCode).toBe(409);
-    });
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
-        effectiveDate: moment.utc().add(6, 'months').toDate(),
+        startDate: moment.utc().add(6, 'months').toDate(),
         endDate: moment.utc().add(1, 'year').toDate(),
         careDays: [1, 3],
-        services: [companiesList[0].customersConfig.services[0]._id]
       };
       const res = await app.inject({
         method: 'PUT',

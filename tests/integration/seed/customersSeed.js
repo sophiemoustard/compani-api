@@ -109,17 +109,17 @@ const customersList = [
       {
         _id: new ObjectID(),
         nature: FIXED,
-        folderNumber: 'D123456',
-        startDate: moment.utc().toDate(),
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        services: [companiesList[0].customersConfig.services[0]._id],
         versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
           frequency: MONTHLY,
           endDate: moment.utc().add(6, 'months').toDate(),
           effectiveDate: moment.utc().toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-          services: [companiesList[0].customersConfig.services[0]._id]
         }]
       },
       {

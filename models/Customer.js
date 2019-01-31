@@ -129,9 +129,8 @@ const CustomerSchema = mongoose.Schema({
       type: String,
       enum: [HOURLY, FIXED]
     },
-    startDate: Date,
+    services: [{ type: mongoose.Schema.Types.ObjectId }],
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
-    folderNumber: String,
     versions: [{
       endDate: Date,
       frequency: {
@@ -143,8 +142,8 @@ const CustomerSchema = mongoose.Schema({
       careHours: Number,
       careDays: [Number],
       customerParticipationRate: Number,
-      services: [{ type: mongoose.Schema.Types.ObjectId }],
-      effectiveDate: Date,
+      folderNumber: String,
+      startDate: Date,
       createdAt: {
         type: Date,
         default: Date.now
@@ -200,11 +199,11 @@ async function saveFundingChanges(doc, next) {
     const {
       versions,
       thirdPartyPayer,
-      folderNumber,
+      services,
       nature,
     } = deletedFunding;
-    const { _id, createdAt, ...lastVersion } = getLastVersion(versions, 'effectiveDate');
-    const fundingServices = lastVersion.services.map(ser => companyServices.find(s => s._id.toHexString() === ser._id.toHexString()));
+    const { _id, createdAt, ...lastVersion } = getLastVersion(versions, 'createdAt');
+    const fundingServices = services.map(ser => companyServices.find(s => s._id.toHexString() === ser._id.toHexString()));
     const payload = {
       customer: {
         customerId: doc._id,
@@ -215,7 +214,6 @@ async function saveFundingChanges(doc, next) {
       funding: {
         services: fundingServices.map(service => getLastVersion(service.versions, 'startDate').name),
         thirdPartyPayer: companyThirdPartyPayers.find(tpp => tpp._id.toHexString() === thirdPartyPayer.toHexString()).name,
-        folderNumber,
         nature,
         ...lastVersion,
       },
