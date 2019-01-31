@@ -583,10 +583,7 @@ const createHistorySubscription = async (req) => {
 
 const createFunding = async (req) => {
   try {
-    if (req.payload.startDate) {
-      req.payload.versions[0].effectiveDate = req.payload.startDate;
-    }
-    const check = await checkSubscriptionFunding(req.params._id, req.payload.versions[0]);
+    const check = await checkSubscriptionFunding(req.params._id, req.payload);
     if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id },
@@ -618,10 +615,6 @@ const createFunding = async (req) => {
 
 const updateFunding = async (req) => {
   try {
-    if (req.payload.services) {
-      const check = await checkSubscriptionFunding(req.params._id, req.payload, req.params.fundingId);
-      if (!check) return Boom.conflict(translate[language].customerFundingConflict);
-    }
     const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id, 'fundings._id': req.params.fundingId },
       { $push: { 'fundings.$.versions': req.payload } },
