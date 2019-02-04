@@ -33,8 +33,8 @@ const authorize = async (req) => {
       return Boom.unauthorized(translate[language].userAuthFailed);
     }
     const payload = {
-      firstname: user.firstname,
-      lastname: user.lastname,
+      firstname: user.identity.firstname,
+      lastname: user.identity.lastname,
       _id: user._id,
       local: {
         email: user.local.email
@@ -72,8 +72,8 @@ const getUserByParamId = async (req) => {
     }
     const alenviToken = encode({ _id: user._id, role: user.role.name });
     const payload = {
-      firstname: user.firstname,
-      lastname: user.lastname,
+      firstname: user.identity.firstname,
+      lastname: user.identity.lastname,
       _id: user._id,
       local: {
         email: user.local.email

@@ -59,8 +59,6 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            firstname: Joi.string(),
-            lastname: Joi.string(),
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.string(),
@@ -77,25 +75,27 @@ exports.plugin = {
             picture: Joi.object().keys({
               link: Joi.string()
             }),
+            identity: Joi.object().keys({
+              firstname: Joi.string(),
+              lastname: Joi.string(),
+              title: Joi.string(),
+              nationality: Joi.string(),
+              birthDate: Joi.date(),
+              birthContry: Joi.string(),
+              birthState: Joi.string(),
+              birthCity: Joi.string(),
+              socialSecurityNumber: Joi.number()
+            }),
+            contact: Joi.object().keys({
+              addressId: Joi.string(),
+              address: Joi.string(),
+              additionalAddress: Joi.string(),
+              zipCode: Joi.string(),
+              city: Joi.string()
+            }),
             administrative: Joi.object().keys({
               signup: Joi.object().keys({
                 firstSmsDate: Joi.string()
-              }),
-              identity: Joi.object().keys({
-                title: Joi.string(),
-                nationality: Joi.string(),
-                birthDate: Joi.date(),
-                birthContry: Joi.string(),
-                birthState: Joi.string(),
-                birthCity: Joi.string(),
-                socialSecurityNumber: Joi.number()
-              }),
-              contact: Joi.object().keys({
-                addressId: Joi.string(),
-                address: Joi.string(),
-                additionalAddress: Joi.string(),
-                zipCode: Joi.string(),
-                city: Joi.string()
               }),
               emergencyContact: Joi.object().keys({
                 name: Joi.string(),
@@ -166,8 +166,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             _id: Joi.objectId(),
-            firstname: Joi.string(),
-            lastname: Joi.string(),
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.string(),
@@ -193,6 +191,22 @@ exports.plugin = {
               from: Joi.string().allow(null),
             }),
             mentor: Joi.string().allow('', null),
+            identity: Joi.object().keys({
+              firstname: Joi.string(),
+              lastname: Joi.string(),
+              nationality: Joi.string(),
+              birthDate: Joi.date(),
+              birthCountry: Joi.string(),
+              birthState: Joi.string(),
+              birthCity: Joi.string(),
+              socialSecurityNumber: Joi.number()
+            }),
+            contact: Joi.object().keys({
+              address: Joi.string(),
+              additionalAddress: Joi.string().allow(''),
+              zipCode: Joi.string(),
+              city: Joi.string()
+            }),
             administrative: {
               signup: {
                 step: Joi.string(),
@@ -258,20 +272,6 @@ exports.plugin = {
                   bic: Joi.string()
                 }
               },
-              identity: Joi.object().keys({
-                nationality: Joi.string(),
-                birthDate: Joi.date(),
-                birthCountry: Joi.string(),
-                birthState: Joi.string(),
-                birthCity: Joi.string(),
-                socialSecurityNumber: Joi.number()
-              }),
-              contact: Joi.object().keys({
-                address: Joi.string(),
-                additionalAddress: Joi.string().allow(''),
-                zipCode: Joi.string(),
-                city: Joi.string()
-              }),
               emergencyContact: Joi.object().keys({
                 name: Joi.string(),
                 phoneNumber: Joi.string()

@@ -7,8 +7,10 @@ const app = require('../../../server');
 const userList = [
   {
     _id: new ObjectID(),
-    firstname: 'Test2',
-    lastname: 'Test2',
+    identity: {
+      firstname: 'Test2',
+      lastname: 'Test2',
+    },
     local: {
       email: 'test2@alenvi.io',
       password: '123456'
@@ -18,8 +20,10 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    firstname: 'Test4',
-    lastname: 'Test4',
+    identity: {
+      firstname: 'Test4',
+      lastname: 'Test4',
+    },
     local: {
       email: 'test4@alenvi.io',
       password: '123456'
@@ -32,8 +36,10 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    firstname: 'Test5',
-    lastname: 'Test5',
+    identity: {
+      firstname: 'Test5',
+      lastname: 'Test5',
+    },
     local: {
       email: 'test5@alenvi.io',
       password: '123456'
@@ -44,8 +50,10 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    firstname: 'Test6',
-    lastname: 'Test6',
+    identity: {
+      firstname: 'Test6',
+      lastname: 'Test6',
+    },
     local: {
       email: 'test6@alenvi.io',
       password: '123456'
@@ -57,8 +65,10 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    firstname: 'Test7',
-    lastname: 'Test7',
+    identity: {
+      firstname: 'Test7',
+      lastname: 'Test7',
+    },
     local: {
       email: 'test7@alenvi.io',
       password: '123456'
@@ -95,8 +105,10 @@ const userList = [
 ];
 
 const userPayload = {
-  firstname: 'Test',
-  lastname: 'Test',
+  identity: {
+    firstname: 'Test',
+    lastname: 'Test',
+  },
   local: {
     email: 'test1@alenvi.io',
     password: '123456'
