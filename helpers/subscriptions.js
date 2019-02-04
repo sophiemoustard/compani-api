@@ -43,12 +43,13 @@ async function subscriptionsAccepted(customer) {
         const { service } = subscription;
         const lastVersion = subscription.versions.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
         const { createdAt, _id, ...version } = lastVersion;
+        delete version.startDate;
 
         return _.pickBy({ service: service.name, ...version });
       });
 
       const lastSubscriptionHistory = customer.subscriptionsHistory.sort((a, b) => new Date(b.approvalDate) - new Date(a.approvalDate))[0];
-      const lastSubscriptions = lastSubscriptionHistory.subscriptions.map(sub => _.pickBy(_.omit(sub, ['_id'])));
+      const lastSubscriptions = lastSubscriptionHistory.subscriptions.map(sub => _.pickBy(_.omit(sub, ['_id', 'startDate'])));
       customer.subscriptionsAccepted = _.isEqual(subscriptions, lastSubscriptions);
     } else {
       customer.subscriptionsAccepted = false;
