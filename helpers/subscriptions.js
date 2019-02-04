@@ -43,6 +43,7 @@ async function subscriptionsAccepted(customer) {
         const { service } = subscription;
         const lastVersion = subscription.versions.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
         const { createdAt, _id, ...version } = lastVersion;
+        delete version.startDate;
 
         return _.pickBy({ service: service.name, ...version });
       });
