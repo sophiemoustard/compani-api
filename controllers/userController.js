@@ -220,7 +220,7 @@ const getPresentation = async (req) => {
     const users = await User.find(
       payload,
       {
-        _id: 0, firstname: 1, lastname: 1, role: 1, picture: 1, youtube: 1
+        _id: 0, identity: 1, role: 1, picture: 1, youtube: 1,
       }
     );
     if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
@@ -258,7 +258,7 @@ const getUserTasks = async (req) => {
   try {
     const tasks = await User.findOne(
       { _id: req.params._id, procedure: { $exists: true }, },
-      { firstname: 1, lastname: 1, procedure: 1 }
+      { identity: 1, procedure: 1 }
     );
 
     if (!tasks) return Boom.notFound();
@@ -266,7 +266,7 @@ const getUserTasks = async (req) => {
     return {
       message: translate[language].userTasksFound,
       data: {
-        user: _.pick(tasks, ['_id', 'firstname', 'lastname']),
+        user: _.pick(tasks, ['_id', 'identity']),
         tasks: tasks.procedure,
       }
     };
@@ -424,9 +424,9 @@ const createDriveFolder = async (req) => {
     const user = await User.findOne({ _id: req.params._id });
     let updatedUser;
 
-    if (user.firstname && user.lastname) {
+    if (user.identity.firstname && user.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID;
-      const { folder, folderLink } = await createFolder(user, parentFolderId);
+      const { folder, folderLink } = await createFolder(user.identity, parentFolderId);
 
       const folderPayload = {};
       folderPayload.administrative = user.administrative || { driveFolder: {} };
@@ -460,7 +460,7 @@ const getUserContracts = async (req) => {
   try {
     const contracts = await User.findOne(
       { _id: req.params._id, 'administrative.contracts': { $exists: true } },
-      { firstname: 1, lastname: 1, 'administrative.contracts': 1 },
+      { identity: 1, 'administrative.contracts': 1 },
       { autopopulate: false }
     ).lean();
     if (!contracts) return Boom.notFound();
@@ -468,7 +468,7 @@ const getUserContracts = async (req) => {
     return {
       message: translate[language].userContractsFound,
       data: {
-        user: _.pick(contracts, ['_id', 'firstname', 'lastname']),
+        user: _.pick(contracts, ['_id', 'identity']),
         contracts: contracts.administrative.contracts
       }
     };
@@ -492,7 +492,7 @@ const updateUserContract = async (req) => {
     return {
       message: translate[language].userContractUpdated,
       data: {
-        user: _.pick(updatedUser, ['_id', 'firstname', 'lastname', 'inactivityDate']),
+        user: _.pick(updatedUser, ['_id', 'identity', 'inactivityDate']),
         contracts: updatedUser.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
       }
     };
@@ -515,7 +515,7 @@ const createUserContract = async (req) => {
       { $push: { 'administrative.contracts': req.payload }, $set: { inactivityDate: null } },
       {
         new: true,
-        select: { firstname: 1, lastname: 1, 'administrative.contracts': 1 },
+        select: { identity: 1, 'administrative.contracts': 1 },
         autopopulate: false
       }
     );
@@ -523,7 +523,7 @@ const createUserContract = async (req) => {
     return {
       message: translate[language].userContractAdded,
       data: {
-        user: _.pick(newContract, ['_id', 'firstname', 'lastname']),
+        user: _.pick(newContract, ['_id', 'identity']),
         contracts: newContract.administrative.contracts
       }
     };
@@ -539,7 +539,7 @@ const removeUserContract = async (req) => {
       { _id: req.params._id },
       { $pull: { 'administrative.contracts': { _id: req.params.contractId } } },
       {
-        select: { firstname: 1, lastname: 1, administrative: 1 },
+        select: { identity: 1, administrative: 1 },
         autopopulate: false
       }
     );
@@ -562,7 +562,7 @@ const createUserContractVersion = async (req) => {
       { $push: { 'administrative.contracts.$.versions': req.payload } },
       {
         new: true,
-        select: { firstname: 1, lastname: 1, administrative: 1 },
+        select: { identity: 1, administrative: 1 },
         autopopulate: false
       }
     );
@@ -588,8 +588,7 @@ const updateUserContractVersion = async (req) => {
         ],
         new: true,
         autopopulate: false,
-        firstname: 1,
-        lastname: 1,
+        identity: 1,
         'administrative.contracts': 1
       }
     );
@@ -597,7 +596,7 @@ const updateUserContractVersion = async (req) => {
     return {
       message: translate[language].userContractVersionUpdated,
       data: {
-        user: _.pick(updatedVersion, ['_id', 'firstname', 'lastname']),
+        user: _.pick(updatedVersion, ['_id', 'identity']),
         contracts: updatedVersion.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
       }
     };
@@ -613,7 +612,7 @@ const removeUserContractVersion = async (req) => {
       { _id: req.params._id, 'administrative.contracts._id': req.params.contractId },
       { $pull: { 'administrative.contracts.$.versions': { _id: req.params.versionId } } },
       {
-        select: { firstname: 1, lastname: 1, administrative: 1 },
+        select: { identity: 1, administrative: 1 },
         autopopulate: true
       }
     );
@@ -631,7 +630,7 @@ const getUserAbsences = async (req) => {
   try {
     const user = await User.findOne(
       { _id: req.params._id, 'administrative.absences': { $exists: true } },
-      { firstname: 1, lastname: 1, 'administrative.absences': 1 },
+      { identity: 1, 'administrative.absences': 1 },
       { autopopulate: false }
     ).lean();
     if (!user) return Boom.notFound();
@@ -639,7 +638,7 @@ const getUserAbsences = async (req) => {
     return {
       message: translate[language].userAbsencesFound,
       data: {
-        user: _.pick(user, ['_id', 'firstname', 'lastname']),
+        user: _.pick(user, ['_id', 'identity']),
         absences: user.administrative.absences
       }
     };
@@ -658,8 +657,7 @@ const updateUserAbsence = async (req) => {
       {
         new: true,
         select: {
-          firstname: 1,
-          lastname: 1,
+          identity: 1,
           employee_id: 1,
           'administrative.absences': 1
         }
@@ -670,7 +668,7 @@ const updateUserAbsence = async (req) => {
     return {
       message: translate[language].userAbsenceUpdated,
       data: {
-        user: _.pick(absenceUpdated, ['_id', 'firstname', 'lastname']),
+        user: _.pick(absenceUpdated, ['_id', 'identity']),
         absences: absenceUpdated.administrative.absences.find(absence => absence._id.toHexString() === req.params.absenceId)
       }
     };
@@ -687,7 +685,7 @@ const createUserAbsence = async (req) => {
       { $push: { 'administrative.absences': req.payload } },
       {
         new: true,
-        select: { firstname: 1, lastname: 1, 'administrative.absences': 1 },
+        select: { identity: 1, 'administrative.absences': 1 },
         autopopulate: false
       }
     );
@@ -695,7 +693,7 @@ const createUserAbsence = async (req) => {
     return {
       message: translate[language].userAbsenceAdded,
       data: {
-        user: _.pick(newAbsence, ['_id', 'firstname', 'lastname']),
+        user: _.pick(newAbsence, ['_id', 'identity']),
         absence: newAbsence.administrative.absences.find(absence => absence.reason === req.payload.reason)
       }
     };
@@ -711,7 +709,7 @@ const removeUserAbsence = async (req) => {
       { _id: req.params._id },
       { $pull: { 'administrative.absences': { _id: req.params.absenceId } } },
       {
-        select: { firstname: 1, lastname: 1, administrative: 1 },
+        select: { identity: 1, administrative: 1 },
         autopopulate: false
       }
     );

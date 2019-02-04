@@ -5,7 +5,7 @@ exports.userUpdateTracking = async (byId, body) => {
   const trackingPayload = {
     date: Date.now(),
     updatedFields: [],
-    by: `${modifiedBy.firstname} ${modifiedBy.lastname}`
+    by: `${modifiedBy.identity.firstname} ${modifiedBy.identity.lastname}`
   };
   for (const k in body) {
     trackingPayload.updatedFields.push({

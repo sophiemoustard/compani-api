@@ -11,8 +11,6 @@ const SALT_WORK_FACTOR = 10;
 
 // User schema
 const UserSchema = mongoose.Schema({
-  firstname: String,
-  lastname: String,
   refreshToken: String,
   resetPassword: {
     token: {
@@ -98,6 +96,24 @@ const UserSchema = mongoose.Schema({
       type: String,
       trim: true
     }
+  },
+  identity: {
+    title: String,
+    firstname: String,
+    lastname: String,
+    nationality: String,
+    birthDate: Date,
+    birthCountry: String,
+    birthState: String,
+    birthCity: String,
+    socialSecurityNumber: Number
+  },
+  contact: {
+    addressId: String,
+    address: String,
+    additionalAddress: String,
+    zipCode: String,
+    city: String
   },
   planningModification: [
     {
@@ -252,22 +268,6 @@ const UserSchema = mongoose.Schema({
         driveId: String
       }]
     }],
-    identity: {
-      title: String,
-      nationality: String,
-      birthDate: Date,
-      birthCountry: String,
-      birthState: String,
-      birthCity: String,
-      socialSecurityNumber: Number
-    },
-    contact: {
-      addressId: String,
-      address: String,
-      additionalAddress: String,
-      zipCode: String,
-      city: String
-    },
     emergencyContact: {
       name: String,
       phoneNumber: String

@@ -33,8 +33,10 @@ describe('BOT ROUTES', () => {
         user: expect.objectContaining({
           _id: expect.any(Object),
           role: expect.objectContaining({ name: userList[1].role }),
-          firstname: userList[1].lastname,
-          lastname: userList[1].lastname,
+          identity: expect.objectContaining({
+            firstname: userList[1].identity.firstname,
+            lastname: userList[1].identity.lastname,
+          }),
           employee_id: userList[1].employee_id,
           sector: userList[1].sector
         })
@@ -110,8 +112,8 @@ describe('BOT ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user).toBeDefined();
       expect(res.result.data.user).toEqual(expect.objectContaining({
-        firstname: userList[1].firstname,
-        lastname: userList[1].lastname,
+        firstname: userList[1].identity.firstname,
+        lastname: userList[1].identity.lastname,
         local: expect.objectContaining({ email: userList[1].local.email }),
         role: userList[1].role,
         employee_id: userList[1].employee_id,

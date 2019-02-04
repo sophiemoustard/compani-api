@@ -1,6 +1,5 @@
 const Boom = require('boom');
 const Gdrive = require('../models/GoogleDrive');
-const drive = require('../models/GoogleDrive');
 
 const addFile = async (params) => {
   const parentFolderId = params.driveFolderId;

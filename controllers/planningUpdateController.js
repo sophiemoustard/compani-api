@@ -8,24 +8,19 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const filter = {
-      planningModification: { $exists: true }
-    };
-    if (req.query.userId) {
-      filter._id = req.query.userId;
-    }
-    const modifPlanning = await User.find(filter, {
-      firstname: 1,
-      lastname: 1,
-      sector: 1,
-      planningModification: 1
-    }).populate({
+    const filter = { planningModification: { $exists: true } };
+    if (req.query.userId) filter._id = req.query.userId;
+
+    const modifPlanning = await User.find(
+      filter,
+      { identity: 1, sector: 1, planningModification: 1 }
+    ).populate({
       path: 'planningModification.check.checkBy',
-      select: 'firstname lastname'
+      select: 'identity'
     }).lean();
-    if (!modifPlanning) {
-      return Boom.notFound(translate[language].planningModificationsNotFound);
-    }
+
+    if (!modifPlanning) return Boom.notFound(translate[language].planningModificationsNotFound);
+
     return { message: translate[language].planningModificationsFound, data: { modifPlanning } };
   } catch (e) {
     req.log('error', e);

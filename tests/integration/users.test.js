@@ -54,7 +54,7 @@ describe('USERS ROUTES', () => {
       }));
       user = await User.findById(res.result.data.user._id);
       expect(user.firstname).toBe(userPayload.firstname);
-      expect(user.lastname).toBe(userPayload.lastname);
+      expect(user.identity.lastname).toBe(userPayload.identity.lastname);
       expect(user.local.email).toBe(userPayload.local.email);
       expect(user.local.password).toBeDefined();
       expect(user).toHaveProperty('picture');
@@ -70,8 +70,10 @@ describe('USERS ROUTES', () => {
     });
     it('should not create an user if email provided already exists', () => {
       const userPayload2 = {
-        firstname: 'Test',
-        lastname: 'Test',
+        idenity: {
+          firstname: 'Test',
+          lastname: 'Test',
+        },
         local: {
           email: 'test1@alenvi.io',
           password: '123456'
@@ -239,8 +241,10 @@ describe('USERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user).toBeDefined();
       expect(res.result.data.user).toEqual(expect.objectContaining({
-        firstname: userList[0].firstname,
-        lastname: userList[0].lastname,
+        identity: expect.objectContaining({
+          firstname: userList[0].identity.firstname,
+          lastname: userList[0].identity.lastname,
+        }),
         local: expect.objectContaining({ email: userList[0].local.email }),
         role: expect.objectContaining({ name: userList[0].role })
       }));
@@ -259,7 +263,9 @@ describe('USERS ROUTES', () => {
   describe('PUT /users/:id/', () => {
     it('should update the user', async () => {
       const updatePayload = {
-        firstname: 'Riri',
+        identity: {
+          firstname: 'Riri',
+        },
         local: {
           email: 'riri@alenvi.io',
           password: '098765'
@@ -276,12 +282,14 @@ describe('USERS ROUTES', () => {
       expect(res.result.data.userUpdated).toBeDefined();
       expect(res.result.data.userUpdated).toEqual(expect.objectContaining({
         _id: userList[0]._id,
-        firstname: updatePayload.firstname,
+        identity: expect.objectContaining({
+          firstname: updatePayload.identity.firstname,
+        }),
         local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
         role: expect.objectContaining({ name: updatePayload.role })
       }));
       const updatedUser = await User.findById(res.result.data.userUpdated._id).populate({ path: 'role' });
-      expect(updatedUser.firstname).toBe(updatePayload.firstname);
+      expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
       expect(updatedUser.local.email).toBe(updatePayload.local.email);
       expect(updatedUser.role.name).toBe(updatePayload.role);
     });
