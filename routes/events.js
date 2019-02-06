@@ -100,6 +100,7 @@ exports.plugin = {
               driveId: Joi.string(),
               link: Joi.string(),
             }),
+            misc: Joi.string().allow(null, ''),
           })
         },
         auth: {
