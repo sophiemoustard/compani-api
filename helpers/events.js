@@ -1,10 +1,18 @@
 const Boom = require('boom');
 const moment = require('moment');
+const _ = require('lodash');
+const momentRange = require('moment-range');
 const {
   INTERVENTION,
   INTERNAL_HOUR,
+  NEVER,
+  EVERY_DAY,
+  EVERY_WEEK_DAY,
+  EVERY_WEEK,
 } = require('./constants');
 const Event = require('../models/Event');
+
+momentRange.extendMoment(moment);
 
 const populateEventSubscription = (event) => {
   if (event.type !== INTERVENTION) return event;
@@ -40,8 +48,81 @@ const updateEventsInternalHourType = async (oldInternalHourId, newInternalHour) 
   );
 };
 
+const createRepetitionsEveryDay = async (event) => {
+  const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
+  console.log(range);
+  const promises = [];
+  range.forEach((day, index) => {
+    const repeatedEvent = new Event({
+      ..._.omit(event, '_id'),
+      startDate: moment(event.startDate).add(index + 1, 'd'),
+      endDate: moment(event.endDate).add(index + 1, 'd'),
+    });
+
+    promises.push(repeatedEvent.save());
+  });
+
+  Promise.all(promises);
+};
+
+const createRepetitionsEveryWeekDay = async (event) => {
+  const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
+  const promises = [];
+  range.forEach((day, index) => {
+    if (moment(day).day() !== 0 && moment(day).day() !== 6) {
+      const repeatedEvent = new Event({
+        ..._.omit(event, '_id'),
+        startDate: moment(event.startDate).add(index + 1, 'd'),
+        endDate: moment(event.endDate).add(index + 1, 'd'),
+      });
+
+      promises.push(repeatedEvent.save());
+    }
+  });
+
+  Promise.all(promises);
+};
+
+const createRepetitionsEveryWeek = async (event) => {
+  const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('weeks'));
+  const promises = [];
+  range.forEach((day, index) => {
+    const repeatedEvent = new Event({
+      ..._.omit(event, '_id'),
+      startDate: moment(event.startDate).add(index + 1, 'w'),
+      endDate: moment(event.endDate).add(index + 1, 'w'),
+    });
+
+    promises.push(repeatedEvent.save());
+  });
+
+  Promise.all(promises);
+};
+
+const createRepetitions = async (event) => {
+  if (event.repetition.frequency === NEVER) return event;
+
+  event.repetition.parentId = event._id;
+  switch (event.repetition.frequency) {
+    case EVERY_DAY:
+      await createRepetitionsEveryDay(event);
+      break;
+    case EVERY_WEEK_DAY:
+      await createRepetitionsEveryWeekDay(event);
+      break;
+    case EVERY_WEEK:
+      await createRepetitionsEveryWeek(event);
+      break;
+    default:
+      break;
+  }
+
+  return event;
+};
+
 module.exports = {
   populateEventSubscription,
   populateEvents,
   updateEventsInternalHourType,
+  createRepetitions,
 };
