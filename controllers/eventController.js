@@ -21,7 +21,7 @@ const list = async (req) => {
     }
 
     const events = await Event.find(query)
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
@@ -72,7 +72,7 @@ const update = async (req) => {
         { $set: flat(req.payload) },
         { autopopulate: false, new: true }
       )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
