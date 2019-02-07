@@ -49,6 +49,9 @@ exports.plugin = {
               driveId: Joi.string(),
               link: Joi.string(),
             }),
+            repetition: Joi.object().keys({
+              frequency: Joi.string().required(),
+            }),
           })
         },
         auth: {
@@ -99,6 +102,11 @@ exports.plugin = {
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
+            }),
+            misc: Joi.string().allow(null, ''),
+            repetition: Joi.object().keys({
+              frequency: Joi.string().required(),
+              parentId: Joi.objectId(),
             }),
           })
         },

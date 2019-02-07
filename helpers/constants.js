@@ -14,5 +14,10 @@ module.exports = {
   WEEKLY: 'weekly',
   ONCE: 'once',
   HOURLY: 'hourly',
-  FIXED: 'fixed'
+  FIXED: 'fixed',
+  // REPETITION FREQUENCY
+  NEVER: 'never',
+  EVERY_DAY: 'every_day',
+  EVERY_WEEK_DAY: 'every_week_day',
+  EVERY_WEEK: 'every_week',
 };

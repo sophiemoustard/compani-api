@@ -33,6 +33,10 @@ const EventSchema = mongoose.Schema({
     link: String,
     driveId: String,
   },
+  repetition: {
+    frequency: String,
+    parentId: { type: mongoose.Schema.Types.ObjectId },
+  },
 }, {
   timestamps: true
 });

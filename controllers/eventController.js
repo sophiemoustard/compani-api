@@ -6,7 +6,8 @@ const Event = require('../models/Event');
 const GoogleDrive = require('../models/GoogleDrive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
-const { populateEvents, populateEventSubscription } = require('../helpers/events');
+const { populateEvents, populateEventSubscription, createRepetitions } = require('../helpers/events');
+const { INTERVENTION, NEVER } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -20,7 +21,7 @@ const list = async (req) => {
     }
 
     const events = await Event.find(query)
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
@@ -47,6 +48,10 @@ const create = async (req) => {
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
+    if (event.type === INTERVENTION && req.payload.repetition && req.payload.repetition.frequency !== NEVER) {
+      event = await createRepetitions(event);
+    }
+
     const populatedEvent = await populateEventSubscription(event);
 
     return {
@@ -67,7 +72,7 @@ const update = async (req) => {
         { $set: flat(req.payload) },
         { autopopulate: false, new: true }
       )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
