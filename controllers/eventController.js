@@ -7,7 +7,7 @@ const GoogleDrive = require('../models/GoogleDrive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const { populateEvents, populateEventSubscription, createRepetitions } = require('../helpers/events');
-const { INTERVENTION, NEVER } = require('../helpers/constants');
+const { INTERVENTION, NEVER, INTERNAL_HOUR } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -48,7 +48,7 @@ const create = async (req) => {
       .populate({ path: 'customer', select: 'identity subscriptions' })
       .lean();
 
-    if (event.type === INTERVENTION && req.payload.repetition && req.payload.repetition.frequency !== NEVER) {
+    if ((event.type === INTERVENTION || event.type === INTERNAL_HOUR) && req.payload.repetition && req.payload.repetition.frequency !== NEVER) {
       event = await createRepetitions(event);
     }
 
