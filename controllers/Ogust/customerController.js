@@ -139,7 +139,9 @@ const getCustomerFiscalAttests = async (req) => {
     const params = req.query;
     params.token = req.headers['x-ogust-token'];
     params.id_customer = req.params.id;
-    params.period_end = `@between|${req.query.year}0101|${req.query.year}1231`;
+    if (req.query.year) {
+      params.period_end = `@between|${req.query.year}0101|${req.query.year}1231`;
+    }
     const fiscalAttestsRaw = await customers.getFiscalAttests(params);
     if (fiscalAttestsRaw.data.status == 'KO') {
       return Boom.badRequest(fiscalAttestsRaw.data.message);
