@@ -6,7 +6,9 @@ const Event = require('../models/Event');
 const GoogleDrive = require('../models/GoogleDrive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
-const { populateEvents, populateEventSubscription, createRepetitions } = require('../helpers/events');
+const {
+  populateEvents, populateEventSubscription, createRepetitions, updateRepetitions
+} = require('../helpers/events');
 const { INTERVENTION, NEVER, INTERNAL_HOUR } = require('../helpers/constants');
 
 const { language } = translate;
@@ -22,7 +24,7 @@ const list = async (req) => {
 
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions' })
+      .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
     if (events.length === 0) return Boom.notFound(translate[language].eventsNotFound);
@@ -45,7 +47,7 @@ const create = async (req) => {
     await event.save();
     event = await Event.findOne({ _id: event._id })
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company' })
-      .populate({ path: 'customer', select: 'identity subscriptions' })
+      .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
     if ((event.type === INTERVENTION || event.type === INTERNAL_HOUR) && req.payload.repetition && req.payload.repetition.frequency !== NEVER) {
@@ -73,10 +75,15 @@ const update = async (req) => {
         { autopopulate: false, new: true }
       )
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions' })
+      .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
     if (!event) return Boom.notFound(translate[language].eventNotFound);
+
+    const { type, repetition } = event;
+    if (req.payload.shouldUpdateRepetition && (type === INTERVENTION || type === INTERNAL_HOUR) && repetition && repetition.frequency !== NEVER) {
+      await updateRepetitions(event, req.payload);
+    }
 
     const populatedEvent = await populateEventSubscription(event);
 

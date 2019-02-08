@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const moment = require('moment');
+const flat = require('flat');
 const _ = require('lodash');
 const momentRange = require('moment-range');
 const {
@@ -50,7 +51,6 @@ const updateEventsInternalHourType = async (oldInternalHourId, newInternalHour) 
 
 const createRepetitionsEveryDay = async (event) => {
   const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
-  console.log(range);
   const promises = [];
   range.forEach((day, index) => {
     const repeatedEvent = new Event({
@@ -103,6 +103,7 @@ const createRepetitions = async (event) => {
   if (event.repetition.frequency === NEVER) return event;
 
   event.repetition.parentId = event._id;
+
   switch (event.repetition.frequency) {
     case EVERY_DAY:
       await createRepetitionsEveryDay(event);
@@ -120,9 +121,30 @@ const createRepetitions = async (event) => {
   return event;
 };
 
+const updateRepetitions = async (event, payload) => {
+  const parentStartDate = moment(payload.startDate);
+  const parentEndtDate = moment(payload.endDate);
+  const promises = [];
+
+  const events = await Event.find({ 'repetition.parentId': event.repetition.parentId, startDate: { $gt: new Date(event.startDate) } });
+  events.forEach((ev) => {
+    const startDate = moment(ev.startDate).hours(parentStartDate.hours());
+    startDate.minutes(parentStartDate.minutes());
+    const endDate = moment(ev.endDate).hours(parentEndtDate.hours());
+    endDate.minutes(parentEndtDate.minutes());
+    promises.push(Event.findOneAndUpdate(
+      { _id: ev._id },
+      { $set: flat({ ...payload, startDate: startDate.toISOString(), endDate: endDate.toISOString() }) }
+    ));
+  });
+
+  Promise.all(promises);
+};
+
 module.exports = {
   populateEventSubscription,
   populateEvents,
   updateEventsInternalHourType,
   createRepetitions,
+  updateRepetitions,
 };

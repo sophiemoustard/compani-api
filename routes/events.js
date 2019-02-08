@@ -105,8 +105,14 @@ exports.plugin = {
             }),
             misc: Joi.string().allow(null, ''),
             repetition: Joi.object().keys({
-              frequency: Joi.string().required(),
+              frequency: Joi.string(),
               parentId: Joi.objectId(),
+            }),
+            isCancelled: Joi.boolean(),
+            shouldUpdateRepetition: Joi.boolean(),
+            cancel: Joi.object().keys({
+              condition: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
+              reason: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
           })
         },
