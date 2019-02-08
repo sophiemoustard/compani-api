@@ -173,8 +173,8 @@ exports.plugin = {
           }).options({ allowUnknown: true }),
           params: { id: Joi.string() },
           query: {
-            status: Joi.string().default('E'),
-            year: Joi.string().default(new Date().getFullYear()),
+            status: Joi.string().default('V'),
+            year: Joi.string(),
             nbperpage: Joi.number().default(24),
             pagenum: Joi.number().default(1)
           }
