@@ -8,6 +8,7 @@ const {
   update,
   remove,
   uploadFile,
+  removeRepetition,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -135,6 +136,20 @@ exports.plugin = {
         }
       },
       handler: remove,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/repetition',
+      options: {
+        validate: {
+          params: { _id: Joi.objectId() },
+        },
+        auth: {
+          strategy: 'jwt',
+        }
+      },
+      handler: removeRepetition,
     });
 
     server.route({
