@@ -103,7 +103,7 @@ exports.plugin = {
               driveId: Joi.string(),
               link: Joi.string(),
             }),
-            misc: Joi.string().allow(null, ''),
+            misc: Joi.string().allow(null, '').default(''),
             repetition: Joi.object().keys({
               frequency: Joi.string(),
               parentId: Joi.objectId(),
