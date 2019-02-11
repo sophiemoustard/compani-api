@@ -37,6 +37,11 @@ const EventSchema = mongoose.Schema({
     frequency: String,
     parentId: { type: mongoose.Schema.Types.ObjectId },
   },
+  isCancelled: { type: Boolean, default: false },
+  cancel: {
+    condition: String,
+    reason: String,
+  },
 }, {
   timestamps: true
 });
