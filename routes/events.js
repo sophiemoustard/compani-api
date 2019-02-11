@@ -69,7 +69,7 @@ exports.plugin = {
           query: {
             startDate: Joi.string(),
             endStartDate: Joi.string(),
-            sector: Joi.string(),
+            sector: Joi.array().items(Joi.string()),
           },
         },
         auth: {
