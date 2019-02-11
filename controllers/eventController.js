@@ -21,12 +21,13 @@ const list = async (req) => {
       query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD').toDate() };
       _.unset(query, 'endStartDate');
     }
-
+    if (req.query.sector) {
+      query.sector = { $in: req.query.sector };
+    }
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
-
     if (events.length === 0) return Boom.notFound(translate[language].eventsNotFound);
 
     const populatedEvents = await populateEvents(events);
