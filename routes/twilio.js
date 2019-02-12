@@ -1,6 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
+const Boom = require('boom');
 
 const { list, send } = require('../controllers/twilioController');
 
@@ -15,11 +16,19 @@ exports.plugin = {
         validate: {
           query: {
             limit: Joi.number()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: {
           strategy: 'jwt',
-          // scope: ['Admin', 'Tech', 'Coach']
         }
       },
       handler: list
@@ -34,11 +43,19 @@ exports.plugin = {
             to: Joi.string().required(),
             from: Joi.string().default('Alenvi'),
             body: Joi.string().required()
-          }).required()
+          }).required(),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: {
           strategy: 'jwt',
-          // scope: ['Admin', 'Tech', 'Coach']
         }
       },
       handler: send

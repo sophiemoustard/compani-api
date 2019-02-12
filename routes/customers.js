@@ -1,6 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
+const Boom = require('boom');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
@@ -67,7 +68,16 @@ exports.plugin = {
             }).required(),
             customerId: Joi.string(),
             isActive: Joi.boolean().default(true)
-          })
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: {
           strategy: 'jwt',
@@ -123,7 +133,16 @@ exports.plugin = {
               bic: Joi.string()
             }),
             isActive: Joi.boolean()
-          })
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: {
           strategy: 'jwt',
@@ -142,7 +161,16 @@ exports.plugin = {
             firstname: Joi.string(),
             lastname: Joi.string(),
             isActive: Joi.boolean()
-          })
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt'
       },
@@ -156,7 +184,16 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt'
       },
@@ -170,7 +207,16 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt'
       },
@@ -184,7 +230,16 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt',
       },
@@ -205,6 +260,15 @@ exports.plugin = {
               evenings: Joi.number(),
               sundays: Joi.number(),
             }),
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
           },
         },
         auth: 'jwt',
@@ -228,6 +292,15 @@ exports.plugin = {
             sundays: Joi.number(),
             startDate: Joi.date().required(),
           },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt',
       },
@@ -242,7 +315,16 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             subscriptionId: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt',
       },
@@ -256,7 +338,16 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt',
       },
@@ -271,7 +362,16 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             mandateId: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt',
       },
@@ -296,7 +396,16 @@ exports.plugin = {
             fields: Joi.object().required(),
             redirect: Joi.string(),
             redirectDecline: Joi.string()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: {
           strategy: 'jwt'
@@ -312,7 +421,16 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: { strategy: 'jwt' }
       },
@@ -335,7 +453,16 @@ exports.plugin = {
               evenings: Joi.number(),
               sundays: Joi.number()
             })).required()
-          })
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: { strategy: 'jwt' }
       },
@@ -350,7 +477,16 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             quoteId: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: { strategy: 'jwt' }
       },
@@ -368,7 +504,16 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             parentFolderId: Joi.string()
-          })
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: {
           strategy: 'jwt'
@@ -405,6 +550,15 @@ exports.plugin = {
               driveId: Joi.string().required(),
             }),
           }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: { strategy: 'jwt' },
       },
@@ -419,7 +573,16 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             mandateId: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt',
       },
@@ -448,7 +611,16 @@ exports.plugin = {
               lastname: Joi.string(),
               title: Joi.string().allow(null, ''),
             }).required()
-          })
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: { strategy: 'jwt' }
       },
@@ -478,7 +650,16 @@ exports.plugin = {
               careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
               customerParticipationRate: Joi.number().default(0),
             }))
-          })
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: { strategy: 'jwt' }
       },
@@ -504,7 +685,16 @@ exports.plugin = {
             careHours: Joi.number(),
             careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
             customerParticipationRate: Joi.number().default(0),
-          })
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: { strategy: 'jwt' }
       },
@@ -518,7 +708,16 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt',
       },
@@ -533,7 +732,16 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             fundingId: Joi.objectId().required()
-          }
+          },
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: 'jwt',
       },

@@ -1,6 +1,7 @@
 'use strict';
 
 const Joi = require('joi');
+const Boom = require('boom');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { getEvents } = require('../controllers/calendarController');
@@ -22,7 +23,16 @@ exports.plugin = {
             isDate: Joi.boolean(),
             startDate: Joi.number().required(),
             endDate: Joi.number().required()
-          }).xor('id_employee', 'id_customer')
+          }).xor('id_employee', 'id_customer'),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
         },
         auth: false
       },
