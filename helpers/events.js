@@ -141,10 +141,15 @@ const updateRepetitions = async (event, payload) => {
   Promise.all(promises);
 };
 
+const deleteRepetition = async (event) => {
+  await Event.deleteMany({ 'repetition.parentId': event.repetition.parentId, startDate: { $gt: new Date(event.startDate) } });
+};
+
 module.exports = {
   populateEventSubscription,
   populateEvents,
   updateEventsInternalHourType,
   createRepetitions,
   updateRepetitions,
+  deleteRepetition,
 };

@@ -7,7 +7,7 @@ const GoogleDrive = require('../models/GoogleDrive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const {
-  populateEvents, populateEventSubscription, createRepetitions, updateRepetitions
+  populateEvents, populateEventSubscription, createRepetitions, updateRepetitions, deleteRepetition
 } = require('../helpers/events');
 const { INTERVENTION, NEVER, INTERNAL_HOUR } = require('../helpers/constants');
 
@@ -112,6 +112,26 @@ const remove = async (req) => {
   }
 };
 
+const removeRepetition = async (req) => {
+  try {
+    const event = await Event.findByIdAndRemove({ _id: req.params._id });
+    if (!event) return Boom.notFound(translate[language].eventNotFound);
+
+    const { type, repetition } = event;
+    if ((type === INTERVENTION || type === INTERNAL_HOUR) && repetition && repetition.frequency !== NEVER) {
+      await deleteRepetition(event);
+    }
+
+    return {
+      message: translate[language].eventDeleted,
+      data: { event }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 const uploadFile = async (req) => {
   try {
     if (!req.payload.proofOfAbsence) return Boom.forbidden(translate[language].uploadNotAllowed);
@@ -143,4 +163,5 @@ module.exports = {
   update,
   remove,
   uploadFile,
+  removeRepetition,
 };
