@@ -168,7 +168,7 @@ exports.plugin = {
           query: {
             role: Joi.string(),
             email: Joi.string().email(),
-            sector: Joi.string(),
+            sector: Joi.array().items(Joi.string()),
             customers: Joi.objectId()
           },
           failAction: async (request, h, err) => {
