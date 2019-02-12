@@ -80,7 +80,7 @@ exports.plugin = {
           query: {
             startDate: Joi.string(),
             endStartDate: Joi.string(),
-            sector: Joi.string(),
+            sector: Joi.array().items(Joi.string()),
           },
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {
