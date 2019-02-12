@@ -9,7 +9,7 @@ const { addFile } = require('../helpers/gdriveStorage');
 const {
   populateEvents, populateEventSubscription, createRepetitions, updateRepetitions, deleteRepetition
 } = require('../helpers/events');
-const { INTERVENTION, NEVER, INTERNAL_HOUR } = require('../helpers/constants');
+const { ABSENCE, NEVER } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -50,7 +50,7 @@ const create = async (req) => {
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
-    if ((event.type === INTERVENTION || event.type === INTERNAL_HOUR) && req.payload.repetition && req.payload.repetition.frequency !== NEVER) {
+    if (event.type !== ABSENCE && req.payload.repetition && req.payload.repetition.frequency !== NEVER) {
       event = await createRepetitions(event);
     }
 
@@ -81,7 +81,7 @@ const update = async (req) => {
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     const { type, repetition } = event;
-    if (req.payload.shouldUpdateRepetition && (type === INTERVENTION || type === INTERNAL_HOUR) && repetition && repetition.frequency !== NEVER) {
+    if (req.payload.shouldUpdateRepetition && type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
       await updateRepetitions(event, req.payload);
     }
 
@@ -118,7 +118,7 @@ const removeRepetition = async (req) => {
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     const { type, repetition } = event;
-    if ((type === INTERVENTION || type === INTERNAL_HOUR) && repetition && repetition.frequency !== NEVER) {
+    if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
       await deleteRepetition(event);
     }
 

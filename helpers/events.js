@@ -62,7 +62,7 @@ const createRepetitionsEveryDay = async (event) => {
     promises.push(repeatedEvent.save());
   });
 
-  Promise.all(promises);
+  return Promise.all(promises);
 };
 
 const createRepetitionsEveryWeekDay = async (event) => {
@@ -80,7 +80,7 @@ const createRepetitionsEveryWeekDay = async (event) => {
     }
   });
 
-  Promise.all(promises);
+  return Promise.all(promises);
 };
 
 const createRepetitionsEveryWeek = async (event) => {
@@ -96,7 +96,7 @@ const createRepetitionsEveryWeek = async (event) => {
     promises.push(repeatedEvent.save());
   });
 
-  Promise.all(promises);
+  return Promise.all(promises);
 };
 
 const createRepetitions = async (event) => {
@@ -138,7 +138,7 @@ const updateRepetitions = async (event, payload) => {
     ));
   });
 
-  Promise.all(promises);
+  return Promise.all(promises);
 };
 
 const deleteRepetition = async (event) => {
