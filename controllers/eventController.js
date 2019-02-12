@@ -118,7 +118,6 @@ const removeRepetition = async (req) => {
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     const { type, repetition } = event;
-    console.log((type === INTERVENTION || type === INTERNAL_HOUR) && repetition && repetition.frequency !== NEVER);
     if ((type === INTERVENTION || type === INTERNAL_HOUR) && repetition && repetition.frequency !== NEVER) {
       await deleteRepetition(event);
     }
