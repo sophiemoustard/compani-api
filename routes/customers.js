@@ -160,7 +160,8 @@ exports.plugin = {
           query: Joi.object().keys({
             firstname: Joi.string(),
             lastname: Joi.string(),
-            isActive: Joi.boolean()
+            isActive: Joi.boolean(),
+            sectors: Joi.array().items(Joi.string()),
           }),
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {
