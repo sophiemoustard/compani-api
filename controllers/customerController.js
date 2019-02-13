@@ -31,6 +31,7 @@ const list = async (req) => {
     if (lastname) payload['identity.lastname'] = { $regex: lastname, $options: 'i' };
     if (firstname) payload['identity.firstname'] = { $regex: firstname, $options: 'i' };
     if (req.query.sectors && Array.isArray(req.query.sectors)) payload.sectors = { $in: req.query.sectors };
+    if (req.query.subscriptions) payload.subscriptions = { $exists: true, $not: { $size: 0 } };
 
     const customersRaw = await Customer.find(payload).lean();
 

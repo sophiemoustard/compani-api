@@ -162,6 +162,7 @@ exports.plugin = {
             lastname: Joi.string(),
             isActive: Joi.boolean(),
             sectors: Joi.array().items(Joi.string()),
+            subscriptions: Joi.boolean(),
           }),
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {
