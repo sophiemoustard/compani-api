@@ -103,6 +103,7 @@ const createRepetitions = async (event) => {
   if (event.repetition.frequency === NEVER) return event;
 
   event.repetition.parentId = event._id;
+  await Event.findOneAndUpdate({ _id: event._id }, { 'repetition.parentId': event._id });
 
   switch (event.repetition.frequency) {
     case EVERY_DAY:
