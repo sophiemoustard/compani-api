@@ -21,8 +21,12 @@ const list = async (req) => {
       query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD').toDate() };
       _.unset(query, 'endStartDate');
     }
-    if (req.query.sector) query.sector = { $in: req.query.sector };
-
+    if (req.query.sector) {
+      query.sector = { $in: req.query.sector };
+    }
+    if (req.query.auxiliary) {
+      query.auxiliary = { $in: req.query.auxiliary };
+    }
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })

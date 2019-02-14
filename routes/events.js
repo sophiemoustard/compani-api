@@ -111,6 +111,7 @@ exports.plugin = {
             endStartDate: Joi.string(),
             sector: Joi.array().items(Joi.string()),
             type: Joi.string(),
+            auxiliary: Joi.array().items(Joi.string())
           },
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {
