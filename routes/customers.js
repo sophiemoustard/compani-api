@@ -162,6 +162,8 @@ exports.plugin = {
             lastname: Joi.string(),
             isActive: Joi.boolean(),
             sectors: Joi.array().items(Joi.string()),
+            subscriptions: Joi.boolean(),
+            _id: Joi.array().items(Joi.objectId()),
           }),
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {
