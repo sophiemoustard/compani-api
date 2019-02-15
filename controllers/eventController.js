@@ -9,7 +9,7 @@ const { addFile } = require('../helpers/gdriveStorage');
 const {
   populateEvents, populateEventSubscription, createRepetitions, updateRepetitions, deleteRepetition
 } = require('../helpers/events');
-const { ABSENCE, NEVER, INTERVENTION } = require('../helpers/constants');
+const { ABSENCE, NEVER } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -21,12 +21,9 @@ const list = async (req) => {
       query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
       _.unset(query, 'endStartDate');
     }
-    if (req.query.sector) {
-      query.sector = { $in: req.query.sector };
-    }
-    if (req.query.auxiliary) {
-      query.auxiliary = { $in: req.query.auxiliary };
-    }
+    if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
+    if (req.query.customer) query.customer = { $in: req.query.customer };
+
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
@@ -38,48 +35,6 @@ const list = async (req) => {
     return {
       message: translate[language].eventsFound,
       data: { events: populatedEvents }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const listByCustomerFromSectors = async (req) => {
-  try {
-    const query = { type: INTERVENTION };
-    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
-    if (req.query.endStartDate) {
-      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
-      _.unset(query, 'endStartDate');
-    }
-
-    const sectorQuery = { ...query };
-    if (req.query.sector) sectorQuery.sector = { $in: req.query.sector };
-
-    const eventsBySectorsAndAux = await Event.find(sectorQuery).lean();
-    if (eventsBySectorsAndAux.length === 0) return Boom.notFound(translate[language].eventsNotFound);
-
-    const customerIds = req.query.customer || [];
-    eventsBySectorsAndAux.map((event) => {
-      if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
-    });
-
-    const customerQuery = { ...query, customer: { $in: customerIds } };
-    const eventByCustomers = await Event.find(customerQuery)
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
-    if (eventByCustomers.length === 0) return Boom.notFound(translate[language].eventsNotFound);
-
-    const populatedEvents = await populateEvents(eventByCustomers);
-
-    return {
-      message: translate[language].eventsFound,
-      data: {
-        events: populatedEvents,
-        customers: customerIds,
-      }
     };
   } catch (e) {
     req.log('error', e);
@@ -210,5 +165,4 @@ module.exports = {
   remove,
   uploadFile,
   removeRepetition,
-  listByCustomerFromSectors,
 };

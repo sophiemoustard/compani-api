@@ -8,6 +8,7 @@ const os = require('os');
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
 const Company = require('../models/Company');
+const Event = require('../models/Event');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/GoogleDrive');
@@ -18,6 +19,7 @@ const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/fi
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 const { createAndSaveFile } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
+const { INTERVENTION } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -43,6 +45,36 @@ const list = async (req) => {
     return {
       message: translate[language].customersShowAllFound,
       data: { customers }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const listBySector = async (req) => {
+  try {
+    const query = { type: INTERVENTION, sector: req.query.sector };
+    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
+    if (req.query.endStartDate) {
+      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
+      _.unset(query, 'endStartDate');
+    }
+
+    const eventsBySector = await Event.find(query).lean();
+    console.log(eventsBySector.length);
+    if (eventsBySector.length === 0) return Boom.notFound(translate[language].eventsNotFound);
+
+    const customerIds = [];
+    eventsBySector.map((event) => {
+      if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
+    });
+
+    const customers = await Customer.find({ _id: customerIds });
+
+    return {
+      message: translate[language].eventsFound,
+      data: { customers },
     };
   } catch (e) {
     req.log('error', e);
@@ -705,6 +737,7 @@ const removeFunding = async (req) => {
 
 module.exports = {
   list,
+  listBySector,
   show,
   create,
   remove,

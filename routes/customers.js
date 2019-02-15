@@ -8,6 +8,7 @@ const {
   create,
   update,
   list,
+  listBySector,
   show,
   remove,
   getSubscriptions,
@@ -178,6 +179,31 @@ exports.plugin = {
         auth: 'jwt'
       },
       handler: list
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/sectors',
+      options: {
+        validate: {
+          query: Joi.object().keys({
+            sector: Joi.string().required(),
+            startDate: Joi.string(),
+            endStartDate: Joi.string(),
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
+        },
+        auth: 'jwt'
+      },
+      handler: listBySector
     });
 
     server.route({
