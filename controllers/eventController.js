@@ -16,9 +16,9 @@ const { language } = translate;
 const list = async (req) => {
   try {
     const query = { ...req.query };
-    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD').toDate() };
+    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
     if (req.query.endStartDate) {
-      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD').toDate() };
+      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
       _.unset(query, 'endStartDate');
     }
     if (req.query.sector) {
@@ -48,9 +48,9 @@ const list = async (req) => {
 const listByCustomerFromSectors = async (req) => {
   try {
     const query = { type: INTERVENTION };
-    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD').toDate() };
+    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
     if (req.query.endStartDate) {
-      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD').toDate() };
+      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
       _.unset(query, 'endStartDate');
     }
 
