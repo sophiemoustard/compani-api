@@ -54,16 +54,18 @@ const listByCustomerFromSectors = async (req) => {
       _.unset(query, 'endStartDate');
     }
 
-    const sectorQuery = { ...query };
-    if (req.query.sector) sectorQuery.sector = { $in: req.query.sector };
-
-    const eventsBySectorsAndAux = await Event.find(sectorQuery).lean();
-    if (eventsBySectorsAndAux.length === 0) return Boom.notFound(translate[language].eventsNotFound);
-
     const customerIds = req.query.customer || [];
-    eventsBySectorsAndAux.map((event) => {
-      if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
-    });
+    if (req.query.sector) {
+      const sectorQuery = { ...query };
+      if (req.query.sector) sectorQuery.sector = { $in: req.query.sector };
+
+      const eventsBySectorsAndAux = await Event.find(sectorQuery).lean();
+      if (eventsBySectorsAndAux.length === 0) return Boom.notFound(translate[language].eventsNotFound);
+
+      eventsBySectorsAndAux.map((event) => {
+        if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
+      });
+    }
 
     const customerQuery = { ...query, customer: { $in: customerIds } };
     const eventByCustomers = await Event.find(customerQuery)
