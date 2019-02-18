@@ -270,7 +270,7 @@ describe('USERS ROUTES', () => {
           email: 'riri@alenvi.io',
           password: '098765'
         },
-        role: 'Tech',
+        role: rolesList[0]._id,
       };
       const res = await app.inject({
         method: 'PUT',
@@ -278,20 +278,21 @@ describe('USERS ROUTES', () => {
         payload: updatePayload,
         headers: { 'x-access-token': authToken }
       });
+      console.log('user role', res.result.data.userUpdated.role);
       expect(res.statusCode).toBe(200);
       expect(res.result.data.userUpdated).toBeDefined();
-      expect(res.result.data.userUpdated).toEqual(expect.objectContaining({
+      expect(res.result.data.userUpdated).toMatchObject({
         _id: userList[0]._id,
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
         }),
         local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
-        role: expect.objectContaining({ name: updatePayload.role })
-      }));
+        role: { _id: updatePayload.role }
+      });
       const updatedUser = await User.findById(res.result.data.userUpdated._id).populate({ path: 'role' });
       expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
       expect(updatedUser.local.email).toBe(updatePayload.local.email);
-      expect(updatedUser.role.name).toBe(updatePayload.role);
+      expect(updatedUser.role._id).toEqual(updatePayload.role);
     });
     it('should return a 404 error if no user found', async () => {
       const id = new ObjectID().toHexString();
