@@ -83,7 +83,7 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
-            name: Joi.string()
+            name: [Joi.string(), Joi.array().items(Joi.string())]
           }),
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {

@@ -65,6 +65,7 @@ const update = async (req) => {
 
 const showAll = async (req) => {
   try {
+    if (req.query.name && req.query.name.match(/\[.+\]/)) req.query.name = JSON.parse(req.query.name);
     let roles = await Role.find(req.query);
     if (roles.length === 0) return Boom.notFound(translate[language].rolesShowAllNotFound);
 
