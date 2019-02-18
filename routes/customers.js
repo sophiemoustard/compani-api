@@ -178,7 +178,7 @@ exports.plugin = {
         },
         auth: 'jwt'
       },
-      handler: list
+      handler: list,
     });
 
     server.route({
@@ -187,7 +187,7 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
-            sector: Joi.string().required(),
+            sector: Joi.array().items(Joi.string()),
             startDate: Joi.string(),
             endStartDate: Joi.string(),
           }),
@@ -203,7 +203,7 @@ exports.plugin = {
         },
         auth: 'jwt'
       },
-      handler: listBySector
+      handler: listBySector,
     });
 
     server.route({

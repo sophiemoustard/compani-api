@@ -54,7 +54,7 @@ const list = async (req) => {
 
 const listBySector = async (req) => {
   try {
-    const query = { type: INTERVENTION, sector: req.query.sector };
+    const query = { type: INTERVENTION, sector: { $in: req.query.sector } };
     if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
     if (req.query.endStartDate) {
       query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
@@ -62,7 +62,6 @@ const listBySector = async (req) => {
     }
 
     const eventsBySector = await Event.find(query).lean();
-    console.log(eventsBySector.length);
     if (eventsBySector.length === 0) return Boom.notFound(translate[language].eventsNotFound);
 
     const customerIds = [];
