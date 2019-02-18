@@ -217,7 +217,7 @@ exports.plugin = {
               email: Joi.string().email(),
               password: Joi.string()
             },
-            role: Joi.string(),
+            role: Joi.objectId(),
             picture: Joi.object().keys({
               link: Joi.string().allow(null),
               publicId: Joi.string().allow(null)

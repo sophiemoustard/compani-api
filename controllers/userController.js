@@ -141,13 +141,6 @@ const show = async (req) => {
 
 const update = async (req) => {
   try {
-    let role = null;
-    if (req.payload.role) {
-      role = await Role.findOne({ name: req.payload.role });
-      if (!role) return Boom.notFound(translate[language].roleNotFound);
-      req.payload.role = role._id.toString();
-    }
-
     const newBody = flat(req.payload);
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true });
     if (!userUpdated) return Boom.notFound(translate[language].userNotFound);
