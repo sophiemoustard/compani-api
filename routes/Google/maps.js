@@ -3,7 +3,7 @@
 const Joi = require('joi');
 const Boom = require('boom');
 
-const { getDirectionInfo } = require('../../controllers/Google/mapsController');
+const { getDistanceMatrix } = require('../../controllers/Google/mapsController');
 
 exports.plugin = {
   name: 'routes-gmap',
@@ -36,7 +36,7 @@ exports.plugin = {
           strategy: 'jwt',
         }
       },
-      handler: getDirectionInfo
+      handler: getDistanceMatrix
     });
   }
 };
