@@ -4,7 +4,7 @@ const flat = require('flat');
 const mongoose = require('mongoose');
 const Role = require('../models/Role');
 const User = require('../models/User');
-const drive = require('../models/GoogleDrive');
+const drive = require('../models/Google/Drive');
 const translate = require('./translate');
 const { addFile } = require('./gdriveStorage');
 

@@ -3,7 +3,7 @@ const os = require('os');
 const path = require('path');
 const JSZip = require('jszip');
 const DocxTemplater = require('docxtemplater');
-const drive = require('../models/GoogleDrive');
+const drive = require('../models/Google/Drive');
 
 const fsPromises = fs.promises;
 

@@ -3,7 +3,7 @@
 const Joi = require('joi');
 const Boom = require('boom');
 
-const { getDirectionInfo } = require('../controllers/googleMapsController');
+const { getDirectionInfo } = require('../../controllers/Google/mapsController');
 
 exports.plugin = {
   name: 'routes-gmap',

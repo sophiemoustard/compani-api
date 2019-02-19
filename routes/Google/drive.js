@@ -4,7 +4,7 @@ const Joi = require('joi');
 const Boom = require('boom');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { deleteFile, getFileById, generateDocxFromDrive } = require('../controllers/googleDriveController');
+const { deleteFile, getFileById, generateDocxFromDrive } = require('../../controllers/Google/driveController');
 
 exports.plugin = {
   name: 'routes-gdrive',

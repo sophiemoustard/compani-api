@@ -3,7 +3,7 @@ const Boom = require('boom');
 
 const { addFile } = require('./gdriveStorage');
 const Customer = require('../models/Customer');
-const Drive = require('../models/GoogleDrive');
+const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 
 const { language } = translate;

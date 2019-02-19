@@ -1,8 +1,8 @@
 const Boom = require('boom');
 
-const translate = require('../helpers/translate');
-const drive = require('../models/GoogleDrive');
-const { generateDocx } = require('../helpers/file');
+const translate = require('../../helpers/translate');
+const drive = require('../../models/Google/Drive');
+const { generateDocx } = require('../../helpers/file');
 
 const { language } = translate;
 

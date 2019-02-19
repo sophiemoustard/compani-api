@@ -3,7 +3,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const flat = require('flat');
 const Event = require('../models/Event');
-const GoogleDrive = require('../models/GoogleDrive');
+const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const {
