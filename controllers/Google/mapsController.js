@@ -4,10 +4,10 @@ const maps = require('../../models/Google/Maps');
 
 const { language } = translate;
 
-const getDirectionInfo = async (req) => {
+const getDistanceMatrix = async (req) => {
   try {
     req.query.key = process.env.GOOGLE_CLOUD_PLATFORM_API_KEY;
-    const direction = await maps.getDirectionInfo(req.query);
+    const direction = await maps.getDistanceMatrix(req.query);
     return {
       message: translate[language].directionGotten,
       data: direction.data
@@ -19,5 +19,5 @@ const getDirectionInfo = async (req) => {
 };
 
 module.exports = {
-  getDirectionInfo
+  getDistanceMatrix
 };
