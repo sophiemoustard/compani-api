@@ -16,7 +16,11 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             origins: Joi.string().required(),
-            destinations: Joi.string().required()
+            destinations: Joi.string().required(),
+            mode: Joi.string().default('transit'),
+            language: Joi.string().default('fr-FR'),
+            departure_time: Joi.number(), // UTC timestamp
+            arrival_time: Joi.number() // UTC timestamp
           }).required(),
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {
