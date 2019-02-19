@@ -160,5 +160,11 @@ exports.routes = [
     routes: {
       prefix: '/events'
     }
+  },
+  {
+    plugin: require('./gmaps'),
+    routes: {
+      prefix: '/google/maps'
+    }
   }
 ];

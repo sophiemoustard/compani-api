@@ -403,5 +403,8 @@ module.exports = {
     eventCreated: 'Evènement crée',
     eventUpdated: 'Evènement mis à jour',
     eventDeleted: 'Evènement supprimé',
+
+    /* Google Map */
+    directionGotten: 'Direction trouvée',
   }
 };
