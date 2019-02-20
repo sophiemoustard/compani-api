@@ -405,6 +405,7 @@ module.exports = {
     eventDeleted: 'Evènement supprimé',
 
     /* Google Map */
-    directionGotten: 'Direction trouvée',
+    distanceMatrixFound: 'Distance Matrix trouvée',
+    distanceMatrixNotFound: 'Distance Matrix non trouvée'
   }
 };

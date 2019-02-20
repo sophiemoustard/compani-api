@@ -7,10 +7,16 @@ const { language } = translate;
 const getDistanceMatrix = async (req) => {
   try {
     req.query.key = process.env.GOOGLE_CLOUD_PLATFORM_API_KEY;
-    const direction = await maps.getDistanceMatrix(req.query);
+    const res = await maps.getDistanceMatrix(req.query);
+    let message = '';
+    if (res.status === 'OK') {
+      message = translate[language].distanceMatrixFound;
+    } else {
+      message = translate[language].distanceMatrixNotFound;
+    }
     return {
-      message: translate[language].directionGotten,
-      data: direction.data
+      message,
+      data: res.data
     };
   } catch (e) {
     req.log('error', e);
