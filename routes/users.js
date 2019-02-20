@@ -98,10 +98,17 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               addressId: Joi.string(),
-              address: Joi.string(),
-              additionalAddress: Joi.string(),
-              zipCode: Joi.string(),
-              city: Joi.string()
+              address: {
+                street: Joi.string().required(),
+                additionalAddress: Joi.string().allow('', null),
+                zipCode: Joi.string().required(),
+                city: Joi.string().required(),
+                fullAddress: Joi.string(),
+                location: {
+                  type: Joi.string(),
+                  coordinates: Joi.array()
+                }
+              },
             }),
             administrative: Joi.object().keys({
               signup: Joi.object().keys({
@@ -239,10 +246,18 @@ exports.plugin = {
               socialSecurityNumber: Joi.number()
             }),
             contact: Joi.object().keys({
-              address: Joi.string(),
-              additionalAddress: Joi.string().allow(''),
-              zipCode: Joi.string(),
-              city: Joi.string()
+              addressId: Joi.string(),
+              address: {
+                street: Joi.string().required(),
+                additionalAddress: Joi.string().allow('', null),
+                zipCode: Joi.string().required(),
+                city: Joi.string().required(),
+                fullAddress: Joi.string(),
+                location: {
+                  type: Joi.string(),
+                  coordinates: Joi.array()
+                }
+              },
             }),
             administrative: {
               signup: {

@@ -110,10 +110,17 @@ const UserSchema = mongoose.Schema({
   },
   contact: {
     addressId: String,
-    address: String,
-    additionalAddress: String,
-    zipCode: String,
-    city: String
+    address: {
+      street: String,
+      additionalAddress: String,
+      zipCode: String,
+      city: String,
+      fullAddress: String,
+      location: {
+        type: { type: String },
+        coordinates: [Number]
+      }
+    }
   },
   planningModification: [
     {
