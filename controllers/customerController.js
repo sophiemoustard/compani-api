@@ -69,7 +69,12 @@ const listBySector = async (req) => {
       if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
     });
 
-    const customers = await Customer.find({ _id: customerIds });
+    const customersRaw = await Customer.find({ _id: customerIds }).lean();
+
+    const customersSubscriptionsPromises = customersRaw.map(populateSubscriptionsSerivces);
+    let [...customers] = await Promise.all(customersSubscriptionsPromises);
+    const customersApprovalPromises = customers.map(subscriptionsAccepted);
+    [...customers] = await Promise.all(customersApprovalPromises);
 
     return {
       message: translate[language].eventsFound,
