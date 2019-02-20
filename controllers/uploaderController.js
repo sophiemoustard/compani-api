@@ -4,7 +4,7 @@ const flat = require('flat');
 
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
-const drive = require('../models/GoogleDrive');
+const drive = require('../models/Google/Drive');
 const cloudinary = require('../models/Cloudinary');
 const User = require('../models/User');
 

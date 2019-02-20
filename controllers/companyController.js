@@ -4,7 +4,7 @@ const flat = require('flat');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
-const drive = require('../models/GoogleDrive');
+const drive = require('../models/Google/Drive');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
 const { updateEventsInternalHourType } = require('../helpers/events');
 

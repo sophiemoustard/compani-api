@@ -60,7 +60,7 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./gdrive'),
+    plugin: require('./Google/drive'),
     routes: {
       prefix: '/gdrive'
     }
@@ -159,6 +159,12 @@ exports.routes = [
     plugin: require('./events'),
     routes: {
       prefix: '/events'
+    }
+  },
+  {
+    plugin: require('./Google/maps'),
+    routes: {
+      prefix: '/google/maps'
     }
   }
 ];

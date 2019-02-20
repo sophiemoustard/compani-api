@@ -403,5 +403,9 @@ module.exports = {
     eventCreated: 'Evènement crée',
     eventUpdated: 'Evènement mis à jour',
     eventDeleted: 'Evènement supprimé',
+
+    /* Google Map */
+    distanceMatrixFound: 'Distance Matrix trouvée',
+    distanceMatrixNotFound: 'Distance Matrix non trouvée'
   }
 };
