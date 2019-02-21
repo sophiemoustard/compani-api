@@ -145,6 +145,7 @@ module.exports = {
     companySectorUpdated: 'Company sector updated.',
     companySectorNotFound: 'Company sector not found.',
     companySectorsFound: 'Company sectors found.',
+    companySectorsDeleted: 'Company sector deleted.',
     /* User contracts */
     userContractsFound: 'User contracts found.',
     userContractUpdated: 'User contract updated.',
@@ -365,7 +366,8 @@ module.exports = {
     companySectorCreated: 'Secteur de l\'entreprise créé.',
     companySectorUpdated: 'Secteur de l\'entreprise modifié.',
     companySectorNotFound: 'Secteur de l\'entreprise non trouvé.',
-    companySectorFound: 'Secteurs de l\'entreprise trouvé.',
+    companySectorsFound: 'Secteurs de l\'entreprise trouvé.',
+    companySectorDeleted: 'Secteur de l\'entreprise supprimé.',
     /* User contracts */
     userContractsFound: "Contrats de l'utilisateur trouvés.",
     userContractUpdated: "Contrat de l'utilisateur mis à jour.",
