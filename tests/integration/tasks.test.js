@@ -58,14 +58,15 @@ describe('TASK ROUTES', () => {
       expect(result.result.data.tasks).toBeDefined();
       expect(result.result.data.tasks.length).toEqual(tasksList.length);
     });
-    it('should return a 404 error if no task is returned', async () => {
+    it('should return an empty list if no task is returned', async () => {
       const result = await app.inject({
         method: 'GET',
         url: '/tasks?name=lalala',
         headers: { 'x-access-token': token },
       });
 
-      expect(result.statusCode).toBe(404);
+      expect(result.statusCode).toBe(200);
+      expect(result.result.data.tasks).toEqual([]);
     });
     it('should return a 400 error if query is invalid', async () => {
       const result = await app.inject({

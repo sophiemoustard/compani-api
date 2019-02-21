@@ -149,14 +149,15 @@ describe('RIGHTS ROUTES', () => {
       expect(res.result.data.rights[0].name).toBe('right1');
     });
 
-    it('should return a 404 error if no rights are found', async () => {
+    it('should return an empty list if no rights are found', async () => {
       await Right.remove({});
       const res = await app.inject({
         method: 'GET',
         url: '/rights',
         headers: { 'x-access-token': token }
       });
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.rights).toEqual([]);
     });
 
     it('should return a 400 error if bad parameters are passed', async () => {

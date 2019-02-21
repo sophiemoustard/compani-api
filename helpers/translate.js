@@ -10,13 +10,13 @@ module.exports = {
     tokenNotFound: 'Please provide a token.',
     /* Users strings */
     userExists: 'User already exists.',
-    userShowAllNotFound: 'There are no users.',
+    usersNotFound: 'There are no users.',
     userNotFound: "User doesn't exist.",
     userEmailExists: 'This email is already taken by another user.',
     invalidEmail: 'Email is not valid.',
     userFound: 'User found successfully.',
     userSectorsFound: 'User sectors found successfully.',
-    userShowAllFound: 'Users found successfully.',
+    usersFound: 'Users found successfully.',
     userSaved: 'User saved successfully.',
     userRemoved: 'User removed successfully.',
     userUpdated: 'User updated successfully.',
@@ -85,7 +85,8 @@ module.exports = {
     roleCreated: 'Role created.',
     roleDeleted: 'Role deleted.',
     roleUpdated: 'Role updated.',
-    rolesShowAllNotFound: 'Roles not found.',
+    rolesNotFound: 'Roles not found.',
+    rolesFound: 'Roles found.',
     roleNotFound: 'Role not found',
     roleExists: 'Role already exists.',
     roleRemoved: 'Role removed.',
@@ -93,7 +94,8 @@ module.exports = {
     rightCreated: 'Right created.',
     rightDeleted: 'Right deleted.',
     rightUpdated: 'Right updated.',
-    rightsShowAllNotFound: 'Rights not found.',
+    rightsFound: 'Rights found',
+    rightsNotFound: 'Rights not found.',
     rightNotFound: 'Right not found',
     rightExists: 'Right already exists.',
     rightsDoNotExist: 'Rights do not exist.',
@@ -114,7 +116,7 @@ module.exports = {
     fileCreated: 'File successfully created.',
     uploadNotAllowed: 'Upload not allowed',
     /* Company */
-    companiesShowAllFound: 'Companies found.',
+    companiesFound: 'Companies found.',
     companyFound: 'Company found.',
     companyNotFound: 'Company not found',
     companyCreated: 'Company created.',
@@ -157,7 +159,7 @@ module.exports = {
     userTasksFound: 'User tasks found',
 
     /* Customers */
-    customersShowAllFound: 'Customers found.',
+    customersFound: 'Customers found.',
     customerFound: 'Customer found.',
     customerNotFound: 'Customer not found.',
     customerCreated: 'Customer created.',
@@ -202,6 +204,19 @@ module.exports = {
     eventCreated: 'Event created',
     eventUpdated: 'Event updated',
     eventDeleted: 'Event deleted',
+
+    /* Google Map */
+    distanceMatrixFound: 'Distance Matrix found',
+    distanceMatrixNotFound: 'Distance Matrix not found',
+
+    /* Task */
+    taskFound: 'Tasks found',
+    taskNotFound: 'Tasks non found',
+    tasksFound: 'Taskss found',
+    tasksNotFound: 'Taskss non found',
+    taskCreated: 'Tasks created',
+    taskUpdated: 'Tasks updated',
+    taskDeleted: 'Tasks deleted',
   },
   'fr-FR': {
     /* Global errors */
@@ -213,12 +228,12 @@ module.exports = {
     tokenNotFound: 'Merci de fournir un token.',
     /* Users strings */
     userExists: "L'utilisateur existe déjà.",
-    userShowAllNotFound: "Il n'y a aucun utilisateur.",
+    usersNotFound: "Il n'y a aucun utilisateur.",
     userNotFound: "L'utilisateur n'existe pas.",
     userEmailExists: 'Cet email est déjà pris par un autre utilisateur.',
     invalidEmail: "L'email n'est pas valide.",
     userSaved: 'Utilisateur enregistré avec succès.',
-    userShowAllFound: 'Utilisateurs trouvés avec succès.',
+    usersFound: 'Utilisateurs trouvés avec succès.',
     userSectorsFound: 'Communautés trouvés avec succès.',
     userFound: 'Utilisateur trouvé avec succès.',
     userRemoved: 'Utilisateur supprimé avec succès.',
@@ -288,7 +303,8 @@ module.exports = {
     roleCreated: 'Rôle créé.',
     roleDeleted: 'Rôle effacé.',
     roleUpdated: 'Rôle mis à jour.',
-    rolesShowAllNotFound: 'Rôles non trouvés.',
+    rolesNotFound: 'Rôles non trouvés.',
+    rolesFound: 'Rôles trouvés.',
     roleNotFound: 'Role non trouvé.',
     roleExists: 'Role déjà existant.',
     roleRemoved: 'Role supprimé.',
@@ -296,7 +312,8 @@ module.exports = {
     rightCreated: 'Droit crée.',
     rightRemoved: 'Droit supprimé.',
     rightUpdated: 'Droit mis a jour.',
-    rightsShowAllNotFound: 'Droits non trouvés.',
+    rightsFound: 'Droits trouvés',
+    rightsNotFound: 'Droits non trouvés.',
     rightNotFound: 'Droit non trouvé.',
     rightExists: 'Droit déjà existant.',
     rightsDoNotExist: 'Droit inexistant.',
@@ -316,7 +333,7 @@ module.exports = {
     fileCreated: 'Fichier créé.',
     uploadNotAllowed: 'Téléchargement non autorisé.',
     /* Company */
-    companiesShowAllFound: 'Entreprises trouvées.',
+    companiesFound: 'Entreprises trouvées.',
     companyFound: 'Entreprise trouvée.',
     companyNotFound: 'Entreprise non trouvée.',
     companyCreated: 'Entreprise créée.',
@@ -358,7 +375,7 @@ module.exports = {
     /* User tasks */
     userTasksFound: "Tâches de l'utilisateur trouvés",
     /* Customers */
-    customersShowAllFound: 'Bénéficiaires trouvés.',
+    customersFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé.',
     customerNotFound: 'Bénéficiaire non trouvé.',
     customerCreated: 'Bénéficiaire créé.',
@@ -406,6 +423,15 @@ module.exports = {
 
     /* Google Map */
     distanceMatrixFound: 'Distance Matrix trouvée',
-    distanceMatrixNotFound: 'Distance Matrix non trouvée'
+    distanceMatrixNotFound: 'Distance Matrix non trouvée',
+
+    /* Task */
+    taskFound: 'Tâche trouvée',
+    taskNotFound: 'Tâche non trouvée',
+    tasksFound: 'Tâches trouvées',
+    tasksNotFound: 'Tâches non trouvées',
+    taskCreated: 'Tâche crée',
+    taskUpdated: 'Tâche mis à jour',
+    taskDeleted: 'Tâche supprimé',
   }
 };

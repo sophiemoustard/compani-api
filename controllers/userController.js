@@ -94,22 +94,32 @@ const create = async (req) => {
 
 const list = async (req) => {
   const users = await getUsers(req.query);
-  if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
+  if (users.length === 0) {
+    return {
+      message: translate[language].usersNotFound,
+      data: { users: [] },
+    };
+  }
 
   return {
-    message: translate[language].userShowAllFound,
+    message: translate[language].userFound,
     data: { users }
   };
 };
 
 const activeList = async (req) => {
   const users = await getUsers(req.query);
-  if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
+  if (users.length === 0) {
+    return {
+      message: translate[language].usersNotFound,
+      data: { users: [] }
+    };
+  }
 
   const activeUsers = users.filter(user => user.isActive);
 
   return {
-    message: translate[language].userShowAllFound,
+    message: translate[language].userFound,
     data: { users: activeUsers }
   };
 };
@@ -216,10 +226,10 @@ const getPresentation = async (req) => {
         _id: 0, identity: 1, role: 1, picture: 1, youtube: 1,
       }
     );
-    if (users.length === 0) return Boom.notFound(translate[language].userShowAllNotFound);
+    if (users.length === 0) return Boom.notFound(translate[language].usersNotFound);
 
     return {
-      message: translate[language].userShowAllFound,
+      message: translate[language].usersFound,
       data: { users }
     };
   } catch (e) {

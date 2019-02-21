@@ -55,14 +55,15 @@ describe('EVENTS ROUTES', () => {
       });
     });
 
-    it('should return an error if list is empty', async () => {
+    it('should return an empty list as no event is matching the request', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/events?startDate=20000101&endDate=20001010',
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toEqual(404);
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.events).toEqual([]);
     });
   });
 

@@ -66,7 +66,7 @@ const updateRights = async (roleId, payload) => {
   if (!roleToUpdate) throw Boom.notFound(translate[language].roleNotFound);
 
   const rights = await Right.find({});
-  if (rights.length === 0) throw Boom.notFound(translate[language].rightsShowAllNotFound);
+  if (rights.length === 0) throw Boom.notFound(translate[language].rightsNotFound);
 
   const filteredRights = payload.rights.filter(payloadRight => _.some(rights, ['_id', new ObjectID(payloadRight.right_id)]));
 

@@ -7,7 +7,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   create,
   update,
-  showAll,
+  list,
   showById,
   remove
 } = require('../controllers/rightController');
@@ -93,7 +93,7 @@ exports.plugin = {
         },
         auth: 'jwt'
       },
-      handler: showAll
+      handler: list
     });
 
     server.route({

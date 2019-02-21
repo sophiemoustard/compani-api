@@ -54,7 +54,12 @@ const list = async (req) => {
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
-    if (events.length === 0) return Boom.notFound(translate[language].eventsNotFound);
+    if (events.length === 0) {
+      return {
+        message: translate[language].eventsNotFound,
+        data: { events: [] }
+      };
+    }
 
     const populatedEvents = await populateEvents(events);
 

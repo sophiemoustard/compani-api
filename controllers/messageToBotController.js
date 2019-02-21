@@ -11,7 +11,10 @@ const list = async (req) => {
   try {
     const messages = await MessageToBot.find(req.query);
     if (messages.length === 0) {
-      return Boom.notFound(translate[language].getAllMessagesNotFound);
+      return {
+        message: translate[language].getAllMessagesNotFound,
+        data: { messages: [] }
+      };
     }
     return { message: translate[language].getAllMessagesFound, data: { messages } };
   } catch (e) {
