@@ -40,7 +40,7 @@ describe('EVENTS ROUTES', () => {
       const endDate = moment('2019-01-20');
       const response = await app.inject({
         method: 'GET',
-        url: `/events?startDate=${startDate.format('YYYYMMDD')}&endStartDate=${endDate.format('YYYYMMDD')}`,
+        url: `/events?startDate=${startDate.format('YYYYMMDD')}&endDate=${endDate.format('YYYYMMDD')}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -58,7 +58,7 @@ describe('EVENTS ROUTES', () => {
     it('should return an error if list is empty', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/events?startDate=20000101&endStartDate=20001010',
+        url: '/events?startDate=20000101&endDate=20001010',
         headers: { 'x-access-token': authToken },
       });
 

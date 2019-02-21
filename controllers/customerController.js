@@ -56,9 +56,9 @@ const listBySector = async (req) => {
   try {
     const query = { type: INTERVENTION, sector: { $in: req.query.sector } };
     if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
-    if (req.query.endStartDate) {
-      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
-      _.unset(query, 'endStartDate');
+    if (req.query.endDate) {
+      query.startDate = { ...query.startDate, $lte: moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate() };
+      _.unset(query, 'endDate');
     }
 
     const eventsBySector = await Event.find(query).lean();

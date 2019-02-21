@@ -15,14 +15,40 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = { ...req.query };
-    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
-    if (req.query.endStartDate) {
-      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
-      _.unset(query, 'endStartDate');
-    }
+    let query = req.query.type ? { type: req.query.auxiliary } : {};
     if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
     if (req.query.customer) query.customer = { $in: req.query.customer };
+
+    if (req.query.startDate && req.query.endDate) {
+      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
+          { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
+          { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+        ],
+      };
+    } else if (req.query.startDate && !req.query.endDate) {
+      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $gte: searchStartDate } },
+          { endDate: { $gte: searchStartDate } },
+        ],
+      };
+    } else if (req.query.endDate) {
+      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $lte: searchEndDate } },
+          { endDate: { $lte: searchEndDate } },
+        ],
+      };
+    }
 
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })

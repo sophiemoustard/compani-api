@@ -189,7 +189,7 @@ exports.plugin = {
           query: Joi.object().keys({
             sector: Joi.array().items(Joi.string()),
             startDate: Joi.string(),
-            endStartDate: Joi.string(),
+            endDate: Joi.string(),
           }),
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {
