@@ -24,6 +24,8 @@ const {
   updateCompanyThirdPartyPayer,
   deleteCompanyThirdPartyPayer,
   createCompanySector,
+  updateCompanySector,
+  getCompanySectors
 } = require('../controllers/companyController');
 
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
@@ -420,6 +422,59 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string().required(),
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
+        },
+      }
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/sectors/{sectorId}',
+      handler: updateCompanySector,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            sectorId: Joi.objectId().required()
+          },
+          payload: Joi.object().keys({
+            name: Joi.string(),
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
+        },
+      }
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/sectors',
+      handler: getCompanySectors,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+          query: Joi.object().keys({
+            name: Joi.string(),
           }),
           failAction: async (request, h, err) => {
             if (process.env.NODE_ENV === 'production') {
