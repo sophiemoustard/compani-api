@@ -423,16 +423,7 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string().required(),
-          }),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          })
         },
       }
     });
@@ -450,16 +441,7 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string(),
-          }),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          })
         },
       }
     });
@@ -475,16 +457,7 @@ exports.plugin = {
           },
           query: {
             name: Joi.string()
-          },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          }
         },
       }
     });
@@ -499,16 +472,7 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             sectorId: Joi.objectId().required(),
-          },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          }
         },
       }
     });
