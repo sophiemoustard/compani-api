@@ -613,3 +613,132 @@ describe('COMPANIES THIRD PARTY PAYERS ROUTES', () => {
     });
   });
 });
+
+describe('COMPANY SECTORS ROUTES', () => {
+  let authToken = null;
+  beforeEach(populateCompanies);
+  beforeEach(async () => {
+    authToken = await getToken();
+  });
+
+  describe('POST /companies/:id/sectors', () => {
+    it('should create a new company sector', async () => {
+      const company = companiesList[0];
+      const initialSectorNumber = company.auxiliaryConfig.sectors.length;
+
+      const payload = { name: 'Test3' };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/companies/${company._id.toHexString()}/sectors`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.sectors.length).toEqual(initialSectorNumber + 1);
+    });
+    it("should return a 400 error if 'name' params is missing", async () => {
+      const company = companiesList[0];
+      const payload = { name: '' };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/companies/${company._id.toHexString()}/sectors`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+    it('should return a 404 error if company does not exist', async () => {
+      const payload = { name: 'Test3' };
+      const response = await app.inject({
+        method: 'POST',
+        url: `/companies/${new ObjectID().toHexString()}/sectors`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('GET /companies/:id/sectors', () => {
+    it('should get company sectors', async () => {
+      const company = companiesList[0];
+      const sectorNumber = company.auxiliaryConfig.sectors.length;
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${company._id.toHexString()}/sectors`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.sectors.length).toEqual(sectorNumber);
+    });
+
+    it('should return a 404 error if company does not exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/companies/${new ObjectID().toHexString()}/sectors`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('PUT /companies/:id/sectors/:sectorId', () => {
+    it('should update a sector', async () => {
+      const company = companiesList[0];
+
+      const payload = { name: 'SuperTest' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${company._id.toHexString()}/sectors/${company.auxiliaryConfig.sectors[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.sector).toMatchObject(payload);
+    });
+    it('should return a 404 error if company does not exist', async () => {
+      const company = companiesList[0];
+      const payload = { name: 'SuperTest' };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/companies/${new ObjectID().toHexString()}/sectors/${company.auxiliaryConfig.sectors[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('DELETE /companies/:id/sectors/:sectorId', () => {
+    it('should delete company sector', async () => {
+      const company = companiesList[0];
+      const sector = company.auxiliaryConfig.sectors[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/companies/${company._id.toHexString()}/sectors/${sector._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(200);
+    });
+    it('should return a 404 error if company does not exist', async () => {
+      const company = companiesList[0];
+      const sector = company.auxiliaryConfig.sectors[0];
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/companies/${new ObjectID().toHexString()}/thirdpartypayers/${sector._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
+});
