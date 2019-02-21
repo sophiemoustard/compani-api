@@ -91,8 +91,7 @@ const CompanySchema = mongoose.Schema({
     sectors: [{
       name: {
         type: String,
-        required: true,
-        unique: true
+        required: true
       },
     }]
   }
