@@ -1,7 +1,6 @@
 'use strict';
 
 const Joi = require('joi');
-const Boom = require('boom');
 const moment = require('moment');
 
 const { getDistanceMatrix } = require('../../controllers/Google/mapsController');
@@ -23,16 +22,7 @@ exports.plugin = {
             departure_time: Joi.number().default(moment().hours(12).add(7, 'd').startOf('w')
               .unix()), // UTC timestamp
             arrival_time: Joi.number() // UTC timestamp
-          }).required(),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          }).required()
         },
         auth: {
           strategy: 'jwt',

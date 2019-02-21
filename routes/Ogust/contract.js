@@ -1,7 +1,6 @@
 'use strict';
 
 const Joi = require('joi');
-const Boom = require('boom');
 
 const {
   create,
@@ -40,16 +39,7 @@ exports.plugin = {
             type_employer: Joi.string(),
             motive_entry: Joi.string().default('001'),
             source_contract: Joi.string()
-          }).required(),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          }).required()
         },
         auth: false
       },
@@ -67,16 +57,7 @@ exports.plugin = {
           query: Joi.object().keys({
             id_employee: Joi.string(),
             nbperpage: Joi.number().default(200),
-          }).required(),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          }).required()
         },
         auth: false
       },
@@ -99,16 +80,7 @@ exports.plugin = {
             status: Joi.string(),
             type_renumeration: Joi.string(),
             due: Joi.string().when('status', { is: Joi.string().valid('V'), then: Joi.string().default('1') })
-          }),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          })
         },
         auth: false
       },
@@ -123,16 +95,7 @@ exports.plugin = {
           headers: Joi.object().keys({
             'x-ogust-token': Joi.string().required()
           }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          params: { id: Joi.string() }
         },
         auth: false
       },

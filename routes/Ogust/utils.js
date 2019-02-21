@@ -1,7 +1,6 @@
 'use strict';
 
 const Joi = require('joi');
-const Boom = require('boom');
 
 const { getOgustToken } = require('../../controllers/Ogust/tokenController');
 const { getList } = require('../../controllers/Ogust/utilsController');
@@ -29,16 +28,7 @@ exports.plugin = {
           }).options({ allowUnknown: true }),
           query: {
             key: Joi.string().required()
-          },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          }
         },
         auth: false
       },

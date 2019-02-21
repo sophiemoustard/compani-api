@@ -1,7 +1,6 @@
 'use strict';
 
 const Joi = require('joi');
-const Boom = require('boom');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { uploadFile, uploadImage } = require('../controllers/uploaderController');
@@ -15,16 +14,7 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         validate: {
-          params: { _id: Joi.objectId().required() },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          params: { _id: Joi.objectId().required() }
         },
         payload: {
           output: 'stream',
@@ -44,16 +34,7 @@ exports.plugin = {
       handler: uploadImage,
       options: {
         validate: {
-          params: { _id: Joi.objectId().required() },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          params: { _id: Joi.objectId().required() }
         },
         payload: {
           output: 'stream',

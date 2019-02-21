@@ -1,7 +1,6 @@
 'use strict';
 
 const Joi = require('joi');
-const Boom = require('boom');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { deleteImage, uploadImage } = require('../controllers/cloudinaryController');
@@ -15,16 +14,7 @@ exports.plugin = {
       handler: deleteImage,
       options: {
         validate: {
-          params: { id: Joi.string() },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          params: { id: Joi.string() }
         },
         auth: {
           strategy: 'jwt'

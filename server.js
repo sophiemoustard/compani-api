@@ -2,6 +2,7 @@
 
 require('dotenv').config();
 const Hapi = require('hapi');
+const Boom = require('boom');
 
 const { mongooseConnection } = require('./config/mongoose');
 const { validate } = require('./helpers/authentification');
@@ -17,6 +18,15 @@ const server = Hapi.server({
     cors: {
       origin: ['*'],
       additionalHeaders: ['accept-language', 'accept-encoding', 'access-control-request-headers', 'x-access-token', 'x-ogust-token']
+    },
+    validate: {
+      async failAction(request, h, err) {
+        request.log('validationError', err.message);
+        if (process.env.NODE_ENV === 'production') {
+          throw Boom.badRequest('Invalid request payload input');
+        }
+        throw err;
+      }
     }
   }
 });
