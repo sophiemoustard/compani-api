@@ -87,6 +87,14 @@ const CompanySchema = mongoose.Schema({
       }
     }]
   },
+  auxiliaryConfig: {
+    sectors: [{
+      name: {
+        type: String,
+        required: true
+      },
+    }]
+  }
 }, {
   timestamps: true
 });

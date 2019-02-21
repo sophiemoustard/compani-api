@@ -22,7 +22,8 @@ const {
   createCompanyThirdPartyPayers,
   getCompanyThirdPartyPayers,
   updateCompanyThirdPartyPayer,
-  deleteCompanyThirdPartyPayer
+  deleteCompanyThirdPartyPayer,
+  createCompanySector,
 } = require('../controllers/companyController');
 
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
@@ -404,6 +405,32 @@ exports.plugin = {
             thirdPartyPayerId: Joi.objectId().required()
           }
         }
+      }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{_id}/sectors',
+      handler: createCompanySector,
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+          payload: Joi.object().keys({
+            name: Joi.string().required(),
+          }),
+          failAction: async (request, h, err) => {
+            if (process.env.NODE_ENV === 'production') {
+              console.error('ValidationError:', err.message);
+              throw Boom.badRequest('Invalid request payload input');
+            } else {
+              console.error(err);
+              throw err;
+            }
+          },
+        },
       }
     });
   }

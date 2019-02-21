@@ -141,6 +141,7 @@ module.exports = {
     companyThirdPartyPayersNotFound: 'Company third party payers not found.',
     companyThirdPartyPayerUpdated: 'Company third party payer updated.',
     companyThirdPartyPayerDeleted: 'Company third party payer deleted.',
+    companySectorCreated: 'Company sector created.',
     /* User contracts */
     userContractsFound: 'User contracts found.',
     userContractUpdated: 'User contract updated.',
@@ -358,6 +359,7 @@ module.exports = {
     companyThirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
     companyThirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     companyThirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
+    companySectorCreated: 'Secteur de l\'entreprise créé.',
     /* User contracts */
     userContractsFound: "Contrats de l'utilisateur trouvés.",
     userContractUpdated: "Contrat de l'utilisateur mis à jour.",

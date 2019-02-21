@@ -440,6 +440,34 @@ const deleteCompanyThirdPartyPayer = async (req) => {
   }
 };
 
+const createCompanySector = async (req) => {
+  try {
+    const company = await Company.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { 'auxiliaryConfig.sectors': req.payload } },
+      {
+        new: true,
+        select: {
+          name: 1,
+          'auxiliaryConfig.sectors': 1
+        },
+      },
+    );
+
+    if (!company) return Boom.notFound(translate[language].companyNotFound);
+
+    return {
+      message: translate[language].companySectorCreated,
+      data: {
+        sectors: company.auxiliaryConfig.sectors
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   show,
@@ -458,5 +486,6 @@ module.exports = {
   createCompanyThirdPartyPayers,
   getCompanyThirdPartyPayers,
   updateCompanyThirdPartyPayer,
-  deleteCompanyThirdPartyPayer
+  deleteCompanyThirdPartyPayer,
+  createCompanySector
 };
