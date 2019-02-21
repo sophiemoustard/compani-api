@@ -624,7 +624,7 @@ describe('COMPANY SECTORS ROUTES', () => {
   describe('POST /companies/:id/sectors', () => {
     it('should create a new company sector', async () => {
       const company = companiesList[0];
-      const initialSectorNumber = company.auxiliaryConfig.sectors.length;
+      const initialSectorNumber = company.auxiliariesConfig.sectors.length;
 
       const payload = { name: 'Test3' };
       const response = await app.inject({
@@ -665,7 +665,7 @@ describe('COMPANY SECTORS ROUTES', () => {
   describe('GET /companies/:id/sectors', () => {
     it('should get company sectors', async () => {
       const company = companiesList[0];
-      const sectorNumber = company.auxiliaryConfig.sectors.length;
+      const sectorNumber = company.auxiliariesConfig.sectors.length;
 
       const response = await app.inject({
         method: 'GET',
@@ -695,7 +695,7 @@ describe('COMPANY SECTORS ROUTES', () => {
       const payload = { name: 'SuperTest' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${company._id.toHexString()}/sectors/${company.auxiliaryConfig.sectors[0]._id}`,
+        url: `/companies/${company._id.toHexString()}/sectors/${company.auxiliariesConfig.sectors[0]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
@@ -708,7 +708,7 @@ describe('COMPANY SECTORS ROUTES', () => {
       const payload = { name: 'SuperTest' };
       const response = await app.inject({
         method: 'PUT',
-        url: `/companies/${new ObjectID().toHexString()}/sectors/${company.auxiliaryConfig.sectors[0]._id}`,
+        url: `/companies/${new ObjectID().toHexString()}/sectors/${company.auxiliariesConfig.sectors[0]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
@@ -720,7 +720,7 @@ describe('COMPANY SECTORS ROUTES', () => {
   describe('DELETE /companies/:id/sectors/:sectorId', () => {
     it('should delete company sector', async () => {
       const company = companiesList[0];
-      const sector = company.auxiliaryConfig.sectors[0];
+      const sector = company.auxiliariesConfig.sectors[0];
 
       const response = await app.inject({
         method: 'DELETE',
@@ -731,7 +731,7 @@ describe('COMPANY SECTORS ROUTES', () => {
     });
     it('should return a 404 error if company does not exist', async () => {
       const company = companiesList[0];
-      const sector = company.auxiliaryConfig.sectors[0];
+      const sector = company.auxiliariesConfig.sectors[0];
 
       const response = await app.inject({
         method: 'DELETE',

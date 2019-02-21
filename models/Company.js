@@ -87,7 +87,7 @@ const CompanySchema = mongoose.Schema({
       }
     }]
   },
-  auxiliaryConfig: {
+  auxiliariesConfig: {
     sectors: [{
       name: {
         type: String,

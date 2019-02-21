@@ -444,12 +444,12 @@ const createCompanySector = async (req) => {
   try {
     const company = await Company.findOneAndUpdate(
       { _id: req.params._id },
-      { $push: { 'auxiliaryConfig.sectors': req.payload } },
+      { $push: { 'auxiliariesConfig.sectors': req.payload } },
       {
         new: true,
         select: {
           name: 1,
-          'auxiliaryConfig.sectors': 1
+          'auxiliariesConfig.sectors': 1
         },
       },
     );
@@ -459,7 +459,7 @@ const createCompanySector = async (req) => {
     return {
       message: translate[language].companySectorCreated,
       data: {
-        sectors: company.auxiliaryConfig.sectors
+        sectors: company.auxiliariesConfig.sectors
       }
     };
   } catch (e) {
@@ -471,16 +471,16 @@ const createCompanySector = async (req) => {
 const updateCompanySector = async (req) => {
   try {
     const { _id: companyId, sectorId } = req.params;
-    const payload = { 'auxiliaryConfig.sectors.$': { ...req.payload } };
+    const payload = { 'auxiliariesConfig.sectors.$': { ...req.payload } };
     const company = await Company.findOneAndUpdate(
       {
         _id: companyId,
-        'auxiliaryConfig.sectors._id': sectorId,
+        'auxiliariesConfig.sectors._id': sectorId,
       },
       { $set: flat(payload) },
       {
         new: true,
-        select: { name: 1, 'auxiliaryConfig.sectors': 1 },
+        select: { name: 1, 'auxiliariesConfig.sectors': 1 },
       },
     );
 
@@ -488,7 +488,7 @@ const updateCompanySector = async (req) => {
 
     return {
       message: translate[language].companySectorUpdated,
-      data: { sector: company.auxiliaryConfig.sectors.find(sector => sector._id.toHexString() === sectorId) },
+      data: { sector: company.auxiliariesConfig.sectors.find(sector => sector._id.toHexString() === sectorId) },
     };
   } catch (e) {
     req.log('error', e);
@@ -501,11 +501,11 @@ const getCompanySectors = async (req) => {
     const company = await Company.findOne(
       {
         _id: req.params._id,
-        'auxiliaryConfig.sectors': { $exists: true },
+        'auxiliariesConfig.sectors': { $exists: true },
       },
       {
         name: 1,
-        'auxiliaryConfig.sectors': 1
+        'auxiliariesConfig.sectors': 1
       },
     );
 
@@ -516,7 +516,7 @@ const getCompanySectors = async (req) => {
     return {
       message: translate[language].companySectorsFound,
       data: {
-        sectors: company.auxiliaryConfig.sectors,
+        sectors: company.auxiliariesConfig.sectors,
       },
     };
   } catch (e) {
@@ -529,7 +529,7 @@ const deleteCompanySector = async (req) => {
   try {
     const company = await Company.findOneAndUpdate(
       { _id: req.params._id },
-      { $pull: { 'auxiliaryConfig.sectors': { _id: req.params.sectorId } } },
+      { $pull: { 'auxiliariesConfig.sectors': { _id: req.params.sectorId } } },
     );
 
     if (!company) {
