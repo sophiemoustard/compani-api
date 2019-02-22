@@ -62,13 +62,18 @@ const update = async (req) => {
   }
 };
 
-const showAll = async (req) => {
+const list = async (req) => {
   try {
     const rights = await Right.find(req.query).lean();
-    if (rights.length === 0) return Boom.notFound(translate[language].rightsShowAllNotFound);
+    if (rights.length === 0) {
+      return {
+        message: translate[language].rightsNotFound,
+        data: { rights: [] }
+      };
+    }
 
     return {
-      message: translate[language].rightsShowAllFound,
+      message: translate[language].rightsFound,
       data: { rights }
     };
   } catch (e) {
@@ -117,7 +122,7 @@ const remove = async (req) => {
 module.exports = {
   create,
   update,
-  showAll,
+  list,
   showById,
   remove
 };

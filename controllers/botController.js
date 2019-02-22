@@ -95,7 +95,7 @@ const getUserByParamId = async (req) => {
   }
 };
 
-const showAll = async (req) => {
+const list = async (req) => {
   try {
     if (req.query.role) {
       req.query.role = await Role.findOne({ name: req.query.role }, { _id: 1 }).lean();
@@ -111,7 +111,7 @@ const showAll = async (req) => {
       }
     });
     if (users.length === 0) {
-      return Boom.notFound(translate[language].userShowAllNotFound);
+      return Boom.notFound(translate[language].usersNotFound);
     }
     // we can't use lean as it doesn't work well with deep populate so we have to use this workaround to get an array of js objects and not mongoose docs.
     users = users.map((user) => {
@@ -121,7 +121,7 @@ const showAll = async (req) => {
       }
       return user;
     });
-    return { message: translate[language].userShowAllFound, data: { users } };
+    return { message: translate[language].usersFound, data: { users } };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -131,5 +131,5 @@ const showAll = async (req) => {
 module.exports = {
   authorize,
   getUserByParamId,
-  showAll,
+  list,
 };

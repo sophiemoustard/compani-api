@@ -63,15 +63,20 @@ const update = async (req) => {
 };
 
 
-const showAll = async (req) => {
+const list = async (req) => {
   try {
     let roles = await Role.find(req.query);
-    if (roles.length === 0) return Boom.notFound(translate[language].rolesShowAllNotFound);
+    if (roles.length === 0) {
+      return {
+        message: translate[language].rolesNotFound,
+        data: { roles: [] },
+      };
+    }
 
     roles = populateRoles(roles);
 
     return {
-      message: translate[language].rolesShowAllFound,
+      message: translate[language].rolesFound,
       data: { roles }
     };
   } catch (e) {
@@ -116,7 +121,7 @@ const remove = async (req) => {
 module.exports = {
   create,
   update,
-  showAll,
+  list,
   showById,
   remove
 };

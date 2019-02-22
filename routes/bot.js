@@ -7,7 +7,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   authorize,
   getUserByParamId,
-  showAll
+  list,
 } = require('../controllers/botController');
 
 exports.plugin = {
@@ -44,7 +44,7 @@ exports.plugin = {
       options: {
         auth: false
       },
-      handler: showAll
+      handler: list,
     });
 
     server.route({

@@ -36,6 +36,12 @@ const list = async (req) => {
     if (req.query.subscriptions) payload.subscriptions = { $exists: true, $not: { $size: 0 } };
 
     const customersRaw = await Customer.find(payload).lean();
+    if (customersRaw.length === 0) {
+      return {
+        message: translate[language].eventsNotFound,
+        data: { customers: [] },
+      };
+    }
 
     const customersSubscriptionsPromises = customersRaw.map(populateSubscriptionsSerivces);
     let [...customers] = await Promise.all(customersSubscriptionsPromises);
@@ -43,7 +49,7 @@ const list = async (req) => {
     [...customers] = await Promise.all(customersApprovalPromises);
 
     return {
-      message: translate[language].customersShowAllFound,
+      message: translate[language].customersFound,
       data: { customers }
     };
   } catch (e) {
@@ -54,15 +60,45 @@ const list = async (req) => {
 
 const listBySector = async (req) => {
   try {
-    const query = { type: INTERVENTION, sector: { $in: req.query.sector } };
-    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
-    if (req.query.endDate) {
-      query.startDate = { ...query.startDate, $lte: moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate() };
-      _.unset(query, 'endDate');
+    let query = { type: INTERVENTION, sector: { $in: req.query.sector } };
+    if (req.query.startDate && req.query.endDate) {
+      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
+          { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
+          { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+        ],
+      };
+    } else if (req.query.startDate && !req.query.endDate) {
+      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $gte: searchStartDate } },
+          { endDate: { $gte: searchStartDate } },
+        ],
+      };
+    } else if (req.query.endDate) {
+      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $lte: searchEndDate } },
+          { endDate: { $lte: searchEndDate } },
+        ],
+      };
     }
 
     const eventsBySector = await Event.find(query).lean();
-    if (eventsBySector.length === 0) return Boom.notFound(translate[language].eventsNotFound);
+    if (eventsBySector.length === 0) {
+      return {
+        message: translate[language].eventsNotFound,
+        data: { customers: [] },
+      };
+    }
 
     const customerIds = [];
     eventsBySector.map((event) => {
@@ -77,7 +113,7 @@ const listBySector = async (req) => {
     [...customers] = await Promise.all(customersApprovalPromises);
 
     return {
-      message: translate[language].eventsFound,
+      message: translate[language].customersFound,
       data: { customers },
     };
   } catch (e) {
@@ -408,14 +444,15 @@ const generateMandateSignatureRequest = async (req) => {
 
 const getCustomerQuotes = async (req) => {
   try {
-    const quotes = await Customer.findOne({
-      _id: req.params._id,
-      quotes: { $exists: true }
-    }, {
-      'identity.firstname': 1,
-      'identity.lastname': 1,
-      quotes: 1
-    }, { autopopulate: false }).lean();
+    const quotes = await Customer.findOne(
+      { _id: req.params._id, quotes: { $exists: true } },
+      {
+        'identity.firstname': 1,
+        'identity.lastname': 1,
+        quotes: 1
+      },
+      { autopopulate: false }
+    ).lean();
     if (!quotes) return Boom.notFound();
     return {
       message: translate[language].customerQuotesFound,

@@ -15,7 +15,7 @@ const list = async (req) => {
     const companies = await Company.find(req.query);
 
     return {
-      message: translate[language].companiesShowAllFound,
+      message: translate[language].companiesFound,
       data: companies
     };
   } catch (e) {
@@ -341,10 +341,7 @@ const createCompanyThirdPartyPayers = async (req) => {
       { $push: { 'customersConfig.thirdPartyPayers': req.payload } },
       {
         new: true,
-        select: {
-          name: 1,
-          'customersConfig.thirdPartyPayers': 1
-        },
+        select: { name: 1, 'customersConfig.thirdPartyPayers': 1 },
       },
     );
 
