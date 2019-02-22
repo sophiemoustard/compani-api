@@ -18,6 +18,7 @@ const { endUserContract, updateContract } = require('../helpers/userContracts');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
+const { populateSector } = require('../helpers/sectors');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
@@ -93,13 +94,20 @@ const create = async (req) => {
 };
 
 const list = async (req) => {
-  const users = await getUsers(req.query);
+  let users = await getUsers(req.query);
   if (users.length === 0) {
     return {
       message: translate[language].usersNotFound,
       data: { users: [] },
     };
   }
+
+  users = users
+    .filter(user => user.sector && user.company)
+    .map((user) => {
+      user = user.toObject();
+      return { ...user, sector: populateSector(user.sector, user.company) };
+    });
 
   return {
     message: translate[language].userFound,
@@ -116,7 +124,14 @@ const activeList = async (req) => {
     };
   }
 
-  const activeUsers = users.filter(user => user.isActive);
+  let activeUsers = users.filter(user => user.isActive);
+
+  activeUsers = activeUsers
+    .filter(user => user.sector && user.company)
+    .map((user) => {
+      user = user.toObject();
+      return { ...user, sector: populateSector(user.sector, user.company) };
+    });
 
   return {
     message: translate[language].userFound,
@@ -136,6 +151,10 @@ const show = async (req) => {
 
     if (user.company && user.company.customersConfig && user.company.customersConfig.thirdPartyPayers) {
       user.company.customersConfig.thirdPartyPayers = await isUsedInFundings(user.company.customersConfig.thirdPartyPayers);
+    }
+
+    if (user.sector && user.company) {
+      user.sector = populateSector(user.sector, user.company);
     }
 
     return {

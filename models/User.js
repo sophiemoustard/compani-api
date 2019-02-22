@@ -77,8 +77,7 @@ const UserSchema = mongoose.Schema({
     trim: true
   },
   sector: {
-    type: String,
-    trim: true
+    type: mongoose.Schema.Types.ObjectId
   },
   youtube: {
     link: {
