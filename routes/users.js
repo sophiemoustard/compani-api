@@ -61,7 +61,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
-            sector: Joi.string(),
+            sector: Joi.objectId(),
             employee_id: Joi.string(),
             customer_id: Joi.string(),
             local: {
@@ -129,7 +129,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.string(),
+            sector: Joi.objectId(),
             customers: Joi.objectId()
           },
         },
@@ -147,7 +147,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.array().items(Joi.string()),
+            sector: Joi.array().items(Joi.objectId()),
             customers: Joi.objectId()
           },
         },
@@ -175,7 +175,7 @@ exports.plugin = {
             _id: Joi.objectId(),
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
-            sector: Joi.string(),
+            sector: Joi.objectId(),
             employee_id: Joi.number(),
             customer_id: Joi.number(),
             isConstrained: Joi.boolean(),
