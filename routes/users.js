@@ -62,14 +62,11 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            employee_id: Joi.string(),
             customer_id: Joi.string(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
             },
-            managerId: Joi.objectId(),
-            ogustManagerId: Joi.string(),
             ogustInterlocId: Joi.string(),
             role: Joi.string().required(),
             picture: Joi.object().keys({
@@ -87,7 +84,6 @@ exports.plugin = {
               socialSecurityNumber: Joi.number()
             }),
             contact: Joi.object().keys({
-              addressId: Joi.string(),
               address: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string().allow('', null),
@@ -176,7 +172,6 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            employee_id: Joi.number(),
             customer_id: Joi.number(),
             isConstrained: Joi.boolean(),
             facebook: Joi.object().keys({
@@ -209,7 +204,6 @@ exports.plugin = {
               socialSecurityNumber: Joi.number()
             }),
             contact: Joi.object().keys({
-              addressId: Joi.string(),
               address: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string().allow('', null),
