@@ -1,8 +1,9 @@
-const populateSector = (userSectorId, company) => {
-  if (company.auxiliariesConfig && company.auxiliariesConfig.sectors) {
-    return company.auxiliariesConfig.sectors.find(sector => sector._id.toHexString() === userSectorId.toHexString());
+const populateSector = (user) => {
+  if (user.sector && user.company && user.company.auxiliariesConfig && user.company.auxiliariesConfig.sectors) {
+    user.sector = user.company.auxiliariesConfig.sectors.find(sector => sector._id.toHexString() === user.sector.toHexString());
+    return user;
   }
-  return userSectorId;
+  return user;
 };
 
 module.exports = { populateSector };

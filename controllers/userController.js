@@ -103,10 +103,9 @@ const list = async (req) => {
   }
 
   users = users
-    .filter(user => user.sector && user.company)
     .map((user) => {
       user = user.toObject();
-      return { ...user, sector: populateSector(user.sector, user.company) };
+      return { ...user, sector: populateSector(user) };
     });
 
   return {
@@ -127,10 +126,9 @@ const activeList = async (req) => {
   let activeUsers = users.filter(user => user.isActive);
 
   activeUsers = activeUsers
-    .filter(user => user.sector && user.company)
     .map((user) => {
       user = user.toObject();
-      return { ...user, sector: populateSector(user.sector, user.company) };
+      return { ...user, sector: populateSector(user) };
     });
 
   return {
@@ -154,7 +152,7 @@ const show = async (req) => {
     }
 
     if (user.sector && user.company) {
-      user.sector = populateSector(user.sector, user.company);
+      user.sector = populateSector(user);
     }
 
     return {
