@@ -1,6 +1,5 @@
 const Boom = require('boom');
 const moment = require('moment');
-const _ = require('lodash');
 const flat = require('flat');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/Google/Drive');
