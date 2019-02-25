@@ -151,7 +151,7 @@ const show = async (req) => {
       user.company.customersConfig.thirdPartyPayers = await isUsedInFundings(user.company.customersConfig.thirdPartyPayers);
     }
 
-    if (user.sector && user.company) {
+    if (user.sector && user.company && req.query.populateSector) {
       user = populateSector(user);
     }
 

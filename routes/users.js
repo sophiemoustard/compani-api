@@ -157,7 +157,12 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
+        validate: {
+          query: {
+            populateSector: Joi.boolean()
+          }
+        }
       },
       handler: show
     });
