@@ -146,7 +146,7 @@ exports.plugin = {
       options: {
         validate: {
           query: {
-            role: Joi.string(),
+            role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
             sector: Joi.string(),
             customers: Joi.objectId()
@@ -173,7 +173,7 @@ exports.plugin = {
       options: {
         validate: {
           query: {
-            role: Joi.string(),
+            role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
             sector: Joi.array().items(Joi.string()),
             customers: Joi.objectId()

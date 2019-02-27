@@ -12,7 +12,11 @@ const { language } = translate;
 
 const getUsers = async (query) => {
   if (query.role) {
-    query.role = await Role.findOne({ name: query.role }, { _id: 1 }).lean();
+    if (Array.isArray(query.role)) {
+      query.role = await Role.find({ name: { $in: query.role } }, { _id: 1 }).lean();
+    } else {
+      query.role = await Role.findOne({ name: query.role }, { _id: 1 }).lean();
+    }
     if (!query.role) throw Boom.notFound(translate[language].roleNotFound);
   }
 
