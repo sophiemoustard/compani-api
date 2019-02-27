@@ -917,6 +917,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   describe('PUT customers/:id/fundings', () => {
     it('should add a customer funding version', async () => {
       const payload = {
+        services: [companiesList[0].customersConfig.services[0]._id],
+        fundingId: customersList[1].fundings[0]._id.toHexString(),
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
@@ -939,6 +941,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
+        services: [companiesList[0].customersConfig.services[0]._id],
+        fundingId: customersList[1].fundings[0]._id.toHexString(),
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
