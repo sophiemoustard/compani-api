@@ -694,6 +694,11 @@ const createFunding = async (req) => {
 
 const updateFunding = async (req) => {
   try {
+    if (req.payload.careDays) {
+      const payload = { _id: req.payload.fundingId, services: req.payload.services, versions: [req.payload] };
+      const check = await checkSubscriptionFunding(req.params._id, payload);
+      if (!check) return Boom.conflict(translate[language].customerFundingConflict);
+    }
     const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id, 'fundings._id': req.params.fundingId },
       { $push: { 'fundings.$.versions': req.payload } },
