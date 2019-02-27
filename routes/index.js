@@ -166,5 +166,11 @@ exports.routes = [
     routes: {
       prefix: '/google/maps'
     }
-  }
+  },
+  {
+    plugin: require('./distanceMatrix'),
+    routes: {
+      prefix: '/distancematrix'
+    }
+  },
 ];

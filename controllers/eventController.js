@@ -51,7 +51,7 @@ const list = async (req) => {
     }
 
     const events = await Event.find(query)
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
     if (events.length === 0) {
@@ -78,7 +78,7 @@ const create = async (req) => {
     let event = new Event(req.payload);
     await event.save();
     event = await Event.findOne({ _id: event._id })
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
@@ -106,7 +106,7 @@ const update = async (req) => {
         { $set: flat(req.payload) },
         { autopopulate: false, new: true }
       )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 

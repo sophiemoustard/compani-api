@@ -2,6 +2,7 @@
 
 const Joi = require('joi');
 const Boom = require('boom');
+const moment = require('moment');
 
 const { getDistanceMatrix } = require('../../controllers/Google/mapsController');
 
@@ -19,7 +20,8 @@ exports.plugin = {
             destinations: Joi.string().required(),
             mode: Joi.string().default('transit'),
             language: Joi.string().default('fr-FR'),
-            departure_time: Joi.number(), // UTC timestamp
+            departure_time: Joi.number().default(moment().hours(12).add(7, 'd').startOf('w')
+              .unix()), // UTC timestamp
             arrival_time: Joi.number() // UTC timestamp
           }).required(),
           failAction: async (request, h, err) => {
