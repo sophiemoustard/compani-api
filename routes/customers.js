@@ -705,6 +705,8 @@ exports.plugin = {
             fundingId: Joi.objectId().required()
           },
           payload: Joi.object().keys({
+            services: Joi.array().items(Joi.objectId()).required(),
+            fundingId: Joi.objectId().required(),
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),
