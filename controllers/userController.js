@@ -38,7 +38,7 @@ const authenticate = async (req) => {
 
     const payload = { _id: alenviUser._id.toHexString(), role: alenviUser.role.name };
     const user = clean(payload);
-    const expireTime = process.env.NODE_ENV === 'development' && payload.role === 'Admin' ? 86400 : 3600;
+    const expireTime = 86400;
     const token = encode(user, expireTime);
     const { refreshToken } = alenviUser;
     req.log('info', `${req.payload.email} connected`);
@@ -70,7 +70,7 @@ const create = async (req) => {
       role: populatedUser.role,
     };
     const userPayload = _.pickBy(payload);
-    const expireTime = 3600;
+    const expireTime = 86400;
     const token = encode(userPayload, expireTime);
     return {
       message: translate[language].userSaved,
@@ -286,7 +286,7 @@ const refreshToken = async (req) => {
 
     const payload = { _id: user._id, role: user.role.name };
     const userPayload = _.pickBy(payload);
-    const expireTime = 3600;
+    const expireTime = 86400;
     const token = encode(userPayload, expireTime);
 
     return {
@@ -348,7 +348,7 @@ const checkResetPasswordToken = async (req) => {
       from: user.resetPassword.from
     };
     const userPayload = _.pickBy(payload);
-    const expireTime = 3600;
+    const expireTime = 86400;
     const token = encode(userPayload, expireTime);
     // return the information including token as JSON
     return { message: translate[language].resetPasswordTokenFound, data: { token, user: userPayload } };
