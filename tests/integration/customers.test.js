@@ -2,7 +2,6 @@ const expect = require('expect');
 const faker = require('faker');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const _ = require('lodash');
 
 const app = require('../../server');
 const {

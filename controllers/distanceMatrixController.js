@@ -10,7 +10,7 @@ const list = async (req) => {
 
     return {
       message: translate[language].distanceMatrixFound,
-      data: distanceMatrix
+      data: { distanceMatrix }
     };
   } catch (e) {
     req.log('error', e);
