@@ -141,11 +141,6 @@ module.exports = {
     companyThirdPartyPayersNotFound: 'Company third party payers not found.',
     companyThirdPartyPayerUpdated: 'Company third party payer updated.',
     companyThirdPartyPayerDeleted: 'Company third party payer deleted.',
-    companySectorCreated: 'Company sector created.',
-    companySectorUpdated: 'Company sector updated.',
-    companySectorNotFound: 'Company sector not found.',
-    companySectorsFound: 'Company sectors found.',
-    companySectorsDeleted: 'Company sector deleted.',
     /* User contracts */
     userContractsFound: 'User contracts found.',
     userContractUpdated: 'User contract updated.',
@@ -222,6 +217,13 @@ module.exports = {
     taskCreated: 'Tasks created',
     taskUpdated: 'Tasks updated',
     taskDeleted: 'Tasks deleted',
+
+    /* Sectors */
+    sectorCreated: 'Sector created.',
+    sectorUpdated: 'Sector updated.',
+    sectorNotFound: 'Sector not found.',
+    sectorsFound: 'Sectors found.',
+    sectorDeleted: 'Sector deleted.',
   },
   'fr-FR': {
     /* Global errors */
@@ -363,11 +365,6 @@ module.exports = {
     companyThirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
     companyThirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     companyThirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
-    companySectorCreated: 'Secteur de l\'entreprise créé.',
-    companySectorUpdated: 'Secteur de l\'entreprise modifié.',
-    companySectorNotFound: 'Secteur de l\'entreprise non trouvé.',
-    companySectorsFound: 'Secteurs de l\'entreprise trouvé.',
-    companySectorDeleted: 'Secteur de l\'entreprise supprimé.',
     /* User contracts */
     userContractsFound: "Contrats de l'utilisateur trouvés.",
     userContractUpdated: "Contrat de l'utilisateur mis à jour.",
@@ -443,5 +440,12 @@ module.exports = {
     taskCreated: 'Tâche crée',
     taskUpdated: 'Tâche mis à jour',
     taskDeleted: 'Tâche supprimé',
+
+    /* Sectors */
+    sectorCreated: 'Secteur créé.',
+    sectorUpdated: 'Secteur modifié.',
+    sectorNotFound: 'Secteur non trouvé.',
+    sectorsFound: 'Secteurs trouvés.',
+    sectorDeleted: 'Secteur supprimé.',
   }
 };

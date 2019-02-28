@@ -23,10 +23,6 @@ const {
   getCompanyThirdPartyPayers,
   updateCompanyThirdPartyPayer,
   deleteCompanyThirdPartyPayer,
-  createCompanySector,
-  updateCompanySector,
-  getCompanySectors,
-  deleteCompanySector
 } = require('../controllers/companyController');
 
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
@@ -408,72 +404,6 @@ exports.plugin = {
             thirdPartyPayerId: Joi.objectId().required()
           }
         }
-      }
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/sectors',
-      handler: createCompanySector,
-      options: {
-        auth: { strategy: 'jwt' },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-          payload: Joi.object().keys({
-            name: Joi.string().required(),
-          })
-        },
-      }
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}/sectors/{sectorId}',
-      handler: updateCompanySector,
-      options: {
-        auth: { strategy: 'jwt' },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            sectorId: Joi.objectId().required()
-          },
-          payload: Joi.object().keys({
-            name: Joi.string(),
-          })
-        },
-      }
-    });
-    server.route({
-      method: 'GET',
-      path: '/{_id}/sectors',
-      handler: getCompanySectors,
-      options: {
-        auth: { strategy: 'jwt' },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-          query: {
-            name: Joi.string()
-          }
-        },
-      }
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}/sectors/{sectorId}',
-      handler: deleteCompanySector,
-      options: {
-        auth: { strategy: 'jwt' },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            sectorId: Joi.objectId().required(),
-          }
-        },
       }
     });
   }

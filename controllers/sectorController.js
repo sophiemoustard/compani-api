@@ -1,0 +1,78 @@
+const Boom = require('boom');
+
+const Sector = require('../models/Sector');
+const translate = require('../helpers/translate');
+
+const { language } = translate;
+
+const create = async (req) => {
+  try {
+    const sector = new Sector(req.query);
+    await sector.save();
+
+    return {
+      message: translate[language].sectorCreated,
+      data: {
+        sector
+      }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const update = async (req) => {
+  try {
+    const updatedSector = await Sector.findOneAndUpdate({ _id: req.params._id }, { $set: req.payload }, { new: true });
+
+    if (!updatedSector) return Boom.notFound(translate[language].companySectorNotFound);
+
+    return {
+      message: translate[language].sectorUpdated,
+      data: { updatedSector },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const list = async (req) => {
+  try {
+    const sectors = await Sector.find(req.query);
+
+    return {
+      message: translate[language].sectorsFound,
+      data: {
+        sectors,
+      },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const remove = async (req) => {
+  try {
+    const sector = await Sector.findByIdAndRemove(req.params._id);
+
+    if (!sector) {
+      return Boom.notFound(translate[language].companySectorNotFound);
+    }
+    return {
+      message: translate[language].sectorDeleted
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+module.exports = {
+  create,
+  update,
+  list,
+  remove
+};

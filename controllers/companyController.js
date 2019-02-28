@@ -440,109 +440,6 @@ const deleteCompanyThirdPartyPayer = async (req) => {
   }
 };
 
-const createCompanySector = async (req) => {
-  try {
-    const company = await Company.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { 'auxiliariesConfig.sectors': req.payload } },
-      {
-        new: true,
-        select: {
-          name: 1,
-          'auxiliariesConfig.sectors': 1
-        },
-      },
-    );
-
-    if (!company) return Boom.notFound(translate[language].companyNotFound);
-
-    return {
-      message: translate[language].companySectorCreated,
-      data: {
-        sectors: company.auxiliariesConfig.sectors
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const updateCompanySector = async (req) => {
-  try {
-    const { _id: companyId, sectorId } = req.params;
-    const payload = { 'auxiliariesConfig.sectors.$': { ...req.payload } };
-    const company = await Company.findOneAndUpdate(
-      {
-        _id: companyId,
-        'auxiliariesConfig.sectors._id': sectorId,
-      },
-      { $set: flat(payload) },
-      {
-        new: true,
-        select: { name: 1, 'auxiliariesConfig.sectors': 1 },
-      },
-    );
-
-    if (!company) return Boom.notFound(translate[language].companySectorNotFound);
-
-    return {
-      message: translate[language].companySectorUpdated,
-      data: { sector: company.auxiliariesConfig.sectors.find(sector => sector._id.toHexString() === sectorId) },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const getCompanySectors = async (req) => {
-  try {
-    const company = await Company.findOne(
-      {
-        _id: req.params._id,
-        'auxiliariesConfig.sectors': { $exists: true },
-      },
-      {
-        name: 1,
-        'auxiliariesConfig.sectors': 1
-      },
-    );
-
-    if (!company) {
-      return Boom.notFound(translate[language].companySectorsNotFound);
-    }
-
-    return {
-      message: translate[language].companySectorsFound,
-      data: {
-        sectors: company.auxiliariesConfig.sectors,
-      },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const deleteCompanySector = async (req) => {
-  try {
-    const company = await Company.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: { 'auxiliariesConfig.sectors': { _id: req.params.sectorId } } },
-    );
-
-    if (!company) {
-      return Boom.notFound(translate[language].companySectorNotFound);
-    }
-    return {
-      message: translate[language].companySectorDeleted
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
 
 module.exports = {
   list,
@@ -563,8 +460,4 @@ module.exports = {
   getCompanyThirdPartyPayers,
   updateCompanyThirdPartyPayer,
   deleteCompanyThirdPartyPayer,
-  createCompanySector,
-  updateCompanySector,
-  getCompanySectors,
-  deleteCompanySector
 };

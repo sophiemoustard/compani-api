@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 
 const User = require('../../../models/User');
 const app = require('../../../server');
-const { companiesList } = require('./companiesSeed');
+const { sectorsList } = require('./sectorsSeed');
 
 const userList = [
   {
@@ -30,7 +30,7 @@ const userList = [
       password: '123456'
     },
     employee_id: 12345678,
-    sector: companiesList[0].auxiliariesConfig.sectors[0]._id,
+    sector: sectorsList[0]._id,
     refreshToken: uuidv4(),
     role: 'Tech',
     inactivityDate: '2018-11-01T12:52:27.461Z',

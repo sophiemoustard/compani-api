@@ -33,12 +33,6 @@ const companiesList = [
         { name: 'Code', default: false, _id: new ObjectID() },
         { name: 'Gouter', default: false, _id: new ObjectID() },
       ],
-    },
-    auxiliariesConfig: {
-      sectors: [
-        { _id: new ObjectID(), name: 'Test' },
-        { _id: new ObjectID(), name: 'Test2' },
-      ]
     }
   },
 ];
