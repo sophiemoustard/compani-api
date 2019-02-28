@@ -161,7 +161,7 @@ exports.plugin = {
           query: Joi.object().keys({
             sector: Joi.array().items(Joi.string()),
             startDate: Joi.string(),
-            endStartDate: Joi.string(),
+            endDate: Joi.string(),
           })
         },
         auth: 'jwt'
