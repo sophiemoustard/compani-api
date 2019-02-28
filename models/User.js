@@ -77,7 +77,8 @@ const UserSchema = mongoose.Schema({
     trim: true
   },
   sector: {
-    type: mongoose.Schema.Types.ObjectId
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Sector'
   },
   youtube: {
     link: {

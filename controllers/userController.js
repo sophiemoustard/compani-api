@@ -94,52 +94,54 @@ const create = async (req) => {
 };
 
 const list = async (req) => {
-  let users = await getUsers(req.query);
-  if (users.length === 0) {
+  try {
+    const users = await getUsers(req.query);
+    if (users.length === 0) {
+      return {
+        message: translate[language].usersNotFound,
+        data: { users: [] },
+      };
+    }
+
     return {
-      message: translate[language].usersNotFound,
-      data: { users: [] },
+      message: translate[language].userFound,
+      data: { users }
     };
+  } catch (e) {
+    req.log('error', e);
+    if (Boom.isBoom(e)) return e;
+    return Boom.badImplementation();
   }
-
-  users = users
-    .map((user) => {
-      user = user.toObject();
-      return populateSector(user);
-    });
-
-  return {
-    message: translate[language].userFound,
-    data: { users }
-  };
 };
 
 const activeList = async (req) => {
-  const users = await getUsers(req.query);
-  if (users.length === 0) {
+  try {
+    const users = await getUsers(req.query);
+    if (users.length === 0) {
+      return {
+        message: translate[language].usersNotFound,
+        data: { users: [] }
+      };
+    }
+
+    const activeUsers = users.filter(user => user.isActive);
+
     return {
-      message: translate[language].usersNotFound,
-      data: { users: [] }
+      message: translate[language].userFound,
+      data: { users: activeUsers }
     };
+  } catch (e) {
+    req.log('error', e);
+    if (Boom.isBoom(e)) return e;
+    return Boom.badImplementation();
   }
-
-  let activeUsers = users.filter(user => user.isActive);
-
-  activeUsers = activeUsers
-    .map((user) => {
-      user = user.toObject();
-      return populateSector(user);
-    });
-
-  return {
-    message: translate[language].userFound,
-    data: { users: activeUsers }
-  };
 };
 
 const show = async (req) => {
   try {
-    let user = await User.findOne({ _id: req.params._id }).populate('customers');
+    let user = await User.findOne({ _id: req.params._id })
+      .populate('customers')
+      .populate('sector');
     if (!user) return Boom.notFound(translate[language].userNotFound);
 
     user = user.toObject();
