@@ -18,7 +18,6 @@ const { endUserContract, updateContract } = require('../helpers/userContracts');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
-const { populateSector } = require('../helpers/sectors');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
@@ -139,9 +138,7 @@ const activeList = async (req) => {
 
 const show = async (req) => {
   try {
-    let user = await User.findOne({ _id: req.params._id })
-      .populate('customers')
-      .populate('sector');
+    let user = await User.findOne({ _id: req.params._id }).populate('customers');
     if (!user) return Boom.notFound(translate[language].userNotFound);
 
     user = user.toObject();
@@ -151,10 +148,6 @@ const show = async (req) => {
 
     if (user.company && user.company.customersConfig && user.company.customersConfig.thirdPartyPayers) {
       user.company.customersConfig.thirdPartyPayers = await isUsedInFundings(user.company.customersConfig.thirdPartyPayers);
-    }
-
-    if (user.sector && user.company && req.query.populateSector) {
-      user = populateSector(user);
     }
 
     return {
