@@ -70,7 +70,7 @@ exports.plugin = {
           query: {
             startDate: Joi.string(),
             endDate: Joi.string(),
-            auxiliary: Joi.array().items(Joi.string()),
+            auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
             customer: Joi.array().items(Joi.string()),
             type: Joi.string(),
           },
