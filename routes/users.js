@@ -632,6 +632,9 @@ exports.plugin = {
             creationDate: Joi.date(),
             startDate: Joi.date(),
             endDate: Joi.date(),
+            endReason: Joi.string(),
+            otherMisc: Joi.string(),
+            endNotificationDate: Joi.date(),
             contractType: Joi.string(),
             customer: {
               firstname: Joi.string(),
