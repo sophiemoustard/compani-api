@@ -17,6 +17,7 @@ const endUserContract = async (params, payload) => {
   user.administrative.contracts[contractIndex].endDate = payload.endDate;
   user.administrative.contracts[contractIndex].endNotificationDate = payload.endNotificationDate;
   user.administrative.contracts[contractIndex].endReason = payload.endReason;
+  user.administrative.contracts[contractIndex].otherMisc = payload.otherMisc;
 
   // End active version
   const versionIndex = user.administrative.contracts[contractIndex].versions.findIndex(version => version.isActive);
