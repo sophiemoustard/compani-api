@@ -40,6 +40,7 @@ const update = async (req) => {
 
 const list = async (req) => {
   try {
+    if (req.query.name) req.query.name = { $regex: new RegExp(`^${req.query.name}$`), $options: 'i' };
     const sectors = await Sector.find(req.query);
 
     return {
