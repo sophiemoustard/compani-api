@@ -249,6 +249,9 @@ const UserSchema = mongoose.Schema({
       },
       startDate: Date,
       endDate: Date,
+      endReason: String,
+      otherMisc: String,
+      endNotificationDate: Date,
       status: String,
       ogustContractId: String,
       customer: {
