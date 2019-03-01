@@ -7,7 +7,7 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const sector = new Sector(req.query);
+    const sector = new Sector(req.payload);
     await sector.save();
 
     return {
