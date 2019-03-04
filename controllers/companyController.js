@@ -440,7 +440,6 @@ const deleteCompanyThirdPartyPayer = async (req) => {
   }
 };
 
-
 module.exports = {
   list,
   show,

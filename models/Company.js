@@ -86,14 +86,6 @@ const CompanySchema = mongoose.Schema({
         default: Date.now
       }
     }]
-  },
-  auxiliariesConfig: {
-    sectors: [{
-      name: {
-        type: String,
-        required: true
-      },
-    }]
   }
 }, {
   timestamps: true

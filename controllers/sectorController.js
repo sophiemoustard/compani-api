@@ -12,9 +12,7 @@ const create = async (req) => {
 
     return {
       message: translate[language].sectorCreated,
-      data: {
-        sector
-      }
+      data: { sector }
     };
   } catch (e) {
     req.log('error', e);
@@ -26,7 +24,7 @@ const update = async (req) => {
   try {
     const updatedSector = await Sector.findOneAndUpdate({ _id: req.params._id }, { $set: req.payload }, { new: true });
 
-    if (!updatedSector) return Boom.notFound(translate[language].companySectorNotFound);
+    if (!updatedSector) return Boom.notFound(translate[language].sectorNotFound);
 
     return {
       message: translate[language].sectorUpdated,
@@ -45,9 +43,7 @@ const list = async (req) => {
 
     return {
       message: translate[language].sectorsFound,
-      data: {
-        sectors,
-      },
+      data: { sectors },
     };
   } catch (e) {
     req.log('error', e);
@@ -60,11 +56,9 @@ const remove = async (req) => {
     const sector = await Sector.findByIdAndRemove(req.params._id);
 
     if (!sector) {
-      return Boom.notFound(translate[language].companySectorNotFound);
+      return Boom.notFound(translate[language].sectorNotFound);
     }
-    return {
-      message: translate[language].sectorDeleted
-    };
+    return { message: translate[language].sectorDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();

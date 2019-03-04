@@ -158,11 +158,6 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         auth: { strategy: 'jwt' },
-        validate: {
-          query: {
-            populateSector: Joi.boolean()
-          }
-        }
       },
       handler: show
     });
