@@ -5,6 +5,7 @@ const { getToken } = require('./seed/usersSeed');
 const { populateEvents, eventsList } = require('./seed/eventsSeed');
 const { populateUsers, userList } = require('./seed/usersSeed');
 const { populateCustomers, customersList } = require('./seed/customersSeed');
+const { sectorsList } = require('./seed/sectorsSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
@@ -77,7 +78,7 @@ describe('EVENTS ROUTES', () => {
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
         customer: customer._id,
-        sector: '1b*',
+        sector: sectorsList[0]._id,
         location: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',

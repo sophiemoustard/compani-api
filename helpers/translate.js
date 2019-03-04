@@ -217,6 +217,13 @@ module.exports = {
     taskCreated: 'Tasks created',
     taskUpdated: 'Tasks updated',
     taskDeleted: 'Tasks deleted',
+
+    /* Sectors */
+    sectorCreated: 'Sector created.',
+    sectorUpdated: 'Sector updated.',
+    sectorNotFound: 'Sector not found.',
+    sectorsFound: 'Sectors found.',
+    sectorDeleted: 'Sector deleted.',
   },
   'fr-FR': {
     /* Global errors */
@@ -433,5 +440,12 @@ module.exports = {
     taskCreated: 'Tâche crée',
     taskUpdated: 'Tâche mis à jour',
     taskDeleted: 'Tâche supprimé',
+
+    /* Sectors */
+    sectorCreated: 'Secteur créé.',
+    sectorUpdated: 'Secteur modifié.',
+    sectorNotFound: 'Secteur non trouvé.',
+    sectorsFound: 'Secteurs trouvés.',
+    sectorDeleted: 'Secteur supprimé.',
   }
 };

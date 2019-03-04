@@ -86,7 +86,7 @@ const CompanySchema = mongoose.Schema({
         default: Date.now
       }
     }]
-  },
+  }
 }, {
   timestamps: true
 });

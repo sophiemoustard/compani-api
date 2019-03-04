@@ -33,7 +33,7 @@ const companiesList = [
         { name: 'Code', default: false, _id: new ObjectID() },
         { name: 'Gouter', default: false, _id: new ObjectID() },
       ],
-    },
+    }
   },
 ];
 

@@ -22,7 +22,7 @@ const {
   createCompanyThirdPartyPayers,
   getCompanyThirdPartyPayers,
   updateCompanyThirdPartyPayer,
-  deleteCompanyThirdPartyPayer
+  deleteCompanyThirdPartyPayer,
 } = require('../controllers/companyController');
 
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');

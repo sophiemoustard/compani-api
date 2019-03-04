@@ -173,4 +173,10 @@ exports.routes = [
       prefix: '/distancematrix'
     }
   },
+  {
+    plugin: require('./sectors'),
+    routes: {
+      prefix: '/sectors'
+    }
+  },
 ];

@@ -458,5 +458,5 @@ module.exports = {
   createCompanyThirdPartyPayers,
   getCompanyThirdPartyPayers,
   updateCompanyThirdPartyPayer,
-  deleteCompanyThirdPartyPayer
+  deleteCompanyThirdPartyPayer,
 };

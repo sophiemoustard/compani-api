@@ -33,7 +33,9 @@ const getUsers = async (query) => {
       { autopopulate: false }
     )
     .populate({ path: 'procedure.task', select: 'name' })
-    .populate({ path: 'customers', select: 'identity' });
+    .populate({ path: 'customers', select: 'identity' })
+    .populate({ path: 'company', select: 'auxiliariesConfig' })
+    .populate('sector');
 };
 
 const saveCertificateDriveId = async (userId, fileInfo) => {

@@ -183,6 +183,7 @@ describe('USERS ROUTES', () => {
         headers: { 'x-access-token': authToken }
       });
       expect(res.statusCode).toBe(200);
+      expect(res.result.data.users.length).toBeGreaterThan(0);
       expect(res.result.data.users[0]).toHaveProperty('role');
       expect(res.result.data.users[0].role.toHexString()).toEqual(expect.any(String));
     });
@@ -278,7 +279,6 @@ describe('USERS ROUTES', () => {
         payload: updatePayload,
         headers: { 'x-access-token': authToken }
       });
-      console.log('user role', res.result.data.userUpdated.role);
       expect(res.statusCode).toBe(200);
       expect(res.result.data.userUpdated).toBeDefined();
       expect(res.result.data.userUpdated).toMatchObject({

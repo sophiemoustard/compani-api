@@ -93,35 +93,47 @@ const create = async (req) => {
 };
 
 const list = async (req) => {
-  const users = await getUsers(req.query);
-  if (users.length === 0) {
-    return {
-      message: translate[language].usersNotFound,
-      data: { users: [] },
-    };
-  }
+  try {
+    const users = await getUsers(req.query);
+    if (users.length === 0) {
+      return {
+        message: translate[language].usersNotFound,
+        data: { users: [] },
+      };
+    }
 
-  return {
-    message: translate[language].userFound,
-    data: { users }
-  };
+    return {
+      message: translate[language].userFound,
+      data: { users }
+    };
+  } catch (e) {
+    req.log('error', e);
+    if (Boom.isBoom(e)) return e;
+    return Boom.badImplementation();
+  }
 };
 
 const activeList = async (req) => {
-  const users = await getUsers(req.query);
-  if (users.length === 0) {
+  try {
+    const users = await getUsers(req.query);
+    if (users.length === 0) {
+      return {
+        message: translate[language].usersNotFound,
+        data: { users: [] }
+      };
+    }
+
+    const activeUsers = users.filter(user => user.isActive);
+
     return {
-      message: translate[language].usersNotFound,
-      data: { users: [] }
+      message: translate[language].userFound,
+      data: { users: activeUsers }
     };
+  } catch (e) {
+    req.log('error', e);
+    if (Boom.isBoom(e)) return e;
+    return Boom.badImplementation();
   }
-
-  const activeUsers = users.filter(user => user.isActive);
-
-  return {
-    message: translate[language].userFound,
-    data: { users: activeUsers }
-  };
 };
 
 const show = async (req) => {

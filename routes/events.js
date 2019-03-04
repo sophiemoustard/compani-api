@@ -37,7 +37,7 @@ exports.plugin = {
               city: Joi.string(),
               fullAddress: Joi.string(),
             }),
-            sector: Joi.string().required(),
+            sector: Joi.objectId().required(),
             misc: Joi.string().allow(null, ''),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             internalHour: Joi.object().keys({

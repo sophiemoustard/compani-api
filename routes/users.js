@@ -61,15 +61,14 @@ exports.plugin = {
           payload: Joi.object().keys({
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
-            sector: Joi.string(),
-            employee_id: Joi.string(),
+            sector: Joi.objectId(),
             customer_id: Joi.string(),
+            employee_id: Joi.string(),
+            ogustManagerId: Joi.string(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
             },
-            managerId: Joi.objectId(),
-            ogustManagerId: Joi.string(),
             ogustInterlocId: Joi.string(),
             role: Joi.string().required(),
             picture: Joi.object().keys({
@@ -129,7 +128,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.string(),
+            sector: Joi.objectId(),
             customers: Joi.objectId()
           },
         },
@@ -147,7 +146,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.array().items(Joi.string()),
+            sector: Joi.array().items(Joi.objectId()),
             customers: Joi.objectId()
           },
         },
@@ -161,7 +160,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
       },
       handler: show
     });
@@ -175,8 +174,7 @@ exports.plugin = {
             _id: Joi.objectId(),
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
-            sector: Joi.string(),
-            employee_id: Joi.number(),
+            sector: Joi.objectId(),
             customer_id: Joi.number(),
             isConstrained: Joi.boolean(),
             facebook: Joi.object().keys({
@@ -209,7 +207,6 @@ exports.plugin = {
               socialSecurityNumber: Joi.number()
             }),
             contact: Joi.object().keys({
-              addressId: Joi.string(),
               address: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string().allow('', null),
