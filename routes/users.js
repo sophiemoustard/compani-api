@@ -63,6 +63,8 @@ exports.plugin = {
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             customer_id: Joi.string(),
+            employee_id: Joi.string(),
+            ogustManagerId: Joi.string(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
@@ -84,6 +86,7 @@ exports.plugin = {
               socialSecurityNumber: Joi.number()
             }),
             contact: Joi.object().keys({
+              addressId: Joi.string(),
               address: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string().allow('', null),
