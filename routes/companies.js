@@ -11,10 +11,6 @@ const {
   show,
   remove,
   uploadFile,
-  createCompanyService,
-  getCompanyServices,
-  deleteCompanyService,
-  updateCompanyService,
   addInternalHour,
   updateInternalHour,
   getInternalHours,
@@ -191,78 +187,6 @@ exports.plugin = {
           strategy: 'jwt',
         }
       }
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/services',
-      handler: createCompanyService,
-      options: {
-        auth: { strategy: 'jwt' },
-        validate: {
-          params: { _id: Joi.objectId().required() },
-          payload: Joi.object().keys({
-            versions: Joi.array().items({
-              defaultUnitAmount: Joi.number().required(),
-              eveningSurcharge: Joi.number().allow('', null),
-              holidaySurcharge: Joi.number().allow('', null),
-              name: Joi.string().required(),
-              vat: Joi.number().required(),
-            }),
-            nature: Joi.string().required(),
-          })
-        },
-      },
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/services',
-      handler: getCompanyServices,
-      options: {
-        auth: { strategy: 'jwt' },
-        validate: {
-          params: { _id: Joi.objectId().required() },
-        },
-      },
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}/services/{serviceId}',
-      handler: deleteCompanyService,
-      options: {
-        auth: { strategy: 'jwt' },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            serviceId: Joi.objectId().required()
-          }
-        },
-      },
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}/services/{serviceId}',
-      handler: updateCompanyService,
-      options: {
-        auth: { strategy: 'jwt' },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            serviceId: Joi.objectId().required()
-          },
-          payload: Joi.object().keys({
-            startDate: Joi.date().required(),
-            defaultUnitAmount: Joi.number(),
-            eveningSurcharge: Joi.number().allow('', null),
-            holidaySurcharge: Joi.number().allow('', null),
-            name: Joi.string(),
-            vat: Joi.number(),
-          })
-        },
-      },
     });
 
     server.route({
