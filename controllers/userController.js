@@ -5,7 +5,6 @@ const _ = require('lodash');
 const Boom = require('boom');
 const nodemailer = require('nodemailer');
 const moment = require('moment');
-const mongoose = require('mongoose');
 
 const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/roles');
@@ -14,7 +13,6 @@ const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
 const { createFolder } = require('../helpers/gdriveStorage');
-const { endUserContract, updateContract } = require('../helpers/userContracts');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
@@ -471,176 +469,6 @@ const createDriveFolder = async (req) => {
   }
 };
 
-const getUserContracts = async (req) => {
-  try {
-    const contracts = await User.findOne(
-      { _id: req.params._id, 'administrative.contracts': { $exists: true } },
-      { identity: 1, 'administrative.contracts': 1 },
-      { autopopulate: false }
-    ).lean();
-    if (!contracts) return Boom.notFound();
-
-    return {
-      message: translate[language].userContractsFound,
-      data: {
-        user: _.pick(contracts, ['_id', 'identity']),
-        contracts: contracts.administrative.contracts
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const updateUserContract = async (req) => {
-  try {
-    let updatedUser;
-    if (req.payload.endDate) {
-      updatedUser = await endUserContract(req.params, req.payload);
-    } else {
-      updatedUser = await updateContract(req.params, req.payload);
-    }
-
-    if (!updatedUser) return Boom.notFound(translate[language].contractNotFound);
-
-    return {
-      message: translate[language].userContractUpdated,
-      data: {
-        user: _.pick(updatedUser, ['_id', 'identity', 'inactivityDate']),
-        contracts: updatedUser.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation();
-  }
-};
-
-const createUserContract = async (req) => {
-  try {
-    req.payload.versions = [{
-      startDate: req.payload.startDate,
-      weeklyHours: req.payload.weeklyHours,
-      grossHourlyRate: req.payload.grossHourlyRate,
-      ogustContractId: req.payload.ogustContractId
-    }];
-    const newContract = await User.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { 'administrative.contracts': req.payload }, $set: { inactivityDate: null } },
-      {
-        new: true,
-        select: { identity: 1, 'administrative.contracts': 1 },
-        autopopulate: false
-      }
-    );
-
-    return {
-      message: translate[language].userContractAdded,
-      data: {
-        user: _.pick(newContract, ['_id', 'identity']),
-        contracts: newContract.administrative.contracts
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const removeUserContract = async (req) => {
-  try {
-    const user = await User.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: { 'administrative.contracts': { _id: req.params.contractId } } },
-      {
-        select: { identity: 1, administrative: 1 },
-        autopopulate: false
-      }
-    );
-
-    if (!user) return Boom.notFound(translate[language].userNotFound);
-
-    return {
-      message: translate[language].userContractRemoved,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const createUserContractVersion = async (req) => {
-  try {
-    const newContract = await User.findOneAndUpdate(
-      { _id: req.params._id, 'administrative.contracts._id': req.params.contractId },
-      { $push: { 'administrative.contracts.$.versions': req.payload } },
-      {
-        new: true,
-        select: { identity: 1, administrative: 1 },
-        autopopulate: false
-      }
-    );
-
-    return { message: translate[language].userContractVersionAdded, data: { contract: newContract } };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const updateUserContractVersion = async (req) => {
-  try {
-    const payload = { 'administrative.contracts.$[contract].versions.$[version]': { ...req.payload } };
-    const updatedVersion = await User.findOneAndUpdate(
-      { _id: req.params._id, },
-      { $set: flat(payload) },
-      {
-        // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
-        arrayFilters: [
-          { 'contract._id': mongoose.Types.ObjectId(req.params.contractId) },
-          { 'version._id': mongoose.Types.ObjectId(req.params.versionId) }
-        ],
-        new: true,
-        autopopulate: false,
-        identity: 1,
-        'administrative.contracts': 1
-      }
-    );
-
-    return {
-      message: translate[language].userContractVersionUpdated,
-      data: {
-        user: _.pick(updatedVersion, ['_id', 'identity']),
-        contracts: updatedVersion.administrative.contracts.find(contract => contract._id.toHexString() === req.params.contractId)
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const removeUserContractVersion = async (req) => {
-  try {
-    await User.findOneAndUpdate(
-      { _id: req.params._id, 'administrative.contracts._id': req.params.contractId },
-      { $pull: { 'administrative.contracts.$.versions': { _id: req.params.versionId } } },
-      {
-        select: { identity: 1, administrative: 1 },
-        autopopulate: true
-      }
-    );
-
-    return {
-      message: translate[language].userContractVersionRemoved,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
 const getUserAbsences = async (req) => {
   try {
     const user = await User.findOne(
@@ -756,13 +584,6 @@ module.exports = {
   uploadFile,
   uploadImage,
   createDriveFolder,
-  getUserContracts,
-  updateUserContract,
-  createUserContract,
-  removeUserContract,
-  createUserContractVersion,
-  updateUserContractVersion,
-  removeUserContractVersion,
   getUserAbsences,
   updateUserAbsence,
   createUserAbsence,
