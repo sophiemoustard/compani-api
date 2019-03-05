@@ -22,7 +22,7 @@ const list = async (req) => {
       return Boom.notFound();
     }
     return {
-      message: translate[language].servicesFound,
+      message: translate[language].ogustServicesFound,
       data: { servicesRaw: servicesRaw.data }
     };
   } catch (e) {
@@ -44,7 +44,7 @@ const getById = async (req) => {
       return Boom.notFound();
     }
     return {
-      message: translate[language].serviceFound,
+      message: translate[language].ogustServiceFound,
       data: { servicesRaw: servicesRaw.data }
     };
   } catch (e) {
@@ -62,7 +62,7 @@ const updateById = async (req) => {
       return Boom.badRequest(updatedService.data.message);
     }
     return {
-      message: translate[language].serviceUpdated,
+      message: translate[language].ogustServiceUpdated,
       data: { updatedService: updatedService.data }
     };
   } catch (e) {
@@ -79,7 +79,7 @@ const create = async (req) => {
       return Boom.badRequest(createdService.data.message);
     }
     return {
-      message: translate[language].serviceCreated,
+      message: translate[language].ogustServiceCreated,
       data: { createdService: createdService.data }
     };
   } catch (e) {
