@@ -21,6 +21,7 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.object().keys({
+            company: Joi.objectId().required(),
             versions: Joi.array().items({
               defaultUnitAmount: Joi.number().required(),
               eveningSurcharge: Joi.number().allow('', null),
@@ -40,6 +41,9 @@ exports.plugin = {
       handler: list,
       options: {
         auth: { strategy: 'jwt' },
+        validate: {
+          query: { company: Joi.objectId() }
+        }
       },
     });
 
