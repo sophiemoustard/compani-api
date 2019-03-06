@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const Contract = require('../models/Contract');
 const translate = require('../helpers/translate');
-const { endContract } = require('../helpers/userContracts');
+const { endContract, createAndSaveFile } = require('../helpers/userContracts');
 
 const { language } = translate;
 
@@ -154,6 +154,27 @@ const removeContractVersion = async (req) => {
   }
 };
 
+const uploadFile = async (req) => {
+  try {
+    const allowedFields = [
+      'signedContract',
+      'signedVersion',
+    ];
+    const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
+    if (administrativeKeys.length === 0) return Boom.forbidden(translate[language].uploadNotAllowed);
+    if (!req.payload.contractId && !req.payload.versionId) {
+      return Boom.badRequest();
+    }
+
+    const uploadedFile = await createAndSaveFile(administrativeKeys, req.params, req.payload);
+
+    return { message: translate[language].fileCreated, data: { uploadedFile } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   get,
@@ -163,4 +184,5 @@ module.exports = {
   createContractVersion,
   updateContractVersion,
   removeContractVersion,
+  uploadFile,
 };

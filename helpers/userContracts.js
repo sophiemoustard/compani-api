@@ -1,4 +1,9 @@
+const flat = require('flat');
+const mongoose = require('mongoose');
+
 const Contract = require('../models/Contract');
+const drive = require('../models/Google/Drive');
+const { addFile } = require('./gdriveStorage');
 
 const endContract = async (contractId, payload) => {
   const contract = await Contract.findById(contractId);
@@ -23,6 +28,30 @@ const endContract = async (contractId, payload) => {
   return contract;
 };
 
+const createAndSaveFile = async (administrativeKeys, params, payload) => {
+  const uploadedFile = await addFile({
+    driveFolderId: params.driveId,
+    name: payload.fileName || payload[administrativeKeys[0]].hapi.filename,
+    type: payload['Content-Type'],
+    body: payload[administrativeKeys[0]]
+  });
+  const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
+
+  const file = { 'versions.$[version]': { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } };
+  await Contract.findOneAndUpdate(
+    { _id: params._id },
+    { $set: flat(file) },
+    {
+      new: true,
+      arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(payload.versionId) }],
+      autopopulate: false
+    }
+  );
+
+  return uploadedFile;
+};
+
 module.exports = {
   endContract,
+  createAndSaveFile,
 };

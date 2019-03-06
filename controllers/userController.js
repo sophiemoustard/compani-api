@@ -383,19 +383,12 @@ const uploadFile = async (req) => {
       'transportInvoice',
       'mutualFund',
       'vitalCard',
-      'signedContract',
-      'signedVersion',
       'medicalCertificate',
-      'absenceReason'
+      'absenceReason',
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) {
       return Boom.forbidden(translate[language].uploadNotAllowed);
-    }
-    if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedVersion') {
-      if (!req.payload.contractId && !req.payload.versionId) {
-        return Boom.badRequest();
-      }
     }
 
     const uploadedFile = await createAndSaveFile(administrativeKeys, req.params, req.payload);
