@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const Contract = require('../models/Contract');
 const translate = require('../helpers/translate');
-const { endContract, createAndSaveFile } = require('../helpers/userContracts');
+const { endContract, createAndSaveFile } = require('../helpers/contracts');
 
 const { language } = translate;
 

@@ -1,7 +1,9 @@
 const flat = require('flat');
 const mongoose = require('mongoose');
+const moment = require('moment');
 
 const Contract = require('../models/Contract');
+const User = require('../models/User');
 const drive = require('../models/Google/Drive');
 const { addFile } = require('./gdriveStorage');
 
@@ -13,17 +15,18 @@ const endContract = async (contractId, payload) => {
   contract.endNotificationDate = payload.endNotificationDate;
   contract.endReason = payload.endReason;
   contract.otherMisc = payload.otherMisc;
-
   // End active version
   const versionIndex = contract.versions.findIndex(version => version.isActive);
   contract.versions[versionIndex].isActive = false;
   contract.versions[versionIndex].endDate = payload.endDate;
+  await contract.save();
 
   // Update inactivityDate if all contracts are ended
-  // const activeContract = user.administrative.contracts.find(contract => !contract.endDate);
-  // user.inactivityDate = !activeContract ? moment().add('1', 'months').date(1).toDate() : null;
-
-  await contract.save();
+  const userContracts = await Contract.find({ user: contract.user });
+  const hasActiveContracts = userContracts.some(c => !c.endDate);
+  if (!hasActiveContracts) {
+    await User.findOneAndUpdate({ _id: contract.user }, { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } });
+  }
 
   return contract;
 };

@@ -3,6 +3,7 @@ const expect = require('expect');
 const moment = require('moment');
 const app = require('../../server');
 const Contract = require('../../models/Contract');
+const User = require('../../models/User');
 const { getToken, userList, populateUsers } = require('./seed/usersSeed');
 const { populateContracts, contractsList } = require('./seed/contractsSeed');
 
@@ -33,7 +34,7 @@ describe('CONTRACT ROUTES', () => {
       expect(res.result.data.contract._id).toEqual(contractsList[0]._id);
     });
 
-    it('should return 404 error if no user found', async () => {
+    it('should return 404 error if no contract found', async () => {
       const invalidId = new ObjectID().toHexString();
       const res = await app.inject({
         method: 'GET',
@@ -107,8 +108,8 @@ describe('CONTRACT ROUTES', () => {
     });
   });
 
-  describe('PUT user/:id/contract', () => {
-    it('should end the user contract', async () => {
+  describe('PUT contract/:id', () => {
+    it('should end the contract', async () => {
       const endDate = moment().toDate();
       const payload = { endDate };
       const res = await app.inject({
@@ -121,7 +122,10 @@ describe('CONTRACT ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.contract).toBeDefined();
       expect(res.result.data.contract.endDate).toEqual(endDate);
-      // expect(res.result.data.user.inactivityDate).not.toBeNull();
+
+      const user = await User.findOne({ _id: contractsList[0].user });
+      expect(user.inactivityDate).not.toBeNull();
+      expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment().add('1', 'months').startOf('M').format('YYYY-MM-DD'));
     });
 
     it('should return 404 error if no contract', async () => {
@@ -163,7 +167,7 @@ describe('CONTRACT ROUTES', () => {
       expect(res.statusCode).toBe(200);
     });
 
-    it('should return a 404 error if user not found', async () => {
+    it('should return a 404 error if contract not found', async () => {
       const invalidId = new ObjectID().toHexString();
       const res = await app.inject({
         method: 'DELETE',
