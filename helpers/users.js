@@ -1,7 +1,6 @@
 const Boom = require('boom');
 const _ = require('lodash');
 const flat = require('flat');
-const mongoose = require('mongoose');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const drive = require('../models/Google/Drive');
@@ -35,6 +34,7 @@ const getUsers = async (query) => {
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity' })
     .populate({ path: 'company', select: 'auxiliariesConfig' })
+    .populate('contracts')
     .populate('sector');
 };
 
@@ -58,23 +58,6 @@ const saveAbscenceFile = async (userId, absenceId, fileInfo) => {
   );
 };
 
-const saveContractFile = async (userId, contractId, versionId, fileInfo) => {
-  const payload = { 'administrative.contracts.$[contract].versions.$[version]': fileInfo };
-
-  await User.findOneAndUpdate(
-    { _id: userId, },
-    { $set: flat(payload) },
-    {
-      new: true,
-      arrayFilters: [
-        { 'contract._id': mongoose.Types.ObjectId(contractId) },
-        { 'version._id': mongoose.Types.ObjectId(versionId) }
-      ],
-      autopopulate: false
-    }
-  );
-};
-
 const saveFile = async (userId, administrativeKeys, fileInfo) => {
   const payload = { administrative: { [administrativeKeys[0]]: fileInfo } };
 
@@ -95,8 +78,6 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
     await saveCertificateDriveId(params._id, file);
   } else if (administrativeKeys[0] === 'absenceReason') {
     await saveAbscenceFile(params._id, payload.absenceId, file);
-  } else if (administrativeKeys[0] === 'signedContract' || administrativeKeys[0] === 'signedVersion') {
-    await saveContractFile(params._id, payload.contractId, payload.versionId, file);
   } else {
     await saveFile(params._id, administrativeKeys, file);
   }

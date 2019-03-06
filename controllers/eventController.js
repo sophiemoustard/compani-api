@@ -135,7 +135,6 @@ const remove = async (req) => {
 
     return {
       message: translate[language].eventDeleted,
-      data: { event }
     };
   } catch (e) {
     req.log('error', e);

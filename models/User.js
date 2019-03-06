@@ -78,7 +78,7 @@ const UserSchema = mongoose.Schema({
   },
   sector: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Sector'
+    ref: 'Sector',
   },
   youtube: {
     link: {
@@ -154,6 +154,10 @@ const UserSchema = mongoose.Schema({
   mentor: String,
   ogustManagerId: String,
   ogustInterlocId: String,
+  contracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Contract',
+  }],
   administrative: {
     driveFolder: {
       id: String,
@@ -242,42 +246,6 @@ const UserSchema = mongoose.Schema({
       driveId: String,
       link: String
     },
-    contracts: [{
-      creationDate: {
-        type: Date,
-        default: Date.now
-      },
-      startDate: Date,
-      endDate: Date,
-      endReason: String,
-      otherMisc: String,
-      endNotificationDate: Date,
-      status: String,
-      ogustContractId: String,
-      customer: {
-        firstname: String,
-        lastname: String,
-        customer_id: String
-      },
-      versions: [{
-        ogustContractId: String,
-        creationDate: {
-          type: Date,
-          default: Date.now
-        },
-        startDate: Date,
-        endDate: Date,
-        weeklyHours: Number,
-        salary: Number,
-        grossHourlyRate: Number,
-        isActive: {
-          type: Boolean,
-          default: false
-        },
-        link: String,
-        driveId: String
-      }]
-    }],
     emergencyContact: {
       name: String,
       phoneNumber: String

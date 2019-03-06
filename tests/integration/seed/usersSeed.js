@@ -78,30 +78,6 @@ const userList = [
     employee_id: 12345678,
     refreshToken: uuidv4(),
     role: 'Auxiliaire',
-    administrative: {
-      contracts: [
-        {
-          creationDate: '2018-12-04T16:34:04.144Z',
-          endDate: null,
-          ogustContractId: '429068718',
-          startDate: '2018-12-03T23:00:00.000Z',
-          status: 'Prestataire',
-          _id: new ObjectID(),
-          versions: [
-            {
-              creationDate: '2018-12-04T16:34:04.144Z',
-              endDate: null,
-              grossHourlyRate: 10.28,
-              isActive: true,
-              ogustContractId: '429068718',
-              startDate: '2018-12-03T23:00:00.000Z',
-              weeklyHours: 9,
-              _id: new ObjectID(),
-            },
-          ],
-        },
-      ],
-    },
   }
 ];
 
@@ -129,12 +105,12 @@ const populateUsers = async () => {
 const getToken = async () => {
   const credentials = {
     email: 'test4@alenvi.io',
-    password: '123456'
+    password: '123456',
   };
   const response = await app.inject({
     method: 'POST',
     url: '/users/authenticate',
-    payload: credentials
+    payload: credentials,
   });
   return response.result.data.token;
 };
