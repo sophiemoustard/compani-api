@@ -24,6 +24,7 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
+            status: Joi.string(),
             user: Joi.objectId(),
             customer: Joi.objectId(),
           })
