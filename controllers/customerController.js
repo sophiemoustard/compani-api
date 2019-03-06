@@ -124,11 +124,15 @@ const listBySector = async (req) => {
 
 const show = async (req) => {
   try {
-    let customer = await Customer.findOne({ _id: req.params._id }).populate('subscriptions.service').lean();
+    let customer = await Customer.findOne({ _id: req.params._id })
+      .populate('subscriptions.service')
+      .populate('fundings.services')
+      .lean();
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
     }
 
+    console.log('customer', customer.subscriptions);
     customer = populateSubscriptionsServices(customer);
     customer = subscriptionsAccepted(customer);
 
