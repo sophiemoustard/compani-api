@@ -16,7 +16,7 @@ const list = async (req) => {
       .populate({ path: 'auxiliary', select: 'identity' })
       .populate({ path: 'customer', select: 'identity' })
       .lean();
-    const message = !contracts ? translate[language].contractsFound : translate[language].contractsNotFound;
+    const message = !contracts ? translate[language].contractsNotFound : translate[language].contractsFound;
 
     return { message, data: { contracts } };
   } catch (e) {

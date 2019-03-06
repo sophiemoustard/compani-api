@@ -141,20 +141,22 @@ module.exports = {
     companyThirdPartyPayersNotFound: 'Company third party payers not found.',
     companyThirdPartyPayerUpdated: 'Company third party payer updated.',
     companyThirdPartyPayerDeleted: 'Company third party payer deleted.',
-    /* User contracts */
-    userContractsFound: 'User contracts found.',
-    userContractUpdated: 'User contract updated.',
-    userContractAdded: 'User contract added.',
-    userContractRemoved: 'User contract removed.',
-    /* User contracts amendments */
-    userContractVersionAdded: 'User contract amendment added.',
-    userContractVersionRemoved: 'User contract amendment removed.',
-    userContractVersionUpdated: 'User contract amendment updated.',
+    /* Contracts */
+    contractFound: 'Contract found.',
+    contractsFound: 'Contracts found.',
+    contractsNotFound: 'Contracts not found.',
+    contractUpdated: 'Contract updated.',
+    contractAdded: 'Contract added.',
+    contractRemoved: 'Contract removed.',
+    /* Contracts amendments */
+    contractVersionAdded: 'Contract amendment added.',
+    contractVersionRemoved: 'Contract amendment removed.',
+    contractVersionUpdated: 'Contract amendment updated.',
     /* User absences */
-    userAbsencesFound: 'User contracts found.',
-    userAbsenceUpdated: 'User contract updated.',
-    userAbsenceAdded: 'User contract added.',
-    userAbsenceRemoved: 'User contract removed.',
+    userAbsencesFound: 'Contracts found.',
+    userAbsenceUpdated: 'Contract updated.',
+    userAbsenceAdded: 'Contract added.',
+    userAbsenceRemoved: 'Contract removed.',
     /* User tasks */
     userTasksFound: 'User tasks found',
 
@@ -365,15 +367,17 @@ module.exports = {
     companyThirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
     companyThirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     companyThirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
-    /* User contracts */
-    userContractsFound: "Contrats de l'utilisateur trouvés.",
-    userContractUpdated: "Contrat de l'utilisateur mis à jour.",
-    userContractAdded: "Contrat de l'utilisateur ajouté.",
-    userContractRemoved: "Contrat de l'utilisateur supprimé.",
-    /* User contracts amendments */
-    userContractVersionAdded: "Avenant au contrat de l'utilisateur ajouté.",
-    userContractVersionRemoved: "Avenant au contrat de l'utilisateur supprimé.",
-    userContractVersionUpdated: "Avenant au contrat de l'utilisateur modifié.",
+    /* Contracts */
+    contractFound: 'Contrat trouvés.',
+    contractsFound: 'Contrats trouvés.',
+    contractsNotFound: 'Contrats non trouvés.',
+    contractUpdated: 'Contrat mis à jour.',
+    contractAdded: 'Contrat ajouté.',
+    contractRemoved: 'Contrat supprimé.',
+    /* Contracts amendments */
+    contractVersionAdded: 'Avenant au contrat ajouté.',
+    contractVersionRemoved: 'Avenant au contrat supprimé.',
+    contractVersionUpdated: 'Avenant au contrat modifié.',
     /* User absences */
     userAbsencesFound: "Absences de l'utilisateur trouvées.",
     userAbsenceUpdated: "Absence de l'utilisateur mise à jour.",
