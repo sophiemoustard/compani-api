@@ -3,6 +3,7 @@ const flat = require('flat');
 const mongoose = require('mongoose');
 
 const Contract = require('../models/Contract');
+const User = require('../models/User');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile } = require('../helpers/contracts');
 
@@ -51,6 +52,8 @@ const create = async (req) => {
     }];
     await contract.save();
 
+    await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id } });
+
     return {
       message: translate[language].contractCreated,
       data: { contract },
@@ -86,6 +89,8 @@ const remove = async (req) => {
   try {
     const contract = await Contract.findByIdAndRemove({ _id: req.params._id });
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
+
+    await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
 
     return {
       message: translate[language].contractDeleted,

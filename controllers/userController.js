@@ -136,7 +136,7 @@ const activeList = async (req) => {
 
 const show = async (req) => {
   try {
-    let user = await User.findOne({ _id: req.params._id }).populate('customers');
+    let user = await User.findOne({ _id: req.params._id }).populate('customers').populate('contracts');
     if (!user) return Boom.notFound(translate[language].userNotFound);
 
     user = user.toObject();

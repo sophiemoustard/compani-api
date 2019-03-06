@@ -78,7 +78,7 @@ const UserSchema = mongoose.Schema({
   },
   sector: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Sector'
+    ref: 'Sector',
   },
   youtube: {
     link: {
@@ -154,6 +154,10 @@ const UserSchema = mongoose.Schema({
   mentor: String,
   ogustManagerId: String,
   ogustInterlocId: String,
+  contracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Contract',
+  }],
   administrative: {
     driveFolder: {
       id: String,
