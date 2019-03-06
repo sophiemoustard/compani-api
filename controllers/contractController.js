@@ -119,9 +119,7 @@ const updateContractVersion = async (req) => {
       { $set: flat(payload) },
       {
         // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
-        arrayFilters: [
-          { 'version._id': mongoose.Types.ObjectId(req.params.versionId) }
-        ],
+        arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(req.params.versionId) }],
         new: true,
         autopopulate: false,
       }
