@@ -114,12 +114,6 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./Ogust/contract'),
-    routes: {
-      prefix: '/ogust/contracts'
-    }
-  },
-  {
     plugin: require('./Ogust/sepaInfo'),
     routes: {
       prefix: '/ogust/sepaInfo'
