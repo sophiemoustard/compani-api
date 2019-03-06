@@ -7,12 +7,12 @@ const os = require('os');
 
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
-const Company = require('../models/Company');
+const Service = require('../models/Service');
 const Event = require('../models/Event');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
-const { subscriptionsAccepted, populateSubscriptionsSerivces } = require('../helpers/subscriptions');
+const { subscriptionsAccepted, populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
@@ -35,18 +35,19 @@ const list = async (req) => {
     if (req.query.sectors && Array.isArray(req.query.sectors)) payload.sectors = { $in: req.query.sectors };
     if (req.query.subscriptions) payload.subscriptions = { $exists: true, $not: { $size: 0 } };
 
-    const customersRaw = await Customer.find(payload).lean();
-    if (customersRaw.length === 0) {
+    let customers = await Customer.find(payload)
+      .populate('subscriptions.service')
+      .lean();
+    if (customers.length === 0) {
       return {
         message: translate[language].eventsNotFound,
         data: { customers: [] },
       };
     }
 
-    const customersSubscriptionsPromises = customersRaw.map(populateSubscriptionsSerivces);
-    let [...customers] = await Promise.all(customersSubscriptionsPromises);
-    const customersApprovalPromises = customers.map(subscriptionsAccepted);
-    [...customers] = await Promise.all(customersApprovalPromises);
+    customers = customers
+      .map(populateSubscriptionsServices)
+      .map(subscriptionsAccepted);
 
     return {
       message: translate[language].customersFound,
@@ -105,12 +106,11 @@ const listBySector = async (req) => {
       if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
     });
 
-    const customersRaw = await Customer.find({ _id: customerIds }).lean();
+    let customers = await Customer.find({ _id: customerIds }).populate('subscriptions.service').lean();
 
-    const customersSubscriptionsPromises = customersRaw.map(populateSubscriptionsSerivces);
-    let [...customers] = await Promise.all(customersSubscriptionsPromises);
-    const customersApprovalPromises = customers.map(subscriptionsAccepted);
-    [...customers] = await Promise.all(customersApprovalPromises);
+    customers = customers
+      .map(populateSubscriptionsServices)
+      .map(subscriptionsAccepted);
 
     return {
       message: translate[language].customersFound,
@@ -124,13 +124,13 @@ const listBySector = async (req) => {
 
 const show = async (req) => {
   try {
-    let customer = await Customer.findOne({ _id: req.params._id }).lean();
+    let customer = await Customer.findOne({ _id: req.params._id }).populate('subscriptions.service').lean();
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
     }
 
-    customer = await populateSubscriptionsSerivces(customer);
-    customer = await subscriptionsAccepted(customer);
+    customer = populateSubscriptionsServices(customer);
+    customer = subscriptionsAccepted(customer);
 
     const fundingsVersions = [];
     if (customer.fundings && customer.fundings.length > 0) {
@@ -234,11 +234,11 @@ const getSubscriptions = async (req) => {
       },
       { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
       { autopopulate: false }
-    ).lean();
+    ).populate('subscriptions.service').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const { subscriptions } = await populateSubscriptionsSerivces(customer);
+    const { subscriptions } = populateSubscriptionsServices(customer);
 
     return {
       message: translate[language].customerSubscriptionsFound,
@@ -263,11 +263,11 @@ const updateSubscription = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
         autopopulate: false,
       },
-    ).lean();
+    ).populate('subscriptions.service').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const { subscriptions } = await populateSubscriptionsSerivces(customer);
+    const { subscriptions } = populateSubscriptionsServices(customer);
 
     return {
       message: translate[language].customerSubscriptionUpdated,
@@ -285,12 +285,9 @@ const updateSubscription = async (req) => {
 const addSubscription = async (req) => {
   try {
     const serviceId = req.payload.service;
-    const company = await Company.findOne({ 'customersConfig.services._id': serviceId });
+    const subscribedService = await Service.findOne({ _id: serviceId });
 
-    if (!company) return Boom.notFound(translate[language].companyServiceNotFound);
-
-    const subscribedService = company.customersConfig.services.find(service => service._id == serviceId);
-    if (!subscribedService) return Boom.notFound(translate[language].companyServiceNotFound);
+    if (!subscribedService) return Boom.notFound(translate[language].serviceNotFound);
 
     const customer = await Customer.findById(req.params._id);
     if (customer.subscriptions && customer.subscriptions.length > 0) {
@@ -306,9 +303,9 @@ const addSubscription = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
         autopopulate: false,
       },
-    ).lean();
+    ).populate('subscriptions.service').lean();
 
-    const { subscriptions } = await populateSubscriptionsSerivces(updatedCustomer);
+    const { subscriptions } = populateSubscriptionsServices(updatedCustomer);
 
     return {
       message: translate[language].customerSubscriptionAdded,
@@ -337,7 +334,7 @@ const removeSubscription = async (req) => {
         },
         autopopulate: false,
       }
-    );
+    ).populate('subscriptions.service');
 
     return {
       message: translate[language].customerSubscriptionRemoved,
@@ -672,7 +669,9 @@ const createFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
         autopopulate: false,
       },
-    ).lean();
+    )
+      .populate('fundings.services')
+      .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
@@ -707,7 +706,7 @@ const updateFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
         autopopulate: false,
       },
-    ).lean();
+    ).populate('fundings.services').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
@@ -733,7 +732,7 @@ const getFundings = async (req) => {
       { _id: req.params._id, fundings: { $exists: true } },
       { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
       { autopopulate: false },
-    ).lean();
+    ).populate('fundings.services').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
@@ -769,7 +768,7 @@ const removeFunding = async (req) => {
         },
         autopopulate: false,
       }
-    );
+    ).populate('fundings.services');
 
     return {
       message: translate[language].customerFundingRemoved,

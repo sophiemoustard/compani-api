@@ -17,7 +17,7 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
       checkedFunding._id !== fund._id.toHexString())
     .every((fund) => {
       const lastVersion = getLastVersion(fund.versions, 'createdAt');
-      /** We allow two funcings to have the same subscription only if :
+      /** We allow two fundings to have the same subscription only if :
        * - the 2 fundings are not on the same period
        * - or the 2 fundings are on the same period but not the same days
        */
@@ -30,14 +30,12 @@ const populateFundings = async (funding) => {
   if (!funding) return false;
 
   const company = await Company.findOne({ 'customersConfig.thirdPartyPayers._id': funding.thirdPartyPayer }).lean();
-  const { thirdPartyPayers, services: companyServices } = company.customersConfig;
+  const { thirdPartyPayers } = company.customersConfig;
 
   const thirdPartyPayer = thirdPartyPayers.find(tpp => tpp._id.toHexString() === funding.thirdPartyPayer.toHexString());
   funding.thirdPartyPayer = { _id: thirdPartyPayer._id, name: thirdPartyPayer.name };
 
-  const fundingServices = [];
-  for (const serviceId of funding.services) fundingServices.push(await populateServices(serviceId, companyServices));
-  funding.services = await Promise.all(fundingServices);
+  funding.services = funding.services.map(populateServices);
 
   return funding;
 };

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const ServiceSchema = mongoose.Schema({
   nature: String,
+  company: mongoose.Schema.Types.ObjectId,
   versions: [{
     defaultUnitAmount: Number,
     vat: Number,

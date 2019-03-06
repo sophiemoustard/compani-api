@@ -14,6 +14,7 @@ const {
 } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
 const { populateCompanies, companiesList } = require('./seed/companiesSeed');
+const { servicesList, populateServices } = require('./seed/servicesSeed');
 const Customer = require('../../models/Customer');
 const { MONTHLY, FIXED } = require('../../helpers/constants');
 
@@ -28,6 +29,7 @@ describe('CUSTOMERS ROUTES', () => {
   before(populateCompanies);
   beforeEach(populateCustomers);
   before(populateRoles);
+  beforeEach(populateServices);
   beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();
@@ -273,6 +275,7 @@ describe('CUSTOMERS ROUTES', () => {
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   let token = null;
   before(populateCompanies);
+  beforeEach(populateServices);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -281,9 +284,8 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   describe('POST /customers/{id}/subscriptions', () => {
     it('should add subscription to customer', async () => {
       const customer = customersList[1];
-      const company = companiesList[0];
       const payload = {
-        service: company.customersConfig.services[0]._id,
+        service: servicesList[0]._id,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -780,6 +782,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let token = null;
   before(populateCompanies);
+  beforeEach(populateServices);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -790,7 +793,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        services: [companiesList[0].customersConfig.services[0]._id],
+        services: [servicesList[0]._id],
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -821,7 +824,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        services: [companiesList[0].customersConfig.services[0]._id],
+        services: [servicesList[0]._id],
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -867,7 +870,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it("should return a 400 error if 'thirdPartyPayer' object is missing from payload", async () => {
       const payload = {
         nature: FIXED,
-        services: [companiesList[0].customersConfig.services[0]._id],
+        services: [servicesList[0]._id],
         versions: [{
           frequency: MONTHLY,
           folderNumber: 'D123456',
@@ -890,7 +893,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
-        services: [companiesList[0].customersConfig.services[0]._id],
+        services: [servicesList[0]._id],
         nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
         versions: [{
@@ -916,7 +919,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   describe('PUT customers/:id/fundings', () => {
     it('should add a customer funding version', async () => {
       const payload = {
-        services: [companiesList[0].customersConfig.services[0]._id],
+        services: [servicesList[0]._id],
         fundingId: customersList[1].fundings[0]._id.toHexString(),
         amountTTC: 90,
         customerParticipationRate: 20,
@@ -940,7 +943,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
-        services: [companiesList[0].customersConfig.services[0]._id],
+        services: [servicesList[0]._id],
         fundingId: customersList[1].fundings[0]._id.toHexString(),
         amountTTC: 90,
         customerParticipationRate: 20,
