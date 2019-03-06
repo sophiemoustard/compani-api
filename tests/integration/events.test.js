@@ -176,8 +176,6 @@ describe('EVENTS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.event).toBeDefined();
-      expect(response.result.data.event._id).toEqual(event._id);
     });
 
     it('should return a 404 error as event is not found', async () => {
