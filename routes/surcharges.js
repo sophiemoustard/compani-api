@@ -22,7 +22,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            saterdays: Joi.number().allow('', null),
+            saturdays: Joi.number().allow('', null),
             sundays: Joi.number().allow('', null),
             publicHolidays: Joi.number().allow('', null),
             christmas: Joi.number().allow('', null),
@@ -81,7 +81,7 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string(),
-            saterdays: Joi.number().allow('', null),
+            saturdays: Joi.number().allow('', null),
             sundays: Joi.number().allow('', null),
             publicHolidays: Joi.number().allow('', null),
             christmas: Joi.number().allow('', null),

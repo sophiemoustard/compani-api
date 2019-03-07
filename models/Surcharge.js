@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const SurchargeSchema = mongoose.Schema({
   name: String,
-  saterdays: Number,
+  saturdays: Number,
   sundays: Number,
   publicHolidays: Number,
   christmas: Number,
