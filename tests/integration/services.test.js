@@ -13,9 +13,10 @@ describe('SERVICES ROUTES', () => {
     authToken = await getToken();
   });
 
-  describe('POST /companies/:id/services', () => {
+  describe('POST /services', () => {
     it('should create a new service', async () => {
       const payload = {
+        company: new ObjectID(),
         versions: [{
           defaultUnitAmount: 12,
           eveningSurcharge: '',

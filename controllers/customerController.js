@@ -132,7 +132,6 @@ const show = async (req) => {
       return Boom.notFound(translate[language].customerNotFound);
     }
 
-    console.log('customer', customer.subscriptions);
     customer = populateSubscriptionsServices(customer);
     customer = subscriptionsAccepted(customer);
 
