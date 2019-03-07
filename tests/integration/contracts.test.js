@@ -3,8 +3,10 @@ const expect = require('expect');
 const moment = require('moment');
 const app = require('../../server');
 const Contract = require('../../models/Contract');
+const Customer = require('../../models/Customer');
 const User = require('../../models/User');
 const { getToken, userList, populateUsers } = require('./seed/usersSeed');
+const { customersList, populateCustomers } = require('./seed/customersSeed');
 const { populateContracts, contractsList } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../helpers/constants');
 
@@ -17,6 +19,7 @@ describe('NODE ENV', () => {
 describe('CONTRACT ROUTES', () => {
   let authToken = null;
   before(populateUsers);
+  before(populateCustomers);
   beforeEach(populateContracts);
   beforeEach(async () => {
     authToken = await getToken();
@@ -86,13 +89,16 @@ describe('CONTRACT ROUTES', () => {
       expect(res.result.data.contract).toBeDefined();
       const contracts = await Contract.find({});
       expect(contracts.length).toEqual(contractsList.length + 1);
+      const user = await User.findOne({ _id: payload.user });
+      expect(user).toBeDefined();
+      expect(user.contracts).toContainEqual(new ObjectID(res.result.data.contract._id));
     });
 
     it('should create contract (customer contract)', async () => {
       const payload = {
         status: CUSTOMER_CONTRACT,
         startDate: '2019-01-18T15:46:30.636Z',
-        customer: new ObjectID(),
+        customer: customersList[0]._id,
         versions: [{
           weeklyHours: 24,
           startDate: '2019-01-18T15:46:30.636Z'
@@ -110,6 +116,9 @@ describe('CONTRACT ROUTES', () => {
       expect(res.result.data.contract).toBeDefined();
       const contracts = await Contract.find({});
       expect(contracts.length).toEqual(contractsList.length + 1);
+      const customer = await Customer.findOne({ _id: payload.customer });
+      expect(customer).toBeDefined();
+      expect(customer.contracts).toContainEqual(res.result.data.contract._id);
     });
 
     it("should return a 400 error if 'status' params is missing", async () => {
