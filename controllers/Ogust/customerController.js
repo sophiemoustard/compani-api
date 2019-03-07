@@ -67,7 +67,7 @@ const getCustomerServices = async (req) => {
       return Boom.notFound();
     }
     return {
-      message: translate[language].servicesFound,
+      message: translate[language].ogustServicesFound,
       data: { servicesRaw: servicesRaw.data }
     };
   } catch (e) {

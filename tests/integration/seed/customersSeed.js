@@ -4,6 +4,7 @@ const moment = require('moment');
 
 const Customer = require('../../../models/Customer');
 const { companiesList } = require('./companiesSeed');
+const { servicesList } = require('./servicesSeed');
 const { MONTHLY, FIXED } = require('../../../helpers/constants');
 
 faker.locale = 'fr';
@@ -49,7 +50,7 @@ const customersList = [
     subscriptions: [
       {
         _id: new ObjectID(),
-        service: companiesList[0].customersConfig.services[0]._id,
+        service: servicesList[0]._id,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -110,7 +111,7 @@ const customersList = [
         _id: new ObjectID(),
         nature: FIXED,
         thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        services: [companiesList[0].customersConfig.services[0]._id],
+        services: [servicesList[0]._id],
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -135,7 +136,7 @@ const customersList = [
           amountTTC: 90,
           customerParticipationRate: 0,
           careDays: [5, 6],
-          services: [companiesList[0].customersConfig.services[0]._id]
+          services: [servicesList[0]._id]
         }]
       }
     ]

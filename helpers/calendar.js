@@ -85,7 +85,7 @@ const getEmployeeEvents = async (req, params) => {
 
   const events = _.filter(servicesRaw.data.array_service.result, item => item.status !== 'B');
   if (events.length === 0) {
-    throw Boom.notFound(translate[language].servicesNotFound);
+    throw Boom.notFound(translate[language].ogustServicesNotFound);
   }
 
   const uniqCustomers = [];
@@ -119,7 +119,7 @@ const getCustomerEvents = async (req, params) => {
 
   const events = _.filter(servicesRaw.data.array_service.result, item => item.status !== 'B');
   if (events.length === 0) {
-    throw Boom.notFound(translate[language].servicesNotFound);
+    throw Boom.notFound(translate[language].ogustServicesNotFound);
   }
 
   const customer = await getOgustCustomer(req.headers['x-ogust-token'], params.id_customer, req.query.status);

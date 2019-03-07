@@ -179,4 +179,10 @@ exports.routes = [
       prefix: '/contracts'
     }
   },
+  {
+    plugin: require('./services'),
+    routes: {
+      prefix: '/services'
+    }
+  },
 ];

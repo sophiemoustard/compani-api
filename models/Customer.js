@@ -3,7 +3,7 @@ const _ = require('lodash');
 const SubscriptionsLog = require('./SubscriptionsLog');
 const FundingLog = require('./FundingLog');
 const Company = require('./Company');
-const { populateSubscriptionsSerivces } = require('../helpers/subscriptions');
+const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getLastVersion } = require('../helpers/utils');
 const {
   MONTHLY,
@@ -79,7 +79,7 @@ const CustomerSchema = mongoose.Schema({
   }],
   isActive: Boolean,
   subscriptions: [{
-    service: { type: mongoose.Schema.Types.ObjectId },
+    service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
     versions: [{
       unitTTCRate: Number,
       estimatedWeeklyVolume: Number,
@@ -129,7 +129,7 @@ const CustomerSchema = mongoose.Schema({
       type: String,
       enum: [HOURLY, FIXED]
     },
-    services: [{ type: mongoose.Schema.Types.ObjectId }],
+    services: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Service' }],
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
     versions: [{
       endDate: Date,
@@ -162,7 +162,7 @@ async function saveSubscriptionsChanges(doc, next) {
     const deletedSub = subscriptions.filter(sub => sub._id.toHexString() === this.getUpdate().$pull.subscriptions._id.toHexString());
     if (!deletedSub) return next();
 
-    const { subscriptions: populatedDeletedSub } = await populateSubscriptionsSerivces({ subscriptions: [...deletedSub] });
+    const { subscriptions: populatedDeletedSub } = populateSubscriptionsServices({ subscriptions: [...deletedSub] });
     const lastVersion = populatedDeletedSub[0].versions.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
     const payload = {
       customer: {
@@ -194,7 +194,7 @@ async function saveFundingChanges(doc, next) {
     if (!deletedFunding) return next();
 
     const company = await Company.findOne({ 'customersConfig.thirdPartyPayers._id': deletedFunding.thirdPartyPayer }).lean();
-    const { thirdPartyPayers: companyThirdPartyPayers, services: companyServices } = company.customersConfig;
+    const { thirdPartyPayers: companyThirdPartyPayers } = company.customersConfig;
 
     const {
       versions,
@@ -203,7 +203,6 @@ async function saveFundingChanges(doc, next) {
       nature,
     } = deletedFunding;
     const { _id, createdAt, ...lastVersion } = getLastVersion(versions, 'createdAt');
-    const fundingServices = services.map(ser => companyServices.find(s => s._id.toHexString() === ser._id.toHexString()));
     const payload = {
       customer: {
         customerId: doc._id,
@@ -212,7 +211,7 @@ async function saveFundingChanges(doc, next) {
         ogustId: doc.customerId,
       },
       funding: {
-        services: fundingServices.map(service => getLastVersion(service.versions, 'startDate').name),
+        services: services.map(service => getLastVersion(service.versions, 'startDate').name),
         thirdPartyPayer: companyThirdPartyPayers.find(tpp => tpp._id.toHexString() === thirdPartyPayer.toHexString()).name,
         nature,
         ...lastVersion,
