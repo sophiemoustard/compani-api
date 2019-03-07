@@ -5,6 +5,7 @@ const { servicesList, populateServices } = require('./seed/servicesSeed');
 const { getToken } = require('./seed/usersSeed');
 const Service = require('../../models/Service');
 const app = require('../../server');
+const { CUSTOMER_CONTRACT } = require('../../helpers/constants');
 
 describe('SERVICES ROUTES', () => {
   let authToken = null;
@@ -17,6 +18,7 @@ describe('SERVICES ROUTES', () => {
     it('should create a new service', async () => {
       const payload = {
         company: new ObjectID(),
+        type: CUSTOMER_CONTRACT,
         versions: [{
           defaultUnitAmount: 12,
           eveningSurcharge: '',

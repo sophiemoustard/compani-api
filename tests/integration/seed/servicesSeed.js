@@ -1,10 +1,14 @@
 const { ObjectID } = require('mongodb');
 
 const Service = require('../../../models/Service');
+const { companiesList } = require('./companiesSeed');
+const { CUSTOMER_CONTRACT } = require('../../../helpers/constants');
 
 const servicesList = [
   {
     _id: new ObjectID(),
+    type: CUSTOMER_CONTRACT,
+    company: companiesList[0]._id,
     versions: [{
       defaultUnitAmount: 12,
       eveningSurcharge: '',
@@ -17,6 +21,8 @@ const servicesList = [
   },
   {
     _id: new ObjectID(),
+    type: CUSTOMER_CONTRACT,
+    company: companiesList[0]._id,
     versions: [{
       defaultUnitAmount: 24,
       eveningSurcharge: '',
