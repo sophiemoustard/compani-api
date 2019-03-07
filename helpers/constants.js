@@ -20,4 +20,6 @@ module.exports = {
   EVERY_DAY: 'every_day',
   EVERY_WEEK_DAY: 'every_week_day',
   EVERY_WEEK: 'every_week',
+  CUSTOMER_CONTRACT: 'contract_with_customer',
+  COMPANY_CONTRACT: 'contract_with_company',
 };

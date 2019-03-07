@@ -3,6 +3,9 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
+
+
 const {
   list,
   create,
@@ -21,6 +24,7 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.object().keys({
+            type: Joi.string().required().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
             company: Joi.objectId().required(),
             versions: Joi.array().items({
               defaultUnitAmount: Joi.number().required(),
