@@ -1,12 +1,14 @@
 const mongoose = require('mongoose');
 
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
+
 const ContractSchema = mongoose.Schema({
   startDate: Date,
   endDate: Date,
   endReason: String,
   otherMisc: String,
   endNotificationDate: Date,
-  status: String,
+  status: { type: String, enum: [CUSTOMER_CONTRACT, COMPANY_CONTRACT] },
   ogustContractId: String,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
