@@ -11,7 +11,7 @@ const {
 } = require('../controllers/surchargeController');
 
 exports.plugin = {
-  name: 'routes-services',
+  name: 'routes-surcharges',
   register: async (server) => {
     server.route({
       method: 'POST',
