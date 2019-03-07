@@ -30,6 +30,10 @@ const CustomerSchema = mongoose.Schema({
     lastname: String,
     birthDate: Date
   },
+  contracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Contract',
+  }],
   sectors: [String],
   contact: {
     ogustAddressId: String,

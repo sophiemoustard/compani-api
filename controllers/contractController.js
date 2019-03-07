@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 const Contract = require('../models/Contract');
 const User = require('../models/User');
+const Customer = require('../models/Customer');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile } = require('../helpers/contracts');
 
@@ -52,9 +53,8 @@ const create = async (req) => {
     }];
     await contract.save();
 
-    await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id } })
-      .populate({ path: 'user', select: 'identity' })
-      .populate({ path: 'customer', select: 'identity' });
+    await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id } });
+    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $push: { contracts: contract._id } });
 
     return {
       message: translate[language].contractCreated,
@@ -96,6 +96,7 @@ const remove = async (req) => {
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
+    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $pull: { contracts: contract._id } });
 
     return {
       message: translate[language].contractDeleted,
