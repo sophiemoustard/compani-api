@@ -10,9 +10,9 @@ const SurchargeSchema = mongoose.Schema({
   evenings: Number,
   eveningsStartTime: Date,
   eveningsEndTime: Date,
-  custom: Number,
-  customStartTime: Date,
-  customeEndTime: Date,
+  customs: Number,
+  customsStartTime: Date,
+  customsEndTime: Date,
   service: mongoose.Schema.Types.ObjectId,
   company: mongoose.Schema.Types.ObjectId,
 }, { timestamps: true });
