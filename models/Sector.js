@@ -9,19 +9,19 @@ const SectorSchema = mongoose.Schema({
   toJSON: { virtuals: true }
 });
 
-SectorSchema.virtual('numAuxiliary', {
+SectorSchema.virtual('auxiliaryCount', {
   ref: 'User',
   localField: '_id',
   foreignField: 'sector',
   count: true
 });
 
-async function populateNumAuxiliary(docs) {
+const populateAuxiliaryCount = async (docs) => {
   for (const doc of docs) {
-    await doc.populate('numAuxiliary').execPopulate();
+    await doc.populate('auxiliaryCount').execPopulate();
   }
-}
+};
 
-SectorSchema.post('find', populateNumAuxiliary);
+SectorSchema.post('find', populateAuxiliaryCount);
 
 module.exports = mongoose.model('Sector', SectorSchema);
