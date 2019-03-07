@@ -34,21 +34,17 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             rhConfig: Joi.object().keys({
-              providerContracts: {
+              contractWithCompany: {
                 grossHourlyRate: Joi.number()
               },
-              agentContracts: {
+              contractWithCustomer: {
                 grossHourlyRate: Joi.number()
               },
               phoneSubRefunding: Joi.number(),
               transportSubs: Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number()
-              }),
-              contractTemplate: {
-                id: Joi.string(),
-                link: Joi.string()
-              }
+              })
             })
           })
         },
@@ -83,10 +79,10 @@ exports.plugin = {
             ics: Joi.string(),
             rcs: Joi.string(),
             rhConfig: Joi.object().keys({
-              providerContracts: {
+              contractWithCompany: {
                 grossHourlyRate: Joi.number()
               },
-              agentContracts: {
+              contractWithCustomer: {
                 grossHourlyRate: Joi.number()
               },
               phoneSubRefunding: Joi.number(),
@@ -98,11 +94,19 @@ exports.plugin = {
                 price: Joi.number()
               })],
               templates: {
-                contract: {
+                contractWithCompany: {
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null)
                 },
-                amendment: {
+                contractWithCompanyVersion: {
+                  driveId: Joi.string().allow(null),
+                  link: Joi.string().allow(null)
+                },
+                contractWithCustomer: {
+                  driveId: Joi.string().allow(null),
+                  link: Joi.string().allow(null)
+                },
+                contractWithCustomerVersion: {
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null)
                 }

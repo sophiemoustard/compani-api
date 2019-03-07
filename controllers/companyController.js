@@ -106,8 +106,10 @@ const remove = async (req) => {
 const uploadFile = async (req) => {
   try {
     const allowedFields = [
-      'contract',
-      'amendment',
+      'contractWithCompany',
+      'contractWithCompanyVersion',
+      'contractWithCustomer',
+      'contractWithCustomerVersion',
       'debitMandate',
       'quote',
     ];
@@ -122,7 +124,7 @@ const uploadFile = async (req) => {
       body: req.payload[keys[0]]
     });
     const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
-    const configKey = (keys[0] === 'contract' || keys[0] === 'amendment') ? 'rhConfig' : 'customersConfig';
+    const configKey = (keys[0].match(/contract/i)) ? 'rhConfig' : 'customersConfig';
     const payload = {
       [configKey]: {
         templates: {
