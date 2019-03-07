@@ -40,7 +40,7 @@ const list = async (req) => {
       .lean();
     if (customers.length === 0) {
       return {
-        message: translate[language].eventsNotFound,
+        message: translate[language].customersNotFound,
         data: { customers: [] },
       };
     }

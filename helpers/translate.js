@@ -157,6 +157,7 @@ module.exports = {
     /* Customers */
     customersFound: 'Customers found.',
     customerFound: 'Customer found.',
+    customersNotFound: 'Customers not found.',
     customerNotFound: 'Customer not found.',
     customerCreated: 'Customer created.',
     customerUpdated: 'Customer updated.',
@@ -225,6 +226,7 @@ module.exports = {
     servicesFound: 'Services found.',
     serviceCreated: 'Service created.',
     serviceDeleted: 'Service deleted.',
+    servicesNotFound: 'Services not found.',
     serviceNotFound: 'Service not found.',
     servicesUpdated: 'Services updated.',
   },
@@ -383,6 +385,7 @@ module.exports = {
     /* Customers */
     customersFound: 'Bénéficiaires trouvés.',
     customerFound: 'Bénéficiaire trouvé.',
+    customersNotFound: 'Bénéficiaires non trouvés.',
     customerNotFound: 'Bénéficiaire non trouvé.',
     customerCreated: 'Bénéficiaire créé.',
     customerUpdated: 'Bénéficiaire mis à jour.',
@@ -451,6 +454,7 @@ module.exports = {
     servicesFound: 'Services trouvés.',
     serviceCreated: 'Service créé.',
     serviceDeleted: 'Service supprimé.',
+    servicesNotFound: 'Services non trouvés.',
     serviceNotFound: 'Service non trouvé.',
     servicesUpdated: 'Service modifié.',
   }

@@ -12,7 +12,6 @@ const {
   populateUsers,
   getToken
 } = require('./seed/usersSeed');
-const { populateRoles } = require('./seed/rolesSeed');
 const { populateCompanies, companiesList } = require('./seed/companiesSeed');
 const { servicesList, populateServices } = require('./seed/servicesSeed');
 const Customer = require('../../models/Customer');
@@ -26,10 +25,8 @@ describe('NODE ENV', () => {
 
 describe('CUSTOMERS ROUTES', () => {
   let token = null;
-  before(populateCompanies);
+  before(populateServices);
   beforeEach(populateCustomers);
-  before(populateRoles);
-  beforeEach(populateServices);
   beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();
@@ -274,8 +271,7 @@ describe('CUSTOMERS ROUTES', () => {
 
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   let token = null;
-  before(populateCompanies);
-  beforeEach(populateServices);
+  before(populateServices);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -781,8 +777,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let token = null;
-  before(populateCompanies);
-  beforeEach(populateServices);
+  before(populateServices);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();

@@ -10,7 +10,7 @@ const list = async (req) => {
     const services = await Service.find(req.query);
 
     return {
-      message: translate[language].servicesFound,
+      message: services.length === 0 ? translate[language].servicesNotFound : translate[language].servicesFound,
       data: { services },
     };
   } catch (e) {
