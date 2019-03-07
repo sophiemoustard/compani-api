@@ -8,6 +8,7 @@ const {
   update,
   list,
   listBySector,
+  listWithCustomerContractSubscriptions,
   show,
   remove,
   getSubscriptions,
@@ -70,9 +71,7 @@ exports.plugin = {
             isActive: Joi.boolean().default(true)
           })
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: create
     });
@@ -126,10 +125,7 @@ exports.plugin = {
             isActive: Joi.boolean()
           })
         },
-        auth: {
-          strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: update
     });
@@ -167,6 +163,15 @@ exports.plugin = {
         auth: 'jwt'
       },
       handler: listBySector,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/customer-contract-subscriptions',
+      options: {
+        auth: 'jwt'
+      },
+      handler: listWithCustomerContractSubscriptions,
     });
 
     server.route({

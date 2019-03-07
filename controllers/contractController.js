@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 const Contract = require('../models/Contract');
 const User = require('../models/User');
+const Customer = require('../models/Customer');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile } = require('../helpers/contracts');
 
@@ -13,7 +14,7 @@ const list = async (req) => {
   try {
     const contracts = await Contract
       .find(req.query)
-      .populate({ path: 'auxiliary', select: 'identity' })
+      .populate({ path: 'user', select: 'identity' })
       .populate({ path: 'customer', select: 'identity' })
       .lean();
     const message = !contracts ? translate[language].contractsNotFound : translate[language].contractsFound;
@@ -29,7 +30,7 @@ const get = async (req) => {
   try {
     const contract = await Contract
       .findOne({ _id: req.params._id })
-      .populate({ path: 'auxiliary', select: 'identity' })
+      .populate({ path: 'user', select: 'identity' })
       .populate({ path: 'customer', select: 'identity' })
       .lean();
     if (!contract) return Boom.notFound();
@@ -53,6 +54,7 @@ const create = async (req) => {
     await contract.save();
 
     await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id } });
+    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $push: { contracts: contract._id } });
 
     return {
       message: translate[language].contractCreated,
@@ -70,7 +72,10 @@ const update = async (req) => {
     if (req.payload.endDate) {
       contract = await endContract(req.params._id, req.payload);
     } else {
-      contract = await Contract.findByIdAndUpdate(req.params._id, req.paylaod);
+      contract = await Contract
+        .findByIdAndUpdate(req.params._id, req.paylaod)
+        .populate({ path: 'user', select: 'identity' })
+        .populate({ path: 'customer', select: 'identity' });
     }
 
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
@@ -91,6 +96,7 @@ const remove = async (req) => {
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
+    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $pull: { contracts: contract._id } });
 
     return {
       message: translate[language].contractDeleted,

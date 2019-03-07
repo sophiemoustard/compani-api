@@ -8,7 +8,7 @@ const contractsList = [
     endDate: null,
     user: userList[4]._id,
     startDate: '2018-12-03T23:00:00.000Z',
-    status: 'Prestataire',
+    status: 'contract_with_company',
     _id: new ObjectID(),
     versions: [
       {

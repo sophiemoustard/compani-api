@@ -3,6 +3,8 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
+
 const {
   list,
   get,
@@ -55,13 +57,14 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
-            status: Joi.string().required(),
-            versions: Joi.array().items({
-              grossHourlyRate: Joi.number().required(),
+            status: Joi.string().required().valid(COMPANY_CONTRACT, CUSTOMER_CONTRACT),
+            versions: Joi.array().items(Joi.object({
+              grossHourlyRate: Joi.number(),
               weeklyHours: Joi.number().required(),
               startDate: Joi.date().required(),
-            }),
+            }).required().when('status', { is: COMPANY_CONTRACT, then: Joi.object({ grossHourlyRate: Joi.required() }) })),
             user: Joi.objectId().required(),
+            customer: Joi.objectId().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() }),
           })
         },
         auth: { strategy: 'jwt' },

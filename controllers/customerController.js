@@ -19,7 +19,7 @@ const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/fi
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 const { createAndSaveFile } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
-const { INTERVENTION } = require('../helpers/constants');
+const { INTERVENTION, CUSTOMER_CONTRACT } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -120,6 +120,34 @@ const listBySector = async (req) => {
     req.log('error', e);
     return Boom.badImplementation();
   }
+};
+
+const listWithCustomerContractSubscriptions = async () => {
+  const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
+  if (customerContractServices.length === 0) {
+    return {
+      message: translate[language].customersNotFound,
+      data: { customers: [] },
+    };
+  }
+
+  const ids = customerContractServices.map(service => service._id);
+  let customers = await Customer.find({ 'subscriptions.service': { $in: ids } }).populate('subscriptions.service').lean();
+  if (customers.length === 0) {
+    return {
+      message: translate[language].customersNotFound,
+      data: { customers: [] },
+    };
+  }
+
+  customers = customers
+    .map(populateSubscriptionsServices)
+    .map(subscriptionsAccepted);
+
+  return {
+    message: translate[language].customersFound,
+    data: { customers },
+  };
 };
 
 const show = async (req) => {
@@ -786,6 +814,7 @@ const removeFunding = async (req) => {
 module.exports = {
   list,
   listBySector,
+  listWithCustomerContractSubscriptions,
   show,
   create,
   remove,
@@ -808,5 +837,5 @@ module.exports = {
   createFunding,
   updateFunding,
   getFundings,
-  removeFunding
+  removeFunding,
 };
