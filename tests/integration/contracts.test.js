@@ -6,6 +6,7 @@ const Contract = require('../../models/Contract');
 const User = require('../../models/User');
 const { getToken, userList, populateUsers } = require('./seed/usersSeed');
 const { populateContracts, contractsList } = require('./seed/contractsSeed');
+const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -63,13 +64,37 @@ describe('CONTRACT ROUTES', () => {
   });
 
   describe('POST /contracts', () => {
-    it('should create contract', async () => {
+    it('should create contract (company contract)', async () => {
       const payload = {
-        status: 'Prestataire',
+        status: COMPANY_CONTRACT,
         startDate: '2019-01-18T15:46:30.636Z',
         versions: [{
           weeklyHours: 24,
           grossHourlyRate: 10.43,
+          startDate: '2019-01-18T15:46:30.636Z'
+        }],
+        user: userList[4]._id,
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.contract).toBeDefined();
+      const contracts = await Contract.find({});
+      expect(contracts.length).toEqual(contractsList.length + 1);
+    });
+
+    it('should create contract (customer contract)', async () => {
+      const payload = {
+        status: CUSTOMER_CONTRACT,
+        startDate: '2019-01-18T15:46:30.636Z',
+        customer: new ObjectID(),
+        versions: [{
+          weeklyHours: 24,
           startDate: '2019-01-18T15:46:30.636Z'
         }],
         user: userList[4]._id,
@@ -93,6 +118,47 @@ describe('CONTRACT ROUTES', () => {
         versions: [{
           weeklyHours: 24,
           grossHourlyRate: 10.43,
+          startDate: '2019-01-18T15:46:30.636Z'
+        }],
+        user: userList[4]._id,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 error if customer params is missing for CUSTOMER_CONTRACT contract', async () => {
+      const payload = {
+        status: CUSTOMER_CONTRACT,
+        startDate: '2019-01-18T15:46:30.636Z',
+        versions: [{
+          weeklyHours: 24,
+          grossHourlyRate: 10.43,
+          startDate: '2019-01-18T15:46:30.636Z'
+        }],
+        user: userList[4]._id,
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 400 error if grossHourlyRate params is missing for COMPANY_CONTRACT contract', async () => {
+      const payload = {
+        status: COMPANY_CONTRACT,
+        startDate: '2019-01-18T15:46:30.636Z',
+        versions: [{
+          weeklyHours: 24,
           startDate: '2019-01-18T15:46:30.636Z'
         }],
         user: userList[4]._id,
