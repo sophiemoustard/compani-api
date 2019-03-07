@@ -59,7 +59,7 @@ exports.plugin = {
             startDate: Joi.date().required(),
             status: Joi.string().required().valid(COMPANY_CONTRACT, CUSTOMER_CONTRACT),
             versions: Joi.array().items({
-              grossHourlyRate: Joi.number().required(),
+              grossHourlyRate: Joi.number(),
               weeklyHours: Joi.number().required(),
               startDate: Joi.date().required(),
             }),
