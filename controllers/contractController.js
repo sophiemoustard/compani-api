@@ -13,7 +13,7 @@ const list = async (req) => {
   try {
     const contracts = await Contract
       .find(req.query)
-      .populate({ path: 'auxiliary', select: 'identity' })
+      .populate({ path: 'user', select: 'identity' })
       .populate({ path: 'customer', select: 'identity' })
       .lean();
     const message = !contracts ? translate[language].contractsNotFound : translate[language].contractsFound;
@@ -29,7 +29,7 @@ const get = async (req) => {
   try {
     const contract = await Contract
       .findOne({ _id: req.params._id })
-      .populate({ path: 'auxiliary', select: 'identity' })
+      .populate({ path: 'user', select: 'identity' })
       .populate({ path: 'customer', select: 'identity' })
       .lean();
     if (!contract) return Boom.notFound();
@@ -52,7 +52,9 @@ const create = async (req) => {
     }];
     await contract.save();
 
-    await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id } });
+    await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id } })
+      .populate({ path: 'user', select: 'identity' })
+      .populate({ path: 'customer', select: 'identity' });
 
     return {
       message: translate[language].contractCreated,
@@ -70,7 +72,10 @@ const update = async (req) => {
     if (req.payload.endDate) {
       contract = await endContract(req.params._id, req.payload);
     } else {
-      contract = await Contract.findByIdAndUpdate(req.params._id, req.paylaod);
+      contract = await Contract
+        .findByIdAndUpdate(req.params._id, req.paylaod)
+        .populate({ path: 'user', select: 'identity' })
+        .populate({ path: 'customer', select: 'identity' });
     }
 
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
