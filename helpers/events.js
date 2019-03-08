@@ -11,22 +11,51 @@ const {
   EVERY_WEEK_DAY,
   EVERY_WEEK,
   CUSTOMER_CONTRACT,
+  COMPANY_CONTRACT,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
+const Customer = require('../models/Customer');
+const Contract = require('../models/Contract');
+const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 
 momentRange.extendMoment(moment);
 
 const isUserOnlyUnderCustomerContract = aux => aux.contracts &&
   aux.contracts.every(contract => contract.status === CUSTOMER_CONTRACT);
 
+const getActiveCompanyContractOnDay = (contracts, day) => contracts.find(contract => contract.status === COMPANY_CONTRACT &&
+  moment(contract.startDate).isSameOrBefore(day, 'd') && (!contract.endDate || moment(contract.endDate).isAfter(day, 'd')));
+
 const isCreationAllowed = async (req) => {
   let user = await User.findOne({ _id: req.payload.auxiliary }).populate('contracts');
   user = user.toObject();
+  if (!user.contracts || user.contracts.length === 0) return false;
+
   const isOnlyUnderCustomerContract = isUserOnlyUnderCustomerContract(user);
 
   // If the auxiliary is only under customer contract, create internal hours is not allowed
   if (isOnlyUnderCustomerContract && req.payload.type === INTERNAL_HOUR) return false;
+
+  // If the event is an intervention :
+  // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention
+  // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention
+  if (req.payload.type === INTERVENTION) {
+    let customer = await Customer.findOne({ _id: req.payload.customer }).populate('subscriptions.service');
+    customer = populateSubscriptionsServices(customer);
+
+    const eventSubscription = customer.subscriptions.find(sub => sub._id === req.payload.subscription);
+    if (!eventSubscription) return false;
+
+    if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
+      const contractBetweenAuxAndCus = await Contract.findOne({ user: req.payload.auxiliary, customer: req.payload.customer });
+      if (!contractBetweenAuxAndCus) return false;
+      return moment(req.payload.startDate).isBetween(contractBetweenAuxAndCus.startDate, contractBetweenAuxAndCus.endDate, '[]');
+    }
+
+    const activeContract = getActiveCompanyContractOnDay(user.contracts, req.payload.startDate);
+    return moment(req.payload.startDate).isBetween(activeContract.startDate, activeContract.endDate, '[]');
+  }
 
   return true;
 };

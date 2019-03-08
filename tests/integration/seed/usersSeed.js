@@ -78,6 +78,7 @@ const userList = [
     employee_id: 12345678,
     refreshToken: uuidv4(),
     role: 'Auxiliaire',
+    contracts: [new ObjectID()],
   }
 ];
 
