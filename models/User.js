@@ -307,12 +307,8 @@ const UserSchema = mongoose.Schema({
   inactivityDate: { type: Date, default: null },
 }, {
   timestamps: true,
-  toObject: {
-    virtuals: true
-  },
-  toJSON: {
-    virtuals: true
-  }
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true },
 });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 

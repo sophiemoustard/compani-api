@@ -10,6 +10,7 @@ const populateServices = (service) => {
     _id: service._id,
     name: currentVersion.name,
     nature: service.nature,
+    type: service.type,
     defaultUnitAmount: currentVersion.defaultUnitAmount,
     vat: currentVersion.vat,
     holidaySurcharge: currentVersion.holidaySurcharge,
