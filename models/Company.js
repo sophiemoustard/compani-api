@@ -17,10 +17,10 @@ const CompanySchema = mongoose.Schema({
   ics: String,
   folderId: String,
   rhConfig: {
-    providerContracts: {
+    contractWithCompany: {
       grossHourlyRate: Number
     },
-    agentContracts: {
+    contractWithCustomer: {
       grossHourlyRate: Number
     },
     phoneSubRefunding: Number,
@@ -29,14 +29,22 @@ const CompanySchema = mongoose.Schema({
       price: Number
     }],
     templates: {
-      contract: {
+      contractWithCompany: {
+        driveId: String,
+        link: String,
+      },
+      contractWithCompanyVersion: {
         driveId: String,
         link: String
       },
-      amendment: {
+      contractWithCustomer: {
+        driveId: String,
+        link: String,
+      },
+      contractWithCustomerVersion: {
         driveId: String,
         link: String
-      },
+      }
     },
     internalHours: [{
       name: String,
