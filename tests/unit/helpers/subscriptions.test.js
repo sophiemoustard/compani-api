@@ -3,7 +3,6 @@ const { ObjectID } = require('mongodb');
 const { subscriptionsAccepted } = require('../../../helpers/subscriptions');
 const Company = require('../../../models/Company');
 
-
 describe('subscriptionsAccepted', () => {
   it('should set subscriptionsAccepted to true', async () => {
     const customer = {

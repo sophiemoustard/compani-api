@@ -1,6 +1,17 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateEventSubscription, populateEvents } = require('../../../helpers/events');
+const moment = require('moment');
+
+const User = require('../../../models/User');
+const Customer = require('../../../models/Customer');
+const Contract = require('../../../models/Contract');
+const { populateEventSubscription, populateEvents, isCreationAllowed } = require('../../../helpers/events');
+const {
+  INTERVENTION,
+  CUSTOMER_CONTRACT,
+  COMPANY_CONTRACT,
+  INTERNAL_HOUR,
+} = require('../../../helpers/constants');
 
 describe('populateEvent', () => {
   it('should populate subscription as event is an intervention', async () => {
@@ -140,5 +151,204 @@ describe('populateEvents', () => {
     expect(result[1].subscription).toBeDefined();
     expect(result[0].subscription._id).toEqual(events[0].subscription);
     expect(result[1].subscription._id).toEqual(events[1].subscription);
+  });
+});
+
+describe('isCreationAllowed', () => {
+  it('should return false as user has no contract', async () => {
+    const req = {
+      payload: { auxiliary: new ObjectID() },
+    };
+
+    const user = { _id: req.payload.auxiliary };
+    User.findOne = () => user;
+    user.populate = () => user;
+    user.toObject = () => user;
+
+    expect(await isCreationAllowed(req)).toBeFalsy();
+  });
+
+  it('should return false if service event is customer contract and auxiliary does not have contract with customer', async () => {
+    const req = {
+      payload: {
+        auxiliary: new ObjectID(),
+        customer: new ObjectID(),
+        type: INTERVENTION,
+        subscription: new ObjectID(),
+      },
+    };
+    const customer = {
+      _id: req.payload.customer,
+      subscriptions: [{
+        _id: req.payload.subscription,
+        service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] }
+      }]
+    };
+    Customer.findOne = () => customer;
+    customer.populate = () => customer;
+
+    const contract = {
+      user: req.payload.auxiliary,
+      customer: req.payload.customer,
+      versions: [{}],
+      startDate: moment(req.payload.startDate).add(1, 'd'),
+    };
+    Contract.findOne = () => contract;
+
+    const user = { _id: req.payload.auxiliary };
+    User.findOne = () => user;
+    user.populate = () => ({ ...user, contracts: [contract] });
+    user.toObject = () => user;
+
+    expect(await isCreationAllowed(req)).toBeFalsy();
+  });
+
+  it('should return true if service event is customer contract and auxiliary has contract with customer', async () => {
+    const req = {
+      payload: {
+        auxiliary: new ObjectID(),
+        customer: new ObjectID(),
+        type: INTERVENTION,
+        subscription: new ObjectID(),
+        startDate: '2019-10-03T00:00:00.000Z',
+      },
+    };
+
+    const customer = {
+      _id: req.payload.customer,
+      subscriptions: [{
+        _id: req.payload.subscription,
+        service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] }
+      }]
+    };
+    Customer.findOne = () => customer;
+    customer.populate = () => customer;
+
+    const contract = {
+      user: req.payload.auxiliary,
+      customer: req.payload.customer,
+      versions: [{}],
+      startDate: moment(req.payload.startDate).subtract(1, 'd'),
+    };
+    Contract.findOne = () => contract;
+
+    const user = { _id: req.payload.auxiliary };
+    User.findOne = () => user;
+    user.populate = () => ({ ...user, contracts: [contract] });
+    user.toObject = () => user;
+
+    expect(await isCreationAllowed(req)).toBeTruthy();
+  });
+
+  it('should return false if company contract and no active contract on day', async () => {
+    const req = {
+      payload: {
+        auxiliary: new ObjectID(),
+        customer: new ObjectID(),
+        type: INTERVENTION,
+        subscription: new ObjectID(),
+        startDate: '2019-10-03T00:00:00.000Z',
+      },
+    };
+
+    const customer = {
+      _id: req.payload.customer,
+      subscriptions: [{
+        _id: req.payload.subscription,
+        service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] }
+      }]
+    };
+    Customer.findOne = () => customer;
+    customer.populate = () => customer;
+
+    const contract = {
+      user: req.payload.auxiliary,
+      customer: req.payload.customer,
+      versions: [{}],
+      status: COMPANY_CONTRACT,
+      startDate: moment(req.payload.startDate).add(1, 'd'),
+    };
+    Contract.findOne = () => contract;
+
+    const user = { _id: req.payload.auxiliary };
+    User.findOne = () => user;
+    user.populate = () => ({ ...user, contracts: [contract] });
+    user.toObject = () => user;
+
+    expect(await isCreationAllowed(req)).toBeFalsy();
+  });
+
+  it('should return true if company contract and active contract on day', async () => {
+    const req = {
+      payload: {
+        auxiliary: new ObjectID(),
+        customer: new ObjectID(),
+        type: INTERVENTION,
+        subscription: new ObjectID(),
+        startDate: '2019-10-03T00:00:00.000Z',
+      },
+    };
+
+    const customer = {
+      _id: req.payload.customer,
+      subscriptions: [{
+        _id: req.payload.subscription,
+        service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] }
+      }]
+    };
+    Customer.findOne = () => customer;
+    customer.populate = () => customer;
+
+    const contract = {
+      user: req.payload.auxiliary,
+      customer: req.payload.customer,
+      versions: [{}],
+      status: COMPANY_CONTRACT,
+      startDate: moment(req.payload.startDate).subtract(1, 'd'),
+    };
+    Contract.findOne = () => contract;
+
+
+    const user = { _id: req.payload.auxiliary };
+    User.findOne = () => user;
+    user.populate = () => ({ ...user, contracts: [contract] });
+    user.toObject = () => user;
+
+    expect(await isCreationAllowed(req)).toBeTruthy();
+  });
+
+  it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
+    const req = {
+      payload: {
+        auxiliary: new ObjectID(),
+        type: INTERNAL_HOUR,
+        startDate: '2019-10-03T00:00:00.000Z',
+      },
+    };
+
+    const customer = {
+      _id: req.payload.customer,
+      subscriptions: [{
+        _id: req.payload.subscription,
+        service: { type: '', versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] }
+      }]
+    };
+    Customer.findOne = () => customer;
+    customer.populate = () => customer;
+
+    const contract = {
+      user: req.payload.auxiliary,
+      customer: req.payload.customer,
+      versions: [{}],
+      status: CUSTOMER_CONTRACT,
+    };
+    Contract.findOne = () => contract;
+
+    const user = { _id: req.payload.auxiliary };
+    User.findOne = () => user;
+    user.populate = () => ({ ...user, contracts: [contract] });
+    user.toObject = () => user;
+
+    expect(await isCreationAllowed(req)).toBeFalsy();
   });
 });

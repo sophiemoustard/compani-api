@@ -59,12 +59,12 @@ exports.plugin = {
             startDate: Joi.date().required(),
             status: Joi.string().required().valid(COMPANY_CONTRACT, CUSTOMER_CONTRACT),
             versions: Joi.array().items(Joi.object({
-              grossHourlyRate: Joi.number(),
+              grossHourlyRate: Joi.number().required(),
               weeklyHours: Joi.number().required(),
               startDate: Joi.date().required(),
             }).required()
-              .when('status', { is: COMPANY_CONTRACT, then: Joi.object({ grossHourlyRate: Joi.required() }) })
-              .when('status', { is: CUSTOMER_CONTRACT, then: Joi.object({ grossHourlyRate: Joi.forbidden() }) })),
+              .when('status', { is: COMPANY_CONTRACT, then: Joi.object({ weeklyHours: Joi.required() }) })
+              .when('status', { is: CUSTOMER_CONTRACT, then: Joi.object({ weeklyHours: Joi.forbidden() }) })),
             user: Joi.objectId().required(),
             customer: Joi.objectId()
               .when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() })

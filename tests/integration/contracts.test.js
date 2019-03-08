@@ -101,7 +101,6 @@ describe('CONTRACT ROUTES', () => {
         customer: customersList[0]._id,
         versions: [{
           grossHourlyRate: 10.43,
-          weeklyHours: 24,
           startDate: '2019-01-18T15:46:30.636Z'
         }],
         user: userList[4]._id,
@@ -147,8 +146,6 @@ describe('CONTRACT ROUTES', () => {
         status: CUSTOMER_CONTRACT,
         startDate: '2019-01-18T15:46:30.636Z',
         versions: [{
-          weeklyHours: 24,
-          grossHourlyRate: 10.43,
           startDate: '2019-01-18T15:46:30.636Z'
         }],
         user: userList[4]._id,
