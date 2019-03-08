@@ -61,10 +61,10 @@ exports.plugin = {
             user: Joi.objectId().required(),
             customer: Joi.objectId().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() }),
             versions: Joi.array().items(Joi.object().keys({
-              grossHourlyRate: Joi.number().when('status', { is: COMPANY_CONTRACT, then: Joi.required() }),
-              weeklyHours: Joi.number().when('status', { is: COMPANY_CONTRACT, then: Joi.required() }),
+              grossHourlyRate: Joi.number().required(),
+              weeklyHours: Joi.number(),
               startDate: Joi.date().required(),
-            }).required()),
+            }).when('status', { is: COMPANY_CONTRACT, then: Joi.object({ weeklyHours: Joi.required() }) })),
           })
         },
         auth: { strategy: 'jwt' },

@@ -100,6 +100,7 @@ describe('CONTRACT ROUTES', () => {
         startDate: '2019-01-18T15:46:30.636Z',
         customer: customersList[0]._id,
         versions: [{
+          grossHourlyRate: 10.43,
           weeklyHours: 24,
           startDate: '2019-01-18T15:46:30.636Z'
         }],
