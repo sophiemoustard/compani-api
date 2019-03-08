@@ -10,10 +10,65 @@ const {
   EVERY_DAY,
   EVERY_WEEK_DAY,
   EVERY_WEEK,
+  CUSTOMER_CONTRACT,
 } = require('./constants');
 const Event = require('../models/Event');
+const User = require('../models/User');
 
 momentRange.extendMoment(moment);
+
+const isUserOnlyUnderCustomerContract = aux => aux.contracts &&
+  aux.contracts.every(contract => contract.status === CUSTOMER_CONTRACT);
+
+const isCreationAllowed = async (req) => {
+  let user = await User.findOne({ _id: req.payload.auxiliary }).populate('contracts');
+  user = user.toObject();
+  const isOnlyUnderCustomerContract = isUserOnlyUnderCustomerContract(user);
+
+  // If the auxiliary is only under customer contract, create internal hours is not allowed
+  if (isOnlyUnderCustomerContract && req.payload.type === INTERNAL_HOUR) return false;
+
+  return true;
+};
+
+const getListQuery = (req) => {
+  let query = req.query.type ? { type: req.query.auxiliary } : {};
+  if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
+  if (req.query.customer) query.customer = { $in: req.query.customer };
+
+  if (req.query.startDate && req.query.endDate) {
+    const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+    const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+    query = {
+      ...query,
+      $or: [
+        { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
+        { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
+        { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+      ],
+    };
+  } else if (req.query.startDate && !req.query.endDate) {
+    const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+    query = {
+      ...query,
+      $or: [
+        { startDate: { $gte: searchStartDate } },
+        { endDate: { $gte: searchStartDate } },
+      ],
+    };
+  } else if (req.query.endDate) {
+    const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+    query = {
+      ...query,
+      $or: [
+        { startDate: { $lte: searchEndDate } },
+        { endDate: { $lte: searchEndDate } },
+      ],
+    };
+  }
+
+  return query;
+};
 
 const populateEventSubscription = (event) => {
   if (event.type !== INTERVENTION) return event;
@@ -147,6 +202,8 @@ const deleteRepetition = async (event) => {
 };
 
 module.exports = {
+  isCreationAllowed,
+  getListQuery,
   populateEventSubscription,
   populateEvents,
   updateEventsInternalHourType,
