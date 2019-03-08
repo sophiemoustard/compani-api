@@ -33,7 +33,7 @@ exports.plugin = {
             customs: Joi.number().allow('', null),
             customsStartTime: Joi.date().allow('', null),
             customsEndTime: Joi.date().allow('', null),
-            service: Joi.objectId().required(),
+            service: Joi.objectId(),
             company: Joi.objectId().required(),
           })
         },
@@ -93,6 +93,7 @@ exports.plugin = {
             customsStartTime: Joi.date().allow('', null),
             customsEndTime: Joi.date().allow('', null),
             service: Joi.objectId(),
+            company: Joi.objectId()
           })
         },
       },
