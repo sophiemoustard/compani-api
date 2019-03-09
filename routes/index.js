@@ -48,12 +48,6 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./calendar'),
-    routes: {
-      prefix: '/calendar'
-    }
-  },
-  {
     plugin: require('./messageToBot'),
     routes: {
       prefix: '/messageToBot'
@@ -87,12 +81,6 @@ exports.routes = [
     plugin: require('./Ogust/utils'),
     routes: {
       prefix: '/ogust'
-    }
-  },
-  {
-    plugin: require('./Ogust/services'),
-    routes: {
-      prefix: '/ogust/services'
     }
   },
   {
