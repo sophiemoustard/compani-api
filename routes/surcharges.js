@@ -47,7 +47,6 @@ exports.plugin = {
         validate: {
           query: {
             company: Joi.objectId(),
-            service: Joi.objectId()
           }
         }
       },
@@ -90,7 +89,6 @@ exports.plugin = {
             custom: Joi.number().allow('', null),
             customStartTime: Joi.date().allow('', null).when('custom', { is: Joi.number(), then: Joi.required() }),
             customEndTime: Joi.date().allow('', null).when('custom', { is: Joi.number(), then: Joi.required() }),
-            service: Joi.objectId(),
           })
         },
       },
