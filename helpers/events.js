@@ -25,8 +25,8 @@ const hasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contrac
   moment(contract.startDate).isSameOrBefore(day, 'd') &&
   ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
 
-const isCreationAllowed = async (req) => {
-  let user = await User.findOne({ _id: req.payload.auxiliary }).populate('contracts');
+const isCreationAllowed = async (event) => {
+  let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
   user = user.toObject();
   if (!user.contracts || user.contracts.length === 0) {
     return false;
@@ -35,27 +35,27 @@ const isCreationAllowed = async (req) => {
   // If the event is an intervention :
   // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention
   // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention
-  if (req.payload.type === INTERVENTION) {
-    let customer = await Customer.findOne({ _id: req.payload.customer }).populate('subscriptions.service');
+  if (event.type === INTERVENTION) {
+    let customer = await Customer.findOne({ _id: event.customer }).populate('subscriptions.service');
     customer = populateSubscriptionsServices(customer.toObject());
 
-    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() === req.payload.subscription);
+    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() === event.subscription);
     if (!eventSubscription) return false;
 
     if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
-      const contractBetweenAuxAndCus = await Contract.findOne({ user: req.payload.auxiliary, customer: req.payload.customer });
+      const contractBetweenAuxAndCus = await Contract.findOne({ user: event.auxiliary, customer: event.customer });
       if (!contractBetweenAuxAndCus) return false;
       return contractBetweenAuxAndCus.endDate
-        ? moment(req.payload.startDate).isBetween(contractBetweenAuxAndCus.startDate, contractBetweenAuxAndCus.endDate, '[]')
-        : moment(req.payload.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
+        ? moment(event.startDate).isBetween(contractBetweenAuxAndCus.startDate, contractBetweenAuxAndCus.endDate, '[]')
+        : moment(event.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
     }
 
-    return hasActiveCompanyContractOnDay(user.contracts, req.payload.startDate);
+    return hasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
 
   // If the auxiliary is only under customer contract, create internal hours is not allowed
-  if (req.payload.type === INTERNAL_HOUR) {
-    return hasActiveCompanyContractOnDay(user.contracts, req.payload.startDate);
+  if (event.type === INTERNAL_HOUR) {
+    return hasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
 
   return true;

@@ -4,7 +4,7 @@ const moment = require('moment');
 const { getToken } = require('./seed/usersSeed');
 const { populateEvents, eventsList } = require('./seed/eventsSeed');
 const { populateUsers, userList } = require('./seed/usersSeed');
-const { populateCustomers, customersList } = require('./seed/customersSeed');
+const { populateCustomers } = require('./seed/customersSeed');
 const { populateContracts } = require('./seed/contractsSeed');
 const { populateServices } = require('./seed/servicesSeed');
 const { sectorsList } = require('./seed/sectorsSeed');
@@ -140,6 +140,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(200);
       expect(response.result.data.event).toBeDefined();
       expect(response.result.data.event._id).toEqual(event._id);
@@ -156,6 +157,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(400);
     });
 
@@ -169,6 +171,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(404);
     });
   });

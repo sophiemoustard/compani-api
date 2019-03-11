@@ -45,7 +45,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    if (!(await isCreationAllowed(req))) return Boom.badData();
+    if (!(await isCreationAllowed(req.payload))) return Boom.badData();
 
     let event = new Event(req.payload);
     await event.save();
@@ -72,7 +72,13 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const event = await Event
+    let event = await Event.findOne({ _id: req.params._id });
+    if (!event) return Boom.notFound(translate[language].eventNotFound);
+
+    event = { ...event.toObject(), ...req.payload };
+    if (!(await isCreationAllowed(event))) return Boom.badData();
+
+    event = await Event
       .findOneAndUpdate(
         { _id: req.params._id },
         { $set: flat(req.payload) },
@@ -82,7 +88,6 @@ const update = async (req) => {
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
-    if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     const { type, repetition } = event;
     if (req.payload.shouldUpdateRepetition && type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
