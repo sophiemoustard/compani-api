@@ -5,7 +5,7 @@ const SurchargeSchema = mongoose.Schema({
   saturday: Number,
   sunday: Number,
   publicHoliday: Number,
-  twentyFiveOfDecember: Number,
+  twentyFifthOfDecember: Number,
   firstOfMay: Number,
   evening: Number,
   eveningStartTime: Date,
