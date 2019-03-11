@@ -33,6 +33,7 @@ exports.plugin = {
             custom: Joi.number().allow('', null),
             customStartTime: Joi.date().allow('', null).when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
             customEndTime: Joi.date().allow('', null).when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
+            company: Joi.required()
           })
         },
       },
