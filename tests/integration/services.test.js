@@ -109,8 +109,6 @@ describe('SERVICES ROUTES', () => {
     it('should update service', async () => {
       const payload = {
         defaultUnitAmount: 15,
-        eveningSurcharge: '',
-        holidaySurcharge: '',
         name: 'Service bis',
         startDate: '2019-01-16 17:58:15.519',
         vat: 12,
@@ -133,7 +131,6 @@ describe('SERVICES ROUTES', () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
         defaultUnitAmount: 15,
-        eveningSurcharge: '',
         startDate: '2019-01-16 17:58:15.519',
         vat: 12,
       };

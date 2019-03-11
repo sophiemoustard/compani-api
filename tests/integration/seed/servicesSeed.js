@@ -11,8 +11,6 @@ const servicesList = [
     company: companiesList[0]._id,
     versions: [{
       defaultUnitAmount: 12,
-      eveningSurcharge: '',
-      holidaySurcharge: '',
       name: 'Service 1',
       startDate: '2019-01-16 17:58:15.519',
       vat: 12,
@@ -25,8 +23,6 @@ const servicesList = [
     company: companiesList[0]._id,
     versions: [{
       defaultUnitAmount: 24,
-      eveningSurcharge: '',
-      holidaySurcharge: '',
       name: 'Service 2',
       startDate: '2019-01-18 19:58:15.519',
       vat: 12,

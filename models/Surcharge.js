@@ -8,11 +8,11 @@ const SurchargeSchema = mongoose.Schema({
   twentyFifthOfDecember: Number,
   firstOfMay: Number,
   evening: Number,
-  eveningStartTime: Date,
-  eveningEndTime: Date,
+  eveningStartTime: String,
+  eveningEndTime: String,
   custom: Number,
-  customStartTime: Date,
-  customEndTime: Date,
+  customStartTime: String,
+  customEndTime: String,
   company: mongoose.Schema.Types.ObjectId,
 }, { timestamps: true });
 
