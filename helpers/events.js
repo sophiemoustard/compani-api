@@ -21,13 +21,9 @@ const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 
 momentRange.extendMoment(moment);
 
-const isUserOnlyUnderCustomerContract = (aux, day) => aux.contracts && aux.contracts
-  .filter(contract => moment(contract.startDate).isSameOrBefore(day, 'd') &&
-    (!contract.endDate || moment(contract.endDate).isAfter(day, 'd')))
-  .every(contract => contract.status === CUSTOMER_CONTRACT);
-
 const hasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
-  moment(contract.startDate).isSameOrBefore(day, 'd') && (!contract.endDate || moment(contract.endDate).isAfter(day, 'd')));
+  moment(contract.startDate).isSameOrBefore(day, 'd') &&
+  ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
 
 const isCreationAllowed = async (req) => {
   let user = await User.findOne({ _id: req.payload.auxiliary }).populate('contracts');
@@ -41,9 +37,9 @@ const isCreationAllowed = async (req) => {
   // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention
   if (req.payload.type === INTERVENTION) {
     let customer = await Customer.findOne({ _id: req.payload.customer }).populate('subscriptions.service');
-    customer = populateSubscriptionsServices(customer);
+    customer = populateSubscriptionsServices(customer.toObject());
 
-    const eventSubscription = customer.subscriptions.find(sub => sub._id === req.payload.subscription);
+    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() === req.payload.subscription);
     if (!eventSubscription) return false;
 
     if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
@@ -59,7 +55,7 @@ const isCreationAllowed = async (req) => {
 
   // If the auxiliary is only under customer contract, create internal hours is not allowed
   if (req.payload.type === INTERNAL_HOUR) {
-    return !isUserOnlyUnderCustomerContract(user, req.payload.startDate);
+    return hasActiveCompanyContractOnDay(user.contracts, req.payload.startDate);
   }
 
   return true;
