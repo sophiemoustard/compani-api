@@ -1,5 +1,5 @@
 {
-  "name": "alenvi-api-migration",
+  "name": "alenvi-api",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",

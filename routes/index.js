@@ -173,4 +173,10 @@ exports.routes = [
       prefix: '/services'
     }
   },
+  {
+    plugin: require('./surcharges'),
+    routes: {
+      prefix: '/surcharges'
+    }
+  }
 ];

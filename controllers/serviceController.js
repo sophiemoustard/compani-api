@@ -42,7 +42,7 @@ const update = async (req) => {
 
     return {
       message: translate[language].serviceUpdated,
-      data: { updatedService },
+      data: { service: updatedService },
     };
   } catch (e) {
     req.log('error', e);
