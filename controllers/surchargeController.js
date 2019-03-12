@@ -42,7 +42,7 @@ const update = async (req) => {
 
     return {
       message: translate[language].surchargeUpdated,
-      data: { updatedSurcharge },
+      data: { surcharge: updatedSurcharge },
     };
   } catch (e) {
     req.log('error', e);

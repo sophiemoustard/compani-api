@@ -43,6 +43,35 @@ describe('SURCHARGES ROUTES', () => {
     });
   });
 
+  describe('POST /surcharges', () => {
+    it('should not create a new surcharge if there is no name', async () => {
+      const payload = {
+        company: new ObjectID(),
+        saturday: 35,
+        sunday: 30,
+        publicHoliday: 16,
+        twentyFifthOfDecember: 60,
+        firstOfMay: 40,
+        evening: 20,
+        eveningStartTime: '21:00',
+        eveningEndTime: '23:59',
+        custom: 55,
+        customStartTime: '12:00',
+        customEndTime: '14:00',
+      };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/surcharges',
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const surcharges = await Surcharge.find();
+      expect(surcharges.length).toEqual(surchargesList.length);
+    });
+  });
+
   describe('GET /surcharges', () => {
     it('should return surcharges', async () => {
       const response = await app.inject({
@@ -80,7 +109,7 @@ describe('SURCHARGES ROUTES', () => {
       });
       expect(response.statusCode).toBe(200);
       const surcharge = await Surcharge.findById(surchargesList[0]._id);
-      expect(response.result.data.updatedSurcharge.length).toBe(surcharge.length);
+      expect(response.result.data.surcharge.length).toBe(surcharge.length);
     });
 
     it('should return 404 if no surcharge found', async () => {

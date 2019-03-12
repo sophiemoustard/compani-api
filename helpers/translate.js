@@ -229,6 +229,14 @@ module.exports = {
     servicesNotFound: 'Services not found.',
     serviceNotFound: 'Service not found.',
     servicesUpdated: 'Services updated.',
+
+    /* Surcharges */
+    surchargesFound: 'Surcharges found.',
+    surchargeCreated: 'Surcharge created.',
+    surchargeDeleted: 'Surcharge deleted.',
+    surchargesNotFound: 'Surcharges not found.',
+    surchargeNotFound: 'Surcharge not found.',
+    surchargesUpdated: 'Surcharges updated.',
   },
   'fr-FR': {
     /* Global errors */
@@ -457,5 +465,13 @@ module.exports = {
     servicesNotFound: 'Services non trouvés.',
     serviceNotFound: 'Service non trouvé.',
     servicesUpdated: 'Service modifié.',
+
+    /* Surcharges */
+    surchargesFound: 'Plans de majorations trouvés.',
+    surchargeCreated: 'Plan de majoration créé.',
+    surchargeDeleted: 'Plan de majoration supprimé.',
+    surchargesNotFound: 'Plans de majorations non trouvés.',
+    surchargeNotFound: 'Plan de majoration non trouvé.',
+    surchargeUpdated: 'Plan de majoration modifié.',
   }
 };

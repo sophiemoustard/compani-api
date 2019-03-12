@@ -121,10 +121,10 @@ describe('SERVICES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.updatedService.versions).toBeDefined();
-      expect(response.result.data.updatedService.versions.length).toBe(servicesList[0].versions.length + 1);
+      expect(response.result.data.service.versions).toBeDefined();
+      expect(response.result.data.service.versions.length).toBe(servicesList[0].versions.length + 1);
       const service = await Service.findById(servicesList[0]._id);
-      expect(response.result.data.updatedService.versions.length).toBe(service.versions.length);
+      expect(response.result.data.service.versions.length).toBe(service.versions.length);
     });
 
     it('should return 404 if no service found', async () => {
