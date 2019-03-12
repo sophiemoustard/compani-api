@@ -4,7 +4,9 @@ const moment = require('moment');
 const { getToken } = require('./seed/usersSeed');
 const { populateEvents, eventsList } = require('./seed/eventsSeed');
 const { populateUsers, userList } = require('./seed/usersSeed');
-const { populateCustomers, customersList } = require('./seed/customersSeed');
+const { populateCustomers } = require('./seed/customersSeed');
+const { populateContracts } = require('./seed/contractsSeed');
+const { populateServices } = require('./seed/servicesSeed');
 const { sectorsList } = require('./seed/sectorsSeed');
 const app = require('../../server');
 
@@ -16,6 +18,8 @@ describe('NODE ENV', () => {
 
 describe('EVENTS ROUTES', () => {
   let authToken = null;
+  before(populateContracts);
+  before(populateServices);
   before(populateUsers);
   before(populateCustomers);
   beforeEach(populateEvents);
@@ -70,14 +74,12 @@ describe('EVENTS ROUTES', () => {
 
   describe('POST /events', () => {
     it('should create new event', async () => {
-      const auxiliary = userList.find(user => user.role === 'Auxiliaire');
-      const customer = customersList[0];
+      const auxiliary = userList[4];
       const payload = {
-        type: 'intervention',
+        type: 'internalHour',
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        customer: customer._id,
         sector: sectorsList[0]._id,
         location: {
           fullAddress: '4 rue du test 92160 Antony',
@@ -85,7 +87,11 @@ describe('EVENTS ROUTES', () => {
           zipCode: '92160',
           city: 'Antony'
         },
-        subscription: customer.subscriptions[0]._id,
+        internalHour: {
+          name: 'Formation',
+          _id: new ObjectID(),
+          default: false,
+        }
       };
 
       const response = await app.inject({
@@ -94,6 +100,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.event).toBeDefined();
     });
@@ -133,6 +140,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(200);
       expect(response.result.data.event).toBeDefined();
       expect(response.result.data.event._id).toEqual(event._id);
@@ -149,6 +157,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(400);
     });
 
@@ -162,6 +171,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(404);
     });
   });

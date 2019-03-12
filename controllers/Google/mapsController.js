@@ -23,7 +23,9 @@ const getDistanceMatrix = async (req) => {
 
     req.query.key = process.env.GOOGLE_CLOUD_PLATFORM_API_KEY;
     const res = await maps.getDistanceMatrix(req.query);
-    if (res.statusText !== 'OK') return { message: translate[language].distanceMatrixNotFound };
+    if (res.statusText !== 'OK' || !res.data.rows[0].elements || !res.data.rows[0].elements[0].duration || !res.data.rows[0].elements[0].distance) {
+      return { message: translate[language].distanceMatrixNotFound };
+    }
 
     const payload = new DistanceMatrix({
       ...params,

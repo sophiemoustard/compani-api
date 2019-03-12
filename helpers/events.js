@@ -10,10 +10,95 @@ const {
   EVERY_DAY,
   EVERY_WEEK_DAY,
   EVERY_WEEK,
+  CUSTOMER_CONTRACT,
+  COMPANY_CONTRACT,
 } = require('./constants');
 const Event = require('../models/Event');
+const User = require('../models/User');
+const Customer = require('../models/Customer');
+const Contract = require('../models/Contract');
+const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 
 momentRange.extendMoment(moment);
+
+const hasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
+  moment(contract.startDate).isSameOrBefore(day, 'd') &&
+  ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
+
+const isCreationAllowed = async (event) => {
+  let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
+  user = user.toObject();
+  if (!user.contracts || user.contracts.length === 0) {
+    return false;
+  }
+
+  // If the event is an intervention :
+  // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention
+  // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention
+  if (event.type === INTERVENTION) {
+    let customer = await Customer.findOne({ _id: event.customer }).populate('subscriptions.service');
+    customer = populateSubscriptionsServices(customer.toObject());
+
+    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() === event.subscription);
+    if (!eventSubscription) return false;
+
+    if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
+      const contractBetweenAuxAndCus = await Contract.findOne({ user: event.auxiliary, customer: event.customer });
+      if (!contractBetweenAuxAndCus) return false;
+      return contractBetweenAuxAndCus.endDate
+        ? moment(event.startDate).isBetween(contractBetweenAuxAndCus.startDate, contractBetweenAuxAndCus.endDate, '[]')
+        : moment(event.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
+    }
+
+    return hasActiveCompanyContractOnDay(user.contracts, event.startDate);
+  }
+
+  // If the auxiliary is only under customer contract, create internal hours is not allowed
+  if (event.type === INTERNAL_HOUR) {
+    return hasActiveCompanyContractOnDay(user.contracts, event.startDate);
+  }
+
+  return true;
+};
+
+const getListQuery = (req) => {
+  let query = req.query.type ? { type: req.query.auxiliary } : {};
+  if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
+  if (req.query.customer) query.customer = { $in: req.query.customer };
+
+  if (req.query.startDate && req.query.endDate) {
+    const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+    const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+    query = {
+      ...query,
+      $or: [
+        { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
+        { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
+        { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+      ],
+    };
+  } else if (req.query.startDate && !req.query.endDate) {
+    const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+    query = {
+      ...query,
+      $or: [
+        { startDate: { $gte: searchStartDate } },
+        { endDate: { $gte: searchStartDate } },
+      ],
+    };
+  } else if (req.query.endDate) {
+    const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+    query = {
+      ...query,
+      $or: [
+        { startDate: { $lte: searchEndDate } },
+        { endDate: { $lte: searchEndDate } },
+      ],
+    };
+  }
+
+  return query;
+};
 
 const populateEventSubscription = (event) => {
   if (event.type !== INTERVENTION) return event;
@@ -147,6 +232,8 @@ const deleteRepetition = async (event) => {
 };
 
 module.exports = {
+  isCreationAllowed,
+  getListQuery,
   populateEventSubscription,
   populateEvents,
   updateEventsInternalHourType,

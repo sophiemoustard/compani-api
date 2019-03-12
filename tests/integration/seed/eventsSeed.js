@@ -3,18 +3,22 @@ const Event = require('../../../models/Event');
 const { userList } = require('./usersSeed');
 const { customersList } = require('./customersSeed');
 
-const auxiliary = userList.find(user => user.role === 'Auxiliaire');
+const auxiliary = userList[4];
 
 const eventsList = [
   {
     _id: new ObjectID(),
-    type: 'intervention',
+    type: 'internalHour',
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
     auxiliary: auxiliary._id,
     customer: customersList[0]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
-    subscription: customersList[0].subscriptions[0]._id,
+    internalHour: {
+      _id: new ObjectID(),
+      name: 'Formation',
+      default: false,
+    }
   },
   {
     _id: new ObjectID(),

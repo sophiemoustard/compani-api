@@ -58,13 +58,17 @@ exports.plugin = {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
             status: Joi.string().required().valid(COMPANY_CONTRACT, CUSTOMER_CONTRACT),
-            user: Joi.objectId().required(),
-            customer: Joi.objectId().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() }),
-            versions: Joi.array().items(Joi.object().keys({
+            versions: Joi.array().items(Joi.object({
               grossHourlyRate: Joi.number().required(),
-              weeklyHours: Joi.number(),
+              weeklyHours: Joi.number().required(),
               startDate: Joi.date().required(),
-            }).when('status', { is: COMPANY_CONTRACT, then: Joi.object({ weeklyHours: Joi.required() }) })),
+            }).required()
+              .when('status', { is: COMPANY_CONTRACT, then: Joi.object({ weeklyHours: Joi.required() }) })
+              .when('status', { is: CUSTOMER_CONTRACT, then: Joi.object({ weeklyHours: Joi.forbidden() }) })),
+            user: Joi.objectId().required(),
+            customer: Joi.objectId()
+              .when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() })
+              .when('status', { is: COMPANY_CONTRACT, then: Joi.forbidden() }),
           })
         },
         auth: { strategy: 'jwt' },

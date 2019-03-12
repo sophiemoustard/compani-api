@@ -9,7 +9,7 @@ const contractsList = [
     user: userList[4]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     status: 'contract_with_company',
-    _id: new ObjectID(),
+    _id: userList[4].contracts[0],
     versions: [
       {
         creationDate: '2018-12-04T16:34:04.144Z',

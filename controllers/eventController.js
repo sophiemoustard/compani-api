@@ -1,12 +1,17 @@
 const Boom = require('boom');
-const moment = require('moment');
 const flat = require('flat');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const {
-  populateEvents, populateEventSubscription, createRepetitions, updateRepetitions, deleteRepetition
+  isCreationAllowed,
+  getListQuery,
+  populateEvents,
+  populateEventSubscription,
+  createRepetitions,
+  updateRepetitions,
+  deleteRepetition
 } = require('../helpers/events');
 const { ABSENCE, NEVER } = require('../helpers/constants');
 
@@ -14,41 +19,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    let query = req.query.type ? { type: req.query.auxiliary } : {};
-    if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
-    if (req.query.customer) query.customer = { $in: req.query.customer };
-
-    if (req.query.startDate && req.query.endDate) {
-      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
-      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
-      query = {
-        ...query,
-        $or: [
-          { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
-          { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
-          { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
-        ],
-      };
-    } else if (req.query.startDate && !req.query.endDate) {
-      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
-      query = {
-        ...query,
-        $or: [
-          { startDate: { $gte: searchStartDate } },
-          { endDate: { $gte: searchStartDate } },
-        ],
-      };
-    } else if (req.query.endDate) {
-      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
-      query = {
-        ...query,
-        $or: [
-          { startDate: { $lte: searchEndDate } },
-          { endDate: { $lte: searchEndDate } },
-        ],
-      };
-    }
-
+    const query = getListQuery(req);
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
@@ -74,6 +45,8 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
+    if (!(await isCreationAllowed(req.payload))) return Boom.badData();
+
     let event = new Event(req.payload);
     await event.save();
     event = await Event.findOne({ _id: event._id })
@@ -99,7 +72,13 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const event = await Event
+    let event = await Event.findOne({ _id: req.params._id });
+    if (!event) return Boom.notFound(translate[language].eventNotFound);
+
+    event = { ...event.toObject(), ...req.payload };
+    if (!(await isCreationAllowed(event))) return Boom.badData();
+
+    event = await Event
       .findOneAndUpdate(
         { _id: req.params._id },
         { $set: flat(req.payload) },
@@ -109,7 +88,6 @@ const update = async (req) => {
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
-    if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     const { type, repetition } = event;
     if (req.payload.shouldUpdateRepetition && type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
