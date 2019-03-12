@@ -34,12 +34,13 @@ const isCreationAllowed = async (event) => {
 
   // If the event is an intervention :
   // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention
-  // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention
+  // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention and this customer
+  //   should have an active subscription
   if (event.type === INTERVENTION) {
     let customer = await Customer.findOne({ _id: event.customer }).populate('subscriptions.service');
     customer = populateSubscriptionsServices(customer.toObject());
 
-    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() === event.subscription);
+    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;
 
     if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
