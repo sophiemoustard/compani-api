@@ -21,9 +21,11 @@ const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 
 momentRange.extendMoment(moment);
 
-const hasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
+const auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
   moment(contract.startDate).isSameOrBefore(day, 'd') &&
   ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
+
+const customerHasActiveSubscriptionOnDay = (sub, day) => sub.versions.some(version => moment(version.startDate).isSameOrBefore(day, 'd'));
 
 const isCreationAllowed = async (event) => {
   let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
@@ -51,12 +53,15 @@ const isCreationAllowed = async (event) => {
         : moment(event.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
     }
 
-    return hasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    const hasActiveSub = customerHasActiveSubscriptionOnDay(eventSubscription, event.startDate);
+    if (!hasActiveSub) return false;
+
+    return auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
 
   // If the auxiliary is only under customer contract, create internal hours is not allowed
   if (event.type === INTERNAL_HOUR) {
-    return hasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
 
   return true;
