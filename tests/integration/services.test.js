@@ -15,19 +15,20 @@ describe('SERVICES ROUTES', () => {
   });
 
   describe('POST /services', () => {
+    const payload = {
+      company: new ObjectID(),
+      type: CUSTOMER_CONTRACT,
+      versions: [{
+        defaultUnitAmount: 12,
+        eveningSurcharge: '',
+        holidaySurcharge: '',
+        name: 'Service',
+        vat: 12,
+      }],
+      nature: 'Service',
+    };
+
     it('should create a new service', async () => {
-      const payload = {
-        company: new ObjectID(),
-        type: CUSTOMER_CONTRACT,
-        versions: [{
-          defaultUnitAmount: 12,
-          eveningSurcharge: '',
-          holidaySurcharge: '',
-          name: 'Service',
-          vat: 12,
-        }],
-        nature: 'Service',
-      };
       const response = await app.inject({
         method: 'POST',
         url: '/services',
@@ -38,6 +39,56 @@ describe('SERVICES ROUTES', () => {
       expect(response.statusCode).toBe(200);
       const services = await Service.find();
       expect(services.length).toEqual(servicesList.length + 1);
+    });
+
+    const missingParams = [
+      {
+        paramName: 'type',
+        payload: { ...payload },
+        remove() {
+          delete this.payload[this.paramName];
+        }
+      },
+      {
+        paramName: 'company',
+        payload: { ...payload },
+        remove() {
+          delete this.payload[this.paramName];
+        }
+      },
+      {
+        paramName: 'defaultUnitAmount',
+        payload: { ...payload },
+        remove() {
+          delete this.payload.versions[0][this.paramName];
+        }
+      },
+      {
+        paramName: 'name',
+        payload: { ...payload },
+        remove() {
+          delete this.payload.versions[0][this.paramName];
+        }
+      },
+      {
+        paramName: 'nature',
+        payload: { ...payload },
+        remove() {
+          delete this.payload[this.paramName];
+        }
+      }
+    ];
+    missingParams.forEach((test) => {
+      it(`should return a 400 error if missing '${test.paramName}' parameter`, async () => {
+        test.remove();
+        const res = await app.inject({
+          method: 'POST',
+          url: '/services',
+          payload: test.payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(400);
+      });
     });
   });
 
@@ -83,8 +134,6 @@ describe('SERVICES ROUTES', () => {
       const payload = {
         defaultUnitAmount: 15,
         eveningSurcharge: '',
-        holidaySurcharge: '',
-        name: 'Service bis',
         startDate: '2019-01-16 17:58:15.519',
         vat: 12,
       };
@@ -95,6 +144,17 @@ describe('SERVICES ROUTES', () => {
         payload,
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return 400 if startDate is missing in payload', async () => {
+      const payload = { vat: 12 };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/services/${servicesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+      expect(response.statusCode).toBe(400);
     });
   });
 
