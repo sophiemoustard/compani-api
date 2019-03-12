@@ -69,6 +69,18 @@ exports.plugin = {
             customer: Joi.objectId()
               .when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() })
               .when('status', { is: COMPANY_CONTRACT, then: Joi.forbidden() }),
+          }),
+          signature: Joi.object().keys({
+            templateId: Joi.string().required(),
+            fields: Joi.object(),
+            title: Joi.string().required(),
+            signers: Joi.array().items(Joi.object().keys({
+              id: Joi.string(),
+              name: Joi.string(),
+              email: Joi.string()
+            })).required(),
+            redirect: Joi.string().uri(),
+            redirectDecline: Joi.string().uri()
           })
         },
         auth: { strategy: 'jwt' },
@@ -121,6 +133,18 @@ exports.plugin = {
             weeklyHours: Joi.number(),
             grossHourlyRate: Joi.number(),
             ogustContractId: Joi.string(),
+            signature: Joi.object().keys({
+              templateId: Joi.string().required(),
+              fields: Joi.object(),
+              title: Joi.string().required(),
+              signers: Joi.array().items(Joi.object().keys({
+                id: Joi.string(),
+                name: Joi.string(),
+                email: Joi.string()
+              })).required(),
+              redirect: Joi.string().uri(),
+              redirectDecline: Joi.string().uri()
+            })
           },
         },
         auth: { strategy: 'jwt' },
