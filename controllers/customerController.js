@@ -15,7 +15,7 @@ const Drive = require('../models/Google/Drive');
 const { subscriptionsAccepted, populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
-const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
+const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 const { createAndSaveFile } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
@@ -440,20 +440,15 @@ const generateMandateSignatureRequest = async (req) => {
     if (!customer) return Boom.notFound();
     const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
-    const docxPayload = {
-      file: { fileId: req.payload.fileId },
-      data: req.payload.fields
-    };
-    const filePath = await generateDocx(docxPayload);
-    const file64 = await fileToBase64(filePath);
     const doc = await generateSignatureRequest({
-      type: 'mandate',
+      templateId: req.payload.fileId,
+      fields: req.payload.fields,
       title: `MANDAT SEPA ${customer.payment.mandates[mandateIndex].rum}`,
-      file: file64,
-      signer: {
+      signers: [{
+        id: '1',
         name: req.payload.customer.name,
         email: req.payload.customer.email
-      },
+      }],
       redirect: req.payload.redirect,
       redirectDecline: req.payload.redirectDecline
     });
