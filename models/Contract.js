@@ -12,13 +12,9 @@ const ContractSchema = mongoose.Schema({
   ogustContractId: String,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  eversignId: String,
-  drive: {
-    id: String,
-    link: String
-  },
   versions: [{
     ogustContractId: String,
+    eversignId: String,
     createdAt: { type: Date, default: Date.now },
     startDate: Date,
     endDate: Date,
