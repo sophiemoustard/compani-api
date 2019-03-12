@@ -41,9 +41,6 @@ describe('SURCHARGES ROUTES', () => {
       const surcharges = await Surcharge.find();
       expect(surcharges.length).toEqual(surchargesList.length + 1);
     });
-  });
-
-  describe('POST /surcharges', () => {
     it('should not create a new surcharge if there is no name', async () => {
       const payload = {
         company: new ObjectID(),
