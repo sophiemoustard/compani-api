@@ -31,7 +31,7 @@ exports.plugin = {
               eveningSurcharge: Joi.number().allow('', null),
               holidaySurcharge: Joi.number().allow('', null),
               name: Joi.string().required(),
-              vat: Joi.number().required(),
+              vat: Joi.number(),
             }),
             nature: Joi.string().required(),
           })
