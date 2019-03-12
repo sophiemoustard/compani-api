@@ -11,7 +11,7 @@ const ContractSchema = mongoose.Schema({
   status: { type: String, enum: [CUSTOMER_CONTRACT, COMPANY_CONTRACT] },
   ogustContractId: String,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   versions: [{
     ogustContractId: String,
     createdAt: { type: Date, default: Date.now },

@@ -67,17 +67,18 @@ describe('CONTRACT ROUTES', () => {
   });
 
   describe('POST /contracts', () => {
+    const payload = {
+      status: COMPANY_CONTRACT,
+      startDate: '2019-01-18T15:46:30.636Z',
+      versions: [{
+        weeklyHours: 24,
+        grossHourlyRate: 10.43,
+        startDate: '2019-01-18T15:46:30.636Z'
+      }],
+      user: userList[4]._id,
+    };
+
     it('should create contract (company contract)', async () => {
-      const payload = {
-        status: COMPANY_CONTRACT,
-        startDate: '2019-01-18T15:46:30.636Z',
-        versions: [{
-          weeklyHours: 24,
-          grossHourlyRate: 10.43,
-          startDate: '2019-01-18T15:46:30.636Z'
-        }],
-        user: userList[4]._id,
-      };
       const res = await app.inject({
         method: 'POST',
         url: '/contracts',
@@ -95,89 +96,93 @@ describe('CONTRACT ROUTES', () => {
     });
 
     it('should create contract (customer contract)', async () => {
-      const payload = {
-        status: CUSTOMER_CONTRACT,
-        startDate: '2019-01-18T15:46:30.636Z',
-        customer: customersList[0]._id,
-        versions: [{
-          grossHourlyRate: 10.43,
-          startDate: '2019-01-18T15:46:30.636Z'
-        }],
-        user: userList[4]._id,
-      };
       const res = await app.inject({
         method: 'POST',
         url: '/contracts',
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: {
+          startDate: '2019-01-18T15:46:30.636Z',
+          versions: [{
+            grossHourlyRate: 10.43,
+            startDate: '2019-01-18T15:46:30.636Z'
+          }],
+          user: userList[4]._id,
+          status: CUSTOMER_CONTRACT,
+          customer: customersList[0]._id,
+        },
       });
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.contract).toBeDefined();
       const contracts = await Contract.find({});
       expect(contracts.length).toEqual(contractsList.length + 1);
-      const customer = await Customer.findOne({ _id: payload.customer });
+      const customer = await Customer.findOne({ _id: customersList[0]._id });
       expect(customer).toBeDefined();
       expect(customer.contracts).toContainEqual(res.result.data.contract._id);
     });
 
-    it("should return a 400 error if 'status' params is missing", async () => {
-      const payload = {
-        startDate: '2019-01-18T15:46:30.636Z',
-        versions: [{
-          weeklyHours: 24,
-          grossHourlyRate: 10.43,
-          startDate: '2019-01-18T15:46:30.636Z'
-        }],
-        user: userList[4]._id,
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/contracts',
-        headers: { 'x-access-token': authToken },
-        payload,
+    const missingParams = [
+      {
+        paramName: 'startDate',
+        payload: { ...payload },
+        update() {
+          delete this.payload[this.paramName];
+        }
+      },
+      {
+        paramName: 'status',
+        payload: { ...payload },
+        update() {
+          delete this.payload[this.paramName];
+        }
+      },
+      {
+        paramName: 'grossHourlyRate',
+        payload: { ...payload },
+        update() {
+          delete this.payload.versions[0][this.paramName];
+        }
+      },
+      {
+        paramName: 'weeklyHours',
+        payload: { ...payload },
+        update() {
+          delete this.payload.versions[0][this.paramName];
+        }
+      },
+      {
+        paramName: 'startDate',
+        payload: { ...payload },
+        update() {
+          delete this.payload.versions[0][this.paramName];
+        }
+      },
+      {
+        paramName: 'user',
+        payload: { ...payload },
+        update() {
+          delete this.payload[this.paramName];
+        }
+      },
+      {
+        paramName: 'customer',
+        payload: { ...payload, status: CUSTOMER_CONTRACT },
+        update() {
+          delete this.payload[this.paramName];
+        }
+      }
+    ];
+    missingParams.forEach((test) => {
+      it(`should return a 400 error if missing '${test.paramName}' parameter`, async () => {
+        test.update();
+        const res = await app.inject({
+          method: 'POST',
+          url: '/contracts',
+          payload: test.payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(400);
       });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 error if customer params is missing for CUSTOMER_CONTRACT contract', async () => {
-      const payload = {
-        status: CUSTOMER_CONTRACT,
-        startDate: '2019-01-18T15:46:30.636Z',
-        versions: [{
-          startDate: '2019-01-18T15:46:30.636Z'
-        }],
-        user: userList[4]._id,
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/contracts',
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 error if grossHourlyRate params is missing for COMPANY_CONTRACT contract', async () => {
-      const payload = {
-        status: COMPANY_CONTRACT,
-        startDate: '2019-01-18T15:46:30.636Z',
-        versions: [{
-          weeklyHours: 24,
-          startDate: '2019-01-18T15:46:30.636Z'
-        }],
-        user: userList[4]._id,
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/contracts',
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
     });
   });
 
