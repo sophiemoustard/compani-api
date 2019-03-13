@@ -9,11 +9,9 @@ const ContractSchema = mongoose.Schema({
   otherMisc: String,
   endNotificationDate: Date,
   status: { type: String, enum: [CUSTOMER_CONTRACT, COMPANY_CONTRACT] },
-  ogustContractId: String,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   versions: [{
-    ogustContractId: String,
     eversignId: String,
     createdAt: { type: Date, default: Date.now },
     startDate: Date,

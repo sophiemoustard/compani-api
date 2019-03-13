@@ -132,7 +132,6 @@ exports.plugin = {
             endDate: Joi.date(),
             weeklyHours: Joi.number(),
             grossHourlyRate: Joi.number(),
-            ogustContractId: Joi.string(),
             signature: Joi.object().keys({
               templateId: Joi.string().required(),
               fields: Joi.object(),

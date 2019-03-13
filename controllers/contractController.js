@@ -51,7 +51,6 @@ const create = async (req) => {
       startDate: req.payload.startDate,
       weeklyHours: req.payload.weeklyHours,
       grossHourlyRate: req.payload.grossHourlyRate,
-      ogustContractId: req.payload.ogustContractId,
     }];
     if (req.payload.signature) {
       const doc = await generateSignatureRequest(req.payload.signature);
