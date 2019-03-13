@@ -28,10 +28,9 @@ exports.plugin = {
             company: Joi.objectId().required(),
             versions: Joi.array().items({
               defaultUnitAmount: Joi.number().required(),
-              eveningSurcharge: Joi.number().allow('', null),
-              holidaySurcharge: Joi.number().allow('', null),
               name: Joi.string().required(),
               vat: Joi.number(),
+              surcharge: Joi.objectId()
             }),
             nature: Joi.string().required(),
           })
@@ -78,10 +77,9 @@ exports.plugin = {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
             defaultUnitAmount: Joi.number(),
-            eveningSurcharge: Joi.number().allow('', null),
-            holidaySurcharge: Joi.number().allow('', null),
             name: Joi.string(),
             vat: Joi.number(),
+            surcharge: Joi.objectId()
           })
         },
       },
