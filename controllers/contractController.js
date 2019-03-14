@@ -7,6 +7,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile } = require('../helpers/contracts');
+const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
 
@@ -50,8 +51,13 @@ const create = async (req) => {
       startDate: req.payload.startDate,
       weeklyHours: req.payload.weeklyHours,
       grossHourlyRate: req.payload.grossHourlyRate,
-      ogustContractId: req.payload.ogustContractId
     }];
+    if (req.payload.signature) {
+      const doc = await generateSignatureRequest(req.payload.signature);
+      if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
+      contract.version[0].eversignId = doc.data.document_hash;
+      delete req.payload.signature;
+    }
     await contract.save();
 
     await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id } });
@@ -110,6 +116,12 @@ const remove = async (req) => {
 
 const createContractVersion = async (req) => {
   try {
+    if (req.payload.signature) {
+      const doc = await generateSignatureRequest(req.payload.signature);
+      if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
+      req.payload.eversignId = doc.data.document_hash;
+      delete req.payload.signature;
+    }
     const contract = await Contract.findOneAndUpdate(
       { _id: req.params._id },
       { $push: { versions: req.payload } },
