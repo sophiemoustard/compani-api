@@ -1,10 +1,12 @@
 const moment = require('moment');
 const _ = require('lodash');
+const Surcharge = require('../models/Surcharge');
 
-const populateServices = (service) => {
+const populateServices = async (service) => {
   const currentVersion = service.versions
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+  currentVersion.surcharge = await Surcharge.findOne({ _id: currentVersion.surcharge });
   return {
     _id: service._id,
     name: currentVersion.name,
@@ -12,21 +14,19 @@ const populateServices = (service) => {
     type: service.type,
     defaultUnitAmount: currentVersion.defaultUnitAmount,
     vat: currentVersion.vat,
-    surcharge: currentVersion.surcharge
+    surcharge: currentVersion.surcharge,
   };
 };
 
-const populateSubscriptionsServices = (customer) => {
+const populateSubscriptionsServices = async (customer) => {
   if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
-
   const subscriptions = [];
-  for (const subscription of customer.subscriptions) {
+  for (let i = 0, l = customer.subscriptions.length; i < l; i++) {
     subscriptions.push({
-      ...subscription,
-      service: populateServices(subscription.service)
+      ...customer.subscriptions[i],
+      service: await populateServices(customer.subscriptions[i].service)
     });
   }
-
   return { ...customer, subscriptions };
 };
 
