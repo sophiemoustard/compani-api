@@ -35,7 +35,7 @@ const list = async (req) => {
     if (req.query.sectors && Array.isArray(req.query.sectors)) payload.sectors = { $in: req.query.sectors };
     if (req.query.subscriptions) payload.subscriptions = { $exists: true, $not: { $size: 0 } };
 
-    let customers = await Customer.find(payload)
+    const customers = await Customer.find(payload)
       .populate('subscriptions.service')
       .lean();
     if (customers.length === 0) {
@@ -44,11 +44,10 @@ const list = async (req) => {
         data: { customers: [] },
       };
     }
-
-    customers = customers
-      .map(populateSubscriptionsServices)
-      .map(subscriptionsAccepted);
-
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+      customers[i] = subscriptionsAccepted(customers[i]);
+    }
     return {
       message: translate[language].customersFound,
       data: { customers }
@@ -106,11 +105,12 @@ const listBySector = async (req) => {
       if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
     });
 
-    let customers = await Customer.find({ _id: customerIds }).populate('subscriptions.service').lean();
+    const customers = await Customer.find({ _id: customerIds }).populate('subscriptions.service').lean();
 
-    customers = customers
-      .map(populateSubscriptionsServices)
-      .map(subscriptionsAccepted);
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+      customers[i] = subscriptionsAccepted(customers[i]);
+    }
 
     return {
       message: translate[language].customersFound,
@@ -132,7 +132,7 @@ const listWithCustomerContractSubscriptions = async () => {
   }
 
   const ids = customerContractServices.map(service => service._id);
-  let customers = await Customer.find({ 'subscriptions.service': { $in: ids } }).populate('subscriptions.service').lean();
+  const customers = await Customer.find({ 'subscriptions.service': { $in: ids } }).populate('subscriptions.service').lean();
   if (customers.length === 0) {
     return {
       message: translate[language].customersNotFound,
@@ -140,9 +140,10 @@ const listWithCustomerContractSubscriptions = async () => {
     };
   }
 
-  customers = customers
-    .map(populateSubscriptionsServices)
-    .map(subscriptionsAccepted);
+  for (let i = 0, l = customers.length; i < l; i++) {
+    customers[i] = await populateSubscriptionsServices(customers[i]);
+    customers[i] = subscriptionsAccepted(customers[i]);
+  }
 
   return {
     message: translate[language].customersFound,
@@ -269,7 +270,7 @@ const getSubscriptions = async (req) => {
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const { subscriptions } = populateSubscriptionsServices(customer);
+    const { subscriptions } = await populateSubscriptionsServices(customer);
 
     return {
       message: translate[language].customerSubscriptionsFound,
@@ -298,7 +299,7 @@ const updateSubscription = async (req) => {
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const { subscriptions } = populateSubscriptionsServices(customer);
+    const { subscriptions } = await populateSubscriptionsServices(customer);
 
     return {
       message: translate[language].customerSubscriptionUpdated,
@@ -336,7 +337,7 @@ const addSubscription = async (req) => {
       },
     ).populate('subscriptions.service').lean();
 
-    const { subscriptions } = populateSubscriptionsServices(updatedCustomer);
+    const { subscriptions } = await populateSubscriptionsServices(updatedCustomer);
 
     return {
       message: translate[language].customerSubscriptionAdded,
