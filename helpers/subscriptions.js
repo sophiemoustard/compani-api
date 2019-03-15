@@ -5,7 +5,6 @@ const populateServices = (service) => {
   const currentVersion = service.versions
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-
   return {
     _id: service._id,
     name: currentVersion.name,
@@ -13,8 +12,7 @@ const populateServices = (service) => {
     type: service.type,
     defaultUnitAmount: currentVersion.defaultUnitAmount,
     vat: currentVersion.vat,
-    holidaySurcharge: currentVersion.holidaySurcharge,
-    eveningSurcharge: currentVersion.eveningSurcharge,
+    surcharge: currentVersion.surcharge
   };
 };
 
