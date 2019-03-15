@@ -160,7 +160,7 @@ const show = async (req) => {
       return Boom.notFound(translate[language].customerNotFound);
     }
 
-    customer = populateSubscriptionsServices(customer);
+    customer = await populateSubscriptionsServices(customer);
     customer = subscriptionsAccepted(customer);
 
     const fundingsVersions = [];
