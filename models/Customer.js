@@ -170,7 +170,7 @@ async function saveSubscriptionsChanges(doc, next) {
     const deletedSub = subscriptions.filter(sub => sub._id.toHexString() === this.getUpdate().$pull.subscriptions._id.toHexString());
     if (!deletedSub) return next();
 
-    const { subscriptions: populatedDeletedSub } = populateSubscriptionsServices({ subscriptions: [...deletedSub] });
+    const { subscriptions: populatedDeletedSub } = await populateSubscriptionsServices({ subscriptions: [...deletedSub] });
     const lastVersion = populatedDeletedSub[0].versions.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
     const payload = {
       customer: {
