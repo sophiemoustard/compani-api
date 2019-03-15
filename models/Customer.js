@@ -87,6 +87,8 @@ const CustomerSchema = mongoose.Schema({
     versions: [{
       unitTTCRate: Number,
       estimatedWeeklyVolume: Number,
+      evenings: Number,
+      sundays: Number,
       surcharge: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Surcharge',
@@ -101,6 +103,8 @@ const CustomerSchema = mongoose.Schema({
       service: String,
       unitTTCRate: Number,
       estimatedWeeklyVolume: Number,
+      evenings: Number,
+      sundays: Number,
       startDate: Date,
     }],
     helper: {
