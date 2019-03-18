@@ -39,23 +39,22 @@ exports.add = params => new Promise((resolve, reject) => {
 });
 
 exports.deleteFile = params => new Promise((resolve, reject) => {
-  drive.files.delete({
-    auth: jwtClient,
-    fileId: params.fileId
-  }, (err, file) => {
-    if (err) {
-      reject(err);
-    } else {
-      resolve(file.data);
+  drive.files.delete(
+    { auth: jwtClient, fileId: params.fileId },
+    (err, file) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(file.data);
+      }
     }
-  });
+  );
 });
 
 exports.getFileById = params => new Promise((resolve, reject) => {
   drive.files.get({
     auth: jwtClient,
     fileId: `${params.fileId}`,
-    //  pageSize: 10,
     fields: ['name, webViewLink, thumbnailLink']
   }, (err, response) => {
     if (err) {
@@ -68,15 +67,19 @@ exports.getFileById = params => new Promise((resolve, reject) => {
 
 exports.downloadFileById = params => new Promise((resolve, reject) => {
   const dest = fs.createWriteStream(params.tmpFilePath);
-  drive.files.get({
-    auth: jwtClient,
-    fileId: `${params.fileId}`,
-    alt: 'media'
-  }, { responseType: 'stream' }, (err, res) => {
-    res.data.on('end', () => {
-      resolve();
-    }).on('error', () => {
-      reject(new Error(`Error during Google drive doc download ${err}`));
-    }).pipe(dest);
-  });
+  drive.files.get(
+    { auth: jwtClient, fileId: `${params.fileId}`, alt: 'media' },
+    { responseType: 'stream' },
+    (err, res) => {
+      if (err || !res || !res.data) {
+        return reject(new Error(`Error during Google drive doc download ${err}`));
+      }
+
+      res.data.on('end', () => {
+        resolve();
+      }).on('error', () => {
+        reject(new Error(`Error during Google drive doc download ${err}`));
+      }).pipe(dest);
+    }
+  );
 });
