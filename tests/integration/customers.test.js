@@ -778,6 +778,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let token = null;
   before(populateServices);
+  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
