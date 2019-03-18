@@ -18,6 +18,7 @@ exports.generateSignatureRequest = async (params) => {
       file_base64: file64
     }],
     signers: params.signers,
+    meta: params.meta,
     redirect: params.redirect || '',
     redirect_decline: params.redirectDecline || ''
   };
