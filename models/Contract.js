@@ -12,7 +12,13 @@ const ContractSchema = mongoose.Schema({
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   versions: [{
-    eversignId: String,
+    signature: {
+      eversignId: String,
+      signedBy: {
+        auxiliary: { type: Boolean, default: false },
+        other: { type: Boolean, default: false },
+      }
+    },
     createdAt: { type: Date, default: Date.now },
     startDate: Date,
     endDate: Date,
