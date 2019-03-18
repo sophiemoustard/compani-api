@@ -33,7 +33,6 @@ describe('SERVICES ROUTES', () => {
         headers: { 'x-access-token': authToken },
         payload,
       });
-      console.log(response.result.message);
       expect(response.statusCode).toBe(200);
       const services = await Service.find();
       expect(services.length).toEqual(servicesList.length + 1);
