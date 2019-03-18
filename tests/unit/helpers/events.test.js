@@ -178,7 +178,8 @@ describe('isCreationAllowed', () => {
       _id: payload.customer,
       subscriptions: [{
         _id: subscriptionId,
-        service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] }
+        service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
+        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
       }]
     };
     Customer.findOne = () => customer;
@@ -215,7 +216,8 @@ describe('isCreationAllowed', () => {
       _id: payload.customer,
       subscriptions: [{
         _id: subscriptionId,
-        service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] }
+        service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
+        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
       }]
     };
     Customer.findOne = () => customer;

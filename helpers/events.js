@@ -45,6 +45,9 @@ const isCreationAllowed = async (event) => {
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;
 
+    const hasActiveSub = customerHasActiveSubscriptionOnDay(eventSubscription, event.startDate);
+    if (!hasActiveSub) return false;
+
     if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
       const contractBetweenAuxAndCus = await Contract.findOne({ user: event.auxiliary, customer: event.customer });
       if (!contractBetweenAuxAndCus) return false;
@@ -52,9 +55,6 @@ const isCreationAllowed = async (event) => {
         ? moment(event.startDate).isBetween(contractBetweenAuxAndCus.startDate, contractBetweenAuxAndCus.endDate, '[]')
         : moment(event.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
     }
-
-    const hasActiveSub = customerHasActiveSubscriptionOnDay(eventSubscription, event.startDate);
-    if (!hasActiveSub) return false;
 
     return auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
