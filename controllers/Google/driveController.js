@@ -32,9 +32,7 @@ const getFileById = async (req) => {
 const generateDocxFromDrive = async (req, h) => {
   try {
     const payload = {
-      file: {
-        fileId: req.params.id
-      },
+      file: { fileId: req.params.id },
       data: req.payload
     };
     const tmpOutputPath = await generateDocx(payload);
