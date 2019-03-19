@@ -40,7 +40,7 @@ const isCreationAllowed = async (event) => {
   //   should have an active subscription
   if (event.type === INTERVENTION) {
     let customer = await Customer.findOne({ _id: event.customer }).populate('subscriptions.service');
-    customer = populateSubscriptionsServices(customer.toObject());
+    customer = await populateSubscriptionsServices(customer.toObject());
 
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;

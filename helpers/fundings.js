@@ -35,8 +35,9 @@ const populateFundings = async (funding) => {
   const thirdPartyPayer = thirdPartyPayers.find(tpp => tpp._id.toHexString() === funding.thirdPartyPayer.toHexString());
   funding.thirdPartyPayer = { _id: thirdPartyPayer._id, name: thirdPartyPayer.name };
 
-  funding.services = funding.services.map(populateServices);
-
+  for (let i = 0, l = funding.services.length; i < l; i++) {
+    funding.services[i] = await populateServices(funding.services[i]);
+  }
   return funding;
 };
 

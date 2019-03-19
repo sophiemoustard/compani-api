@@ -19,10 +19,8 @@ describe('SERVICES ROUTES', () => {
       company: new ObjectID(),
       type: CUSTOMER_CONTRACT,
       versions: [{
-        defaultUnitAmount: 12,
-        eveningSurcharge: '',
-        holidaySurcharge: '',
         name: 'Service',
+        defaultUnitAmount: 12,
         vat: 12,
       }],
       nature: 'Service',
@@ -35,7 +33,6 @@ describe('SERVICES ROUTES', () => {
         headers: { 'x-access-token': authToken },
         payload,
       });
-
       expect(response.statusCode).toBe(200);
       const services = await Service.find();
       expect(services.length).toEqual(servicesList.length + 1);
