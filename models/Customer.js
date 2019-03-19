@@ -89,10 +89,6 @@ const CustomerSchema = mongoose.Schema({
       estimatedWeeklyVolume: Number,
       evenings: Number,
       sundays: Number,
-      surcharge: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Surcharge',
-      },
       startDate: { type: Date, default: Date.now },
       createdAt: { type: Date, default: Date.now },
     }],
