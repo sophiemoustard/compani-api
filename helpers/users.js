@@ -32,7 +32,7 @@ const getUsers = async (query) => {
       { autopopulate: false }
     )
     .populate({ path: 'procedure.task', select: 'name' })
-    .populate({ path: 'customers', select: 'identity' })
+    .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate('contracts')
     .populate('sector');

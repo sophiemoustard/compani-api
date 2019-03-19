@@ -2,13 +2,21 @@ const Boom = require('boom');
 const flat = require('flat');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
+const path = require('path');
+const os = require('os');
+const moment = require('moment');
 
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
+const ESign = require('../models/ESign');
+const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile } = require('../helpers/contracts');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { createAndReadFile } = require('../helpers/file');
+const { addFile } = require('../helpers/gdriveStorage');
+const { CUSTOMER_CONTRACT } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -16,8 +24,8 @@ const list = async (req) => {
   try {
     const contracts = await Contract
       .find(req.query)
-      .populate({ path: 'user', select: 'identity' })
-      .populate({ path: 'customer', select: 'identity' })
+      .populate({ path: 'user', select: 'identity administrative.driveFolder' })
+      .populate({ path: 'customer', select: 'identity driveFolder' })
       .lean();
 
     const message = !contracts ? translate[language].contractsNotFound : translate[language].contractsFound;
@@ -202,12 +210,62 @@ const receiveSignatureEvents = async (req, h) => {
     const signature = req.payload.event_hash;
     const validatePayload = `${req.payload.event_time}${req.payload.event_type}`;
     if (signature !== crypto.createHmac('sha256', process.env.EVERSIGN_API_KEY).update(validatePayload).digest('hex')) return Boom.forbidden();
+    const docHash = req.payload.meta.related_document_hash;
+    const everSignDoc = await ESign.getDocument(docHash);
+    if (everSignDoc.data.error) return Boom.notFound(translate[language].documentNotFound);
     if (req.payload.event_type === 'document_signed') {
       const payload = req.payload.signer.id === '1' ? { 'versions.$.signature.signedBy.auxiliary': true } : { 'versions.$.signature.signedBy.other': true };
       await Contract
         .findOneAndUpdate({
           'versions.signature.eversignId': req.payload.meta.related_document_hash
-        }, { $set: payload }, { new: true });
+        }, { $set: flat(payload) }, { new: true });
+    } else if (req.payload.event_type === 'document_completed') {
+      const finalPDF = await ESign.downloadFinalDocument(docHash);
+      const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
+      const file = await createAndReadFile(finalPDF.data, tmpPath);
+      let payload = {};
+      if (everSignDoc.data.meta.type === CUSTOMER_CONTRACT) {
+        const addFilePromises = [
+          addFile({
+            driveFolderId: everSignDoc.data.meta.auxiliaryDriveId,
+            name: everSignDoc.data.title,
+            type: 'application/pdf',
+            body: file
+          }),
+          addFile({
+            driveFolderId: everSignDoc.data.meta.customerDriveId,
+            name: everSignDoc.data.title,
+            type: 'application/pdf',
+            body: file
+          }),
+        ];
+        const [auxiliaryDoc, customerDoc] = await Promise.all(addFilePromises);
+        const fileInfoPromises = [Drive.getFileById({ fileId: auxiliaryDoc.id }), Drive.getFileById({ fileId: customerDoc.id })];
+        const [auxiliaryDocInfo, customerDocInfo] = await Promise.all(fileInfoPromises);
+        payload = {
+          'versions.$': {
+            auxiliaryDoc: { driveId: auxiliaryDoc.id, link: auxiliaryDocInfo.webViewLink },
+            customerDoc: { driveId: customerDoc.id, link: customerDocInfo.webViewLink },
+          }
+        };
+      } else {
+        const auxiliaryDoc = await addFile({
+          driveFolderId: everSignDoc.data.meta.auxiliaryDriveId,
+          name: everSignDoc.data.title,
+          type: 'application/pdf',
+          body: file
+        });
+        const auxiliaryDocInfo = await Drive.getFileById({ fileId: auxiliaryDoc.id });
+        payload = {
+          'versions.$': {
+            auxiliaryDoc: { driveId: auxiliaryDoc.id, link: auxiliaryDocInfo.webViewLink },
+          }
+        };
+      }
+      await Contract
+        .findOneAndUpdate({
+          'versions.signature.eversignId': req.payload.meta.related_document_hash
+        }, { $set: flat(payload) }, { new: true });
     }
     return h.response().code(200);
   } catch (e) {

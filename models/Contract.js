@@ -25,8 +25,14 @@ const ContractSchema = mongoose.Schema({
     weeklyHours: Number,
     grossHourlyRate: Number,
     isActive: { type: Boolean, default: false },
-    link: String,
-    driveId: String
+    customerDoc: {
+      link: String,
+      driveId: String
+    },
+    auxiliaryDoc: {
+      link: String,
+      driveId: String
+    }
   }]
 }, {
   timestamps: true,
