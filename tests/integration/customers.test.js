@@ -12,7 +12,7 @@ const {
   populateUsers,
   getToken
 } = require('./seed/usersSeed');
-const { populateCompanies, companiesList } = require('./seed/companiesSeed');
+const { companiesList } = require('./seed/companiesSeed');
 const { servicesList, populateServices } = require('./seed/servicesSeed');
 const Customer = require('../../models/Customer');
 const { MONTHLY, FIXED } = require('../../helpers/constants');
@@ -424,7 +424,6 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
 describe('CUSTOMER MANDATES ROUTES', () => {
   let token = null;
-  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -562,7 +561,6 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
 describe('CUSTOMERS QUOTES ROUTES', () => {
   let token = null;
-  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -671,7 +669,6 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
   let token = null;
-  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -778,7 +775,6 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let token = null;
   before(populateServices);
-  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();

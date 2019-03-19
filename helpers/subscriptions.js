@@ -6,7 +6,8 @@ const populateServices = async (service) => {
   const currentVersion = service.versions
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-  currentVersion.surcharge = await Surcharge.findOne({ _id: currentVersion.surcharge });
+  const surcharge = await Surcharge.findOne({ _id: currentVersion.surcharge });
+
   return {
     _id: service._id,
     name: currentVersion.name,
@@ -14,7 +15,7 @@ const populateServices = async (service) => {
     type: service.type,
     defaultUnitAmount: currentVersion.defaultUnitAmount,
     vat: currentVersion.vat,
-    surcharge: currentVersion.surcharge,
+    surcharge,
   };
 };
 
