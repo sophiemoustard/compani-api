@@ -51,7 +51,12 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
       file = { 'versions.$[version]': { auxiliaryDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } } };
     }
     if (payload.type === CUSTOMER_CONTRACT) {
-      file = { 'versions.$[version]': { customerDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } } };
+      file = {
+        'versions.$[version]': {
+          customerDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
+          auxiliaryDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink }
+        }
+      };
     }
   } else {
     file = { 'versions.$[version]': { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } };
