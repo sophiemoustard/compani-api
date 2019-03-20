@@ -6,6 +6,7 @@ const Contract = require('../models/Contract');
 const User = require('../models/User');
 const drive = require('../models/Google/Drive');
 const { addFile } = require('./gdriveStorage');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 
 const endContract = async (contractId, payload) => {
   const contract = await Contract.findById(contractId);
@@ -40,7 +41,17 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
   });
   const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
 
-  const file = { 'versions.$[version]': { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } };
+  let file = {};
+  if (payload.type) {
+    if (payload.type === COMPANY_CONTRACT) {
+      file = { 'versions.$[version]': { auxiliaryDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } } };
+    }
+    if (payload.type === CUSTOMER_CONTRACT) {
+      file = { 'versions.$[version]': { customerDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } } };
+    }
+  } else {
+    file = { 'versions.$[version]': { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } };
+  }
   await Contract.findOneAndUpdate(
     { _id: params._id },
     { $set: flat(file) },
