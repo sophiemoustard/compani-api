@@ -1,12 +1,14 @@
 const Boom = require('boom');
 const flat = require('flat');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
+const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
-const { endContract, createAndSaveFile } = require('../helpers/contracts');
+const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
@@ -15,8 +17,8 @@ const list = async (req) => {
   try {
     const contracts = await Contract
       .find(req.query)
-      .populate({ path: 'user', select: 'identity' })
-      .populate({ path: 'customer', select: 'identity' })
+      .populate({ path: 'user', select: 'identity administrative.driveFolder' })
+      .populate({ path: 'customer', select: 'identity driveFolder' })
       .lean();
 
     const message = !contracts ? translate[language].contractsNotFound : translate[language].contractsFound;
@@ -55,7 +57,7 @@ const create = async (req) => {
     if (req.payload.signature) {
       const doc = await generateSignatureRequest(req.payload.signature);
       if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-      contract.version[0].eversignId = doc.data.document_hash;
+      contract.versions[0].signature.eversignId = doc.data.document_hash;
       delete req.payload.signature;
     }
     await contract.save();
@@ -119,8 +121,7 @@ const createContractVersion = async (req) => {
     if (req.payload.signature) {
       const doc = await generateSignatureRequest(req.payload.signature);
       if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-      req.payload.eversignId = doc.data.document_hash;
-      delete req.payload.signature;
+      req.payload.signature = { eversignId: doc.data.document_hash };
     }
     const contract = await Contract.findOneAndUpdate(
       { _id: req.params._id },
@@ -197,6 +198,27 @@ const uploadFile = async (req) => {
   }
 };
 
+const receiveSignatureEvents = async (req, h) => {
+  try {
+    const signature = req.payload.event_hash;
+    const validatePayload = `${req.payload.event_time}${req.payload.event_type}`;
+    if (signature !== crypto.createHmac('sha256', process.env.EVERSIGN_API_KEY).update(validatePayload).digest('hex')) return Boom.forbidden();
+    const docHash = req.payload.meta.related_document_hash;
+    const everSignDoc = await ESign.getDocument(docHash);
+    if (everSignDoc.data.error) return Boom.notFound(translate[language].documentNotFound);
+    if (req.payload.event_type === 'document_signed') {
+      const payload = req.payload.signer.id === '1' ? { 'versions.$.signature.signedBy.auxiliary': true } : { 'versions.$.signature.signedBy.other': true };
+      await Contract.findOneAndUpdate({ 'versions.signature.eversignId': req.payload.meta.related_document_hash }, { $set: flat(payload) }, { new: true });
+    } else if (req.payload.event_type === 'document_completed') {
+      await saveCompletedContract(everSignDoc);
+    }
+    return h.response().code(200);
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   get,
@@ -207,4 +229,5 @@ module.exports = {
   updateContractVersion,
   removeContractVersion,
   uploadFile,
+  receiveSignatureEvents
 };

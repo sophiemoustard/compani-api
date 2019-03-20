@@ -15,6 +15,7 @@ const {
   updateContractVersion,
   removeContractVersion,
   uploadFile,
+  receiveSignatureEvents
 } = require('../controllers/contractController');
 
 exports.plugin = {
@@ -78,6 +79,7 @@ exports.plugin = {
                 name: Joi.string(),
                 email: Joi.string()
               })).required(),
+              meta: Joi.object(),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri()
             })
@@ -141,6 +143,7 @@ exports.plugin = {
                 name: Joi.string(),
                 email: Joi.string()
               })).required(),
+              meta: Joi.object(),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri()
             })
@@ -200,6 +203,13 @@ exports.plugin = {
           strategy: 'jwt',
         }
       }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/esign-webhook-receiver',
+      handler: receiveSignatureEvents,
+      options: { auth: false }
     });
   }
 };

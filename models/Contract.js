@@ -12,15 +12,27 @@ const ContractSchema = mongoose.Schema({
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   versions: [{
-    eversignId: String,
+    signature: {
+      eversignId: String,
+      signedBy: {
+        auxiliary: { type: Boolean, default: false },
+        other: { type: Boolean, default: false },
+      }
+    },
     createdAt: { type: Date, default: Date.now },
     startDate: Date,
     endDate: Date,
     weeklyHours: Number,
     grossHourlyRate: Number,
     isActive: { type: Boolean, default: false },
-    link: String,
-    driveId: String
+    customerDoc: {
+      link: String,
+      driveId: String
+    },
+    auxiliaryDoc: {
+      link: String,
+      driveId: String
+    }
   }]
 }, {
   timestamps: true,
