@@ -7,6 +7,12 @@ const { getToken } = require('./seed/usersSeed');
 const { populateSectors, sectorsList } = require('./seed/sectorsSeed');
 const { companiesList } = require('./seed/companiesSeed');
 
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 describe('SECTORS ROUTES', () => {
   let authToken = null;
   beforeEach(populateSectors);
