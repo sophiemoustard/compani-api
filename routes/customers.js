@@ -141,7 +141,7 @@ exports.plugin = {
             isActive: Joi.boolean(),
             sectors: Joi.array().items(Joi.string()),
             subscriptions: Joi.boolean(),
-            _id: Joi.array().items(Joi.objectId()),
+            _id: [Joi.array().items(Joi.objectId()), Joi.objectId()],
           })
         },
         auth: 'jwt'

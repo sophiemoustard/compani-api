@@ -2,7 +2,6 @@ const Boom = require('boom');
 const moment = require('moment');
 
 const Customer = require('../models/Customer');
-const Company = require('../models/Company');
 const { getLastVersion } = require('./utils');
 const { populateServices } = require('./subscriptions');
 
@@ -28,12 +27,6 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
 
 const populateFundings = async (funding) => {
   if (!funding) return false;
-
-  const company = await Company.findOne({ 'customersConfig.thirdPartyPayers._id': funding.thirdPartyPayer }).lean();
-  const { thirdPartyPayers } = company.customersConfig;
-
-  const thirdPartyPayer = thirdPartyPayers.find(tpp => tpp._id.toHexString() === funding.thirdPartyPayer.toHexString());
-  funding.thirdPartyPayer = { _id: thirdPartyPayer._id, name: thirdPartyPayer.name };
 
   for (let i = 0, l = funding.services.length; i < l; i++) {
     funding.services[i] = await populateServices(funding.services[i]);

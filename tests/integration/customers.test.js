@@ -12,8 +12,8 @@ const {
   populateUsers,
   getToken
 } = require('./seed/usersSeed');
-const { companiesList } = require('./seed/companiesSeed');
 const { servicesList, populateServices } = require('./seed/servicesSeed');
+const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const Customer = require('../../models/Customer');
 const { MONTHLY, FIXED } = require('../../helpers/constants');
 
@@ -775,6 +775,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let token = null;
   before(populateServices);
+  before(populateThirdPartyPayers);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -784,7 +785,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should create a customer funding', async () => {
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
         services: [servicesList[0]._id],
         versions: [{
           folderNumber: 'D123456',
@@ -806,7 +807,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.funding).toBeDefined();
       expect(res.result.data.customer._id).toEqual(customersList[0]._id);
-      expect(res.result.data.funding.thirdPartyPayer.name).toEqual(companiesList[0].customersConfig.thirdPartyPayers[0].name);
+      expect(res.result.data.funding.thirdPartyPayer.name).toEqual(thirdPartyPayersList[0].name);
       expect(res.result.data.funding.nature).toEqual(payload.nature);
       expect(res.result.data.funding.services[0]._id).toEqual(payload.services[0]);
       expect(res.result.data.funding.versions[0]).toMatchObject(payload.versions[0]);
@@ -815,7 +816,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 409 error if subscription is used by another funding', async () => {
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
         services: [servicesList[0]._id],
         versions: [{
           folderNumber: 'D123456',
@@ -839,7 +840,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it("should return a 400 error if 'services' array is missing from payload", async () => {
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -887,7 +888,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         services: [servicesList[0]._id],
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
