@@ -22,4 +22,6 @@ module.exports = {
   EVERY_WEEK: 'every_week',
   CUSTOMER_CONTRACT: 'contract_with_customer',
   COMPANY_CONTRACT: 'contract_with_company',
+  TWO_WEEKS: 'two_weeks',
+  MONTH: 'month',
 };

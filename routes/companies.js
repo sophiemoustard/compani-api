@@ -21,7 +21,7 @@ const {
   deleteCompanyThirdPartyPayer,
 } = require('../controllers/companyController');
 
-const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+const { BILLING_DIRECT, BILLING_INDIRECT, TWO_WEEKS, MONTH } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-companies',
@@ -43,14 +43,15 @@ exports.plugin = {
               phoneSubRefunding: Joi.number(),
               transportSubs: Joi.array().items({
                 department: Joi.string(),
-                price: Joi.number()
+                price: Joi.number(),
               })
+            }),
+            customersConfig: Joi.object().keys({
+              billingPeriod: Joi.string().valid(TWO_WEEKS, MONTH),
             })
           })
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' },
       },
       handler: create
     });
@@ -61,7 +62,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
             _id: Joi.objectId(),
@@ -73,63 +74,61 @@ exports.plugin = {
               fullAddress: Joi.string(),
               location: {
                 type: Joi.string(),
-                coordinates: Joi.array()
+                coordinates: Joi.array(),
               }
             }),
             ics: Joi.string(),
             rcs: Joi.string(),
             rhConfig: Joi.object().keys({
               contractWithCompany: {
-                grossHourlyRate: Joi.number()
+                grossHourlyRate: Joi.number(),
               },
               contractWithCustomer: {
-                grossHourlyRate: Joi.number()
+                grossHourlyRate: Joi.number(),
               },
               phoneSubRefunding: Joi.number(),
               transportSubs: [Joi.array().items({
                 department: Joi.string(),
-                price: Joi.number()
+                price: Joi.number(),
               }), Joi.object().keys({
                 subId: Joi.objectId().required(),
-                price: Joi.number()
+                price: Joi.number(),
               })],
               templates: {
                 contractWithCompany: {
                   driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null)
+                  link: Joi.string().allow(null),
                 },
                 contractWithCompanyVersion: {
                   driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null)
+                  link: Joi.string().allow(null),
                 },
                 contractWithCustomer: {
                   driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null)
+                  link: Joi.string().allow(null),
                 },
                 contractWithCustomerVersion: {
                   driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null)
+                  link: Joi.string().allow(null),
                 }
               },
             }),
             customersConfig: Joi.object().keys({
+              billingPeriod: Joi.string().valid(TWO_WEEKS, MONTH),
               templates: {
                 debitMandate: {
                   driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null)
+                  link: Joi.string().allow(null),
                 },
                 quote: {
                   driveId: Joi.string().allow(null),
-                  link: Joi.string().allow(null)
+                  link: Joi.string().allow(null),
                 },
               },
             }),
           })
         },
-        auth: {
-          strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
-        }
+        auth: { strategy: 'jwt' },
       },
       handler: update
     });
