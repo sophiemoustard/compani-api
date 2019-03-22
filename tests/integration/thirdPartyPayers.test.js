@@ -1,6 +1,7 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
+const { companiesList } = require('./seed/companiesSeed');
 const { getToken } = require('./seed/usersSeed');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const app = require('../../server');
@@ -19,21 +20,23 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
   });
 
   describe('POST /thirdpartypayers', () => {
+    const payload = {
+      name: 'Test',
+      address: {
+        fullAddress: '37 rue de Ponthieu 75008 Paris',
+        street: '37 rue de Ponthieu',
+        zipCode: '75008',
+        city: 'Paris'
+      },
+      email: 'test@test.com',
+      unitTTCRate: 75,
+      billingMode: 'direct',
+      company: companiesList[0]._id,
+    };
+
     it('should create a new third party payer', async () => {
       const initialThirdPartyPayerNumber = thirdPartyPayersList.length;
 
-      const payload = {
-        name: 'Test',
-        address: {
-          fullAddress: '37 rue de Ponthieu 75008 Paris',
-          street: '37 rue de Ponthieu',
-          zipCode: '75008',
-          city: 'Paris'
-        },
-        email: 'test@test.com',
-        unitTTCRate: 75,
-        billingMode: 'direct',
-      };
       const response = await app.inject({
         method: 'POST',
         url: '/thirdpartypayers',
@@ -46,26 +49,34 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const thirdPartyPayers = await ThirdPartyPayer.find().lean();
       expect(thirdPartyPayers.length).toBe(initialThirdPartyPayerNumber + 1);
     });
-    it("should return a 400 error if 'name' params is missing", async () => {
-      const payload = {
-        address: {
-          fullAddress: '37 rue de Ponthieu 75008 Paris',
-          street: '37 rue de Ponthieu',
-          zipCode: '75008',
-          city: 'Paris'
-        },
-        email: 'test@test.com',
-        unitTTCRate: 75,
-        billingMode: 'direct'
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/thirdpartypayers',
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
+    const missingParams = [
+      {
+        paramName: 'name',
+        payload: { ...payload },
+        update() {
+          delete this.payload[this.paramName];
+        }
+      },
+      {
+        paramName: 'company',
+        payload: { ...payload },
+        update() {
+          delete this.payload[this.paramName];
+        }
+      },
+    ];
+    missingParams.forEach((test) => {
+      it(`should return a 400 error if '${test.paramName}' params is missing`, async () => {
+        test.update();
+        const response = await app.inject({
+          method: 'POST',
+          url: '/thirdpartypayers',
+          headers: { 'x-access-token': authToken },
+          payload: test.payload,
+        });
 
-      expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(400);
+      });
     });
   });
 
@@ -132,7 +143,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
     });
   });
 
-  describe('DELETE /companies/:id/thirdpartypayers/:thirdPartyPayerId', () => {
+  describe('DELETE /thirdpartypayers/:id', () => {
     it('should delete company thirdPartyPayer', async () => {
       const response = await app.inject({
         method: 'DELETE',
