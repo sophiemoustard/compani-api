@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+const { BILLING_DIRECT, BILLING_INDIRECT, MONTH, TWO_WEEKS } = require('../helpers/constants');
 
 const CompanySchema = mongoose.Schema({
   name: {
@@ -52,6 +52,7 @@ const CompanySchema = mongoose.Schema({
     }]
   },
   customersConfig: {
+    billingPeriod: { type: String, enum: [MONTH, TWO_WEEKS], default: TWO_WEEKS },
     templates: {
       folderId: String,
       debitMandate: {
