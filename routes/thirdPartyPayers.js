@@ -32,6 +32,7 @@ exports.plugin = {
             email: Joi.string().email(),
             unitTTCRate: Joi.number(),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
+            company: Joi.objectId().required(),
           })
         }
       }
@@ -43,6 +44,11 @@ exports.plugin = {
       handler: list,
       options: {
         auth: { strategy: 'jwt' },
+        validate: {
+          query: {
+            company: Joi.objectId(),
+          }
+        }
       }
     });
 

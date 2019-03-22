@@ -15,7 +15,8 @@ const ThirdPartyPayerSchema = mongoose.Schema({
   billingMode: {
     type: String,
     enum: [BILLING_DIRECT, BILLING_INDIRECT]
-  }
+  },
+  company: { type: mongoose.Schema.Types.ObjectId }
 }, { timestamps: true });
 
 module.exports = mongoose.model('ThirdPartyPayer', ThirdPartyPayerSchema);
