@@ -239,6 +239,14 @@ module.exports = {
     thirdPartyPayersNotFound: 'Company third party payers not found.',
     thirdPartyPayerUpdated: 'Company third party payer updated.',
     thirdPartyPayerDeleted: 'Company third party payer deleted.',
+    /* Credit Notes */
+    creditNotesFound: 'Credit notes found.',
+    creditNoteCreated: 'Credit note found.',
+    creditNoteDeleted: 'Credit note deleted.',
+    creditNotesNotFound: 'Credit notes not found.',
+    creditNoteNotFound: 'Credit note not found.',
+    creditNoteUpdated: 'Credit note updated.',
+
   },
   'fr-FR': {
     /* Global errors */
@@ -477,5 +485,13 @@ module.exports = {
     thirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
     thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
+    /* Credit Notes */
+    creditNotesFound: 'Avoirs trouvés.',
+    creditNoteCreated: 'Avoir créé.',
+    creditNoteDeleted: 'Avoir supprimé.',
+    creditNotesNotFound: 'Avoirs non trouvés.',
+    creditNoteNotFound: 'Avoir non trouvé.',
+    creditNoteUpdated: 'Avoir modifié.',
+
   }
 };
