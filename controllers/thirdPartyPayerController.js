@@ -36,13 +36,13 @@ const list = async (req) => {
 
 const updateById = async (req) => {
   try {
-    const thirdPartyPayerUpdated = await ThirdPartyPayer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
-    if (!thirdPartyPayerUpdated) {
+    const updatedThirdPartyPayer = await ThirdPartyPayer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+    if (!updatedThirdPartyPayer) {
       return Boom.notFound(translate[language].thirdPartyPayersNotFound);
     }
     return {
       message: translate[language].thirdPartyPayersUpdated,
-      data: { thirdPartyPayer: thirdPartyPayerUpdated }
+      data: { thirdPartyPayer: updatedThirdPartyPayer }
     };
   } catch (e) {
     req.log('error', e);
@@ -52,11 +52,11 @@ const updateById = async (req) => {
 
 const removeById = async (req) => {
   try {
-    const thirdPartyPayerDeleted = await ThirdPartyPayer.findByIdAndRemove(req.params._id);
-    if (!thirdPartyPayerDeleted) {
+    const deletedThirdPartyPayer = await ThirdPartyPayer.findByIdAndRemove(req.params._id);
+    if (!deletedThirdPartyPayer) {
       return Boom.notFound(translate[language].thirdPartyPayersNotFound);
     }
-    return { message: translate[language].thirdPartyPayerDeleted };
+    return { message: translate[language].deletedThirdPartyPayer };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
