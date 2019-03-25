@@ -184,5 +184,11 @@ exports.routes = [
     routes: {
       prefix: '/thirdpartypayers'
     }
+  },
+  {
+    plugin: require('./creditNotes'),
+    routes: {
+      prefix: '/creditNotes'
+    }
   }
 ];

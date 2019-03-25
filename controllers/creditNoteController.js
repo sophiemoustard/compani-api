@@ -1,6 +1,6 @@
 const Boom = require('boom');
 
-const CreditNote = require('../models/Surcharge');
+const CreditNote = require('../models/CreditNote');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -10,10 +10,9 @@ const list = async (req) => {
     const creditNotes = await CreditNote.find(req.query)
       .populate('customer')
       .populate('thirdPartyPayer')
-      .populate('events')
-    if (creditNotes.length === 0) return Boom.notFound(translate[language].surchargeNotFound);
+      .populate('events');
     return {
-      message: creditNotes.length === 0 ? translate[language].surchargesNotFound : translate[language].surchargesFound,
+      message: creditNotes.length === 0 ? translate[language].creditNotesNotFound : translate[language].creditNotesFound,
       data: { creditNotes },
     };
   } catch (e) {
@@ -27,7 +26,7 @@ const getById = async (req) => {
     const creditNote = await CreditNote.findById(req.params._id)
       .populate('customer')
       .populate('thirdPartyPayer')
-      .populate('events')
+      .populate('events');
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
     return {
       message: translate[language].creditNoteFound,
