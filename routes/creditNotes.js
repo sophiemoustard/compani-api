@@ -30,7 +30,7 @@ exports.plugin = {
             exclTaxes: Joi.number().required(),
             inclTaxes: Joi.number().required(),
             events: Joi.array().items({ _id: Joi.objectId() }),
-            subscription: Joi.object.keys({
+            subscription: Joi.object().keys({
               service: Joi.string(),
               unitTTCRate: Joi.number(),
               estimatedWeeklyVolume: Joi.number(),
@@ -51,8 +51,8 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           query: {
-            startDate: Joi.date().required(),
-            endDate: Joi.date().required()
+            // startDate: Joi.date().required(),
+            // endDate: Joi.date().required()
           }
         }
       },
@@ -105,7 +105,7 @@ exports.plugin = {
             exclTaxes: Joi.number().required(),
             inclTaxes: Joi.number().required(),
             events: Joi.array().items({ _id: Joi.objectId() }),
-            subscription: Joi.object.keys({
+            subscription: Joi.object().keys({
               service: Joi.string(),
               unitTTCRate: Joi.number(),
               estimatedWeeklyVolume: Joi.number(),

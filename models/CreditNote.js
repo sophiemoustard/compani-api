@@ -26,6 +26,6 @@ const CreditNoteSchema = mongoose.Schema({
     sundays: Number,
     startDate: Date,
   }
-};
+});
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);
