@@ -22,11 +22,10 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.object().keys({
-            number: Joi.number().required(),
             startDate: Joi.date(),
             endDate: Joi.date(),
             customer: Joi.objectId().required(),
-            thirdPartyPayer: Joi.objectId().required(),
+            thirdPartyPayer: Joi.objectId().required().allow('', null),
             exclTaxes: Joi.number().required(),
             inclTaxes: Joi.number().required(),
             events: Joi.array().items({ _id: Joi.objectId() }),
@@ -51,8 +50,8 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           query: {
-            // startDate: Joi.date().required(),
-            // endDate: Joi.date().required()
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required()
           }
         }
       },
@@ -97,7 +96,6 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            number: Joi.number().required(),
             startDate: Joi.date(),
             endDate: Joi.date(),
             customer: Joi.objectId().required(),
