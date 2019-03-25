@@ -696,10 +696,7 @@ const createFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
         autopopulate: false,
       },
-    )
-      .populate('fundings.services')
-      .populate('fundings.thirdPartyPayer')
-      .lean();
+    ).populate('fundings.services').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
@@ -734,10 +731,7 @@ const updateFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
         autopopulate: false,
       },
-    )
-      .populate('fundings.services')
-      .populate('fundings.thirdPartyPayer')
-      .lean();
+    ).populate('fundings.services').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
@@ -763,10 +757,7 @@ const getFundings = async (req) => {
       { _id: req.params._id, fundings: { $exists: true } },
       { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
       { autopopulate: false },
-    )
-      .populate('fundings.services')
-      .populate('fundings.thirdPartyPayer')
-      .lean();
+    ).populate('fundings.services').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
@@ -802,9 +793,7 @@ const removeFunding = async (req) => {
         },
         autopopulate: false,
       }
-    )
-      .populate('fundings.services')
-      .populate('fundings.thirdPartyPayer');
+    ).populate('fundings.services').populate('fundings.thirdPartyPayer');
 
     return {
       message: translate[language].customerFundingRemoved,
