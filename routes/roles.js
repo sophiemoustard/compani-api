@@ -24,9 +24,7 @@ exports.plugin = {
             rights: Joi.array(),
           }).or('name', 'rights')
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' },
       },
       handler: create
     });
@@ -51,9 +49,7 @@ exports.plugin = {
             })).optional()
           }).required()
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: update
     });
