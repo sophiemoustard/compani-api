@@ -3,8 +3,8 @@ const faker = require('faker');
 const moment = require('moment');
 
 const Customer = require('../../../models/Customer');
-const { companiesList } = require('./companiesSeed');
 const { servicesList } = require('./servicesSeed');
+const { thirdPartyPayersList } = require('./thirdPartyPayersSeed');
 const { MONTHLY, FIXED } = require('../../../helpers/constants');
 
 faker.locale = 'fr';
@@ -110,7 +110,7 @@ const customersList = [
       {
         _id: new ObjectID(),
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
         services: [servicesList[0]._id],
         versions: [{
           folderNumber: 'D123456',
@@ -128,7 +128,7 @@ const customersList = [
         nature: FIXED,
         folderNumber: 'D7890',
         startDate: moment.utc().toDate(),
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
         versions: [{
           frequency: MONTHLY,
           endDate: moment.utc().add(2, 'years').toDate(),

@@ -7,6 +7,12 @@ const Service = require('../../models/Service');
 const app = require('../../server');
 const { CUSTOMER_CONTRACT } = require('../../helpers/constants');
 
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 describe('SERVICES ROUTES', () => {
   let authToken = null;
   beforeEach(populateServices);

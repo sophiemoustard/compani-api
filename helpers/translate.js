@@ -130,11 +130,6 @@ module.exports = {
     companyInternalHourRemoved: 'Company internal hour removed.',
     companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed',
     companyInternalHourDeletionNotAllowed: 'Company internal hour deletion not allowed',
-    companyThirdPartyPayerCreated: 'Company third party payer created.',
-    companyThirdPartyPayersFound: 'Company third party payers found.',
-    companyThirdPartyPayersNotFound: 'Company third party payers not found.',
-    companyThirdPartyPayerUpdated: 'Company third party payer updated.',
-    companyThirdPartyPayerDeleted: 'Company third party payer deleted.',
     /* Contracts */
     contractFound: 'Contract found.',
     contractsFound: 'Contracts found.',
@@ -237,6 +232,13 @@ module.exports = {
     surchargesNotFound: 'Surcharges not found.',
     surchargeNotFound: 'Surcharge not found.',
     surchargesUpdated: 'Surcharges updated.',
+
+    /* Third party payers */
+    thirdPartyPayerCreated: 'Company third party payer created.',
+    thirdPartyPayersFound: 'Company third party payers found.',
+    thirdPartyPayersNotFound: 'Company third party payers not found.',
+    thirdPartyPayerUpdated: 'Company third party payer updated.',
+    thirdPartyPayerDeleted: 'Company third party payer deleted.',
   },
   'fr-FR': {
     /* Global errors */
@@ -367,11 +369,6 @@ module.exports = {
     companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
     companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
     companyInternalHourDeletionNotAllowed: 'Suppression de l\'heure interne non autorisée.',
-    companyThirdPartyPayerCreated: 'Tiers payeur de l\'entreprise créé.',
-    companyThirdPartyPayersFound: 'Tiers payeurs de l\'entreprise trouvés.',
-    companyThirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
-    companyThirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
-    companyThirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
     /* Contracts */
     contractFound: 'Contrat trouvés.',
     contractsFound: 'Contrats trouvés.',
@@ -473,5 +470,12 @@ module.exports = {
     surchargesNotFound: 'Plans de majorations non trouvés.',
     surchargeNotFound: 'Plan de majoration non trouvé.',
     surchargeUpdated: 'Plan de majoration modifié.',
+
+    /* Third party payers */
+    thirdPartyPayerCreated: 'Tiers payeur de l\'entreprise créé.',
+    thirdPartyPayersFound: 'Tiers payeurs de l\'entreprise trouvés.',
+    thirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
+    thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
+    thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
   }
 };

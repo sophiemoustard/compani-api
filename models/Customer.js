@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const _ = require('lodash');
 const SubscriptionsLog = require('./SubscriptionsLog');
 const FundingLog = require('./FundingLog');
-const Company = require('./Company');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getLastVersion } = require('../helpers/utils');
 const {
@@ -134,7 +133,7 @@ const CustomerSchema = mongoose.Schema({
       enum: [HOURLY, FIXED]
     },
     services: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Service' }],
-    thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
+    thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     versions: [{
       endDate: Date,
       frequency: {
@@ -197,9 +196,6 @@ async function saveFundingChanges(doc, next) {
     const deletedFunding = fundings.find(fund => fund._id.toHexString() === this.getUpdate().$pull.fundings._id.toHexString());
     if (!deletedFunding) return next();
 
-    const company = await Company.findOne({ 'customersConfig.thirdPartyPayers._id': deletedFunding.thirdPartyPayer }).lean();
-    const { thirdPartyPayers: companyThirdPartyPayers } = company.customersConfig;
-
     const {
       versions,
       thirdPartyPayer,
@@ -212,11 +208,10 @@ async function saveFundingChanges(doc, next) {
         customerId: doc._id,
         firstname: doc.identity.firstname,
         lastname: doc.identity.lastname,
-        ogustId: doc.customerId,
       },
       funding: {
         services: services.map(service => getLastVersion(service.versions, 'startDate').name),
-        thirdPartyPayer: companyThirdPartyPayers.find(tpp => tpp._id.toHexString() === thirdPartyPayer.toHexString()).name,
+        thirdPartyPayer: thirdPartyPayer.name,
         nature,
         ...lastVersion,
       },

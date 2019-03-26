@@ -5,14 +5,6 @@ const companiesList = [
   {
     _id: new ObjectID(),
     name: 'Test',
-    customersConfig: {
-      thirdPartyPayers: [
-        {
-          _id: new ObjectID(),
-          name: 'Toto'
-        }
-      ]
-    },
     rhConfig: {
       internalHours: [
         { name: 'Formation', default: true, _id: new ObjectID() },

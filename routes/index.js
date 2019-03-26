@@ -178,5 +178,11 @@ exports.routes = [
     routes: {
       prefix: '/surcharges'
     }
+  },
+  {
+    plugin: require('./thirdPartyPayers'),
+    routes: {
+      prefix: '/thirdpartypayers'
+    }
   }
 ];

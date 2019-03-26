@@ -6,6 +6,12 @@ const { getToken } = require('./seed/usersSeed');
 const Surcharge = require('../../models/Surcharge');
 const app = require('../../server');
 
+describe('NODE ENV', () => {
+  it("should be 'test'", () => {
+    expect(process.env.NODE_ENV).toBe('test');
+  });
+});
+
 describe('SURCHARGES ROUTES', () => {
   let authToken = null;
   beforeEach(populateSurcharges);
