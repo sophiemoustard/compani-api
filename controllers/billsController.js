@@ -1,12 +1,11 @@
-const moment = require('moment');
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
-const _ = require('lodash');
 
 const Event = require('../models/Event');
 const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/bills');
+
 const { language } = translate;
 
 const draftBillsList = async (req) => {
@@ -17,22 +16,58 @@ const draftBillsList = async (req) => {
       { type: INTERVENTION },
       { customer: new ObjectID('5c6431764a85340014894ee6') }
     ];
-    let eventsToBill = await Event.aggregate([
+    const eventsToBill = await Event.aggregate([
       { $match: { $and: rules } },
-      { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
-      { $unwind: { path : '$customer' } },
-      { $lookup: { from: 'services', localField: 'customer.subscriptions.service', foreignField: '_id', as: 'service' } },
-      { $unwind: { path : '$service' } },
-      { $group: { _id: { CUS: '$customer._id', SUB: '$subscription' }, events: { $push: '$$ROOT' }, customer: { $addToSet: '$customer'}, services: { $addToSet: '$service'} } },
-      { $project: {
-        _id: 1,
-        services: 1,
-        customer: { _id: 1, identity: 1, subscriptions: 1, fundings: 1 },
-        events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
-      }},
+      {
+        $group: {
+          _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
+          count: { $sum: 1 },
+          hours: {
+            $sum: {
+              $divide: [{ $subtract: ['$endDate', '$startDate'] }, 3600000]
+            }
+          },
+          events: { $push: '$$ROOT' }
+        }
+      },
+      {
+        $group: {
+          _id: '$_id.CUSTOMER',
+          subscriptions: {
+            $push: {
+              sub: '$_id.SUBS',
+              hours: '$hours',
+              eventsNumber: { $size: '$events' },
+              events: '$events'
+            }
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      { $unwind: { path: '$customer' } },
+      {
+        $addFields: {
+          'subscriptions.subscription': '$customer.subscriptions',
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          customer: { _id: 1, identity: 1, fundings: 1 },
+          subscriptions: 1,
+        }
+      }
     ]);
 
     const draftBills = await getDraftBillsList(eventsToBill, req.query);
+
 
     return {
       message: translate[language].draftBills,
