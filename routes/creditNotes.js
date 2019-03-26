@@ -22,6 +22,7 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.object().keys({
+            date: Joi.date().required(),
             startDate: Joi.date(),
             endDate: Joi.date(),
             customer: Joi.objectId().required(),
@@ -98,10 +99,10 @@ exports.plugin = {
           payload: Joi.object().keys({
             startDate: Joi.date(),
             endDate: Joi.date(),
-            customer: Joi.objectId().required(),
-            thirdPartyPayer: Joi.objectId().required(),
-            exclTaxes: Joi.number().required(),
-            inclTaxes: Joi.number().required(),
+            customer: Joi.objectId(),
+            thirdPartyPayer: Joi.objectId(),
+            exclTaxes: Joi.number(),
+            inclTaxes: Joi.number(),
             events: Joi.array().items({ _id: Joi.objectId() }),
             subscription: Joi.object().keys({
               service: Joi.string(),
