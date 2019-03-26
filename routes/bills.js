@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 const {
-  getDraftBills,
+  draftBillsList,
 } = require('../controllers/billsController');
 
 exports.plugin = {
@@ -16,11 +16,11 @@ exports.plugin = {
         validate: {
           query: {
             endDate: Joi.date().required(),
-            startDate: Joi.date(),
+            startDate: Joi.date().required(),
           },
         },
       },
-      handler: getDraftBills,
+      handler: draftBillsList,
     });
   },
 };

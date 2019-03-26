@@ -6,10 +6,10 @@ const _ = require('lodash');
 const Event = require('../models/Event');
 const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
-const { populateSubscriptionsServices } = require('../helpers/subscriptions');
+const { getDraftBillsList } = require('../helpers/bills');
 const { language } = translate;
 
-const getDraftBills = async (req) => {
+const draftBillsList = async (req) => {
   try {
     const rules = [
       { endDate: { $lt: req.query.endDate } },
@@ -19,52 +19,24 @@ const getDraftBills = async (req) => {
     ];
     let eventsToBill = await Event.aggregate([
       { $match: { $and: rules } },
-      { $group: { _id: '$customer', events: { $push: '$$ROOT' } } },
-      { $lookup: { from: 'customers', localField: '_id', foreignField: '_id', as: '_id' } },
-      { $lookup: { from: 'services', localField: '_id.subscriptions.service', foreignField: '_id', as: 'service' } },
+      { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
+      { $unwind: { path : '$customer' } },
+      { $lookup: { from: 'services', localField: 'customer.subscriptions.service', foreignField: '_id', as: 'service' } },
       { $unwind: { path : '$service' } },
-      { $unwind: { path : '$_id' } },
+      { $group: { _id: { CUS: '$customer._id', SUB: '$subscription' }, events: { $push: '$$ROOT' }, customer: { $addToSet: '$customer'}, services: { $addToSet: '$service'} } },
       { $project: {
-        '_id': { _id: 1, identity: 1, subscriptions: { _id: 1, versions: true, service: '$service' } },
+        _id: 1,
+        services: 1,
+        customer: { _id: 1, identity: 1, subscriptions: 1, fundings: 1 },
         events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
       }},
     ]);
 
-    const draftBills = [];
-    for (let i = 0, l = eventsToBill.length; i < l; i++) {
-      const customer = await populateSubscriptionsServices(eventsToBill[i]._id);
-      const eventsGroupBySub = _.groupBy(eventsToBill[i].events, 'subscription')
-
-      for (const sub of Object.keys(eventsGroupBySub)) {
-        const subscription = customer.subscriptions.find(s => s._id.toHexString() === sub);
-        let minutes = 0;
-        const eventsList = [];
-        let preTaxePrice = 0;
-        let startDate = req.query.endDate;
-        for (const event of eventsGroupBySub[sub]) {
-          const duration = moment(event.endDate).diff(moment(event.startDate), 'm');
-          minutes += duration;
-          preTaxePrice += duration / 60 * subscription.versions[0].unitTTCRate;
-          if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
-          eventsList.push(event._id);
-        }
-
-        draftBills.push({
-          hours: minutes / 60,
-          eventsList,
-          subscription,
-          identity: customer.identity,
-          discount: 0,
-          startDate: startDate.toDate(),
-          endDate: moment(req.query.endDate, 'YYYYMMDD').toDate(),
-          preTaxePrice,
-        })
-      }
-    }
+    const draftBills = await getDraftBillsList(eventsToBill, req.query);
 
     return {
       message: translate[language].draftBills,
-      data: { draftBills },
+      data: { draftBills, eventsToBill },
     };
   } catch (e) {
     console.log(e);
@@ -74,5 +46,5 @@ const getDraftBills = async (req) => {
 };
 
 module.exports = {
-  getDraftBills,
+  draftBillsList,
 };
