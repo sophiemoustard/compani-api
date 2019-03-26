@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const CreditNoteSchema = mongoose.Schema({
   number: Number,
+  date: Date,
   startDate: Date,
   endDate: Date,
   customer: {
