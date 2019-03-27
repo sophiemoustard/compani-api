@@ -155,6 +155,7 @@ const show = async (req) => {
   try {
     let customer = await Customer.findOne({ _id: req.params._id })
       .populate('subscriptions.service')
+      .populate('fundings.thirdPartyPayer')
       .lean();
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
