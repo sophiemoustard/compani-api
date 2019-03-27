@@ -6,13 +6,13 @@ const { getLastVersion } = require('./utils');
 const { populateServices } = require('./subscriptions');
 
 const checkSubscriptionFunding = async (customerId, checkedFunding) => {
-  const customer = await Customer.findById(customerId).lean();
+  const customer = await Customer.findOne({ _id: customerId }).lean();
   if (!customer) return Boom.notFound('Error while checking subscription funding: customer not found.');
 
   if (!customer.fundings || customer.fundings.length === 0) return true;
 
   return customer.fundings
-    .filter(fund => fund.services.some(ser => checkedFunding.services.includes(ser._id.toHexString())) &&
+    .filter(fund => fund.subscriptions.some(sub => checkedFunding.subscriptions.includes(sub._id.toHexString())) &&
       checkedFunding._id !== fund._id.toHexString())
     .every((fund) => {
       const lastVersion = getLastVersion(fund.versions, 'createdAt');
@@ -25,11 +25,16 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
     });
 };
 
-const populateFundings = async (funding) => {
+const populateFundings = async (funding, customer) => {
   if (!funding) return false;
 
-  for (let i = 0, l = funding.services.length; i < l; i++) {
-    funding.services[i] = await populateServices(funding.services[i]);
+  for (let i = 0, l = funding.subscriptions.length; i < l; i++) {
+    const sub = customer.subscriptions.find(sub => sub._id.toHexString() === funding.subscriptions[i].toHexString());
+    if (sub.service.versions) {
+      funding.subscriptions[i] = { ...sub, service: await populateServices(sub.service) };
+    } else {
+      funding.subscriptions[i] = { ...sub }
+    }
   }
   return funding;
 };

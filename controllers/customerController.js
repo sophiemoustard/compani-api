@@ -155,7 +155,7 @@ const show = async (req) => {
   try {
     let customer = await Customer.findOne({ _id: req.params._id })
       .populate('subscriptions.service')
-      .populate('fundings.services')
+      .populate('fundings.thirdPartyPayer')
       .lean();
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
@@ -167,7 +167,7 @@ const show = async (req) => {
     const fundingsVersions = [];
     if (customer.fundings && customer.fundings.length > 0) {
       for (const funding of customer.fundings) {
-        fundingsVersions.push(await populateFundings(funding));
+        fundingsVersions.push(await populateFundings(funding, customer));
       }
       customer.fundings = fundingsVersions;
     }
@@ -693,15 +693,15 @@ const createFunding = async (req) => {
       { $push: { fundings: req.payload } },
       {
         new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       },
-    ).populate('fundings.services').populate('fundings.thirdPartyPayer').lean();
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     let funding = customer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-    funding = await populateFundings(funding);
+    funding = await populateFundings(funding, customer);
 
     return {
       message: translate[language].customerFundingCreated,
@@ -719,7 +719,7 @@ const createFunding = async (req) => {
 const updateFunding = async (req) => {
   try {
     if (req.payload.careDays) {
-      const payload = { _id: req.payload.fundingId, services: req.payload.services, versions: [req.payload] };
+      const payload = { _id: req.payload.fundingId, subscriptions: req.payload.subscriptions, versions: [req.payload] };
       const check = await checkSubscriptionFunding(req.params._id, payload);
       if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     }
@@ -728,15 +728,15 @@ const updateFunding = async (req) => {
       { $push: { 'fundings.$.versions': req.payload } },
       {
         new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       },
-    ).populate('fundings.services').populate('fundings.thirdPartyPayer').lean();
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
     let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);
-    funding = await populateFundings(funding);
+    funding = await populateFundings(funding, customer);
 
     return {
       message: translate[language].customerFundingUpdated,
@@ -755,15 +755,15 @@ const getFundings = async (req) => {
   try {
     const customer = await Customer.findOne(
       { _id: req.params._id, fundings: { $exists: true } },
-      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
       { autopopulate: false },
-    ).populate('fundings.services').populate('fundings.thirdPartyPayer').lean();
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
     const versions = [];
     for (const funding of customer.fundings) {
-      versions.push(await populateFundings(funding));
+      versions.push(await populateFundings(funding, customer));
     }
     customer.fundings = versions;
 
@@ -782,18 +782,14 @@ const getFundings = async (req) => {
 
 const removeFunding = async (req) => {
   try {
-    await Customer.findByIdAndUpdate(
+    await Customer.findOneAndUpdate(
       { _id: req.params._id },
       { $pull: { fundings: { _id: req.params.fundingId } } },
       {
-        select: {
-          'identity.firstname': 1,
-          'identity.lastname': 1,
-          fundings: 1,
-        },
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       }
-    ).populate('fundings.services').populate('fundings.thirdPartyPayer');
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer');
 
     return {
       message: translate[language].customerFundingRemoved,
