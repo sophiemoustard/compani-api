@@ -810,7 +810,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer._id).toEqual(customer._id);
       expect(res.result.data.funding.thirdPartyPayer.name).toEqual(thirdPartyPayersList[0].name);
       expect(res.result.data.funding.nature).toEqual(payload.nature);
-      expect(res.result.data.funding.subscription).toEqual(payload.subscription);
+      expect(res.result.data.funding.subscription._id).toEqual(payload.subscription);
       expect(res.result.data.funding.versions[0]).toMatchObject(payload.versions[0]);
     });
 
