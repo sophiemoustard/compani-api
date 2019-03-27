@@ -281,7 +281,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     it('should add subscription to customer', async () => {
       const customer = customersList[1];
       const payload = {
-        service: servicesList[0]._id,
+        service: servicesList[1]._id,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -783,10 +783,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
   describe('POST customers/:id/fundings', () => {
     it('should create a customer funding', async () => {
+      const customer = customersList[0];
       const payload = {
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
-        services: [servicesList[0]._id],
+        subscriptions: [customer.subscriptions[1]._id],
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -799,25 +800,26 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       };
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.funding).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(customersList[0]._id);
+      expect(res.result.data.customer._id).toEqual(customer._id);
       expect(res.result.data.funding.thirdPartyPayer.name).toEqual(thirdPartyPayersList[0].name);
       expect(res.result.data.funding.nature).toEqual(payload.nature);
-      expect(res.result.data.funding.services[0]._id).toEqual(payload.services[0]);
+      expect(res.result.data.funding.subscriptions[0]._id).toEqual(payload.subscriptions[0]);
       expect(res.result.data.funding.versions[0]).toMatchObject(payload.versions[0]);
     });
 
     it('should return a 409 error if subscription is used by another funding', async () => {
+      const customer = customersList[0];
       const payload = {
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
-        services: [servicesList[0]._id],
+        subscriptions: [customer.subscriptions[0]._id],
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -830,14 +832,14 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       };
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[1]._id.toHexString()}/fundings`,
+        url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(409);
     });
 
-    it("should return a 400 error if 'services' array is missing from payload", async () => {
+    it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
@@ -863,7 +865,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it("should return a 400 error if 'thirdPartyPayer' object is missing from payload", async () => {
       const payload = {
         nature: FIXED,
-        services: [servicesList[0]._id],
+        subscriptions: [customersList[0].subscriptions[0]._id],
         versions: [{
           frequency: MONTHLY,
           folderNumber: 'D123456',
@@ -886,7 +888,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
-        services: [servicesList[0]._id],
+        subscriptions: [customersList[0].subscriptions[0]._id],
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
         versions: [{
@@ -911,9 +913,10 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
   describe('PUT customers/:id/fundings', () => {
     it('should add a customer funding version', async () => {
+      const customer = customersList[0];
       const payload = {
-        services: [servicesList[0]._id],
-        fundingId: customersList[1].fundings[0]._id.toHexString(),
+        subscriptions: [customer.subscriptions[0]._id],
+        fundingId: customer.fundings[0]._id.toHexString(),
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
@@ -923,21 +926,22 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       };
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${customersList[1]._id.toHexString()}/fundings/${customersList[1].fundings[0]._id.toHexString()}`,
+        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
         payload,
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.funding).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(customersList[1]._id);
-      expect(res.result.data.funding.versions.length).toBe(customersList[1].fundings[0].versions.length + 1);
+      expect(res.result.data.customer._id).toEqual(customer._id);
+      expect(res.result.data.funding.versions.length).toBe(customer.fundings[0].versions.length + 1);
     });
+
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
-        services: [servicesList[0]._id],
-        fundingId: customersList[1].fundings[0]._id.toHexString(),
+        subscriptions: [customersList[0].subscriptions[0]._id],
+        fundingId: customersList[0].fundings[0]._id.toHexString(),
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
@@ -947,7 +951,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       };
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${invalidId}/fundings/${customersList[1].fundings[0]._id.toHexString()}`,
+        url: `/customers/${invalidId}/fundings/${customersList[0].fundings[0]._id.toHexString()}`,
         payload,
         headers: { 'x-access-token': token },
       });
@@ -957,7 +961,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
   describe('GET /customers/{id}/fundings', () => {
     it('should get customer fundings', async () => {
-      const customer = customersList[1];
+      const customer = customersList[0];
 
       const result = await app.inject({
         method: 'GET',
@@ -983,7 +987,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
   describe('DELETE /customers/{id}/fundings/{fundingId}', () => {
     it('should delete customer funding', async () => {
-      const customer = customersList[1];
+      const customer = customersList[0];
       const funding = customer.fundings[0];
 
       const result = await app.inject({

@@ -9,6 +9,7 @@ const { MONTHLY, FIXED } = require('../../../helpers/constants');
 
 faker.locale = 'fr';
 
+const subId = new ObjectID();
 const customersList = [
   {
     _id: new ObjectID(),
@@ -49,6 +50,16 @@ const customersList = [
     },
     subscriptions: [
       {
+        _id: subId,
+        service: servicesList[0]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      },
+      {
         _id: new ObjectID(),
         service: servicesList[0]._id,
         versions: [{
@@ -58,6 +69,24 @@ const customersList = [
           sundays: 1,
         }],
       }
+    ],
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
+        subscriptions: [subId],
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
+          frequency: MONTHLY,
+          endDate: moment.utc().add(6, 'months').toDate(),
+          effectiveDate: moment.utc().toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+        }]
+      },
     ],
     quotes: [{
       _id: new ObjectID(),
@@ -106,40 +135,6 @@ const customersList = [
         { rum: faker.helpers.randomize() },
       ],
     },
-    fundings: [
-      {
-        _id: new ObjectID(),
-        nature: FIXED,
-        thirdPartyPayer: thirdPartyPayersList[0]._id,
-        services: [servicesList[0]._id],
-        versions: [{
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          frequency: MONTHLY,
-          endDate: moment.utc().add(6, 'months').toDate(),
-          effectiveDate: moment.utc().toDate(),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [2, 5],
-        }]
-      },
-      {
-        _id: new ObjectID(),
-        nature: FIXED,
-        folderNumber: 'D7890',
-        startDate: moment.utc().toDate(),
-        thirdPartyPayer: thirdPartyPayersList[0]._id,
-        versions: [{
-          frequency: MONTHLY,
-          endDate: moment.utc().add(2, 'years').toDate(),
-          effectiveDate: moment.utc().add(1, 'year').toDate(),
-          amountTTC: 90,
-          customerParticipationRate: 0,
-          careDays: [5, 6],
-          services: [servicesList[0]._id]
-        }]
-      }
-    ]
   },
   {
     _id: new ObjectID(),
