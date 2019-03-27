@@ -1,6 +1,8 @@
 const moment = require('moment-business-days');
 const Holidays = require('date-holidays');
 
+const Surcharge = require('../models/Surcharge');
+
 const holidays = new Holidays('FR');
 const date = new Date();
 const currentYear = date.getFullYear();
@@ -11,7 +13,6 @@ moment.updateLocale('fr', {
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
 
-const Surcharge = require('../models/Surcharge');
 
 const getSubscription = async (eventsToBill) => {
   let subscription = eventsToBill.customer[0].subscriptions
@@ -33,12 +34,12 @@ const getSubscription = async (eventsToBill) => {
   };
 };
 
-const getMatchingVersion = (event, obj) => {
+const getMatchingVersion = (date, obj) => {
   if (obj.versions.length === 1) return { ...obj, ...obj.versions[0] };
 
   let matchingVersion = obj.versions[0];
   for (let i = 1, l = obj.versions.length; i < l; i++) {
-    if (moment(obj.versions[i].startDate).isAfter(event.startDate, 'd')) break;
+    if (moment(obj.versions[i].startDate).isAfter(date, 'd')) break;
     else {
       matchingVersion = obj.versions[i];
     };
@@ -64,9 +65,14 @@ const applySurcharge = (event, price, surcharge) => {
   return price;
 }
 
+const getPreTaxPrice = (subscription, service) => {
+  return subscription.unitTTCRate / (1 + service.vat / 100);
+}
+
 // TODO : Add funding case
 const getEventPrice = (event, subscription, service) => {
-  let price = moment(event.endDate).diff(moment(event.startDate), 'm') / 60 * subscription.versions[0].unitTTCRate;
+  const unitPreTaxPrice = getPreTaxPrice(subscription, service);
+  let price = moment(event.endDate).diff(moment(event.startDate), 'm') / 60 * unitPreTaxPrice;
 
   if (service.surcharge) {
     price = applySurcharge(event, price, service.surcharge)
@@ -83,8 +89,8 @@ const getDraftBill = (events, customer, subscription, query) => {
   let startDate = moment(query.startDate);
   for (const event of events) {
     if (!eventsList.includes(event._id.toHexString())) {
-      const matchingService = getMatchingVersion(event, subscription.service);
-      const matchingSub = getMatchingVersion(event, subscription);
+      const matchingService = getMatchingVersion(event.startDate, subscription.service);
+      const matchingSub = getMatchingVersion(event.startDate, subscription);
 
       eventsList.push(event._id.toHexString());
       minutes += moment(event.endDate).diff(moment(event.startDate), 'm');
@@ -102,7 +108,7 @@ const getDraftBill = (events, customer, subscription, query) => {
     discount: 0,
     startDate: startDate.toDate(),
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
-    unitPreTaxPrice: preTaxPrice * 60 / minutes,
+    unitPreTaxPrice: getPreTaxPrice(getMatchingVersion(query.startDate, subscription), getMatchingVersion(query.startDate, subscription.service)),
     preTaxPrice,
     withTaxPrice,
   };
@@ -112,8 +118,7 @@ const getDraftBillsList = async (eventsToBill, query) => {
   const draftBills = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const subscription = await getSubscription(eventsToBill[i]);
-    const draftBill = getDraftBill(eventsToBill[i].events, eventsToBill[i].customer[0], subscription, query)
-    draftBills.push(draftBill.customer, draftBill.thirdPartyPayer);
+    draftBills.push(getDraftBill(eventsToBill[i].events, eventsToBill[i].customer[0], subscription, query));
   }
 
   return draftBills;
