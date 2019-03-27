@@ -491,7 +491,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             nature: Joi.string().valid(HOURLY, FIXED).required(),
             thirdPartyPayer: Joi.objectId().required(),
-            services: Joi.array().items(Joi.objectId()).required(),
+            subscriptions: Joi.array().items(Joi.objectId()).required(),
             versions: Joi.array().items(Joi.object().keys({
               folderNumber: Joi.string(),
               startDate: Joi.date().required(),
@@ -520,7 +520,7 @@ exports.plugin = {
             fundingId: Joi.objectId().required()
           },
           payload: Joi.object().keys({
-            services: Joi.array().items(Joi.objectId()).required(),
+            subscriptions: Joi.array().items(Joi.objectId()).required(),
             fundingId: Joi.objectId().required(),
             folderNumber: Joi.string(),
             endDate: Joi.date(),
