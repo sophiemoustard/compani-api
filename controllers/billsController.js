@@ -13,7 +13,7 @@ const draftBillsList = async (req) => {
   try {
     const rules = [
       { endDate: { $lt: req.query.endDate } },
-      { isBilled: false },
+      { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
       { type: INTERVENTION },
       { customer: new ObjectID('5c6431764a85340014894ee6') }
     ];

@@ -1,4 +1,15 @@
-const moment = require('moment');
+const moment = require('moment-business-days');
+const Holidays = require('date-holidays');
+
+const holidays = new Holidays('FR');
+const date = new Date();
+const currentYear = date.getFullYear();
+const currentHolidays = [...holidays.getHolidays(currentYear), ...holidays.getHolidays(currentYear - 1)];
+moment.updateLocale('fr', {
+  holidays: currentHolidays.map(holiday => holiday.date),
+  holidayFormat: 'YYYY-MM-DD HH:mm:ss',
+  workingWeekdays: [1, 2, 3, 4, 5, 6]
+});
 
 const Surcharge = require('../models/Surcharge');
 
@@ -38,28 +49,29 @@ const getMatchingVersion = (event, obj) => {
 
 // TODO : Add surcharge for public holidays, evenings and customs
 const applySurcharge = (event, price, surcharge) => {
-  if (surcharge.saturday && moment(event.startDate).isoWeekday() === 6) return price * (1 + surcharge.saturday / 100);
-  if (surcharge.sunday && moment(event.startDate).isoWeekday() === 7) return price * (1 + surcharge.sunday / 100);
-  if (surcharge.twentyFifthOfDecember && moment(event.startDate).format('DD/MM') === '25/12') {
+  if (surcharge.saturday && surcharge.saturday > 0 && moment(event.startDate).isoWeekday() === 6) return price * (1 + surcharge.saturday / 100);
+  if (surcharge.sunday && surcharge.sunday > 0 && moment(event.startDate).isoWeekday() === 7) return price * (1 + surcharge.sunday / 100);
+  if (surcharge.twentyFifthOfDecember && surcharge.twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
     return price * (1 + surcharge.twentyFifthOfDecember / 100);
   }
-  if (surcharge.firstOfMay && moment(event.startDate).format('DD/MM') === '01/05') return price * (1 + surcharge.firstOfMay / 100);
+  if (surcharge.firstOfMay && surcharge.firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
+    return price * (1 + surcharge.firstOfMay / 100);
+  }
+  if (surcharge.publicHoliday && surcharge.publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) {
+    return price * (1 + surcharge.publicHoliday / 100);
+  }
 
   return price;
 }
 
 // TODO : Add funding case
-const getEventPrice = (event, subscription, service, fundings) => {
+const getEventPrice = (event, subscription, service) => {
   let price = moment(event.endDate).diff(moment(event.startDate), 'm') / 60 * subscription.versions[0].unitTTCRate;
 
   if (service.surcharge) {
     price = applySurcharge(event, price, service.surcharge)
   }
 
-  if (fundings) {
-
-  }
-  
   return price;
 }
 
@@ -76,8 +88,8 @@ const getDraftBill = (events, customer, subscription, query) => {
 
       eventsList.push(event._id.toHexString());
       minutes += moment(event.endDate).diff(moment(event.startDate), 'm');
-      preTaxPrice += getEventPrice(event, matchingSub, matchingService, customer.fundings);
-      withTaxPrice = matchingService.vat ? preTaxPrice * (1 + matchingService.vat / 100) : preTaxPrice;
+      preTaxPrice += getEventPrice(event, matchingSub, matchingService);
+      withTaxPrice = preTaxPrice;
       if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
     }
   }
@@ -100,9 +112,8 @@ const getDraftBillsList = async (eventsToBill, query) => {
   const draftBills = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const subscription = await getSubscription(eventsToBill[i]);
-    console.log(eventsToBill[i].customer[0].fundings, subscription._id);
-    const funding = eventsToBill[i].customer[0].fundings.filter(fund => fund.subscription === subscription._id.toHexString())
-    draftBills.push(getDraftBill(eventsToBill[i].events, eventsToBill[i].customer[0], subscription, query));
+    const draftBill = getDraftBill(eventsToBill[i].events, eventsToBill[i].customer[0], subscription, query)
+    draftBills.push(draftBill.customer, draftBill.thirdPartyPayer);
   }
 
   return draftBills;
