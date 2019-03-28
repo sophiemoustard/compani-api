@@ -31,22 +31,9 @@ const draftBillsList = async (req) => {
         }
       },
       {
-        $group: {
-          _id: '$_id.CUSTOMER',
-          subscriptions: {
-            $push: {
-              sub: '$_id.SUBS',
-              hours: '$hours',
-              eventsNumber: { $size: '$events' },
-              events: '$events'
-            }
-          }
-        }
-      },
-      {
         $lookup: {
           from: 'customers',
-          localField: '_id',
+          localField: '_id.CUSTOMER',
           foreignField: '_id',
           as: 'customer'
         }
@@ -54,14 +41,55 @@ const draftBillsList = async (req) => {
       { $unwind: { path: '$customer' } },
       {
         $addFields: {
-          'subscriptions.subscription': '$customer.subscriptions',
+          sub: {
+            $filter:
+             {
+               input: '$customer.subscriptions',
+               as: 'sub',
+               cond: { $eq: ['$$sub._id', '$_id.SUBS'] }
+             }
+          }
+        }
+      },
+      { $unwind: { path: '$sub' } },
+      {
+        $lookup: {
+          from: 'services',
+          localField: 'sub.service',
+          foreignField: '_id',
+          as: 'sub.service'
         }
       },
       {
         $project: {
+          idCustomer: '$_id.CUSTOMER',
+          subId: '$_id.SUBS',
+          hours: 1,
+          events: 1,
+          customer: 1,
+          sub: 1
+        }
+      },
+      {
+        $group: {
+          _id: '$idCustomer',
+          customer: { $addToSet: '$customer' },
+          eventsBySubscriptions: {
+            $push: {
+              sub: '$sub',
+              hours: '$hours',
+              eventsNumber: { $size: '$events' },
+              events: '$events'
+            }
+          }
+        }
+      },
+      { $unwind: { path: '$customer' } },
+      {
+        $project: {
           _id: 0,
           customer: { _id: 1, identity: 1, fundings: 1 },
-          subscriptions: 1,
+          eventsBySubscriptions: 1,
         }
       }
     ]);
