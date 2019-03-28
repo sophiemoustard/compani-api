@@ -96,7 +96,6 @@ const draftBillsList = async (req) => {
 
     const draftBills = await getDraftBillsList(eventsToBill, req.query);
 
-
     return {
       message: translate[language].draftBills,
       data: { draftBills, eventsToBill },
