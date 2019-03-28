@@ -2,10 +2,11 @@ const moment = require('moment-business-days');
 const Holidays = require('date-holidays');
 
 const Surcharge = require('../models/Surcharge');
+const { HOURLY } = require('../helpers/constants');
 
 const holidays = new Holidays('FR');
-const date = new Date();
-const currentYear = date.getFullYear();
+const now = new Date();
+const currentYear = now.getFullYear();
 const currentHolidays = [...holidays.getHolidays(currentYear), ...holidays.getHolidays(currentYear - 1)];
 moment.updateLocale('fr', {
   holidays: currentHolidays.map(holiday => holiday.date),
@@ -13,23 +14,19 @@ moment.updateLocale('fr', {
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
 
-
-const getSubscription = async (eventsToBill) => {
-  let subscription = eventsToBill.customer[0].subscriptions
-    .find(s => s._id.toHexString() === eventsToBill._id.SUB.toHexString());
-  const service = eventsToBill.services.find(ser => ser._id.toHexString() === subscription.service.toHexString());
-  for (let i = 0, l = service.versions.length; i < l; i++) {
-    if (service.versions[i].surcharge) {
-      const surcharge = await Surcharge.findOne({ _id: service.versions[i].surcharge });
-      service.versions[i] = { ...service.versions[i], surcharge };
+const populateSurcharge = async (subscription) => {
+  for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
+    if (subscription.service.versions[i].surcharge) {
+      const surcharge = await Surcharge.findOne({ _id: subscription.service.versions[i].surcharge });
+      subscription.service.versions[i] = { ...subscription.service.versions[i], surcharge };
     }
   }
-  
+
   return {
     ...subscription,
     service: {
-      ...service,
-      versions: service.versions.sort((a, b) => a.startDate - b.startDate),
+      ...subscription.service,
+      versions: subscription.service.versions.sort((a, b) => a.startDate - b.startDate),
     },
   };
 };
@@ -40,48 +37,77 @@ const getMatchingVersion = (date, obj) => {
   let matchingVersion = obj.versions[0];
   for (let i = 1, l = obj.versions.length; i < l; i++) {
     if (moment(obj.versions[i].startDate).isAfter(date, 'd')) break;
-    else {
-      matchingVersion = obj.versions[i];
-    };
+    else matchingVersion = obj.versions[i];
   }
 
   return { ...obj, ...matchingVersion };
-}
+};
 
-// TODO : Add surcharge for public holidays, evenings and customs
+const computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
+  const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(2));
+  let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(2));
+  if (start.isAfter(end)) end = end.add(1, 'd');
+
+  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return price * (1 + surchargeValue / 100);
+
+  const time = moment(event.endDate).diff(moment(event.startDate), 'm');
+  let inflatedTime = 0;
+  let notInflatedTime = time;
+  if (start.isSameOrBefore(event.startDate) && end.isAfter(event.startDate) && end.isBefore(event.endDate)) {
+    inflatedTime = end.diff(event.startDate, 'm');
+    notInflatedTime = moment(event.endDate).diff(end, 'm');
+  } else if (start.isAfter(event.startDate) && start.isBefore(event.endDate) && end.isSameOrAfter(event.endDate)) {
+    inflatedTime = moment(event.endDate).diff(start, 'm');
+    notInflatedTime = start.diff(event.startDate, 'm');
+  } else if (start.isAfter(event.startDate) && end.isBefore(event.endDate)) {
+    inflatedTime = end.diff(start, 'm');
+    notInflatedTime = start.diff(event.startDate, 'm') + moment(event.endDate).diff(end, 'm');
+  }
+
+  return (price / time) * (notInflatedTime + (inflatedTime * (1 + (surchargeValue / 100))));
+};
+
 const applySurcharge = (event, price, surcharge) => {
-  if (surcharge.saturday && surcharge.saturday > 0 && moment(event.startDate).isoWeekday() === 6) return price * (1 + surcharge.saturday / 100);
-  if (surcharge.sunday && surcharge.sunday > 0 && moment(event.startDate).isoWeekday() === 7) return price * (1 + surcharge.sunday / 100);
-  if (surcharge.twentyFifthOfDecember && surcharge.twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
-    return price * (1 + surcharge.twentyFifthOfDecember / 100);
+  const {
+    saturday,
+    sunday,
+    publicHoliday,
+    firstOfMay,
+    twentyFifthOfDecember,
+    evening,
+    eveningEndTime,
+    eveningStartTime,
+    custom,
+    customStartTime,
+    customEndTime
+  } = surcharge;
+
+  if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
+    return price * (1 + (twentyFifthOfDecember / 100));
   }
-  if (surcharge.firstOfMay && surcharge.firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
-    return price * (1 + surcharge.firstOfMay / 100);
+  if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') return price * (1 + (firstOfMay / 100));
+  if (publicHoliday && publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) {
+    return price * (1 + (publicHoliday / 100));
   }
-  if (surcharge.publicHoliday && surcharge.publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) {
-    return price * (1 + surcharge.publicHoliday / 100);
-  }
+  if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) return price * (1 + (saturday / 100));
+  if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) return price * (1 + (sunday / 100));
+  if (evening) return computeCustomSurcharge(event, eveningStartTime, eveningEndTime, evening, price);
+  if (custom) return computeCustomSurcharge(event, customStartTime, customEndTime, custom, price);
 
   return price;
-}
+};
 
-const getPreTaxPrice = (subscription, service) => {
-  return subscription.unitTTCRate / (1 + service.vat / 100);
-}
+const getPreTaxPrice = (subscription, service) => subscription.unitTTCRate / (1 + (service.vat / 100));
 
-// TODO : Add funding case
 const getEventPrice = (event, subscription, service) => {
   const unitPreTaxPrice = getPreTaxPrice(subscription, service);
-  let price = moment(event.endDate).diff(moment(event.startDate), 'm') / 60 * unitPreTaxPrice;
+  let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitPreTaxPrice;
 
-  if (service.surcharge) {
-    price = applySurcharge(event, price, service.surcharge)
-  }
+  if (service.surcharge && service.nature === HOURLY) price = applySurcharge(event, price, service.surcharge);
 
   return price;
-}
+};
 
-// TODO : check what to do in case of no vat
 const getDraftBill = (events, customer, subscription, query) => {
   const eventsList = [];
   let minutes = 0;
@@ -95,7 +121,6 @@ const getDraftBill = (events, customer, subscription, query) => {
       eventsList.push(event._id.toHexString());
       minutes += moment(event.endDate).diff(moment(event.startDate), 'm');
       preTaxPrice += getEventPrice(event, matchingSub, matchingService);
-      withTaxPrice = preTaxPrice;
       if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
     }
   }
@@ -110,15 +135,18 @@ const getDraftBill = (events, customer, subscription, query) => {
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitPreTaxPrice: getPreTaxPrice(getMatchingVersion(query.startDate, subscription), getMatchingVersion(query.startDate, subscription.service)),
     preTaxPrice,
-    withTaxPrice,
+    withTaxPrice: preTaxPrice,
   };
-}
+};
 
 const getDraftBillsList = async (eventsToBill, query) => {
   const draftBills = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
-    const subscription = await getSubscription(eventsToBill[i]);
-    draftBills.push(getDraftBill(eventsToBill[i].events, eventsToBill[i].customer[0], subscription, query));
+    const eventsListGroupByCustomer = eventsToBill[i].eventsBySubscriptions;
+    for (let k = 0, L = eventsListGroupByCustomer.length; k < L; k++) {
+      const subscription = await populateSurcharge(eventsListGroupByCustomer[k].subscription);
+      draftBills.push(getDraftBill(eventsListGroupByCustomer[i].events, eventsToBill[i].customer, subscription, query));
+    }
   }
 
   return draftBills;

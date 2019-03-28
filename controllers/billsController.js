@@ -1,12 +1,11 @@
-const moment = require('moment');
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
-const _ = require('lodash');
 
 const Event = require('../models/Event');
 const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/bills');
+
 const { language } = translate;
 
 const draftBillsList = async (req) => {
@@ -17,29 +16,63 @@ const draftBillsList = async (req) => {
       { type: INTERVENTION },
       { customer: new ObjectID('5c6431764a85340014894ee6') }
     ];
-    let eventsToBill = await Event.aggregate([
+
+    const eventsToBill = await Event.aggregate([
       { $match: { $and: rules } },
-      { $lookup: { from: 'customers', localField: 'customer', foreignField: '_id', as: 'customer' } },
-      { $unwind: { path : '$customer' } },
-      { $lookup: { from: 'services', localField: 'customer.subscriptions.service', foreignField: '_id', as: 'service' } },
-      { $unwind: { path : '$service' } },
-      { $group: { _id: { CUS: '$customer._id', SUB: '$subscription' }, events: { $push: '$$ROOT' }, customer: { $addToSet: '$customer'}, services: { $addToSet: '$service'} } },
-      { $project: {
-        _id: 1,
-        services: 1,
-        customer: { _id: 1, identity: 1, subscriptions: 1, fundings: 1 },
-        events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
-      }},
+      {
+        $group: {
+          _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
+          count: { $sum: 1 },
+          events: { $push: '$$ROOT' }
+        }
+      },
+      { $lookup: { from: 'customers', localField: '_id.CUSTOMER', foreignField: '_id', as: 'customer' } },
+      { $unwind: { path: '$customer' } },
+      {
+        $addFields: {
+          sub: {
+            $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+          }
+        }
+      },
+      { $unwind: { path: '$sub' } },
+      { $lookup: { from: 'services', localField: 'sub.service', foreignField: '_id', as: 'sub.service'} },
+      { $unwind: { path: '$sub.service' } },
+      {
+        $project: {
+          idCustomer: '$_id.CUSTOMER',
+          subId: '$_id.SUBS',
+          events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
+          customer: 1,
+          sub: 1
+        }
+      },
+      {
+        $group: {
+          _id: '$idCustomer',
+          customer: { $addToSet: '$customer' },
+          eventsBySubscriptions: {
+            $push: { subscription: '$sub', eventsNumber: { $size: '$events' }, events: '$events' },
+          }
+        }
+      },
+      { $unwind: { path: '$customer' } },
+      {
+        $project: {
+          _id: 0,
+          customer: { _id: 1, identity: 1, fundings: 1 },
+          eventsBySubscriptions: 1,
+        }
+      }
     ]);
 
     const draftBills = await getDraftBillsList(eventsToBill, req.query);
 
     return {
       message: translate[language].draftBills,
-      data: { draftBills, eventsToBill },
+      data: { draftBills },
     };
   } catch (e) {
-    console.log(e);
     req.log('error', e);
     return Boom.badImplementation();
   }
