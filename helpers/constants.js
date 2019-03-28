@@ -11,7 +11,6 @@ module.exports = {
   BILLING_DIRECT: 'direct',
   // CUSTOMER FUNDINGS
   MONTHLY: 'monthly',
-  WEEKLY: 'weekly',
   ONCE: 'once',
   HOURLY: 'hourly',
   FIXED: 'fixed',

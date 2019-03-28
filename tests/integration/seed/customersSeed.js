@@ -75,7 +75,7 @@ const customersList = [
         _id: new ObjectID(),
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
-        subscriptions: [subId],
+        subscription: subId,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),

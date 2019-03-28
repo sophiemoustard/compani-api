@@ -34,7 +34,6 @@ const {
 
 const {
   MONTHLY,
-  WEEKLY,
   ONCE,
   HOURLY,
   FIXED
@@ -491,12 +490,12 @@ exports.plugin = {
           payload: Joi.object().keys({
             nature: Joi.string().valid(HOURLY, FIXED).required(),
             thirdPartyPayer: Joi.objectId().required(),
-            subscriptions: Joi.array().items(Joi.objectId()).required(),
+            subscription: Joi.objectId().required(),
             versions: Joi.array().items(Joi.object().keys({
               folderNumber: Joi.string(),
               startDate: Joi.date().required(),
               endDate: Joi.date(),
-              frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE).required(),
+              frequency: Joi.string().valid(MONTHLY, ONCE).required(),
               amountTTC: Joi.number(),
               unitTTCRate: Joi.number(),
               careHours: Joi.number(),
@@ -520,12 +519,12 @@ exports.plugin = {
             fundingId: Joi.objectId().required()
           },
           payload: Joi.object().keys({
-            subscriptions: Joi.array().items(Joi.objectId()).required(),
+            subscription: Joi.objectId().required(),
             fundingId: Joi.objectId().required(),
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),
-            frequency: Joi.string().valid(MONTHLY, WEEKLY, ONCE).required(),
+            frequency: Joi.string().valid(MONTHLY, ONCE).required(),
             amountTTC: Joi.number(),
             unitTTCRate: Joi.number(),
             careHours: Joi.number(),

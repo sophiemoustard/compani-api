@@ -12,8 +12,7 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
   if (!customer.fundings || customer.fundings.length === 0) return true;
 
   return customer.fundings
-    .filter(fund => fund.subscriptions.some(sub => checkedFunding.subscriptions.includes(sub._id.toHexString())) &&
-      checkedFunding._id !== fund._id.toHexString())
+    .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() && checkedFunding._id !== fund._id.toHexString())
     .every((fund) => {
       const lastVersion = getLastVersion(fund.versions, 'createdAt');
       /** We allow two fundings to have the same subscription only if :
@@ -28,14 +27,13 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
 const populateFundings = async (funding, customer) => {
   if (!funding) return false;
 
-  for (let i = 0, l = funding.subscriptions.length; i < l; i++) {
-    const sub = customer.subscriptions.find(sub => sub._id.toHexString() === funding.subscriptions[i].toHexString());
-    if (sub.service.versions) {
-      funding.subscriptions[i] = { ...sub, service: await populateServices(sub.service) };
-    } else {
-      funding.subscriptions[i] = { ...sub }
-    }
+  const sub = customer.subscriptions.find(sub => sub._id.toHexString() === funding.subscription.toHexString());
+  if (sub.service.versions) {
+    funding.subscription = { ...sub, service: await populateServices(sub.service) };
+  } else {
+    funding.subscription = { ...sub }
   }
+
   return funding;
 };
 

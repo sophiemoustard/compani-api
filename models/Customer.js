@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const _ = require('lodash');
 const {
   MONTHLY,
-  WEEKLY,
   ONCE,
   HOURLY,
   FIXED,
@@ -125,13 +124,13 @@ const CustomerSchema = mongoose.Schema({
       type: String,
       enum: [HOURLY, FIXED]
     },
-    subscriptions: [{ type: mongoose.Schema.Types.ObjectId }],
+    subscription: { type: mongoose.Schema.Types.ObjectId },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     versions: [{
       endDate: Date,
       frequency: {
         type: String,
-        enum: [MONTHLY, WEEKLY, ONCE]
+        enum: [MONTHLY, ONCE]
       },
       amountTTC: Number,
       unitTTCRate: Number,
