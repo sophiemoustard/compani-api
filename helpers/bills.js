@@ -112,6 +112,7 @@ const getDraftBill = (events, customer, subscription, query) => {
   const eventsList = [];
   let minutes = 0;
   let preTaxPrice = 0;
+  let withTaxPrice = 0;
   let startDate = moment(query.startDate);
   for (const event of events) {
     if (!eventsList.includes(event._id.toHexString())) {
@@ -120,7 +121,10 @@ const getDraftBill = (events, customer, subscription, query) => {
 
       eventsList.push(event._id.toHexString());
       minutes += moment(event.endDate).diff(moment(event.startDate), 'm');
-      preTaxPrice += getEventPrice(event, matchingSub, matchingService);
+
+      const eventPrice = getEventPrice(event, matchingSub, matchingService);
+      preTaxPrice += eventPrice;
+      withTaxPrice += eventPrice * (1 + (matchingService.vat / 100));
       if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
     }
   }
@@ -135,7 +139,7 @@ const getDraftBill = (events, customer, subscription, query) => {
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitPreTaxPrice: getPreTaxPrice(getMatchingVersion(query.startDate, subscription), getMatchingVersion(query.startDate, subscription.service)),
     preTaxPrice,
-    withTaxPrice: preTaxPrice,
+    withTaxPrice,
   };
 };
 
