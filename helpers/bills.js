@@ -48,7 +48,7 @@ const computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price
   let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(2));
   if (start.isAfter(end)) end = end.add(1, 'd');
 
-  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return price * (1 + surchargeValue / 100);
+  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return price * (1 + (surchargeValue / 100));
 
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
   let inflatedTime = 0;
@@ -146,11 +146,18 @@ const getDraftBill = (events, customer, subscription, query) => {
 const getDraftBillsList = async (eventsToBill, query) => {
   const draftBills = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
+    console.log(eventsToBill[i]);
     const eventsListGroupByCustomer = eventsToBill[i].eventsBySubscriptions;
+    const customerDraftBills = [];
     for (let k = 0, L = eventsListGroupByCustomer.length; k < L; k++) {
       const subscription = await populateSurcharge(eventsListGroupByCustomer[k].subscription);
-      draftBills.push(getDraftBill(eventsListGroupByCustomer[i].events, eventsToBill[i].customer, subscription, query));
+      customerDraftBills.push(getDraftBill(eventsListGroupByCustomer[k].events, eventsToBill[i].customer, subscription, query));
     }
+    draftBills.push({
+      customer: eventsToBill[i].customer,
+      bills: customerDraftBills,
+      total: customerDraftBills.reduce((sum, b) => sum + (b.withTaxPrice || 0), 0)
+    });
   }
 
   return draftBills;

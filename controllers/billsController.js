@@ -1,5 +1,4 @@
 const Boom = require('boom');
-const { ObjectID } = require('mongodb');
 
 const Event = require('../models/Event');
 const translate = require('../helpers/translate');
@@ -14,7 +13,6 @@ const draftBillsList = async (req) => {
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
       { type: INTERVENTION },
-      { customer: new ObjectID('5c6431764a85340014894ee6') }
     ];
 
     const eventsToBill = await Event.aggregate([
@@ -26,7 +24,14 @@ const draftBillsList = async (req) => {
           events: { $push: '$$ROOT' }
         }
       },
-      { $lookup: { from: 'customers', localField: '_id.CUSTOMER', foreignField: '_id', as: 'customer' } },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: '_id.CUSTOMER',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
       { $unwind: { path: '$customer' } },
       {
         $addFields: {
@@ -36,7 +41,14 @@ const draftBillsList = async (req) => {
         }
       },
       { $unwind: { path: '$sub' } },
-      { $lookup: { from: 'services', localField: 'sub.service', foreignField: '_id', as: 'sub.service'} },
+      {
+        $lookup: {
+          from: 'services',
+          localField: 'sub.service',
+          foreignField: '_id',
+          as: 'sub.service'
+        }
+      },
       { $unwind: { path: '$sub.service' } },
       {
         $project: {
