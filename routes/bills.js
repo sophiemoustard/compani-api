@@ -4,6 +4,7 @@ const Joi = require('joi');
 const {
   draftBillsList,
 } = require('../controllers/billsController');
+const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -17,6 +18,7 @@ exports.plugin = {
           query: {
             endDate: Joi.date().required(),
             startDate: Joi.date().required(),
+            billingPeriod: Joi.string().valid([MONTH, TWO_WEEKS]).required(),
           },
         },
       },

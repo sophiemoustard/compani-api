@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const { ObjectID } = require('mongodb');
 
 const Event = require('../models/Event');
 const translate = require('../helpers/translate');
@@ -13,6 +14,7 @@ const draftBillsList = async (req) => {
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
       { type: INTERVENTION },
+      { customer: new ObjectID('5c6431764a85340014894ee6') }
     ];
 
     const eventsToBill = await Event.aggregate([
@@ -42,21 +44,43 @@ const draftBillsList = async (req) => {
       },
       { $unwind: { path: '$sub' } },
       {
+        $addFields: {
+          fund: {
+            $filter: {
+              input: '$customer.fundings',
+              as: 'fund',
+              cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] }
+            },
+          }
+        }
+      },
+      { $unwind: { path: '$fund', preserveNullAndEmptyArrays: true } },
+      {
         $lookup: {
           from: 'services',
           localField: 'sub.service',
           foreignField: '_id',
-          as: 'sub.service'
+          as: 'sub.service',
         }
       },
       { $unwind: { path: '$sub.service' } },
+      {
+        $lookup: {
+          from: 'thirdpartypayers',
+          localField: 'fund.thirdPartyPayer',
+          foreignField: '_id',
+          as: 'fund.thirdPartyPayer',
+        }
+      },
+      { $unwind: { path: '$fund.thirdPartyPayer', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           idCustomer: '$_id.CUSTOMER',
           subId: '$_id.SUBS',
           events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
           customer: 1,
-          sub: 1
+          sub: 1,
+          fund: 1,
         }
       },
       {
@@ -64,7 +88,12 @@ const draftBillsList = async (req) => {
           _id: '$idCustomer',
           customer: { $addToSet: '$customer' },
           eventsBySubscriptions: {
-            $push: { subscription: '$sub', eventsNumber: { $size: '$events' }, events: '$events' },
+            $push: {
+              subscription: '$sub',
+              eventsNumber: { $size: '$events' },
+              events: '$events',
+              funding: '$fund',
+            },
           }
         }
       },
@@ -72,7 +101,7 @@ const draftBillsList = async (req) => {
       {
         $project: {
           _id: 0,
-          customer: { _id: 1, identity: 1, fundings: 1 },
+          customer: { _id: 1, identity: 1 },
           eventsBySubscriptions: 1,
         }
       }
@@ -82,7 +111,7 @@ const draftBillsList = async (req) => {
 
     return {
       message: translate[language].draftBills,
-      data: { draftBills },
+      data: { draftBills, eventsToBill },
     };
   } catch (e) {
     req.log('error', e);
