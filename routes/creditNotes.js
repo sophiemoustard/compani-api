@@ -26,7 +26,7 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date(),
             customer: Joi.objectId().required(),
-            thirdPartyPayer: Joi.objectId().required().allow('', null),
+            thirdPartyPayer: Joi.objectId().allow('', null),
             exclTaxes: Joi.number().required(),
             inclTaxes: Joi.number().required(),
             events: Joi.array().items({ _id: Joi.objectId() }),
@@ -93,6 +93,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
+            date: Joi.date(),
             startDate: Joi.date(),
             endDate: Joi.date(),
             customer: Joi.objectId(),

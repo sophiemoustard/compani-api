@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const CreditNoteSchema = mongoose.Schema({
-  number: Number,
+  number: String,
   date: Date,
   startDate: Date,
   endDate: Date,
