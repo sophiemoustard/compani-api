@@ -16,7 +16,7 @@ describe('NODE ENV', () => {
 describe('USERS ROUTES', () => {
   let authToken = null;
   before(populateRoles);
-  before(populateUsers);
+  beforeEach(populateUsers);
   before(async () => {
     authToken = await getToken();
   });
@@ -24,7 +24,7 @@ describe('USERS ROUTES', () => {
   describe('POST /users', () => {
     let res = null;
     let user = null;
-    it('should not create an user if missing parameters', async () => {
+    it('should not create a user if missing parameters', async () => {
       const tmpRole = userPayload.role;
       delete userPayload.role;
       const response = await app.inject({
@@ -35,7 +35,7 @@ describe('USERS ROUTES', () => {
       userPayload.role = tmpRole;
       expect(response.statusCode).toBe(400);
     });
-    it('should create an user', async () => {
+    it('should create a user', async () => {
       res = await app.inject({
         method: 'POST',
         url: '/users',
@@ -58,7 +58,7 @@ describe('USERS ROUTES', () => {
       expect(user.local.password).toBeDefined();
       expect(user).toHaveProperty('picture');
     });
-    it('should not create an user if role provided does not exist', async () => {
+    it('should not create a user if role provided does not exist', async () => {
       userPayload.role = 'Toto';
       const response = await app.inject({
         method: 'POST',
@@ -67,7 +67,7 @@ describe('USERS ROUTES', () => {
       });
       expect(response.statusCode).toBe(404);
     });
-    it('should not create an user if email provided already exists', () => {
+    it('should not create a user if email provided already exists', () => {
       const userPayload2 = {
         idenity: {
           firstname: 'Test',
@@ -92,9 +92,9 @@ describe('USERS ROUTES', () => {
   });
 
   describe('POST /users/authenticate', () => {
-    it('should authenticate an user', async () => {
+    it('should authenticate a user', async () => {
       const credentials = {
-        email: 'test1@alenvi.io',
+        email: 'test2@alenvi.io',
         password: '123456'
       };
       const response = await app.inject({
@@ -113,9 +113,9 @@ describe('USERS ROUTES', () => {
         })
       }));
     });
-    it('should authenticate an user if email has capitals', async () => {
+    it('should authenticate a user if email has capitals', async () => {
       const credentials = {
-        email: 'Test1@alenvi.io',
+        email: 'Test2@alenvi.io',
         password: '123456'
       };
       const res = await app.inject({
@@ -125,9 +125,9 @@ describe('USERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
     });
-    it('should not authenticate an user if missing parameter', async () => {
+    it('should not authenticate a user if missing parameter', async () => {
       const credentials = {
-        email: 'test1@alenvi.io'
+        email: 'test2@alenvi.io'
       };
       const res = await app.inject({
         method: 'POST',
@@ -136,7 +136,7 @@ describe('USERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(400);
     });
-    it('should not authenticate an user if user does not exist', async () => {
+    it('should not authenticate a user if user does not exist', async () => {
       const credentials = {
         email: 'test@alenvi.io',
         password: '123456'
@@ -148,9 +148,9 @@ describe('USERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(404);
     });
-    it('should not authenticate an user if wrong password', async () => {
+    it('should not authenticate a user if wrong password', async () => {
       const credentials = {
-        email: 'test1@alenvi.io',
+        email: 'test2@alenvi.io',
         password: '7890'
       };
       const res = await app.inject({
@@ -160,7 +160,7 @@ describe('USERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(401);
     });
-    it('should not authenticate an user if refreshToken is missing', async () => {
+    it('should not authenticate a user if refreshToken is missing', async () => {
       const credentials = {
         email: 'test2@alenvi.io',
         password: '123456'
@@ -360,7 +360,7 @@ describe('USERS ROUTES', () => {
   describe('POST /users/refreshToken', () => {
     it('should return refresh token', async () => {
       const credentials = {
-        email: 'test1@alenvi.io',
+        email: 'test2@alenvi.io',
         password: '123456'
       };
       const user = await app.inject({
