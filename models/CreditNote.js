@@ -21,11 +21,7 @@ const CreditNoteSchema = mongoose.Schema({
   }],
   subscription: {
     service: String,
-    unitTTCRate: Number,
-    estimatedWeeklyVolume: Number,
-    evenings: Number,
-    sundays: Number,
-    startDate: Date,
+    vat: Number
   }
 }, { timestamps: true });
 

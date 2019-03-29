@@ -32,11 +32,7 @@ exports.plugin = {
             events: Joi.array().items({ _id: Joi.objectId() }),
             subscription: Joi.object().keys({
               service: Joi.string(),
-              unitTTCRate: Joi.number(),
-              estimatedWeeklyVolume: Joi.number(),
-              evenings: Joi.number(),
-              sundays: Joi.number(),
-              startDate: Joi.date(),
+              vat: Joi.number(),
             }),
           })
         },
