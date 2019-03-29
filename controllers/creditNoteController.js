@@ -1,12 +1,18 @@
 const Boom = require('boom');
+const flat = require('flat');
+const moment = require('moment');
 
 const CreditNote = require('../models/CreditNote');
+const CreditNoteNumber = require('../models/CreditNoteNumber');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
+    req.query.date = { $gte: req.query.startDate, $lte: req.query.endDate };
+    delete req.query.startDate;
+    delete req.query.endDate;
     const creditNotes = await CreditNote.find(req.query)
       .populate('customer')
       .populate('thirdPartyPayer')
@@ -40,6 +46,11 @@ const getById = async (req) => {
 
 const create = async (req) => {
   try {
+    const query = { creditNoteNumber: { prefix: `AV${moment().format('YYMMDD')}` } };
+    const payload = { creditNoteNumber: { seq: 1 } };
+    const number = await CreditNoteNumber.findOneAndUpdate(flat(query), { $inc: flat(payload) }, { new: true, upsert: true, setDefaultsOnInsert: true });
+    const creditNoteNumber = `${number.creditNoteNumber.prefix}-${number.creditNoteNumber.seq.toString().padStart(3, '0')}`;
+    req.payload.number = creditNoteNumber;
     const creditNote = new CreditNote(req.payload);
     await creditNote.save();
 
