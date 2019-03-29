@@ -24,21 +24,19 @@ const populateSurcharge = async (subscription) => {
 
   return {
     ...subscription,
+    versions: subscription.versions.sort((a, b) => b.startDate - a.startDate),
     service: {
       ...subscription.service,
-      versions: subscription.service.versions.sort((a, b) => a.startDate - b.startDate),
+      versions: subscription.service.versions.sort((a, b) => b.startDate - a.startDate),
     },
   };
 };
 
+// `obj` should by sort in descending order
 const getMatchingVersion = (date, obj) => {
   if (obj.versions.length === 1) return { ...obj, ...obj.versions[0] };
 
-  let matchingVersion = obj.versions[0];
-  for (let i = 1, l = obj.versions.length; i < l; i++) {
-    if (moment(obj.versions[i].startDate).isAfter(date, 'd')) break;
-    else matchingVersion = obj.versions[i];
-  }
+  const matchingVersion = obj.versions.filter(ver => ver.startDate.isSameOrBefore(date, 'd'))[0];
 
   return { ...obj, ...matchingVersion };
 };
