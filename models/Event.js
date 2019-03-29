@@ -42,6 +42,7 @@ const EventSchema = mongoose.Schema({
     condition: String,
     reason: String,
   },
+  isBilled: { type: Boolean, default: false },
 }, {
   timestamps: true
 });

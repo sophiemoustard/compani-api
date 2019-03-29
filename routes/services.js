@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../helpers/constants');
 
 
 const {
@@ -30,9 +30,9 @@ exports.plugin = {
               defaultUnitAmount: Joi.number().required(),
               name: Joi.string().required(),
               vat: Joi.number(),
-              surcharge: Joi.objectId()
+              surcharge: Joi.objectId(),
             }),
-            nature: Joi.string().required(),
+            nature: Joi.string().required().valid(HOURLY, FIXED),
           })
         },
       },

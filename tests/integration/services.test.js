@@ -5,7 +5,7 @@ const { servicesList, populateServices } = require('./seed/servicesSeed');
 const { getToken } = require('./seed/usersSeed');
 const Service = require('../../models/Service');
 const app = require('../../server');
-const { CUSTOMER_CONTRACT } = require('../../helpers/constants');
+const { CUSTOMER_CONTRACT, HOURLY } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -29,7 +29,7 @@ describe('SERVICES ROUTES', () => {
         defaultUnitAmount: 12,
         vat: 12,
       }],
-      nature: 'Service',
+      nature: HOURLY,
     };
 
     it('should create a new service', async () => {
