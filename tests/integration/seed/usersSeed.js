@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const User = require('../../../models/User');
 const app = require('../../../server');
 const { sectorsList } = require('./sectorsSeed');
+const { companiesList } = require('./companiesSeed');
 
 const userList = [
   {
@@ -91,7 +92,8 @@ const userPayload = {
     email: 'test1@alenvi.io',
     password: '123456'
   },
-  role: 'Auxiliaire'
+  role: 'Auxiliaire',
+  company: companiesList[0]._id,
 };
 
 const populateUsers = async () => {
