@@ -36,7 +36,7 @@ const populateSurcharge = async (subscription) => {
 const getMatchingVersion = (date, obj) => {
   if (obj.versions.length === 1) return { ...obj, ...obj.versions[0] };
 
-  const matchingVersion = obj.versions.filter(ver => ver.startDate.isSameOrBefore(date, 'd'))[0];
+  const matchingVersion = obj.versions.filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd'))[0];
 
   return { ...obj, ...matchingVersion };
 };
@@ -144,7 +144,6 @@ const getDraftBill = (events, customer, subscription, query) => {
 const getDraftBillsList = async (eventsToBill, query) => {
   const draftBills = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
-    console.log(eventsToBill[i]);
     const eventsListGroupByCustomer = eventsToBill[i].eventsBySubscriptions;
     const customerDraftBills = [];
     for (let k = 0, L = eventsListGroupByCustomer.length; k < L; k++) {
