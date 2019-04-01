@@ -3,7 +3,7 @@ const Holidays = require('date-holidays');
 const _ = require('lodash');
 
 const Surcharge = require('../models/Surcharge');
-const { HOURLY, MONTHLY, MONTH } = require('../helpers/constants');
+const { HOURLY } = require('../helpers/constants');
 
 const holidays = new Holidays('FR');
 const now = new Date();
@@ -100,26 +100,64 @@ const applySurcharge = (event, price, surcharge) => {
 
 const getPreTaxPrice = (unitTTCRate, vat) => unitTTCRate / (1 + (vat / 100));
 
+const getThirdPartyPayerPrice = (time, fundingPreTaxPrice, customerParticipationRate) =>
+  (time / 60) * fundingPreTaxPrice * (1 - (customerParticipationRate / 100));
+
+const getHourlyFundingSplit = (event, funding, service, price) => {
+  let thirdPartyPayerPrice = 0;
+  const time = moment(event.endDate).diff(moment(event.startDate), 'm');
+  const fundingPreTaxPrice = getPreTaxPrice(funding.unitTTCRate, service.vat);
+
+  if (!funding.history) funding.history = { funding: funding._id, careHours: 0 };
+  if (funding.history.careHours < funding.careHours) {
+    if (funding.history.careHours + (time / 60) <= funding.careHours) {
+      thirdPartyPayerPrice = getThirdPartyPayerPrice(time, fundingPreTaxPrice, funding.customerParticipationRate);
+      funding.history.careHours += time / 60;
+    } else {
+      const chargedTime = funding.careHours - funding.history.careHours;
+      thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingPreTaxPrice, funding.customerParticipationRate);
+      funding.history.careHours = chargedTime / 60;
+    }
+  }
+
+  return { customerPrice: price - thirdPartyPayerPrice, thirdPartyPayerPrice };
+};
+
+const getFixedFundingSplit = (funding, service, price) => {
+  let thirdPartyPayerPrice = 0;
+  if (funding.history && funding.history.amountTTC < funding.amountTTC) {
+    if (funding.history.amountTTC + (price * (1 + (service.vat / 100))) < funding.amountTTC) {
+      thirdPartyPayerPrice = price;
+      funding.history.amountTTC += thirdPartyPayerPrice * (1 + (service.vat / 100));
+    } else {
+      thirdPartyPayerPrice = getPreTaxPrice(funding.amountTTC - funding.history.amountTTC, service.vat);
+      funding.history.amountTTC = funding.amountTTC;
+    }
+  } else if (!funding.history) {
+    funding.history = {};
+    funding.history.funding = funding._id;
+    funding.history.amountTTC = thirdPartyPayerPrice * (1 + (service.vat / 100));
+  }
+
+  return { customerPrice: price - thirdPartyPayerPrice, thirdPartyPayerPrice };
+};
+
 const getEventPrice = (event, subscription, service, funding, query) => {
   const unitPreTaxPrice = getPreTaxPrice(subscription.unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitPreTaxPrice;
 
   if (service.surcharge && service.nature === HOURLY) price = applySurcharge(event, price, service.surcharge);
 
-  let customerPrice = price;
-  let thirdPartyPayerPrice = 0;
-  if (funding) {
-    if (funding.frequency === MONTHLY) {
-      if (query.billingPeriod === MONTH) {
-        const time = moment(event.endDate).diff(moment(event.startDate), 'm');
-        const fundingPreTaxPrice = getPreTaxPrice(funding.unitTTCRate, service.vat);
-        thirdPartyPayerPrice = (time / 60) * fundingPreTaxPrice * (1 - (funding.customerParticipationRate / 100));
-        customerPrice -= thirdPartyPayerPrice;
-      }
+  // Add condtion on holidays
+  if (funding && funding.careDays.includes(moment(event.startDate).day() - 1)) {
+    if (funding.nature === HOURLY) {
+      return getHourlyFundingSplit(event, funding, service, price, query.billingPeriod);
     }
+
+    return getFixedFundingSplit(event, funding, service, price, query.billingPeriod);
   }
 
-  return { customerPrice, thirdPartyPayerPrice };
+  return { customerPrice: price, thirdPartyPayerPrice: 0 };
 };
 
 const getDraftBillsPerSubscription = (events, customer, subscription, funding, query) => {
@@ -183,6 +221,8 @@ const getDraftBillsList = async (eventsToBill, query) => {
       customerDraftBills.push(draftBills.customer);
       if (funding && draftBills.thirdPartyPayer) thirdPartyPayerBills.push(draftBills.thirdPartyPayer);
     }
+
+    // Add step to save history
 
     draftBillsList.push({
       customer,

@@ -44,6 +44,15 @@ const draftBillsList = async (req) => {
       },
       { $unwind: { path: '$sub' } },
       {
+        $lookup: {
+          from: 'services',
+          localField: 'sub.service',
+          foreignField: '_id',
+          as: 'sub.service',
+        }
+      },
+      { $unwind: { path: '$sub.service' } },
+      {
         $addFields: {
           fund: {
             $filter: {
@@ -57,15 +66,6 @@ const draftBillsList = async (req) => {
       { $unwind: { path: '$fund', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
-          from: 'services',
-          localField: 'sub.service',
-          foreignField: '_id',
-          as: 'sub.service',
-        }
-      },
-      { $unwind: { path: '$sub.service' } },
-      {
-        $lookup: {
           from: 'thirdpartypayers',
           localField: 'fund.thirdPartyPayer',
           foreignField: '_id',
@@ -73,6 +73,15 @@ const draftBillsList = async (req) => {
         }
       },
       { $unwind: { path: '$fund.thirdPartyPayer', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'fundinghistory',
+          localField: 'fund._id',
+          foreignField: 'funding',
+          as: 'fund.history',
+        }
+      },
+      { $unwind: { path: '$fund.history', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           idCustomer: '$_id.CUSTOMER',
