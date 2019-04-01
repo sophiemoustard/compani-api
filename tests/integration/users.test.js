@@ -17,7 +17,7 @@ describe('USERS ROUTES', () => {
   let authToken = null;
   before(populateRoles);
   beforeEach(populateUsers);
-  before(async () => {
+  beforeEach(async () => {
     authToken = await getToken();
   });
 
@@ -94,7 +94,7 @@ describe('USERS ROUTES', () => {
   describe('POST /users/authenticate', () => {
     it('should authenticate a user', async () => {
       const credentials = {
-        email: 'test2@alenvi.io',
+        email: 'test4@alenvi.io',
         password: '123456'
       };
       const response = await app.inject({
@@ -115,7 +115,7 @@ describe('USERS ROUTES', () => {
     });
     it('should authenticate a user if email has capitals', async () => {
       const credentials = {
-        email: 'Test2@alenvi.io',
+        email: 'Test4@alenvi.io',
         password: '123456'
       };
       const res = await app.inject({
@@ -127,7 +127,7 @@ describe('USERS ROUTES', () => {
     });
     it('should not authenticate a user if missing parameter', async () => {
       const credentials = {
-        email: 'test2@alenvi.io'
+        email: 'test4@alenvi.io'
       };
       const res = await app.inject({
         method: 'POST',
@@ -150,7 +150,7 @@ describe('USERS ROUTES', () => {
     });
     it('should not authenticate a user if wrong password', async () => {
       const credentials = {
-        email: 'test2@alenvi.io',
+        email: 'test4@alenvi.io',
         password: '7890'
       };
       const res = await app.inject({
@@ -360,7 +360,7 @@ describe('USERS ROUTES', () => {
   describe('POST /users/refreshToken', () => {
     it('should return refresh token', async () => {
       const credentials = {
-        email: 'test2@alenvi.io',
+        email: 'test4@alenvi.io',
         password: '123456'
       };
       const user = await app.inject({
