@@ -3,6 +3,7 @@ const flat = require('flat');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
+const bills = require('../helpers/bills');
 const { addFile } = require('../helpers/gdriveStorage');
 const {
   isCreationAllowed,
@@ -22,7 +23,11 @@ const list = async (req) => {
     const query = getListQuery(req);
     const events = await Event.find(query)
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
+      .populate({
+        path: 'customer',
+        select: 'identity subscriptions contact',
+        populate: { path: 'subscriptions.service' }
+      })
       .lean();
     if (events.length === 0) {
       return {
@@ -32,6 +37,14 @@ const list = async (req) => {
     }
 
     const populatedEvents = await populateEvents(events);
+    if (req.query.isBilled) {
+      for (let i = 0, l = populatedEvents.length; i < l; i++) {
+        const matchingService = bills.getMatchingVersion(populatedEvents[i].startDate, populatedEvents[i].subscription.service);
+        const matchingSub = bills.getMatchingVersion(populatedEvents[i].startDate, populatedEvents[i].subscription);
+        populatedEvents[i].exclTaxes = Number.parseFloat(bills.getEventPrice(populatedEvents[i], matchingSub, matchingService).toFixed(2));
+        populatedEvents[i].inclTaxes = Number.parseFloat((populatedEvents[i].exclTaxes * (1 + (matchingService.vat / 100))).toFixed(2));
+      }
+    }
 
     return {
       message: translate[language].eventsFound,
