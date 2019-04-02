@@ -84,12 +84,6 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./Ogust/bankInfo'),
-    routes: {
-      prefix: '/ogust/bankInfo'
-    }
-  },
-  {
     plugin: require('./Ogust/contact'),
     routes: {
       prefix: '/ogust/contacts'
