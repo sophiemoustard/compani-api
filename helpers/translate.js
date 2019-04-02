@@ -53,7 +53,6 @@ module.exports = {
     employmentContractFound: 'Employment contract found.',
     employmentContractCreated: 'Employment contract created.',
     employmentContractSaved: 'Employment contract saved.',
-    addressUpdated: 'Address successfully updated.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -288,7 +287,6 @@ module.exports = {
     employmentContractFound: "Contrat d'embauche trouvé.",
     employmentContractCreated: "Contrat d'embauche créé.",
     employmentContractSaved: "Contrat d'embauche enregistré.",
-    addressUpdated: 'Adresse éditée avec succès.',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
