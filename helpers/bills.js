@@ -3,6 +3,8 @@ const Holidays = require('date-holidays');
 const _ = require('lodash');
 
 const Surcharge = require('../models/Surcharge');
+const ThirdPartyPayer = require('../models/ThirdPartyPayer');
+const FundingHistory = require('../models/FundingHistory');
 const { HOURLY } = require('../helpers/constants');
 
 const holidays = new Holidays('FR');
@@ -33,15 +35,50 @@ const populateSurcharge = async (subscription) => {
   };
 };
 
+const populateFundings = async (fundings) => {
+  for (let i = 0, l = fundings.length; i < l; i++) {
+    const tpp = await ThirdPartyPayer.findOne({ _id: fundings[i].thirdPartyPayer }).lean();
+    if (tpp) fundings[i].thirdPartyPayer = tpp;
+
+    for (let k = 0, m = fundings[i].versions.length; k < m; k++) {
+      const history = await FundingHistory.findOne({ funding: fundings[i].versions[k]._id }).lean();
+      if (history) fundings[i].versions[k].history = history;
+      else {
+        fundings[i].versions[k].history = { careHours: 0, amountTTC: 0 };
+      }
+    }
+  }
+
+  return fundings;
+};
+
 // `obj` should by sort in descending order
 const getMatchingVersion = (date, obj) => {
-  if (obj.versions.length === 1) return { ...obj, ...obj.versions[0] };
+  if (obj.versions.length === 1) {
+    return {
+      ..._.omit(obj, 'versions'),
+      ..._.omit(obj.versions[0], ['_id', 'createdAt']),
+      versionId: obj.versions[0]._id
+    };
+  }
 
   const matchingVersion = obj.versions
     .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') && (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))[0];
   if (!matchingVersion) return null;
 
-  return { ..._.omit(obj, 'versions'), ..._.omit(matchingVersion, ['_id', 'createdAt']) };
+  return { ..._.omit(obj, 'versions'), ..._.omit(matchingVersion, ['_id', 'createdAt']), versionId: matchingVersion._id };
+};
+
+const getMatchingFunding = (date, fundings) => {
+  for (const funding of fundings) {
+    const matchingVersion = getMatchingVersion(date, funding);
+    if (matchingVersion && (matchingVersion.careDays.includes(moment(date).day() - 1) ||
+      (matchingVersion.careDays.includes(7) && moment(date).isHoliday()))) {
+      return matchingVersion;
+    }
+  }
+
+  return null;
 };
 
 const computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
@@ -108,19 +145,15 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
   const fundingPreTaxPrice = getPreTaxPrice(funding.unitTTCRate, service.vat);
 
-  if (!funding.history) funding.history = { funding: funding._id, careHours: 0 };
   if (funding.history.careHours < funding.careHours) {
-    if (funding.history.careHours + (time / 60) <= funding.careHours) {
-      thirdPartyPayerPrice = getThirdPartyPayerPrice(time, fundingPreTaxPrice, funding.customerParticipationRate);
-      funding.history.careHours += time / 60;
-    } else {
-      const chargedTime = funding.careHours - funding.history.careHours;
-      thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingPreTaxPrice, funding.customerParticipationRate);
-      funding.history.careHours = chargedTime / 60;
-    }
+    const chargedTime = (funding.history.careHours + (time / 60) > funding.careHours)
+      ? funding.careHours - funding.history.careHours
+      : time;
+    thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingPreTaxPrice, funding.customerParticipationRate);
+    funding.history.careHours = chargedTime / 60;
   }
 
-  return { customerPrice: price - thirdPartyPayerPrice, thirdPartyPayerPrice };
+  return { customerPrice: price - thirdPartyPayerPrice, thirdPartyPayerPrice, history: funding.history };
 };
 
 const getFixedFundingSplit = (funding, service, price) => {
@@ -133,60 +166,66 @@ const getFixedFundingSplit = (funding, service, price) => {
       thirdPartyPayerPrice = getPreTaxPrice(funding.amountTTC - funding.history.amountTTC, service.vat);
       funding.history.amountTTC = funding.amountTTC;
     }
-  } else if (!funding.history) {
-    funding.history = {};
-    funding.history.funding = funding._id;
-    funding.history.amountTTC = thirdPartyPayerPrice * (1 + (service.vat / 100));
   }
 
-  return { customerPrice: price - thirdPartyPayerPrice, thirdPartyPayerPrice };
+  return { customerPrice: price - thirdPartyPayerPrice, thirdPartyPayerPrice, history: funding.history };
 };
 
-const getEventPrice = (event, subscription, service, funding, query) => {
+const getEventPrice = (event, subscription, service, funding) => {
   const unitPreTaxPrice = getPreTaxPrice(subscription.unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitPreTaxPrice;
 
   if (service.surcharge && service.nature === HOURLY) price = applySurcharge(event, price, service.surcharge);
 
-  // Add condtion on holidays
-  if (funding && funding.careDays.includes(moment(event.startDate).day() - 1)) {
-    if (funding.nature === HOURLY) {
-      return getHourlyFundingSplit(event, funding, service, price, query.billingPeriod);
-    }
+  if (funding) {
+    if (funding.nature === HOURLY) return getHourlyFundingSplit(event, funding, service, price);
 
-    return getFixedFundingSplit(event, funding, service, price, query.billingPeriod);
+    return getFixedFundingSplit(funding, service, price);
   }
 
   return { customerPrice: price, thirdPartyPayerPrice: 0 };
 };
 
-const getDraftBillsPerSubscription = (events, customer, subscription, funding, query) => {
-  const eventsList = [];
-  let minutes = 0;
-  const customerPrices = { preTaxPrice: 0, withTaxPrice: 0 };
-  const thirdPartyPayerPrices = { preTaxPrice: 0, withTaxPrice: 0 };
+const formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => ({
+  eventsList: [...customerPrices.eventsList, event._id],
+  hours: customerPrices.hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
+  preTaxPrice: customerPrices.preTaxPrice + eventPrice.customerPrice,
+  withTaxPrice: customerPrices.withTaxPrice + (eventPrice.customerPrice * (1 + (service.vat / 100))),
+});
+
+const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
+  if (!tppPrices[tpp._id]) {
+    tppPrices[tpp._id] = { preTaxPrice: 0, withTaxPrice: 0, hours: 0, eventsList: [] };
+  }
+
+  return {
+    ...tppPrices,
+    [tpp._id]: {
+      preTaxPrice: tppPrices[tpp._id].preTaxPrice + eventPrice.thirdPartyPayerPrice,
+      withTaxPrice: tppPrices[tpp._id].withTaxPrice + (eventPrice.thirdPartyPayerPrice * (1 + (service.vat / 100))),
+      hours: tppPrices[tpp._id].hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
+      eventsList: [...tppPrices[tpp._id].eventsList, event._id],
+    },
+  };
+};
+const getDraftBillsPerSubscription = (events, customer, subscription, fundings, query) => {
+  let customerPrices = { preTaxPrice: 0, withTaxPrice: 0, hours: 0, eventsList: [] };
+  let thirdPartyPayerPrices = {};
   let startDate = moment(query.startDate);
   for (const event of events) {
     const matchingService = getMatchingVersion(event.startDate, subscription.service);
     const matchingSub = getMatchingVersion(event.startDate, subscription);
-    const matchingFunding = funding && Object.keys(funding).length > 0 ? getMatchingVersion(event.startDate, funding) : null;
-    const eventPrice = getEventPrice(event, matchingSub, matchingService, matchingFunding, query);
+    const matchingFunding = fundings && fundings.length > 0 ? getMatchingFunding(event.startDate, fundings) : null;
+    const eventPrice = getEventPrice(event, matchingSub, matchingService, matchingFunding);
 
-    eventsList.push(event._id.toHexString());
-    minutes += moment(event.endDate).diff(moment(event.startDate), 'm');
-    customerPrices.preTaxPrice += eventPrice.customerPrice;
-    customerPrices.withTaxPrice += eventPrice.customerPrice * (1 + (matchingService.vat / 100));
-    if (funding) {
-      thirdPartyPayerPrices.preTaxPrice += eventPrice.thirdPartyPayerPrice;
-      thirdPartyPayerPrices.withTaxPrice += eventPrice.thirdPartyPayerPrice * (1 + (matchingService.vat / 100));
+    customerPrices = formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
+    if (matchingFunding) {
+      thirdPartyPayerPrices = formatDraftBillsForTPP(thirdPartyPayerPrices, matchingFunding.thirdPartyPayer, event, eventPrice, matchingService);
     }
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
-
   const draftBillInfo = {
-    hours: minutes / 60,
-    eventsList,
     subscription,
     identity: customer.identity,
     discount: 0,
@@ -196,14 +235,21 @@ const getDraftBillsPerSubscription = (events, customer, subscription, funding, q
       getMatchingVersion(query.startDate, subscription).unitTTCRate,
       getMatchingVersion(query.startDate, subscription.service).vat
     ),
-    ...customerPrices
   };
 
-  if (!funding || thirdPartyPayerPrices.preTaxPrice === 0) return { customer: { ...draftBillInfo, ...customerPrices } };
+  if (!fundings || Object.keys(thirdPartyPayerPrices).length === 0) return { customer: { ...draftBillInfo, ...customerPrices } };
+
+  Object.keys(thirdPartyPayerPrices).map((key) => {
+    thirdPartyPayerPrices[key] = {
+      ...draftBillInfo,
+      ...thirdPartyPayerPrices[key],
+      thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
+    };
+  });
 
   return {
     customer: { ...draftBillInfo, ...customerPrices },
-    thirdPartyPayer: { ...draftBillInfo, ...thirdPartyPayerPrices, thirdPartyPayer: funding.thirdPartyPayer },
+    thirdPartyPayer: thirdPartyPayerPrices,
   };
 };
 
@@ -211,31 +257,36 @@ const getDraftBillsList = async (eventsToBill, query) => {
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const customerDraftBills = [];
-    const thirdPartyPayerBills = [];
+    const thirdPartyPayerBills = {};
     const { customer, eventsBySubscriptions } = eventsToBill[i];
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await populateSurcharge(eventsBySubscriptions[k].subscription);
-      const { funding } = eventsBySubscriptions[k];
+      let { fundings } = eventsBySubscriptions[k];
+      fundings = await populateFundings(fundings);
 
-      const draftBills = getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, funding, query);
+      const draftBills = getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, query);
       customerDraftBills.push(draftBills.customer);
-      if (funding && draftBills.thirdPartyPayer) thirdPartyPayerBills.push(draftBills.thirdPartyPayer);
+      if (draftBills.thirdPartyPayer) {
+        for (const tpp of Object.keys(draftBills.thirdPartyPayer)) {
+          if (!thirdPartyPayerBills[tpp]) thirdPartyPayerBills[tpp] = [draftBills.thirdPartyPayer[tpp]];
+          else thirdPartyPayerBills[tpp].push(draftBills.thirdPartyPayer[tpp]);
+        }
+      }
     }
-
-    // Add step to save history
 
     draftBillsList.push({
       customer,
       bills: customerDraftBills,
       total: customerDraftBills.reduce((sum, b) => sum + (b.withTaxPrice || 0), 0)
     });
-    if (thirdPartyPayerBills.length > 0) {
-      draftBillsList.push({
-        customer,
-        thirdPartyPayer: thirdPartyPayerBills[0].thirdPartyPayer,
-        bills: thirdPartyPayerBills,
-        total: thirdPartyPayerBills.reduce((sum, b) => sum + (b.withTaxPrice || 0), 0)
-      });
+    if (Object.values(thirdPartyPayerBills).length > 0) {
+      for (const bills of Object.values(thirdPartyPayerBills)) {
+        draftBillsList.push({
+          customer,
+          bills,
+          total: bills.reduce((sum, b) => sum + (b.withTaxPrice || 0), 0)
+        });
+      }
     }
   }
 

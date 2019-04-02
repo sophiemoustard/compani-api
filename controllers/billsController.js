@@ -63,25 +63,6 @@ const draftBillsList = async (req) => {
           }
         }
       },
-      { $unwind: { path: '$fund', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'thirdpartypayers',
-          localField: 'fund.thirdPartyPayer',
-          foreignField: '_id',
-          as: 'fund.thirdPartyPayer',
-        }
-      },
-      { $unwind: { path: '$fund.thirdPartyPayer', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'fundinghistory',
-          localField: 'fund._id',
-          foreignField: 'funding',
-          as: 'fund.history',
-        }
-      },
-      { $unwind: { path: '$fund.history', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           idCustomer: '$_id.CUSTOMER',
@@ -101,7 +82,7 @@ const draftBillsList = async (req) => {
               subscription: '$sub',
               eventsNumber: { $size: '$events' },
               events: '$events',
-              funding: '$fund',
+              fundings: '$fund',
             },
           }
         }
