@@ -105,7 +105,7 @@ exports.plugin = {
               })
             }),
             customers: Joi.array(),
-            company: Joi.objectId().required(),
+            company: Joi.string().required(),
           }).required()
         },
         auth: false
