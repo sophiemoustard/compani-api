@@ -101,7 +101,7 @@ const draftBillsList = async (req) => {
 
     return {
       message: translate[language].draftBills,
-      data: { draftBills, eventsToBill },
+      data: { draftBills },
     };
   } catch (e) {
     req.log('error', e);
