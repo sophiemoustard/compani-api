@@ -73,6 +73,7 @@ exports.plugin = {
             auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
             customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
+            isBilled: Joi.boolean()
           },
         },
         auth: {

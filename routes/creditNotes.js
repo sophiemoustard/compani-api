@@ -29,7 +29,7 @@ exports.plugin = {
             thirdPartyPayer: Joi.objectId().allow('', null),
             exclTaxes: Joi.number().required(),
             inclTaxes: Joi.number().required(),
-            events: Joi.array().items({ _id: Joi.objectId() }),
+            events: Joi.array().items(Joi.objectId()),
             subscription: Joi.object().keys({
               service: Joi.string(),
               vat: Joi.number(),
