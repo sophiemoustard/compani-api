@@ -120,18 +120,11 @@ const CustomerSchema = mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
   }],
   fundings: [{
-    nature: {
-      type: String,
-      enum: [HOURLY, FIXED]
-    },
+    nature: { type: String, enum: [HOURLY, FIXED] },
     subscription: { type: mongoose.Schema.Types.ObjectId },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     versions: [{
-      endDate: Date,
-      frequency: {
-        type: String,
-        enum: [MONTHLY, ONCE]
-      },
+      frequency: { type: String, enum: [MONTHLY, ONCE] },
       amountTTC: Number,
       unitTTCRate: Number,
       careHours: Number,
@@ -139,10 +132,8 @@ const CustomerSchema = mongoose.Schema({
       customerParticipationRate: Number,
       folderNumber: String,
       startDate: Date,
-      createdAt: {
-        type: Date,
-        default: Date.now
-      }
+      endDate: Date,
+      createdAt: { type: Date, default: Date.now },
     }],
     createdAt: { type: Date, default: Date.now }
   }]
