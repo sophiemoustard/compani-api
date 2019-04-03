@@ -43,8 +43,13 @@ const EventSchema = mongoose.Schema({
     reason: String,
   },
   isBilled: { type: Boolean, default: false },
-}, {
-  timestamps: true
-});
+  bills: {
+    inclTaxesCustomer: Number,
+    exclTaxesCustomer: Number,
+    thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
+    inclTaxesTpp: Number,
+    exclTaxesTpp: Number,
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model('Event', EventSchema);
