@@ -112,21 +112,25 @@ const draftBillsList = async (req) => {
 /**
  * TODO
  * 1. Créer la facture
- * 2. passer les evenements en `isBilled: true`
- * 3. Sauvegarder les historiques de financements
- * 4. Gestion du cas avec facture tiers
+ * 2. Incrementer le numéro de facture
+ * 3. passer les evenements en `isBilled: true`
+ * 4. Sauvegarder les historiques de financements
+ * 5. Gestion du cas avec facture tiers
  */
-const createBills = (req) => {
+const createBills = async (req) => {
   try {
     const promises = [];
+    const eventsToUpdate = [];
     for (const groupByCustomerBills of req.payload.bills) {
       const customerBill = { customer: groupByCustomerBills.customer._id, subscriptions: [] };
       for (const draftBill of groupByCustomerBills.customerBills.bills) {
+        const events = draftBill.eventsList.map(ev => ev.event);
         customerBill.subscriptions.push({
           ...draftBill,
           subscription: draftBill.subscription._id,
-          events: draftBill.eventsList.map(ev => ev.event),
+          events,
         });
+        eventsToUpdate.push(...events);
       }
       promises.push((new Bill(customerBill)).save());
 
@@ -143,11 +147,15 @@ const createBills = (req) => {
               subscription: draftBill.subscription._id,
               events: draftBill.eventsList,
             });
+            draftBill.eventsList.map((ev) => {
+              if (!eventsToUpdate.includes(ev)) eventsToUpdate.push(ev);
+            });
           }
           promises.push((new Bill(tppBill)).save());
         }
       }
     }
+    await Event.updateMany({ _id: { $in: eventsToUpdate } }, { $set: { isBilled: true } });
     Promise.all(promises);
 
     return {};
