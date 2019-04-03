@@ -299,6 +299,7 @@ const getDraftBillsList = async (eventsToBill, query) => {
 
     const groupedByCustomerBills = {
       customerId: customer._id,
+      customer,
       customerBills: {
         bills: customerDraftBills,
         total: customerDraftBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0),

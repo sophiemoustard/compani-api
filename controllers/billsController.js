@@ -91,7 +91,7 @@ const draftBillsList = async (req) => {
       {
         $project: {
           _id: 0,
-          customer: { _id: 1, identity: 1 },
+          customer: { _id: 1, identity: 1, driveFolder: 1 },
           eventsBySubscriptions: 1,
         }
       }
