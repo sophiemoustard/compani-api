@@ -1,8 +1,10 @@
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
+const BillNumber = require('../models/BillNumber');
 const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/bills');
@@ -121,8 +123,23 @@ const createBills = async (req) => {
   try {
     const promises = [];
     const eventsToUpdate = [];
+
+    const prefix = `FACT${moment().format('MMYY')}`;
+    const number = await BillNumber.findOneAndUpdate(
+      { prefix },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    let { seq } = number;
+
     for (const groupByCustomerBills of req.payload.bills) {
-      const customerBill = { customer: groupByCustomerBills.customer._id, subscriptions: [] };
+      const customerBill = {
+        customer: groupByCustomerBills.customer._id,
+        subscriptions: [],
+        billNumber: `${number.prefix}-${seq.toString().padStart(3, '0')}`,
+      };
+      seq += 1;
+
       for (const draftBill of groupByCustomerBills.customerBills.bills) {
         const events = draftBill.eventsList.map(ev => ev.event);
         customerBill.subscriptions.push({
@@ -139,8 +156,11 @@ const createBills = async (req) => {
           const tppBill = {
             customer: groupByCustomerBills.customer._id,
             client: tpp.bills[0].thirdPartyPayer,
-            subscriptions: []
+            subscriptions: [],
+            billNumber: `${number.prefix}-${seq.toString().padStart(3, '0')}`,
           };
+          seq += 1;
+
           for (const draftBill of tpp.bills) {
             tppBill.subscriptions.push({
               ...draftBill,
@@ -155,6 +175,8 @@ const createBills = async (req) => {
         }
       }
     }
+
+    await BillNumber.findOneAndUpdate({ prefix }, { $set: { seq } });
     await Event.updateMany({ _id: { $in: eventsToUpdate } }, { $set: { isBilled: true } });
     Promise.all(promises);
 

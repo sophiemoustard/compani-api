@@ -15,6 +15,6 @@ const BillSchema = mongoose.Schema({
     inclTaxes: Number,
     discount: Number,
   }],
-}, { timestamp: true });
+}, { timestamps: true });
 
 module.exports = mongoose.model('Bill', BillSchema);
