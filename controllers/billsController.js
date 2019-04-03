@@ -2,6 +2,7 @@ const Boom = require('boom');
 const { ObjectID } = require('mongodb');
 
 const Event = require('../models/Event');
+const Bill = require('../models/Bill');
 const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/bills');
@@ -108,7 +109,53 @@ const draftBillsList = async (req) => {
     return Boom.badImplementation();
   }
 };
+/**
+ * TODO
+ * 1. Créer la facture
+ * 2. passer les evenements en `isBilled: true`
+ * 3. Sauvegarder les historiques de financements
+ * 4. Gestion du cas avec facture tiers
+ */
+const createBills = (req) => {
+  try {
+    const promises = [];
+    for (const groupByCustomerBills of req.payload.bills) {
+      const customerBill = { customer: groupByCustomerBills.customer._id, subscriptions: [] };
+      for (const draftBill of groupByCustomerBills.customerBills.bills) {
+        customerBill.subscriptions.push({
+          ...draftBill,
+          subscription: draftBill.subscription._id,
+          events: draftBill.eventsList.map(ev => ev.event),
+        });
+      }
+      promises.push((new Bill(customerBill)).save());
+
+      if (groupByCustomerBills.thirdPartyPayerBills && groupByCustomerBills.thirdPartyPayerBills.bills.length > 0) {
+        const tppBill = {
+          customer: groupByCustomerBills.customer._id,
+          client: groupByCustomerBills.thirdPartyPayerBills.bills[0].thirdPartyPayer,
+          subscriptions: []
+        };
+        for (const draftBill of groupByCustomerBills.thirdPartyPayerBills.bills) {
+          tppBill.subscriptions.push({
+            ...draftBill,
+            subscription: draftBill.subscription._id,
+            events: draftBill.eventsList,
+          });
+        }
+        promises.push((new Bill(tppBill)).save());
+      }
+    }
+    Promise.all(promises);
+
+    return {};
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
 
 module.exports = {
   draftBillsList,
+  createBills,
 };
