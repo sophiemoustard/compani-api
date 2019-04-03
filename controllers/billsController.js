@@ -3,11 +3,11 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 
 const Event = require('../models/Event');
-const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
-const { getDraftBillsList } = require('../helpers/bills');
+const { getDraftBillsList } = require('../helpers/draftBills');
+const { formatAndCreateBills } = require('../helpers/bills');
 
 const { language } = translate;
 
@@ -121,64 +121,14 @@ const draftBillsList = async (req) => {
  */
 const createBills = async (req) => {
   try {
-    const promises = [];
-    const eventsToUpdate = [];
-
     const prefix = `FACT${moment().format('MMYY')}`;
     const number = await BillNumber.findOneAndUpdate(
       { prefix },
       { $inc: { seq: 1 } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
-    let { seq } = number;
 
-    for (const groupByCustomerBills of req.payload.bills) {
-      const customerBill = {
-        customer: groupByCustomerBills.customer._id,
-        subscriptions: [],
-        billNumber: `${number.prefix}-${seq.toString().padStart(3, '0')}`,
-      };
-      seq += 1;
-
-      for (const draftBill of groupByCustomerBills.customerBills.bills) {
-        const events = draftBill.eventsList.map(ev => ev.event);
-        customerBill.subscriptions.push({
-          ...draftBill,
-          subscription: draftBill.subscription._id,
-          events,
-        });
-        eventsToUpdate.push(...events);
-      }
-      promises.push((new Bill(customerBill)).save());
-
-      if (groupByCustomerBills.thirdPartyPayerBills && groupByCustomerBills.thirdPartyPayerBills.length > 0) {
-        for (const tpp of groupByCustomerBills.thirdPartyPayerBills) {
-          const tppBill = {
-            customer: groupByCustomerBills.customer._id,
-            client: tpp.bills[0].thirdPartyPayer,
-            subscriptions: [],
-            billNumber: `${number.prefix}-${seq.toString().padStart(3, '0')}`,
-          };
-          seq += 1;
-
-          for (const draftBill of tpp.bills) {
-            tppBill.subscriptions.push({
-              ...draftBill,
-              subscription: draftBill.subscription._id,
-              events: draftBill.eventsList,
-            });
-            draftBill.eventsList.map((ev) => {
-              if (!eventsToUpdate.includes(ev)) eventsToUpdate.push(ev);
-            });
-          }
-          promises.push((new Bill(tppBill)).save());
-        }
-      }
-    }
-
-    await BillNumber.findOneAndUpdate({ prefix }, { $set: { seq } });
-    await Event.updateMany({ _id: { $in: eventsToUpdate } }, { $set: { isBilled: true } });
-    Promise.all(promises);
+    await formatAndCreateBills(number, req.payload.bills);
 
     return {};
   } catch (e) {
