@@ -297,20 +297,24 @@ const getDraftBillsList = async (eventsToBill, query) => {
       }
     }
 
-    draftBillsList.push({
-      customer,
-      bills: customerDraftBills,
-      total: customerDraftBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0)
-    });
+    const groupedByCustomerBills = {
+      customerId: customer._id,
+      customerBills: {
+        bills: customerDraftBills,
+        total: customerDraftBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0),
+      },
+    };
     if (Object.values(thirdPartyPayerBills).length > 0) {
+      groupedByCustomerBills.thirdPartyPayerBills = [];
       for (const bills of Object.values(thirdPartyPayerBills)) {
-        draftBillsList.push({
-          customer,
+        groupedByCustomerBills.thirdPartyPayerBills.push({
           bills,
           total: bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0)
         });
       }
     }
+
+    draftBillsList.push(groupedByCustomerBills);
   }
 
   return draftBillsList;
