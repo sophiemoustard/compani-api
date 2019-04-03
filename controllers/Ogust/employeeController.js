@@ -175,44 +175,6 @@ const create = async (req) => {
   }
 };
 
-const updateById = async (req) => {
-  try {
-    const params = req.payload;
-    params.token = req.headers['x-ogust-token'];
-    params.id_employee = req.params.id;
-    const user = await employees.createEmployee(params);
-    if (user.data.status == 'KO') {
-      return Boom.badRequest(user.data.message);
-    }
-    return {
-      message: translate[language].userSaved,
-      data: user.data
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const removeById = async (req) => {
-  try {
-    const params = req.payload;
-    params.token = req.headers['x-ogust-token'];
-    params.id_employee = req.params.id;
-    const user = await employees.deleteEmployee(params);
-    if (user.data.status == 'KO') {
-      return Boom.badRequest(user.data.message);
-    }
-    return {
-      message: translate[language].userDeleted,
-      data: user.data
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
 module.exports = {
   list,
   getById,
@@ -220,6 +182,4 @@ module.exports = {
   getEmployeeCustomers,
   getEmployeeSalaries,
   create,
-  updateById,
-  removeById
 };

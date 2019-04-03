@@ -9,8 +9,6 @@ const {
   getEmployeeServices,
   getEmployeeSalaries,
   create,
-  updateById,
-  removeById
 } = require('../../controllers/Ogust/employeeController');
 
 exports.plugin = {
@@ -165,65 +163,6 @@ exports.plugin = {
         auth: false
       },
       handler: create
-    });
-    // Update employee by id
-    server.route({
-      method: 'PUT',
-      path: '/{id}',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: [Joi.number(), Joi.string()] },
-          payload: Joi.object().keys({
-            id_employee: [Joi.number(), Joi.string()],
-            title: Joi.string(),
-            last_name: Joi.string(),
-            first_name: Joi.string(),
-            email: Joi.string().email(),
-            sector: Joi.string(),
-            mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/),
-            picture: Joi.string(),
-            nature: Joi.string(),
-            status: Joi.string(),
-            method_of_payment: Joi.string(),
-            manager: Joi.string(),
-            country_of_birth: Joi.string(),
-            date_of_birth: Joi.string(),
-            place_of_birth: Joi.string(),
-            state_of_birth: Joi.number(),
-            social_insurance_number: Joi.number(),
-            nationality: Joi.string(),
-            default_means_of_transport: Joi.string(),
-            main_address: Joi.object().keys({
-              line: Joi.string(),
-              supplement: Joi.string(),
-              zip: Joi.string(),
-              city: Joi.string(),
-              type: Joi.string().default('Adrpri'),
-              country: Joi.string().default('FR')
-            })
-          })
-        },
-        auth: false
-      },
-      handler: updateById
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{id}',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: [Joi.number(), Joi.string()] }
-        },
-        auth: false
-      },
-      handler: removeById
     });
   },
 };

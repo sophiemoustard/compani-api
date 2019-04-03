@@ -93,7 +93,7 @@ const userPayload = {
     password: '123456'
   },
   role: 'Auxiliaire',
-  company: companiesList[0]._id,
+  company: companiesList[0].name,
 };
 
 const populateUsers = async () => {

@@ -84,30 +84,6 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./Ogust/bankInfo'),
-    routes: {
-      prefix: '/ogust/bankInfo'
-    }
-  },
-  {
-    plugin: require('./Ogust/contact'),
-    routes: {
-      prefix: '/ogust/contacts'
-    }
-  },
-  {
-    plugin: require('./Ogust/address'),
-    routes: {
-      prefix: '/ogust/address'
-    }
-  },
-  {
-    plugin: require('./Ogust/sepaInfo'),
-    routes: {
-      prefix: '/ogust/sepaInfo'
-    }
-  },
-  {
     plugin: require('./twilio'),
     routes: {
       prefix: '/sms'
