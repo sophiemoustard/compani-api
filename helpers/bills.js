@@ -135,25 +135,32 @@ const applySurcharge = (event, price, surcharge) => {
   return price;
 };
 
-const getPreTaxPrice = (unitTTCRate, vat) => unitTTCRate / (1 + (vat / 100));
+const getExclTaxes = (inclTaxes, vat) => inclTaxes / (1 + (vat / 100));
 
-const getThirdPartyPayerPrice = (time, fundingPreTaxPrice, customerParticipationRate) =>
-  (time / 60) * fundingPreTaxPrice * (1 - (customerParticipationRate / 100));
+const getInclTaxes = (exclTaxes, vat) => exclTaxes * (1 + (vat / 100));
+
+const getThirdPartyPayerPrice = (time, fundingexclTaxes, customerParticipationRate) =>
+  (time / 60) * fundingexclTaxes * (1 - (customerParticipationRate / 100));
 
 const getHourlyFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
-  const fundingPreTaxPrice = getPreTaxPrice(funding.unitTTCRate, service.vat);
+  const fundingexclTaxes = getExclTaxes(funding.unitTTCRate, service.vat);
 
   if (funding.history.careHours < funding.careHours) {
     const chargedTime = (funding.history.careHours + (time / 60) > funding.careHours)
       ? funding.careHours - funding.history.careHours
       : time;
-    thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingPreTaxPrice, funding.customerParticipationRate);
+    thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingexclTaxes, funding.customerParticipationRate);
     funding.history.careHours = chargedTime / 60;
   }
 
-  return { customerPrice: price - thirdPartyPayerPrice, thirdPartyPayerPrice, history: funding.history };
+  return {
+    customerPrice: price - thirdPartyPayerPrice,
+    thirdPartyPayerPrice,
+    history: funding.history,
+    thirdPartyPayer: funding.thirdPartyPayer._id,
+  };
 };
 
 const getFixedFundingSplit = (funding, service, price) => {
@@ -163,17 +170,22 @@ const getFixedFundingSplit = (funding, service, price) => {
       thirdPartyPayerPrice = price;
       funding.history.amountTTC += thirdPartyPayerPrice * (1 + (service.vat / 100));
     } else {
-      thirdPartyPayerPrice = getPreTaxPrice(funding.amountTTC - funding.history.amountTTC, service.vat);
+      thirdPartyPayerPrice = getExclTaxes(funding.amountTTC - funding.history.amountTTC, service.vat);
       funding.history.amountTTC = funding.amountTTC;
     }
   }
 
-  return { customerPrice: price - thirdPartyPayerPrice, thirdPartyPayerPrice, history: funding.history };
+  return {
+    customerPrice: price - thirdPartyPayerPrice,
+    thirdPartyPayerPrice,
+    history: funding.history,
+    thirdPartyPayer: funding.thirdPartyPayer._id,
+  };
 };
 
 const getEventPrice = (event, subscription, service, funding) => {
-  const unitPreTaxPrice = getPreTaxPrice(subscription.unitTTCRate, service.vat);
-  let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitPreTaxPrice;
+  const unitExclTaxes = getExclTaxes(subscription.unitTTCRate, service.vat);
+  let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;
 
   if (service.surcharge && service.nature === HOURLY) price = applySurcharge(event, price, service.surcharge);
 
@@ -186,30 +198,41 @@ const getEventPrice = (event, subscription, service, funding) => {
   return { customerPrice: price, thirdPartyPayerPrice: 0 };
 };
 
-const formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => ({
-  eventsList: [...customerPrices.eventsList, event._id],
-  hours: customerPrices.hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
-  preTaxPrice: customerPrices.preTaxPrice + eventPrice.customerPrice,
-  withTaxPrice: customerPrices.withTaxPrice + (eventPrice.customerPrice * (1 + (service.vat / 100))),
-});
+const formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
+  const inclTaxesCustomer = getInclTaxes(eventPrice.customerPrice, service.vat);
+  const prices = { event: event._id, inclTaxesCustomer, exclTaxesCustomer: eventPrice.customerPrice };
+  if (eventPrice.thirdPartyPayerPrice && event.thirdPartyPayerPrice !== 0) {
+    prices.inclTaxesTpp = getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
+    prices.exclTaxesTpp = eventPrice.thirdPartyPayerPrice;
+    prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
+  }
+
+  return {
+    eventsList: [...customerPrices.eventsList, { ...prices }],
+    hours: customerPrices.hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
+    exclTaxes: customerPrices.exclTaxes + eventPrice.customerPrice,
+    inclTaxes: customerPrices.inclTaxes + inclTaxesCustomer,
+  };
+};
 
 const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
   if (!tppPrices[tpp._id]) {
-    tppPrices[tpp._id] = { preTaxPrice: 0, withTaxPrice: 0, hours: 0, eventsList: [] };
+    tppPrices[tpp._id] = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   }
 
   return {
     ...tppPrices,
     [tpp._id]: {
-      preTaxPrice: tppPrices[tpp._id].preTaxPrice + eventPrice.thirdPartyPayerPrice,
-      withTaxPrice: tppPrices[tpp._id].withTaxPrice + (eventPrice.thirdPartyPayerPrice * (1 + (service.vat / 100))),
+      exclTaxes: tppPrices[tpp._id].exclTaxes + eventPrice.thirdPartyPayerPrice,
+      inclTaxes: tppPrices[tpp._id].inclTaxes + getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
       hours: tppPrices[tpp._id].hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
       eventsList: [...tppPrices[tpp._id].eventsList, event._id],
     },
   };
 };
+
 const getDraftBillsPerSubscription = (events, customer, subscription, fundings, query) => {
-  let customerPrices = { preTaxPrice: 0, withTaxPrice: 0, hours: 0, eventsList: [] };
+  let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(query.startDate);
   for (const event of events) {
@@ -231,7 +254,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     discount: 0,
     startDate: startDate.toDate(),
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
-    unitPreTaxPrice: getPreTaxPrice(
+    unitExclTaxes: getExclTaxes(
       getMatchingVersion(query.startDate, subscription).unitTTCRate,
       getMatchingVersion(query.startDate, subscription.service).vat
     ),
@@ -277,14 +300,14 @@ const getDraftBillsList = async (eventsToBill, query) => {
     draftBillsList.push({
       customer,
       bills: customerDraftBills,
-      total: customerDraftBills.reduce((sum, b) => sum + (b.withTaxPrice || 0), 0)
+      total: customerDraftBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0)
     });
     if (Object.values(thirdPartyPayerBills).length > 0) {
       for (const bills of Object.values(thirdPartyPayerBills)) {
         draftBillsList.push({
           customer,
           bills,
-          total: bills.reduce((sum, b) => sum + (b.withTaxPrice || 0), 0)
+          total: bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0)
         });
       }
     }
