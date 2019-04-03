@@ -15,8 +15,8 @@ const list = async (req) => {
     delete req.query.endDate;
     const creditNotes = await CreditNote.find(req.query)
       .populate('customer')
-      .populate('thirdPartyPayer')
       .populate('events');
+
     return {
       message: creditNotes.length === 0 ? translate[language].creditNotesNotFound : translate[language].creditNotesFound,
       data: { creditNotes },
@@ -31,9 +31,9 @@ const getById = async (req) => {
   try {
     const creditNote = await CreditNote.findById(req.params._id)
       .populate('customer')
-      .populate('thirdPartyPayer')
       .populate('events');
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
+
     return {
       message: translate[language].creditNoteFound,
       data: { creditNote }
@@ -48,7 +48,11 @@ const create = async (req) => {
   try {
     const query = { creditNoteNumber: { prefix: `AV${moment().format('YYMMDD')}` } };
     const payload = { creditNoteNumber: { seq: 1 } };
-    const number = await CreditNoteNumber.findOneAndUpdate(flat(query), { $inc: flat(payload) }, { new: true, upsert: true, setDefaultsOnInsert: true });
+    const number = await CreditNoteNumber.findOneAndUpdate(
+      flat(query),
+      { $inc: flat(payload) },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
     const creditNoteNumber = `${number.creditNoteNumber.prefix}-${number.creditNoteNumber.seq.toString().padStart(3, '0')}`;
     req.payload.number = creditNoteNumber;
     const creditNote = new CreditNote(req.payload);
@@ -68,6 +72,7 @@ const update = async (req) => {
   try {
     const creditNote = await CreditNote.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
+
     return {
       message: translate[language].creditNoteUpdated,
       data: { creditNote },
@@ -97,5 +102,5 @@ module.exports = {
   create,
   update,
   remove,
-  getById
+  getById,
 };

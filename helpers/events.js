@@ -71,7 +71,16 @@ const getListQuery = (req) => {
   let query = req.query.type ? { type: req.query.auxiliary } : {};
   if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
   if (req.query.customer) query.customer = { $in: req.query.customer };
-
+  if (req.query.isBilled) {
+    query = {
+      ...query,
+      $or: [
+        { exclTaxesTpp: { $exist: false } },
+        { exclTaxesTpp: null },
+        { exclTaxesTpp: 0 },
+      ],
+    };
+  }
   if (req.query.startDate && req.query.endDate) {
     const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
     const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();

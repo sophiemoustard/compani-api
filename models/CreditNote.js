@@ -5,16 +5,9 @@ const CreditNoteSchema = mongoose.Schema({
   date: Date,
   startDate: Date,
   endDate: Date,
-  customer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Customer',
-  },
-  thirdPartyPayer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ThirdPartyPayer',
-  },
-  exclTaxes: Number,
-  inclTaxes: Number,
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+  exclTaxesCustomer: Number,
+  inclTaxesCustomer: Number,
   events: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event',
