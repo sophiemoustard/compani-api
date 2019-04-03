@@ -130,20 +130,22 @@ const createBills = (req) => {
       }
       promises.push((new Bill(customerBill)).save());
 
-      if (groupByCustomerBills.thirdPartyPayerBills && groupByCustomerBills.thirdPartyPayerBills.bills.length > 0) {
-        const tppBill = {
-          customer: groupByCustomerBills.customer._id,
-          client: groupByCustomerBills.thirdPartyPayerBills.bills[0].thirdPartyPayer,
-          subscriptions: []
-        };
-        for (const draftBill of groupByCustomerBills.thirdPartyPayerBills.bills) {
-          tppBill.subscriptions.push({
-            ...draftBill,
-            subscription: draftBill.subscription._id,
-            events: draftBill.eventsList,
-          });
+      if (groupByCustomerBills.thirdPartyPayerBills && groupByCustomerBills.thirdPartyPayerBills.length > 0) {
+        for (const tpp of groupByCustomerBills.thirdPartyPayerBills) {
+          const tppBill = {
+            customer: groupByCustomerBills.customer._id,
+            client: tpp.bills[0].thirdPartyPayer,
+            subscriptions: []
+          };
+          for (const draftBill of tpp.bills) {
+            tppBill.subscriptions.push({
+              ...draftBill,
+              subscription: draftBill.subscription._id,
+              events: draftBill.eventsList,
+            });
+          }
+          promises.push((new Bill(tppBill)).save());
         }
-        promises.push((new Bill(tppBill)).save());
       }
     }
     Promise.all(promises);
