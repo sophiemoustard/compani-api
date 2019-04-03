@@ -135,7 +135,9 @@ const applySurcharge = (event, price, surcharge) => {
   return price;
 };
 
-const getExclTaxes = (unitTTCRate, vat) => unitTTCRate / (1 + (vat / 100));
+const getExclTaxes = (inclTaxes, vat) => inclTaxes / (1 + (vat / 100));
+
+const getInclTaxes = (exclTaxes, vat) => exclTaxes * (1 + (vat / 100));
 
 const getThirdPartyPayerPrice = (time, fundingexclTaxes, customerParticipationRate) =>
   (time / 60) * fundingexclTaxes * (1 - (customerParticipationRate / 100));
@@ -197,10 +199,10 @@ const getEventPrice = (event, subscription, service, funding) => {
 };
 
 const formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
-  const inclTaxesCustomer = eventPrice.customerPrice * (1 + (service.vat / 100));
+  const inclTaxesCustomer = getInclTaxes(eventPrice.customerPrice, service.vat);
   const prices = { event: event._id, inclTaxesCustomer, exclTaxesCustomer: eventPrice.customerPrice };
   if (eventPrice.thirdPartyPayerPrice && event.thirdPartyPayerPrice !== 0) {
-    prices.inclTaxesTpp = eventPrice.thirdPartyPayerPrice * (1 + (service.vat / 100));
+    prices.inclTaxesTpp = getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
     prices.exclTaxesTpp = eventPrice.thirdPartyPayerPrice;
     prices.thirdPartyPayer = eventPrice.thirdPartyPayer;
   }
@@ -222,12 +224,13 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
     ...tppPrices,
     [tpp._id]: {
       exclTaxes: tppPrices[tpp._id].exclTaxes + eventPrice.thirdPartyPayerPrice,
-      inclTaxes: tppPrices[tpp._id].inclTaxes + (eventPrice.thirdPartyPayerPrice * (1 + (service.vat / 100))),
+      inclTaxes: tppPrices[tpp._id].inclTaxes + getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
       hours: tppPrices[tpp._id].hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
       eventsList: [...tppPrices[tpp._id].eventsList, event._id],
     },
   };
 };
+
 const getDraftBillsPerSubscription = (events, customer, subscription, fundings, query) => {
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
