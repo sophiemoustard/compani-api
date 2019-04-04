@@ -5,7 +5,7 @@ const BillNumber = require('../models/BillNumber');
 const formatBillNumber = (prefix, seq) => `${prefix}-${seq.toString().padStart(3, '0')}`;
 
 const formatCustomerBills = (customerBills, customer, number) => {
-  const billedEvents = [];
+  const billedEvents = {};
   const bill = {
     customer: customer._id,
     subscriptions: [],
@@ -19,7 +19,9 @@ const formatCustomerBills = (customerBills, customer, number) => {
       subscription: draftBill.subscription._id,
       events,
     });
-    billedEvents.push(...events);
+    for (const ev of draftBill.eventsList) {
+      billedEvents[ev.event] = { ...ev };
+    }
   }
 
   return { bill, billedEvents };
@@ -28,7 +30,7 @@ const formatCustomerBills = (customerBills, customer, number) => {
 const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
   let { seq } = number;
   const tppBills = [];
-  const billedEvents = [];
+  const billedEvents = {};
   for (const tpp of thirdPartyPayerBills) {
     const tppBill = {
       customer: customer._id,
@@ -39,12 +41,15 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
     seq += 1;
 
     for (const draftBill of tpp.bills) {
+      const events = draftBill.eventsList.map(ev => ev.event);
       tppBill.subscriptions.push({
         ...draftBill,
         subscription: draftBill.subscription._id,
-        events: draftBill.eventsList,
+        events,
       });
-      billedEvents.push(...draftBill.eventsList);
+      for (const ev of draftBill.eventsList) {
+        billedEvents[ev.event] = { ...ev };
+      }
     }
     tppBills.push(tppBill);
   }
@@ -52,22 +57,28 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
   return { tppBills, billedEvents };
 };
 
+const updateEvents = async (eventsToUpdate) => {
+  const promises = [];
+  for (const id of Object.keys(eventsToUpdate)) {
+    promises.push(Event.findOneAndUpdate({ _id: id }, { $set: { isBilled: true, bills: eventsToUpdate[id] } }));
+  }
+  await Promise.all(promises);
+};
+
 const formatAndCreateBills = async (number, groupByCustomerBills) => {
   const promises = [];
-  const eventsToUpdate = [];
+  let eventsToUpdate = {};
 
   for (const draftBills of groupByCustomerBills) {
     const customerBillingInfo = formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
-    eventsToUpdate.push(...customerBillingInfo.billedEvents);
+    eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
     number.seq += 1;
     promises.push((new Bill(customerBillingInfo.bill)).save());
 
     if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
       const tppBillingInfo = formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number);
 
-      tppBillingInfo.billedEvents.map((ev) => {
-        if (!eventsToUpdate.includes(ev)) eventsToUpdate.push(ev);
-      });
+      eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
         promises.push((new Bill(bill)).save());
         number.seq += 1;
@@ -76,7 +87,7 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
   }
 
   await BillNumber.findOneAndUpdate({ prefix: number.prefix }, { $set: { seq: number.seq } });
-  await Event.updateMany({ _id: { $in: eventsToUpdate } }, { $set: { isBilled: true } });
+  await updateEvents(eventsToUpdate);
   await Promise.all(promises);
 };
 
