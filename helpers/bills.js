@@ -2,14 +2,14 @@ const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 
-const getBillNumber = (prefix, seq) => `${prefix}-${seq.toString().padStart(3, '0')}`;
+const formatBillNumber = (prefix, seq) => `${prefix}-${seq.toString().padStart(3, '0')}`;
 
 const formatCustomerBills = (customerBills, customer, number) => {
   const billedEvents = [];
   const bill = {
     customer: customer._id,
     subscriptions: [],
-    billNumber: getBillNumber(number.prefix, number.seq),
+    billNumber: formatBillNumber(number.prefix, number.seq),
   };
 
   for (const draftBill of customerBills.bills) {
@@ -34,7 +34,7 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       customer: customer._id,
       client: tpp.bills[0].thirdPartyPayer,
       subscriptions: [],
-      billNumber: getBillNumber(number.prefix, seq),
+      billNumber: formatBillNumber(number.prefix, seq),
     };
     seq += 1;
 
@@ -74,8 +74,6 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
       }
     }
   }
-  console.log(eventsToUpdate);
-  eventsToUpdate.map(ev => console.log(typeof ev));
 
   await BillNumber.findOneAndUpdate({ prefix: number.prefix }, { $set: { seq: number.seq } });
   await Event.updateMany({ _id: { $in: eventsToUpdate } }, { $set: { isBilled: true } });
