@@ -72,6 +72,7 @@ exports.plugin = {
                     inclTaxesTpp: Joi.number(),
                     exclTaxesTpp: Joi.number(),
                     thirdPartyPayer: Joi.objectId(),
+                    history: Joi.object(),
                   })),
                   hours: Joi.number(),
                   inclTaxes: Joi.number(),

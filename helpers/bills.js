@@ -1,6 +1,7 @@
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
+const FundingHistory = require('../models/FundingHistory');
 
 const formatBillNumber = (prefix, seq) => `${prefix}-${seq.toString().padStart(3, '0')}`;
 
@@ -31,6 +32,7 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
   let { seq } = number;
   const tppBills = [];
   const billedEvents = {};
+  const fundingHistories = {};
   for (const tpp of thirdPartyPayerBills) {
     const tppBill = {
       customer: customer._id,
@@ -49,12 +51,17 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       });
       for (const ev of draftBill.eventsList) {
         billedEvents[ev.event] = { ...ev };
+        if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = ev.history;
+        else {
+          if (fundingHistories[ev.history.fundingVersion].careHours) fundingHistories[ev.history.fundingVersion].careHours += ev.history.careHours;
+          else if (fundingHistories[ev.history.fundingVersion].amountTTC) fundingHistories[ev.history.fundingVersion].amountTTC += ev.history.amountTTC;
+        }
       }
     }
     tppBills.push(tppBill);
   }
 
-  return { tppBills, billedEvents };
+  return { tppBills, billedEvents, fundingHistories };
 };
 
 const updateEvents = async (eventsToUpdate) => {
@@ -65,9 +72,27 @@ const updateEvents = async (eventsToUpdate) => {
   await Promise.all(promises);
 };
 
+const updateFundingHistories = async (histories) => {
+  const promises = [];
+  for (const id of Object.keys(histories)) {
+    if (histories[id].careHours) promises.push(FundingHistory.findOneAndUpdate(
+      { fundingVersion: id },
+      { $inc: { careHours: histories[id].careHours } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    ));
+    else if (histories[id].amountTTC) promises.push(FundingHistory.findOneAndUpdate(
+      { fundingVersion: id },
+      { $inc: { amountTTC: histories[id].amountTTC } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    ));
+  }
+  await Promise.all(promises);
+};
+
 const formatAndCreateBills = async (number, groupByCustomerBills) => {
   const promises = [];
   let eventsToUpdate = {};
+  let fundingHistories = {};
 
   for (const draftBills of groupByCustomerBills) {
     const customerBillingInfo = formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
@@ -77,6 +102,7 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
 
     if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
       const tppBillingInfo = formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number);
+      fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories }
 
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
@@ -87,6 +113,7 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
   }
 
   await BillNumber.findOneAndUpdate({ prefix: number.prefix }, { $set: { seq: number.seq } });
+  await updateFundingHistories(fundingHistories);
   await updateEvents(eventsToUpdate);
   await Promise.all(promises);
 };

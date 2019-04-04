@@ -41,10 +41,10 @@ const populateFundings = async (fundings) => {
     if (tpp) fundings[i].thirdPartyPayer = tpp;
 
     for (let k = 0, m = fundings[i].versions.length; k < m; k++) {
-      const history = await FundingHistory.findOne({ funding: fundings[i].versions[k]._id }).lean();
+      const history = await FundingHistory.findOne({ fundingVersion: fundings[i].versions[k]._id }).lean();
       if (history) fundings[i].versions[k].history = history;
       else {
-        fundings[i].versions[k].history = { careHours: 0, amountTTC: 0 };
+        fundings[i].versions[k].history = { careHours: 0, amountTTC: 0, fundingVersion: fundings[i].versions[k]._id };
       }
     }
   }
@@ -147,9 +147,10 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
   const fundingexclTaxes = getExclTaxes(funding.unitTTCRate, service.vat);
 
+  let chargedTime = 0;
   if (funding.history.careHours < funding.careHours) {
-    const chargedTime = (funding.history.careHours + (time / 60) > funding.careHours)
-      ? funding.careHours - funding.history.careHours
+    chargedTime = (funding.history.careHours + (time / 60) > funding.careHours)
+      ? (funding.careHours - funding.history.careHours) * 60
       : time;
     thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingexclTaxes, funding.customerParticipationRate);
     funding.history.careHours = chargedTime / 60;
@@ -160,6 +161,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
     thirdPartyPayerPrice,
     history: funding.history,
     thirdPartyPayer: funding.thirdPartyPayer._id,
+    chargedTime,
   };
 };
 
@@ -222,12 +224,13 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
 
   const inclTaxesTpp = getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
   const prices = {
-    event: event._id, inclTaxesTpp,
+    event: event._id,
     inclTaxesTpp,
     exclTaxesTpp: eventPrice.thirdPartyPayerPrice,
     thirdPartyPayer: eventPrice.thirdPartyPayer,
     inclTaxesCustomer: getInclTaxes(eventPrice.customerPrice, service.vat),
     exclTaxesCustomer: eventPrice.customerPrice,
+    history: { ...eventPrice.history },
   };
 
   return {
@@ -235,7 +238,7 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
     [tpp._id]: {
       exclTaxes: tppPrices[tpp._id].exclTaxes + eventPrice.thirdPartyPayerPrice,
       inclTaxes: tppPrices[tpp._id].inclTaxes + getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
-      hours: tppPrices[tpp._id].hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
+      hours: tppPrices[tpp._id].hours + eventPrice.chargedTime / 60,
       eventsList: [...tppPrices[tpp._id].eventsList, { ...prices }],
     },
   };
@@ -252,7 +255,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     const eventPrice = getEventPrice(event, matchingSub, matchingService, matchingFunding);
 
     if (eventPrice.customerPrice) customerPrices = formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
-    if (matchingFunding) {
+    if (matchingFunding && eventPrice.thirdPartyPayerPrice) {
       thirdPartyPayerPrices = formatDraftBillsForTPP(thirdPartyPayerPrices, matchingFunding.thirdPartyPayer, event, eventPrice, matchingService);
     }
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
