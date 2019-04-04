@@ -38,9 +38,11 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       customer: customer._id,
       client: tpp.bills[0].thirdPartyPayer,
       subscriptions: [],
-      billNumber: formatBillNumber(number.prefix, seq),
     };
-    seq += 1;
+    if (!tpp.bills[0].externalBilling) {
+      tppBill.billNumber = formatBillNumber(number.prefix, seq);
+      seq += 1;
+    }
 
     for (const draftBill of tpp.bills) {
       const events = draftBill.eventsList.map(ev => ev.event);

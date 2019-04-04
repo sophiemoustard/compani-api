@@ -111,6 +111,7 @@ const draftBillsList = async (req) => {
     return Boom.badImplementation();
   }
 };
+
 /**
  * TODO
  * 1. Créer la facture
@@ -124,7 +125,7 @@ const createBills = async (req) => {
     const prefix = `FACT${moment().format('MMYY')}`;
     const number = await BillNumber.findOneAndUpdate(
       { prefix },
-      { $inc: { seq: 1 } },
+      {},
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
