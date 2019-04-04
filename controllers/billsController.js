@@ -130,7 +130,7 @@ const createBills = async (req) => {
 
     await formatAndCreateBills(number, req.payload.bills);
 
-    return { message: translate[language] };
+    return { message: translate[language].billsCreated };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();

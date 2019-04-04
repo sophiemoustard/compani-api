@@ -15,7 +15,11 @@
       "max-len": "off",
       "no-underscore-dangle": "off",
       "global-require": "off",
-      "strict": "off"
+      "strict": "off",
+      "object-curly-newline": ["error", {
+        "ObjectExpression": { "multiline": true, "minProperties": 5, "either": true },
+        "ExportDeclaration": "always"
+      }]
     },
     "extends": "airbnb-base",
     "plugins": [
