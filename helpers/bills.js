@@ -121,5 +121,8 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
 };
 
 module.exports = {
-  formatAndCreateBills
+  formatAndCreateBills,
+  formatBillNumber,
+  formatCustomerBills,
+  formatThirdPartyPayerBills,
 };
