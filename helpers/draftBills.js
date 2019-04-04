@@ -220,13 +220,23 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
     tppPrices[tpp._id] = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   }
 
+  const inclTaxesTpp = getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
+  const prices = {
+    event: event._id, inclTaxesTpp,
+    inclTaxesTpp,
+    exclTaxesTpp: eventPrice.thirdPartyPayerPrice,
+    thirdPartyPayer: eventPrice.thirdPartyPayer,
+    inclTaxesCustomer: getInclTaxes(eventPrice.customerPrice, service.vat),
+    exclTaxesCustomer: eventPrice.customerPrice,
+  };
+
   return {
     ...tppPrices,
     [tpp._id]: {
       exclTaxes: tppPrices[tpp._id].exclTaxes + eventPrice.thirdPartyPayerPrice,
       inclTaxes: tppPrices[tpp._id].inclTaxes + getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
       hours: tppPrices[tpp._id].hours + (moment(event.endDate).diff(moment(event.startDate), 'm') / 60),
-      eventsList: [...tppPrices[tpp._id].eventsList, event._id],
+      eventsList: [...tppPrices[tpp._id].eventsList, { ...prices }],
     },
   };
 };
@@ -241,7 +251,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     const matchingFunding = fundings && fundings.length > 0 ? getMatchingFunding(event.startDate, fundings) : null;
     const eventPrice = getEventPrice(event, matchingSub, matchingService, matchingFunding);
 
-    customerPrices = formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
+    if (eventPrice.customerPrice) customerPrices = formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
     if (matchingFunding) {
       thirdPartyPayerPrices = formatDraftBillsForTPP(thirdPartyPayerPrices, matchingFunding.thirdPartyPayer, event, eventPrice, matchingService);
     }
