@@ -26,8 +26,8 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date(),
             customer: Joi.objectId().required(),
-            exclTaxes: Joi.number().required(),
-            inclTaxes: Joi.number().required(),
+            exclTaxesCustomer: Joi.number().required(),
+            inclTaxesCustomer: Joi.number().required(),
             events: Joi.array().items(Joi.objectId()),
             subscription: Joi.object().keys({
               service: Joi.string(),
@@ -101,11 +101,7 @@ exports.plugin = {
             events: Joi.array().items(Joi.objectId()),
             subscription: Joi.object().keys({
               service: Joi.string(),
-              unitTTCRate: Joi.number(),
-              estimatedWeeklyVolume: Joi.number(),
-              evenings: Joi.number(),
-              sundays: Joi.number(),
-              startDate: Joi.date(),
+              vat: Joi.number(),
             }),
           })
         },
