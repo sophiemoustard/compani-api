@@ -6,6 +6,16 @@ const { getMatchingVersion } = require('../helpers/utils');
 
 const formatBillNumber = (prefix, seq) => `${prefix}-${seq.toString().padStart(3, '0')}`;
 
+const formatSubscriptionData = (bill) => {
+  const events = bill.eventsList.map(ev => ev.event);
+  return {
+    ...bill,
+    subscription: bill.subscription._id,
+    vat: getMatchingVersion(bill.startDate, bill.subscription.service).vat,
+    events,
+  }
+};
+
 const formatCustomerBills = (customerBills, customer, number) => {
   const billedEvents = {};
   const bill = {
@@ -15,13 +25,7 @@ const formatCustomerBills = (customerBills, customer, number) => {
   };
 
   for (const draftBill of customerBills.bills) {
-    const events = draftBill.eventsList.map(ev => ev.event);
-    bill.subscriptions.push({
-      ...draftBill,
-      subscription: draftBill.subscription._id,
-      vat: getMatchingVersion(draftBill.startDate, draftBill.subscription.service).vat,
-      events,
-    });
+    bill.subscriptions.push(formatSubscriptionData(draftBill));
     for (const ev of draftBill.eventsList) {
       billedEvents[ev.event] = { ...ev };
     }
@@ -47,13 +51,7 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
     }
 
     for (const draftBill of tpp.bills) {
-      const events = draftBill.eventsList.map(ev => ev.event);
-      tppBill.subscriptions.push({
-        ...draftBill,
-        subscription: draftBill.subscription._id,
-        vat: getMatchingVersion(draftBill.startDate, draftBill.subscription.service).vat,
-        events,
-      });
+      tppBill.subscriptions.push(formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
         billedEvents[ev.event] = { ...ev };
         if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = ev.history;
