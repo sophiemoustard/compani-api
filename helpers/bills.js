@@ -2,6 +2,7 @@ const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
+const { getMatchingVersion } = require('../helpers/utils');
 
 const formatBillNumber = (prefix, seq) => `${prefix}-${seq.toString().padStart(3, '0')}`;
 
@@ -18,6 +19,7 @@ const formatCustomerBills = (customerBills, customer, number) => {
     bill.subscriptions.push({
       ...draftBill,
       subscription: draftBill.subscription._id,
+      vat: getMatchingVersion(draftBill.startDate, draftBill.subscription.service).vat,
       events,
     });
     for (const ev of draftBill.eventsList) {
@@ -49,6 +51,7 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       tppBill.subscriptions.push({
         ...draftBill,
         subscription: draftBill.subscription._id,
+        vat: getMatchingVersion(draftBill.startDate, draftBill.subscription.service).vat,
         events,
       });
       for (const ev of draftBill.eventsList) {

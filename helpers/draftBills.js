@@ -1,11 +1,11 @@
 const moment = require('moment-business-days');
 const Holidays = require('date-holidays');
-const _ = require('lodash');
 
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
 const { HOURLY } = require('./constants');
+const { getMatchingVersion } = require('../helpers/utils');
 
 const holidays = new Holidays('FR');
 const now = new Date();
@@ -50,23 +50,6 @@ const populateFundings = async (fundings) => {
   }
 
   return fundings;
-};
-
-// `obj` should by sort in descending order
-const getMatchingVersion = (date, obj) => {
-  if (obj.versions.length === 1) {
-    return {
-      ..._.omit(obj, 'versions'),
-      ..._.omit(obj.versions[0], ['_id', 'createdAt']),
-      versionId: obj.versions[0]._id
-    };
-  }
-
-  const matchingVersion = obj.versions
-    .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') && (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))[0];
-  if (!matchingVersion) return null;
-
-  return { ..._.omit(obj, 'versions'), ..._.omit(matchingVersion, ['_id', 'createdAt']), versionId: matchingVersion._id };
 };
 
 const getMatchingFunding = (date, fundings) => {
