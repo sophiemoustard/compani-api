@@ -23,10 +23,13 @@ const getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
 
 const clean = (obj) => {
   for (const k in obj) {
-    if (obj[k] === undefined || obj[k] === '' || obj[k] === {} || obj[k] === []) {
+    if (obj[k] === undefined || obj[k] === '' ||
+      (typeof obj[k] === 'object' && Object.keys(obj[k].length === 0)) ||
+      (typeof obj[k] === 'array' && obj[k].length === 0)) {
       delete obj[k];
     }
   }
+
   return obj;
 };
 
@@ -42,14 +45,6 @@ const getLastVersion = (versions, dateKey) => {
 const getMatchingVersion = (date, obj) => {
   if (!Array.isArray(obj.versions)) throw new Error('versions must be an array !');
   if (obj.versions.length === 0) return null;
-
-  if (obj.versions.length === 1) {
-    return {
-      ..._.omit(obj, 'versions'),
-      ..._.omit(obj.versions[0], ['_id', 'createdAt']),
-      versionId: obj.versions[0]._id
-    };
-  }
 
   const matchingVersion = obj.versions
     .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') && (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))[0];
