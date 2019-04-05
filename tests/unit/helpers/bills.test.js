@@ -1,4 +1,5 @@
 const expect = require('expect');
+const moment = require('moment');
 
 const {
   formatBillNumber,
@@ -19,10 +20,11 @@ describe('formatCustomerBills', () => {
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
       bills: [{
-        subscription: { _id: 'asd' },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
+        startDate: moment().add(1, 'd').toISOString(),
         hours: 1.5,
         eventsList: [
           { event: '123', inclTaxesTpp: 14.4 },
@@ -44,6 +46,7 @@ describe('formatCustomerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         events: ['123', '456'],
+        vat: 12,
       }],
     });
     expect(result.billedEvents).toBeDefined();
@@ -58,21 +61,23 @@ describe('formatCustomerBills', () => {
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
       bills: [{
-        subscription: { _id: 'asd' },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
         hours: 1.5,
+        startDate: moment().add(1, 'd').toISOString(),
         eventsList: [
           { event: '123', inclTaxesTpp: 14.4 },
           { event: '456', inclTaxesTpp: 12 },
         ],
       }, {
-        subscription: { _id: 'fgh' },
+        subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 34,
         exclTaxes: 15,
         inclTaxes: 11,
         hours: 5,
+        startDate: moment().add(1, 'd').toISOString(),
         eventsList: [
           { event: '890', inclTaxesTpp: 45 },
           { event: '736', inclTaxesTpp: 23 },
@@ -93,6 +98,7 @@ describe('formatCustomerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         events: ['123', '456'],
+        vat: 12
       }, {
         subscription: 'fgh',
         unitExclTaxes: 34,
@@ -100,6 +106,7 @@ describe('formatCustomerBills', () => {
         inclTaxes: 11,
         hours: 5,
         events: ['890', '736'],
+        vat: 34,
       }],
     });
     expect(result.billedEvents).toBeDefined();
@@ -119,8 +126,9 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'asd' },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 24.644549763033176,
+        startDate: moment().add(1, 'd').toISOString(),
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
         hours: 1.5,
@@ -145,6 +153,7 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         events: ['123', '456'],
+        vat: 12,
       }],
     });
     expect(result.billedEvents).toBeDefined();
@@ -164,9 +173,10 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'asd' },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
+        startDate: moment().add(1, 'd').toISOString(),
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
@@ -175,9 +185,10 @@ describe('formatThirdPartyPayerBills', () => {
         ],
       }, {
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'fgh' },
+        subscription: { _id: 'fgh', service: { versions: [{ vat: 5.5, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 34,
         exclTaxes: 15,
+        startDate: moment().add(1, 'd').toISOString(),
         inclTaxes: 11,
         hours: 5,
         eventsList: [
@@ -201,6 +212,7 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         events: ['123', '456'],
+        vat: 12,
       }, {
         subscription: 'fgh',
         unitExclTaxes: 34,
@@ -208,6 +220,7 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 11,
         hours: 5,
         events: ['890', '736'],
+        vat: 5.5,
       }],
     });
     expect(result.billedEvents).toBeDefined();
@@ -230,9 +243,10 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'asd' },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
+        startDate: moment().add(1, 'd').toISOString(),
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
@@ -243,8 +257,9 @@ describe('formatThirdPartyPayerBills', () => {
     }, {
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'fgh' },
+        subscription: { _id: 'fgh', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 34,
+        startDate: moment().add(1, 'd').toISOString(),
         exclTaxes: 15,
         inclTaxes: 11,
         hours: 5,
