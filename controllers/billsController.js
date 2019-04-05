@@ -112,14 +112,6 @@ const draftBillsList = async (req) => {
   }
 };
 
-/**
- * TODO
- * 1. Créer la facture
- * 2. Incrementer le numéro de facture
- * 3. passer les evenements en `isBilled: true`
- * 4. Sauvegarder les historiques de financements
- * 5. Gestion du cas avec facture tiers
- */
 const createBills = async (req) => {
   try {
     const prefix = `FACT${moment().format('MMYY')}`;
