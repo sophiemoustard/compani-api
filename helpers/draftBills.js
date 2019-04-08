@@ -1,5 +1,6 @@
 const moment = require('moment-business-days');
 const Holidays = require('date-holidays');
+const mongoose = require('mongoose');
 
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
@@ -244,7 +245,10 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
+  const serviceMatchingVersion = getMatchingVersion(query.startDate, subscription.service);
+
   const draftBillInfo = {
+    _id: mongoose.Types.ObjectId(),
     subscription,
     identity: customer.identity,
     discount: 0,
@@ -252,8 +256,9 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: getExclTaxes(
       getMatchingVersion(query.startDate, subscription).unitTTCRate,
-      getMatchingVersion(query.startDate, subscription.service).vat
+      serviceMatchingVersion.vat
     ),
+    vat: serviceMatchingVersion.vat,
   };
 
   if (!fundings || Object.keys(thirdPartyPayerPrices).length === 0) return { customer: { ...draftBillInfo, ...customerPrices } };
@@ -262,7 +267,9 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     thirdPartyPayerPrices[key] = {
       ...draftBillInfo,
       ...thirdPartyPayerPrices[key],
+      _id: mongoose.Types.ObjectId(),
       thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
+      externalBilling: false,
     };
   });
 
@@ -281,7 +288,7 @@ const getDraftBillsList = async (eventsToBill, query) => {
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await populateSurcharge(eventsBySubscriptions[k].subscription);
       let { fundings } = eventsBySubscriptions[k];
-      fundings = await populateFundings(fundings);
+      if (fundings) fundings = await populateFundings(fundings);
 
       const draftBills = getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, query);
       customerDraftBills.push(draftBills.customer);
@@ -302,13 +309,11 @@ const getDraftBillsList = async (eventsToBill, query) => {
       },
     };
     if (Object.values(thirdPartyPayerBills).length > 0) {
-      groupedByCustomerBills.thirdPartyPayerBills = [];
+      groupedByCustomerBills.thirdPartyPayerBills = { bills: [] };
       for (const bills of Object.values(thirdPartyPayerBills)) {
-        groupedByCustomerBills.thirdPartyPayerBills.push({
-          bills,
-          total: bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0)
-        });
+        groupedByCustomerBills.thirdPartyPayerBills.bills.push(...bills);
       }
+      groupedByCustomerBills.thirdPartyPayerBills.total = groupedByCustomerBills.thirdPartyPayerBills.bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0);
     }
 
     draftBillsList.push(groupedByCustomerBills);
