@@ -233,6 +233,10 @@ module.exports = {
     thirdPartyPayersNotFound: 'Company third party payers not found.',
     thirdPartyPayerUpdated: 'Company third party payer updated.',
     thirdPartyPayerDeleted: 'Company third party payer deleted.',
+
+    /* Bills */
+    billsCreated: 'Bills created',
+    draftBillsCreated: 'Draft bills created',
   },
   'fr-FR': {
     /* Global errors */
@@ -465,5 +469,9 @@ module.exports = {
     thirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
     thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
+
+    /* Bills */
+    billsCreated: 'Factures crées',
+    draftBillsCreated: 'Brouillons de facture générés',
   }
 };

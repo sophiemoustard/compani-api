@@ -1,8 +1,11 @@
 'use-strict';
 
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
+
 const {
   draftBillsList,
+  createBills,
 } = require('../controllers/billsController');
 const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 
@@ -23,6 +26,64 @@ exports.plugin = {
         },
       },
       handler: draftBillsList,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/',
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          payload: {
+            bills: Joi.array().items(Joi.object({
+              customer: Joi.object().required(),
+              customerBills: Joi.object({
+                bills: Joi.array().items(Joi.object({
+                  subscription: Joi.object().required(),
+                  discount: Joi.number().required(),
+                  startDate: Joi.date().required(),
+                  endDate: Joi.date().required(),
+                  unitExclTaxes: Joi.number().required(),
+                  eventsList: Joi.array().items(Joi.object({
+                    event: Joi.objectId().required(),
+                    inclTaxesCustomer: Joi.number().required(),
+                    exclTaxesCustomer: Joi.number().required(),
+                    inclTaxesTpp: Joi.number(),
+                    exclTaxesTpp: Joi.number(),
+                    thirdPartyPayer: Joi.objectId(),
+                  })).required(),
+                  hours: Joi.number().required(),
+                  inclTaxes: Joi.number().required(),
+                  exclTaxes: Joi.number().required(),
+                })),
+              }),
+              thirdPartyPayerBills: Joi.array().items(Joi.object({
+                bills: Joi.array().items(Joi.object({
+                  subscription: Joi.object().required(),
+                  thirdPartyPayer: Joi.object().required(),
+                  discount: Joi.number().required(),
+                  startDate: Joi.date().required(),
+                  endDate: Joi.date().required(),
+                  unitExclTaxes: Joi.number().required(),
+                  eventsList: Joi.array().items(Joi.object({
+                    event: Joi.objectId().required(),
+                    inclTaxesCustomer: Joi.number().required(),
+                    exclTaxesCustomer: Joi.number().required(),
+                    inclTaxesTpp: Joi.number().required(),
+                    exclTaxesTpp: Joi.number().required(),
+                    thirdPartyPayer: Joi.objectId().required(),
+                    history: Joi.object().required(),
+                  })).required(),
+                  hours: Joi.number().required(),
+                  inclTaxes: Joi.number().required(),
+                  exclTaxes: Joi.number().required(),
+                })),
+              })),
+            })),
+          },
+        },
+      },
+      handler: createBills,
     });
   },
 };

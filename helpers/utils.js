@@ -1,4 +1,5 @@
 const moment = require('moment-timezone');
+const _ = require('lodash');
 
 /*
 ** Get a date interval using range array and interval type
@@ -22,10 +23,13 @@ const getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
 
 const clean = (obj) => {
   for (const k in obj) {
-    if (obj[k] === undefined || obj[k] === '' || obj[k] === {} || obj[k] === []) {
+    if (obj[k] === undefined || obj[k] === '' ||
+      (typeof obj[k] === 'object' && Object.keys(obj[k].length === 0)) ||
+      (typeof obj[k] === 'array' && obj[k].length === 0)) {
       delete obj[k];
     }
   }
+
   return obj;
 };
 
@@ -37,8 +41,21 @@ const getLastVersion = (versions, dateKey) => {
   return versions.sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
 };
 
+// `obj` should by sort in descending order
+const getMatchingVersion = (date, obj) => {
+  if (!Array.isArray(obj.versions)) throw new Error('versions must be an array !');
+  if (obj.versions.length === 0) return null;
+
+  const matchingVersion = obj.versions
+    .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') && (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))[0];
+  if (!matchingVersion) return null;
+
+  return { ..._.omit(obj, 'versions'), ..._.omit(matchingVersion, ['_id', 'createdAt']), versionId: matchingVersion._id };
+};
+
 module.exports = {
   getIntervalInRange,
   clean,
-  getLastVersion
+  getLastVersion,
+  getMatchingVersion,
 };

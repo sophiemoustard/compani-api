@@ -1,10 +1,13 @@
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 
 const Event = require('../models/Event');
+const BillNumber = require('../models/BillNumber');
 const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
-const { getDraftBillsList } = require('../helpers/bills');
+const { getDraftBillsList } = require('../helpers/draftBills');
+const { formatAndCreateBills } = require('../helpers/bills');
 
 const { language } = translate;
 
@@ -109,6 +112,25 @@ const draftBillsList = async (req) => {
   }
 };
 
+const createBills = async (req) => {
+  try {
+    const prefix = `FACT${moment().format('MMYY')}`;
+    const number = await BillNumber.findOneAndUpdate(
+      { prefix },
+      {},
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    await formatAndCreateBills(number, req.payload.bills);
+
+    return { message: translate[language].billsCreated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   draftBillsList,
+  createBills,
 };
