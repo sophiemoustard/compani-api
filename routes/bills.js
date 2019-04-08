@@ -7,6 +7,7 @@ const {
   draftBillsList,
   createBills,
   list,
+  generatePdfs
 } = require('../controllers/billsController');
 const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 
@@ -45,6 +46,15 @@ exports.plugin = {
         },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/pdfs',
+      options: {
+        auth: { strategy: 'jwt' },
+      },
+      handler: generatePdfs,
     });
 
     server.route({

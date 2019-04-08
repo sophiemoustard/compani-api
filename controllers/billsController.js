@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const puppeteer = require('puppeteer')
 
 const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
@@ -78,8 +79,24 @@ const list = async (req) => {
   }
 };
 
+const generatePdfs = async (req, h) => {
+  try {
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto('http://localhost:8080/docsigned', { waitUntil: 'networkidle0' });
+    const pdf = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+
+    return h.response(pdf).type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   draftBillsList,
   createBills,
   list,
+  generatePdfs,
 };
