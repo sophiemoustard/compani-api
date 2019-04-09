@@ -17,7 +17,6 @@ const draftBillsList = async (req) => {
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
       { type: INTERVENTION },
-      { customer: new ObjectID('5c6431764a85340014894ee6') }
     ];
 
     const eventsToBill = await Event.aggregate([
