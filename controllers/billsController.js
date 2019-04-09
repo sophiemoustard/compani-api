@@ -18,6 +18,8 @@ const draftBillsList = async (req) => {
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
       { type: INTERVENTION },
     ];
+    if (req.query.startDate) rules.push({ startDate: { $gte: req.query.startDate } });
+    if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
 
     const eventsToBill = await Event.aggregate([
       { $match: { $and: rules } },
@@ -98,6 +100,8 @@ const draftBillsList = async (req) => {
         }
       }
     ]);
+
+    console.log('events', eventsToBill);
 
     const draftBills = await getDraftBillsList(eventsToBill, req.query);
 
