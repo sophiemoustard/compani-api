@@ -89,15 +89,35 @@ const generatePdfs = async (req, h) => {
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
-    const data = { your: 'data' };
-    const templatePath = path.resolve('./', './data/test.html')
+    const data = {
+      invoice: {
+        id: 2452,
+        createdAt: '2018-10-12',
+        customer: { name: 'International Bank of Blueprintya'},
+        shipping: 10,
+        total: 104.95,
+        comments: 'Do not feed him fish',
+        lines: [
+          { id: 1, item: 'Best dry cleaner', price: '52.43' },
+          { id: 2, item: 'Not so good toaster', price: '11.62' },
+        ],
+      },
+    };
+
+    const templatePath = path.resolve('./', './data/DocumentSigned.html')
     const content = await ReadFile(templatePath, 'utf8');
+    handlebars.registerHelper('table', function (items, options) {
+      let out = "";
+      for (let i=0, l=items.length; i<l; i++) {
+        out = out + options.fn(items[i]);
+      }
+
+      return out;
+    });
     const template = handlebars.compile(content);
     const html = template(data);
     page.setContent(html);
-
     const pdf = await page.pdf({ format: 'A4', printBackground: true });
-    await browser.close();
 
     return h.response(pdf).type('application/pdf');
   } catch (e) {
