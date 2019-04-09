@@ -72,6 +72,7 @@ const getListQuery = (req) => {
   if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
   if (req.query.customer) query.customer = { $in: req.query.customer };
   if (req.query.isBilled) {
+    query.isBilled = true;
     query = {
       ...query,
       $or: [

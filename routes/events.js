@@ -118,6 +118,7 @@ exports.plugin = {
               condition: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
               reason: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
+            isBilled: Joi.boolean()
           })
         },
         auth: {
