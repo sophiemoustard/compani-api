@@ -1,7 +1,12 @@
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer');
+const path = require('path');
+const fs = require('fs');
+const util = require('util');
+const handlebars = require('handlebars');
+const ReadFile = util.promisify(fs.readFile);
 
 const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
@@ -83,7 +88,14 @@ const generatePdfs = async (req, h) => {
   try {
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
-    await page.goto('http://localhost:8080/docsigned', { waitUntil: 'networkidle0' });
+
+    const data = { your: 'data' };
+    const templatePath = path.resolve('./', './data/test.html')
+    const content = await ReadFile(templatePath, 'utf8');
+    const template = handlebars.compile(content);
+    const html = template(data);
+    page.setContent(html);
+
     const pdf = await page.pdf({ format: 'A4', printBackground: true });
     await browser.close();
 
