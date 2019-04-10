@@ -37,7 +37,6 @@ exports.plugin = {
         validate: {
           payload: {
             bills: Joi.array().items(Joi.object({
-              __index: Joi.number(),
               customerId: Joi.objectId(),
               customer: Joi.object().required(),
               customerBills: Joi.object({
