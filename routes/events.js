@@ -71,8 +71,9 @@ exports.plugin = {
             startDate: Joi.string(),
             endDate: Joi.string(),
             auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
-            customer: Joi.array().items(Joi.string()),
+            customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
+            isBilled: Joi.boolean()
           },
         },
         auth: {
@@ -117,6 +118,7 @@ exports.plugin = {
               condition: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
               reason: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
+            isBilled: Joi.boolean()
           })
         },
         auth: {

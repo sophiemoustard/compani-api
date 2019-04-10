@@ -237,6 +237,14 @@ module.exports = {
     /* Bills */
     billsCreated: 'Bills created',
     draftBillsCreated: 'Draft bills created',
+
+    /* Credit Notes */
+    creditNotesFound: 'Credit notes found.',
+    creditNoteCreated: 'Credit note found.',
+    creditNoteDeleted: 'Credit note deleted.',
+    creditNotesNotFound: 'Credit notes not found.',
+    creditNoteNotFound: 'Credit note not found.',
+    creditNoteUpdated: 'Credit note updated.',
   },
   'fr-FR': {
     /* Global errors */
@@ -473,5 +481,13 @@ module.exports = {
     /* Bills */
     billsCreated: 'Factures crées',
     draftBillsCreated: 'Brouillons de facture générés',
+
+    /* Credit Notes */
+    creditNotesFound: 'Avoirs trouvés.',
+    creditNoteCreated: 'Avoir créé.',
+    creditNoteDeleted: 'Avoir supprimé.',
+    creditNotesNotFound: 'Avoirs non trouvés.',
+    creditNoteNotFound: 'Avoir non trouvé.',
+    creditNoteUpdated: 'Avoir modifié.',
   }
 };
