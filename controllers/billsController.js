@@ -16,6 +16,7 @@ const draftBillsList = async (req) => {
     const rules = [
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
+      { $or: [{ isCancelled: false }, { isCancelled: { $exists: false } }] },
       { type: INTERVENTION },
     ];
     if (req.query.startDate) rules.push({ startDate: { $gte: req.query.startDate } });
