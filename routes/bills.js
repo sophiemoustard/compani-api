@@ -65,7 +65,7 @@ exports.plugin = {
                 })),
                 total: Joi.number(),
               }),
-              thirdPartyPayerBills: Joi.object({
+              thirdPartyPayerBills: Joi.array().items(Joi.object({
                 bills: Joi.array().items(Joi.object({
                   _id: Joi.objectId(),
                   subscription: Joi.object().required(),
@@ -88,11 +88,11 @@ exports.plugin = {
                   exclTaxes: Joi.number().required(),
                   vat: Joi.number().required(),
                   editDiscount: Joi.boolean(),
-                  identity: Joi.object(),
                   externalBilling: Joi.boolean(),
+                  identity: Joi.object(),
                 })),
                 total: Joi.number(),
-              }),
+              })),
             })),
           },
         },
