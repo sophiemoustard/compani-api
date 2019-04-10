@@ -14,7 +14,7 @@ const list = async (req) => {
     delete req.query.startDate;
     delete req.query.endDate;
     const creditNotes = await CreditNote.find(req.query)
-      .populate('customer')
+      .populate({ path: 'customer', select: '_id identity' })
       .populate('events');
 
     return {
@@ -30,7 +30,7 @@ const list = async (req) => {
 const getById = async (req) => {
   try {
     const creditNote = await CreditNote.findById(req.params._id)
-      .populate('customer')
+      .populate({ path: 'customer', select: '_id identity' })
       .populate('events');
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
 
