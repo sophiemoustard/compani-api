@@ -101,8 +101,6 @@ const draftBillsList = async (req) => {
       }
     ]);
 
-    console.log('events', eventsToBill);
-
     const draftBills = await getDraftBillsList(eventsToBill, req.query);
 
     return {
