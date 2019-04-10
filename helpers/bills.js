@@ -39,30 +39,30 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
   const tppBills = [];
   const billedEvents = {};
   const fundingHistories = {};
-  for (const tpp of thirdPartyPayerBills) {
-    const tppBill = {
-      customer: customer._id,
-      client: tpp.bills[0].thirdPartyPayer,
-      subscriptions: [],
-    };
-    if (!tpp.bills[0].externalBilling) {
+  const tppBill = {
+    customer: customer._id,
+    client: thirdPartyPayerBills.bills[0].thirdPartyPayer,
+    subscriptions: []
+  };
+
+  for (const draftBill of thirdPartyPayerBills.bills) {
+    tppBill.subscriptions.push(formatSubscriptionData(draftBill));
+    if (!draftBill.externalBilling) {
       tppBill.billNumber = formatBillNumber(number.prefix, seq);
       seq += 1;
     }
-
-    for (const draftBill of tpp.bills) {
-      tppBill.subscriptions.push(formatSubscriptionData(draftBill));
-      for (const ev of draftBill.eventsList) {
-        billedEvents[ev.event] = { ...ev };
-        if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = ev.history;
-        else {
-          if (fundingHistories[ev.history.fundingVersion].careHours) fundingHistories[ev.history.fundingVersion].careHours += ev.history.careHours;
-          else if (fundingHistories[ev.history.fundingVersion].amountTTC) fundingHistories[ev.history.fundingVersion].amountTTC += ev.history.amountTTC;
-        }
+    for (const ev of draftBill.eventsList) {
+      billedEvents[ev.event] = { ...ev };
+      if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = ev.history;
+      else {
+        if (fundingHistories[ev.history.fundingVersion].careHours)
+          fundingHistories[ev.history.fundingVersion].careHours += ev.history.careHours;
+        else if (fundingHistories[ev.history.fundingVersion].amountTTC)
+          fundingHistories[ev.history.fundingVersion].amountTTC += ev.history.amountTTC;
       }
     }
-    tppBills.push(tppBill);
   }
+  tppBills.push(tppBill);
 
   return { tppBills, billedEvents, fundingHistories };
 };
@@ -103,7 +103,7 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
     number.seq += 1;
     promises.push((new Bill(customerBillingInfo.bill)).save());
 
-    if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
+    if (draftBills.thirdPartyPayerBills) {
       const tppBillingInfo = formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number);
       fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories }
 
