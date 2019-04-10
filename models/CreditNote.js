@@ -13,6 +13,7 @@ const CreditNoteSchema = mongoose.Schema({
     ref: 'Event',
   }],
   subscription: {
+    _id: { type: mongoose.Schema.Types.ObjectId },
     service: String,
     vat: Number
   }

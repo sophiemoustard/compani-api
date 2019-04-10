@@ -5,6 +5,7 @@ const moment = require('moment');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const translate = require('../helpers/translate');
+const { updateEventBillingStatus } = require('../helpers/creditNotes');
 
 const { language } = translate;
 
@@ -47,16 +48,18 @@ const getById = async (req) => {
 const create = async (req) => {
   try {
     const query = { prefix: `AV-${moment().format('YYMM')}` };
-    const payload = { seq: 1 };
+    const numberPayload = { seq: 1 };
     const number = await CreditNoteNumber.findOneAndUpdate(
       flat(query),
-      { $inc: flat(payload) },
+      { $inc: flat(numberPayload) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     const creditNoteNumber = `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
     req.payload.number = creditNoteNumber;
     const creditNote = new CreditNote(req.payload);
     await creditNote.save();
+
+    await updateEventBillingStatus(req.payload.events, false);
 
     return {
       message: translate[language].creditNoteCreated,
@@ -70,8 +73,14 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const creditNote = await CreditNote.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
+    let creditNote = await CreditNote.findByIdAndUpdate(req.params._id);
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
+
+    if (creditNote.events) await updateEventBillingStatus(creditNote.events, true);
+
+    creditNote = await CreditNote.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
+
+    if (req.payload.events) await updateEventBillingStatus(req.payload.events, false);
 
     return {
       message: translate[language].creditNoteUpdated,
@@ -85,8 +94,11 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const creditNote = await CreditNote.findByIdAndRemove(req.params._id);
+    const creditNote = await CreditNote.findByIdAndUpdate(req.params._id);
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
+
+    await updateEventBillingStatus(creditNote.events, true);
+    await CreditNote.findByIdAndRemove(req.params._id);
 
     return {
       message: translate[language].creditNoteDeleted,

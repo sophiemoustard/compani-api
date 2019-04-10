@@ -30,6 +30,7 @@ exports.plugin = {
             inclTaxesCustomer: Joi.number().required(),
             events: Joi.array().items(Joi.objectId()),
             subscription: Joi.object().keys({
+              _id: Joi.objectId(),
               service: Joi.string(),
               vat: Joi.number(),
             }),
@@ -100,6 +101,7 @@ exports.plugin = {
             inclTaxesCustomer: Joi.number(),
             events: Joi.array().items(Joi.objectId()),
             subscription: Joi.object().keys({
+              _id: Joi.objectId(),
               service: Joi.string(),
               vat: Joi.number(),
             }),

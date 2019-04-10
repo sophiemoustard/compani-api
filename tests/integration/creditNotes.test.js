@@ -7,7 +7,7 @@ const app = require('../../server');
 const CreditNote = require('../../models/CreditNote');
 const { getToken } = require('./seed/usersSeed');
 const { populateCreditNotes, creditNotesList } = require('./seed/creditNotesSeed');
-const { populateEvents } = require('./seed/eventsSeed');
+const { populateEvents, eventsList } = require('./seed/eventsSeed');
 const { populateCustomers, customersList } = require('./seed/customersSeed');
 const { populateServices, servicesList } = require('./seed/servicesSeed');
 
@@ -33,13 +33,16 @@ describe('CREDIT NOTES ROUTES', () => {
       startDate: moment().startOf('month').toDate(),
       endDate: moment().set('date', 15).toDate(),
       customer: customersList[0]._id,
-      exclTaxes: 100,
-      inclTaxes: 112,
+      exclTaxesCustomer: 100,
+      inclTaxesCustomer: 112,
+      events: [eventsList[0]._id],
       subscription: {
+        _id: new ObjectID(),
         service: servicesList[0].versions[0].name,
         vat: servicesList[0].versions[0].vat
       },
     };
+
     it('should create a new credit note', async () => {
       const initialCreditNotesNumber = creditNotesList.length;
       const response = await app.inject({
@@ -54,6 +57,7 @@ describe('CREDIT NOTES ROUTES', () => {
       const creditNotes = await CreditNote.find();
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
     });
+
     const missingParams = [
       {
         paramName: 'customer',
@@ -63,14 +67,14 @@ describe('CREDIT NOTES ROUTES', () => {
         }
       },
       {
-        paramName: 'exclTaxes',
+        paramName: 'exclTaxesCustomer',
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
         }
       },
       {
-        paramName: 'inclTaxes',
+        paramName: 'inclTaxesCustomer',
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
@@ -123,9 +127,10 @@ describe('CREDIT NOTES ROUTES', () => {
       date: moment().add(1, 'd').toDate(),
       startDate: moment().startOf('month').toDate(),
       endDate: moment().endOf('month').toDate(),
-      exclTaxes: 200,
-      inclTaxes: 224,
+      exclTaxesCustomer: 200,
+      inclTaxesCustomer: 224,
     };
+
     it('should update a credit note', async () => {
       const response = await app.inject({
         method: 'PUT',
@@ -137,6 +142,7 @@ describe('CREDIT NOTES ROUTES', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.creditNote).toMatchObject(payload);
     });
+
     it('should return a 404 error if credit note does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
