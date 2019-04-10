@@ -46,14 +46,14 @@ const getById = async (req) => {
 
 const create = async (req) => {
   try {
-    const query = { creditNoteNumber: { prefix: `AV${moment().format('YYMMDD')}` } };
-    const payload = { creditNoteNumber: { seq: 1 } };
+    const query = { prefix: `AV-${moment().format('YYMM')}` };
+    const payload = { seq: 1 };
     const number = await CreditNoteNumber.findOneAndUpdate(
       flat(query),
       { $inc: flat(payload) },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
-    const creditNoteNumber = `${number.creditNoteNumber.prefix}-${number.creditNoteNumber.seq.toString().padStart(3, '0')}`;
+    const creditNoteNumber = `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
     req.payload.number = creditNoteNumber;
     const creditNote = new CreditNote(req.payload);
     await creditNote.save();
