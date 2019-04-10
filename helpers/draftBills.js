@@ -245,7 +245,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
-  const getServiceMatchingVersion = getMatchingVersion(query.startDate, subscription.service);
+  const serviceMatchingVersion = getMatchingVersion(query.startDate, subscription.service);
 
   const draftBillInfo = {
     _id: mongoose.Types.ObjectId(),
@@ -256,9 +256,9 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: getExclTaxes(
       getMatchingVersion(query.startDate, subscription).unitTTCRate,
-      getServiceMatchingVersion.vat
+      serviceMatchingVersion.vat
     ),
-    vat: getServiceMatchingVersion.vat,
+    vat: serviceMatchingVersion.vat,
   };
 
   if (!fundings || Object.keys(thirdPartyPayerPrices).length === 0) return { customer: { ...draftBillInfo, ...customerPrices } };
