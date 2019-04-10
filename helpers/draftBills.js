@@ -268,8 +268,8 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
       ...draftBillInfo,
       ...thirdPartyPayerPrices[key],
       _id: mongoose.Types.ObjectId(),
-      thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
       externalBilling: false,
+      thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
     };
   });
 
@@ -309,11 +309,13 @@ const getDraftBillsList = async (eventsToBill, query) => {
       },
     };
     if (Object.values(thirdPartyPayerBills).length > 0) {
-      groupedByCustomerBills.thirdPartyPayerBills = { bills: [] };
+      groupedByCustomerBills.thirdPartyPayerBills = [];
       for (const bills of Object.values(thirdPartyPayerBills)) {
-        groupedByCustomerBills.thirdPartyPayerBills.bills.push(...bills);
+        groupedByCustomerBills.thirdPartyPayerBills.push({
+          bills,
+          total: bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0)
+        });
       }
-      groupedByCustomerBills.thirdPartyPayerBills.total = groupedByCustomerBills.thirdPartyPayerBills.bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0);
     }
 
     draftBillsList.push(groupedByCustomerBills);

@@ -22,6 +22,7 @@ exports.plugin = {
             endDate: Joi.date().required(),
             startDate: Joi.date().required(),
             billingPeriod: Joi.string().valid([MONTH, TWO_WEEKS]).required(),
+            customer: Joi.objectId(),
           },
         },
       },
@@ -36,9 +37,11 @@ exports.plugin = {
         validate: {
           payload: {
             bills: Joi.array().items(Joi.object({
+              customerId: Joi.objectId(),
               customer: Joi.object().required(),
               customerBills: Joi.object({
                 bills: Joi.array().items(Joi.object({
+                  _id: Joi.objectId(),
                   subscription: Joi.object().required(),
                   discount: Joi.number().required(),
                   startDate: Joi.date().required(),
@@ -55,10 +58,15 @@ exports.plugin = {
                   hours: Joi.number().required(),
                   inclTaxes: Joi.number().required(),
                   exclTaxes: Joi.number().required(),
+                  vat: Joi.number().required(),
+                  editDiscount: Joi.boolean(),
+                  identity: Joi.object(),
                 })),
+                total: Joi.number(),
               }),
               thirdPartyPayerBills: Joi.array().items(Joi.object({
                 bills: Joi.array().items(Joi.object({
+                  _id: Joi.objectId(),
                   subscription: Joi.object().required(),
                   thirdPartyPayer: Joi.object().required(),
                   discount: Joi.number().required(),
@@ -77,7 +85,12 @@ exports.plugin = {
                   hours: Joi.number().required(),
                   inclTaxes: Joi.number().required(),
                   exclTaxes: Joi.number().required(),
+                  vat: Joi.number().required(),
+                  editDiscount: Joi.boolean(),
+                  externalBilling: Joi.boolean(),
+                  identity: Joi.object(),
                 })),
+                total: Joi.number(),
               })),
             })),
           },

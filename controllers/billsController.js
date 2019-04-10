@@ -16,8 +16,11 @@ const draftBillsList = async (req) => {
     const rules = [
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
+      { $or: [{ isCancelled: false }, { isCancelled: { $exists: false } }] },
       { type: INTERVENTION },
     ];
+    if (req.query.startDate) rules.push({ startDate: { $gte: req.query.startDate } });
+    if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
 
     const eventsToBill = await Event.aggregate([
       { $match: { $and: rules } },
