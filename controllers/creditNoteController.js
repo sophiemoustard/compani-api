@@ -11,9 +11,6 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    req.query.date = { $gte: req.query.startDate, $lte: req.query.endDate };
-    delete req.query.startDate;
-    delete req.query.endDate;
     const creditNotes = await CreditNote.find(req.query)
       .populate({ path: 'customer', select: '_id identity' })
       .populate('events');
@@ -59,7 +56,7 @@ const create = async (req) => {
     const creditNote = new CreditNote(req.payload);
     await creditNote.save();
 
-    await updateEventBillingStatus(req.payload.events, false);
+    if (req.payload.events) await updateEventBillingStatus(req.payload.events, false);
 
     return {
       message: translate[language].creditNoteCreated,

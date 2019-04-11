@@ -44,10 +44,12 @@ const list = async (req) => {
         data: { customers: [] },
       };
     }
+
     for (let i = 0, l = customers.length; i < l; i++) {
       customers[i] = await populateSubscriptionsServices(customers[i]);
       customers[i] = subscriptionsAccepted(customers[i]);
     }
+
     return {
       message: translate[language].customersFound,
       data: { customers }
@@ -122,33 +124,94 @@ const listBySector = async (req) => {
   }
 };
 
+const listWithBilledEvents = async (req) => {
+  try {
+    const rules = [
+      { type: INTERVENTION },
+      { isBilled: true },
+    ];
+    const customers = await Event.aggregate([
+      { $match: { $and: rules } },
+      { $group: {  _id: { SUBS: '$subscription', CUSTOMER: '$customer' }, } },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: '_id.CUSTOMER',
+          foreignField: '_id',
+          as: 'customer',
+        }
+      },
+      { $unwind: { path: '$customer' } },
+      {
+        $addFields: {
+          sub: {
+            $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+          }
+        }
+      },
+      { $unwind: { path: '$sub' } },
+      {
+        $lookup: {
+          from: 'services',
+          localField: 'sub.service',
+          foreignField: '_id',
+          as: 'sub.service',
+        }
+      },
+      { $unwind: { path: '$sub.service' } },
+      { $group: { _id: { CUS: '$customer' }, subscriptions: { $push: '$sub' } } },
+      { $project: {
+          _id: 0,
+          _id: '$_id.CUS._id',
+          subscriptions: '$subscriptions',
+          identity: '$_id.CUS.identity',
+        }
+      }
+    ]);
+
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+    }
+
+    return { data: { customers } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 const listWithCustomerContractSubscriptions = async () => {
-  const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
-  if (customerContractServices.length === 0) {
+  try {
+    const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
+    if (customerContractServices.length === 0) {
+      return {
+        message: translate[language].customersNotFound,
+        data: { customers: [] },
+      };
+    }
+
+    const ids = customerContractServices.map(service => service._id);
+    const customers = await Customer.find({ 'subscriptions.service': { $in: ids } }).populate('subscriptions.service').lean();
+    if (customers.length === 0) {
+      return {
+        message: translate[language].customersNotFound,
+        data: { customers: [] },
+      };
+    }
+
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+      customers[i] = subscriptionsAccepted(customers[i]);
+    }
+
     return {
-      message: translate[language].customersNotFound,
-      data: { customers: [] },
+      message: translate[language].customersFound,
+      data: { customers },
     };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
   }
-
-  const ids = customerContractServices.map(service => service._id);
-  const customers = await Customer.find({ 'subscriptions.service': { $in: ids } }).populate('subscriptions.service').lean();
-  if (customers.length === 0) {
-    return {
-      message: translate[language].customersNotFound,
-      data: { customers: [] },
-    };
-  }
-
-  for (let i = 0, l = customers.length; i < l; i++) {
-    customers[i] = await populateSubscriptionsServices(customers[i]);
-    customers[i] = subscriptionsAccepted(customers[i]);
-  }
-
-  return {
-    message: translate[language].customersFound,
-    data: { customers },
-  };
 };
 
 const show = async (req) => {
@@ -805,6 +868,7 @@ module.exports = {
   list,
   listBySector,
   listWithCustomerContractSubscriptions,
+  listWithBilledEvents,
   show,
   create,
   remove,

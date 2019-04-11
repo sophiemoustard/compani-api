@@ -106,14 +106,10 @@ describe('CREDIT NOTES ROUTES', () => {
   describe('GET /creditNotes', () => {
     it('should get all credit notes', async () => {
       const creditNotesNumber = creditNotesList.length;
-      const queries = {
-        startDate: moment().subtract(1, 'd').toDate(),
-        endDate: moment().add(1, 'd').toDate(),
-      };
 
       const response = await app.inject({
         method: 'GET',
-        url: `/creditNotes?${qs.stringify(queries)}`,
+        url: `/creditNotes`,
         headers: { 'x-access-token': authToken },
       });
 

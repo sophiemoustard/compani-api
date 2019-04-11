@@ -261,22 +261,22 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     vat: serviceMatchingVersion.vat,
   };
 
-  if (!fundings || Object.keys(thirdPartyPayerPrices).length === 0) return { customer: { ...draftBillInfo, ...customerPrices } };
+  const result = {};
+  if (customerPrices.exclTaxes !== 0) result.customer = { ...draftBillInfo, ...customerPrices };
+  if (fundings && Object.keys(thirdPartyPayerPrices).length !== 0) {
+    Object.keys(thirdPartyPayerPrices).map((key) => {
+      thirdPartyPayerPrices[key] = {
+        ...draftBillInfo,
+        ...thirdPartyPayerPrices[key],
+        _id: mongoose.Types.ObjectId(),
+        externalBilling: false,
+        thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
+      };
+    });
+    result.thirdPartyPayer = thirdPartyPayerPrices;
+  }
 
-  Object.keys(thirdPartyPayerPrices).map((key) => {
-    thirdPartyPayerPrices[key] = {
-      ...draftBillInfo,
-      ...thirdPartyPayerPrices[key],
-      _id: mongoose.Types.ObjectId(),
-      externalBilling: false,
-      thirdPartyPayer: fundings.find(fund => fund.thirdPartyPayer._id.toHexString() === key).thirdPartyPayer,
-    };
-  });
-
-  return {
-    customer: { ...draftBillInfo, ...customerPrices },
-    thirdPartyPayer: thirdPartyPayerPrices,
-  };
+  return result;
 };
 
 const getDraftBillsList = async (eventsToBill, query) => {
@@ -291,7 +291,7 @@ const getDraftBillsList = async (eventsToBill, query) => {
       if (fundings) fundings = await populateFundings(fundings);
 
       const draftBills = getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, query);
-      customerDraftBills.push(draftBills.customer);
+      if (draftBills.customer) customerDraftBills.push(draftBills.customer);
       if (draftBills.thirdPartyPayer) {
         for (const tpp of Object.keys(draftBills.thirdPartyPayer)) {
           if (!thirdPartyPayerBills[tpp]) thirdPartyPayerBills[tpp] = [draftBills.thirdPartyPayer[tpp]];
