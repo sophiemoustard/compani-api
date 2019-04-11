@@ -59,7 +59,7 @@ const create = async (req) => {
     const creditNote = new CreditNote(req.payload);
     await creditNote.save();
 
-    await updateEventBillingStatus(req.payload.events, false);
+    if (req.payload.events) await updateEventBillingStatus(req.payload.events, false);
 
     return {
       message: translate[language].creditNoteCreated,
