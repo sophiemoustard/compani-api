@@ -6,6 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   draftBillsList,
   createBills,
+  list,
 } = require('../controllers/billsController');
 const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 
@@ -27,6 +28,22 @@ exports.plugin = {
         },
       },
       handler: draftBillsList,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          query: {
+            endDate: Joi.date(),
+            startDate: Joi.date(),
+            customer: Joi.objectId(),
+          },
+        },
+      },
+      handler: list,
     });
 
     server.route({

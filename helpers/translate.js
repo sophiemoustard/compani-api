@@ -237,6 +237,8 @@ module.exports = {
     /* Bills */
     billsCreated: 'Bills created',
     draftBillsCreated: 'Draft bills created',
+    billsFound: 'Bills found',
+    billsNotFound: 'Bills not found',
 
     /* Credit Notes */
     creditNotesFound: 'Credit notes found.',
@@ -484,6 +486,8 @@ module.exports = {
     /* Bills */
     billsCreated: 'Factures crées',
     draftBillsCreated: 'Brouillons de facture générés',
+    billsFound: 'Factures trouvés',
+    billsNotFound: 'Factures non trouvés',
 
     /* Credit Notes */
     creditNotesFound: 'Avoirs trouvés.',
