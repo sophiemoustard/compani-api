@@ -4,7 +4,7 @@ const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const { getMatchingVersion } = require('../helpers/utils');
 
-const formatBillNumber = (prefix, seq) => `${prefix}-${seq.toString().padStart(3, '0')}`;
+const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
 const formatSubscriptionData = (bill) => {
   const events = bill.eventsList.map(ev => ev.event);

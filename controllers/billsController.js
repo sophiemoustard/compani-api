@@ -117,7 +117,7 @@ const draftBillsList = async (req) => {
 
 const createBills = async (req) => {
   try {
-    const prefix = `FACT${moment().format('MMYY')}`;
+    const prefix = `FACT-${moment().format('MMYY')}`;
     const number = await BillNumber.findOneAndUpdate(
       { prefix },
       {},
