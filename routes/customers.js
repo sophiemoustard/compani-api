@@ -8,6 +8,7 @@ const {
   update,
   list,
   listBySector,
+  listWithBilledEvents,
   listWithCustomerContractSubscriptions,
   show,
   remove,
@@ -162,6 +163,16 @@ exports.plugin = {
         auth: 'jwt'
       },
       handler: listBySector,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/billed-events',
+      options: {
+        validate: {},
+        auth: 'jwt'
+      },
+      handler: listWithBilledEvents,
     });
 
     server.route({

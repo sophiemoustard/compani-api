@@ -11,9 +11,6 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    req.query.date = { $gte: req.query.startDate, $lte: req.query.endDate };
-    delete req.query.startDate;
-    delete req.query.endDate;
     const creditNotes = await CreditNote.find(req.query)
       .populate({ path: 'customer', select: '_id identity' })
       .populate('events');
