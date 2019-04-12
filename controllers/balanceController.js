@@ -2,7 +2,7 @@ const Boom = require('boom');
 
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
-const { canBeWithDrawed } = require('../helpers/balances');
+const { canBeWithdrawn } = require('../helpers/balances');
 
 const getBalanceByClient = async (req) => {
   try {
@@ -58,7 +58,7 @@ const getBalanceByClient = async (req) => {
       bill.tableId = `${bill._id.tpp}:${bill._id.customer}`;
       bill.paid = 0;
       bill.balance = bill.paid - bill.billed;
-      bill.toPay = canBeWithDrawed(bill) ? Math.abs(bill.balance) : 0;
+      bill.toPay = canBeWithdrawn(bill) ? Math.abs(bill.balance) : 0;
       return bill;
     })
 
