@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const BillSchema = mongoose.Schema({
   billNumber: String,
+  date: Date,
   customer: { type: mongoose.Schema.Types.ObjectId },
   client: { type: mongoose.Schema.Types.ObjectId },
   subscriptions: [{
@@ -16,6 +17,7 @@ const BillSchema = mongoose.Schema({
     inclTaxes: Number,
     discount: Number,
   }],
+  netInclTaxes: Number,
 }, { timestamps: true });
 
 module.exports = mongoose.model('Bill', BillSchema);
