@@ -245,6 +245,9 @@ module.exports = {
     creditNotesNotFound: 'Credit notes not found.',
     creditNoteNotFound: 'Credit note not found.',
     creditNoteUpdated: 'Credit note updated.',
+
+    /* Balances */
+    balancesFound: 'Balances found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -489,5 +492,8 @@ module.exports = {
     creditNotesNotFound: 'Avoirs non trouvés.',
     creditNoteNotFound: 'Avoir non trouvé.',
     creditNoteUpdated: 'Avoir modifié.',
+
+    /* Balances */
+    balancesFound: 'Balances trouvées.',
   }
 };

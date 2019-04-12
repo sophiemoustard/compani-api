@@ -22,6 +22,7 @@ const formatCustomerBills = (customerBills, customer, number) => {
     customer: customer._id,
     subscriptions: [],
     billNumber: formatBillNumber(number.prefix, number.seq),
+    netInclTaxes: customerBills.total,
   };
 
   for (const draftBill of customerBills.bills) {
@@ -44,6 +45,7 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       customer: customer._id,
       client: tpp.bills[0].thirdPartyPayer,
       subscriptions: [],
+      netInclTaxes: tpp.total,
     };
     if (!tpp.bills[0].externalBilling) {
       tppBill.billNumber = formatBillNumber(number.prefix, seq);

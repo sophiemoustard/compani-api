@@ -172,5 +172,11 @@ exports.routes = [
     routes: {
       prefix: '/creditNotes'
     }
+  },
+  {
+    plugin: require('./balances'),
+    routes: {
+      prefix: '/balances'
+    }
   }
 ];
