@@ -145,7 +145,7 @@ const list = async (req) => {
       query.date = date;
     }
 
-    const bills = await Bill.find(query).populate({ path: 'customer', select: '_id identity' });
+    const bills = await Bill.find(query).populate({ path: 'client', select: '_id name' });
 
     if (!bills) return Boom.notFound(translate[language].billsNotFound);
 
