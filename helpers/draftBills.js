@@ -149,7 +149,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
   };
 };
 
-const getFixedFundingSplit = (funding, service, price) => {
+const getFixedFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
   if (funding.history && funding.history.amountTTC < funding.amountTTC) {
     if (funding.history.amountTTC + (price * (1 + (service.vat / 100))) < funding.amountTTC) {
@@ -161,11 +161,14 @@ const getFixedFundingSplit = (funding, service, price) => {
     }
   }
 
+  const chargedTime = moment(event.endDate).diff(moment(event.startDate), 'm');
+
   return {
     customerPrice: price - thirdPartyPayerPrice,
     thirdPartyPayerPrice,
     history: funding.history,
     thirdPartyPayer: funding.thirdPartyPayer._id,
+    chargedTime,
   };
 };
 
@@ -178,7 +181,7 @@ const getEventPrice = (event, subscription, service, funding) => {
   if (funding) {
     if (funding.nature === HOURLY) return getHourlyFundingSplit(event, funding, service, price);
 
-    return getFixedFundingSplit(funding, service, price);
+    return getFixedFundingSplit(event, funding, service, price);
   }
 
   return { customerPrice: price, thirdPartyPayerPrice: 0 };
