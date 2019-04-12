@@ -16,13 +16,8 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { strategy: 'jwt' },
-        validate: {
-          query: {
-          },
-        },
       },
       handler: getBalanceByClient,
     });
-
   },
 };

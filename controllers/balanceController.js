@@ -3,6 +3,9 @@ const Boom = require('boom');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
 const { canBeWithdrawn } = require('../helpers/balances');
+const translate = require('../helpers/translate');
+
+const { language } = translate;
 
 const getBalanceByClient = async (req) => {
   try {
@@ -55,7 +58,6 @@ const getBalanceByClient = async (req) => {
         const correspondingCreditNote = creditNotesAggregation.find(cn => cn._id.toHexString() === bill._id.customer.toHexString());
         bill.billed -= correspondingCreditNote ? correspondingCreditNote.refund : 0;
       }
-      bill.tableId = `${bill._id.tpp}:${bill._id.customer}`;
       bill.paid = 0;
       bill.balance = bill.paid - bill.billed;
       bill.toPay = canBeWithdrawn(bill) ? Math.abs(bill.balance) : 0;
@@ -63,6 +65,7 @@ const getBalanceByClient = async (req) => {
     })
 
     return {
+      message: translate[language].balancesFound,
       data: { balances },
     };
   } catch (e) {
