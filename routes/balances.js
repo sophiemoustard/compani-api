@@ -5,7 +5,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
-  getBalanceByClient,
+  list,
 } = require('../controllers/balanceController');
 
 exports.plugin = {
@@ -16,8 +16,14 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { strategy: 'jwt' },
+        validate: {
+          query: {
+            date: Joi.date(),
+            customer: Joi.objectId(),
+          },
+        },
       },
-      handler: getBalanceByClient,
+      handler: list,
     });
   },
 };
