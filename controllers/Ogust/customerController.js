@@ -113,47 +113,6 @@ const create = async (req) => {
   }
 };
 
-const getThirdPartyInformation = async (req) => {
-  try {
-    const params = req.query;
-    params.token = req.headers['x-ogust-token'];
-    params.third_party_id = req.params.id;
-    const thirdPartyInfos = await customers.getThirdPartyInformationByCustomerId(params);
-    if (thirdPartyInfos.data.status == 'KO') {
-      return Boom.badRequest(thirdPartyInfos.data.message);
-    } else if (thirdPartyInfos.length === 0) {
-      return Boom.notFound();
-    }
-    return {
-      message: translate[language].thirdPartyInfoFound,
-      data: { info: thirdPartyInfos.data }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const editThirdPartyInformation = async (req) => {
-  try {
-    const params = req.query;
-    params.token = req.headers['x-ogust-token'];
-    params.third_party_id = req.params.id;
-    params.array_values = req.payload.arrayValues;
-    const thirdPartyInfos = await customers.editThirdPartyInformationByCustomerId(params);
-    if (thirdPartyInfos.data.status == 'KO') {
-      return Boom.badRequest(thirdPartyInfos.data.message);
-    }
-    return {
-      message: translate[language].thirdPartyInfoEdited,
-      data: { info: thirdPartyInfos.data }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
 const getCustomerContacts = async (req) => {
   try {
     const params = {
@@ -179,8 +138,6 @@ module.exports = {
   list,
   getById,
   getCustomerServices,
-  getThirdPartyInformation,
-  editThirdPartyInformation,
   updateById,
   create,
   getCustomerContacts
