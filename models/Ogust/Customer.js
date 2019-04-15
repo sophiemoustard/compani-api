@@ -57,11 +57,5 @@ exports.getServices = async (params) => {
   return axios.post(`${Ogust.API_LINK}searchService`, newParams);
 };
 
-// Get fiscal attests
-exports.getFiscalAttests = async params => axios.post(`${Ogust.API_LINK}searchFiscalattest`, params);
-
-// Get invoices
-exports.getInvoices = async params => axios.post(`${Ogust.API_LINK}searchInvoice`, params);
-
 // Get contacts
 exports.getContacts = async params => axios.post(`${Ogust.API_LINK}searchContact`, params);

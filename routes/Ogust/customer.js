@@ -10,8 +10,6 @@ const {
   getThirdPartyInformation,
   editThirdPartyInformation,
   getCustomerServices,
-  getCustomerFiscalAttests,
-  getCustomerInvoices,
   getCustomerContacts
 } = require('../../controllers/Ogust/customerController');
 
@@ -161,51 +159,6 @@ exports.plugin = {
         auth: false
       },
       handler: getThirdPartyInformation
-    });
-    // Get customer fiscal attests
-    server.route({
-      method: 'GET',
-      path: '/{id}/fiscalAttests',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          query: {
-            status: Joi.string().default('E'),
-            year: Joi.string(),
-            nbperpage: Joi.number().default(24),
-            pagenum: Joi.number().default(1)
-          },
-        },
-        auth: false
-      },
-      handler: getCustomerFiscalAttests
-    });
-    // Get customer invoices
-    server.route({
-      method: 'GET',
-      path: '/{id}/invoices',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          query: {
-            year: Joi.string(),
-            month: Joi.string(),
-            startPeriod: Joi.string(),
-            endPeriod: Joi.string(),
-            status: Joi.string().default('E'),
-            nbperpage: Joi.number().default(50),
-            pagenum: Joi.number().default(1)
-          },
-        },
-        auth: false
-      },
-      handler: getCustomerInvoices
     });
     // Edit customer third party information
     server.route({
