@@ -3,7 +3,6 @@ const flat = require('flat');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
-const bills = require('../helpers/bills');
 const { addFile } = require('../helpers/gdriveStorage');
 const {
   isCreationAllowed,
@@ -116,9 +115,7 @@ const remove = async (req) => {
     const event = await Event.findByIdAndRemove({ _id: req.params._id });
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    return {
-      message: translate[language].eventDeleted,
-    };
+    return { message: translate[language].eventDeleted, };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
