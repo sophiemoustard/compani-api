@@ -38,6 +38,16 @@ const eventsList = [
     createdAt: '2019-07-11T12:54:18.653Z',
     subscription: customersList[0].subscriptions[0]._id,
   },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    startDate: '2019-01-18T19:30:18.653Z',
+    endDate: '2019-01-18T20:30:18.653Z',
+    auxiliary: auxiliary._id,
+    customer: customersList[0]._id,
+    createdAt: '2019-07-11T12:54:18.653Z',
+    subscription: customersList[0].subscriptions[0]._id,
+  }
 ];
 
 const populateEvents = async () => {
