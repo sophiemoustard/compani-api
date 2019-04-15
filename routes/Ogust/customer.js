@@ -7,8 +7,6 @@ const {
   getById,
   updateById,
   create,
-  getCustomerServices,
-  getCustomerContacts
 } = require('../../controllers/Ogust/customerController');
 
 exports.plugin = {
