@@ -113,99 +113,6 @@ const create = async (req) => {
   }
 };
 
-const getThirdPartyInformation = async (req) => {
-  try {
-    const params = req.query;
-    params.token = req.headers['x-ogust-token'];
-    params.third_party_id = req.params.id;
-    const thirdPartyInfos = await customers.getThirdPartyInformationByCustomerId(params);
-    if (thirdPartyInfos.data.status == 'KO') {
-      return Boom.badRequest(thirdPartyInfos.data.message);
-    } else if (thirdPartyInfos.length === 0) {
-      return Boom.notFound();
-    }
-    return {
-      message: translate[language].thirdPartyInfoFound,
-      data: { info: thirdPartyInfos.data }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const getCustomerFiscalAttests = async (req) => {
-  try {
-    const params = req.query;
-    params.token = req.headers['x-ogust-token'];
-    params.id_customer = req.params.id;
-    if (req.query.year) {
-      params.period_end = `@between|${req.query.year}0101|${req.query.year}1231`;
-    }
-    const fiscalAttestsRaw = await customers.getFiscalAttests(params);
-    if (fiscalAttestsRaw.data.status == 'KO') {
-      return Boom.badRequest(fiscalAttestsRaw.data.message);
-    } else if (fiscalAttestsRaw.length === 0) {
-      return Boom.notFound();
-    }
-    return {
-      message: translate[language].fiscalAttestsRaw,
-      data: { info: fiscalAttestsRaw.data }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const getCustomerInvoices = async (req) => {
-  try {
-    const params = req.query;
-    params.token = req.headers['x-ogust-token'];
-    params.id_customer = req.params.id;
-    if (req.query.startPeriod && req.query.endPeriod) {
-      params.end_of_period = `@between|${req.query.startPeriod}|${req.query.endPeriod}`;
-    } else if (req.query.year && req.query.month) {
-      params.end_of_period = `@between|${req.query.year}${req.query.month}01|${req.query.year}${req.query.month}31`;
-    } else {
-      params.end_of_period = `@between|${req.query.year}0101|${req.query.year}1231`;
-    }
-    const invoicesRaw = await customers.getInvoices(params);
-    if (invoicesRaw.data.status == 'KO') {
-      return Boom.badRequest(invoicesRaw.data.message);
-    } else if (Object.keys(invoicesRaw.data.array_invoice.result).length === 0) {
-      return Boom.notFound();
-    }
-    return {
-      message: translate[language].invoicesFound,
-      data: { invoices: invoicesRaw.data }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const editThirdPartyInformation = async (req) => {
-  try {
-    const params = req.query;
-    params.token = req.headers['x-ogust-token'];
-    params.third_party_id = req.params.id;
-    params.array_values = req.payload.arrayValues;
-    const thirdPartyInfos = await customers.editThirdPartyInformationByCustomerId(params);
-    if (thirdPartyInfos.data.status == 'KO') {
-      return Boom.badRequest(thirdPartyInfos.data.message);
-    }
-    return {
-      message: translate[language].thirdPartyInfoEdited,
-      data: { info: thirdPartyInfos.data }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
 const getCustomerContacts = async (req) => {
   try {
     const params = {
@@ -231,10 +138,6 @@ module.exports = {
   list,
   getById,
   getCustomerServices,
-  getThirdPartyInformation,
-  getCustomerFiscalAttests,
-  getCustomerInvoices,
-  editThirdPartyInformation,
   updateById,
   create,
   getCustomerContacts

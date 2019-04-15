@@ -7,11 +7,7 @@ const {
   getById,
   updateById,
   create,
-  getThirdPartyInformation,
-  editThirdPartyInformation,
   getCustomerServices,
-  getCustomerFiscalAttests,
-  getCustomerInvoices,
   getCustomerContacts
 } = require('../../controllers/Ogust/customerController');
 
@@ -111,137 +107,6 @@ exports.plugin = {
         auth: false
       },
       handler: create
-    });
-
-    // Get customer services
-    server.route({
-      method: 'GET',
-      path: '/{id}/services',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          query: {
-            idCustomer: Joi.string(),
-            isRange: Joi.boolean().default(false),
-            isDate: Joi.boolean().default(false),
-            slotToSub: Joi.number(),
-            slotToAdd: Joi.number(),
-            intervalType: Joi.string(),
-            startDate: Joi.number(),
-            endDate: Joi.number(),
-            status: Joi.string().default('@!=|N'),
-            type: Joi.string().default('I'),
-            nbperpage: Joi.number().default(100),
-            pagenum: Joi.number().default(1)
-          },
-        },
-        auth: false
-      },
-      handler: getCustomerServices
-    });
-    // Get customer third party information
-    server.route({
-      method: 'GET',
-      path: '/{id}/moreInfo',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          query: {
-            third_party: Joi.string().default('C'),
-            nbperpage: Joi.number().default(10),
-            pagenum: Joi.number().default(1)
-          }
-        },
-        auth: false
-      },
-      handler: getThirdPartyInformation
-    });
-    // Get customer fiscal attests
-    server.route({
-      method: 'GET',
-      path: '/{id}/fiscalAttests',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          query: {
-            status: Joi.string().default('E'),
-            year: Joi.string(),
-            nbperpage: Joi.number().default(24),
-            pagenum: Joi.number().default(1)
-          },
-        },
-        auth: false
-      },
-      handler: getCustomerFiscalAttests
-    });
-    // Get customer invoices
-    server.route({
-      method: 'GET',
-      path: '/{id}/invoices',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          query: {
-            year: Joi.string(),
-            month: Joi.string(),
-            startPeriod: Joi.string(),
-            endPeriod: Joi.string(),
-            status: Joi.string().default('E'),
-            nbperpage: Joi.number().default(50),
-            pagenum: Joi.number().default(1)
-          },
-        },
-        auth: false
-      },
-      handler: getCustomerInvoices
-    });
-    // Edit customer third party information
-    server.route({
-      method: 'PUT',
-      path: '/{id}/moreInfo',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          query: {
-            third_party: Joi.string().default('C')
-          },
-          payload: Joi.object().keys({
-            arrayValues: Joi.object()
-          })
-        },
-        auth: false
-      },
-      handler: editThirdPartyInformation
-    });
-    // Get customer contacts
-    server.route({
-      method: 'GET',
-      path: '/{id}/contacts',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() }
-        },
-        auth: false
-      },
-      handler: getCustomerContacts
     });
   },
 };

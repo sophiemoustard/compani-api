@@ -12,12 +12,6 @@ exports.getCustomerById = async params => axios.post(`${Ogust.API_LINK}getCustom
 // Edit customer by id
 exports.editCustomerById = async params => axios.post(`${Ogust.API_LINK}setCustomer`, params);
 
-// Get third party information by customer id
-exports.getThirdPartyInformationByCustomerId = async params => axios.post(`${Ogust.API_LINK}getThirdPartyInformations`, params);
-
-// Edit third party information by customer id
-exports.editThirdPartyInformationByCustomerId = async params => axios.post(`${Ogust.API_LINK}setThirdPartyInformations`, params);
-
 /*
 ** Get services by customer id in range or by date
 ** PARAMS:
@@ -56,12 +50,6 @@ exports.getServices = async (params) => {
   };
   return axios.post(`${Ogust.API_LINK}searchService`, newParams);
 };
-
-// Get fiscal attests
-exports.getFiscalAttests = async params => axios.post(`${Ogust.API_LINK}searchFiscalattest`, params);
-
-// Get invoices
-exports.getInvoices = async params => axios.post(`${Ogust.API_LINK}searchInvoice`, params);
 
 // Get contacts
 exports.getContacts = async params => axios.post(`${Ogust.API_LINK}searchContact`, params);
