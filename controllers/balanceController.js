@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const { ObjectID } = require('mongodb');
 
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
@@ -7,9 +8,14 @@ const translate = require('../helpers/translate');
 
 const { language } = translate;
 
-const getBalanceByClient = async (req) => {
+const list = async (req) => {
+  const rules = [];
+  if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
+  if (req.query.date) rules.push({ date: { $lt: req.query.date } });
+
   try {
     const billsAggregation = await Bill.aggregate([
+      { $match: rules.length === 0 ? {} : { $and: rules } },
       {
         $group: {
           _id: { tpp: { $ifNull: ["$client", null] }, customer: '$customer' },
@@ -37,14 +43,15 @@ const getBalanceByClient = async (req) => {
       {
         $project: {
           _id: 1,
-          customer: { identity: 1, payment: 1 },
-          thirdPartyPayer: { name: 1 },
+          customer: { _id: 1, identity: 1, payment: 1 },
+          thirdPartyPayer: { name: 1, _id: 1 },
           billed: 1,
         }
       }
     ]);
 
     const creditNotesAggregation = await CreditNote.aggregate([
+      { $match: rules.length === 0 ? {} : { $and: rules } },
       {
         $group: {
           _id: '$customer',
@@ -75,5 +82,5 @@ const getBalanceByClient = async (req) => {
 };
 
 module.exports = {
-  getBalanceByClient
+  list
 };

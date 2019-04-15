@@ -11,7 +11,17 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const creditNotes = await CreditNote.find(req.query)
+    const { startDate, endDate, ...rest } = req.query;
+    const query = rest;
+    if (startDate || endDate) {
+      let date = {};
+      if (startDate && endDate) date = { $lt: endDate, $gte: startDate };
+      else if ( startDate) date = { $gte: startDate }
+      else date = { $lt: endDate };
+      query.date = date;
+    }
+
+    const creditNotes = await CreditNote.find(query)
       .populate({ path: 'customer', select: '_id identity' })
       .populate('events');
 

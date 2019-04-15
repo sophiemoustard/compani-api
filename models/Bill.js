@@ -4,7 +4,7 @@ const BillSchema = mongoose.Schema({
   billNumber: String,
   date: Date,
   customer: { type: mongoose.Schema.Types.ObjectId },
-  client: { type: mongoose.Schema.Types.ObjectId },
+  client: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
   subscriptions: [{
     startDate: Date,
     endDate: Date,

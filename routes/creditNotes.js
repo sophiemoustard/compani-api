@@ -45,6 +45,13 @@ exports.plugin = {
       handler: list,
       options: {
         auth: { strategy: 'jwt' },
+        validate: {
+          query: {
+            startDate: Joi.date(),
+            endDate: Joi.date(),
+            customer: Joi.objectId(),
+          },
+        },
       },
     });
 

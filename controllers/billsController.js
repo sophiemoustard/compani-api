@@ -4,6 +4,7 @@ const moment = require('moment');
 
 const Event = require('../models/Event');
 const BillNumber = require('../models/BillNumber');
+const Bill = require('../models/Bill');
 const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
@@ -116,7 +117,7 @@ const draftBillsList = async (req) => {
 
 const createBills = async (req) => {
   try {
-    const prefix = `FACT${moment().format('MMYY')}`;
+    const prefix = `FACT-${moment().format('MMYY')}`;
     const number = await BillNumber.findOneAndUpdate(
       { prefix },
       {},
@@ -132,7 +133,34 @@ const createBills = async (req) => {
   }
 };
 
+const list = async (req) => {
+  try {
+    const { startDate, endDate, ...rest } = req.query;
+    const query = rest;
+    if (startDate || endDate) {
+      let date = {};
+      if (startDate && endDate) date = { $lt: endDate, $gte: startDate };
+      else if ( startDate) date = { $gte: startDate }
+      else date = { $lt: endDate };
+      query.date = date;
+    }
+
+    const bills = await Bill.find(query).populate({ path: 'client', select: '_id name' });
+
+    if (!bills) return Boom.notFound(translate[language].billsNotFound);
+
+    return {
+      message: translate[language].billsFound,
+      data: { bills }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   draftBillsList,
   createBills,
+  list,
 };

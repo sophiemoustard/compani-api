@@ -9,8 +9,8 @@ const {
 
 describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
-    expect(formatBillNumber('toto', 5)).toEqual('toto-005');
-    expect(formatBillNumber('toto', 345)).toEqual('toto-345');
+    expect(formatBillNumber('toto', 5)).toEqual('toto005');
+    expect(formatBillNumber('toto', 345)).toEqual('toto345');
   });
 });
 
@@ -38,7 +38,7 @@ describe('formatCustomerBills', () => {
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou-077',
+      billNumber: 'Picsou077',
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
@@ -90,7 +90,7 @@ describe('formatCustomerBills', () => {
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou-077',
+      billNumber: 'Picsou077',
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
@@ -144,7 +144,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou-077',
+      billNumber: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -203,7 +203,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou-077',
+      billNumber: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
