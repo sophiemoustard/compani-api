@@ -1,182 +1,118 @@
 exports.routes = [
   {
     plugin: require('./users'),
-    routes: {
-      prefix: '/users'
-    }
+    routes: { prefix: '/users' }
   },
   {
     plugin: require('./roles'),
-    routes: {
-      prefix: '/roles'
-    }
+    routes: { prefix: '/roles' }
   },
   {
     plugin: require('./rights'),
-    routes: {
-      prefix: '/rights'
-    }
+    routes: { prefix: '/rights' }
   },
   {
     plugin: require('./activation'),
-    routes: {
-      prefix: '/activation'
-    }
+    routes: { prefix: '/activation' }
   },
   {
     plugin: require('./planningUpdates'),
-    routes: {
-      prefix: '/planningUpdates'
-    }
+    routes: { prefix: '/planningUpdates' }
   },
   {
     plugin: require('./email'),
-    routes: {
-      prefix: '/email'
-    }
+    routes: { prefix: '/email' }
   },
   {
     plugin: require('./bot'),
-    routes: {
-      prefix: '/bot'
-    }
+    routes: { prefix: '/bot' }
   },
   {
     plugin: require('./blog'),
-    routes: {
-      prefix: '/blog'
-    }
+    routes: { prefix: '/blog' }
   },
   {
     plugin: require('./messageToBot'),
-    routes: {
-      prefix: '/messageToBot'
-    }
+    routes: { prefix: '/messageToBot' }
   },
   {
     plugin: require('./Google/drive'),
-    routes: {
-      prefix: '/gdrive'
-    }
+    routes: { prefix: '/gdrive' }
   },
   {
     plugin: require('./cloudinary'),
-    routes: {
-      prefix: '/cloudinary'
-    }
+    routes: { prefix: '/cloudinary' }
   },
   {
     plugin: require('./Ogust/employee'),
-    routes: {
-      prefix: '/ogust/employees'
-    }
-  },
-  {
-    plugin: require('./Ogust/customer'),
-    routes: {
-      prefix: '/ogust/customers'
-    }
+    routes: { prefix: '/ogust/employees' }
   },
   {
     plugin: require('./Ogust/utils'),
-    routes: {
-      prefix: '/ogust'
-    }
+    routes: { prefix: '/ogust' }
   },
   {
     plugin: require('./twilio'),
-    routes: {
-      prefix: '/sms'
-    }
+    routes: { prefix: '/sms' }
   },
   {
     plugin: require('./tasks'),
-    routes: {
-      prefix: '/tasks'
-    }
+    routes: { prefix: '/tasks' }
   },
   {
     plugin: require('./companies'),
-    routes: {
-      prefix: '/companies'
-    }
+    routes: { prefix: '/companies' }
   },
   {
     plugin: require('./customers'),
-    routes: {
-      prefix: '/customers'
-    }
+    routes: { prefix: '/customers' }
   },
   {
     plugin: require('./Esign'),
-    routes: {
-      prefix: '/esign'
-    }
+    routes: { prefix: '/esign' }
   },
   {
     plugin: require('./events'),
-    routes: {
-      prefix: '/events'
-    }
+    routes: { prefix: '/events' }
   },
   {
     plugin: require('./Google/maps'),
-    routes: {
-      prefix: '/google/maps'
-    }
+    routes: { prefix: '/google/maps' }
   },
   {
     plugin: require('./distanceMatrix'),
-    routes: {
-      prefix: '/distancematrix'
-    }
+    routes: { prefix: '/distancematrix' }
   },
   {
     plugin: require('./sectors'),
-    routes: {
-      prefix: '/sectors'
-    }
+    routes: { prefix: '/sectors' }
   },
   {
     plugin: require('./contracts'),
-    routes: {
-      prefix: '/contracts'
-    }
+    routes: { prefix: '/contracts' }
   },
   {
     plugin: require('./services'),
-    routes: {
-      prefix: '/services'
-    }
+    routes: { prefix: '/services' }
   },
   {
     plugin: require('./surcharges'),
-    routes: {
-      prefix: '/surcharges'
-    }
+    routes: { prefix: '/surcharges' }
   },
   {
     plugin: require('./thirdPartyPayers'),
-    routes: {
-      prefix: '/thirdpartypayers'
-    }
+    routes: { prefix: '/thirdpartypayers' }
   },
   {
     plugin: require('./bills'),
-    routes: {
-      prefix: '/bills'
-    }
+    routes: { prefix: '/bills' }
   },
   {
     plugin: require('./creditNotes'),
-    routes: {
-      prefix: '/creditNotes'
-    }
+    routes: { prefix: '/creditNotes' }
   },
   {
     plugin: require('./balances'),
-    routes: {
-      prefix: '/balances'
-    }
+    routes: { prefix: '/balances' }
   }
 ];

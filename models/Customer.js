@@ -8,7 +8,6 @@ const {
 } = require('../helpers/constants');
 
 const CustomerSchema = mongoose.Schema({
-  customerId: String,
   driveFolder: {
     id: String,
     link: String
@@ -27,7 +26,6 @@ const CustomerSchema = mongoose.Schema({
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   sectors: [String],
   contact: {
-    ogustAddressId: String,
     address: {
       street: String,
       additionalAddress: String,

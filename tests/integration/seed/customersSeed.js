@@ -22,7 +22,6 @@ const customersList = [
     },
     sectors: ['1e*'],
     contact: {
-      ogustAddressId: faker.random.number({ max: 8 }).toString(),
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
@@ -112,7 +111,6 @@ const customersList = [
     },
     sectors: ['1e*'],
     contact: {
-      ogustAddressId: faker.random.number({ max: 8 }).toString(),
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
@@ -147,7 +145,6 @@ const customersList = [
     },
     sectors: ['1e*'],
     contact: {
-      ogustAddressId: faker.random.number({ max: 8 }).toString(),
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),

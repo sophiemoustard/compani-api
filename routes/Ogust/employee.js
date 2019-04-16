@@ -5,8 +5,6 @@ const Joi = require('joi');
 const {
   list,
   getById,
-  getEmployeeCustomers,
-  getEmployeeServices,
   getEmployeeSalaries,
   create,
 } = require('../../controllers/Ogust/employeeController');
@@ -51,63 +49,6 @@ exports.plugin = {
         auth: false
       },
       handler: getById
-    });
-    // Get employee services
-    server.route({
-      method: 'GET',
-      path: '/{id}/services',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: [Joi.number(), Joi.string()] },
-          query: {
-            idCustomer: [Joi.number(), Joi.string()],
-            isRange: Joi.boolean().default(false),
-            isDate: Joi.boolean().default(false),
-            slotToSub: Joi.number(),
-            slotToAdd: Joi.number(),
-            intervalType: Joi.string(),
-            startDate: Joi.number(),
-            endDate: Joi.number(),
-            status: Joi.string().default('@!=|N'),
-            type: Joi.string().default('I'),
-            nbperpage: Joi.number().default(100),
-            pagenum: Joi.number().default(1)
-          }
-        },
-        auth: false
-      },
-      handler: getEmployeeServices
-    });
-    // Get employee customers
-    server.route({
-      method: 'GET',
-      path: '/{id}/customers',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: [Joi.number(), Joi.string()] },
-          query: {
-            isRange: Joi.boolean().default(true),
-            isDate: Joi.boolean().default(false),
-            slotToSub: Joi.number().default(2),
-            slotToAdd: Joi.number().default(2),
-            intervalType: Joi.string().default('week'),
-            startDate: Joi.string(),
-            endDate: Joi.string(),
-            status: Joi.string().default('@!=|N'),
-            type: Joi.string().default('I'),
-            nbperpage: Joi.number().default(500),
-            pagenum: Joi.number().default(1)
-          }
-        },
-        auth: false
-      },
-      handler: getEmployeeCustomers
     });
     // Get employee salaries
     server.route({

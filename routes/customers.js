@@ -55,7 +55,6 @@ exports.plugin = {
               lastname: Joi.string().required()
             },
             contact: Joi.object().keys({
-              ogustAddressId: Joi.string().required(),
               address: {
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
@@ -67,7 +66,6 @@ exports.plugin = {
                 }
               }
             }).required(),
-            customerId: Joi.string(),
             isActive: Joi.boolean().default(true)
           })
         },
@@ -94,7 +92,6 @@ exports.plugin = {
             },
             email: Joi.string().email(),
             contact: Joi.object().keys({
-              ogustAddressId: Joi.string(),
               phone: Joi.string().allow('', null),
               address: {
                 street: Joi.string().required(),
