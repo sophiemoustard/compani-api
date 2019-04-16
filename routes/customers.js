@@ -92,7 +92,6 @@ exports.plugin = {
             },
             email: Joi.string().email(),
             contact: Joi.object().keys({
-              ogustAddressId: Joi.string(),
               phone: Joi.string().allow('', null),
               address: {
                 street: Joi.string().required(),

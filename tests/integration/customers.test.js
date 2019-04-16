@@ -36,7 +36,6 @@ describe('CUSTOMERS ROUTES', () => {
   const payload = {
     identity: { lastname: faker.name.lastName() },
     contact: {
-      ogustAddressId: faker.random.number({ max: 8 }).toString(),
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
@@ -60,7 +59,6 @@ describe('CUSTOMERS ROUTES', () => {
         _id: expect.any(Object),
         identity: expect.objectContaining({ lastname: payload.identity.lastname }),
         contact: expect.objectContaining({
-          ogustAddressId: payload.contact.ogustAddressId,
           address: expect.objectContaining({
             street: payload.contact.address.street,
             zipCode: payload.contact.address.zipCode,
@@ -81,13 +79,6 @@ describe('CUSTOMERS ROUTES', () => {
         payload: { ...payload },
         remove() {
           delete payload.identity[this.paramName];
-        }
-      },
-      {
-        paramName: 'ogustAddressId',
-        payload: { ...payload },
-        remove() {
-          delete payload.contact[this.paramName];
         }
       },
       {
@@ -154,7 +145,6 @@ describe('CUSTOMERS ROUTES', () => {
           lastname: customersList[0].identity.lastname
         }),
         contact: expect.objectContaining({
-          ogustAddressId: customersList[0].contact.ogustAddressId,
           address: expect.objectContaining({
             street: customersList[0].contact.address.street,
             zipCode: customersList[0].contact.address.zipCode,
