@@ -28,25 +28,6 @@ const getById = async (req) => {
   }
 };
 
-const updateById = async (req) => {
-  try {
-    const params = req.payload;
-    params.token = req.headers['x-ogust-token'];
-    params.id_customer = req.params.id;
-    const user = await customers.editCustomerById(params);
-    if (user.data.status == 'KO') {
-      return Boom.badRequest(user.data.message);
-    }
-    return {
-      message: translate[language].userSaved,
-      data: user.data
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
 const create = async (req) => {
   try {
     const params = req.payload;
@@ -67,6 +48,5 @@ const create = async (req) => {
 
 module.exports = {
   getById,
-  updateById,
   create,
 };

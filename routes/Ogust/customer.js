@@ -4,7 +4,6 @@ const Joi = require('joi');
 
 const {
   getById,
-  updateById,
   create,
 } = require('../../controllers/Ogust/customerController');
 
@@ -25,31 +24,6 @@ exports.plugin = {
         auth: false
       },
       handler: getById
-    });
-    // Update customer by id
-    server.route({
-      method: 'PUT',
-      path: '/{id}',
-      options: {
-        validate: {
-          headers: Joi.object().keys({
-            'x-ogust-token': Joi.string().required()
-          }).options({ allowUnknown: true }),
-          params: { id: Joi.string() },
-          payload: Joi.object().keys({
-            last_name: Joi.string(),
-            first_name: Joi.string().allow('', null),
-            email: Joi.string().email(),
-            mobile_phone: Joi.string().regex(/^[0]{1}[1-9]{1}[0-9]{8}$/).allow('', null),
-            door_code: Joi.string().allow(null, ''),
-            intercom_code: Joi.string().allow(null, ''),
-            landline: Joi.string(),
-            date_of_birth: Joi.string()
-          }).required()
-        },
-        auth: false
-      },
-      handler: updateById
     });
 
     server.route({
