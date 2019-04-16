@@ -23,4 +23,8 @@ module.exports = {
   COMPANY_CONTRACT: 'contract_with_company',
   TWO_WEEKS: 'two_weeks',
   MONTH: 'month',
+  // PAYMENT
+  PAYMENT: 'payment',
+  REFUND: 'refund',
+  PAYMENT_TYPES: ['withdrawal', 'bank_tranfer', 'check', 'cesu'],
 };
