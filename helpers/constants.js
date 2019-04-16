@@ -26,5 +26,5 @@ module.exports = {
   // PAYMENT
   PAYMENT: 'payment',
   REFUND: 'refund',
-  PAYMENT_TYPES: ['withdrawal', 'bank_tranfer', 'check', 'cesu'],
+  PAYMENT_TYPES: ['withdrawal', 'bank_transfer', 'check', 'cesu'],
 };
