@@ -6,26 +6,6 @@ const customers = require('../../models/Ogust/Customer');
 
 const { language } = translate;
 
-const list = async (req) => {
-  try {
-    const params = req.query;
-    params.token = req.headers['x-ogust-token'];
-    const users = await customers.getCustomers(params);
-    if (users.data.status == 'KO') {
-      return Boom.badRequest(users.data.message);
-    } else if (Object.keys(users.data.array_customer.result).length === 0) {
-      return Boom.notFound();
-    }
-    return {
-      message: translate[language].userShowAllFound,
-      data: { customers: users.data }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
 const getById = async (req) => {
   try {
     const params = {
@@ -86,7 +66,6 @@ const create = async (req) => {
 };
 
 module.exports = {
-  list,
   getById,
   updateById,
   create,
