@@ -72,12 +72,6 @@ exports.routes = [
     }
   },
   {
-    plugin: require('./Ogust/customer'),
-    routes: {
-      prefix: '/ogust/customers'
-    }
-  },
-  {
     plugin: require('./Ogust/utils'),
     routes: {
       prefix: '/ogust'
