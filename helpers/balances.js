@@ -17,18 +17,18 @@ const computeTotal = (nature, total, netInclTaxes) => {
   return total - netInclTaxes;
 };
 
-const reducePayments = ids => (total, next) => {
-  if (ids.tpp && next.client && ids.tpp.toHexString() === next.client.toHexString() && ids.customer.toHexString() === next.customer.toHexString()) {
-    return computeTotal(next.nature, total, next.netInclTaxes);
-  } else if (!ids.tpp && !next.client && ids.customer.toHexString() === next.customer.toHexString()) {
-    return computeTotal(next.nature, total, next.netInclTaxes);
-  }
-  return total;
-};
 
 const computePayments = (payments, ids) => {
   if (!payments || !Array.isArray(payments) || payments.length === 0) return 0;
-  return payments.reduce(reducePayments(ids), 0);
+  let total = 0;
+  for (const payment of payments) {
+    if (ids.tpp && payment.client && ids.tpp.toHexString() === payment.client.toHexString() && ids.customer.toHexString() === payment.customer.toHexString()) {
+      total = computeTotal(payment.nature, total, payment.netInclTaxes);
+    } else if (!ids.tpp && !payment.client && ids.customer.toHexString() === payment.customer.toHexString()) {
+      total = computeTotal(payment.nature, total, payment.netInclTaxes);
+    }
+  }
+  return total;
 };
 
 module.exports = {

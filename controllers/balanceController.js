@@ -71,7 +71,7 @@ const list = async (req) => {
         bill.billed -= correspondingCreditNote ? correspondingCreditNote.refund : 0;
       }
       bill.paid = computePayments(payments, bill._id);
-      bill.balance = Number.parseFloat((bill.paid - bill.billed).toFixed(4));
+      bill.balance = bill.paid - bill.billed;
       bill.toPay = canBeWithdrawn(bill) ? Math.abs(bill.balance) : 0;
       return bill;
     });
