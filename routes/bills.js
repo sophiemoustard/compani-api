@@ -21,7 +21,8 @@ exports.plugin = {
         validate: {
           query: {
             endDate: Joi.date().required(),
-            startDate: Joi.date().required(),
+            startDate: Joi.date(),
+            billingStartDate: Joi.date().required(),
             billingPeriod: Joi.string().valid([MONTH, TWO_WEEKS]).required(),
             customer: Joi.objectId(),
           },
@@ -98,6 +99,8 @@ exports.plugin = {
                     exclTaxesTpp: Joi.number().required(),
                     thirdPartyPayer: Joi.objectId().required(),
                     history: Joi.object().required(),
+                    fundingVersion: Joi.objectId(),
+                    nature: Joi.string(),
                   })).required(),
                   hours: Joi.number().required(),
                   inclTaxes: Joi.number().required(),

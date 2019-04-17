@@ -2,7 +2,8 @@ const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
-const { getMatchingVersion } = require('../helpers/utils');
+const { getMatchingVersion } = require('./utils');
+const { HOURLY } = require('./constants');
 
 const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
@@ -13,7 +14,7 @@ const formatSubscriptionData = (bill) => {
     subscription: bill.subscription._id,
     vat: getMatchingVersion(bill.startDate, bill.subscription.service).vat,
     events,
-  }
+  };
 };
 
 const formatCustomerBills = (customerBills, customer, number) => {
@@ -57,11 +58,14 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
     for (const draftBill of tpp.bills) {
       tppBill.subscriptions.push(formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
-        billedEvents[ev.event] = { ...ev };
-        if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = ev.history;
-        else {
-          if (fundingHistories[ev.history.fundingVersion].careHours) fundingHistories[ev.history.fundingVersion].careHours += ev.history.careHours;
-          else if (fundingHistories[ev.history.fundingVersion].amountTTC) fundingHistories[ev.history.fundingVersion].amountTTC += ev.history.amountTTC;
+        if (ev.history.nature === HOURLY) billedEvents[ev.event] = { ...ev, careHours: ev.history.careHours };
+        else billedEvents[ev.event] = { ...ev };
+        if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { [ev.history.month]: ev.history };
+        else if (!fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
+        else if (fundingHistories[ev.history.fundingVersion][ev.history.month].nature === HOURLY) {
+          fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
+        } else {
+          fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC += ev.history.amountTTC;
         }
       }
     }
@@ -82,16 +86,21 @@ const updateEvents = async (eventsToUpdate) => {
 const updateFundingHistories = async (histories) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
-    if (histories[id].careHours) promises.push(FundingHistory.findOneAndUpdate(
-      { fundingVersion: id },
-      { $inc: { careHours: histories[id].careHours } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    ));
-    else if (histories[id].amountTTC) promises.push(FundingHistory.findOneAndUpdate(
-      { fundingVersion: id },
-      { $inc: { amountTTC: histories[id].amountTTC } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    ));
+    for (const month of Object.keys(histories[id])) {
+      if (histories[id][month].careHours) {
+        promises.push(FundingHistory.findOneAndUpdate(
+          { fundingVersion: id, month },
+          { $inc: { careHours: histories[id][month].careHours } },
+          { new: true, upsert: true, setDefaultsOnInsert: true }
+        ));
+      } else if (histories[id][month].amountTTC) {
+        promises.push(FundingHistory.findOneAndUpdate(
+          { fundingVersion: id, month },
+          { $inc: { amountTTC: histories[id][month].amountTTC } },
+          { new: true, upsert: true, setDefaultsOnInsert: true }
+        ));
+      }
+    }
   }
   await Promise.all(promises);
 };
@@ -102,14 +111,16 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
   let fundingHistories = {};
 
   for (const draftBills of groupByCustomerBills) {
-    const customerBillingInfo = formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
-    eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
-    number.seq += 1;
-    promises.push((new Bill(customerBillingInfo.bill)).save());
+    if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {
+      const customerBillingInfo = formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
+      eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
+      number.seq += 1;
+      promises.push((new Bill(customerBillingInfo.bill)).save());
+    }
 
     if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
       const tppBillingInfo = formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number);
-      fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories }
+      fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
 
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {

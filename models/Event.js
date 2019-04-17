@@ -49,6 +49,9 @@ const EventSchema = mongoose.Schema({
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
     inclTaxesTpp: Number,
     exclTaxesTpp: Number,
+    fundingVersion: { type: mongoose.Schema.Types.ObjectId },
+    nature: String,
+    careHours: Number,
   },
 }, { timestamps: true });
 
