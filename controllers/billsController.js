@@ -5,7 +5,7 @@ const moment = require('moment');
 const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
 const translate = require('../helpers/translate');
-const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED } = require('../helpers/constants');
+const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED, HOURLY } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const { formatAndCreateBills } = require('../helpers/bills');
 const { getDateQuery } = require('../helpers/utils');
@@ -17,7 +17,12 @@ const draftBillsList = async (req) => {
     const rules = [
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-      { $or: [{ isCancelled: false }, { isCancelled: { $exists: false } }, { 'cancel.condition': INVOICED_AND_PAYED }, { 'cancel.condition': INVOICED_AND_NOT_PAYED }] },
+      { $or: [
+        { isCancelled: false },
+        { isCancelled: { $exists: false } },
+        { 'cancel.condition': INVOICED_AND_PAYED },
+        { 'cancel.condition': INVOICED_AND_NOT_PAYED }]
+      },
       { type: INTERVENTION },
     ];
     if (req.query.startDate) rules.push({ startDate: { $gte: req.query.startDate } });

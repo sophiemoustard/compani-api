@@ -5,6 +5,7 @@ const FundingHistorySchema = mongoose.Schema({
   amountTTC: { type: Number, default: 0 },
   careHours: { type: Number, default: 0 },
   month: String,
+  nature: String,
 }, { timestamps: true });
 
 module.exports = mongoose.model('FundingHistory', FundingHistorySchema);

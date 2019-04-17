@@ -50,6 +50,8 @@ const EventSchema = mongoose.Schema({
     inclTaxesTpp: Number,
     exclTaxesTpp: Number,
     fundingVersion: { type: mongoose.Schema.Types.ObjectId },
+    nature: String,
+    careHours: Number,
   },
 }, { timestamps: true });
 

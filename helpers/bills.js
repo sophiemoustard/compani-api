@@ -3,6 +3,7 @@ const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const { getMatchingVersion } = require('./utils');
+const { HOURLY } = require('./constants');
 
 const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
@@ -57,12 +58,14 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
     for (const draftBill of tpp.bills) {
       tppBill.subscriptions.push(formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
-        billedEvents[ev.event] = { ...ev };
+        if (ev.history.nature === HOURLY) billedEvents[ev.event] = { ...ev, careHours: ev.history.careHours };
+        else billedEvents[ev.event] = { ...ev };
+        console.log(billedEvents[ev.event])
         if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { [ev.history.month]: ev.history };
         else if (!fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
         else {
-          if (fundingHistories[ev.history.fundingVersion][ev.history.month].careHours) fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
-          else if (fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC) fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC += ev.history.amountTTC;
+          if (fundingHistories[ev.history.fundingVersion][ev.history.month].nature === HOURLY) fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
+          else fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC += ev.history.amountTTC;
         }
       }
     }
@@ -80,7 +83,6 @@ const updateEvents = async (eventsToUpdate) => {
   await Promise.all(promises);
 };
 
-// TODO : add month in query
 const updateFundingHistories = async (histories) => {
   const promises = [];
   for (const id of Object.keys(histories)) {

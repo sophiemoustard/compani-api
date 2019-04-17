@@ -100,6 +100,7 @@ exports.plugin = {
                     thirdPartyPayer: Joi.objectId().required(),
                     history: Joi.object().required(),
                     fundingVersion: Joi.objectId(),
+                    nature: Joi.string(),
                   })).required(),
                   hours: Joi.number().required(),
                   inclTaxes: Joi.number().required(),
