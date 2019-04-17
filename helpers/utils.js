@@ -54,7 +54,7 @@ const getMatchingVersion = (date, obj) => {
 };
 
 const getDateQuery = (dates) => {
-  if (dates.startDate && dates.endDate) return { $lte: moment(dates.endDate).endOf('day').toDate(), $gte: moment(dates.startDate).startOf('day').toDate() };
+  if (dates.startDate && dates.endDate) return { $lt: moment(dates.endDate).endOf('day').toISOString(), $gte: moment(dates.startDate).startOf('day').toISOString() };
   if (dates.startDate) return { $gte: dates.startDate };
   return { $lt: dates.endDate };
 };
