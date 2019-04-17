@@ -76,9 +76,11 @@ const list = async (req) => {
       return bill;
     });
 
+    const filteredBalances = balances.filter(client => client.balance !== 0);
+
     return {
       message: translate[language].balancesFound,
-      data: { balances },
+      data: { balances: filteredBalances },
     };
   } catch (e) {
     req.log('error', e);
