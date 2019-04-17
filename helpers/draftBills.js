@@ -282,7 +282,91 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
   return result;
 };
 
-const getDraftBillsList = async (eventsToBill, query) => {
+const getEventsToBill = async (rules) => {
+  return Event.aggregate([
+    { $match: { $and: rules } },
+    {
+      $group: {
+        _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
+        count: { $sum: 1 },
+        events: { $push: '$$ROOT' }
+      }
+    },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: '_id.CUSTOMER',
+        foreignField: '_id',
+        as: 'customer'
+      }
+    },
+    { $unwind: { path: '$customer' } },
+    {
+      $addFields: {
+        sub: {
+          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+        }
+      }
+    },
+    { $unwind: { path: '$sub' } },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'sub.service',
+        foreignField: '_id',
+        as: 'sub.service',
+      }
+    },
+    { $unwind: { path: '$sub.service' } },
+    {
+      $addFields: {
+        fund: {
+          $filter: {
+            input: '$customer.fundings',
+            as: 'fund',
+            cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] }
+          },
+        }
+      }
+    },
+    {
+      $project: {
+        idCustomer: '$_id.CUSTOMER',
+        subId: '$_id.SUBS',
+        events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
+        customer: 1,
+        sub: 1,
+        fund: 1,
+      }
+    },
+    {
+      $group: {
+        _id: '$idCustomer',
+        customer: { $addToSet: '$customer' },
+        eventsBySubscriptions: {
+          $push: {
+            subscription: '$sub',
+            eventsNumber: { $size: '$events' },
+            events: '$events',
+            fundings: '$fund',
+          },
+        }
+      }
+    },
+    { $unwind: { path: '$customer' } },
+    {
+      $project: {
+        _id: 0,
+        customer: { _id: 1, identity: 1, driveFolder: 1 },
+        eventsBySubscriptions: 1,
+      }
+    }
+  ]);
+};
+
+const getDraftBillsList = async (rules, query) => {
+  const eventsToBill = await getEventsToBill(rules);
+  console.log(eventsToBill[0].eventsBySubscriptions);
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const customerDraftBills = [];
