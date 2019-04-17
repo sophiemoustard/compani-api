@@ -3,7 +3,7 @@ const { PAYMENT } = require('./constants');
 
 const canBeWithdrawn = (bill) => {
   if (!bill) throw new Error('Bill must be provided');
-  return (
+  return !!(
     bill.balance < 0 &&
     !bill._id.tpp &&
     bill.customer.payment &&
