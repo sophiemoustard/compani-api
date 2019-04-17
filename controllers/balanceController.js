@@ -12,15 +12,8 @@ const { language } = translate;
 
 const list = async (req) => {
   const rules = [];
-  const paymentQueries = {};
-  if (req.query.customer) {
-    rules.push({ customer: new ObjectID(req.query.customer) });
-    paymentQueries.customer = req.query.customer;
-  }
-  if (req.query.date) {
-    rules.push({ date: { $lt: req.query.date } });
-    paymentQueries.date = { $lt: moment(req.query.date).endOf('day').toISOString() };
-  }
+  if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
+  if (req.query.date) rules.push({ date: { $lt: moment(req.query.date).startOf('day').toISOString() } });
 
   try {
     const billsAggregation = await Bill.aggregate([
@@ -69,9 +62,8 @@ const list = async (req) => {
       },
     ]);
 
-    console.log(paymentQueries);
+    const paymentQueries = rules.length > 0 ? rules.reduce((acc, next) => Object.assign(acc, next)) : {};
     const payments = await Payment.find(paymentQueries).lean();
-    console.log('payments', payments);
 
     const balances = billsAggregation.map((bill) => {
       if (!bill._id.tpp) {
