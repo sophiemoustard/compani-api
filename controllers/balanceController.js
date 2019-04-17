@@ -13,7 +13,7 @@ const { language } = translate;
 const list = async (req) => {
   const rules = [];
   if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
-  if (req.query.date) rules.push({ date: { $lt: moment(req.query.date).startOf('day').toISOString() } });
+  if (req.query.date) rules.push({ date: { $lt: moment(req.query.date).endOf('day').toISOString() } });
 
   try {
     const billsAggregation = await Bill.aggregate([
