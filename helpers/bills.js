@@ -2,7 +2,7 @@ const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
-const { getMatchingVersion } = require('../helpers/utils');
+const { getMatchingVersion } = require('./utils');
 
 const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 

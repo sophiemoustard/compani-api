@@ -2,10 +2,11 @@ const moment = require('moment-business-days');
 const Holidays = require('date-holidays');
 const mongoose = require('mongoose');
 
+const Event = require('../models/Event');
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
-const { HOURLY } = require('./constants');
+const { HOURLY, MONTHLY, MONTH, ONCE } = require('./constants');
 const { getMatchingVersion } = require('../helpers/utils');
 
 const holidays = new Holidays('FR');
@@ -36,16 +37,34 @@ const populateSurcharge = async (subscription) => {
   };
 };
 
-const populateFundings = async (fundings) => {
+/**
+ * 2 cases :
+ * Funding version frequency = ONCE : there is only ONE history
+ * Funding version frequency = MONTHLY : there is one history PER MONTH
+ */
+const populateFundings = async (fundings, query) => {
   for (let i = 0, l = fundings.length; i < l; i++) {
     const tpp = await ThirdPartyPayer.findOne({ _id: fundings[i].thirdPartyPayer }).lean();
     if (tpp) fundings[i].thirdPartyPayer = tpp;
 
     for (let k = 0, m = fundings[i].versions.length; k < m; k++) {
-      const history = await FundingHistory.findOne({ fundingVersion: fundings[i].versions[k]._id }).lean();
-      if (history) fundings[i].versions[k].history = history;
+      if (fundings[i].versions[k].frequency !== MONTHLY) {
+        const history = await FundingHistory.findOne({ fundingVersion: fundings[i].versions[k]._id }).lean();
+        if (history) fundings[i].versions[k].history = history;
+        else {
+          fundings[i].versions[k].history = { careHours: 0, amountTTC: 0, fundingVersion: fundings[i].versions[k]._id };
+        }
+      }
       else {
-        fundings[i].versions[k].history = { careHours: 0, amountTTC: 0, fundingVersion: fundings[i].versions[k]._id };
+        const history = await FundingHistory.find({ fundingVersion: fundings[i].versions[k]._id });
+        if (history) fundings[i].versions[k].history = history;
+        if (history.length === 0 || !history) fundings[i].versions[k].history = [];
+        if (!history.some(his => his.month === moment(query.endDate).format('MM/YYYY'))) fundings[i].versions[k].history.push({
+          careHours: 0,
+          amountTTC: 0,
+          fundingVersion: fundings[i].versions[k]._id,
+          month: moment(query.endDate).format('MM/YYYY'),
+        });
       }
     }
   }
@@ -126,29 +145,51 @@ const getInclTaxes = (exclTaxes, vat) => exclTaxes * (1 + (vat / 100));
 const getThirdPartyPayerPrice = (time, fundingexclTaxes, customerParticipationRate) =>
   (time / 60) * fundingexclTaxes * (1 - (customerParticipationRate / 100));
 
+const getMatchingHistory = (event, funding) => {
+  if (funding.frequency === ONCE) return funding.history;
+
+  let history = funding.history.find(his => his.month === moment(event.startDate).format('MM/YYYY'));
+  if (history) return history;
+
+  funding.history.push({ careHours: 0, amountTTC: 0, fundingVersion: funding.versionId, month: moment(event.startDate).format('MM/YYYY') });
+  history = funding.history.find(his => his.month === moment(event.startDate).format('MM/YYYY'));
+  return history;
+};
+
 const getHourlyFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
   const fundingexclTaxes = getExclTaxes(funding.unitTTCRate, service.vat);
+  const history = getMatchingHistory(event, funding);
 
   let chargedTime = 0;
-  if (funding.history.careHours < funding.careHours) {
-    chargedTime = (funding.history.careHours + (time / 60) > funding.careHours)
-      ? (funding.careHours - funding.history.careHours) * 60
+  if (history.careHours < funding.careHours) {
+    chargedTime = (history.careHours + (time / 60) > funding.careHours)
+      ? (funding.careHours - history.careHours) * 60
       : time;
     thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingexclTaxes, funding.customerParticipationRate);
-    funding.history.careHours = chargedTime / 60;
+    history.careHours += (history.careHours + (time / 60) > funding.careHours)
+      ? funding.careHours
+      : history.careHours + chargedTime / 60;
   }
 
   return {
     customerPrice: price - thirdPartyPayerPrice,
     thirdPartyPayerPrice,
-    history: funding.history,
+    history: {
+      careHours: chargedTime / 60,
+      fundingVersion: funding.versionId,
+      frequency: funding.frequency,
+      month: moment(event.startDate).format('MM/YYYY'),
+    },
     thirdPartyPayer: funding.thirdPartyPayer._id,
     chargedTime,
   };
 };
 
+/**
+ * For a funding with a FIXED nature (frequency = ONCE), 2 cases : no history OR one global history
+ */
 const getFixedFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
   if (funding.history && funding.history.amountTTC < funding.amountTTC) {
@@ -166,7 +207,11 @@ const getFixedFundingSplit = (event, funding, service, price) => {
   return {
     customerPrice: price - thirdPartyPayerPrice,
     thirdPartyPayerPrice,
-    history: funding.history,
+    history: {
+      amountTTC: thirdPartyPayerPrice * (1 + (service.vat / 100)),
+      fundingVersion: funding.versionId,
+      frequency: funding.frequency,
+    },
     thirdPartyPayer: funding.thirdPartyPayer._id,
     chargedTime,
   };
@@ -366,7 +411,6 @@ const getEventsToBill = async (rules) => {
 
 const getDraftBillsList = async (rules, query) => {
   const eventsToBill = await getEventsToBill(rules);
-  console.log(eventsToBill[0].eventsBySubscriptions);
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const customerDraftBills = [];
@@ -375,7 +419,7 @@ const getDraftBillsList = async (rules, query) => {
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await populateSurcharge(eventsBySubscriptions[k].subscription);
       let { fundings } = eventsBySubscriptions[k];
-      if (fundings) fundings = await populateFundings(fundings);
+      if (fundings) fundings = await populateFundings(fundings, query);
 
       const draftBills = getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, query);
       if (draftBills.customer) customerDraftBills.push(draftBills.customer);
