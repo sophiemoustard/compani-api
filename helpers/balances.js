@@ -27,6 +27,7 @@ const reducePayments = ids => (total, next) => {
 };
 
 const computePayments = (payments, ids) => {
+  console.log('payments', payments);
   if (!payments || !Array.isArray(payments) || payments.length === 0) throw new Error('Invalid payments array !');
   return payments.reduce(reducePayments(ids), 0);
 };
