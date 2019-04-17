@@ -21,7 +21,8 @@ exports.plugin = {
         validate: {
           query: {
             endDate: Joi.date().required(),
-            startDate: Joi.date().required(),
+            startDate: Joi.date(),
+            billingStartDate: Joi.date().required(),
             billingPeriod: Joi.string().valid([MONTH, TWO_WEEKS]).required(),
             customer: Joi.objectId(),
           },

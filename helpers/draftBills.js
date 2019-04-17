@@ -279,7 +279,7 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
 const getDraftBillsPerSubscription = (events, customer, subscription, fundings, query) => {
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
-  let startDate = moment(query.startDate);
+  let startDate = moment(query.billingStartDate);
   for (const event of events) {
     const matchingService = getMatchingVersion(event.startDate, subscription.service);
     const matchingSub = getMatchingVersion(event.startDate, subscription);
@@ -293,7 +293,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
-  const serviceMatchingVersion = getMatchingVersion(query.startDate, subscription.service);
+  const serviceMatchingVersion = getMatchingVersion(query.billingStartDate, subscription.service);
 
   const draftBillInfo = {
     _id: mongoose.Types.ObjectId(),
@@ -303,7 +303,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     startDate: startDate.toDate(),
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: getExclTaxes(
-      getMatchingVersion(query.startDate, subscription).unitTTCRate,
+      getMatchingVersion(query.billingStartDate, subscription).unitTTCRate,
       serviceMatchingVersion.vat
     ),
     vat: serviceMatchingVersion.vat,
