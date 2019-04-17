@@ -182,6 +182,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
       frequency: funding.frequency,
       month: moment(event.startDate).format('MM/YYYY'),
     },
+    fundingVersion: funding.versionId,
     thirdPartyPayer: funding.thirdPartyPayer._id,
     chargedTime,
   };
@@ -212,6 +213,7 @@ const getFixedFundingSplit = (event, funding, service, price) => {
       fundingVersion: funding.versionId,
       frequency: funding.frequency,
     },
+    fundingVersion: funding.versionId,
     thirdPartyPayer: funding.thirdPartyPayer._id,
     chargedTime,
   };
@@ -263,6 +265,7 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
     inclTaxesCustomer: getInclTaxes(eventPrice.customerPrice, service.vat),
     exclTaxesCustomer: eventPrice.customerPrice,
     history: { ...eventPrice.history },
+    fundingVersion: eventPrice.fundingVersion
   };
 
   return {
