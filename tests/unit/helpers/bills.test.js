@@ -30,7 +30,7 @@ describe('formatCustomerBills', () => {
           { event: '123', inclTaxesTpp: 14.4 },
           { event: '456', inclTaxesTpp: 12 },
         ],
-      }] 
+      }],
     };
 
     const result = formatCustomerBills(customerBills, customer, number);
@@ -49,10 +49,11 @@ describe('formatCustomerBills', () => {
         vat: 12,
       }],
     });
+
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
-      '123': { event: '123', inclTaxesTpp: 14.4 },
-      '456': { event: '456', inclTaxesTpp: 12 },
+      123: { event: '123', inclTaxesTpp: 14.4 },
+      456: { event: '456', inclTaxesTpp: 12 },
     });
   });
 
@@ -82,7 +83,7 @@ describe('formatCustomerBills', () => {
           { event: '890', inclTaxesTpp: 45 },
           { event: '736', inclTaxesTpp: 23 },
         ],
-      }] 
+      }],
     };
 
     const result = formatCustomerBills(customerBills, customer, number);
@@ -111,10 +112,10 @@ describe('formatCustomerBills', () => {
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
-      '123': { event: '123', inclTaxesTpp: 14.4 },
-      '456': { event: '456', inclTaxesTpp: 12 },
-      '890': { event: '890', inclTaxesTpp: 45 },
-      '736': { event: '736', inclTaxesTpp: 23 }
+      123: { event: '123', inclTaxesTpp: 14.4 },
+      456: { event: '456', inclTaxesTpp: 12 },
+      890: { event: '890', inclTaxesTpp: 45 },
+      736: { event: '736', inclTaxesTpp: 23 }
     });
   });
 });
@@ -133,10 +134,10 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 4 } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'fund', careHours: 2 } },
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 4, month: '02/2019', nature: 'hourly' } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'fund', careHours: 2, month: '03/2019', nature: 'hourly' } },
         ],
-      }] 
+      }],
     }];
 
     const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
@@ -158,12 +159,15 @@ describe('formatThirdPartyPayerBills', () => {
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
-      '123': { event: '123', inclTaxesTpp: 14.4 },
-      '456': { event: '456', inclTaxesTpp: 12 },
+      123: { event: '123', inclTaxesTpp: 14.4 },
+      456: { event: '456', inclTaxesTpp: 12 },
     });
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
-      'fund': { fundingVersion: 'fund', careHours: 6 },
+      fund: {
+        '02/2019': { careHours: 4, fundingVersion: 'fund', month: '02/2019', nature: 'hourly' },
+        '03/2019': { careHours: 2, fundingVersion: 'fund', month: '03/2019', nature: 'hourly' },
+      }
     });
   });
 
@@ -180,8 +184,8 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 2 } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'lio', careHours: 4 } },
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 2, month: '02/2019', nature: 'hourly' } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'lio', careHours: 4, month: '02/2019', nature: 'hourly' } },
         ],
       }, {
         thirdPartyPayer: 'Papa',
@@ -192,10 +196,10 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 11,
         hours: 5,
         eventsList: [
-          { event: '890', inclTaxesTpp: 45, history: { fundingVersion: 'fund', careHours: 4.5 } },
-          { event: '736', inclTaxesTpp: 23, history: { fundingVersion: 'fund', careHours: 1 } },
+          { event: '890', inclTaxesTpp: 45, history: { fundingVersion: 'fund', careHours: 4.5, month: '02/2019', nature: 'hourly' } },
+          { event: '736', inclTaxesTpp: 23, history: { fundingVersion: 'fund', careHours: 1, month: '03/2019', nature: 'hourly' } },
         ],
-      }] 
+      }],
     }];
 
     const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
@@ -225,15 +229,18 @@ describe('formatThirdPartyPayerBills', () => {
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
-      '123': { event: '123', inclTaxesTpp: 14.4 },
-      '456': { event: '456', inclTaxesTpp: 12 },
-      '890': { event: '890', inclTaxesTpp: 45 },
-      '736': { event: '736', inclTaxesTpp: 23 },
+      123: { event: '123', inclTaxesTpp: 14.4 },
+      456: { event: '456', inclTaxesTpp: 12 },
+      890: { event: '890', inclTaxesTpp: 45 },
+      736: { event: '736', inclTaxesTpp: 23 },
     });
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
-      'fund': { fundingVersion: 'fund', careHours: 7.5 },
-      'lio': { fundingVersion: 'lio', careHours: 4 },
+      fund: {
+        '02/2019': { careHours: 6.5, fundingVersion: 'fund', month: '02/2019', nature: 'hourly' },
+        '03/2019': { careHours: 1, fundingVersion: 'fund', month: '03/2019', nature: 'hourly' },
+      },
+      lio: { '02/2019': { careHours: 4, fundingVersion: 'lio', month: '02/2019', nature: 'hourly' } },
     });
   });
 
@@ -267,7 +274,7 @@ describe('formatThirdPartyPayerBills', () => {
           { event: '890', inclTaxesTpp: 45, history: { fundingVersion: 'fund', careHours: 4.5 } },
           { event: '736', inclTaxesTpp: 23, history: { fundingVersion: 'fund', careHours: 1 } },
         ],
-      }] 
+      }],
     }];
 
     const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
