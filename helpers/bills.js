@@ -58,10 +58,11 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       tppBill.subscriptions.push(formatSubscriptionData(draftBill));
       for (const ev of draftBill.eventsList) {
         billedEvents[ev.event] = { ...ev };
-        if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = ev.history;
+        if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { [ev.history.month]: ev.history };
+        else if (!fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
         else {
-          if (fundingHistories[ev.history.fundingVersion].careHours) fundingHistories[ev.history.fundingVersion].careHours += ev.history.careHours;
-          else if (fundingHistories[ev.history.fundingVersion].amountTTC) fundingHistories[ev.history.fundingVersion].amountTTC += ev.history.amountTTC;
+          if (fundingHistories[ev.history.fundingVersion][ev.history.month].careHours) fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
+          else if (fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC) fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC += ev.history.amountTTC;
         }
       }
     }
@@ -79,19 +80,22 @@ const updateEvents = async (eventsToUpdate) => {
   await Promise.all(promises);
 };
 
+// TODO : add month in query
 const updateFundingHistories = async (histories) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
-    if (histories[id].careHours) promises.push(FundingHistory.findOneAndUpdate(
-      { fundingVersion: id },
-      { $inc: { careHours: histories[id].careHours } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    ));
-    else if (histories[id].amountTTC) promises.push(FundingHistory.findOneAndUpdate(
-      { fundingVersion: id },
-      { $inc: { amountTTC: histories[id].amountTTC } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    ));
+    for (const month of Object.keys(histories[id])) {
+      if (histories[id][month].careHours) promises.push(FundingHistory.findOneAndUpdate(
+        { fundingVersion: id, month },
+        { $inc: { careHours: histories[id][month].careHours } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      ));
+      else if (histories[id][month].amountTTC) promises.push(FundingHistory.findOneAndUpdate(
+        { fundingVersion: id, month },
+        { $inc: { amountTTC: histories[id][month].amountTTC } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      ));
+    }
   }
   await Promise.all(promises);
 };
