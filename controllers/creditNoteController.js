@@ -6,6 +6,7 @@ const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const translate = require('../helpers/translate');
 const { updateEventBillingStatus } = require('../helpers/creditNotes');
+const { getDateQuery } = require('../helpers/utils');
 
 const { language } = translate;
 
@@ -13,13 +14,7 @@ const list = async (req) => {
   try {
     const { startDate, endDate, ...rest } = req.query;
     const query = rest;
-    if (startDate || endDate) {
-      let date = {};
-      if (startDate && endDate) date = { $lt: endDate, $gte: startDate };
-      else if ( startDate) date = { $gte: startDate }
-      else date = { $lt: endDate };
-      query.date = date;
-    }
+    if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
     const creditNotes = await CreditNote.find(query)
       .populate({ path: 'customer', select: '_id identity' })

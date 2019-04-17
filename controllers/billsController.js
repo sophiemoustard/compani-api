@@ -9,6 +9,7 @@ const translate = require('../helpers/translate');
 const { INTERVENTION } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const { formatAndCreateBills } = require('../helpers/bills');
+const { getDateQuery } = require('../helpers/utils');
 
 const { language } = translate;
 
@@ -137,13 +138,7 @@ const list = async (req) => {
   try {
     const { startDate, endDate, ...rest } = req.query;
     const query = rest;
-    if (startDate || endDate) {
-      let date = {};
-      if (startDate && endDate) date = { $lt: endDate, $gte: startDate };
-      else if ( startDate) date = { $gte: startDate }
-      else date = { $lt: endDate };
-      query.date = date;
-    }
+    if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
     const bills = await Bill.find(query).populate({ path: 'client', select: '_id name' });
 

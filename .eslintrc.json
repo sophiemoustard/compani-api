@@ -17,7 +17,7 @@
       "global-require": "off",
       "strict": "off",
       "object-curly-newline": ["error", {
-        "ObjectExpression": { "multiline": true, "minProperties": 5, "either": true },
+        "ObjectExpression": { "multiline": true, "minProperties": 5, "consistent": true },
         "ExportDeclaration": "always"
       }]
     },

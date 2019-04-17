@@ -114,5 +114,9 @@ exports.routes = [
   {
     plugin: require('./balances'),
     routes: { prefix: '/balances' }
-  }
+  },
+  {
+    plugin: require('./payments'),
+    routes: { prefix: '/payments' }
+  },
 ];

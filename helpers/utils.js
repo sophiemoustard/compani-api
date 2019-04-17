@@ -25,7 +25,7 @@ const clean = (obj) => {
   for (const k in obj) {
     if (obj[k] === undefined || obj[k] === '' ||
       (typeof obj[k] === 'object' && Object.keys(obj[k].length === 0)) ||
-      (typeof obj[k] === 'array' && obj[k].length === 0)) {
+      (Array.isArray(obj[k]) && obj[k].length === 0)) {
       delete obj[k];
     }
   }
@@ -53,9 +53,16 @@ const getMatchingVersion = (date, obj) => {
   return { ..._.omit(obj, 'versions'), ..._.omit(matchingVersion, ['_id', 'createdAt']), versionId: matchingVersion._id };
 };
 
+const getDateQuery = (dates) => {
+  if (dates.startDate && dates.endDate) return { $lt: moment(dates.endDate).endOf('day').toISOString(), $gte: moment(dates.startDate).startOf('day').toISOString() };
+  if (dates.startDate) return { $gte: dates.startDate };
+  return { $lt: dates.endDate };
+};
+
 module.exports = {
   getIntervalInRange,
   clean,
   getLastVersion,
   getMatchingVersion,
+  getDateQuery,
 };
