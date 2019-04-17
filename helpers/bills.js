@@ -14,7 +14,7 @@ const formatSubscriptionData = (bill) => {
     subscription: bill.subscription._id,
     vat: getMatchingVersion(bill.startDate, bill.subscription.service).vat,
     events,
-  }
+  };
 };
 
 const formatCustomerBills = (customerBills, customer, number) => {
@@ -60,12 +60,12 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       for (const ev of draftBill.eventsList) {
         if (ev.history.nature === HOURLY) billedEvents[ev.event] = { ...ev, careHours: ev.history.careHours };
         else billedEvents[ev.event] = { ...ev };
-        console.log(billedEvents[ev.event])
         if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { [ev.history.month]: ev.history };
         else if (!fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
-        else {
-          if (fundingHistories[ev.history.fundingVersion][ev.history.month].nature === HOURLY) fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
-          else fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC += ev.history.amountTTC;
+        else if (fundingHistories[ev.history.fundingVersion][ev.history.month].nature === HOURLY) {
+          fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
+        } else {
+          fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC += ev.history.amountTTC;
         }
       }
     }
@@ -87,16 +87,19 @@ const updateFundingHistories = async (histories) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
     for (const month of Object.keys(histories[id])) {
-      if (histories[id][month].careHours) promises.push(FundingHistory.findOneAndUpdate(
-        { fundingVersion: id, month },
-        { $inc: { careHours: histories[id][month].careHours } },
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      ));
-      else if (histories[id][month].amountTTC) promises.push(FundingHistory.findOneAndUpdate(
-        { fundingVersion: id, month },
-        { $inc: { amountTTC: histories[id][month].amountTTC } },
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      ));
+      if (histories[id][month].careHours) {
+        promises.push(FundingHistory.findOneAndUpdate(
+          { fundingVersion: id, month },
+          { $inc: { careHours: histories[id][month].careHours } },
+          { new: true, upsert: true, setDefaultsOnInsert: true }
+        ));
+      } else if (histories[id][month].amountTTC) {
+        promises.push(FundingHistory.findOneAndUpdate(
+          { fundingVersion: id, month },
+          { $inc: { amountTTC: histories[id][month].amountTTC } },
+          { new: true, upsert: true, setDefaultsOnInsert: true }
+        ));
+      }
     }
   }
   await Promise.all(promises);
@@ -117,7 +120,7 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
 
     if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
       const tppBillingInfo = formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number);
-      fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories }
+      fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
 
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {

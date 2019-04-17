@@ -6,7 +6,7 @@ const Event = require('../models/Event');
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
-const { HOURLY, MONTHLY, MONTH, ONCE } = require('./constants');
+const { HOURLY, MONTHLY, ONCE } = require('./constants');
 const { getMatchingVersion } = require('../helpers/utils');
 
 const holidays = new Holidays('FR');
@@ -54,17 +54,18 @@ const populateFundings = async (fundings, query) => {
         else {
           fundings[i].versions[k].history = { careHours: 0, amountTTC: 0, fundingVersion: fundings[i].versions[k]._id };
         }
-      }
-      else {
+      } else {
         const history = await FundingHistory.find({ fundingVersion: fundings[i].versions[k]._id });
         if (history) fundings[i].versions[k].history = history;
         if (history.length === 0 || !history) fundings[i].versions[k].history = [];
-        if (!history.some(his => his.month === moment(query.endDate).format('MM/YYYY'))) fundings[i].versions[k].history.push({
-          careHours: 0,
-          amountTTC: 0,
-          fundingVersion: fundings[i].versions[k]._id,
-          month: moment(query.endDate).format('MM/YYYY'),
-        });
+        if (!history.some(his => his.month === moment(query.endDate).format('MM/YYYY'))) {
+          fundings[i].versions[k].history.push({
+            careHours: 0,
+            amountTTC: 0,
+            fundingVersion: fundings[i].versions[k]._id,
+            month: moment(query.endDate).format('MM/YYYY'),
+          });
+        }
       }
     }
   }
@@ -170,7 +171,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
     thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingexclTaxes, funding.customerParticipationRate);
     history.careHours += (history.careHours + (time / 60) > funding.careHours)
       ? funding.careHours
-      : history.careHours + chargedTime / 60;
+      : history.careHours + (chargedTime / 60);
   }
 
   return {
@@ -274,7 +275,7 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
     [tpp._id]: {
       exclTaxes: tppPrices[tpp._id].exclTaxes + eventPrice.thirdPartyPayerPrice,
       inclTaxes: tppPrices[tpp._id].inclTaxes + getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat),
-      hours: tppPrices[tpp._id].hours + eventPrice.chargedTime / 60,
+      hours: tppPrices[tpp._id].hours + (eventPrice.chargedTime / 60),
       eventsList: [...tppPrices[tpp._id].eventsList, { ...prices }],
     },
   };
@@ -331,87 +332,85 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
   return result;
 };
 
-const getEventsToBill = async (rules) => {
-  return Event.aggregate([
-    { $match: { $and: rules } },
-    {
-      $group: {
-        _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
-        count: { $sum: 1 },
-        events: { $push: '$$ROOT' }
-      }
-    },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: '_id.CUSTOMER',
-        foreignField: '_id',
-        as: 'customer'
-      }
-    },
-    { $unwind: { path: '$customer' } },
-    {
-      $addFields: {
-        sub: {
-          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-        }
-      }
-    },
-    { $unwind: { path: '$sub' } },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'sub.service',
-        foreignField: '_id',
-        as: 'sub.service',
-      }
-    },
-    { $unwind: { path: '$sub.service' } },
-    {
-      $addFields: {
-        fund: {
-          $filter: {
-            input: '$customer.fundings',
-            as: 'fund',
-            cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] }
-          },
-        }
-      }
-    },
-    {
-      $project: {
-        idCustomer: '$_id.CUSTOMER',
-        subId: '$_id.SUBS',
-        events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
-        customer: 1,
-        sub: 1,
-        fund: 1,
-      }
-    },
-    {
-      $group: {
-        _id: '$idCustomer',
-        customer: { $addToSet: '$customer' },
-        eventsBySubscriptions: {
-          $push: {
-            subscription: '$sub',
-            eventsNumber: { $size: '$events' },
-            events: '$events',
-            fundings: '$fund',
-          },
-        }
-      }
-    },
-    { $unwind: { path: '$customer' } },
-    {
-      $project: {
-        _id: 0,
-        customer: { _id: 1, identity: 1, driveFolder: 1 },
-        eventsBySubscriptions: 1,
+const getEventsToBill = async rules => Event.aggregate([
+  { $match: { $and: rules } },
+  {
+    $group: {
+      _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
+      count: { $sum: 1 },
+      events: { $push: '$$ROOT' }
+    }
+  },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: '_id.CUSTOMER',
+      foreignField: '_id',
+      as: 'customer'
+    }
+  },
+  { $unwind: { path: '$customer' } },
+  {
+    $addFields: {
+      sub: {
+        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
       }
     }
-  ]);
-};
+  },
+  { $unwind: { path: '$sub' } },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'sub.service',
+      foreignField: '_id',
+      as: 'sub.service',
+    }
+  },
+  { $unwind: { path: '$sub.service' } },
+  {
+    $addFields: {
+      fund: {
+        $filter: {
+          input: '$customer.fundings',
+          as: 'fund',
+          cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] }
+        },
+      }
+    }
+  },
+  {
+    $project: {
+      idCustomer: '$_id.CUSTOMER',
+      subId: '$_id.SUBS',
+      events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
+      customer: 1,
+      sub: 1,
+      fund: 1,
+    }
+  },
+  {
+    $group: {
+      _id: '$idCustomer',
+      customer: { $addToSet: '$customer' },
+      eventsBySubscriptions: {
+        $push: {
+          subscription: '$sub',
+          eventsNumber: { $size: '$events' },
+          events: '$events',
+          fundings: '$fund',
+        },
+      }
+    }
+  },
+  { $unwind: { path: '$customer' } },
+  {
+    $project: {
+      _id: 0,
+      customer: { _id: 1, identity: 1, driveFolder: 1 },
+      eventsBySubscriptions: 1,
+    }
+  }
+]);
 
 const getDraftBillsList = async (rules, query) => {
   const eventsToBill = await getEventsToBill(rules);
