@@ -102,10 +102,12 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
   let fundingHistories = {};
 
   for (const draftBills of groupByCustomerBills) {
-    const customerBillingInfo = formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
-    eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
-    number.seq += 1;
-    promises.push((new Bill(customerBillingInfo.bill)).save());
+    if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {
+      const customerBillingInfo = formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
+      eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
+      number.seq += 1;
+      promises.push((new Bill(customerBillingInfo.bill)).save());
+    }
 
     if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
       const tppBillingInfo = formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number);
