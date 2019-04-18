@@ -254,7 +254,9 @@ module.exports = {
     /* Payments */
     paymentsFound: 'Payments found.',
     paymentsNotFound: 'Payments not found.',
+    paymentNotFound: 'Payment not found.',
     paymentCreated: 'Payment created.',
+    paymentUpated: 'Payment updated.',
   },
   'fr-FR': {
     /* Global errors */
@@ -509,5 +511,7 @@ module.exports = {
     paymentsFound: 'Règlements trouvés.',
     paymentsNotFound: 'Règlements non trouvés.',
     paymentCreated: 'Règlement créé.',
+    paymentNotFound: 'Règlement non trouvé.',
+    paymentUpated: 'Règlement modifié.',
   }
 };

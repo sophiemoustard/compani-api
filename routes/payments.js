@@ -6,6 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
   create,
+  update
 } = require('../controllers/paymentController');
 const { REFUND, PAYMENT, PAYMENT_TYPES } = require('../helpers/constants');
 
@@ -45,6 +46,24 @@ exports.plugin = {
         },
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}',
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: { _id: Joi.objectId() },
+          payload: {
+            date: Joi.date().required(),
+            netInclTaxes: Joi.number().required(),
+            nature: Joi.string().valid(REFUND, PAYMENT).required(),
+            type: Joi.string().valid(PAYMENT_TYPES).required(),
+          },
+        },
+      },
+      handler: update,
     });
   },
 };
