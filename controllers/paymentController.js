@@ -15,7 +15,7 @@ const list = async (req) => {
     const query = rest;
     if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
-    const payments = await Payment.find(query);
+    const payments = await Payment.find(query).populate({ path: 'client', select: '_id name' });
 
     return {
       message: payments.length === 0 ? translate[language].paymentsNotFound : translate[language].paymentsFound,
@@ -59,7 +59,10 @@ const create = async (req) => {
   }
 };
 
+const update = () => {};
+
 module.exports = {
   list,
   create,
+  update,
 };
