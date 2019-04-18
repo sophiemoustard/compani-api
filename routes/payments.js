@@ -58,7 +58,6 @@ exports.plugin = {
           payload: {
             date: Joi.date().required(),
             netInclTaxes: Joi.number().required(),
-            nature: Joi.string().valid(REFUND, PAYMENT).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
           },
         },
