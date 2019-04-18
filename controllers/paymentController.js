@@ -1,11 +1,9 @@
 const Boom = require('boom');
-const moment = require('moment');
 const flat = require('flat');
 
 const Payment = require('../models/Payment');
-const PaymentNumber = require('../models/PaymentNumber');
 const { getDateQuery } = require('../helpers/utils');
-const { REFUND, PAYMENT } = require('../helpers/constants');
+const { createPayments } = require('../helpers/payments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -32,29 +30,11 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const numberQuery = {};
-    switch (req.payload.nature) {
-      case REFUND:
-        numberQuery.prefix = `REMB-${moment().format('YYMM')}`;
-        break;
-      case PAYMENT:
-        numberQuery.prefix = `REG-${moment().format('YYMM')}`;
-        break;
-    }
-    const number = await PaymentNumber.findOneAndUpdate(
-      numberQuery,
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    const paymentNumber = `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
-    req.payload.number = paymentNumber;
-
-    const payment = new Payment(req.payload);
-    await payment.save();
+    const payments = await createPayments(req.payload);
 
     return {
       message: translate[language].paymentCreated,
-      data: { payment }
+      data: { payments }
     };
   } catch (e) {
     req.log('error', e);

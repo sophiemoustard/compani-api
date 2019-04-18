@@ -61,8 +61,8 @@ describe('PAYMENTS ROUTES', () => {
         });
         expect(res.statusCode).toBe(200);
         expect(res.result.message).toBe(translate[language].paymentCreated);
-        expect(res.result.data.payment).toMatchObject(payload);
-        expect(res.result.data.payment.number).toBe(payload.nature === PAYMENT ? `REG-${moment().format('YYMM')}001` : `REMB-${moment().format('YYMM')}001`);
+        expect(res.result.data.payments).toEqual(expect.arrayContaining([expect.objectContaining(payload)]));
+        expect(res.result.data.payments[0].number).toBe(payload.nature === PAYMENT ? `REG-${moment().format('YYMM')}001` : `REMB-${moment().format('YYMM')}001`);
         const payments = await Payment.find().lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
@@ -117,6 +117,37 @@ describe('PAYMENTS ROUTES', () => {
         });
         expect(res.statusCode).toBe(400);
       });
+    });
+    it('should create multiple payments', async () => {
+      const payload = [
+        {
+          date: moment().toDate(),
+          customer: customersList[0]._id,
+          netInclTaxes: 900,
+          nature: PAYMENT,
+          type: PAYMENT_TYPES[0]
+        },
+        {
+          date: moment().toDate(),
+          customer: customersList[1]._id,
+          netInclTaxes: 250,
+          nature: PAYMENT,
+          type: PAYMENT_TYPES[0]
+        },
+      ];
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/payments',
+        payload,
+        headers: { 'x-access-token': token }
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.payments).toEqual(expect.arrayContaining([
+        expect.objectContaining(payload[0]),
+        expect.objectContaining(payload[1])
+      ]));
     });
   });
 
