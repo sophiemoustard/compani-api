@@ -96,7 +96,7 @@ const generateBillPdf = async (req, h) => {
       },
     };
 
-    const pdf = await generatePdf(data, './data/DocumentSigned.html');
+    const pdf = await generatePdf(data, './data/template.html');
 
     return h.response(pdf).type('application/pdf');
   } catch (e) {
