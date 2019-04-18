@@ -1,5 +1,6 @@
 const expect = require('expect');
 const moment = require('moment');
+const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
 const { getToken } = require('./seed/usersSeed');
@@ -113,6 +114,82 @@ describe('PAYMENTS ROUTES', () => {
           url: '/payments',
           payload: test.payload,
           headers: { 'x-access-token': token }
+        });
+        expect(res.statusCode).toBe(400);
+      });
+    });
+  });
+
+  describe('PUT /payments/_id', () => {
+    const origPayload = {
+      netInclTaxes: 200,
+      date: '2019-04-16T22:00:00.000',
+      type: 'withdrawal',
+    };
+
+    it('should update payment', async () => {
+      const payload = { ...origPayload };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/payments/${paymentsList[0]._id}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.payment.netInclTaxes).toEqual(payload.netInclTaxes);
+      expect(res.result.data.payment.date).toBeDefined();
+      expect(moment(res.result.data.payment.date).toISOString()).toEqual(moment(payload.date).toISOString());
+      expect(res.result.data.payment.type).toEqual(payload.type);
+    });
+
+    it('should return 404 as payment is not found', async () => {
+      const invalidId = new ObjectID();
+      const payload = {
+        netInclTaxes: 200,
+        date: '2019-04-16T22:00:00.000',
+        type: 'withdrawal',
+      };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/payments/${invalidId}`,
+        headers: { 'x-access-token': token },
+        payload,
+      });
+      expect(res.statusCode).toBe(404);
+    });
+
+    const falsyAssertions = [
+      {
+        param: 'date',
+        payload: { ...origPayload },
+        update() {
+          delete this.payload[this.param];
+        },
+      },
+      {
+        param: 'netInclTaxes',
+        payload: { ...origPayload },
+        update() {
+          delete this.payload[this.param];
+        },
+      },
+      {
+        param: 'type',
+        payload: { ...origPayload },
+        update() {
+          delete this.payload[this.param];
+        },
+      }
+    ];
+
+    falsyAssertions.forEach((test) => {
+      it(`should return a 400 error if '${test.param}' param is missing`, async () => {
+        test.update();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/payments/${paymentsList[0]._id}`,
+          headers: { 'x-access-token': token },
+          payload: test.payload,
         });
         expect(res.statusCode).toBe(400);
       });
