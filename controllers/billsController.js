@@ -5,10 +5,11 @@ const moment = require('moment');
 const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
 const translate = require('../helpers/translate');
-const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED, HOURLY } = require('../helpers/constants');
+const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const { formatAndCreateBills } = require('../helpers/bills');
 const { getDateQuery } = require('../helpers/utils');
+const { generatePdf } = require('../helpers/pdf');
 
 const { language } = translate;
 
@@ -78,8 +79,35 @@ const list = async (req) => {
   }
 };
 
+const generateBillPdf = async (req, h) => {
+  try {
+    const data = {
+      invoice: {
+        id: 2452,
+        createdAt: '2018-10-12',
+        customer: { name: 'Boetie' },
+        shipping: 10,
+        total: 104.95,
+        comments: 'Bill',
+        lines: [
+          { id: 1, item: 'Temps de qualité', price: '52.43' },
+          { id: 2, item: 'Ménage', price: '11.62' },
+        ],
+      },
+    };
+
+    const pdf = await generatePdf(data, './data/DocumentSigned.html');
+
+    return h.response(pdf).type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   draftBillsList,
   createBills,
   list,
+  generateBillPdf,
 };

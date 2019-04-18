@@ -7,6 +7,7 @@ const CreditNoteNumber = require('../models/CreditNoteNumber');
 const translate = require('../helpers/translate');
 const { updateEventBillingStatus } = require('../helpers/creditNotes');
 const { getDateQuery } = require('../helpers/utils');
+const { generatePdf } = require('../helpers/pdf');
 
 const { language } = translate;
 
@@ -111,10 +112,37 @@ const remove = async (req) => {
   }
 };
 
+const generateCreditNotePdf = async (req, h) => {
+  try {
+    const data = {
+      invoice: {
+        id: 2452,
+        createdAt: '2018-10-12',
+        customer: { name: 'International Bank of Blueprintya' },
+        shipping: 10,
+        total: 104.95,
+        comments: 'Credit notes',
+        lines: [
+          { id: 1, item: 'Best dry cleaner', price: '52.43' },
+          { id: 2, item: 'Not so good toaster', price: '11.62' },
+        ],
+      },
+    };
+
+    const pdf = await generatePdf(data, './data/DocumentSigned.html');
+
+    return h.response(pdf).type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
   create,
   update,
   remove,
   getById,
+  generateCreditNotePdf,
 };

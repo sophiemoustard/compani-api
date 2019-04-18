@@ -7,6 +7,7 @@ const {
   draftBillsList,
   createBills,
   list,
+  generateBillPdf
 } = require('../controllers/billsController');
 const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 
@@ -45,6 +46,18 @@ exports.plugin = {
         },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/pdfs',
+      options: {
+        validate: {
+          params: { _id: Joi.objectId() },
+        },
+        auth: { strategy: 'jwt' },
+      },
+      handler: generateBillPdf,
     });
 
     server.route({

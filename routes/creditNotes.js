@@ -8,7 +8,8 @@ const {
   list,
   update,
   remove,
-  getById
+  getById,
+  generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
 
 exports.plugin = {
@@ -109,6 +110,18 @@ exports.plugin = {
           })
         },
       },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/pdfs',
+      options: {
+        validate: {
+          params: { _id: Joi.objectId() },
+        },
+        auth: { strategy: 'jwt' },
+      },
+      handler: generateCreditNotePdf,
     });
   }
 };
