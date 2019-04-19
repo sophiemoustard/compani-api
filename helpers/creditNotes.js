@@ -24,7 +24,7 @@ const createCreditNotes = async (payload) => {
   const number = await CreditNoteNumber.findOneAndUpdate(query, {}, { new: true, upsert: true, setDefaultsOnInsert: true });
   let { seq } = number;
 
-  const creditNotes = [];
+  let creditNotes = [];
   let tppCreditNote;
   let customerCreditNote;
   if (payload.inclTaxesTpp) {
@@ -42,9 +42,9 @@ const createCreditNotes = async (payload) => {
   }
 
   if (tppCreditNote && customerCreditNote) {
-    await Promise.all([
-      CreditNote.findOneAndUpdate({ _id: customerCreditNote._id }, { linkedCreditNote: tppCreditNote._id }),
-      CreditNote.findOneAndUpdate({ _id: tppCreditNote._id }, { linkedCreditNote: customerCreditNote._id }),
+    creditNotes = await Promise.all([
+      CreditNote.findOneAndUpdate({ _id: customerCreditNote._id }, { $set: { linkedCreditNote: tppCreditNote._id } }),
+      CreditNote.findOneAndUpdate({ _id: tppCreditNote._id }, { $set: { linkedCreditNote: customerCreditNote._id } }),
     ]);
   }
 
