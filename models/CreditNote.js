@@ -6,8 +6,11 @@ const CreditNoteSchema = mongoose.Schema({
   startDate: Date,
   endDate: Date,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+  thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
   exclTaxesCustomer: Number,
   inclTaxesCustomer: Number,
+  exclTaxesTpp: Number,
+  inclTaxesTpp: Number,
   events: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event',
@@ -16,7 +19,8 @@ const CreditNoteSchema = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId },
     service: String,
     vat: Number
-  }
+  },
+  linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);

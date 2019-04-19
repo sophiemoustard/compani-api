@@ -43,17 +43,34 @@ describe('CREDIT NOTES ROUTES', () => {
       },
     };
 
-    it('should create a new credit note', async () => {
+    it('should create two new credit note', async () => {
       const initialCreditNotesNumber = creditNotesList.length;
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: { ...payload, exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: new ObjectID() },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.creditNote.number).toBeDefined();
+      expect(response.result.data.creditNotes.length).toEqual(2);
+      const creditNotes = await CreditNote.find();
+      expect(creditNotes.filter(cn => cn.linkedCreditNote)).toBeDefined();
+      expect(creditNotes.filter(cn => cn.linkedCreditNote).length).toEqual(2);
+      expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
+    });
+
+    it('should create two new credit note', async () => {
+      const initialCreditNotesNumber = creditNotesList.length;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: { ...payload, },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.creditNotes[0].number).toBeDefined();
       const creditNotes = await CreditNote.find();
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
     });

@@ -9,6 +9,7 @@ const {
   remove,
   uploadFile,
   removeRepetition,
+  listForCreditNotes,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -76,11 +77,27 @@ exports.plugin = {
             isBilled: Joi.boolean()
           },
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/credit-notes',
+      options: {
+        validate: {
+          query: {
+            startDate: Joi.string(),
+            endDate: Joi.string(),
+            customer: Joi.objectId(),
+            thirdPartyPayer: Joi.objectId(),
+            isBilled: Joi.boolean()
+          },
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: listForCreditNotes,
     });
 
     server.route({

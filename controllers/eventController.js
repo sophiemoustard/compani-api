@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const flat = require('flat');
+const moment = require('moment');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
@@ -13,7 +14,7 @@ const {
   updateRepetitions,
   deleteRepetition
 } = require('../helpers/events');
-const { ABSENCE, NEVER } = require('../helpers/constants');
+const { ABSENCE, NEVER, INTERVENTION } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -40,6 +41,29 @@ const list = async (req) => {
     return {
       message: translate[language].eventsFound,
       data: { events: populatedEvents }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const listForCreditNotes = async (req) => {
+  try {
+    let query = {
+      startDate: { $gte: moment(req.query.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(req.query.endDate).endOf('d').toDate() },
+      customer: req.query.customer,
+      isBilled: true,
+      type: INTERVENTION,
+    };
+    if (req.query.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': req.query.thirdPartyPayer };
+    else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 }, 'bills.inclTaxesTpp': { $exists: false } };
+    const events = await Event.find(query).lean();
+
+    return {
+      message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
+      data: { events }
     };
   } catch (e) {
     req.log('error', e);
@@ -174,4 +198,5 @@ module.exports = {
   remove,
   uploadFile,
   removeRepetition,
+  listForCreditNotes,
 };

@@ -132,7 +132,7 @@ const listWithBilledEvents = async (req) => {
     ];
     const customers = await Event.aggregate([
       { $match: { $and: rules } },
-      { $group: {  _id: { SUBS: '$subscription', CUSTOMER: '$customer' }, } },
+      { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' }, } },
       {
         $lookup: {
           from: 'customers',
@@ -142,6 +142,15 @@ const listWithBilledEvents = async (req) => {
         }
       },
       { $unwind: { path: '$customer' } },
+      {
+        $lookup: {
+          from: 'thirdpartypayers',
+          localField: '_id.TPP',
+          foreignField: '_id',
+          as: 'thirdPartyPayer',
+        }
+      },
+      { $unwind: { path: '$thirdPartyPayer' } },
       {
         $addFields: {
           sub: {
@@ -159,12 +168,13 @@ const listWithBilledEvents = async (req) => {
         }
       },
       { $unwind: { path: '$sub.service' } },
-      { $group: { _id: { CUS: '$customer' }, subscriptions: { $push: '$sub' } } },
-      { $project: {
-          _id: 0,
+      { $group: { _id: { CUS: '$customer' }, subscriptions: { $push: '$sub' }, thirdPartyPayers: { $push: '$thirdPartyPayer' } } },
+      {
+        $project: {
           _id: '$_id.CUS._id',
-          subscriptions: '$subscriptions',
+          subscriptions: 1,
           identity: '$_id.CUS.identity',
+          thirdPartyPayers: 1,
         }
       }
     ]);
