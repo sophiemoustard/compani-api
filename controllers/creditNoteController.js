@@ -3,6 +3,7 @@ const Boom = require('boom');
 const CreditNote = require('../models/CreditNote');
 const translate = require('../helpers/translate');
 const { updateEventBillingStatus, createCreditNotes } = require('../helpers/creditNotes');
+const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getDateQuery } = require('../helpers/utils');
 const { generatePdf } = require('../helpers/pdf');
 
@@ -15,9 +16,14 @@ const list = async (req) => {
     if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
     const creditNotes = await CreditNote.find(query)
-      .populate({ path: 'customer', select: '_id identity' })
+      .populate({ path: 'customer', select: '_id identity subscriptions', populate: { path: 'subscriptions.service' } })
       .populate({ path: 'thirdPartyPayer', select: '_id name' })
-      .populate('events');
+      .populate('events')
+      .lean();
+
+    for (let i = 0, l = creditNotes.length; i < l; i++) {
+      creditNotes[i].customer = await populateSubscriptionsServices({ ...creditNotes[i].customer });
+    }
 
     return {
       message: creditNotes.length === 0 ? translate[language].creditNotesNotFound : translate[language].creditNotesFound,
@@ -32,7 +38,7 @@ const list = async (req) => {
 const getById = async (req) => {
   try {
     const creditNote = await CreditNote.findById(req.params._id)
-      .populate({ path: 'customer', select: '_id identity' })
+      .populate({ path: 'customer', select: '_id identity subscriptions', populate: { path: 'subscriptions.service' } })
       .populate('events');
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
 
