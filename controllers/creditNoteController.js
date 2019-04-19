@@ -106,11 +106,12 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const creditNote = await CreditNote.findByIdAndUpdate(req.params._id);
+    const creditNote = await CreditNote.findOne({ _id: req.params._id });
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
 
     await updateEventBillingStatus(creditNote.events, true);
     await CreditNote.findByIdAndRemove(req.params._id);
+    if (creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(creditNote.linkedCreditNote);
 
     return {
       message: translate[language].creditNoteDeleted,
