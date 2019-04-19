@@ -13,9 +13,8 @@ const updateEventBillingStatus = async (eventsToUpdate, isBilled) => {
 };
 
 const createCreditNote = (payload, prefix, seq) => {
-  const creditNotePaylaod = { ...payload };
-  creditNotePaylaod.number = `${prefix}${seq.toString().padStart(3, '0')}`;
-  const customerCreditNote = new CreditNote(creditNotePaylaod);
+  payload.number = `${prefix}${seq.toString().padStart(3, '0')}`;
+  const customerCreditNote = new CreditNote(payload);
 
   return customerCreditNote.save();
 };
@@ -29,13 +28,15 @@ const createCreditNotes = async (payload) => {
   let tppCreditNote;
   let customerCreditNote;
   if (payload.inclTaxesTpp) {
-    tppCreditNote = await createCreditNote(payload, number.prefix, seq);
+    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0 };
+    tppCreditNote = await createCreditNote(tppPayload, number.prefix, seq);
     creditNotes.push(tppCreditNote);
     seq++;
   }
   if (payload.inclTaxesCustomer) {
     delete payload.thirdPartyPayer;
-    customerCreditNote = await createCreditNote(payload, number.prefix, seq);
+    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0 };
+    customerCreditNote = await createCreditNote(customerPayload, number.prefix, seq);
     creditNotes.push(customerCreditNote);
     seq++;
   }

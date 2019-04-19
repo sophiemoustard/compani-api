@@ -68,12 +68,29 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    let creditNote = await CreditNote.findByIdAndUpdate(req.params._id);
+    let creditNote = await CreditNote.findOne({ _id: req.params._id }).lean();
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
 
     if (creditNote.events) await updateEventBillingStatus(creditNote.events, true);
 
-    creditNote = await CreditNote.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
+    if (!creditNote.linkedCreditNote) creditNote = await CreditNote.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
+    else {
+      const tppPayload = { ...req.payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
+      const customerPayload = { ...req.payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
+      delete customerPayload.thirdPartyPayer;
+
+      if (creditNote.thirdPartyPayer) {
+        Promise.all([
+          CreditNote.findByIdAndUpdate(req.params._id, { $set: tppPayload }, { new: true }),
+          CreditNote.findByIdAndUpdate(creditNote.linkedCreditNote, { $set: customerPayload }, { new: true }),
+        ]);
+      } else {
+        Promise.all([
+          CreditNote.findByIdAndUpdate(req.params._id, { $set: customerPayload }, { new: true }),
+          CreditNote.findByIdAndUpdate(creditNote.linkedCreditNote, { $set: tppPayload }, { new: true })
+        ]);
+      }
+    }
 
     if (req.payload.events) await updateEventBillingStatus(req.payload.events, false);
 

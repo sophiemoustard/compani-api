@@ -30,8 +30,8 @@ exports.plugin = {
             thirdPartyPayer: Joi.objectId(),
             exclTaxesCustomer: Joi.number(),
             inclTaxesCustomer: Joi.number(),
-            exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.objectId(), then: Joi.required() }),
-            inclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.objectId(), then: Joi.required() }),
+            exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
+            inclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
             events: Joi.array().items(Joi.objectId()),
             subscription: Joi.object().keys({
               _id: Joi.objectId(),
@@ -102,8 +102,11 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date(),
             customer: Joi.objectId(),
+            thirdPartyPayer: Joi.objectId(),
             exclTaxesCustomer: Joi.number(),
             inclTaxesCustomer: Joi.number(),
+            exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
+            inclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
             events: Joi.array().items(Joi.objectId()),
             subscription: Joi.object().keys({
               _id: Joi.objectId(),
