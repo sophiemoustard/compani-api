@@ -1,11 +1,8 @@
 const Boom = require('boom');
-const flat = require('flat');
-const moment = require('moment');
 
 const CreditNote = require('../models/CreditNote');
-const CreditNoteNumber = require('../models/CreditNoteNumber');
 const translate = require('../helpers/translate');
-const { updateEventBillingStatus } = require('../helpers/creditNotes');
+const { updateEventBillingStatus, createCreditNotes } = require('../helpers/creditNotes');
 const { getDateQuery } = require('../helpers/utils');
 const { generatePdf } = require('../helpers/pdf');
 
@@ -19,6 +16,7 @@ const list = async (req) => {
 
     const creditNotes = await CreditNote.find(query)
       .populate({ path: 'customer', select: '_id identity' })
+      .populate({ path: 'thirdPartyPayer', select: '_id name' })
       .populate('events');
 
     return {
@@ -50,23 +48,11 @@ const getById = async (req) => {
 
 const create = async (req) => {
   try {
-    const query = { prefix: `AV-${moment().format('YYMM')}` };
-    const numberPayload = { seq: 1 };
-    const number = await CreditNoteNumber.findOneAndUpdate(
-      flat(query),
-      { $inc: flat(numberPayload) },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    const creditNoteNumber = `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
-    req.payload.number = creditNoteNumber;
-    const creditNote = new CreditNote(req.payload);
-    await creditNote.save();
-
-    if (req.payload.events) await updateEventBillingStatus(req.payload.events, false);
+    const creditNotes = await createCreditNotes(req.payload);
 
     return {
       message: translate[language].creditNoteCreated,
-      data: { creditNote },
+      data: { creditNotes },
     };
   } catch (e) {
     req.log('error', e);
