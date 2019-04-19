@@ -58,7 +58,7 @@ const listForCreditNotes = async (req) => {
       type: INTERVENTION,
     };
     if (req.query.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': req.query.thirdPartyPayer };
-    else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 } };
+    else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 }, 'bills.inclTaxesTpp': { $exists: false } };
     const events = await Event.find(query).lean();
 
     return {

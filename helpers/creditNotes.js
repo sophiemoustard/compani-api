@@ -24,17 +24,27 @@ const createCreditNotes = async (payload) => {
   const query = { prefix: `AV-${moment().format('YYMM')}` };
   const number = await CreditNoteNumber.findOneAndUpdate(query, {}, { new: true, upsert: true, setDefaultsOnInsert: true });
   let { seq } = number;
+
   const creditNotes = [];
+  let tppCreditNote;
+  let customerCreditNote;
   if (payload.inclTaxesTpp) {
-    const tppCreditNote = createCreditNote(payload, number.prefix, seq);
+    tppCreditNote = await createCreditNote(payload, number.prefix, seq);
     creditNotes.push(tppCreditNote);
     seq++;
   }
   if (payload.inclTaxesCustomer) {
     delete payload.thirdPartyPayer;
-    const customerCreditNote = createCreditNote(payload, number.prefix, seq);
+    customerCreditNote = await createCreditNote(payload, number.prefix, seq);
     creditNotes.push(customerCreditNote);
     seq++;
+  }
+
+  if (tppCreditNote && customerCreditNote) {
+    await Promise.all([
+      CreditNote.findOneAndUpdate({ _id: customerCreditNote._id }, { linkedCreditNote: tppCreditNote._id }),
+      CreditNote.findOneAndUpdate({ _id: tppCreditNote._id }, { linkedCreditNote: customerCreditNote._id }),
+    ]);
   }
 
   if (payload.events) await updateEventBillingStatus(payload.events, false);

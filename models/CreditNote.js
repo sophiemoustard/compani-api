@@ -19,7 +19,8 @@ const CreditNoteSchema = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId },
     service: String,
     vat: Number
-  }
+  },
+  linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);
