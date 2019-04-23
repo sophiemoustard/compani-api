@@ -168,8 +168,9 @@ describe('getBalance', () => {
       billed: 70,
     };
     const tppCreditNotes = [
-      { thirdPartyPayer: tppId, refund: 40 },
-      { thirdPartyPayer: new ObjectID(), refund: 50 },
+      { thirdPartyPayer: tppId, refund: 40, customer: customerId },
+      { thirdPartyPayer: tppId, refund: 40, customer: new ObjectID() },
+      { thirdPartyPayer: new ObjectID(), refund: 50, customer: customerId },
     ];
 
     const result = getBalance(bill, [], tppCreditNotes, []);
@@ -188,8 +189,9 @@ describe('getBalance', () => {
       billed: 70,
     };
     const tppCreditNotes = [
-      { thirdPartyPayer: tppId, refund: 40 },
-      { thirdPartyPayer: new ObjectID(), refund: 50 },
+      { thirdPartyPayer: tppId, refund: 40, customer: customerId },
+      { thirdPartyPayer: new ObjectID(), refund: 50, customer: customerId },
+      { thirdPartyPayer: tppId, refund: 50, customer: new ObjectID() },
     ];
     const payments = [
       { customer: customerId, client: tppId, nature: 'refund', netInclTaxes: 80 },
