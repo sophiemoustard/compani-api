@@ -3,7 +3,7 @@ const flat = require('flat');
 
 const Payment = require('../models/Payment');
 const { getDateQuery } = require('../helpers/utils');
-const { createPayments } = require('../helpers/payments');
+const { savePayments } = require('../helpers/payments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -30,7 +30,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const payments = await createPayments(req.payload);
+    const payments = await savePayments(req);
 
     return {
       message: translate[language].paymentCreated,

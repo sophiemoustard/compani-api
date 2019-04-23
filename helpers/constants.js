@@ -26,7 +26,13 @@ module.exports = {
   // PAYMENT
   PAYMENT: 'payment',
   REFUND: 'refund',
-  PAYMENT_TYPES: ['withdrawal', 'bank_transfer', 'check', 'cesu'],
+  WITHDRAWAL: 'withdrawal',
+  BANK_TRANSFER: 'bank_transfer',
+  CHECK: 'check',
+  CESU: 'cesu',
+  get PAYMENT_TYPES() {
+    return [this.WITHDRAWAL, this.BANK_TRANSFER, this.CHECK, this.CESU];
+  },
   // CANCELLATION OPTIONS
   INVOICED_AND_PAYED: 'invoiced_and_payed',
   INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',
