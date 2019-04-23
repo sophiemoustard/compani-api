@@ -1,7 +1,14 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
+const moment = require('moment');
 const _ = require('lodash');
 
-const { canBeWithdrawn } = require('../../../helpers/balances');
+const {
+  canBeWithdrawn,
+  getBalance,
+  computePayments,
+  computeTotal
+} = require('../../../helpers/balances');
 
 describe('canBeWithdrawn', () => {
   const bill = {
@@ -77,5 +84,176 @@ describe('canBeWithdrawn', () => {
       if (test.update) test.update();
       expect(canBeWithdrawn(test.bill)).toBe(false);
     });
+  });
+});
+
+describe('getBalance', () => {
+  it('should format balance for customer without credit notes and payment', () => {
+    const customerId = new ObjectID();
+    const bill = {
+      _id: { customer: customerId },
+      billed: 70,
+      customer: {
+        payment: {
+          mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
+        },
+      }
+    };
+
+    const result = getBalance(bill, [], [], []);
+    expect(result).toBeDefined();
+    expect(result.billed).toEqual(70);
+    expect(result.paid).toEqual(0);
+    expect(result.balance).toEqual(-70);
+    expect(result.toPay).toEqual(70);
+  });
+
+  it('should format balance for customer with credit notes and without payment', () => {
+    const customerId = new ObjectID();
+    const bill = {
+      _id: { customer: customerId },
+      billed: 70,
+      customer: {
+        payment: {
+          mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
+        },
+      }
+    };
+    const customerCreditNotes = [
+      { customer: customerId, refund: 50 },
+      { customer: new ObjectID(), refund: 90 },
+    ];
+
+    const result = getBalance(bill, customerCreditNotes, [], []);
+    expect(result).toBeDefined();
+    expect(result.billed).toEqual(20);
+    expect(result.paid).toEqual(0);
+    expect(result.balance).toEqual(-20);
+    expect(result.toPay).toEqual(20);
+  });
+
+  it('should format balance for customer with credit notes and payments', () => {
+    const customerId = new ObjectID();
+    const bill = {
+      _id: { customer: customerId },
+      billed: 70,
+      customer: {
+        payment: {
+          mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
+        },
+      }
+    };
+    const customerCreditNotes = [
+      { customer: customerId, refund: 50 },
+      { customer: new ObjectID(), refund: 90 },
+    ];
+    const payments = [
+      { customer: customerId, nature: 'payment', netInclTaxes: 80 },
+      { customer: customerId, nature: 'payment', netInclTaxes: 50 },
+    ];
+
+    const result = getBalance(bill, customerCreditNotes, [], payments);
+    expect(result).toBeDefined();
+    expect(result.billed).toEqual(20);
+    expect(result.paid).toEqual(130);
+    expect(result.balance).toEqual(110);
+    expect(result.toPay).toEqual(0);
+  });
+
+  it('should format balance for tpp with credit notes and without payment', () => {
+    const customerId = new ObjectID();
+    const tppId = new ObjectID();
+    const bill = {
+      _id: { customer: customerId, tpp: tppId },
+      billed: 70,
+    };
+    const tppCreditNotes = [
+      { thirdPartyPayer: tppId, refund: 40 },
+      { thirdPartyPayer: new ObjectID(), refund: 50 },
+    ];
+
+    const result = getBalance(bill, [], tppCreditNotes, []);
+    expect(result).toBeDefined();
+    expect(result.billed).toEqual(30);
+    expect(result.paid).toEqual(0);
+    expect(result.balance).toEqual(-30);
+    expect(result.toPay).toEqual(0);
+  });
+
+  it('should format balance for tpp with credit notes and payments', () => {
+    const customerId = new ObjectID();
+    const tppId = new ObjectID();
+    const bill = {
+      _id: { customer: customerId, tpp: tppId },
+      billed: 70,
+    };
+    const tppCreditNotes = [
+      { thirdPartyPayer: tppId, refund: 40 },
+      { thirdPartyPayer: new ObjectID(), refund: 50 },
+    ];
+    const payments = [
+      { customer: customerId, client: tppId, nature: 'refund', netInclTaxes: 80 },
+      { customer: customerId, client: tppId, nature: 'payment', netInclTaxes: 50 },
+    ];
+
+    const result = getBalance(bill, [], tppCreditNotes, payments);
+    expect(result).toBeDefined();
+    expect(result.billed).toEqual(30);
+    expect(result.paid).toEqual(-30);
+    expect(result.balance).toEqual(-60);
+    expect(result.toPay).toEqual(0);
+  });
+});
+
+describe('computePayments', () => {
+  it('should return 0 as payment is undefined', () => {
+    expect(computePayments()).toEqual(0);
+  });
+
+  it('should return 0 as payment is not an array', () => {
+    expect(computePayments({})).toEqual(0);
+  });
+
+  it('should return 0 as payment is empty', () => {
+    expect(computePayments([])).toEqual(0);
+  });
+
+  it('should compute payments for customer', () => {
+    const customerId = new ObjectID();
+    const ids = { customer: customerId };
+    const payments = [
+      { client: new ObjectID(), customer: customerId, netInclTaxes: 14, nature: 'payment' },
+      { customer: customerId, netInclTaxes: 14, nature: 'payment' },
+      { customer: customerId, netInclTaxes: 12, nature: 'refund' },
+      { customer: customerId, netInclTaxes: 23, nature: 'payment' },
+      { customer: new ObjectID(), netInclTaxes: 14, nature: 'payment' },
+    ];
+
+    expect(computePayments(payments, ids)).toEqual(25);
+  });
+
+  it('should compute payments for tpp', () => {
+    const customerId = new ObjectID();
+    const tppId = new ObjectID();
+    const ids = { customer: customerId, tpp: tppId };
+    const payments = [
+      { client: new ObjectID(), customer: customerId, netInclTaxes: 14, nature: 'payment' },
+      { customer: customerId, netInclTaxes: 14, nature: 'payment' },
+      { client: tppId, customer: customerId, netInclTaxes: 12, nature: 'refund' },
+      { client: tppId, customer: customerId, netInclTaxes: 23, nature: 'payment' },
+      { client: tppId, customer: new ObjectID(), netInclTaxes: 14, nature: 'payment' },
+    ];
+
+    expect(computePayments(payments, ids)).toEqual(11);
+  });
+});
+
+describe('computeTotal', () => {
+  it('should compute total with payment', () => {
+    expect(computeTotal('payment', 100, 50)).toEqual(150);
+  });
+
+  it('should compute total without payment', () => {
+    expect(computeTotal('toto', 100, 50)).toEqual(50);
   });
 });
