@@ -171,7 +171,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
     thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingexclTaxes, funding.customerParticipationRate);
     history.careHours += (history.careHours + (time / 60) > funding.careHours)
       ? funding.careHours
-      : history.careHours + (chargedTime / 60);
+      : (chargedTime / 60);
   }
 
   return {
