@@ -5,7 +5,7 @@ const { ObjectID } = require('mongodb');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
 const Payment = require('../models/Payment');
-const { canBeWithdrawn, computePayments } = require('../helpers/balances');
+const { getBalance } = require('../helpers/balances');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -52,29 +52,50 @@ const list = async (req) => {
       }
     ]);
 
-    const creditNotesAggregation = await CreditNote.aggregate([
+    const customerCreditNotesAggregation = await CreditNote.aggregate([
+      { $match: rules.length === 0 ? {} : { $and: rules } },
+      {
+        $group: { _id: '$customer', refund: { $sum: '$inclTaxesCustomer' } }
+      },
+      {
+        $project: { _id: 0, customer: '$_id', refund: 1 }
+      }
+    ]);
+
+    const tppCreditNotesAggregation = await CreditNote.aggregate([
       { $match: rules.length === 0 ? {} : { $and: rules } },
       {
         $group: {
-          _id: '$customer',
-          refund: { $sum: '$inclTaxesCustomer' },
+          _id: { TPP: '$thirdPartyPayer', CUSTOMER: '$customer' },
+          refund: { $sum: '$inclTaxesTpp' },
         }
       },
+      {
+        $lookup: {
+          from: 'thirdpartypayers',
+          localField: '_id.TPP',
+          foreignField: '_id',
+          as: 'thirdPartyPayer'
+        }
+      },
+      { $unwind: { path: '$thirdPartyPayer' } },
+      {
+        $project: {
+          _id: 0,
+          thirdPartyPayer: '$thirdPartyPayer._id',
+          customer: '$_id.CUSTOMER',
+          refund: 1,
+        },
+      }
     ]);
 
     const paymentQueries = rules.length > 0 ? rules.reduce((acc, next) => Object.assign(acc, next)) : {};
     const payments = await Payment.find(paymentQueries).lean();
 
-    const balances = billsAggregation.map((bill) => {
-      if (!bill._id.tpp) {
-        const correspondingCreditNote = creditNotesAggregation.find(cn => cn._id.toHexString() === bill._id.customer.toHexString());
-        bill.billed -= correspondingCreditNote ? correspondingCreditNote.refund : 0;
-      }
-      bill.paid = computePayments(payments, bill._id);
-      bill.balance = bill.paid - bill.billed;
-      bill.toPay = canBeWithdrawn(bill) ? Math.abs(bill.balance) : 0;
-      return bill;
-    });
+    const balances = [];
+    for (const bill of billsAggregation) {
+      balances.push(getBalance(bill, customerCreditNotesAggregation, tppCreditNotesAggregation, payments));
+    }
 
     const filteredBalances = balances.filter(client => client.balance !== 0);
 
@@ -89,5 +110,5 @@ const list = async (req) => {
 };
 
 module.exports = {
-  list
+  list,
 };

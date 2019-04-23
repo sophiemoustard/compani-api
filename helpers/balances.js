@@ -31,7 +31,21 @@ const computePayments = (payments, ids) => {
   return total;
 };
 
+const getBalance = (bill, customerAggregation, tppAggregation, payments) => {
+  const correspondingCreditNote = !bill._id.tpp
+    ? customerAggregation.find(cn => cn.customer.toHexString() === bill._id.customer.toHexString())
+    : tppAggregation.find(cn => cn.thirdPartyPayer.toHexString() === bill._id.tpp.toHexString() && cn.customer.toHexString() === bill._id.customer.toHexString());
+  bill.billed -= correspondingCreditNote ? correspondingCreditNote.refund : 0;
+  bill.paid = computePayments(payments, bill._id);
+  bill.balance = bill.paid - bill.billed;
+  bill.toPay = canBeWithdrawn(bill) ? Math.abs(bill.balance) : 0;
+
+  return bill;
+};
+
 module.exports = {
+  computeTotal,
   canBeWithdrawn,
   computePayments,
+  getBalance,
 };
