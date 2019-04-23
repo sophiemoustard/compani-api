@@ -15,6 +15,8 @@ const CompanySchema = mongoose.Schema({
   },
   rcs: String,
   ics: String,
+  iban: String,
+  bic: String,
   folderId: String,
   rhConfig: {
     contractWithCompany: {
