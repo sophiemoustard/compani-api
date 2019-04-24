@@ -9,10 +9,13 @@ const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3,
 
 const formatSubscriptionData = (bill) => {
   const events = bill.eventsList.map(ev => ev.event);
+  const matchingServiceVersion = getMatchingVersion(bill.startDate, bill.subscription.service);
+
   return {
     ...bill,
     subscription: bill.subscription._id,
-    vat: getMatchingVersion(bill.startDate, bill.subscription.service).vat,
+    service: matchingServiceVersion.name,
+    vat: matchingServiceVersion.vat,
     events,
   };
 };
