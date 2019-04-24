@@ -229,6 +229,9 @@ const getFixedFundingSplit = (event, funding, service, price) => {
   };
 };
 
+/**
+ * Returns customer and tpp excluded taxes prices of the given event.
+ */
 const getEventPrice = (event, subscription, service, funding) => {
   const unitExclTaxes = getExclTaxes(subscription.unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;

@@ -17,6 +17,7 @@ const {
   getMatchingHistory,
   getHourlyFundingSplit,
   getFixedFundingSplit,
+  getEventPrice,
 } = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
@@ -457,7 +458,56 @@ describe('getFixedFundingSplit', () => {
   });
 });
 
-describe('getEventPrice', () => {});
+describe('getEventPrice', () => {
+  const subscription = { unitTTCRate: 21 };
+  const event = {
+    startDate: (new Date('2019/05/08')).setHours(8),
+    endDate: (new Date('2019/05/08')).setHours(10),
+  };
+
+  it('should return event prices wihtout funding and without surcharge', () => {
+    const service = { vat: 20 };
+    const result = getEventPrice(event, subscription, service);
+    expect(result).toBeDefined();
+    expect(result).toMatchObject({ customerPrice: 35, thirdPartyPayerPrice: 0 });
+  });
+
+  it('should return event prices with surcharge', () => {
+    const service = { vat: 20, nature: 'hourly', surcharge: { publicHoliday: 10 } };
+    const result = getEventPrice(event, subscription, service);
+    expect(result).toBeDefined();
+    expect(result).toMatchObject({ customerPrice: 38.5, thirdPartyPayerPrice: 0 });
+  });
+
+  it('should return event prices with hourly funding', () => {
+    const service = { vat: 20 };
+    const funding = {
+      nature: 'hourly',
+      unitTTCRate: 15,
+      careHours: 4,
+      frequency: 'once',
+      customerParticipationRate: 0,
+      history: { careHours: 1 },
+      thirdPartyPayer: { _id: new ObjectID() },
+    };
+    const result = getEventPrice(event, subscription, service, funding);
+    expect(result).toBeDefined();
+    expect(result).toMatchObject({ customerPrice: 10, thirdPartyPayerPrice: 25 });
+  });
+
+  it('should return event prices with fixed funding', () => {
+    const service = { vat: 20 };
+    const funding = {
+      nature: 'fixed',
+      history: { amountTTC: 50 },
+      amountTTC: 100,
+      thirdPartyPayer: { _id: new ObjectID() },
+    };
+    const result = getEventPrice(event, subscription, service, funding);
+    expect(result).toBeDefined();
+    expect(result).toMatchObject({ customerPrice: 0, thirdPartyPayerPrice: 35 });
+  });
+});
 
 describe('formatDraftBillsForCustomer', () => {});
 
