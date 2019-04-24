@@ -163,6 +163,7 @@ const getMatchingHistory = (event, funding) => {
 
 /**
  * Return prices and billing history for event linked to hourly funding.
+ * @param {*} price : excluded taxes event price.
  */
 const getHourlyFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
@@ -198,6 +199,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
 
 /**
  * For a funding with a FIXED nature (frequency = ONCE), 2 cases : no history OR one global history
+ * @param {*} price : excluded taxes event price.
  */
 const getFixedFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
