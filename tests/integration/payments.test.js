@@ -1,5 +1,6 @@
 const expect = require('expect');
 const moment = require('moment');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
@@ -7,9 +8,12 @@ const { getToken } = require('./seed/usersSeed');
 const { customersList, populateCustomers } = require('./seed/customersSeed');
 const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const { paymentsList, populatePayments } = require('./seed/paymentsSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
+const { populateUsers } = require('./seed/usersSeed');
 const { PAYMENT, REFUND, PAYMENT_TYPES } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Payment = require('../../models/Payment');
+const Drive = require('../../models/Google/Drive');
 
 const { language } = translate;
 
@@ -21,6 +25,8 @@ describe('NODE ENV', () => {
 
 describe('PAYMENTS ROUTES', () => {
   let token = null;
+  before(populateCompanies);
+  before(populateUsers);
   before(populateCustomers);
   before(populateThirdPartyPayers);
   beforeEach(populatePayments);
@@ -61,8 +67,8 @@ describe('PAYMENTS ROUTES', () => {
         });
         expect(res.statusCode).toBe(200);
         expect(res.result.message).toBe(translate[language].paymentCreated);
-        expect(res.result.data.payments).toEqual(expect.arrayContaining([expect.objectContaining(payload)]));
-        expect(res.result.data.payments[0].number).toBe(payload.nature === PAYMENT ? `REG-${moment().format('YYMM')}001` : `REMB-${moment().format('YYMM')}001`);
+        expect(res.result.data.payment).toEqual(expect.objectContaining(payload));
+        expect(res.result.data.payment.number).toBe(payload.nature === PAYMENT ? `REG-${moment().format('YYMM')}001` : `REMB-${moment().format('YYMM')}001`);
         const payments = await Payment.find().lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
@@ -123,6 +129,7 @@ describe('PAYMENTS ROUTES', () => {
         {
           date: moment().toDate(),
           customer: customersList[0]._id,
+          customerInfo: customersList[0],
           netInclTaxes: 900,
           nature: PAYMENT,
           type: PAYMENT_TYPES[0]
@@ -130,11 +137,14 @@ describe('PAYMENTS ROUTES', () => {
         {
           date: moment().toDate(),
           customer: customersList[1]._id,
+          customerInfo: customersList[1],
           netInclTaxes: 250,
           nature: PAYMENT,
           type: PAYMENT_TYPES[0]
         },
       ];
+
+      const mock = sinon.stub(Drive, 'add');
 
       const res = await app.inject({
         method: 'POST',
@@ -144,10 +154,9 @@ describe('PAYMENTS ROUTES', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.payments).toEqual(expect.arrayContaining([
-        expect.objectContaining(payload[0]),
-        expect.objectContaining(payload[1])
-      ]));
+      const payments = await Payment.find().lean();
+      expect(payments.length).toBe(paymentsList.length + 2);
+      mock.restore();
     });
   });
 

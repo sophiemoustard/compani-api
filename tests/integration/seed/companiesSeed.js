@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Company = require('../../../models/Company');
+const faker = require('faker');
 
 const companiesList = [
   {
@@ -11,7 +12,9 @@ const companiesList = [
         { name: 'Code', default: false, _id: new ObjectID() },
         { name: 'Gouter', default: false, _id: new ObjectID() },
       ],
-    }
+    },
+    iban: faker.finance.iban(),
+    bic: faker.finance.bic(),
   },
 ];
 
