@@ -42,7 +42,7 @@ const populateSurcharge = async (subscription) => {
  * Funding version frequency = ONCE : there is only ONE history
  * Funding version frequency = MONTHLY : there is one history PER MONTH
  */
-const populateFundings = async (fundings, query) => {
+const populateFundings = async (fundings, endDate) => {
   for (let i = 0, l = fundings.length; i < l; i++) {
     const tpp = await ThirdPartyPayer.findOne({ _id: fundings[i].thirdPartyPayer }).lean();
     if (tpp) fundings[i].thirdPartyPayer = tpp;
@@ -58,12 +58,12 @@ const populateFundings = async (fundings, query) => {
         const history = await FundingHistory.find({ fundingVersion: fundings[i].versions[k]._id });
         if (history) fundings[i].versions[k].history = history;
         if (history.length === 0 || !history) fundings[i].versions[k].history = [];
-        if (!history.some(his => his.month === moment(query.endDate).format('MM/YYYY'))) {
+        if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {
           fundings[i].versions[k].history.push({
             careHours: 0,
             amountTTC: 0,
             fundingVersion: fundings[i].versions[k]._id,
-            month: moment(query.endDate).format('MM/YYYY'),
+            month: moment(endDate).format('MM/YYYY'),
           });
         }
       }
@@ -422,7 +422,7 @@ const getDraftBillsList = async (rules, query) => {
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await populateSurcharge(eventsBySubscriptions[k].subscription);
       let { fundings } = eventsBySubscriptions[k];
-      if (fundings) fundings = await populateFundings(fundings, query);
+      if (fundings) fundings = await populateFundings(fundings, query.endDate);
 
       const draftBills = getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, query);
       if (draftBills.customer) customerDraftBills.push(draftBills.customer);
@@ -460,4 +460,19 @@ const getDraftBillsList = async (rules, query) => {
 
 module.exports = {
   getDraftBillsList,
+  populateSurcharge,
+  populateFundings,
+  getMatchingFunding,
+  computeCustomSurcharge,
+  applySurcharge,
+  getExclTaxes,
+  getInclTaxes,
+  getThirdPartyPayerPrice,
+  getMatchingHistory,
+  getHourlyFundingSplit,
+  getFixedFundingSplit,
+  getEventPrice,
+  formatDraftBillsForCustomer,
+  formatDraftBillsForTPP,
+  getDraftBillsPerSubscription,
 };
