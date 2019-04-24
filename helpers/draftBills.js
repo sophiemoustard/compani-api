@@ -250,7 +250,7 @@ const getEventPrice = (event, subscription, service, funding) => {
 const formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
   const inclTaxesCustomer = getInclTaxes(eventPrice.customerPrice, service.vat);
   const prices = { event: event._id, inclTaxesCustomer, exclTaxesCustomer: eventPrice.customerPrice };
-  if (eventPrice.thirdPartyPayerPrice && event.thirdPartyPayerPrice !== 0) {
+  if (eventPrice.thirdPartyPayerPrice && eventPrice.thirdPartyPayerPrice !== 0) {
     prices.inclTaxesTpp = getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
     prices.exclTaxesTpp = eventPrice.thirdPartyPayerPrice;
     prices.thirdPartyPayer = eventPrice.thirdPartyPayer;

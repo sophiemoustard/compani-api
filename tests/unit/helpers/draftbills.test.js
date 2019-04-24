@@ -18,6 +18,7 @@ const {
   getHourlyFundingSplit,
   getFixedFundingSplit,
   getEventPrice,
+  formatDraftBillsForCustomer,
 } = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
@@ -509,7 +510,52 @@ describe('getEventPrice', () => {
   });
 });
 
-describe('formatDraftBillsForCustomer', () => {});
+describe('formatDraftBillsForCustomer', () => {
+  const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
+  const event = {
+    _id: 'abc',
+    startDate: (new Date('2019/05/08')).setHours(8),
+    endDate: (new Date('2019/05/08')).setHours(10),
+  };
+  const service = { vat: 20 };
+
+  it('should format bill for customer without tpp info', () => {
+    const eventPrice = { customerPrice: 17.5 };
+    const result = formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
+    expect(result).toBeDefined();
+    expect(result).toMatchObject({
+      eventsList: [
+        { event: '123456' },
+        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: 17.5 }
+      ],
+      hours: 5,
+      exclTaxes: 37.5,
+      inclTaxes: 46,
+    });
+  });
+
+  it('should format bill for customer with tpp info', () => {
+    const eventPrice = { customerPrice: 17.5, thirdPartyPayerPrice: 12.5, thirdPartyPayer: 'tpp' };
+    const result = formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
+    expect(result).toBeDefined();
+    expect(result).toMatchObject({
+      eventsList: [
+        { event: '123456' },
+        {
+          event: 'abc',
+          inclTaxesCustomer: 21,
+          exclTaxesCustomer: 17.5,
+          exclTaxesTpp: 12.5,
+          inclTaxesTpp: 15,
+          thirdPartyPayer: 'tpp',
+        },
+      ],
+      hours: 5,
+      exclTaxes: 37.5,
+      inclTaxes: 46,
+    });
+  });
+});
 
 describe('formatDraftBillsForTPP', () => {});
 
