@@ -5,7 +5,12 @@ const { ObjectID } = require('mongodb');
 const Surcharge = require('../../../models/Surcharge');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const FundingHistory = require('../../../models/FundingHistory');
-const { populateSurcharge, populateFundings, getMatchingFunding } = require('../../../helpers/draftBills');
+const {
+  populateSurcharge,
+  populateFundings,
+  getMatchingFunding,
+  computeCustomSurcharge,
+} = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
   it('should populate surcharge and order versions', async () => {
@@ -167,7 +172,44 @@ describe('getMatchingFunding', () => {
   });
 });
 
-describe('computeCustomSurcharge', () => {});
+describe('computeCustomSurcharge', () => {
+  const price = 12;
+  const start = '09:00';
+  const end = '12:00';
+  const surcharge = 20;
+
+  it('case 1 : dates included between start and end', () => {
+    const event = {
+      startDate: (new Date('2019/03/12')).setHours(9),
+      endDate: (new Date('2019/03/12')).setHours(11),
+    };
+    expect(Number.parseFloat(computeCustomSurcharge(event, start, end, surcharge, price).toFixed(1))).toEqual(14.4);
+  });
+
+  it('case 2 : startDate included between start and end and endDate after end', () => {
+    const event = {
+      startDate: (new Date('2019/03/12')).setHours(8),
+      endDate: (new Date('2019/03/12')).setHours(10),
+    };
+    expect(Number.parseFloat(computeCustomSurcharge(event, start, end, surcharge, price).toFixed(1))).toEqual(13.2);
+  });
+
+  it('case 3 : startDate before start and endDate included between start and end', () => {
+    const event = {
+      startDate: (new Date('2019/03/12')).setHours(10),
+      endDate: (new Date('2019/03/12')).setHours(13),
+    };
+    expect(Number.parseFloat(computeCustomSurcharge(event, start, end, surcharge, price).toFixed(1))).toEqual(13.6);
+  });
+
+  it('case 4 : startDate before start and endDate after endDate', () => {
+    const event = {
+      startDate: (new Date('2019/03/12')).setHours(7),
+      endDate: (new Date('2019/03/12')).setHours(13),
+    };
+    expect(Number.parseFloat(computeCustomSurcharge(event, start, end, surcharge, price).toFixed(1))).toEqual(13.2);
+  });
+});
 
 describe('applySurcharge', () => {});
 
