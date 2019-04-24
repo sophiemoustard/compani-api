@@ -128,10 +128,11 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
         promises.push((new Bill(bill)).save());
-        number.seq += 1;
+        if (bill.billNumber) number.seq += 1;
       }
     }
   }
+
 
   await BillNumber.findOneAndUpdate({ prefix: number.prefix }, { $set: { seq: number.seq } });
   await updateFundingHistories(fundingHistories);
