@@ -11,6 +11,10 @@ const {
   getMatchingFunding,
   computeCustomSurcharge,
   applySurcharge,
+  getExclTaxes,
+  getInclTaxes,
+  getThirdPartyPayerPrice,
+  getMatchingHistory,
 } = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
@@ -313,6 +317,68 @@ describe('applySurcharge', () => {
   });
 });
 
-describe('getExclTaxes', () => {});
+describe('getExclTaxes', () => {
+  it('should return excluded taxes price', () => {
+    expect(Number.parseFloat(getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
+  });
+});
 
-describe('getInclTaxes', () => {});
+describe('getInclTaxes', () => {
+  it('should return excluded taxes price', () => {
+    expect(getInclTaxes(20, 2)).toEqual(20.4);
+  });
+});
+
+describe('getThirdPartyPayerPrice', () => {
+  it('should compute tpp price', () => {
+    expect(getThirdPartyPayerPrice(180, 10, 20)).toEqual(24);
+  });
+});
+
+describe('getMatchingHistory', () => {
+  it('should return history for once frequency', () => {
+    const versionId = new ObjectID();
+    const funding = { versionId, frequency: 'once', history: { fundingVersion: versionId, careHours: 2 } };
+    const result = getMatchingHistory({}, funding);
+    expect(result).toBeDefined();
+    expect(result.fundingVersion).toEqual(versionId);
+  });
+
+  it('should return existing history for monthly frequency', () => {
+    const versionId = new ObjectID();
+    const funding = {
+      versionId,
+      frequency: 'monthly',
+      history: [{ fundingVersion: versionId, careHours: 2, month: '03/2019' }, { fundingVersion: versionId, careHours: 4, month: '02/2019' }]
+    };
+    const event = { startDate: new Date('2019/03/12') };
+    const result = getMatchingHistory(event, funding);
+    expect(result).toBeDefined();
+    expect(result).toMatchObject({ fundingVersion: versionId, careHours: 2, month: '03/2019' });
+  });
+
+  it('should create history and add to list when missing for monthly frequency', () => {
+    const versionId = new ObjectID();
+    const funding = {
+      versionId,
+      frequency: 'monthly',
+      history: [{ fundingVersion: versionId, careHours: 2, month: '01/2019' }, { fundingVersion: versionId, careHours: 4, month: '02/2019' }]
+    };
+    const event = { startDate: new Date('2019/03/12') };
+    const result = getMatchingHistory(event, funding);
+    expect(result).toBeDefined();
+    expect(result).toMatchObject({ careHours: 0, amountTTC: 0, fundingVersion: versionId, month: '03/2019' });
+  });
+});
+
+describe('getHourlyFundingSplit', () => {});
+
+describe('getFixedFundingSplit', () => {});
+
+describe('getEventPrice', () => {});
+
+describe('formatDraftBillsForCustomer', () => {});
+
+describe('formatDraftBillsForTPP', () => {});
+
+describe('getDraftBillsPerSubscription', () => {});

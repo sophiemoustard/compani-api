@@ -147,8 +147,8 @@ const getExclTaxes = (inclTaxes, vat) => inclTaxes / (1 + (vat / 100));
 
 const getInclTaxes = (exclTaxes, vat) => exclTaxes * (1 + (vat / 100));
 
-const getThirdPartyPayerPrice = (time, fundingexclTaxes, customerParticipationRate) =>
-  (time / 60) * fundingexclTaxes * (1 - (customerParticipationRate / 100));
+const getThirdPartyPayerPrice = (time, fundingExclTaxes, customerParticipationRate) =>
+  (time / 60) * fundingExclTaxes * (1 - (customerParticipationRate / 100));
 
 const getMatchingHistory = (event, funding) => {
   if (funding.frequency === ONCE) return funding.history;
