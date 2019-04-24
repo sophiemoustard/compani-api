@@ -83,7 +83,7 @@ const getMatchingFunding = (date, fundings) => {
 
   for (const funding of fundings) {
     const matchingVersion = getMatchingVersion(date, funding);
-    if (matchingVersion && (matchingVersion.careDays.includes(moment(date).day() - 1))) return matchingVersion;
+    if (matchingVersion && (matchingVersion.careDays.includes(moment(date).isoWeekday() - 1))) return matchingVersion;
   }
 
   return null;
