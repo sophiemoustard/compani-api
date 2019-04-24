@@ -15,6 +15,7 @@ const {
   getInclTaxes,
   getThirdPartyPayerPrice,
   getMatchingHistory,
+  getHourlyFundingSplit,
 } = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
@@ -371,7 +372,50 @@ describe('getMatchingHistory', () => {
   });
 });
 
-describe('getHourlyFundingSplit', () => {});
+describe('getHourlyFundingSplit', () => {
+  const price = 50;
+  const event = {
+    startDate: (new Date('2019/03/12')).setHours(8),
+    endDate: (new Date('2019/03/12')).setHours(10),
+  };
+  const service = { vat: 20 };
+
+  it('case 1. Event fully invoiced to TPP', () => {
+    const funding = {
+      unitTTCRate: 21,
+      careHours: 4,
+      frequency: 'once',
+      customerParticipationRate: 20,
+      history: { careHours: 1 },
+      thirdPartyPayer: { _id: new ObjectID() },
+    };
+
+    const result = getHourlyFundingSplit(event, funding, service, price);
+    expect(result).toBeDefined();
+    expect(result.customerPrice).toEqual(22);
+    expect(result.thirdPartyPayerPrice).toEqual(28);
+    expect(result.history).toBeDefined();
+    expect(result.history.careHours).toEqual(2);
+  });
+
+  it('case 2. Event partially invoiced to TPP', () => {
+    const funding = {
+      unitTTCRate: 21,
+      careHours: 4,
+      frequency: 'once',
+      customerParticipationRate: 20,
+      history: { careHours: 3 },
+      thirdPartyPayer: { _id: new ObjectID() },
+    };
+
+    const result = getHourlyFundingSplit(event, funding, service, price);
+    expect(result).toBeDefined();
+    expect(result.customerPrice).toEqual(36);
+    expect(result.thirdPartyPayerPrice).toEqual(14);
+    expect(result.history).toBeDefined();
+    expect(result.history.careHours).toEqual(1);
+  });
+});
 
 describe('getFixedFundingSplit', () => {});
 

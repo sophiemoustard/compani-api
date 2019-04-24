@@ -161,10 +161,13 @@ const getMatchingHistory = (event, funding) => {
   return history;
 };
 
+/**
+ * Return prices and billing history for event linked to hourly funding.
+ */
 const getHourlyFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
-  const fundingexclTaxes = getExclTaxes(funding.unitTTCRate, service.vat);
+  const fundingExclTaxes = getExclTaxes(funding.unitTTCRate, service.vat);
   const history = getMatchingHistory(event, funding);
 
   let chargedTime = 0;
@@ -172,10 +175,10 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
     chargedTime = (history.careHours + (time / 60) > funding.careHours)
       ? (funding.careHours - history.careHours) * 60
       : time;
-    thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingexclTaxes, funding.customerParticipationRate);
-    history.careHours += (history.careHours + (time / 60) > funding.careHours)
+    thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingExclTaxes, funding.customerParticipationRate);
+    history.careHours = (history.careHours + (time / 60) > funding.careHours)
       ? funding.careHours
-      : (chargedTime / 60);
+      : history.careHours + (chargedTime / 60);
   }
 
   return {
