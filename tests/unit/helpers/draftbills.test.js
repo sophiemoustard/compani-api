@@ -1,5 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
+const moment = require('moment');
 const { ObjectID } = require('mongodb');
 
 const Surcharge = require('../../../models/Surcharge');
@@ -20,6 +21,7 @@ const {
   getEventPrice,
   formatDraftBillsForCustomer,
   formatDraftBillsForTPP,
+  getDraftBillsPerSubscription,
 } = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
@@ -599,4 +601,68 @@ describe('formatDraftBillsForTPP', () => {
   });
 });
 
-describe('getDraftBillsPerSubscription', () => {});
+describe('getDraftBillsPerSubscription', () => {
+  const events = [
+    { _id: 1, startDate: new Date('2019/02/15').setHours(8), endDate: new Date('2019/02/15').setHours(10) },
+    { _id: 2, startDate: new Date('2019/01/15').setHours(8), endDate: new Date('2019/01/15').setHours(10) },
+  ];
+  const customer = {};
+  const subscription = {
+    versions: [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }],
+    service: {
+      versions: [{ startDate: new Date('2019/01/01'), vat: 20 }],
+    },
+  };
+  const query = {
+    billingStartDate: new Date('2019/02/01'),
+  };
+
+  it('should return draft bill without tpp', () => {
+    const fundings = [];
+    const result = getDraftBillsPerSubscription(events, customer, subscription, fundings, query);
+    expect(result).toBeDefined();
+    expect(result.customer).toBeDefined();
+    expect(moment(result.customer.startDate).format('DD/MM/YYYY')).toEqual('15/01/2019');
+    expect(result.customer.exclTaxes).toEqual(70);
+    expect(result.customer.inclTaxes).toEqual(84);
+  });
+
+  it('should return draft bill with tpp', () => {
+    const tppId = new ObjectID();
+    const fundings = [
+      {
+        thirdPartyPayer: { _id: tppId },
+        versions: [{
+          _id: 'version',
+          careDays: [1, 4, 5],
+          startDate: new Date('2019/01/01'),
+          frequency: 'once',
+          nature: 'fixed',
+          amountTTC: 200,
+          history: { amountTTC: 185 },
+        }],
+      },
+      {
+        thirdPartyPayer: { _id: new ObjectID() },
+        versions: [{
+          _id: 'version2',
+          careDays: [0],
+          startDate: new Date('2019/01/01'),
+          frequency: 'once',
+          nature: 'fixed',
+          amountTTC: 200,
+          history: { amountTTC: 185 },
+        }],
+      },
+    ];
+    const result = getDraftBillsPerSubscription(events, customer, subscription, fundings, query);
+    expect(result).toBeDefined();
+    expect(result.customer).toBeDefined();
+    expect(moment(result.customer.startDate).format('DD/MM/YYYY')).toEqual('15/01/2019');
+    expect(result.customer.exclTaxes).toEqual(57.5);
+    expect(result.customer.inclTaxes).toEqual(69);
+    expect(result.thirdPartyPayer).toBeDefined();
+    expect(result.thirdPartyPayer[tppId].exclTaxes).toEqual(12.5);
+    expect(result.thirdPartyPayer[tppId].inclTaxes).toEqual(15);
+  });
+});

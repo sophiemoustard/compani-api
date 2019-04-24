@@ -172,7 +172,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
   const history = getMatchingHistory(event, funding);
 
   let chargedTime = 0;
-  if (history.careHours < funding.careHours) {
+  if (history && history.careHours < funding.careHours) {
     chargedTime = (history.careHours + (time / 60) > funding.careHours)
       ? (funding.careHours - history.careHours) * 60
       : time;
