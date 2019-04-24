@@ -61,10 +61,16 @@ const getDateQuery = (dates) => {
   return { $lt: dates.endDate };
 };
 
+const getFixedNumber = (number, toFixedNb) => {
+  if (Number.isNaN(number)) throw new Error('You must provide a number !');
+  return number.toFixed(toFixedNb);
+};
+
 module.exports = {
   getIntervalInRange,
   clean,
   getLastVersion,
   getMatchingVersion,
   getDateQuery,
+  getFixedNumber,
 };
