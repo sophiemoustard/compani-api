@@ -19,6 +19,7 @@ const {
   getFixedFundingSplit,
   getEventPrice,
   formatDraftBillsForCustomer,
+  formatDraftBillsForTPP,
 } = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
@@ -557,6 +558,45 @@ describe('formatDraftBillsForCustomer', () => {
   });
 });
 
-describe('formatDraftBillsForTPP', () => {});
+describe('formatDraftBillsForTPP', () => {
+  it('should format bill for tpp', () => {
+    const tppId = new ObjectID();
+    const tpp = { _id: tppId };
+    const tppPrices = {
+      [tppId]: { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] }
+    };
+    const event = {
+      _id: 'abc',
+      startDate: (new Date('2019/05/08')).setHours(8),
+      endDate: (new Date('2019/05/08')).setHours(10),
+    };
+    const eventPrice = {
+      customerPrice: 17.5,
+      thirdPartyPayerPrice: 12.5,
+      thirdPartyPayer: tppId,
+      history: {},
+      chargedTime: 120,
+    };
+    const service = { vat: 20 };
+
+    const result = formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
+    expect(result).toBeDefined();
+    expect(result[tppId]).toBeDefined();
+    expect(result[tppId].exclTaxes).toEqual(32.5);
+    expect(result[tppId].inclTaxes).toEqual(40);
+    expect(result[tppId].hours).toEqual(5);
+    expect(result[tppId].eventsList).toMatchObject([
+      { event: '123456' },
+      {
+        event: 'abc',
+        inclTaxesTpp: 15,
+        exclTaxesTpp: 12.5,
+        thirdPartyPayer: tppId,
+        inclTaxesCustomer: 21,
+        exclTaxesCustomer: 17.5,
+      }
+    ]);
+  });
+});
 
 describe('getDraftBillsPerSubscription', () => {});
