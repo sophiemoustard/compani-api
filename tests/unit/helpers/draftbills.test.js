@@ -10,6 +10,7 @@ const {
   populateFundings,
   getMatchingFunding,
   computeCustomSurcharge,
+  applySurcharge,
 } = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
@@ -211,7 +212,106 @@ describe('computeCustomSurcharge', () => {
   });
 });
 
-describe('applySurcharge', () => {});
+describe('applySurcharge', () => {
+  const price = 20;
+  let event;
+  let surcharge = {};
+  it('should apply 25th of december surcharge', () => {
+    event = { startDate: new Date('2019/12/25') };
+    surcharge = { twentyFifthOfDecember: 20 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(24);
+  });
+
+  it('should not apply 25th of december surcharge', () => {
+    event = { startDate: new Date('2019/12/25') };
+    surcharge = { saturday: 20 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+  });
+
+  it('should apply 1st of May surcharge', () => {
+    event = { startDate: new Date('2019/05/01') };
+    surcharge = { firstOfMay: 10 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(22);
+  });
+
+  it('should not apply 1st of May surcharge', () => {
+    event = { startDate: new Date('2019/05/01') };
+    surcharge = { saturday: 10 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+  });
+
+  it('should apply holiday surcharge', () => {
+    event = { startDate: new Date('2019/01/01') };
+    surcharge = { publicHoliday: 15 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(23);
+  });
+
+  it('should not apply holiday surcharge', () => {
+    event = { startDate: new Date('2019/01/01') };
+    surcharge = { saturday: 10 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+  });
+
+  it('should apply saturday surcharge', () => {
+    event = { startDate: new Date('2019/04/27') };
+    surcharge = { saturday: 5 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(21);
+  });
+
+  it('should not apply saturday surcharge', () => {
+    event = { startDate: new Date('2019/04/27') };
+    surcharge = { sunday: 10 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+  });
+
+  it('should apply saturday surcharge', () => {
+    event = { startDate: new Date('2019/04/28') };
+    surcharge = { sunday: 5 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(21);
+  });
+
+  it('should not apply saturday surcharge', () => {
+    event = { startDate: new Date('2019/04/28') };
+    surcharge = { saturday: 10 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+  });
+
+  it('should not apply saturday surcharge', () => {
+    event = { startDate: new Date('2019/04/28') };
+    surcharge = { saturday: 10 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+  });
+
+  it('should apply holiday and not sunday surcharge', () => {
+    event = { startDate: new Date('2019/07/14') };
+    surcharge = { sunday: 10, publicHoliday: 20 };
+    expect(applySurcharge(event, price, surcharge)).toEqual(24);
+  });
+
+  it('should apply evening surcharge', () => {
+    event = { startDate: (new Date('2019/04/23')).setHours(18), endDate: (new Date('2019/04/23')).setHours(20) };
+    surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
+    expect(applySurcharge(event, price, surcharge)).toEqual(22);
+  });
+
+  it('should not apply evening surcharge', () => {
+    event = { startDate: (new Date('2019/04/23')).setHours(15), endDate: (new Date('2019/04/23')).setHours(17) };
+    surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
+    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+  });
+
+  it('should apply custom surcharge', () => {
+    event = { startDate: (new Date('2019/04/23')).setHours(18), endDate: (new Date('2019/04/23')).setHours(20) };
+    surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
+    expect(applySurcharge(event, price, surcharge)).toEqual(22);
+  });
+
+  it('should not apply custom surcharge', () => {
+    event = { startDate: (new Date('2019/04/23')).setHours(15), endDate: (new Date('2019/04/23')).setHours(17) };
+    surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
+    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+  });
+});
 
 describe('getExclTaxes', () => {});
 
