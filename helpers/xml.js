@@ -4,6 +4,9 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+const { getFixedNumber } = require('./utils');
+const { addFile } = require('./gdriveStorage');
+
 const createDocument = () => ({
   Document: {
     '@xlmns': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02',
@@ -11,8 +14,8 @@ const createDocument = () => ({
     '@xsi:schemaLocation': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02 pain.008.001.02.xsd',
     CstmrDrctDbtInitn: {
       GrpHdr: {},
-      PmtInf: [],
-    },
+      PmtInf: []
+    }
   }
 });
 
@@ -20,7 +23,7 @@ const generateSEPAHeader = data => ({
   MsgId: data.id,
   CreDtTm: data.created,
   NbOfTxs: data.txNumber,
-  CtrlSum: data.sum,
+  CtrlSum: getFixedNumber(data.sum, 2),
   InitgPty: {
     Nm: data.initiatorName,
     Id: {
@@ -37,29 +40,29 @@ const generatePaymentInfo = data => ({
   PmtInfId: data.id,
   PmtMtd: data.method,
   NbOfTxs: data.txNumber,
-  CtrlSum: data.sum,
+  CtrlSum: getFixedNumber(data.sum, 2),
   PmtTpInf: {
     SvcLvl: {
-      Cd: 'SEPA',
+      Cd: 'SEPA'
     },
     LclInstrm: {
-      Cd: 'CORE',
+      Cd: 'CORE'
     },
-    SeqTp: data.sequenceType,
+    SeqTp: data.sequenceType
   },
   ReqColltnDt: data.collectionDate,
   Cdtr: {
-    Nm: data.creditor.name,
+    Nm: data.creditor.name
   },
   CdtrAcct: {
     Id: {
-      IBAN: data.creditor.iban,
+      IBAN: data.creditor.iban
     },
-    Ccy: 'EUR',
+    Ccy: 'EUR'
   },
   CdtrAgt: {
     FinInstnId: {
-      BIC: data.creditor.bic,
+      BIC: data.creditor.bic
     }
   },
   ChrgBr: 'SLEV',
@@ -83,47 +86,59 @@ const addTransactionInfo = (paymentInfoObj, data) => {
     paymentInfoObj.DrctDbtTxInf.push({
       PmtId: {
         InstrId: transaction.number,
-        EndToEndId: transaction._id,
+        EndToEndId: transaction._id.toHexString()
       },
       InstdAmt: {
         '@Ccy': 'EUR',
-        '#text': transaction.netInclTaxes,
+        '#text': getFixedNumber(transaction.netInclTaxes, 2)
       },
       DrctDbtTx: {
         MndtRltdInf: {
           MndtId: transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].rum,
-          DtOfSgntr: moment(transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].signedAt).toDate(),
+          DtOfSgntr: moment(transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].signedAt).toDate()
         }
       },
       DbtrAgt: {
         FinInstnId: {
-          BIC: transaction.customerInfo.payment.bic,
+          BIC: transaction.customerInfo.payment.bic
         }
       },
       Dbtr: { Nm: transaction.customerInfo.payment.bankAccountOwner },
       DbtrAcct: {
-        Id: { IBAN: transaction.customerInfo.payment.iban },
-      },
+        Id: { IBAN: transaction.customerInfo.payment.iban }
+      }
     });
   }
 
   return paymentInfoObj;
 };
 
-const generateSEPAXml = (docObj, header, ...paymentsInfo) => {
-  docObj.Document.CstmrDrctDbtInitn.GrpHdr = header;
-  for (const info of paymentsInfo) {
-    if (info) docObj.Document.CstmrDrctDbtInitn.PmtInf.push(info);
-  }
-  const finalDoc = builder.create(docObj, { encoding: 'utf-8' });
-  const file = fs.createWriteStream(path.join(os.tmpdir(), `${docObj.Document.CstmrDrctDbtInitn.GrpHdr.MsgId}.xml`));
-  file.write(finalDoc.end({ pretty: true }));
-};
-
+const generateSEPAXml = async (docObj, header, ...paymentsInfo) =>
+  new Promise((resolve, reject) => {
+    docObj.Document.CstmrDrctDbtInitn.GrpHdr = header;
+    for (const info of paymentsInfo) {
+      if (info) docObj.Document.CstmrDrctDbtInitn.PmtInf.push(info);
+    }
+    const finalDoc = builder.create(docObj, { encoding: 'utf-8' });
+    const outputPath = path.join(os.tmpdir(), `${docObj.Document.CstmrDrctDbtInitn.GrpHdr.MsgId}.xml`);
+    const file = fs.createWriteStream(outputPath);
+    file.write(finalDoc.end({ pretty: true }));
+    file.end();
+    file.on('finish', async () => {
+      await addFile({
+        driveFolderId: process.env.GOOGLE_DRIVE_WITHDRAWAL_FOLDER_ID,
+        name: `prélèvements_${moment().format('YYYYMMDD_HHmm')}.xml`,
+        type: 'text/xml',
+        body: fs.createReadStream(outputPath),
+      });
+      resolve(outputPath);
+    });
+    file.on('error', err => reject(err));
+  });
 module.exports = {
   createDocument,
   generateSEPAHeader,
   generatePaymentInfo,
   addTransactionInfo,
-  generateSEPAXml,
+  generateSEPAXml
 };

@@ -32,7 +32,7 @@ const generatePaymentNumber = async (paymentNature) => {
   );
 };
 
-const generateXML = (firstPayments, recurPayments, company) => {
+const generateXML = async (firstPayments, recurPayments, company) => {
   const randomId = randomize('0', 31);
   const firstPaymentsTotal = firstPayments.reduce((acc, next) => acc + next.netInclTaxes, 0);
   const recurPaymentsTotal = recurPayments.reduce((acc, next) => acc + next.netInclTaxes, 0);
@@ -85,7 +85,8 @@ const generateXML = (firstPayments, recurPayments, company) => {
     recurPaymentsInfo = addTransactionInfo(recurPaymentsInfo, recurPayments);
   }
 
-  generateSEPAXml(doc, header, firstPaymentsInfo, recurPaymentsInfo);
+  const outputPath = await generateSEPAXml(doc, header, firstPaymentsInfo, recurPaymentsInfo);
+  return outputPath;
 };
 
 const formatPayment = async (payment) => {
@@ -109,7 +110,7 @@ const savePayments = async (req) => {
     for (let payment of req.payload) {
       payment = await formatPayment(payment);
       const countPayments = await Payment.countDocuments({ customer: payment.customer, type: WITHDRAWAL });
-      if (countPayments > 0) {
+      if (countPayments === 0) {
         firstPayments.push(payment);
       } else {
         recurPayments.push(payment);
@@ -119,9 +120,8 @@ const savePayments = async (req) => {
       promises.push(savedPayment.save());
     }
 
-    generateXML(firstPayments, recurPayments, req.auth.credentials.company);
-
-    return Promise.all(promises);
+    await Promise.all(promises);
+    return generateXML(firstPayments, recurPayments, req.auth.credentials.company);
   }
 };
 

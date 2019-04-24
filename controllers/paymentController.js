@@ -28,9 +28,13 @@ const list = async (req) => {
   }
 };
 
-const create = async (req) => {
+const create = async (req, h) => {
   try {
     const payments = await savePayments(req);
+
+    if (typeof payments === 'string') {
+      return h.file(payments, { confine: false });
+    }
 
     return {
       message: translate[language].paymentCreated,
