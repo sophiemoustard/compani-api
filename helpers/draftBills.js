@@ -74,12 +74,16 @@ const populateFundings = async (fundings, endDate) => {
 };
 
 const getMatchingFunding = (date, fundings) => {
+  if (moment(date).isHoliday()) {
+    for (const funding of fundings) {
+      const matchingVersion = getMatchingVersion(date, funding);
+      if (matchingVersion.careDays.includes(7)) return matchingVersion;
+    }
+  }
+
   for (const funding of fundings) {
     const matchingVersion = getMatchingVersion(date, funding);
-    if (matchingVersion && (matchingVersion.careDays.includes(moment(date).day() - 1) ||
-      (matchingVersion.careDays.includes(7) && moment(date).isHoliday()))) {
-      return matchingVersion;
-    }
+    if (matchingVersion && (matchingVersion.careDays.includes(moment(date).day() - 1))) return matchingVersion;
   }
 
   return null;

@@ -5,7 +5,7 @@ const { ObjectID } = require('mongodb');
 const Surcharge = require('../../../models/Surcharge');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const FundingHistory = require('../../../models/FundingHistory');
-const { populateSurcharge, populateFundings } = require('../../../helpers/draftBills');
+const { populateSurcharge, populateFundings, getMatchingFunding } = require('../../../helpers/draftBills');
 
 describe('populateSurcharge', () => {
   it('should populate surcharge and order versions', async () => {
@@ -121,7 +121,51 @@ describe('populateFundings', () => {
   });
 });
 
-describe('getMatchingFunding', () => {});
+describe('getMatchingFunding', () => {
+  it('should return null if fundings is empty', () => {
+    expect(getMatchingFunding(new Date(), [])).toBeNull();
+  });
+
+  it('should return matching version with random day', () => {
+    const fundings = [
+      {
+        versions: [
+          { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
+          { _id: 3, careDays: [0, 3], startDate: new Date('2019/02/23') }
+        ],
+      },
+      { versions: [{ _id: 2, careDays: [1, 5, 6], startDate: new Date('2019/04/23') }] },
+    ];
+    const result = getMatchingFunding(new Date('2019/04/23'), fundings);
+    expect(result).toBeDefined();
+    expect(result.versionId).toEqual(2);
+  });
+
+  it('should return matching version with holidays', () => {
+    const fundings = [
+      {
+        versions: [{ _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') }],
+      },
+      { versions: [{ _id: 3, careDays: [4, 7], startDate: new Date('2019/04/23') }] },
+    ];
+    const result = getMatchingFunding(new Date('2019/05/01'), fundings);
+    expect(result).toBeDefined();
+    expect(result.versionId).toEqual(3);
+  });
+
+  it('should return null if no matching version', () => {
+    const fundings = [
+      {
+        versions: [
+          { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
+        ],
+      },
+      { versions: [{ _id: 2, careDays: [5, 6], startDate: new Date('2019/04/23') }] },
+    ];
+    const result = getMatchingFunding(new Date('2019/04/23'), fundings);
+    expect(result).toBeNull();
+  });
+});
 
 describe('computeCustomSurcharge', () => {});
 
