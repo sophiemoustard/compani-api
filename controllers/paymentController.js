@@ -38,7 +38,7 @@ const create = async (req, h) => {
 
     return {
       message: translate[language].paymentCreated,
-      data: { payments }
+      data: { payment: payments }
     };
   } catch (e) {
     req.log('error', e);
