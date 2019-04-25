@@ -9,7 +9,7 @@ const _ = require('lodash');
 ** --- slotToAdd (time in number to add)
 ** --- intervalType: "day", "week", "year", "hour"...
 */
-const getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
+exports.getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
   const dateNow = moment().tz('Europe/Paris');
   slotToSub = Math.abs(slotToSub);
   slotToAdd = Math.abs(slotToAdd);
@@ -21,7 +21,7 @@ const getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
   return finalInterval;
 };
 
-const clean = (obj) => {
+exports.clean = (obj) => {
   for (const k in obj) {
     if (obj[k] === undefined || obj[k] === '' ||
       (typeof obj[k] === 'object' && Object.keys(obj[k].length === 0)) ||
@@ -33,7 +33,7 @@ const clean = (obj) => {
   return obj;
 };
 
-const getLastVersion = (versions, dateKey) => {
+exports.getLastVersion = (versions, dateKey) => {
   if (!Array.isArray(versions)) throw new Error('versions must be an array !');
   if (typeof dateKey !== 'string') throw new Error('sortKey must be a string !');
   if (versions.length === 0) return null;
@@ -42,7 +42,7 @@ const getLastVersion = (versions, dateKey) => {
 };
 
 // `obj` should by sort in descending order
-const getMatchingVersion = (date, obj, dateKey) => {
+exports.getMatchingVersion = (date, obj, dateKey) => {
   if (!Array.isArray(obj.versions)) throw new Error('versions must be an array !');
   if (obj.versions.length === 0) return null;
 
@@ -55,22 +55,13 @@ const getMatchingVersion = (date, obj, dateKey) => {
   return { ..._.omit(obj, 'versions'), ..._.omit(matchingVersion, ['_id', 'createdAt']), versionId: matchingVersion._id };
 };
 
-const getDateQuery = (dates) => {
+exports.getDateQuery = (dates) => {
   if (dates.startDate && dates.endDate) return { $lt: moment(dates.endDate).endOf('day').toISOString(), $gte: moment(dates.startDate).startOf('day').toISOString() };
   if (dates.startDate) return { $gte: dates.startDate };
   return { $lt: dates.endDate };
 };
 
-const getFixedNumber = (number, toFixedNb) => {
-  if (Number.isNaN(number)) throw new Error('You must provide a number !');
+exports.getFixedNumber = (number, toFixedNb) => {
+  if (Number.isNaN(Number(number))) throw new Error('You must provide a number !');
   return number.toFixed(toFixedNb);
-};
-
-module.exports = {
-  getIntervalInRange,
-  clean,
-  getLastVersion,
-  getMatchingVersion,
-  getDateQuery,
-  getFixedNumber,
 };
