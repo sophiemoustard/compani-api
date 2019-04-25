@@ -44,6 +44,7 @@ const customersList = [
         {
           rum: faker.helpers.randomize(),
           _id: new ObjectID(),
+          signedAt: moment().toDate(),
         },
       ],
     },
@@ -130,7 +131,7 @@ const customersList = [
       iban: faker.finance.iban(),
       bic: faker.finance.bic(),
       mandates: [
-        { rum: faker.helpers.randomize(), _id: new ObjectID(), },
+        { rum: faker.helpers.randomize(), _id: new ObjectID(), signedAt: moment().toDate() },
       ],
     },
   },
