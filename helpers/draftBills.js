@@ -90,8 +90,8 @@ const getMatchingFunding = (date, fundings) => {
 };
 
 const computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
-  const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(2));
-  let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(2));
+  const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(3));
+  let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(3));
   if (start.isAfter(end)) end = end.add(1, 'd');
 
   if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return price * (1 + (surchargeValue / 100));
@@ -137,10 +137,13 @@ const applySurcharge = (event, price, surcharge) => {
   }
   if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) return price * (1 + (saturday / 100));
   if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) return price * (1 + (sunday / 100));
-  if (evening) return computeCustomSurcharge(event, eveningStartTime, eveningEndTime, evening, price);
-  if (custom) return computeCustomSurcharge(event, customStartTime, customEndTime, custom, price);
 
-  return price;
+  let surchargedPrice = price;
+  if (evening) surchargedPrice = computeCustomSurcharge(event, eveningStartTime, eveningEndTime, evening, surchargedPrice);
+  if (custom) surchargedPrice = computeCustomSurcharge(event, customStartTime, customEndTime, custom, surchargedPrice);
+  console.log(event._id, moment(event.startDate), surchargedPrice);
+
+  return surchargedPrice;
 };
 
 const getExclTaxes = (inclTaxes, vat) => inclTaxes / (1 + (vat / 100));
