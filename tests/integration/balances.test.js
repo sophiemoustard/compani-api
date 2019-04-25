@@ -3,7 +3,8 @@ const { customersList, populateCustomers } = require('./seed/customersSeed');
 const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const { billsList, populateBills } = require('./seed/billsSeed');
 const { populateEvents } = require('./seed/eventsSeed');
-const { getToken } = require('./seed/usersSeed');
+const { populateUsers, getToken } = require('./seed/usersSeed');
+const { populateRoles } = require('./seed/rolesSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
@@ -14,7 +15,9 @@ describe('NODE ENV', () => {
 
 describe('BALANCES ROUTES', () => {
   let authToken = null;
+  before(populateRoles);
   before(populateCustomers);
+  before(populateUsers);
   before(populateThirdPartyPayers);
   before(populateEvents);
   before(populateBills);
@@ -46,14 +49,13 @@ describe('BALANCES ROUTES', () => {
                 expect.objectContaining({
                   _id: customersList[1].payment.mandates[0]._id,
                   rum: customersList[1].payment.mandates[0].rum,
-                })
+                }),
               ]),
             }),
           }),
-            paid: 0,
-            toPay: 0,
-            billed: billsList[1].netInclTaxes,
-            balance: -billsList[1].netInclTaxes,
+          paid: 0,
+          billed: billsList[1].netInclTaxes,
+          balance: -billsList[1].netInclTaxes,
         }),
         expect.objectContaining({
           _id: { tpp: thirdPartyPayersList[0]._id, customer: customersList[0]._id },
@@ -68,17 +70,16 @@ describe('BALANCES ROUTES', () => {
                 expect.objectContaining({
                   _id: customersList[0].payment.mandates[0]._id,
                   rum: customersList[0].payment.mandates[0].rum,
-                })
+                }),
               ]),
             }),
           }),
           thirdPartyPayer: { _id: thirdPartyPayersList[0]._id, name: thirdPartyPayersList[0].name },
           paid: 0,
-          toPay: 0,
           billed: billsList[0].netInclTaxes,
           balance: -billsList[0].netInclTaxes,
         }),
       ]));
-    })
-  })
-})
+    });
+  });
+});
