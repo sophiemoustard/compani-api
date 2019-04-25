@@ -21,7 +21,7 @@ const createDocument = () => ({
 
 const generateSEPAHeader = data => ({
   MsgId: data.id,
-  CreDtTm: data.created,
+  CreDtTm: moment(data.created).format('YYYY-MM-DDTHH:mm:ss'),
   NbOfTxs: data.txNumber,
   CtrlSum: getFixedNumber(data.sum, 2),
   InitgPty: {
@@ -50,7 +50,7 @@ const generatePaymentInfo = data => ({
     },
     SeqTp: data.sequenceType
   },
-  ReqColltnDt: data.collectionDate,
+  ReqColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
   Cdtr: {
     Nm: data.creditor.name
   },
@@ -95,7 +95,7 @@ const addTransactionInfo = (paymentInfoObj, data) => {
       DrctDbtTx: {
         MndtRltdInf: {
           MndtId: transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].rum,
-          DtOfSgntr: moment(transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].signedAt).toDate()
+          DtOfSgntr: moment(transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].signedAt).format('YYYY-MM-DD'),
         }
       },
       DbtrAgt: {
