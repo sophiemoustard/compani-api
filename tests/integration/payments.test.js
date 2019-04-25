@@ -156,6 +156,7 @@ describe('PAYMENTS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       const payments = await Payment.find().lean();
       expect(payments.length).toBe(paymentsList.length + 2);
+      sinon.assert.called(mock);
       mock.restore();
     });
   });
