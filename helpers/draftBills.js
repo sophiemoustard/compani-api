@@ -76,13 +76,13 @@ const populateFundings = async (fundings, endDate) => {
 const getMatchingFunding = (date, fundings) => {
   if (moment(date).isHoliday()) {
     for (const funding of fundings) {
-      const matchingVersion = getMatchingVersion(date, funding);
+      const matchingVersion = getMatchingVersion(date, funding, 'startDate');
       if (matchingVersion.careDays.includes(7)) return matchingVersion;
     }
   }
 
   for (const funding of fundings) {
-    const matchingVersion = getMatchingVersion(date, funding);
+    const matchingVersion = getMatchingVersion(date, funding, 'startDate');
     if (matchingVersion && (matchingVersion.careDays.includes(moment(date).isoWeekday() - 1))) return matchingVersion;
   }
 
@@ -298,8 +298,8 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
   let thirdPartyPayerPrices = {};
   let startDate = moment(query.billingStartDate);
   for (const event of events) {
-    const matchingService = getMatchingVersion(event.startDate, subscription.service);
-    const matchingSub = getMatchingVersion(event.startDate, subscription);
+    const matchingService = getMatchingVersion(event.startDate, subscription.service, 'startDate');
+    const matchingSub = getMatchingVersion(event.startDate, subscription, 'startDate');
     const matchingFunding = fundings && fundings.length > 0 ? getMatchingFunding(event.startDate, fundings) : null;
     const eventPrice = getEventPrice(event, matchingSub, matchingService, matchingFunding);
 
@@ -310,7 +310,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
-  const serviceMatchingVersion = getMatchingVersion(query.billingStartDate, subscription.service);
+  const serviceMatchingVersion = getMatchingVersion(query.billingStartDate, subscription.service, 'startDate');
 
   const draftBillInfo = {
     _id: mongoose.Types.ObjectId(),
@@ -320,7 +320,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     startDate: startDate.toDate(),
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: getExclTaxes(
-      getMatchingVersion(query.billingStartDate, subscription).unitTTCRate,
+      getMatchingVersion(query.billingStartDate, subscription, 'startDate').unitTTCRate,
       serviceMatchingVersion.vat
     ),
     vat: serviceMatchingVersion.vat,
