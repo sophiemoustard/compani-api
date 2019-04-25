@@ -1,19 +1,23 @@
 const fs = require('fs');
 const { google } = require('googleapis');
 
-const jwtClient = new google.auth.JWT(
-  process.env.GOOGLE_DRIVE_API_EMAIL,
-  null,
-  process.env.GOOGLE_DRIVE_API_PRIVATE_KEY.replace(/\\n/g, '\n'),
-  ['https://www.googleapis.com/auth/drive'],
-  null
-);
+const jwtClient = () => {
+  const client = new google.auth.JWT(
+    process.env.GOOGLE_DRIVE_API_EMAIL,
+    null,
+    process.env.GOOGLE_DRIVE_API_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    ['https://www.googleapis.com/auth/drive'],
+    null
+  );
 
-jwtClient.authorize((err) => {
-  if (err) {
-    console.error(err);
-  }
-});
+  client.authorize((err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
+
+  return client;
+};
 
 const drive = google.drive('v3');
 
@@ -25,7 +29,7 @@ exports.add = params => new Promise((resolve, reject) => {
   };
   const media = params.folder ? null : { body: params.body, mimeType: params.type };
   drive.files.create({
-    auth: jwtClient,
+    auth: jwtClient(),
     resource: fileMetadata,
     media,
     fields: 'id'
@@ -40,7 +44,7 @@ exports.add = params => new Promise((resolve, reject) => {
 
 exports.deleteFile = params => new Promise((resolve, reject) => {
   drive.files.delete(
-    { auth: jwtClient, fileId: params.fileId },
+    { auth: jwtClient(), fileId: params.fileId },
     (err, file) => {
       if (err) {
         reject(err);
@@ -53,7 +57,7 @@ exports.deleteFile = params => new Promise((resolve, reject) => {
 
 exports.getFileById = params => new Promise((resolve, reject) => {
   drive.files.get({
-    auth: jwtClient,
+    auth: jwtClient(),
     fileId: `${params.fileId}`,
     fields: ['name, webViewLink, thumbnailLink']
   }, (err, response) => {
@@ -68,7 +72,7 @@ exports.getFileById = params => new Promise((resolve, reject) => {
 exports.downloadFileById = params => new Promise((resolve, reject) => {
   const dest = fs.createWriteStream(params.tmpFilePath);
   drive.files.get(
-    { auth: jwtClient, fileId: `${params.fileId}`, alt: 'media' },
+    { auth: jwtClient(), fileId: `${params.fileId}`, alt: 'media' },
     { responseType: 'stream' },
     (err, res) => {
       if (err || !res || !res.data) {
