@@ -15,7 +15,7 @@ const {
 // const { createAndReadFile } = require('../helpers/file');
 
 
-const generatePaymentNumber = async (paymentNature) => {
+exports.generatePaymentNumber = async (paymentNature) => {
   const numberQuery = {};
   switch (paymentNature) {
     case REFUND:
@@ -25,11 +25,12 @@ const generatePaymentNumber = async (paymentNature) => {
       numberQuery.prefix = `REG-${moment().format('YYMM')}`;
       break;
   }
-  return PaymentNumber.findOneAndUpdate(
+  const number = await PaymentNumber.findOneAndUpdate(
     numberQuery,
     { $inc: { seq: 1 } },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
+  return `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
 };
 
 const generateXML = async (firstPayments, recurPayments, company) => {
@@ -89,17 +90,16 @@ const generateXML = async (firstPayments, recurPayments, company) => {
   return outputPath;
 };
 
-const formatPayment = async (payment) => {
-  const number = await generatePaymentNumber(payment.nature);
-  const paymentNumber = `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
+exports.formatPayment = async (payment) => {
+  const paymentNumber = await exports.generatePaymentNumber(payment.nature);
   payment.number = paymentNumber;
   payment._id = new ObjectID();
   return payment;
 };
 
-const savePayments = async (req) => {
+exports.savePayments = async (req) => {
   if (Object.prototype.toString.call(req.payload) === '[object Object]') {
-    req.payload = await formatPayment(req.payload);
+    req.payload = await exports.formatPayment(req.payload);
     const savedPayment = new Payment(req.payload);
     return savedPayment.save();
   }
@@ -108,7 +108,7 @@ const savePayments = async (req) => {
     const firstPayments = [];
     const recurPayments = [];
     for (let payment of req.payload) {
-      payment = await formatPayment(payment);
+      payment = await exports.formatPayment(payment);
       const countPayments = await Payment.countDocuments({ customer: payment.customer, type: WITHDRAWAL });
       if (countPayments === 0) {
         firstPayments.push(payment);
@@ -125,4 +125,3 @@ const savePayments = async (req) => {
   }
 };
 
-module.exports = { savePayments };
