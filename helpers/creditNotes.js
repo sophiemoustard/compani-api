@@ -3,11 +3,35 @@ const moment = require('moment');
 const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
+const FundingHistory = require('../models/FundingHistory');
+const { HOURLY } = require('./constants');
 
-const updateEventBillingStatus = async (eventsToUpdate, isBilled) => {
+const updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
   const promises = [];
-  for (const id of eventsToUpdate) {
-    promises.push(Event.findOneAndUpdate({ _id: id }, { $set: { isBilled } }));
+  const events = await Event.find({ _id: { $in: eventsToUpdate } });
+  for (const event of events) {
+    if (event.bills.thirdPartyPayer) {
+      if (event.bills.nature !== HOURLY) {
+        await FundingHistory.findOneAndUpdate(
+          { fundingVersion: event.bills.fundingVersion },
+          { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } },
+        );
+      } else {
+        let history = await FundingHistory.findOneAndUpdate(
+          { fundingVersion: event.bills.fundingVersion, month: moment(event.startDate).format('MM/YYYY') },
+          { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } },
+        );
+        if (!history) {
+          history = await FundingHistory.findOneAndUpdate(
+            { fundingVersion: event.bills.fundingVersion },
+            { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } },
+          );
+        }
+      }
+    }
+
+    event.isBilled = isBilled;
+    promises.push(event.save());
   }
   await Promise.all(promises);
 };
@@ -48,13 +72,13 @@ const createCreditNotes = async (payload) => {
     ]);
   }
 
-  if (payload.events) await updateEventBillingStatus(payload.events, false);
+  if (payload.events) await updateEventAndFundingHistory(payload.events);
   await CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } });
 
   return creditNotes;
 };
 
 module.exports = {
-  updateEventBillingStatus,
+  updateEventAndFundingHistory,
   createCreditNotes,
 };

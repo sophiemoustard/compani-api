@@ -2,7 +2,7 @@ const Boom = require('boom');
 
 const CreditNote = require('../models/CreditNote');
 const translate = require('../helpers/translate');
-const { updateEventBillingStatus, createCreditNotes } = require('../helpers/creditNotes');
+const { updateEventAndFundingHistory, createCreditNotes } = require('../helpers/creditNotes');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getDateQuery } = require('../helpers/utils');
 const { generatePdf } = require('../helpers/pdf');
@@ -71,7 +71,7 @@ const update = async (req) => {
     let creditNote = await CreditNote.findOne({ _id: req.params._id }).lean();
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
 
-    if (creditNote.events) await updateEventBillingStatus(creditNote.events, true);
+    if (creditNote.events) await updateEventAndFundingHistory(creditNote.events, true);
 
     if (!creditNote.linkedCreditNote) creditNote = await CreditNote.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
     else {
@@ -92,7 +92,7 @@ const update = async (req) => {
       }
     }
 
-    if (req.payload.events) await updateEventBillingStatus(req.payload.events, false);
+    if (req.payload.events) await updateEventAndFundingHistory(req.payload.events, false);
 
     return {
       message: translate[language].creditNoteUpdated,
@@ -109,7 +109,7 @@ const remove = async (req) => {
     const creditNote = await CreditNote.findOne({ _id: req.params._id });
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
 
-    await updateEventBillingStatus(creditNote.events, true);
+    await updateEventAndFundingHistory(creditNote.events, true);
     await CreditNote.findByIdAndRemove(req.params._id);
     if (creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(creditNote.linkedCreditNote);
 
