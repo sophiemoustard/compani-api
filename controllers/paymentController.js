@@ -1,11 +1,9 @@
 const Boom = require('boom');
-const moment = require('moment');
 const flat = require('flat');
 
 const Payment = require('../models/Payment');
-const PaymentNumber = require('../models/PaymentNumber');
 const { getDateQuery } = require('../helpers/utils');
-const { REFUND, PAYMENT } = require('../helpers/constants');
+const { savePayments, formatPayment } = require('../helpers/payments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -32,30 +30,24 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const numberQuery = {};
-    switch (req.payload.nature) {
-      case REFUND:
-        numberQuery.prefix = `REMB-${moment().format('YYMM')}`;
-        break;
-      case PAYMENT:
-        numberQuery.prefix = `REG-${moment().format('YYMM')}`;
-        break;
-    }
-    const number = await PaymentNumber.findOneAndUpdate(
-      numberQuery,
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    const paymentNumber = `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
-    req.payload.number = paymentNumber;
-
-    const payment = new Payment(req.payload);
+    const payload = await formatPayment(req.payload);
+    const payment = new Payment(payload);
     await payment.save();
 
     return {
       message: translate[language].paymentCreated,
       data: { payment }
     };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const createList = async (req, h) => {
+  try {
+    const payments = await savePayments(req);
+    return h.file(payments, { confine: false });
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -85,5 +77,6 @@ const update = async (req) => {
 module.exports = {
   list,
   create,
+  createList,
   update,
 };

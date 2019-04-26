@@ -5,13 +5,22 @@ const {
   getLastVersion,
   getMatchingVersion,
   clean,
+  getFixedNumber,
 } = require('../../../helpers/utils');
 
 describe('getLastVersion', () => {
   it('should return the last version based on the date key', () => {
     const versions = [
       { startDate: moment().toISOString(), createdAt: moment().toISOString(), _id: 1 },
-      { startDate: moment().add(1, 'd').toISOString(), createdAt: moment().subtract(1, 'd').toISOString(), _id: 2 },
+      {
+        startDate: moment()
+          .add(1, 'd')
+          .toISOString(),
+        createdAt: moment()
+          .subtract(1, 'd')
+          .toISOString(),
+        _id: 2
+      }
     ];
 
     expect(getLastVersion(versions, 'startDate')).toBeDefined();
@@ -33,9 +42,7 @@ describe('getLastVersion', () => {
   });
 
   it('should return the single element is versions only contains one element', () => {
-    const versions = [
-      { startDate: moment().toISOString(), createdAt: moment().toISOString(), _id: 1 },
-    ];
+    const versions = [{ startDate: moment().toISOString(), createdAt: moment().toISOString(), _id: 1 }];
 
     const result = getLastVersion(versions, 'startDate');
     expect(result).toBeDefined();
@@ -56,8 +63,13 @@ describe('getMatchingVersion', () => {
     const obj = {
       versions: [
         { startDate: moment().toISOString(), _id: 1 },
-        { startDate: moment().add(2, 'd').toISOString(), _id: 2 },
-      ],
+        {
+          startDate: moment()
+            .add(2, 'd')
+            .toISOString(),
+          _id: 2
+        }
+      ]
     };
 
     const result = getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate');
@@ -82,9 +94,20 @@ describe('getMatchingVersion', () => {
   it('should return null if no matching version', () => {
     const obj = {
       versions: [
-        { startDate: moment().toISOString(), endDate: moment().add(5, 'h').toISOString(), _id: 1 },
-        { startDate: moment().add(2, 'd').toISOString(), _id: 2 },
-      ],
+        {
+          startDate: moment().toISOString(),
+          endDate: moment()
+            .add(5, 'h')
+            .toISOString(),
+          _id: 1
+        },
+        {
+          startDate: moment()
+            .add(2, 'd')
+            .toISOString(),
+          _id: 2
+        }
+      ]
     };
 
     expect(getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate')).toBeNull();
@@ -110,5 +133,17 @@ describe('clean', () => {
   it('should delete empty string', () => {
     const result = clean({ _id: 1, value: '' });
     expect(result.value).not.toBeDefined();
+  });
+});
+
+describe('getFixedNumber', () => {
+  it('should return number to string with number of decimals as provided by parameter', () => {
+    const result = getFixedNumber(10, 2);
+    expect(result).toBe('10.00');
+  });
+  it('should return an error if number parameter is not a number', () => {
+    expect(() => {
+      getFixedNumber('test', 3);
+    }).toThrow(new Error('You must provide a number !'));
   });
 });

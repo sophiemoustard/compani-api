@@ -33,6 +33,7 @@ const userList = [
     employee_id: 12345678,
     sector: sectorsList[0]._id,
     refreshToken: uuidv4(),
+    company: companiesList[0].name,
     role: 'Tech',
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
@@ -99,7 +100,7 @@ const userPayload = {
 const populateUsers = async () => {
   await User.remove({});
   await new User(userList[0]).saveByParams({ role: userList[0].role });
-  await new User(userList[1]).saveByParams({ role: userList[1].role });
+  await new User(userList[1]).saveByParams({ role: userList[1].role, company: userList[1].company });
   await new User(userList[2]).saveByParams({ role: userList[2].role });
   await new User(userList[3]).saveByParams({ role: userList[3].role });
   await new User(userList[4]).saveByParams({ role: userList[4].role });

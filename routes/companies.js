@@ -75,6 +75,8 @@ exports.plugin = {
             }),
             ics: Joi.string(),
             rcs: Joi.string(),
+            iban: Joi.string(),
+            bic: Joi.string(),
             rhConfig: Joi.object().keys({
               contractWithCompany: {
                 grossHourlyRate: Joi.number(),

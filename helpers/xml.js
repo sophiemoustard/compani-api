@@ -1,0 +1,145 @@
+const builder = require('xmlbuilder');
+const moment = require('moment');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const { getFixedNumber } = require('./utils');
+const { addFile } = require('./gdriveStorage');
+
+const createDocument = () => ({
+  Document: {
+    '@xlmns': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02',
+    '@xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+    '@xsi:schemaLocation': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02 pain.008.001.02.xsd',
+    CstmrDrctDbtInitn: {
+      GrpHdr: {},
+      PmtInf: []
+    }
+  }
+});
+
+const generateSEPAHeader = data => ({
+  MsgId: data.id,
+  CreDtTm: moment(data.created).format('YYYY-MM-DDTHH:mm:ss'),
+  NbOfTxs: data.txNumber,
+  CtrlSum: getFixedNumber(data.sum, 2),
+  InitgPty: {
+    Nm: data.initiatorName,
+    Id: {
+      OrgId: {
+        Othr: {
+          Id: data.ics
+        }
+      }
+    }
+  }
+});
+
+const generatePaymentInfo = data => ({
+  PmtInfId: data.id,
+  PmtMtd: data.method,
+  NbOfTxs: data.txNumber,
+  CtrlSum: getFixedNumber(data.sum, 2),
+  PmtTpInf: {
+    SvcLvl: {
+      Cd: 'SEPA'
+    },
+    LclInstrm: {
+      Cd: 'CORE'
+    },
+    SeqTp: data.sequenceType
+  },
+  ReqColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
+  Cdtr: {
+    Nm: data.creditor.name
+  },
+  CdtrAcct: {
+    Id: {
+      IBAN: data.creditor.iban
+    },
+    Ccy: 'EUR'
+  },
+  CdtrAgt: {
+    FinInstnId: {
+      BIC: data.creditor.bic
+    }
+  },
+  ChrgBr: 'SLEV',
+  CdtrSchmeId: {
+    Id: {
+      PrvtId: {
+        Othr: {
+          Id: data.creditor.ics,
+          SchmeNm: {
+            Prtry: 'SEPA'
+          }
+        }
+      }
+    }
+  },
+  DrctDbtTxInf: []
+});
+
+const addTransactionInfo = (paymentInfoObj, data) => {
+  for (const transaction of data) {
+    paymentInfoObj.DrctDbtTxInf.push({
+      PmtId: {
+        InstrId: transaction.number,
+        EndToEndId: transaction._id.toHexString()
+      },
+      InstdAmt: {
+        '@Ccy': 'EUR',
+        '#text': getFixedNumber(transaction.netInclTaxes, 2)
+      },
+      DrctDbtTx: {
+        MndtRltdInf: {
+          MndtId: transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].rum,
+          DtOfSgntr: moment(transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].signedAt).format('YYYY-MM-DD'),
+        }
+      },
+      DbtrAgt: {
+        FinInstnId: {
+          BIC: transaction.customerInfo.payment.bic
+        }
+      },
+      Dbtr: { Nm: transaction.customerInfo.payment.bankAccountOwner },
+      DbtrAcct: {
+        Id: { IBAN: transaction.customerInfo.payment.iban }
+      }
+    });
+  }
+
+  return paymentInfoObj;
+};
+
+const generateSEPAXml = async (docObj, header, ...paymentsInfo) =>
+  new Promise((resolve, reject) => {
+    docObj.Document.CstmrDrctDbtInitn.GrpHdr = header;
+    for (const info of paymentsInfo) {
+      if (info) docObj.Document.CstmrDrctDbtInitn.PmtInf.push(info);
+    }
+    const finalDoc = builder.create(docObj, { encoding: 'utf-8' });
+    const outputPath = path.join(os.tmpdir(), `${docObj.Document.CstmrDrctDbtInitn.GrpHdr.MsgId}.xml`);
+    const file = fs.createWriteStream(outputPath);
+    file.write(finalDoc.end({ pretty: true }));
+    file.end();
+    file.on('finish', async () => {
+      await addFile({
+        driveFolderId: process.env.GOOGLE_DRIVE_WITHDRAWAL_FOLDER_ID,
+        name: `prélèvements_${moment().format('YYYYMMDD_HHmm')}.xml`,
+        type: 'text/xml',
+        body: fs.createReadStream(outputPath),
+      });
+      resolve(outputPath);
+    });
+    file.on('error', err => reject(err));
+  });
+
+module.exports = {
+  createDocument,
+  generateSEPAHeader,
+  generatePaymentInfo,
+  addTransactionInfo,
+  generateSEPAXml
+};

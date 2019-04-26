@@ -8,6 +8,7 @@ const {
 } = require('./seed/usersSeed');
 const { populateActivationCode, activationCode } = require('./seed/activationCodeSeed');
 const { populateRoles } = require('./seed/rolesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const ActivationCode = require('../../models/ActivationCode');
 
 describe('NODE ENV', () => {
@@ -19,6 +20,7 @@ describe('NODE ENV', () => {
 describe('ACTIVATION CODE ROUTES', () => {
   let token = null;
   before(populateActivationCode);
+  before(populateCompanies);
   before(populateRoles);
   before(populateUsers);
   beforeEach(async () => {
