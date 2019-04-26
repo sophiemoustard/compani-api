@@ -6,6 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
   create,
+  createBatch,
   update
 } = require('../controllers/paymentController');
 const { REFUND, PAYMENT, PAYMENT_TYPES } = require('../helpers/constants');
@@ -54,6 +55,26 @@ exports.plugin = {
         },
       },
       handler: create,
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/batch',
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          payload: Joi.array().items(Joi.object().keys({
+            date: Joi.date().required(),
+            customer: Joi.objectId().required(),
+            customerInfo: Joi.object(),
+            client: Joi.objectId(),
+            netInclTaxes: Joi.number().required(),
+            nature: Joi.string().valid(REFUND, PAYMENT).required(),
+            type: Joi.string().valid(PAYMENT_TYPES).required(),
+          })),
+        },
+      },
+      handler: createBatch,
     });
 
     server.route({

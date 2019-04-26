@@ -3,7 +3,7 @@ const flat = require('flat');
 
 const Payment = require('../models/Payment');
 const { getDateQuery } = require('../helpers/utils');
-const { savePayments } = require('../helpers/payments');
+const { savePayments, formatPayment } = require('../helpers/payments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -28,18 +28,26 @@ const list = async (req) => {
   }
 };
 
-const create = async (req, h) => {
+const create = async (req) => {
   try {
-    const payments = await savePayments(req);
-
-    if (typeof payments === 'string') {
-      return h.file(payments, { confine: false });
-    }
+    req.payload = await formatPayment(req.payload);
+    const payment = new Payment(req.payload);
+    await payment.save();
 
     return {
       message: translate[language].paymentCreated,
-      data: { payment: payments }
+      data: { payment }
     };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation();
+  }
+};
+
+const createBatch = async (req, h) => {
+  try {
+    const payments = await savePayments(req);
+    return h.file(payments, { confine: false });
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation();
@@ -69,5 +77,6 @@ const update = async (req) => {
 module.exports = {
   list,
   create,
+  createBatch,
   update,
 };
