@@ -141,7 +141,6 @@ const applySurcharge = (event, price, surcharge) => {
   let surchargedPrice = price;
   if (evening) surchargedPrice = computeCustomSurcharge(event, eveningStartTime, eveningEndTime, evening, surchargedPrice);
   if (custom) surchargedPrice = computeCustomSurcharge(event, customStartTime, customEndTime, custom, surchargedPrice);
-  console.log(event._id, moment(event.startDate), surchargedPrice);
 
   return surchargedPrice;
 };
@@ -192,7 +191,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
       careHours: chargedTime / 60,
       fundingVersion: funding.versionId,
       nature: funding.nature,
-      month: moment(event.startDate).format('MM/YYYY'),
+      ...(funding.frequency === MONTHLY && { month: moment(event.startDate).format('MM/YYYY') }),
     },
     fundingVersion: funding.versionId,
     thirdPartyPayer: funding.thirdPartyPayer._id,
