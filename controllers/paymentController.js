@@ -30,8 +30,8 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    req.payload = await formatPayment(req.payload);
-    const payment = new Payment(req.payload);
+    const payload = await formatPayment(req.payload);
+    const payment = new Payment(payload);
     await payment.save();
 
     return {
