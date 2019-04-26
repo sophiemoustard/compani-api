@@ -98,30 +98,23 @@ exports.formatPayment = async (payment) => {
 };
 
 exports.savePayments = async (req) => {
-  if (Object.prototype.toString.call(req.payload) === '[object Object]') {
-    req.payload = await exports.formatPayment(req.payload);
-    const savedPayment = new Payment(req.payload);
-    return savedPayment.save();
-  }
-  if (Array.isArray(req.payload)) {
-    const promises = [];
-    const firstPayments = [];
-    const recurPayments = [];
-    for (let payment of req.payload) {
-      payment = await exports.formatPayment(payment);
-      const countPayments = await Payment.countDocuments({ customer: payment.customer, type: WITHDRAWAL });
-      if (countPayments === 0) {
-        firstPayments.push(payment);
-      } else {
-        recurPayments.push(payment);
-      }
-
-      const savedPayment = new Payment(payment);
-      promises.push(savedPayment.save());
+  const promises = [];
+  const firstPayments = [];
+  const recurPayments = [];
+  for (let payment of req.payload) {
+    payment = await exports.formatPayment(payment);
+    const countPayments = await Payment.countDocuments({ customer: payment.customer, type: WITHDRAWAL });
+    if (countPayments === 0) {
+      firstPayments.push(payment);
+    } else {
+      recurPayments.push(payment);
     }
 
-    await Promise.all(promises);
-    return generateXML(firstPayments, recurPayments, req.auth.credentials.company);
+    const savedPayment = new Payment(payment);
+    promises.push(savedPayment.save());
   }
+
+  await Promise.all(promises);
+  return generateXML(firstPayments, recurPayments, req.auth.credentials.company);
 };
 
