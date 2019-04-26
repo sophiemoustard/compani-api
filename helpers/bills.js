@@ -66,7 +66,7 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
 
         if (ev.history.month) {
           if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { [ev.history.month]: ev.history };
-          else if (ev.history.nature === !fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
+          else if (!fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
           else fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
         } else if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { ...ev.history };
         else if (ev.history.nature === HOURLY) {
@@ -142,7 +142,6 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
       }
     }
   }
-
 
   await BillNumber.findOneAndUpdate({ prefix: number.prefix }, { $set: { seq: number.seq } });
   await updateFundingHistories(fundingHistories);

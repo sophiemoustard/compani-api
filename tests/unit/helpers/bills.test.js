@@ -121,7 +121,7 @@ describe('formatCustomerBills', () => {
 });
 
 describe('formatThirdPartyPayerBills', () => {
-  it('Case 1 : 1 third party payer - 1 bill', () => {
+  it('Case 1 : 1 third party payer - 1 bill - Funding monthly and hourly', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -171,7 +171,102 @@ describe('formatThirdPartyPayerBills', () => {
     });
   });
 
-  it('Case 2 : 1 third party payer - multiple bills', () => {
+  it('Case 2 : 1 third party payer - 1 bill - Funding once and hourly', () => {
+    const customer = { _id: 'lilalo' };
+    const number = { prefix: 'Picsou', seq: 77 };
+    const thirdPartyPayerBills = [{
+      bills: [{
+        thirdPartyPayer: 'Papa',
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        unitExclTaxes: 24.644549763033176,
+        startDate: moment().add(1, 'd').toISOString(),
+        exclTaxes: 13.649289099526067,
+        inclTaxes: 14.4,
+        hours: 1.5,
+        eventsList: [
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 4, nature: 'hourly' } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'fund', careHours: 2, nature: 'hourly' } },
+        ],
+      }],
+    }];
+
+    const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    expect(result).toBeDefined();
+    expect(result.tppBills).toBeDefined();
+    expect(result.tppBills[0]).toMatchObject({
+      customer: 'lilalo',
+      billNumber: 'Picsou077',
+      client: 'Papa',
+      subscriptions: [{
+        subscription: 'asd',
+        unitExclTaxes: 24.644549763033176,
+        exclTaxes: 13.649289099526067,
+        inclTaxes: 14.4,
+        hours: 1.5,
+        events: ['123', '456'],
+        vat: 12,
+      }],
+    });
+    expect(result.billedEvents).toBeDefined();
+    expect(result.billedEvents).toMatchObject({
+      123: { event: '123', inclTaxesTpp: 14.4 },
+      456: { event: '456', inclTaxesTpp: 12 },
+    });
+    expect(result.fundingHistories).toBeDefined();
+    expect(result.fundingHistories).toMatchObject({
+      fund: { careHours: 6, fundingVersion: 'fund', nature: 'hourly' },
+    });
+  });
+
+
+  it('Case 3 : 1 third party payer - 1 bill - Funding once and fixed', () => {
+    const customer = { _id: 'lilalo' };
+    const number = { prefix: 'Picsou', seq: 77 };
+    const thirdPartyPayerBills = [{
+      bills: [{
+        thirdPartyPayer: 'Papa',
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        unitExclTaxes: 24.644549763033176,
+        startDate: moment().add(1, 'd').toISOString(),
+        exclTaxes: 13.649289099526067,
+        inclTaxes: 14.4,
+        hours: 1.5,
+        eventsList: [
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', amountTTC: 40, nature: 'fixed' } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'fund', amountTTC: 20, nature: 'fixed' } },
+        ],
+      }],
+    }];
+
+    const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    expect(result).toBeDefined();
+    expect(result.tppBills).toBeDefined();
+    expect(result.tppBills[0]).toMatchObject({
+      customer: 'lilalo',
+      billNumber: 'Picsou077',
+      client: 'Papa',
+      subscriptions: [{
+        subscription: 'asd',
+        unitExclTaxes: 24.644549763033176,
+        exclTaxes: 13.649289099526067,
+        inclTaxes: 14.4,
+        hours: 1.5,
+        events: ['123', '456'],
+        vat: 12,
+      }],
+    });
+    expect(result.billedEvents).toBeDefined();
+    expect(result.billedEvents).toMatchObject({
+      123: { event: '123', inclTaxesTpp: 14.4 },
+      456: { event: '456', inclTaxesTpp: 12 },
+    });
+    expect(result.fundingHistories).toBeDefined();
+    expect(result.fundingHistories).toMatchObject({
+      fund: { amountTTC: 60, fundingVersion: 'fund', nature: 'fixed' },
+    });
+  });
+
+  it('Case 4 : 1 third party payer - multiple bills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -244,7 +339,7 @@ describe('formatThirdPartyPayerBills', () => {
     });
   });
 
-  it('Case 3 : multiple third party payers', () => {
+  it('Case 5 : multiple third party payers', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
