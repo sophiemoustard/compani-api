@@ -23,7 +23,20 @@ const getFileById = async (req) => {
   } catch (e) {
     req.log('error', e);
     if (e.message.match(/file not found/i)) {
-      return Boom.notFound();
+      return Boom.notFound(translate[language].fileNotFound);
+    }
+    return Boom.badImplementation();
+  }
+};
+
+const getList = async (req) => {
+  try {
+    const list = await drive.list({ folderId: req.query.folderId });
+    return { message: translate[language].filesFound, data: { files: list.files } };
+  } catch (e) {
+    req.log('error', e);
+    if (e.message.match(/file not found/i)) {
+      return Boom.notFound(translate[language].filesNotFound);
     }
     return Boom.badImplementation();
   }
@@ -48,5 +61,6 @@ const generateDocxFromDrive = async (req, h) => {
 module.exports = {
   deleteFile,
   getFileById,
-  generateDocxFromDrive
+  getList,
+  generateDocxFromDrive,
 };
