@@ -6,7 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
   create,
-  createBatch,
+  createList,
   update
 } = require('../controllers/paymentController');
 const { REFUND, PAYMENT, PAYMENT_TYPES } = require('../helpers/constants');
@@ -36,22 +36,14 @@ exports.plugin = {
       options: {
         auth: { strategy: 'jwt' },
         validate: {
-          payload: [{
+          payload: {
             date: Joi.date().required(),
             customer: Joi.objectId().required(),
             client: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
             nature: Joi.string().valid(REFUND, PAYMENT).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
-          }, Joi.array().items(Joi.object().keys({
-            date: Joi.date().required(),
-            customer: Joi.objectId().required(),
-            customerInfo: Joi.object(),
-            client: Joi.objectId(),
-            netInclTaxes: Joi.number().required(),
-            nature: Joi.string().valid(REFUND, PAYMENT).required(),
-            type: Joi.string().valid(PAYMENT_TYPES).required(),
-          }))],
+          },
         },
       },
       handler: create,
@@ -59,7 +51,7 @@ exports.plugin = {
 
     server.route({
       method: 'POST',
-      path: '/batch',
+      path: '/createlist',
       options: {
         auth: { strategy: 'jwt' },
         validate: {
@@ -74,7 +66,7 @@ exports.plugin = {
           })),
         },
       },
-      handler: createBatch,
+      handler: createList,
     });
 
     server.route({

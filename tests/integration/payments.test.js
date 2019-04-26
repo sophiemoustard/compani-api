@@ -148,7 +148,7 @@ describe('PAYMENTS ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: '/payments/batch',
+        url: '/payments/createlist',
         payload,
         headers: { 'x-access-token': token }
       });

@@ -44,7 +44,7 @@ const create = async (req) => {
   }
 };
 
-const createBatch = async (req, h) => {
+const createList = async (req, h) => {
   try {
     const payments = await savePayments(req);
     return h.file(payments, { confine: false });
@@ -77,6 +77,6 @@ const update = async (req) => {
 module.exports = {
   list,
   create,
-  createBatch,
+  createList,
   update,
 };

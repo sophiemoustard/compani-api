@@ -12,7 +12,6 @@ const {
   generatePaymentInfo,
   addTransactionInfo
 } = require('../helpers/xml');
-// const { createAndReadFile } = require('../helpers/file');
 
 
 exports.generatePaymentNumber = async (paymentNature) => {

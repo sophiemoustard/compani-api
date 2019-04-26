@@ -87,3 +87,17 @@ exports.downloadFileById = params => new Promise((resolve, reject) => {
     }
   );
 });
+
+exports.list = params => new Promise((resolve, reject) => {
+  drive.files.list({
+    auth: jwtClient(),
+    q: `${params.folderId} in parents`,
+    fields: ['name, webViewLink, thumbnailLink']
+  }, (err, response) => {
+    if (err) {
+      reject(new Error(`Google Drive API ${err}`));
+    } else {
+      resolve(response.data);
+    }
+  });
+});

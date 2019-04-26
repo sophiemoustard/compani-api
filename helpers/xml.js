@@ -135,6 +135,7 @@ const generateSEPAXml = async (docObj, header, ...paymentsInfo) =>
     });
     file.on('error', err => reject(err));
   });
+
 module.exports = {
   createDocument,
   generateSEPAHeader,
