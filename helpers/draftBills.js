@@ -76,22 +76,22 @@ const populateFundings = async (fundings, endDate) => {
 const getMatchingFunding = (date, fundings) => {
   if (moment(date).isHoliday()) {
     for (const funding of fundings) {
-      const matchingVersion = getMatchingVersion(date, funding);
+      const matchingVersion = getMatchingVersion(date, funding, 'startDate');
       if (matchingVersion.careDays.includes(7)) return matchingVersion;
     }
   }
 
   for (const funding of fundings) {
-    const matchingVersion = getMatchingVersion(date, funding);
-    if (matchingVersion && (matchingVersion.careDays.includes(moment(date).day() - 1))) return matchingVersion;
+    const matchingVersion = getMatchingVersion(date, funding, 'startDate');
+    if (matchingVersion && (matchingVersion.careDays.includes(moment(date).isoWeekday() - 1))) return matchingVersion;
   }
 
   return null;
 };
 
 const computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
-  const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(2));
-  let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(2));
+  const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(3));
+  let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(3));
   if (start.isAfter(end)) end = end.add(1, 'd');
 
   if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return price * (1 + (surchargeValue / 100));
@@ -137,10 +137,12 @@ const applySurcharge = (event, price, surcharge) => {
   }
   if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) return price * (1 + (saturday / 100));
   if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) return price * (1 + (sunday / 100));
-  if (evening) return computeCustomSurcharge(event, eveningStartTime, eveningEndTime, evening, price);
-  if (custom) return computeCustomSurcharge(event, customStartTime, customEndTime, custom, price);
 
-  return price;
+  let surchargedPrice = price;
+  if (evening) surchargedPrice = computeCustomSurcharge(event, eveningStartTime, eveningEndTime, evening, surchargedPrice);
+  if (custom) surchargedPrice = computeCustomSurcharge(event, customStartTime, customEndTime, custom, surchargedPrice);
+
+  return surchargedPrice;
 };
 
 const getExclTaxes = (inclTaxes, vat) => inclTaxes / (1 + (vat / 100));
@@ -189,7 +191,7 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
       careHours: chargedTime / 60,
       fundingVersion: funding.versionId,
       nature: funding.nature,
-      month: moment(event.startDate).format('MM/YYYY'),
+      ...(funding.frequency === MONTHLY && { month: moment(event.startDate).format('MM/YYYY') }),
     },
     fundingVersion: funding.versionId,
     thirdPartyPayer: funding.thirdPartyPayer._id,
@@ -298,8 +300,8 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
   let thirdPartyPayerPrices = {};
   let startDate = moment(query.billingStartDate);
   for (const event of events) {
-    const matchingService = getMatchingVersion(event.startDate, subscription.service);
-    const matchingSub = getMatchingVersion(event.startDate, subscription);
+    const matchingService = getMatchingVersion(event.startDate, subscription.service, 'startDate');
+    const matchingSub = getMatchingVersion(event.startDate, subscription, 'startDate');
     const matchingFunding = fundings && fundings.length > 0 ? getMatchingFunding(event.startDate, fundings) : null;
     const eventPrice = getEventPrice(event, matchingSub, matchingService, matchingFunding);
 
@@ -310,7 +312,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
-  const serviceMatchingVersion = getMatchingVersion(query.billingStartDate, subscription.service);
+  const serviceMatchingVersion = getMatchingVersion(query.billingStartDate, subscription.service, 'startDate');
 
   const draftBillInfo = {
     _id: mongoose.Types.ObjectId(),
@@ -320,7 +322,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     startDate: startDate.toDate(),
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: getExclTaxes(
-      getMatchingVersion(query.billingStartDate, subscription).unitTTCRate,
+      getMatchingVersion(query.billingStartDate, subscription, 'startDate').unitTTCRate,
       serviceMatchingVersion.vat
     ),
     vat: serviceMatchingVersion.vat,

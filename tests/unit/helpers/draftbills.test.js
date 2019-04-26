@@ -322,6 +322,19 @@ describe('applySurcharge', () => {
     surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
+
+  it('should apply custom surcharge ', () => {
+    event = { startDate: (new Date('2019/04/23')).setHours(15), endDate: (new Date('2019/04/23')).setHours(17) };
+    surcharge = {
+      custom: 10,
+      customEndTime: '20:00',
+      customStartTime: '18:00',
+      evening: 10,
+      eveningEndTime: '12:00',
+      eveningStartTime: '14:00',
+    };
+    expect(applySurcharge(event, price, surcharge)).toEqual(22);
+  });
 });
 
 describe('getExclTaxes', () => {

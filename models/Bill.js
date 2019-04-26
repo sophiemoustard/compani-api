@@ -9,6 +9,7 @@ const BillSchema = mongoose.Schema({
     startDate: Date,
     endDate: Date,
     subscription: { type: mongoose.Schema.Types.ObjectId },
+    service: String,
     vat: Number,
     events: [{ type: mongoose.Schema.Types.ObjectId }],
     hours: Number,

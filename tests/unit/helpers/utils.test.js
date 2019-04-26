@@ -21,11 +21,11 @@ describe('getLastVersion', () => {
   });
 
   it('should throw an error if version is not an array', () => {
-     expect(function () { getLastVersion({ toto: 'lala' }, 'createdAt') }).toThrow(new Error('versions must be an array !'));
+    expect(() => getLastVersion({ toto: 'lala' }, 'createdAt')).toThrow(new Error('versions must be an array !'));
   });
 
   it('should throw an error if the key is not a string', () => {
-     expect(function () { getLastVersion([{ toto: 'lala' }], 3) }).toThrow(new Error('sortKey must be a string !'));
+    expect(() => getLastVersion([{ toto: 'lala' }], 3)).toThrow(new Error('sortKey must be a string !'));
   });
 
   it('should return null if versions is empty', () => {
@@ -45,11 +45,11 @@ describe('getLastVersion', () => {
 
 describe('getMatchingVersion', () => {
   it('should throw an error if version is not an array', () => {
-     expect(function () { getMatchingVersion({ versions: 'lala' }, moment().toISOString()) }).toThrow(new Error('versions must be an array !'));
+    expect(() => getMatchingVersion(moment().toISOString(), { versions: 'lala' }, 'startDate')).toThrow(new Error('versions must be an array !'));
   });
 
   it('should return null if versions is empty', () => {
-    expect(getMatchingVersion(moment().toISOString(), { versions: [] })).toBeNull();
+    expect(getMatchingVersion(moment().toISOString(), { versions: [] }, 'startDate')).toBeNull();
   });
 
   it('should return the matching version', () => {
@@ -60,9 +60,23 @@ describe('getMatchingVersion', () => {
       ],
     };
 
-    const result = getMatchingVersion(moment().add(1, 'd').toISOString(), obj);
+    const result = getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate');
     expect(result).toBeDefined();
     expect(result.versionId).toEqual(1);
+  });
+
+  it('should return the last matching version', () => {
+    const obj = {
+      versions: [
+        { startDate: moment().subtract(1, 'd').toISOString(), _id: 1 },
+        { startDate: moment().toISOString(), _id: 3 },
+        { startDate: moment().add(2, 'd').toISOString(), _id: 2 },
+      ],
+    };
+
+    const result = getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate');
+    expect(result).toBeDefined();
+    expect(result.versionId).toEqual(3);
   });
 
   it('should return null if no matching version', () => {
@@ -73,28 +87,28 @@ describe('getMatchingVersion', () => {
       ],
     };
 
-    expect(getMatchingVersion(moment().add(1, 'd').toISOString(), obj)).toBeNull();
+    expect(getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate')).toBeNull();
   });
 });
 
 describe('clean', () => {
   it('should delete undefined value', () => {
     const result = clean({ _id: 1, value: undefined });
-    expect(result.value).not.toBeDefined()
+    expect(result.value).not.toBeDefined();
   });
 
   it('should delete empty array', () => {
     const result = clean({ _id: 1, value: [] });
-    expect(result.value).not.toBeDefined()
+    expect(result.value).not.toBeDefined();
   });
 
   it('should delete empty object', () => {
     const result = clean({ _id: 1, value: {} });
-    expect(result.value).not.toBeDefined()
+    expect(result.value).not.toBeDefined();
   });
 
   it('should delete empty string', () => {
     const result = clean({ _id: 1, value: '' });
-    expect(result.value).not.toBeDefined()
+    expect(result.value).not.toBeDefined();
   });
-})
+});

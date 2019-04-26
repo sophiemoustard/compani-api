@@ -9,10 +9,13 @@ const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3,
 
 const formatSubscriptionData = (bill) => {
   const events = bill.eventsList.map(ev => ev.event);
+  const matchingServiceVersion = getMatchingVersion(bill.startDate, bill.subscription.service, 'startDate');
+
   return {
     ...bill,
     subscription: bill.subscription._id,
-    vat: getMatchingVersion(bill.startDate, bill.subscription.service).vat,
+    service: matchingServiceVersion.name,
+    vat: matchingServiceVersion.vat,
     events,
   };
 };
@@ -60,12 +63,16 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       for (const ev of draftBill.eventsList) {
         if (ev.history.nature === HOURLY) billedEvents[ev.event] = { ...ev, careHours: ev.history.careHours };
         else billedEvents[ev.event] = { ...ev };
-        if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { [ev.history.month]: ev.history };
-        else if (!fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
-        else if (fundingHistories[ev.history.fundingVersion][ev.history.month].nature === HOURLY) {
-          fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
-        } else {
-          fundingHistories[ev.history.fundingVersion][ev.history.month].amountTTC += ev.history.amountTTC;
+
+        if (ev.history.month) {
+          if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { [ev.history.month]: ev.history };
+          else if (!fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
+          else fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
+        } else if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { ...ev.history };
+        else if (ev.history.nature === HOURLY) {
+          fundingHistories[ev.history.fundingVersion].careHours += ev.history.careHours;
+        } else { // Funding with once frequency are only fixed !
+          fundingHistories[ev.history.fundingVersion].amountTTC += ev.history.amountTTC;
         }
       }
     }
@@ -86,17 +93,23 @@ const updateEvents = async (eventsToUpdate) => {
 const updateFundingHistories = async (histories) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
-    for (const month of Object.keys(histories[id])) {
-      if (histories[id][month].careHours) {
+    if (histories[id].amountTTC) {
+      promises.push(FundingHistory.findOneAndUpdate(
+        { fundingVersion: id },
+        { $inc: { amountTTC: histories[id].amountTTC } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      ));
+    } else if (histories[id].careHours) {
+      promises.push(FundingHistory.findOneAndUpdate(
+        { fundingVersion: id },
+        { $inc: { careHours: histories[id].careHours } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      ));
+    } else {
+      for (const month of Object.keys(histories[id])) {
         promises.push(FundingHistory.findOneAndUpdate(
           { fundingVersion: id, month },
           { $inc: { careHours: histories[id][month].careHours } },
-          { new: true, upsert: true, setDefaultsOnInsert: true }
-        ));
-      } else if (histories[id][month].amountTTC) {
-        promises.push(FundingHistory.findOneAndUpdate(
-          { fundingVersion: id, month },
-          { $inc: { amountTTC: histories[id][month].amountTTC } },
           { new: true, upsert: true, setDefaultsOnInsert: true }
         ));
       }
@@ -125,7 +138,7 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
         promises.push((new Bill(bill)).save());
-        number.seq += 1;
+        if (bill.billNumber) number.seq += 1;
       }
     }
   }
