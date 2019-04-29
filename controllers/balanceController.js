@@ -1,5 +1,4 @@
 const Boom = require('boom');
-const moment = require('moment');
 const { ObjectID } = require('mongodb');
 
 const Bill = require('../models/Bill');
@@ -13,7 +12,7 @@ const { language } = translate;
 const list = async (req) => {
   const rules = [];
   if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
-  if (req.query.date) rules.push({ date: { $lt: moment(req.query.date).endOf('day').toISOString() } });
+  if (req.query.date) rules.push({ date: { $lt: new Date(req.query.date) } });
 
   try {
     const billsAggregation = await Bill.aggregate([
