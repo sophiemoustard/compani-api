@@ -190,7 +190,7 @@ const listWithBilledEvents = async (req) => {
   }
 };
 
-const listWithCustomerContractSubscriptions = async () => {
+const listWithCustomerContractSubscriptions = async (req) => {
   try {
     const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
     if (customerContractServices.length === 0) {
