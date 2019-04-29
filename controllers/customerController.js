@@ -150,7 +150,7 @@ const listWithBilledEvents = async (req) => {
           as: 'thirdPartyPayer',
         }
       },
-      { $unwind: { path: '$thirdPartyPayer' } },
+      { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
           sub: {
