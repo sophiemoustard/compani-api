@@ -3,7 +3,12 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { deleteFile, getFileById, generateDocxFromDrive } = require('../../controllers/Google/driveController');
+const {
+  deleteFile,
+  getFileById,
+  generateDocxFromDrive,
+  getList,
+} = require('../../controllers/Google/driveController');
 
 exports.plugin = {
   name: 'routes-gdrive',
@@ -29,6 +34,23 @@ exports.plugin = {
       options: {
         validate: {
           params: { id: Joi.string() }
+        },
+        auth: {
+          strategy: 'jwt'
+        }
+      }
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/list',
+      handler: getList,
+      options: {
+        validate: {
+          query: {
+            folderId: Joi.string(),
+            nextPageToken: Joi.string(),
+          }
         },
         auth: {
           strategy: 'jwt'

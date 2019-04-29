@@ -91,8 +91,9 @@ exports.downloadFileById = params => new Promise((resolve, reject) => {
 exports.list = params => new Promise((resolve, reject) => {
   drive.files.list({
     auth: jwtClient(),
-    q: `${params.folderId} in parents`,
-    fields: ['name, webViewLink, thumbnailLink']
+    ...(params.folderId && { q: `'${params.folderId}' in parents` }),
+    fields: 'nextPageToken, files(name, webViewLink, createdTime)',
+    pageToken: params.nextPageToken || '',
   }, (err, response) => {
     if (err) {
       reject(new Error(`Google Drive API ${err}`));

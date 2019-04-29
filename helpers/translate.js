@@ -103,7 +103,9 @@ module.exports = {
     idNumberCreated: 'ID number successfully created.',
     /* Uploader */
     fileNotFound: 'File not found.',
+    filesNotFound: 'Files not found.',
     fileFound: 'File found.',
+    filesFound: 'Files found.',
     fileDeleted: 'File Deleted',
     folderCreated: 'Folder successfully created.',
     folderCreationFailure: 'Folder creation Failed.',
