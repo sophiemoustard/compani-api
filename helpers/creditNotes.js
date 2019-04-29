@@ -4,6 +4,7 @@ const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
+const { getFixedNumber } = require('./utils');
 const { HOURLY } = require('./constants');
 
 const updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
@@ -38,6 +39,8 @@ const updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
 
 const createCreditNote = (payload, prefix, seq) => {
   payload.number = `${prefix}${seq.toString().padStart(3, '0')}`;
+  if (payload.inclTaxesCustomer) payload.inclTaxesCustomer = getFixedNumber(payload.inclTaxesCustomer, 2);
+  if (payload.inclTaxesTpp) payload.inclTaxesTpp = getFixedNumber(payload.inclTaxesTpp, 2);
   const customerCreditNote = new CreditNote(payload);
 
   return customerCreditNote.save();

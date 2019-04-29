@@ -2,7 +2,7 @@ const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
-const { getMatchingVersion } = require('./utils');
+const { getMatchingVersion, getFixedNumber } = require('./utils');
 const { HOURLY } = require('./constants');
 
 const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
@@ -26,7 +26,7 @@ const formatCustomerBills = (customerBills, customer, number) => {
     customer: customer._id,
     subscriptions: [],
     billNumber: formatBillNumber(number.prefix, number.seq),
-    netInclTaxes: customerBills.total,
+    netInclTaxes: getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
   };
 
@@ -50,7 +50,7 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
       customer: customer._id,
       client: tpp.bills[0].thirdPartyPayer,
       subscriptions: [],
-      netInclTaxes: tpp.total,
+      netInclTaxes: getFixedNumber(tpp.total, 2),
       date: tpp.bills[0].endDate,
     };
     if (!tpp.bills[0].externalBilling) {
