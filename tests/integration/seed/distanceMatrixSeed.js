@@ -29,7 +29,7 @@ const distanceMatrixList = [
 ];
 
 const populateDistanceMatrix = async () => {
-  await DistanceMatrix.remove({});
+  await DistanceMatrix.deleteMany({});
   await DistanceMatrix.insertMany(distanceMatrixList);
 };
 

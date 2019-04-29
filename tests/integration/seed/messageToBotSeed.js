@@ -25,7 +25,7 @@ const messagePayload = {
 };
 
 const populateMessagesToBot = async () => {
-  await MessageToBot.remove({});
+  await MessageToBot.deleteMany({});
   await MessageToBot.insertMany(messagesList);
 };
 

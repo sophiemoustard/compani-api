@@ -11,7 +11,7 @@ const activationCode = {
 };
 
 const populateActivationCode = async () => {
-  await ActivationCode.remove({});
+  await ActivationCode.deleteMany({});
   const code = new ActivationCode(activationCode);
   await code.save();
 };

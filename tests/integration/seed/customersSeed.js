@@ -172,7 +172,7 @@ const customersList = [
 ];
 
 const populateCustomers = async () => {
-  await Customer.remove({});
+  await Customer.deleteMany({});
   await Customer.insertMany(customersList);
 };
 

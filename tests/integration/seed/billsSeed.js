@@ -47,7 +47,7 @@ const billsList = [
 ];
 
 const populateBills = async () => {
-  await Bill.remove({});
+  await Bill.deleteMany({});
   await Bill.insertMany(billsList);
 };
 

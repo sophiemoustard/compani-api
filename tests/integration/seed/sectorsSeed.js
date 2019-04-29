@@ -18,7 +18,7 @@ const sectorsList = [
 
 
 const populateSectors = async () => {
-  await Sector.remove({});
+  await Sector.deleteMany({});
   await Sector.insertMany(sectorsList);
 };
 

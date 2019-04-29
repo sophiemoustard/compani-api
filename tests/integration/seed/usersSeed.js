@@ -98,7 +98,7 @@ const userPayload = {
 };
 
 const populateUsers = async () => {
-  await User.remove({});
+  await User.deleteMany({});
   await new User(userList[0]).saveByParams({ role: userList[0].role });
   await new User(userList[1]).saveByParams({ role: userList[1].role, company: userList[1].company });
   await new User(userList[2]).saveByParams({ role: userList[2].role });

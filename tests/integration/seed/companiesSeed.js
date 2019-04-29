@@ -19,7 +19,7 @@ const companiesList = [
 ];
 
 const populateCompanies = async () => {
-  await Company.remove({});
+  await Company.deleteMany({});
   await Company.insertMany(companiesList);
 };
 

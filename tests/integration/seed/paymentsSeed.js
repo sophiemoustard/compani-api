@@ -30,8 +30,8 @@ const paymentsList = [
 ];
 
 const populatePayments = async () => {
-  await Payment.remove({});
-  await PaymentNumber.remove({});
+  await Payment.deleteMany({});
+  await PaymentNumber.deleteMany({});
   await Payment.insertMany(paymentsList);
 };
 

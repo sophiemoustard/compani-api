@@ -150,7 +150,7 @@ describe('RIGHTS ROUTES', () => {
     });
 
     it('should return an empty list if no rights are found', async () => {
-      await Right.remove({});
+      await Right.deleteMany({});
       const res = await app.inject({
         method: 'GET',
         url: '/rights',
