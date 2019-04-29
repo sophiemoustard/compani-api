@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { getFixedNumber } = require('./utils');
+const { getFixedNumber, removeSpaces } = require('./utils');
 const { addFile } = require('./gdriveStorage');
 
 const createDocument = () => ({
@@ -21,7 +21,7 @@ const createDocument = () => ({
 
 const generateSEPAHeader = data => ({
   MsgId: data.id,
-  CreDtTm: moment(data.created).format('YYYY-MM-DDTHH:mm:ss'),
+  CreDtTm: moment(data.created).toISOString(),
   NbOfTxs: data.txNumber,
   CtrlSum: getFixedNumber(data.sum, 2),
   InitgPty: {
@@ -29,7 +29,7 @@ const generateSEPAHeader = data => ({
     Id: {
       OrgId: {
         Othr: {
-          Id: data.ics
+          Id: removeSpaces(data.ics)
         }
       }
     }
@@ -56,13 +56,13 @@ const generatePaymentInfo = data => ({
   },
   CdtrAcct: {
     Id: {
-      IBAN: data.creditor.iban
+      IBAN: removeSpaces(data.creditor.iban)
     },
     Ccy: 'EUR'
   },
   CdtrAgt: {
     FinInstnId: {
-      BIC: data.creditor.bic
+      BIC: removeSpaces(data.creditor.bic)
     }
   },
   ChrgBr: 'SLEV',
@@ -70,7 +70,7 @@ const generatePaymentInfo = data => ({
     Id: {
       PrvtId: {
         Othr: {
-          Id: data.creditor.ics,
+          Id: removeSpaces(data.creditor.ics),
           SchmeNm: {
             Prtry: 'SEPA'
           }
@@ -100,12 +100,12 @@ const addTransactionInfo = (paymentInfoObj, data) => {
       },
       DbtrAgt: {
         FinInstnId: {
-          BIC: transaction.customerInfo.payment.bic
+          BIC: removeSpaces(transaction.customerInfo.payment.bic)
         }
       },
       Dbtr: { Nm: transaction.customerInfo.payment.bankAccountOwner },
       DbtrAcct: {
-        Id: { IBAN: transaction.customerInfo.payment.iban }
+        Id: { IBAN: removeSpaces(transaction.customerInfo.payment.iban) }
       }
     });
   }
