@@ -47,7 +47,10 @@ exports.plugin = {
       handler: getList,
       options: {
         validate: {
-          query: { folderId: Joi.string() }
+          query: {
+            folderId: Joi.string(),
+            nextPageToken: Joi.string(),
+          }
         },
         auth: {
           strategy: 'jwt'
