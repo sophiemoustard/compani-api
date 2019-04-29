@@ -67,6 +67,7 @@ exports.getFixedNumber = (number, toFixedNb) => {
 };
 
 exports.removeSpaces = (str) => {
+  if (!str) return '';
   if (typeof str !== 'string') throw new Error('Parameter must be a string !');
   return str.split(' ').join('');
 };

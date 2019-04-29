@@ -9,7 +9,7 @@ const { addFile } = require('./gdriveStorage');
 
 const createDocument = () => ({
   Document: {
-    '@xlmns': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02',
+    '@xmlns': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02',
     '@xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
     '@xsi:schemaLocation': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02 pain.008.001.02.xsd',
     CstmrDrctDbtInitn: {
@@ -21,7 +21,7 @@ const createDocument = () => ({
 
 const generateSEPAHeader = data => ({
   MsgId: data.id,
-  CreDtTm: moment(data.created).toISOString(),
+  CreDtTm: moment(data.created).format('YYYY-MM-DDTHH:mm:ss'),
   NbOfTxs: data.txNumber,
   CtrlSum: getFixedNumber(data.sum, 2),
   InitgPty: {
@@ -50,7 +50,7 @@ const generatePaymentInfo = data => ({
     },
     SeqTp: data.sequenceType
   },
-  ReqColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
+  ReqdColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
   Cdtr: {
     Nm: data.creditor.name
   },
