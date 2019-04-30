@@ -1,0 +1,123 @@
+<style>
+    body {
+      padding: 10%
+    }
+    table {
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 1%
+    }
+    .wrapper {
+      display: flex;
+      flex-flow: row wrap;
+    }
+    .logo, .company {
+      flex: 1 70%;
+    }
+    .subscriptions, .events {
+      flex: 1 100%;
+    }
+    .total {
+      margin-left: auto;
+    }
+    .creditNote, .customer {
+      text-align: right
+    }
+    .capitalize {
+      text-transform: capitalize;
+    }
+  </style>
+
+  <div class="wrapper">
+    <div class="logo">
+      <img src="{{ creditNote.logo }}">
+    </div>
+    <div class="creditNote">
+      {{ creditNote.creditNoteNumber }}<br />
+      {{ creditNote.computedData.date }}<br />
+      Paiment à réception<br />
+    </div>
+  </div>
+  <br />
+  <div class="wrapper">
+    <div class="company">
+      {{ creditNote.company.name }}<br />
+      {{ creditNote.company.address.street }}<br />
+      {{ creditNote.company.address.zipCode }} {{ creditNote.company.address.city }}<br />
+    </div>
+    <div class="customer">
+      {{ creditNote.customer.identity.title }} {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }}<br />
+      <span class="capitalize">{{ creditNote.customer.contact.address.street }}</span><br />
+      {{ creditNote.customer.contact.address.zipCode }} <span class="capitalize">{{ creditNote.customer.contact.address.city }}</span><br />
+    </div>
+  </div>
+  <br />
+  {{#if creditNote.computedData.events}}
+  <p>Prestations réalisées chez {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }}, <span class="capitalize">{{ creditNote.customer.contact.address.fullAddress }}</span></p>
+  <div class="wrapper">
+    <table class="events">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Intervenant</th>
+          <th>Heure de début</th>
+          <th>Heure de fin</th>
+          <th>Service</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{#table creditNote.computedData.events}}
+        <tr>
+          <td> {{ date }} </td>
+          <td> {{ auxiliary.identity.firstname }}. {{ auxiliary.identity.lastname }} </td>
+          <td> {{ startTime }} </td>
+          <td> {{ endTime }} </td>
+          <td> WIP </td>
+        </tr>
+      {{/table}}
+      </tbody>
+    </table>
+  </div>
+  <div class="wrapper">
+    <table class="total">
+      <thead>
+        <tr>
+          <th>Total HT</th>
+          <th>Total TVA</th>
+          <th>Total TTC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td> {{ creditNote.computedData.totalExclTaxes }} </td>
+          <td> {{ creditNote.computedData.totalVAT }} </td>
+          <td> {{ creditNote.computedData.totalInclTaxes }} </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="wrapper">
+    <table class="subscriptions">
+      <thead>
+        <tr>
+          <th>Service</th>
+          <th>Prix unitaire TTC</th>
+          <th>Total TTC*</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>WIP</td>
+          <td> {{ creditNote.exclTaxesCustomer }} </td>
+          <td> {{ creditNote.inclTaxesCustomer }} </td>
+        </tr>
+      </tbody>
+    </table>
+    <p>*ce total intègre les majorations et les éventuelles remises</p>
+  </div>
+  {{/if}}

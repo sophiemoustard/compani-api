@@ -1,7 +1,9 @@
 const Boom = require('boom');
 
 const CreditNote = require('../models/CreditNote');
+const Company = require('../models/Company');
 const translate = require('../helpers/translate');
+const moment = require('moment');
 const { updateEventAndFundingHistory, createCreditNotes } = require('../helpers/creditNotes');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getDateQuery } = require('../helpers/utils');
@@ -124,22 +126,51 @@ const remove = async (req) => {
 
 const generateCreditNotePdf = async (req, h) => {
   try {
+    const creditNote = await CreditNote.findOne({ _id: req.params._id })
+      .populate({ path: 'customer', select: '_id identity contact' })
+      .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
+      .lean();
+    // console.log('creditNote', creditNote);
+    const company = await Company.find({});
+    const computedData = {
+      totalExclTaxes: 0,
+      totalVAT: 0,
+      totalInclTaxes: 0,
+      date: moment(creditNote.date).format('DD/MM/YYYY'),
+      events: []
+    };
+    console.log('creditNote.events', creditNote.events);
+    if (creditNote.events.length > 0) {
+      for (let i = 0, l = creditNote.events.length; i < l; i++) {
+        computedData.totalExclTaxes += creditNote.events[i].bills.exclTaxesCustomer;
+        computedData.totalInclTaxes += creditNote.events[i].bills.inclTaxesCustomer;
+        computedData.totalVAT += creditNote.events[i].bills.vat;
+        creditNote.events[i].auxiliary.identity.firstname = creditNote.events[i].auxiliary.identity.firstname.substring(0, 1);
+        creditNote.events[i].date = moment(creditNote.events[i].startDate).format('DD/MM');
+        creditNote.events[i].startTime = moment(creditNote.events[i].startDate).format('HH:mm');
+        creditNote.events[i].endTime = moment(creditNote.events[i].endDate).format('HH:mm');
+        computedData.events.push(creditNote.events[i]);
+      }
+    }
+    creditNote.exclTaxesCustomer = creditNote.exclTaxesCustomer.toFixed(2);
+    creditNote.inclTaxesCustomer = creditNote.inclTaxesCustomer.toFixed(2);
+    computedData.totalExclTaxes = computedData.totalExclTaxes.toFixed(2);
+    computedData.totalInclTaxes = computedData.totalInclTaxes.toFixed(2);
     const data = {
-      invoice: {
-        id: 2452,
-        createdAt: '2018-10-12',
-        customer: { name: 'International Bank of Blueprintya' },
-        shipping: 10,
-        total: 104.95,
-        comments: 'Credit notes',
-        lines: [
-          { id: 1, item: 'Best dry cleaner', price: '52.43' },
-          { id: 2, item: 'Not so good toaster', price: '11.62' },
-        ],
+      creditNote: {
+        exclTaxesCustomer: creditNote.exclTaxesCustomer,
+        inclTaxesCustomer: creditNote.inclTaxesCustomer,
+        creditNoteNumber: creditNote.number,
+        customer: creditNote.customer,
+        subscription: creditNote.subscription,
+        computedData,
+        company: company[0],
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+        events: creditNote.events
       },
     };
 
-    const pdf = await generatePdf(data, './data/template.html');
+    const pdf = await generatePdf(data, './data/creditNote.html');
 
     return h.response(pdf).type('application/pdf');
   } catch (e) {
@@ -147,6 +178,8 @@ const generateCreditNotePdf = async (req, h) => {
     return Boom.badImplementation(e);
   }
 };
+
+
 
 module.exports = {
   list,

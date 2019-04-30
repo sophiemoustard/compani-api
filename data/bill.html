@@ -1,0 +1,125 @@
+<style>
+  body {
+    padding: 10%
+  }
+  table {
+    border-collapse: collapse;
+  }
+  table, th, td {
+    border: 1px solid black;
+  }
+  th, td {
+    padding: 1%
+  }
+  .wrapper {
+    display: flex;
+    flex-flow: row wrap;
+  }
+  .logo, .company {
+    flex: 1 70%;
+  }
+  .subscriptions, .events {
+    flex: 1 100%;
+  }
+  .total {
+    margin-left: auto;
+  }
+  .bill, .customer {
+    text-align: right
+  }
+  .capitalize {
+    text-transform: capitalize;
+  }
+</style>
+
+<div class="wrapper">
+  <div class="logo">
+    <img src="{{ bill.logo }}">
+  </div>
+  <div class="bill">
+    {{ bill.billNumber }}<br />
+    {{ bill.computedData.date }}<br />
+    Paiment à réception<br />
+  </div>
+</div>
+<br />
+<div class="wrapper">
+  <div class="company">
+    {{ bill.company.name }}<br />
+    {{ bill.company.address.street }}<br />
+    {{ bill.company.address.zipCode }} {{ bill.company.address.city }}<br />
+  </div>
+  <div class="customer">
+    {{ bill.customer.identity.title }} {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}<br />
+    <span class="capitalize">{{ bill.customer.contact.address.street }}</span><br />
+    {{ bill.customer.contact.address.zipCode }} <span class="capitalize">{{ bill.customer.contact.address.city }}</span><br />
+  </div>
+</div>
+<br />
+<div class="wrapper">
+  <table class="subscriptions">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Prix unitaire TTC</th>
+        <th>Volume</th>
+        <th>Total TTC*</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#table bill.subscriptions}}
+        <tr>
+          <td>WIP</td>
+          <td> {{ exclTaxes }} </td>
+          <td> {{ hours }} </td>
+          <td> {{ inclTaxes }} </td>
+        </tr>
+      {{/table}}
+    </tbody>
+  </table>
+  <p>*ce total intègre les majorations et les éventuelles remises</p>
+</div>
+<div class="wrapper">
+  <table class="total">
+    <thead>
+      <tr>
+        <th>Total HT</th>
+        <th>Total TVA</th>
+        <th>Total TTC</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td> {{ bill.computedData.totalExclTaxes }} </td>
+        <td> {{ bill.computedData.totalVAT }} </td>
+        <td> {{ bill.computedData.totalInclTaxes }} </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<br />
+<p>Prestations réalisées chez {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}, <span class="capitalize">{{ bill.customer.contact.address.fullAddress }}</span></p>
+<div class="wrapper">
+  <table class="events">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Intervenant</th>
+        <th>Heure de début</th>
+        <th>Heure de fin</th>
+        <th>Service</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{#table bill.computedData.events}}
+      <tr>
+        <td> {{ date }} </td>
+        <td> {{ auxiliary.identity.firstname }}. {{ auxiliary.identity.lastname }} </td>
+        <td> {{ startTime }} </td>
+        <td> {{ endTime }} </td>
+        <td> WIP </td>
+      </tr>
+    {{/table}}
+    </tbody>
+  </table>
+</div>

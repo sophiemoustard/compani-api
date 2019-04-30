@@ -4,6 +4,7 @@ const moment = require('moment');
 
 const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
+const Company = require('../models/Company');
 const translate = require('../helpers/translate');
 const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
@@ -83,22 +84,48 @@ const list = async (req) => {
 
 const generateBillPdf = async (req, h) => {
   try {
+    const bill = await Bill.findOne({ _id: req.params._id })
+      .populate({ path: 'client', select: '_id name' })
+      .populate({ path: 'customer', select: '_id identity contact' })
+      .populate({ path: 'subscriptions.events', populate: { path: 'auxiliary', select: 'identity' } })
+      .lean();
+    const company = await Company.find({});
+    const computedData = {
+      totalExclTaxes: 0,
+      totalVAT: 0,
+      totalInclTaxes: 0,
+      date: moment(bill.date).format('DD/MM/YYYY'),
+      events: []
+    };
+    for (let i = 0, l = bill.subscriptions.length; i < l; i++) {
+      computedData.totalExclTaxes += bill.subscriptions[i].exclTaxes;
+      computedData.totalVAT += bill.subscriptions[i].vat;
+      computedData.totalInclTaxes += bill.subscriptions[i].inclTaxes;
+      bill.subscriptions[i].exclTaxes = bill.subscriptions[i].exclTaxes.toFixed(2);
+      bill.subscriptions[i].inclTaxes = bill.subscriptions[i].inclTaxes.toFixed(2);
+      for (let j = 0; j < bill.subscriptions.length; j++) {
+        bill.subscriptions[i].events[j].auxiliary.identity.firstname = bill.subscriptions[i].events[j].auxiliary.identity.firstname.substring(0, 1);
+        bill.subscriptions[i].events[j].date = moment(bill.subscriptions[i].events[j].startDate).format('DD/MM');
+        bill.subscriptions[i].events[j].startTime = moment(bill.subscriptions[i].events[j].startDate).format('HH:mm');
+        bill.subscriptions[i].events[j].endTime = moment(bill.subscriptions[i].events[j].endDate).format('HH:mm');
+        computedData.events.push(bill.subscriptions[i].events[j]);
+      }
+    }
+    computedData.totalExclTaxes = computedData.totalExclTaxes.toFixed(2);
+    computedData.totalInclTaxes = computedData.totalInclTaxes.toFixed(2);
     const data = {
-      invoice: {
-        id: 2452,
-        createdAt: '2018-10-12',
-        customer: { name: 'Boetie' },
-        shipping: 10,
-        total: 104.95,
-        comments: 'Bill',
-        lines: [
-          { id: 1, item: 'Temps de qualité', price: '52.43' },
-          { id: 2, item: 'Ménage', price: '11.62' },
-        ],
+      bill: {
+        billNumber: bill.billNumber,
+        customer: bill.customer,
+        subscriptions: bill.subscriptions,
+        computedData,
+        company: company[0],
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+        events: bill.events
       },
     };
 
-    const pdf = await generatePdf(data, './data/template.html');
+    const pdf = await generatePdf(data, './data/bill.html');
 
     return h.response(pdf).type('application/pdf');
   } catch (e) {
