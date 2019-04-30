@@ -6,9 +6,9 @@ mongoose.Promise = global.Promise;
 
 exports.mongooseConnection = (server) => {
   if (process.env.NODE_ENV === 'test') {
-    mongoose.connect('mongodb://localhost:27017/hapitest', { useNewUrlParser: true });
+    mongoose.connect('mongodb://localhost:27017/hapitest', { useNewUrlParser: true, useCreateIndex: true });
   } else {
-    mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
+    mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useCreateIndex: true });
   }
 
   // When successfully connected
