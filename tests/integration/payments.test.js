@@ -6,7 +6,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { getToken } = require('./seed/usersSeed');
 const { customersList, populateCustomers } = require('./seed/customersSeed');
-const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
+const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const { paymentsList, populatePayments } = require('./seed/paymentsSeed');
 const { populateCompanies } = require('./seed/companiesSeed');
 const { populateUsers } = require('./seed/usersSeed');
@@ -50,7 +50,6 @@ describe('PAYMENTS ROUTES', () => {
     const origPayload = {
       date: moment().toDate(),
       customer: customersList[0]._id,
-      client: thirdPartyPayersList[0]._id,
       netInclTaxes: 400,
       nature: PAYMENT,
       type: PAYMENT_TYPES[0],

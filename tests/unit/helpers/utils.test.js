@@ -6,6 +6,7 @@ const {
   getMatchingVersion,
   clean,
   getFixedNumber,
+  removeSpaces,
 } = require('../../../helpers/utils');
 
 describe('getLastVersion', () => {
@@ -145,5 +146,21 @@ describe('getFixedNumber', () => {
     expect(() => {
       getFixedNumber('test', 3);
     }).toThrow(new Error('You must provide a number !'));
+  });
+});
+
+describe('removeSpaces', () => {
+  it('should remove all spaces from string', () => {
+    const result = removeSpaces('he llo  world  ');
+    expect(result).toBe('helloworld');
+  });
+  it('should return an error if parameter is not a string', () => {
+    expect(() => {
+      removeSpaces(3);
+    }).toThrow(new Error('Parameter must be a string !'));
+  });
+  it('should return an empty string if parameter is missing', () => {
+    const result = removeSpaces();
+    expect(result).toBe('');
   });
 });

@@ -36,18 +36,23 @@ exports.plugin = {
       options: {
         auth: { strategy: 'jwt' },
         validate: {
-          payload: {
+          payload: Joi.object({
             date: Joi.date().required(),
             customer: Joi.objectId().required(),
             client: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
             nature: Joi.string().valid(REFUND, PAYMENT).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
-            rum: Joi.string().when('type', { is: WITHDRAWAL, then: Joi.required() }),
-          },
-        },
+            rum: Joi.string(),
+          }).when(Joi.object({
+            client: Joi.valid(null),
+            type: Joi.valid(WITHDRAWAL)
+          }).unknown(), {
+            then: Joi.object({ rum: Joi.required() })
+          })
+        }
       },
-      handler: create,
+      handler: create
     });
 
     server.route({
