@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { getFixedNumber, removeSpaces } = require('./utils');
+const { getFixedNumber, removeSpaces, getLastVersion } = require('./utils');
 const { addFile } = require('./gdriveStorage');
 
 const createDocument = () => ({
@@ -83,6 +83,7 @@ const generatePaymentInfo = data => ({
 
 const addTransactionInfo = (paymentInfoObj, data) => {
   for (const transaction of data) {
+    const lastMandate = getLastVersion(transaction.customerInfo.payment.mandates, 'createdAt');
     paymentInfoObj.DrctDbtTxInf.push({
       PmtId: {
         InstrId: transaction.number,
@@ -94,8 +95,8 @@ const addTransactionInfo = (paymentInfoObj, data) => {
       },
       DrctDbtTx: {
         MndtRltdInf: {
-          MndtId: transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].rum,
-          DtOfSgntr: moment(transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].signedAt).format('YYYY-MM-DD'),
+          MndtId: lastMandate.rum,
+          DtOfSgntr: moment(lastMandate.signedAt).format('YYYY-MM-DD'),
         }
       },
       DbtrAgt: {

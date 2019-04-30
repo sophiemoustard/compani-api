@@ -53,7 +53,8 @@ describe('PAYMENTS ROUTES', () => {
       client: thirdPartyPayersList[0]._id,
       netInclTaxes: 400,
       nature: PAYMENT,
-      type: PAYMENT_TYPES[0]
+      type: PAYMENT_TYPES[0],
+      rum: 'R12345678000000345634567',
     };
     const creationAssertions = [{ ...origPayload }, { ...origPayload, nature: REFUND }];
 
@@ -109,6 +110,13 @@ describe('PAYMENTS ROUTES', () => {
         update() {
           delete this.payload[this.param];
         },
+      },
+      {
+        param: 'rum',
+        payload: { ...origPayload },
+        update() {
+          delete this.payload[this.param];
+        },
       }
     ];
 
@@ -132,7 +140,8 @@ describe('PAYMENTS ROUTES', () => {
           customerInfo: customersList[0],
           netInclTaxes: 900,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0]
+          type: PAYMENT_TYPES[0],
+          rum: 'R12345678000000345634567',
         },
         {
           date: moment().toDate(),
@@ -140,7 +149,8 @@ describe('PAYMENTS ROUTES', () => {
           customerInfo: customersList[1],
           netInclTaxes: 250,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0]
+          type: PAYMENT_TYPES[0],
+          rum: 'R12345678000000345634567',
         },
       ];
 

@@ -102,7 +102,7 @@ exports.savePayments = async (req) => {
   const recurPayments = [];
   for (let payment of req.payload) {
     payment = await exports.formatPayment(payment);
-    const countPayments = await Payment.countDocuments({ customer: payment.customer, type: WITHDRAWAL });
+    const countPayments = await Payment.countDocuments({ customer: payment.customer, type: WITHDRAWAL, rum: payment.rum });
     if (countPayments === 0) {
       firstPayments.push(payment);
     } else {
