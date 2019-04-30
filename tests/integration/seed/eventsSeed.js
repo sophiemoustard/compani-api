@@ -1,4 +1,6 @@
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
+
 const Event = require('../../../models/Event');
 const { userList } = require('./usersSeed');
 const { customersList } = require('./customersSeed');
@@ -31,27 +33,27 @@ const eventsList = [
   {
     _id: new ObjectID(),
     type: 'intervention',
-    startDate: '2019-01-18T09:30:18.653Z',
-    endDate: '2019-01-18T12:30:18.653Z',
+    startDate: moment().set({ hour: 9 }),
+    endDate: moment().set({ hour: 11 }),
     auxiliary: auxiliary._id,
     customer: customersList[0]._id,
-    createdAt: '2019-07-11T12:54:18.653Z',
+    createdAt: moment().subtract(1, 'd').toDate(),
     subscription: customersList[0].subscriptions[0]._id,
   },
   {
     _id: new ObjectID(),
     type: 'intervention',
-    startDate: '2019-01-18T19:30:18.653Z',
-    endDate: '2019-01-18T20:30:18.653Z',
+    startDate: moment().set({ hour: 14 }),
+    endDate: moment().set({ hour: 16 }),
     auxiliary: auxiliary._id,
     customer: customersList[0]._id,
-    createdAt: '2019-07-11T12:54:18.653Z',
+    createdAt: moment().subtract(1, 'd').toDate(),
     subscription: customersList[0].subscriptions[0]._id,
   }
 ];
 
 const populateEvents = async () => {
-  await Event.remove({});
+  await Event.deleteMany({});
   await Event.insertMany(eventsList);
 };
 

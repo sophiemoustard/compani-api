@@ -57,6 +57,7 @@ const customersList = [
           estimatedWeeklyVolume: 12,
           evenings: 2,
           sundays: 1,
+          startDate: moment().subtract(1, 'd').toDate(),
         }],
       },
       {
@@ -67,6 +68,7 @@ const customersList = [
           estimatedWeeklyVolume: 12,
           evenings: 2,
           sundays: 1,
+          startDate: moment().subtract(1, 'd').toDate(),
         }],
       }
     ],
