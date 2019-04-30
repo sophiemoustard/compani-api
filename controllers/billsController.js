@@ -18,11 +18,13 @@ const draftBillsList = async (req) => {
     const rules = [
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-      { $or: [
-        { isCancelled: false },
-        { isCancelled: { $exists: false } },
-        { 'cancel.condition': INVOICED_AND_PAYED },
-        { 'cancel.condition': INVOICED_AND_NOT_PAYED }]
+      {
+        $or: [
+          { isCancelled: false },
+          { isCancelled: { $exists: false } },
+          { 'cancel.condition': INVOICED_AND_PAYED },
+          { 'cancel.condition': INVOICED_AND_NOT_PAYED }
+        ]
       },
       { type: INTERVENTION },
     ];

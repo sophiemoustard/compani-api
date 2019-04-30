@@ -150,7 +150,7 @@ const listWithBilledEvents = async (req) => {
           as: 'thirdPartyPayer',
         }
       },
-      { $unwind: { path: '$thirdPartyPayer' } },
+      { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
           sub: {
@@ -190,7 +190,7 @@ const listWithBilledEvents = async (req) => {
   }
 };
 
-const listWithCustomerContractSubscriptions = async () => {
+const listWithCustomerContractSubscriptions = async (req) => {
   try {
     const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
     if (customerContractServices.length === 0) {

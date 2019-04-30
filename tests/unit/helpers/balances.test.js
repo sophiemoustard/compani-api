@@ -120,8 +120,8 @@ describe('getBalance', () => {
       }
     };
     const customerCreditNotes = [
-      { customer: customerId, refund: 50 },
-      { customer: new ObjectID(), refund: 90 },
+      { _id: { customer: customerId }, customer: { _id: customerId }, refund: 50 },
+      { _id: { customer: new ObjectID() }, refund: 90 },
     ];
 
     const result = getBalance(bill, customerCreditNotes, [], []);
@@ -144,19 +144,19 @@ describe('getBalance', () => {
       }
     };
     const customerCreditNotes = [
-      { customer: customerId, refund: 50 },
-      { customer: new ObjectID(), refund: 90 },
+      { _id: { customer: customerId }, customer: { _id: customerId }, refund: 50 },
+      { _id: { customer: new ObjectID() }, refund: 90 },
     ];
     const payments = [
-      { customer: customerId, nature: 'payment', netInclTaxes: 80 },
-      { customer: customerId, nature: 'payment', netInclTaxes: 50 },
+      { _id: { customer: customerId }, payments: [{ nature: 'payment', netInclTaxes: 80 }, { nature: 'payment', netInclTaxes: 30 }] },
+      { _id: { customer: new ObjectID() }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
     ];
 
     const result = getBalance(bill, customerCreditNotes, [], payments);
     expect(result).toBeDefined();
     expect(result.billed).toEqual(20);
-    expect(result.paid).toEqual(130);
-    expect(result.balance).toEqual(110);
+    expect(result.paid).toEqual(110);
+    expect(result.balance).toEqual(90);
     expect(result.toPay).toEqual(0);
   });
 
@@ -168,9 +168,9 @@ describe('getBalance', () => {
       billed: 70,
     };
     const tppCreditNotes = [
-      { thirdPartyPayer: tppId, refund: 40, customer: customerId },
-      { thirdPartyPayer: tppId, refund: 40, customer: new ObjectID() },
-      { thirdPartyPayer: new ObjectID(), refund: 50, customer: customerId },
+      { _id: { customer: customerId, tpp: tppId }, refund: 40, customer: customerId },
+      { _id: { customer: new ObjectID(), tpp: tppId }, refund: 40 },
+      { _id: { customer: customerId, tpp: new ObjectID() }, refund: 50 },
     ];
 
     const result = getBalance(bill, [], tppCreditNotes, []);
@@ -189,20 +189,20 @@ describe('getBalance', () => {
       billed: 70,
     };
     const tppCreditNotes = [
-      { thirdPartyPayer: tppId, refund: 40, customer: customerId },
-      { thirdPartyPayer: new ObjectID(), refund: 50, customer: customerId },
-      { thirdPartyPayer: tppId, refund: 50, customer: new ObjectID() },
+      { _id: { customer: customerId, tpp: tppId }, refund: 40 },
+      { _id: { customer: customerId, tpp: new ObjectID() }, refund: 50, },
+      { _id: { customer: new ObjectID(), tpp: tppId }, refund: 50 },
     ];
     const payments = [
-      { customer: customerId, client: tppId, nature: 'refund', netInclTaxes: 80 },
-      { customer: customerId, client: tppId, nature: 'payment', netInclTaxes: 50 },
+      { _id: { customer: customerId, tpp: tppId }, payments: [{ nature: 'refund', netInclTaxes: 80 }, { nature: 'payment', netInclTaxes: 30 }] },
+      { _id: { customer: customerId, tpp: tppId }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
     ];
 
     const result = getBalance(bill, [], tppCreditNotes, payments);
     expect(result).toBeDefined();
     expect(result.billed).toEqual(30);
-    expect(result.paid).toEqual(-30);
-    expect(result.balance).toEqual(-60);
+    expect(result.paid).toEqual(-50);
+    expect(result.balance).toEqual(-80);
     expect(result.toPay).toEqual(0);
   });
 });
@@ -223,30 +223,9 @@ describe('computePayments', () => {
   it('should compute payments for customer', () => {
     const customerId = new ObjectID();
     const ids = { customer: customerId };
-    const payments = [
-      { client: new ObjectID(), customer: customerId, netInclTaxes: 14, nature: 'payment' },
-      { customer: customerId, netInclTaxes: 14, nature: 'payment' },
-      { customer: customerId, netInclTaxes: 12, nature: 'refund' },
-      { customer: customerId, netInclTaxes: 23, nature: 'payment' },
-      { customer: new ObjectID(), netInclTaxes: 14, nature: 'payment' },
-    ];
+    const payments = [{ netInclTaxes: 14, nature: 'payment' }, { netInclTaxes: 12, nature: 'refund' }, { netInclTaxes: 23, nature: 'payment' }];
 
     expect(computePayments(payments, ids)).toEqual(25);
-  });
-
-  it('should compute payments for tpp', () => {
-    const customerId = new ObjectID();
-    const tppId = new ObjectID();
-    const ids = { customer: customerId, tpp: tppId };
-    const payments = [
-      { client: new ObjectID(), customer: customerId, netInclTaxes: 14, nature: 'payment' },
-      { customer: customerId, netInclTaxes: 14, nature: 'payment' },
-      { client: tppId, customer: customerId, netInclTaxes: 12, nature: 'refund' },
-      { client: tppId, customer: customerId, netInclTaxes: 23, nature: 'payment' },
-      { client: tppId, customer: new ObjectID(), netInclTaxes: 14, nature: 'payment' },
-    ];
-
-    expect(computePayments(payments, ids)).toEqual(11);
   });
 });
 

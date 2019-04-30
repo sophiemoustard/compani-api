@@ -2,8 +2,7 @@ const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
 const FundingHistory = require('../../../models/FundingHistory');
 const Event = require('../../../models/Event');
-const CreditNote = require('../../../models/CreditNote');
-const { updateEventAndFundingHistory, createCreditNote } = require('../../../helpers/creditNotes');
+const { updateEventAndFundingHistory } = require('../../../helpers/creditNotes');
 
 describe('updateEventAndFundingHistory', () => {
   let findOneAndUpdate = null;

@@ -31,6 +31,7 @@ describe('formatCustomerBills', () => {
           { event: '456', inclTaxesTpp: 12 },
         ],
       }],
+      total: 14.4,
     };
 
     const result = formatCustomerBills(customerBills, customer, number);
@@ -61,6 +62,7 @@ describe('formatCustomerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
+      total: 14.4,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
         unitExclTaxes: 24.644549763033176,
@@ -125,6 +127,7 @@ describe('formatThirdPartyPayerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
+      total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
@@ -175,6 +178,7 @@ describe('formatThirdPartyPayerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
+      total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
@@ -223,6 +227,7 @@ describe('formatThirdPartyPayerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
+      total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
@@ -270,6 +275,7 @@ describe('formatThirdPartyPayerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
+      total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
@@ -343,6 +349,7 @@ describe('formatThirdPartyPayerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
+      total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
@@ -357,6 +364,7 @@ describe('formatThirdPartyPayerBills', () => {
         ],
       }]
     }, {
+      total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
         subscription: { _id: 'fgh', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },

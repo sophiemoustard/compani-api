@@ -1,11 +1,10 @@
 const Boom = require('boom');
-const moment = require('moment');
 const { ObjectID } = require('mongodb');
 
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
 const Payment = require('../models/Payment');
-const { getBalance } = require('../helpers/balances');
+const { getBalances } = require('../helpers/balances');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -13,7 +12,7 @@ const { language } = translate;
 const list = async (req) => {
   const rules = [];
   if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
-  if (req.query.date) rules.push({ date: { $lt: moment(req.query.date).endOf('day').toISOString() } });
+  if (req.query.date) rules.push({ date: { $lt: new Date(req.query.date) } });
 
   try {
     const billsAggregation = await Bill.aggregate([
@@ -58,7 +57,20 @@ const list = async (req) => {
         $group: { _id: '$customer', refund: { $sum: '$inclTaxesCustomer' } }
       },
       {
-        $project: { _id: 0, customer: '$_id', refund: 1 }
+        $lookup: {
+          from: 'customers',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      { $unwind: { path: '$customer' } },
+      {
+        $project: {
+          _id: { customer: '$_id', tpp: null },
+          customer: { _id: 1, identity: 1 },
+          refund: 1,
+        }
       }
     ]);
 
@@ -66,36 +78,75 @@ const list = async (req) => {
       { $match: rules.length === 0 ? {} : { $and: rules } },
       {
         $group: {
-          _id: { TPP: '$thirdPartyPayer', CUSTOMER: '$customer' },
+          _id: { tpp: '$thirdPartyPayer', customer: '$customer' },
           refund: { $sum: '$inclTaxesTpp' },
         }
       },
       {
         $lookup: {
           from: 'thirdpartypayers',
-          localField: '_id.TPP',
+          localField: '_id.tpp',
           foreignField: '_id',
           as: 'thirdPartyPayer'
         }
       },
       { $unwind: { path: '$thirdPartyPayer' } },
       {
+        $lookup: {
+          from: 'customers',
+          localField: '_id.customer',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      { $unwind: { path: '$customer' } },
+      {
         $project: {
-          _id: 0,
-          thirdPartyPayer: '$thirdPartyPayer._id',
-          customer: '$_id.CUSTOMER',
+          _id: 1,
+          thirdPartyPayer: { name: 1, _id: 1 },
+          customer: { _id: 1, identity: 1 },
           refund: 1,
         },
       }
     ]);
 
-    const paymentQueries = rules.length > 0 ? rules.reduce((acc, next) => Object.assign(acc, next)) : {};
-    const payments = await Payment.find(paymentQueries).lean();
+    const payments = await Payment.aggregate([
+      { $match: rules.length === 0 ? {} : { $and: rules } },
+      {
+        $group: {
+          _id: { customer: '$customer', tpp: { $ifNull: ['$client', null] } },
+          payments: { $push: '$$ROOT' },
+        }
+      },
+      {
+        $lookup: {
+          from: 'thirdpartypayers',
+          localField: '_id.tpp',
+          foreignField: '_id',
+          as: 'thirdPartyPayer'
+        }
+      },
+      { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: '_id.customer',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          thirdPartyPayer: { name: 1, _id: 1 },
+          customer: { _id: 1, identity: 1 },
+          payments: 1,
+        },
+      }
+    ]);
 
-    const balances = [];
-    for (const bill of billsAggregation) {
-      balances.push(getBalance(bill, customerCreditNotesAggregation, tppCreditNotesAggregation, payments));
-    }
+    const balances = getBalances(billsAggregation, customerCreditNotesAggregation, tppCreditNotesAggregation, payments);
 
     const filteredBalances = balances.filter(client => client.balance !== 0);
 
