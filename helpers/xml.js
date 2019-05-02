@@ -4,12 +4,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { getFixedNumber } = require('./utils');
+const { getFixedNumber, removeSpaces, getLastVersion } = require('./utils');
 const { addFile } = require('./gdriveStorage');
 
 const createDocument = () => ({
   Document: {
-    '@xlmns': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02',
+    '@xmlns': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02',
     '@xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
     '@xsi:schemaLocation': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02 pain.008.001.02.xsd',
     CstmrDrctDbtInitn: {
@@ -29,7 +29,7 @@ const generateSEPAHeader = data => ({
     Id: {
       OrgId: {
         Othr: {
-          Id: data.ics
+          Id: removeSpaces(data.ics)
         }
       }
     }
@@ -50,19 +50,19 @@ const generatePaymentInfo = data => ({
     },
     SeqTp: data.sequenceType
   },
-  ReqColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
+  ReqdColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
   Cdtr: {
     Nm: data.creditor.name
   },
   CdtrAcct: {
     Id: {
-      IBAN: data.creditor.iban
+      IBAN: removeSpaces(data.creditor.iban)
     },
     Ccy: 'EUR'
   },
   CdtrAgt: {
     FinInstnId: {
-      BIC: data.creditor.bic
+      BIC: removeSpaces(data.creditor.bic)
     }
   },
   ChrgBr: 'SLEV',
@@ -70,7 +70,7 @@ const generatePaymentInfo = data => ({
     Id: {
       PrvtId: {
         Othr: {
-          Id: data.creditor.ics,
+          Id: removeSpaces(data.creditor.ics),
           SchmeNm: {
             Prtry: 'SEPA'
           }
@@ -83,6 +83,7 @@ const generatePaymentInfo = data => ({
 
 const addTransactionInfo = (paymentInfoObj, data) => {
   for (const transaction of data) {
+    const lastMandate = getLastVersion(transaction.customerInfo.payment.mandates, 'createdAt');
     paymentInfoObj.DrctDbtTxInf.push({
       PmtId: {
         InstrId: transaction.number,
@@ -94,18 +95,18 @@ const addTransactionInfo = (paymentInfoObj, data) => {
       },
       DrctDbtTx: {
         MndtRltdInf: {
-          MndtId: transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].rum,
-          DtOfSgntr: moment(transaction.customerInfo.payment.mandates[transaction.customerInfo.payment.mandates.length - 1].signedAt).format('YYYY-MM-DD'),
+          MndtId: lastMandate.rum,
+          DtOfSgntr: moment(lastMandate.signedAt).format('YYYY-MM-DD'),
         }
       },
       DbtrAgt: {
         FinInstnId: {
-          BIC: transaction.customerInfo.payment.bic
+          BIC: removeSpaces(transaction.customerInfo.payment.bic)
         }
       },
       Dbtr: { Nm: transaction.customerInfo.payment.bankAccountOwner },
       DbtrAcct: {
-        Id: { IBAN: transaction.customerInfo.payment.iban }
+        Id: { IBAN: removeSpaces(transaction.customerInfo.payment.iban) }
       }
     });
   }

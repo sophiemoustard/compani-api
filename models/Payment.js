@@ -10,6 +10,7 @@ const PaymentSchema = mongoose.Schema({
   netInclTaxes: Number,
   nature: { type: String, enum: [REFUND, PAYMENT] },
   type: { type: String, enum: PAYMENT_TYPES },
+  rum: String,
 
 }, { timestamps: true });
 

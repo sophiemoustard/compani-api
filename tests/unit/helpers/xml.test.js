@@ -90,7 +90,7 @@ describe('XML helper', () => {
           },
           SeqTp: data.sequenceType
         },
-        ReqColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
+        ReqdColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
         Cdtr: {
           Nm: data.creditor.name
         },
@@ -135,7 +135,7 @@ describe('XML helper', () => {
           LclInstrm: { Cd: 'CORE' },
           SeqTp: 'RCUR'
         },
-        ReqColltnDt: moment().format('YYYY-MM-DD'),
+        ReqdColltnDt: moment().format('YYYY-MM-DD'),
         Cdtr: { Nm: 'TEST' },
         CdtrAcct: {
           Id: { IBAN: '12345678900987654321' },
@@ -196,7 +196,7 @@ describe('XML helper', () => {
           LclInstrm: { Cd: 'CORE' },
           SeqTp: 'RCUR'
         },
-        ReqColltnDt: moment().format('YYYY-MM-DD'),
+        ReqdColltnDt: moment().format('YYYY-MM-DD'),
         Cdtr: { Nm: 'TEST' },
         CdtrAcct: {
           Id: { IBAN: '12345678900987654321' },
@@ -313,7 +313,7 @@ describe('XML helper', () => {
           LclInstrm: { Cd: 'CORE' },
           SeqTp: 'RCUR'
         },
-        ReqColltnDt: moment().format('YYYY-MM-DD'),
+        ReqdColltnDt: moment().format('YYYY-MM-DD'),
         Cdtr: { Nm: 'TEST' },
         CdtrAcct: {
           Id: { IBAN: '12345678900987654321' },

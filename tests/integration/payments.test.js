@@ -6,7 +6,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { getToken } = require('./seed/usersSeed');
 const { customersList, populateCustomers } = require('./seed/customersSeed');
-const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
+const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const { paymentsList, populatePayments } = require('./seed/paymentsSeed');
 const { populateCompanies } = require('./seed/companiesSeed');
 const { populateUsers } = require('./seed/usersSeed');
@@ -50,10 +50,10 @@ describe('PAYMENTS ROUTES', () => {
     const origPayload = {
       date: moment().toDate(),
       customer: customersList[0]._id,
-      client: thirdPartyPayersList[0]._id,
       netInclTaxes: 400,
       nature: PAYMENT,
-      type: PAYMENT_TYPES[0]
+      type: PAYMENT_TYPES[0],
+      rum: 'R12345678000000345634567',
     };
     const creationAssertions = [{ ...origPayload }, { ...origPayload, nature: REFUND }];
 
@@ -109,6 +109,13 @@ describe('PAYMENTS ROUTES', () => {
         update() {
           delete this.payload[this.param];
         },
+      },
+      {
+        param: 'rum',
+        payload: { ...origPayload },
+        update() {
+          delete this.payload[this.param];
+        },
       }
     ];
 
@@ -132,7 +139,8 @@ describe('PAYMENTS ROUTES', () => {
           customerInfo: customersList[0],
           netInclTaxes: 900,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0]
+          type: PAYMENT_TYPES[0],
+          rum: 'R12345678000000345634567',
         },
         {
           date: moment().toDate(),
@@ -140,7 +148,8 @@ describe('PAYMENTS ROUTES', () => {
           customerInfo: customersList[1],
           netInclTaxes: 250,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0]
+          type: PAYMENT_TYPES[0],
+          rum: 'R12345678000000345634567',
         },
       ];
 

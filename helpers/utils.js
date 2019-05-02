@@ -65,3 +65,9 @@ exports.getFixedNumber = (number, toFixedNb) => {
   if (Number.isNaN(Number(number))) throw new Error('You must provide a number !');
   return number.toFixed(toFixedNb);
 };
+
+exports.removeSpaces = (str) => {
+  if (!str) return '';
+  if (typeof str !== 'string') throw new Error('Parameter must be a string !');
+  return str.split(' ').join('');
+};
