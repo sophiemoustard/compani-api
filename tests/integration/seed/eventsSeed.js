@@ -48,7 +48,7 @@ const eventsList = [
     auxiliary: auxiliary._id,
     customer: customersList[0]._id,
     createdAt: moment().subtract(1, 'd').toDate(),
-    subscription: customersList[0].subscriptions[0]._id,
+    subscription: customersList[0].subscriptions[1]._id,
   }
 ];
 

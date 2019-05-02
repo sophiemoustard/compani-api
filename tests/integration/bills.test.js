@@ -10,7 +10,9 @@ const { populateCustomers, customersList } = require('./seed/customersSeed');
 const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const { populateEvents } = require('./seed/eventsSeed');
 const { populateServices } = require('./seed/servicesSeed');
+const { populateBills, billsList } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../helpers/constants');
+const Bill = require('../../models/Bill');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -26,14 +28,15 @@ describe('BILLS ROUTES', () => {
   before(populateThirdPartyPayers);
   before(populateEvents);
   before(populateServices);
+  beforeEach(populateBills);
   beforeEach(async () => {
     authToken = await getToken();
   });
 
   describe('GET /bills/drafts', () => {
     const query = {
-      endDate: moment().add(1, 'd').endOf('day').toDate(),
-      billingStartDate: moment().subtract(1, 'd').startOf('day').toDate(),
+      endDate: moment().endOf('month').toDate(),
+      billingStartDate: moment().startOf('month').toDate(),
       billingPeriod: TWO_WEEKS,
     };
     it('should return all draft bills', async () => {
@@ -74,6 +77,51 @@ describe('BILLS ROUTES', () => {
 
         expect(response.statusCode).toBe(400);
       });
+    });
+  });
+
+  describe('POST /bills', () => {
+    let createPayload = null;
+    before(async () => {
+      const query = {
+        endDate: moment().endOf('month').toDate(),
+        billingStartDate: moment().startOf('month').toDate(),
+        billingPeriod: TWO_WEEKS
+      };
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/bills/drafts?${qs.stringify(query)}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      createPayload = { bills: response.result.data.draftBills };
+    });
+    it('should create new bills', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: createPayload,
+        headers: { 'x-access-token': authToken }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const bills = await Bill.find().lean();
+      const draftBillsLength = createPayload.bills[0].customerBills.bills.length + createPayload.bills[0].customerBills.bills.length;
+      expect(bills.length).toBe(draftBillsLength + 2);
+    });
+  });
+
+  describe('GET /bills', () => {
+    it('should get all bills', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/bills',
+        headers: { 'x-access-token': authToken }
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.bills.length).toBe(billsList.length);
     });
   });
 });
