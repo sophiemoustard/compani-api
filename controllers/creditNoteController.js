@@ -156,6 +156,7 @@ const generateCreditNotePdf = async (req, h) => {
     creditNote.inclTaxesCustomer = creditNote.inclTaxesCustomer.toFixed(2);
     computedData.totalExclTaxes = computedData.totalExclTaxes.toFixed(2);
     computedData.totalInclTaxes = computedData.totalInclTaxes.toFixed(2);
+    console.log('CREDIT NOTE =', creditNote);
     const data = {
       creditNote: {
         exclTaxesCustomer: creditNote.exclTaxesCustomer,

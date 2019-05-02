@@ -1,12 +1,13 @@
 <style>
   body {
-    padding: 10%
+    padding: 10%;
+    font-family: 'Source Sans Pro', 'Roboto', 'Helvetica', 'Arial';
   }
   table {
     border-collapse: collapse;
   }
   table, th, td {
-    border: 1px solid black;
+    border: 1px solid rgba(0, 0, 0, 0.12);
   }
   th, td {
     padding: 1%
@@ -56,23 +57,27 @@
   </div>
 </div>
 <br />
+<br />
+<br />
+<br />
+<br />
 <div class="wrapper">
   <table class="subscriptions">
     <thead>
       <tr>
-        <th>Service</th>
-        <th>Prix unitaire TTC</th>
-        <th>Volume</th>
-        <th>Total TTC*</th>
+        <th align="left">Service</th>
+        <th align="left">Prix unitaire TTC</th>
+        <th align="left">Volume</th>
+        <th align="left">Total TTC*</th>
       </tr>
     </thead>
     <tbody>
       {{#table bill.subscriptions}}
         <tr>
           <td>WIP</td>
-          <td> {{ exclTaxes }} </td>
+          <td> {{ exclTaxes }} €</td>
           <td> {{ hours }} </td>
-          <td> {{ inclTaxes }} </td>
+          <td> {{ inclTaxes }} €</td>
         </tr>
       {{/table}}
     </tbody>
@@ -83,16 +88,16 @@
   <table class="total">
     <thead>
       <tr>
-        <th>Total HT</th>
-        <th>Total TVA</th>
-        <th>Total TTC</th>
+        <th align="left">Total HT</th>
+        <th align="left">TVA</th>
+        <th align="left">Total TTC</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td> {{ bill.computedData.totalExclTaxes }} </td>
-        <td> {{ bill.computedData.totalVAT }} </td>
-        <td> {{ bill.computedData.totalInclTaxes }} </td>
+        <td> {{ bill.computedData.totalExclTaxes }} €</td>
+        <td> {{ bill.computedData.totalVAT }} %</td>
+        <td> {{ bill.computedData.totalInclTaxes }} €</td>
       </tr>
     </tbody>
   </table>
@@ -103,11 +108,11 @@
   <table class="events">
     <thead>
       <tr>
-        <th>Date</th>
-        <th>Intervenant</th>
-        <th>Heure de début</th>
-        <th>Heure de fin</th>
-        <th>Service</th>
+        <th align="left">Date</th>
+        <th align="left">Intervenant</t>
+        <th align="left">Heure de début</th>
+        <th align="left">Heure de fin</th>
+        <th align="left">Service</th>
       </tr>
     </thead>
     <tbody>
