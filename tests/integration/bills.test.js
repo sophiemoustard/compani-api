@@ -254,7 +254,7 @@ describe('BILLS ROUTES', () => {
       expect(response.statusCode).toBe(200);
       const bills = await Bill.find().lean();
       const draftBillsLength = payload[0].customerBills.bills.length + payload[0].thirdPartyPayerBills[0].bills.length;
-      expect(bills.length).toBe(draftBillsLength + 2);
+      expect(bills.length).toBe(draftBillsLength + billsList.length);
     });
   });
 
