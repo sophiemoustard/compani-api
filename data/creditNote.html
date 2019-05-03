@@ -74,16 +74,21 @@
       </thead>
       <tbody>
         <tr>
-          <td>WIP</td>
+          <td>{{ creditNote.subscription.service }}</td>
+          {{#if creditNote.exclTaxesTpp}}
+          <td> {{ creditNote.exclTaxesTpp }} €</td>
+          <td> {{ creditNote.inclTaxesTpp }} €</td>
+          {{else}}
           <td> {{ creditNote.exclTaxesCustomer }} €</td>
           <td> {{ creditNote.inclTaxesCustomer }} €</td>
+          {{/if}}
         </tr>
       </tbody>
     </table>
     <p>*ce total intègre les majorations et les éventuelles remises</p>
   </div>
   {{else}}
-  <p>Prestations réalisées chez {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }}, <span class="capitalize">{{ creditNote.customer.contact.address.fullAddress }}</span></p>
+  <p>Prestations annulées</p>
   <div class="wrapper">
     <table class="events">
       <thead>

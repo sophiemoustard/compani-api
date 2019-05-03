@@ -152,8 +152,13 @@ const generateCreditNotePdf = async (req, h) => {
         computedData.events.push(creditNote.events[i]);
       }
     }
-    creditNote.exclTaxesCustomer = creditNote.exclTaxesCustomer.toFixed(2);
-    creditNote.inclTaxesCustomer = creditNote.inclTaxesCustomer.toFixed(2);
+    if (!creditNote.exclTaxesTpp) {
+      creditNote.exclTaxesCustomer = creditNote.exclTaxesCustomer.toFixed(2);
+      creditNote.inclTaxesCustomer = creditNote.inclTaxesCustomer.toFixed(2);
+    } else {
+      creditNote.exclTaxesCustomer = creditNote.exclTaxesCustomer.toFixed(2);
+      creditNote.inclTaxesCustomer = creditNote.inclTaxesCustomer.toFixed(2);
+    }
     computedData.totalExclTaxes = computedData.totalExclTaxes.toFixed(2);
     computedData.totalInclTaxes = computedData.totalInclTaxes.toFixed(2);
     console.log('CREDIT NOTE =', creditNote);
@@ -161,6 +166,8 @@ const generateCreditNotePdf = async (req, h) => {
       creditNote: {
         exclTaxesCustomer: creditNote.exclTaxesCustomer,
         inclTaxesCustomer: creditNote.inclTaxesCustomer,
+        exclTaxesTpp: creditNote.exclTaxesTpp,
+        inclTaxesTpp: creditNote.inclTaxesTpp,
         creditNoteNumber: creditNote.number,
         customer: creditNote.customer,
         subscription: creditNote.subscription,
