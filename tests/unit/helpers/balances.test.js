@@ -77,6 +77,13 @@ describe('canBeWithdrawn', () => {
         delete this.bill.customer.payment.mandates[0].signedAt;
       },
     },
+    {
+      assertion: 'client has no bank account name',
+      bill: _.cloneDeep(bill),
+      update() {
+        delete this.bill.customer.payment.bankAccountOwner;
+      },
+    }
   ];
 
   falsyTests.forEach((test) => {
@@ -95,6 +102,7 @@ describe('getBalance', () => {
       billed: 70,
       customer: {
         payment: {
+          bankAccountOwner: 'Test',
           mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
         },
       }
@@ -115,6 +123,7 @@ describe('getBalance', () => {
       billed: 70,
       customer: {
         payment: {
+          bankAccountOwner: 'Test',
           mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
         },
       }
@@ -139,6 +148,7 @@ describe('getBalance', () => {
       billed: 70,
       customer: {
         payment: {
+          bankAccountOwner: 'Test',
           mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
         },
       }
