@@ -81,6 +81,7 @@ exports.plugin = {
             date: Joi.date().required(),
             netInclTaxes: Joi.number().required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
+            nature: Joi.string(),
           },
         },
       },
