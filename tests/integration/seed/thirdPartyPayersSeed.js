@@ -14,7 +14,7 @@ const thirdPartyPayersList = [
 ];
 
 const populateThirdPartyPayers = async () => {
-  await ThirdPartyPayer.remove({});
+  await ThirdPartyPayer.deleteMany({});
   await ThirdPartyPayer.insertMany(thirdPartyPayersList);
 };
 

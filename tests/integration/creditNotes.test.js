@@ -1,7 +1,6 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const moment = require('moment');
-const qs = require('qs');
 
 const app = require('../../server');
 const CreditNote = require('../../models/CreditNote');
@@ -126,7 +125,7 @@ describe('CREDIT NOTES ROUTES', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: `/creditNotes`,
+        url: '/creditNotes',
         headers: { 'x-access-token': authToken },
       });
 

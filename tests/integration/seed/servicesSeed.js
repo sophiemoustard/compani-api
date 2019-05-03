@@ -32,7 +32,7 @@ const servicesList = [
 ];
 
 const populateServices = async () => {
-  await Service.remove({});
+  await Service.deleteMany({});
   await Service.insertMany(servicesList);
 };
 

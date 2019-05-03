@@ -19,7 +19,7 @@ const creditNotesList = [
 ];
 
 const populateCreditNotes = async () => {
-  await CreditNote.remove({});
+  await CreditNote.deleteMany({});
   await CreditNote.insertMany(creditNotesList);
 };
 

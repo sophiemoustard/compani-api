@@ -39,7 +39,7 @@ const surchargesList = [
 ];
 
 const populateSurcharges = async () => {
-  await Surcharge.remove({});
+  await Surcharge.deleteMany({});
   await Surcharge.insertMany(surchargesList);
 };
 

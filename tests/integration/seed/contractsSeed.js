@@ -25,7 +25,7 @@ const contractsList = [
 ];
 
 const populateContracts = async () => {
-  await Contract.remove({});
+  await Contract.deleteMany({});
   await Contract.insertMany(contractsList);
 };
 

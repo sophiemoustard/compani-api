@@ -5,7 +5,7 @@ const moment = require('moment');
 const Customer = require('../../../models/Customer');
 const { servicesList } = require('./servicesSeed');
 const { thirdPartyPayersList } = require('./thirdPartyPayersSeed');
-const { MONTHLY, FIXED } = require('../../../helpers/constants');
+const { ONCE, FIXED } = require('../../../helpers/constants');
 
 faker.locale = 'fr';
 
@@ -57,6 +57,7 @@ const customersList = [
           estimatedWeeklyVolume: 12,
           evenings: 2,
           sundays: 1,
+          startDate: moment().subtract(1, 'month').toDate(),
         }],
       },
       {
@@ -67,6 +68,7 @@ const customersList = [
           estimatedWeeklyVolume: 12,
           evenings: 2,
           sundays: 1,
+          startDate: moment().subtract(1, 'month').toDate(),
         }],
       }
     ],
@@ -79,12 +81,12 @@ const customersList = [
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
-          frequency: MONTHLY,
+          frequency: ONCE,
           endDate: moment.utc().add(6, 'months').toDate(),
           effectiveDate: moment.utc().toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
-          careDays: [2, 5],
+          careDays: [0, 1, 2, 3, 4, 5, 6],
         }]
       },
     ],
@@ -172,7 +174,7 @@ const customersList = [
 ];
 
 const populateCustomers = async () => {
-  await Customer.remove({});
+  await Customer.deleteMany({});
   await Customer.insertMany(customersList);
 };
 

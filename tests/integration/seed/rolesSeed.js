@@ -147,8 +147,8 @@ const wrongRolePayload = {
 const rightPayload = { name: 'Test', description: 'test', permission: 'test:read' };
 
 const populateRoles = async () => {
-  await Role.remove({});
-  await Right.remove({});
+  await Role.deleteMany({});
+  await Right.deleteMany({});
 
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
