@@ -53,7 +53,6 @@ describe('PAYMENTS ROUTES', () => {
       netInclTaxes: 400,
       nature: PAYMENT,
       type: PAYMENT_TYPES[0],
-      rum: 'R12345678000000345634567',
     };
     const creationAssertions = [{ ...origPayload }, { ...origPayload, nature: REFUND }];
 
@@ -110,13 +109,6 @@ describe('PAYMENTS ROUTES', () => {
           delete this.payload[this.param];
         },
       },
-      {
-        param: 'rum',
-        payload: { ...origPayload },
-        update() {
-          delete this.payload[this.param];
-        },
-      }
     ];
 
     falsyAssertions.forEach((test) => {
