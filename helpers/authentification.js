@@ -13,7 +13,7 @@ const validate = async (decoded, req) => {
     }
 
     if (!decoded._id) throw new Error('No id / role present in token');
-    const user = await User.findById(decoded._id, '_id role company local');
+    const user = await User.findById(decoded._id, '_id identity role company local');
 
     const rights = user.role.rights.filter(right => right.hasAccess).map((right) => {
       if (right.right_id && right.right_id.permission) return right.right_id.permission;
@@ -21,6 +21,7 @@ const validate = async (decoded, req) => {
 
     const credentials = {
       _id: decoded._id,
+      identity: user.identity || null,
       email: user.local && user.local.email ? user.local.email : null,
       company: user.company || null,
       scope: [`user-${decoded._id}`, user.role.name, ...rights]
