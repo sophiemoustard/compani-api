@@ -4,6 +4,7 @@ module.exports = {
   ABSENCE: 'absence',
   UNAVAILABILITY: 'unavailability',
   INTERNAL_HOUR: 'internalHour',
+  UNJUSTIFIED: 'unjustified absence',
   // COMPANY
   MAX_INTERNAL_HOURS_NUMBER: 9,
   // COMPANY THIRD PARTY PAYERS
@@ -14,6 +15,7 @@ module.exports = {
   ONCE: 'once',
   HOURLY: 'hourly',
   FIXED: 'fixed',
+  DAILY: 'daily',
   // REPETITION FREQUENCY
   NEVER: 'never',
   EVERY_DAY: 'every_day',

@@ -3,7 +3,9 @@ const {
   INTERNAL_HOUR,
   ABSENCE,
   UNAVAILABILITY,
-  INTERVENTION
+  INTERVENTION,
+  DAILY,
+  HOURLY,
 } = require('../helpers/constants');
 
 const EventSchema = mongoose.Schema({
@@ -22,6 +24,7 @@ const EventSchema = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId },
   },
   absence: String,
+  absenceNature: { type: String, enum: [HOURLY, DAILY] },
   location: {
     street: String,
     fullAddress: String,
