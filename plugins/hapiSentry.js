@@ -12,7 +12,7 @@ const beforeSendHandler = (event) => {
 const options = {
   client: {
     dsn: process.env.SENTRY_DSN,
-    environment: 'development',
+    environment: 'production',
     beforeSend: beforeSendHandler,
   },
 };
