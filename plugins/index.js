@@ -1,45 +1,15 @@
-let reporters = {};
-if (process.env.NODE_ENV !== 'test') {
-  reporters = {
-    console: [{
-      module: 'good-squeeze',
-      name: 'Squeeze',
-      args: [{
-        log: '*',
-        response: '*',
-        request: '*'
-      }]
-    },
-    {
-      module: 'good-console'
-    },
-    'stdout'
-    ]
-  };
-} else {
-  reporters = {
-    console: [{
-      module: 'good-squeeze',
-      name: 'Squeeze',
-      args: [{ log: '*', request: { include: ['request', 'error'], exclude: ['db', 'info'] } }]
-    },
-    {
-      module: 'good-console',
-      args: [{
-        format: 'DDMMYYYY-HH:MM:ss'
-      }]
-    },
-    'stdout'
-    ],
-  };
-}
+const good = require('./good');
+const hapiSentry = require('./hapiSentry');
+
 exports.plugins = [
   {
     plugin: require('good'),
-    options: {
-      reporters
-    }
+    options: { reporters: good.reporters }
   },
   { plugin: require('hapi-auth-jwt2') },
-  { plugin: require('inert') }
+  { plugin: require('inert') },
+  {
+    plugin: require('hapi-sentry'),
+    options: hapiSentry.options,
+  },
 ];
