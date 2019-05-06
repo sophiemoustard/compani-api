@@ -51,7 +51,7 @@ const authorize = async (req) => {
     return { message: translate[language].userAuthentified, data: { token, user } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -91,7 +91,7 @@ const getUserByParamId = async (req) => {
     return { message: translate[language].userFound, data: { user: payload } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -124,7 +124,7 @@ const list = async (req) => {
     return { message: translate[language].usersFound, data: { users } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

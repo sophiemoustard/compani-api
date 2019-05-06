@@ -31,7 +31,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -48,7 +48,7 @@ const getById = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -62,7 +62,7 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -100,7 +100,7 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -118,7 +118,7 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -144,7 +144,7 @@ const generateCreditNotePdf = async (req, h) => {
     return h.response(pdf).type('application/pdf');
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

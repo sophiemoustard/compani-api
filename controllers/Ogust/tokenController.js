@@ -13,7 +13,7 @@ const getOgustToken = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

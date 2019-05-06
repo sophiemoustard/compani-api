@@ -24,7 +24,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -40,7 +40,7 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -50,7 +50,7 @@ const createList = async (req, h) => {
     return h.file(payments, { confine: false });
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -70,7 +70,7 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

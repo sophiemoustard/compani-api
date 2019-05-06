@@ -44,7 +44,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -67,7 +67,7 @@ const listForCreditNotes = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -94,7 +94,7 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -130,7 +130,7 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -142,7 +142,7 @@ const remove = async (req) => {
     return { message: translate[language].eventDeleted, };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -162,7 +162,7 @@ const removeRepetition = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -187,7 +187,7 @@ const uploadFile = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
