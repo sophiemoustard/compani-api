@@ -2,12 +2,12 @@ const { ObjectID } = require('mongodb');
 
 const Service = require('../../../models/Service');
 const { companiesList } = require('./companiesSeed');
-const { CUSTOMER_CONTRACT, HOURLY } = require('../../../helpers/constants');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY } = require('../../../helpers/constants');
 
 const servicesList = [
   {
     _id: new ObjectID(),
-    type: CUSTOMER_CONTRACT,
+    type: COMPANY_CONTRACT,
     company: companiesList[0]._id,
     versions: [{
       defaultUnitAmount: 12,

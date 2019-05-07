@@ -15,7 +15,11 @@ const {
   INTERNAL_HOUR,
   ABSENCE,
   UNAVAILABILITY,
-  INTERVENTION
+  INTERVENTION,
+  DAILY,
+  HOURLY,
+  UNJUSTIFIED,
+  ILLNESS,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -46,7 +50,10 @@ exports.plugin = {
               _id: Joi.objectId(),
               default: Joi.boolean(),
             }).when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
-            absence: Joi.string().when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
+            absence: Joi.string()
+              .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() })
+              .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
+            absenceNature: Joi.string().valid(DAILY, HOURLY).when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
@@ -54,7 +61,7 @@ exports.plugin = {
             repetition: Joi.object().keys({
               frequency: Joi.string().required(),
             }),
-          })
+          }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
         auth: {
           strategy: 'jwt',
@@ -119,7 +126,8 @@ exports.plugin = {
             }),
             subscription: Joi.objectId(),
             internalHour: Joi.object(),
-            absence: Joi.string(),
+            absence: Joi.string().when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
+            absenceNature: Joi.string().valid(DAILY, HOURLY),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
