@@ -7,7 +7,7 @@ const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE } = require('./constants');
-const { getMatchingVersion } = require('../helpers/utils');
+const { getMatchingVersion, getLastVersion } = require('../helpers/utils');
 
 const holidays = new Holidays('FR');
 const now = new Date();
@@ -299,7 +299,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(query.billingStartDate);
-  const { unitTTCRate } = subscription.versions[subscription.versions.length - 1];
+  const { unitTTCRate } = getLastVersion(subscription.versions, 'createdAt');
   for (const event of events) {
     const matchingService = getMatchingVersion(event.startDate, subscription.service, 'startDate');
     const matchingFunding = fundings && fundings.length > 0 ? getMatchingFunding(event.startDate, fundings) : null;
