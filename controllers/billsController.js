@@ -6,7 +6,7 @@ const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { formatPrice } = require('../helper/utils');
+const { formatPrice } = require('../helpers/utils');
 const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const { formatAndCreateBills } = require('../helpers/bills');
@@ -112,6 +112,8 @@ const generateBillPdf = async (req, h) => {
         computedData.events.push(bill.subscriptions[i].events[j]);
       }
     }
+    console.log('BILL', bill);
+    console.log('BILL', bill.subscriptions[0].events[0]);
     computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
     computedData.totalVAT = formatPrice(computedData.totalVAT);
     const data = {

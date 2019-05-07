@@ -72,8 +72,8 @@ exports.removeSpaces = (str) => {
   return str.split(' ').join('');
 };
 
-export const roundFrenchNumber = number => number.toLocaleString('fr-FR', { minimumFractionDigits: 2, style: 'currency', currency: 'EUR', currencyDisplay: 'symbol' });
+const roundFrenchNumber = number => number.toLocaleString('fr-FR', { minimumFractionDigits: 2, style: 'currency', currency: 'EUR', currencyDisplay: 'symbol' });
 
-export const formatPrice = (val) => {
+exports.formatPrice = (val) => {
   return val ? roundFrenchNumber(val) : roundFrenchNumber(0);
 };
