@@ -12,7 +12,8 @@ const {
   populateEventSubscription,
   createRepetitions,
   updateRepetitions,
-  deleteRepetition
+  deleteRepetition,
+  isEditionAllowed,
 } = require('../helpers/events');
 const { ABSENCE, NEVER, INTERVENTION } = require('../helpers/constants');
 
@@ -103,8 +104,8 @@ const update = async (req) => {
     let event = await Event.findOne({ _id: req.params._id });
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    event = { ...event.toObject(), ...req.payload };
-    if (!(await isCreationAllowed(event))) return Boom.badData();
+    // event = { ...event.toObject(), ...req.payload };
+    if (!(await isEditionAllowed(event, req.payload))) return Boom.badData();
 
     event = await Event
       .findOneAndUpdate(
