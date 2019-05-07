@@ -380,7 +380,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(404);
     });
 
-    it('should return 404 as  subscription not found', async () => {
+    it('should return 404 as subscription not found', async () => {
       const customer = customersList[0];
       const invalidId = new ObjectID().toHexString();
 
