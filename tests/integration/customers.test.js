@@ -346,7 +346,6 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     const payload = {
       estimatedWeeklyVolume: 24,
       evenings: 3,
-      startDate: '2019-01-18T10:07:56.707Z',
     };
 
     it('should update customer subscription', async () => {
