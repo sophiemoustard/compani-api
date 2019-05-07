@@ -38,7 +38,7 @@ exports.getLastVersion = (versions, dateKey) => {
   if (typeof dateKey !== 'string') throw new Error('sortKey must be a string !');
   if (versions.length === 0) return null;
   if (versions.length === 1) return versions[0];
-  return versions.sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
+  return [...versions].sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
 };
 
 // `obj` should by sort in descending order
@@ -47,7 +47,7 @@ exports.getMatchingVersion = (date, obj, dateKey) => {
   if (obj.versions.length === 0) return null;
 
 
-  const matchingVersion = obj.versions
+  const matchingVersion = [...obj.versions]
     .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') && (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))
     .sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
   if (!matchingVersion) return null;

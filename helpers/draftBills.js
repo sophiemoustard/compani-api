@@ -29,10 +29,10 @@ const populateSurcharge = async (subscription) => {
 
   return {
     ...subscription,
-    versions: subscription.versions.sort((a, b) => b.startDate - a.startDate),
+    versions: [...subscription.versions].sort((a, b) => b.startDate - a.startDate),
     service: {
       ...subscription.service,
-      versions: subscription.service.versions.sort((a, b) => b.startDate - a.startDate),
+      versions: [...subscription.service.versions].sort((a, b) => b.startDate - a.startDate),
     },
   };
 };
