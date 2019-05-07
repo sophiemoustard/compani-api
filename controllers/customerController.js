@@ -773,7 +773,7 @@ const createFunding = async (req) => {
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
-    let funding = customer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    let funding = [...customer.fundings].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
     funding = await populateFundings(funding, customer);
 
     return {

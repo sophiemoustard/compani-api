@@ -476,7 +476,7 @@ describe('getFixedFundingSplit', () => {
 });
 
 describe('getEventPrice', () => {
-  const subscription = { unitTTCRate: 21 };
+  const unitTTCRate = 21;
   const event = {
     startDate: (new Date('2019/05/08')).setHours(8),
     endDate: (new Date('2019/05/08')).setHours(10),
@@ -484,14 +484,14 @@ describe('getEventPrice', () => {
 
   it('should return event prices wihtout funding and without surcharge', () => {
     const service = { vat: 20 };
-    const result = getEventPrice(event, subscription, service);
+    const result = getEventPrice(event, unitTTCRate, service);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 35, thirdPartyPayerPrice: 0 });
   });
 
   it('should return event prices with surcharge', () => {
     const service = { vat: 20, nature: 'hourly', surcharge: { publicHoliday: 10 } };
-    const result = getEventPrice(event, subscription, service);
+    const result = getEventPrice(event, unitTTCRate, service);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 38.5, thirdPartyPayerPrice: 0 });
   });
@@ -507,7 +507,7 @@ describe('getEventPrice', () => {
       history: { careHours: 1 },
       thirdPartyPayer: { _id: new ObjectID() },
     };
-    const result = getEventPrice(event, subscription, service, funding);
+    const result = getEventPrice(event, unitTTCRate, service, funding);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 10, thirdPartyPayerPrice: 25 });
   });
@@ -520,7 +520,7 @@ describe('getEventPrice', () => {
       amountTTC: 100,
       thirdPartyPayer: { _id: new ObjectID() },
     };
-    const result = getEventPrice(event, subscription, service, funding);
+    const result = getEventPrice(event, unitTTCRate, service, funding);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 0, thirdPartyPayerPrice: 35 });
   });

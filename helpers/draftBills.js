@@ -7,7 +7,7 @@ const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE } = require('./constants');
-const { getMatchingVersion } = require('../helpers/utils');
+const { getMatchingVersion, getLastVersion } = require('../helpers/utils');
 
 const holidays = new Holidays('FR');
 const now = new Date();
@@ -29,10 +29,10 @@ const populateSurcharge = async (subscription) => {
 
   return {
     ...subscription,
-    versions: subscription.versions.sort((a, b) => b.startDate - a.startDate),
+    versions: [...subscription.versions].sort((a, b) => b.startDate - a.startDate),
     service: {
       ...subscription.service,
-      versions: subscription.service.versions.sort((a, b) => b.startDate - a.startDate),
+      versions: [...subscription.service.versions].sort((a, b) => b.startDate - a.startDate),
     },
   };
 };
@@ -234,8 +234,8 @@ const getFixedFundingSplit = (event, funding, service, price) => {
 /**
  * Returns customer and tpp excluded taxes prices of the given event.
  */
-const getEventPrice = (event, subscription, service, funding) => {
-  const unitExclTaxes = getExclTaxes(subscription.unitTTCRate, service.vat);
+const getEventPrice = (event, unitTTCRate, service, funding) => {
+  const unitExclTaxes = getExclTaxes(unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;
 
   if (service.surcharge && service.nature === HOURLY) price = applySurcharge(event, price, service.surcharge);
@@ -299,11 +299,11 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(query.billingStartDate);
+  const { unitTTCRate } = getLastVersion(subscription.versions, 'createdAt');
   for (const event of events) {
     const matchingService = getMatchingVersion(event.startDate, subscription.service, 'startDate');
-    const matchingSub = getMatchingVersion(event.startDate, subscription, 'startDate');
     const matchingFunding = fundings && fundings.length > 0 ? getMatchingFunding(event.startDate, fundings) : null;
-    const eventPrice = getEventPrice(event, matchingSub, matchingService, matchingFunding);
+    const eventPrice = getEventPrice(event, unitTTCRate, matchingService, matchingFunding);
 
     if (eventPrice.customerPrice) customerPrices = formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
     if (matchingFunding && eventPrice.thirdPartyPayerPrice) {
@@ -321,10 +321,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     discount: 0,
     startDate: startDate.toDate(),
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
-    unitExclTaxes: getExclTaxes(
-      getMatchingVersion(query.billingStartDate, subscription, 'startDate').unitTTCRate,
-      serviceMatchingVersion.vat
-    ),
+    unitExclTaxes: getExclTaxes(unitTTCRate, serviceMatchingVersion.vat),
     vat: serviceMatchingVersion.vat,
   };
 

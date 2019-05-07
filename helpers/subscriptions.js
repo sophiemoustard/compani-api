@@ -3,7 +3,7 @@ const _ = require('lodash');
 const Surcharge = require('../models/Surcharge');
 
 const populateServices = async (service) => {
-  const currentVersion = service.versions
+  const currentVersion = [...service.versions]
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
   const surcharge = await Surcharge.findOne({ _id: currentVersion.surcharge });
@@ -36,14 +36,14 @@ const subscriptionsAccepted = (customer) => {
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = _.map(customer.subscriptions, (subscription) => {
         const { service } = subscription;
-        const lastVersion = subscription.versions.sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
+        const lastVersion = [...subscription.versions].sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
         const { createdAt, _id, ...version } = lastVersion;
         delete version.startDate;
 
         return _.pickBy({ service: service.name, ...version });
       });
 
-      const lastSubscriptionHistory = customer.subscriptionsHistory.sort((a, b) => new Date(b.approvalDate) - new Date(a.approvalDate))[0];
+      const lastSubscriptionHistory = [...customer.subscriptionsHistory].sort((a, b) => new Date(b.approvalDate) - new Date(a.approvalDate))[0];
       const lastSubscriptions = lastSubscriptionHistory.subscriptions.map(sub => _.pickBy(_.omit(sub, ['_id', 'startDate'])));
       customer.subscriptionsAccepted = _.isEqual(subscriptions, lastSubscriptions);
     } else {
