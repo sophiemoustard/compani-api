@@ -4,7 +4,7 @@ const moment = require('moment');
 const { getToken } = require('./seed/usersSeed');
 const { populateEvents, eventsList } = require('./seed/eventsSeed');
 const { populateUsers, userList } = require('./seed/usersSeed');
-const { populateCustomers } = require('./seed/customersSeed');
+const { populateCustomers, customersList } = require('./seed/customersSeed');
 const { populateContracts } = require('./seed/contractsSeed');
 const { populateServices } = require('./seed/servicesSeed');
 const { sectorsList } = require('./seed/sectorsSeed');
@@ -73,7 +73,7 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('POST /events', () => {
-    it('should create new event', async () => {
+    it('should create an internal hour', async () => {
       const auxiliary = userList[4];
       const payload = {
         type: 'internalHour',
@@ -104,6 +104,80 @@ describe('EVENTS ROUTES', () => {
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.event).toBeDefined();
     });
+
+    it('should create an intervention', async () => {
+      const auxiliary = userList[4];
+      const customer = customersList[0];
+      const payload = {
+        type: 'intervention',
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: auxiliary._id,
+        sector: sectorsList[0]._id,
+        customer: customer._id,
+        subscription: customer.subscriptions[0]._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.event).toBeDefined();
+    });
+
+    it('should create an absence', async () => {
+      const auxiliary = userList[4];
+      const payload = {
+        type: 'absence',
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: auxiliary._id,
+        sector: sectorsList[0]._id,
+        absence: 'illness',
+        absenceNature: 'daily',
+        attachment: {
+          driveId: 'qwertyuiop',
+          link: 'asdfghjkl;',
+        }
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.event).toBeDefined();
+    });
+
+
+    it('should create an absence', async () => {
+      const auxiliary = userList[4];
+      const payload = {
+        type: 'unavailability',
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: auxiliary._id,
+        sector: sectorsList[0]._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.event).toBeDefined();
+    });
+
     it('should return a 400 error as payload is invalid (subscription missing with type intervention)', async () => {
       const payload = {
         type: 'intervention',
