@@ -25,8 +25,6 @@ const auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.som
   moment(contract.startDate).isSameOrBefore(day, 'd') &&
   ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
 
-const customerHasActiveSubscriptionOnDay = (sub, day) => sub.versions.some(version => moment(version.startDate).isSameOrBefore(day, 'd'));
-
 const isCreationAllowed = async (event) => {
   let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
   user = user.toObject();
@@ -44,9 +42,6 @@ const isCreationAllowed = async (event) => {
 
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;
-
-    const hasActiveSub = customerHasActiveSubscriptionOnDay(eventSubscription, event.startDate);
-    if (!hasActiveSub) return false;
 
     if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
       const contractBetweenAuxAndCus = await Contract.findOne({ user: event.auxiliary, customer: event.customer });
@@ -110,8 +105,7 @@ const populateEventSubscription = (event) => {
   if (event.type !== INTERVENTION) return event;
   if (!event.customer || !event.customer.subscriptions) throw Boom.badImplementation();
 
-  const subscription = event.customer.subscriptions
-    .find(sub => sub._id.toHexString() === event.subscription.toHexString());
+  const subscription = event.customer.subscriptions.find(sub => sub._id.toHexString() === event.subscription.toHexString());
   if (!subscription) throw Boom.badImplementation();
 
   return { ...event, subscription };

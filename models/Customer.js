@@ -77,7 +77,6 @@ const CustomerSchema = mongoose.Schema({
       estimatedWeeklyVolume: Number,
       evenings: Number,
       sundays: Number,
-      startDate: { type: Date, default: Date.now },
       createdAt: { type: Date, default: Date.now },
     }],
     createdAt: { type: Date, default: Date.now }
