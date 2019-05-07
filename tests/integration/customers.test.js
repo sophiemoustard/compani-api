@@ -346,7 +346,6 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     const payload = {
       estimatedWeeklyVolume: 24,
       evenings: 3,
-      startDate: '2019-01-18T10:07:56.707Z',
     };
 
     it('should update customer subscription', async () => {
@@ -381,7 +380,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(404);
     });
 
-    it('should return 404 as  subscription not found', async () => {
+    it('should return 404 as subscription not found', async () => {
       const customer = customersList[0];
       const invalidId = new ObjectID().toHexString();
 

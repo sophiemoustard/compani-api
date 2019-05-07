@@ -258,7 +258,6 @@ exports.plugin = {
             estimatedWeeklyVolume: Joi.number(),
             evenings: Joi.number(),
             sundays: Joi.number(),
-            startDate: Joi.date().required(),
           }
         },
         auth: 'jwt',

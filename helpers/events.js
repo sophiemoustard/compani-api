@@ -12,6 +12,8 @@ const {
   EVERY_WEEK,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
+  ABSENCE,
+  UNAVAILABILITY,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -60,6 +62,14 @@ const isCreationAllowed = async (event) => {
   }
 
   return true;
+};
+
+const isEditionAllowed = async (eventFromDB, payload) => {
+  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString()) {
+    return false;
+  }
+
+  return isCreationAllowed({ ...eventFromDB.toObject(), ...payload });
 };
 
 const getListQuery = (req) => {
@@ -233,6 +243,7 @@ const deleteRepetition = async (event) => {
 
 module.exports = {
   isCreationAllowed,
+  isEditionAllowed,
   getListQuery,
   populateEventSubscription,
   populateEvents,

@@ -5,12 +5,14 @@ const moment = require('moment');
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
 const Contract = require('../../../models/Contract');
-const { populateEventSubscription, populateEvents, isCreationAllowed } = require('../../../helpers/events');
+const { populateEventSubscription, populateEvents, isCreationAllowed, isEditionAllowed } = require('../../../helpers/events');
 const {
   INTERVENTION,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
   INTERNAL_HOUR,
+  ABSENCE,
+  UNAVAILABILITY,
 } = require('../../../helpers/constants');
 
 describe('populateEvent', () => {
@@ -390,5 +392,27 @@ describe('isCreationAllowed', () => {
     user.toObject = () => user;
 
     expect(await isCreationAllowed(payload)).toBeFalsy();
+  });
+});
+
+describe('isEditionAllowed', () => {
+  it('should return false as event is absence and auxiliary is updated', async () => {
+    const eventFromDb = {
+      type: ABSENCE,
+      auxiliary: new ObjectID(),
+    };
+    const payload = { auxiliary: '1234567890' };
+
+    expect(await isEditionAllowed(eventFromDb, payload)).toBeFalsy();
+  });
+
+  it('should return false as event is unavailability and auxiliary is updated', async () => {
+    const eventFromDb = {
+      type: UNAVAILABILITY,
+      auxiliary: new ObjectID(),
+    };
+    const payload = { auxiliary: '1234567890' };
+
+    expect(await isEditionAllowed(eventFromDb, payload)).toBeFalsy();
   });
 });
