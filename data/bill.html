@@ -75,10 +75,10 @@
     <tbody>
       {{#table bill.subscriptions}}
         <tr>
-          <td>WIP</td>
-          <td> {{ exclTaxes }} €</td>
+          <td>{{ service }} (TVA {{vat}}%)</td>
+          <td> {{ exclTaxes }}</td>
           <td> {{ hours }} </td>
-          <td> {{ inclTaxes }} €</td>
+          <td> {{ inclTaxes }}</td>
         </tr>
       {{/table}}
     </tbody>
@@ -96,9 +96,9 @@
     </thead>
     <tbody>
       <tr>
-        <td> {{ bill.totalExclTaxes }} €</td>
-        <td> {{ bill.totalVAT }} €</td>
-        <td> {{ bill.netInclTaxes }} €</td>
+        <td> {{ bill.totalExclTaxes }}</td>
+        <td> {{ bill.totalVAT }}</td>
+        <td> {{ bill.netInclTaxes }}</td>
       </tr>
     </tbody>
   </table>
@@ -117,13 +117,13 @@
       </tr>
     </thead>
     <tbody>
-    {{#table bill.computedData.events}}
+    {{#table bill.events}}
       <tr>
         <td> {{ date }} </td>
         <td> {{ auxiliary.identity.firstname }}. {{ auxiliary.identity.lastname }} </td>
         <td> {{ startTime }} </td>
         <td> {{ endTime }} </td>
-        <td> WIP </td>
+        <td> {{ service }} </td>
       </tr>
     {{/table}}
     </tbody>

@@ -1,5 +1,6 @@
 const moment = require('moment-timezone');
 const _ = require('lodash');
+const Intl = require('intl');
 
 /*
 ** Get a date interval using range array and interval type
@@ -72,8 +73,9 @@ exports.removeSpaces = (str) => {
   return str.split(' ').join('');
 };
 
-const roundFrenchNumber = number => number.toLocaleString('fr-FR', { minimumFractionDigits: 2, style: 'currency', currency: 'EUR', currencyDisplay: 'symbol' });
-
-exports.formatPrice = (val) => {
-  return val ? roundFrenchNumber(val) : roundFrenchNumber(0);
+const roundFrenchNumber = (number) => {
+  const nf = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, style: 'currency', currency: 'EUR', currencyDisplay: 'symbol' });
+  return nf.format(number);
 };
+
+exports.formatPrice = val => (val ? roundFrenchNumber(val) : roundFrenchNumber(0));

@@ -109,11 +109,10 @@ const generateBillPdf = async (req, h) => {
         bill.subscriptions[i].events[j].date = moment(bill.subscriptions[i].events[j].startDate).format('DD/MM');
         bill.subscriptions[i].events[j].startTime = moment(bill.subscriptions[i].events[j].startDate).format('HH:mm');
         bill.subscriptions[i].events[j].endTime = moment(bill.subscriptions[i].events[j].endDate).format('HH:mm');
+        bill.subscriptions[i].events[j].service = bill.subscriptions[i].service;
         computedData.events.push(bill.subscriptions[i].events[j]);
       }
     }
-    console.log('BILL', bill);
-    console.log('BILL', bill.subscriptions[0].events[0]);
     computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
     computedData.totalVAT = formatPrice(computedData.totalVAT);
     const data = {
