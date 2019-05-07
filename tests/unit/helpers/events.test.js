@@ -319,20 +319,19 @@ describe('isCreationAllowed', () => {
     expect(await isCreationAllowed(payload)).toBeTruthy();
   });
 
-  it('should return false if company contract and customer has no active subscription', async () => {
-    const subscriptionId = new ObjectID();
+  it('should return false if company contract and customer has no subscription', async () => {
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
-      subscription: subscriptionId.toHexString(),
+      subscription: (new ObjectID()).toHexString(),
       startDate: '2019-10-03T00:00:00.000Z',
     };
 
     const customer = {
       _id: payload.customer,
       subscriptions: [{
-        _id: subscriptionId,
+        _id: new ObjectID(),
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
         versions: [{ startDate: moment(payload.startDate).add(1, 'd') }],
       }]
