@@ -1,6 +1,7 @@
 const moment = require('moment-business-days');
 const Holidays = require('date-holidays');
 const mongoose = require('mongoose');
+const omit = require('lodash/omit');
 
 const Event = require('../models/Event');
 const Surcharge = require('../models/Surcharge');
@@ -76,13 +77,15 @@ const populateFundings = async (fundings, endDate) => {
 const getMatchingFunding = (date, fundings) => {
   if (moment(date).isHoliday()) {
     for (const funding of fundings) {
-      const matchingVersion = getMatchingVersion(date, funding, 'startDate');
+      const lastVersion = getLastVersion(funding.versions, 'createdAt');
+      const matchingVersion = { ...funding, ...omit(lastVersion, ['_id', 'createdAt']), versionId: lastVersion._id };
       if (matchingVersion.careDays.includes(7)) return matchingVersion;
     }
   }
 
   for (const funding of fundings) {
-    const matchingVersion = getMatchingVersion(date, funding, 'startDate');
+    const lastVersion = getLastVersion(funding.versions, 'createdAt');
+    const matchingVersion = { ...funding, ...omit(lastVersion, ['_id', 'createdAt']), versionId: lastVersion._id };
     if (matchingVersion && (matchingVersion.careDays.includes(moment(date).isoWeekday() - 1))) return matchingVersion;
   }
 

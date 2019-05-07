@@ -147,11 +147,11 @@ describe('getMatchingFunding', () => {
     const fundings = [
       {
         versions: [
-          { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
-          { _id: 3, careDays: [0, 3], startDate: new Date('2019/02/23') }
+          { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23'), createdAt: new Date('2019/03/23') },
+          { _id: 3, careDays: [0, 3], startDate: new Date('2019/02/23'), createdAt: new Date('2019/02/23') }
         ],
       },
-      { versions: [{ _id: 2, careDays: [1, 5, 6], startDate: new Date('2019/04/23') }] },
+      { versions: [{ _id: 2, careDays: [1, 5, 6], startDate: new Date('2019/04/23'), createdAt: new Date('2019/04/23') }] },
     ];
     const result = getMatchingFunding(new Date('2019/04/23'), fundings);
     expect(result).toBeDefined();
