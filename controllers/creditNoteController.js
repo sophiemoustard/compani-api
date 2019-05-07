@@ -3,6 +3,7 @@ const Boom = require('boom');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
+const formatPrice = require('../helpers/utils');
 const moment = require('moment');
 const { updateEventAndFundingHistory, createCreditNotes } = require('../helpers/creditNotes');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
@@ -126,12 +127,12 @@ const remove = async (req) => {
 
 const generateCreditNotePdf = async (req, h) => {
   try {
+    const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
     const creditNote = await CreditNote.findOne({ _id: req.params._id })
       .populate({ path: 'customer', select: '_id identity contact' })
       .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
-    // console.log('creditNote', creditNote);
-    const company = await Company.find({});
+    const company = await Company.findOne({});
     const computedData = {
       totalExclTaxes: 0,
       totalVAT: 0,
@@ -139,12 +140,11 @@ const generateCreditNotePdf = async (req, h) => {
       date: moment(creditNote.date).format('DD/MM/YYYY'),
       events: []
     };
-    console.log('creditNote.events', creditNote.events);
     if (creditNote.events.length > 0) {
       for (let i = 0, l = creditNote.events.length; i < l; i++) {
         computedData.totalExclTaxes += creditNote.events[i].bills.exclTaxesCustomer;
         computedData.totalInclTaxes += creditNote.events[i].bills.inclTaxesCustomer;
-        computedData.totalVAT += creditNote.events[i].bills.vat;
+        computedData.totalVAT = creditNote.events[i].bills.inclTaxesCustomer - creditNote.events[i].bills.exclTaxesCustomer;
         creditNote.events[i].auxiliary.identity.firstname = creditNote.events[i].auxiliary.identity.firstname.substring(0, 1);
         creditNote.events[i].date = moment(creditNote.events[i].startDate).format('DD/MM');
         creditNote.events[i].startTime = moment(creditNote.events[i].startDate).format('HH:mm');
@@ -153,28 +153,21 @@ const generateCreditNotePdf = async (req, h) => {
       }
     }
     if (!creditNote.exclTaxesTpp) {
-      creditNote.exclTaxesCustomer = creditNote.exclTaxesCustomer.toFixed(2);
-      creditNote.inclTaxesCustomer = creditNote.inclTaxesCustomer.toFixed(2);
+      creditNote.exclTaxesCustomer = formatPrice(creditNote.exclTaxesCustomer);
+      creditNote.inclTaxesCustomer = formatPrice(creditNote.inclTaxesCustomer);
     } else {
-      creditNote.exclTaxesCustomer = creditNote.exclTaxesCustomer.toFixed(2);
-      creditNote.inclTaxesCustomer = creditNote.inclTaxesCustomer.toFixed(2);
+      creditNote.exclTaxesTpp = formatPrice(creditNote.exclTaxesTpp);
+      creditNote.inclTaxesTpp = formatPrice(creditNote.inclTaxesTpp);
     }
-    computedData.totalExclTaxes = computedData.totalExclTaxes.toFixed(2);
-    computedData.totalInclTaxes = computedData.totalInclTaxes.toFixed(2);
-    console.log('CREDIT NOTE =', creditNote);
+    computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
+    computedData.totalInclTaxes = formatPrice(computedData.totalInclTaxes);
+    computedData.totalVAT = formatPrice(computedData.totalVAT);
     const data = {
       creditNote: {
-        exclTaxesCustomer: creditNote.exclTaxesCustomer,
-        inclTaxesCustomer: creditNote.inclTaxesCustomer,
-        exclTaxesTpp: creditNote.exclTaxesTpp,
-        inclTaxesTpp: creditNote.inclTaxesTpp,
-        creditNoteNumber: creditNote.number,
-        customer: creditNote.customer,
-        subscription: creditNote.subscription,
-        computedData,
+        ...creditNote,
+        ...computedData,
         company: company[0],
-        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
-        events: creditNote.events
+        logo,
       },
     };
 
@@ -186,8 +179,6 @@ const generateCreditNotePdf = async (req, h) => {
     return Boom.badImplementation(e);
   }
 };
-
-
 
 module.exports = {
   list,

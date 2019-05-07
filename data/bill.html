@@ -40,7 +40,7 @@
   </div>
   <div class="bill">
     {{ bill.billNumber }}<br />
-    {{ bill.computedData.date }}<br />
+    {{ bill.date }}<br />
     Paiment à réception<br />
   </div>
 </div>
@@ -83,7 +83,7 @@
       {{/table}}
     </tbody>
   </table>
-  <p>*ce total intègre les majorations et les éventuelles remises</p>
+  <p>*ce total intègre les majorations et les éventuelles remises.</p>
 </div>
 <div class="wrapper">
   <table class="total">
@@ -96,9 +96,9 @@
     </thead>
     <tbody>
       <tr>
-        <td> {{ bill.computedData.totalExclTaxes }} €</td>
-        <td> {{ bill.computedData.totalVAT }} %</td>
-        <td> {{ bill.computedData.totalInclTaxes }} €</td>
+        <td> {{ bill.totalExclTaxes }} €</td>
+        <td> {{ bill.totalVAT }} €</td>
+        <td> {{ bill.netInclTaxes }} €</td>
       </tr>
     </tbody>
   </table>

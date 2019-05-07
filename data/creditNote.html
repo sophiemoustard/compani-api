@@ -39,8 +39,8 @@
       <img src="{{ creditNote.logo }}">
     </div>
     <div class="creditNote">
-      {{ creditNote.creditNoteNumber }}<br />
-      {{ creditNote.computedData.date }}<br />
+      {{ creditNote.number }}<br />
+      {{ creditNote.date }}<br />
       Paiment à réception<br />
     </div>
   </div>
@@ -85,7 +85,7 @@
         </tr>
       </tbody>
     </table>
-    <p>*ce total intègre les majorations et les éventuelles remises</p>
+    <p>*ce total intègre les majorations et les éventuelles remises.</p>
   </div>
   {{else}}
   <p>Prestations annulées</p>
@@ -125,9 +125,9 @@
       </thead>
       <tbody>
         <tr>
-          <td> {{ creditNote.computedData.totalExclTaxes }} €</td>
-          <td> {{ creditNote.computedData.totalVAT }} %</td>
-          <td> {{ creditNote.computedData.totalInclTaxes }} €</td>
+          <td> {{ creditNote.totalExclTaxes }} €</td>
+          <td> {{ creditNote.totalVAT }} €</td>
+          <td> {{ creditNote.totalInclTaxes }} €</td>
         </tr>
       </tbody>
     </table>

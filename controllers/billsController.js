@@ -6,6 +6,7 @@ const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
+const { formatPrice } = require('../helper/utils');
 const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const { formatAndCreateBills } = require('../helpers/bills');
@@ -84,12 +85,13 @@ const list = async (req) => {
 
 const generateBillPdf = async (req, h) => {
   try {
+    const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
     const bill = await Bill.findOne({ _id: req.params._id })
       .populate({ path: 'client', select: '_id name' })
       .populate({ path: 'customer', select: '_id identity contact' })
       .populate({ path: 'subscriptions.events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
-    const company = await Company.find({});
+    const company = await Company.findOne({});
     const computedData = {
       totalExclTaxes: 0,
       totalVAT: 0,
@@ -99,11 +101,10 @@ const generateBillPdf = async (req, h) => {
     };
     for (let i = 0, l = bill.subscriptions.length; i < l; i++) {
       computedData.totalExclTaxes += bill.subscriptions[i].exclTaxes;
-      computedData.totalVAT += bill.subscriptions[i].vat;
-      computedData.totalInclTaxes += bill.subscriptions[i].inclTaxes;
-      bill.subscriptions[i].exclTaxes = bill.subscriptions[i].exclTaxes.toFixed(2);
-      bill.subscriptions[i].inclTaxes = bill.subscriptions[i].inclTaxes.toFixed(2);
-      for (let j = 0; j < bill.subscriptions.length; j++) {
+      computedData.totalVAT = bill.subscriptions[i].inclTaxes - bill.subscriptions[i].exclTaxes;
+      bill.subscriptions[i].exclTaxes = formatPrice(bill.subscriptions[i].exclTaxes);
+      bill.subscriptions[i].inclTaxes = formatPrice(bill.subscriptions[i].inclTaxes);
+      for (let j = 0, k = bill.subscriptions[i].events.length; j < k; j++) {
         bill.subscriptions[i].events[j].auxiliary.identity.firstname = bill.subscriptions[i].events[j].auxiliary.identity.firstname.substring(0, 1);
         bill.subscriptions[i].events[j].date = moment(bill.subscriptions[i].events[j].startDate).format('DD/MM');
         bill.subscriptions[i].events[j].startTime = moment(bill.subscriptions[i].events[j].startDate).format('HH:mm');
@@ -111,17 +112,14 @@ const generateBillPdf = async (req, h) => {
         computedData.events.push(bill.subscriptions[i].events[j]);
       }
     }
-    computedData.totalExclTaxes = computedData.totalExclTaxes.toFixed(2);
-    computedData.totalInclTaxes = computedData.totalInclTaxes.toFixed(2);
+    computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
+    computedData.totalVAT = formatPrice(computedData.totalVAT);
     const data = {
       bill: {
-        billNumber: bill.billNumber,
-        customer: bill.customer,
-        subscriptions: bill.subscriptions,
-        computedData,
+        ...bill,
+        ...computedData,
         company: company[0],
-        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
-        events: bill.events
+        logo,
       },
     };
 
