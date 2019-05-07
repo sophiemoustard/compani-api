@@ -24,7 +24,7 @@ const list = async (req) => {
     return { message: translate[language].planningModificationsFound, data: { modifPlanning } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -51,7 +51,7 @@ const storeUserModificationPlanning = async (req) => {
     return { message: translate[language].planningModificationStored, data: { userModificationPlanningStored } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -64,7 +64,7 @@ const updateModificationPlanningStatus = async (req) => {
     return { message: translate[language].planningModificationUpdated, data: { modificationPlanningUpdated } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -77,7 +77,7 @@ const removeModificationPlanning = async (req) => {
     return { message: translate[language].planningModificationDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

@@ -35,7 +35,7 @@ const create = async (req) => {
       return Boom.conflict(translate[language].roleExists);
     }
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -58,7 +58,7 @@ const update = async (req) => {
     if (e.output && e.output.statusCode === 404) {
       return e;
     }
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -81,7 +81,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -99,7 +99,7 @@ const showById = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -114,7 +114,7 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

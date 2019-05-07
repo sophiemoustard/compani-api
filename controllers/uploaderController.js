@@ -67,7 +67,7 @@ const uploadFile = async (req) => {
     return { message: translate[language].fileCreated, data: uploadedFile };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -93,7 +93,7 @@ const uploadImage = async (req) => {
     return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

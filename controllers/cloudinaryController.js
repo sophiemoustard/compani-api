@@ -12,7 +12,7 @@ const deleteImage = async (req) => {
     return { message: translate[language].fileDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -30,7 +30,7 @@ const uploadImage = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

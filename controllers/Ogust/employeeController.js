@@ -6,7 +6,6 @@ const translate = require('../../helpers/translate');
 const employees = require('../../models/Ogust/Employee');
 const Counter = require('../../models/idNumber');
 
-const _ = require('lodash');
 
 const { language } = translate;
 
@@ -25,7 +24,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -47,7 +46,7 @@ const getById = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -68,7 +67,7 @@ const getEmployeeSalaries = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -92,7 +91,7 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

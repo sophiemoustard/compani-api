@@ -20,7 +20,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -35,7 +35,7 @@ const show = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -54,7 +54,7 @@ const create = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].companyExists);
     }
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -88,7 +88,7 @@ const update = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].companyExists);
     }
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -99,7 +99,7 @@ const remove = async (req) => {
     return { message: translate[language].companyDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -137,7 +137,7 @@ const uploadFile = async (req) => {
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -165,7 +165,7 @@ const addInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -198,7 +198,7 @@ const updateInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -220,7 +220,7 @@ const getInternalHours = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -250,7 +250,7 @@ const removeInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

@@ -19,7 +19,7 @@ const list = async (req) => {
     return { message: translate[language].getAllMessagesFound, data: { messages } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -30,7 +30,7 @@ const storeMessage = async (req) => {
     return { message: translate[language].storeMessage, data: { message } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -43,7 +43,7 @@ const getById = async (req) => {
     return { message: 'Message Found', data: { message } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -58,7 +58,7 @@ const sendMessageById = async (req) => {
     return { message: sentMessage.data, data: { message: req.payload.message } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -75,7 +75,7 @@ const addMessageRecipientById = async (req) => {
     return { message: translate[language].messageRecipientUpdated, data: { message: updatedMessage } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

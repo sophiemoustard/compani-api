@@ -22,7 +22,7 @@ const sendWelcome = async (req) => {
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -41,7 +41,7 @@ const sendAuxiliaryWelcome = async (req) => {
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

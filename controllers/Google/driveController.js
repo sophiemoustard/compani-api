@@ -12,7 +12,7 @@ const deleteFile = async (req) => {
     return { message: translate[language].fileDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -25,7 +25,7 @@ const getFileById = async (req) => {
     if (e.message.match(/file not found/i)) {
       return Boom.notFound(translate[language].fileNotFound);
     }
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -38,7 +38,7 @@ const getList = async (req) => {
     if (e.message.match(/file not found/i)) {
       return Boom.notFound(translate[language].filesNotFound);
     }
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -54,7 +54,7 @@ const generateDocxFromDrive = async (req, h) => {
     });
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

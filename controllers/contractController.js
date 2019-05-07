@@ -26,7 +26,7 @@ const list = async (req) => {
     return { message, data: { contracts } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -42,7 +42,7 @@ const get = async (req) => {
     return { message: translate[language].contractFound, data: { contract } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -71,7 +71,7 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -95,7 +95,7 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation();
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -112,7 +112,7 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -132,7 +132,7 @@ const createContractVersion = async (req) => {
     return { message: translate[language].contractVersionAdded, data: { contract } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -156,7 +156,7 @@ const updateContractVersion = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -173,7 +173,7 @@ const removeContractVersion = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -194,7 +194,7 @@ const uploadFile = async (req) => {
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -215,7 +215,7 @@ const receiveSignatureEvents = async (req, h) => {
     return h.response().code(200);
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
