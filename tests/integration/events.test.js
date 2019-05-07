@@ -9,6 +9,7 @@ const { populateContracts } = require('./seed/contractsSeed');
 const { populateServices } = require('./seed/servicesSeed');
 const { sectorsList } = require('./seed/sectorsSeed');
 const app = require('../../server');
+const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -76,7 +77,7 @@ describe('EVENTS ROUTES', () => {
     it('should create an internal hour', async () => {
       const auxiliary = userList[4];
       const payload = {
-        type: 'internalHour',
+        type: INTERNAL_HOUR,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
@@ -109,7 +110,7 @@ describe('EVENTS ROUTES', () => {
       const auxiliary = userList[4];
       const customer = customersList[0];
       const payload = {
-        type: 'intervention',
+        type: INTERVENTION,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
@@ -132,13 +133,13 @@ describe('EVENTS ROUTES', () => {
     it('should create an absence', async () => {
       const auxiliary = userList[4];
       const payload = {
-        type: 'absence',
+        type: ABSENCE,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
         sector: sectorsList[0]._id,
-        absence: 'illness',
-        absenceNature: 'daily',
+        absence: ILLNESS,
+        absenceNature: DAILY,
         attachment: {
           driveId: 'qwertyuiop',
           link: 'asdfghjkl;',
@@ -157,10 +158,10 @@ describe('EVENTS ROUTES', () => {
     });
 
 
-    it('should create an absence', async () => {
+    it('should create an unavailability', async () => {
       const auxiliary = userList[4];
       const payload = {
-        type: 'unavailability',
+        type: UNAVAILABILITY,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,

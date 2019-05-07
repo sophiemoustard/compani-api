@@ -5,6 +5,7 @@ module.exports = {
   UNAVAILABILITY: 'unavailability',
   INTERNAL_HOUR: 'internalHour',
   UNJUSTIFIED: 'unjustified absence',
+  ILLNESS: 'illness',
   // COMPANY
   MAX_INTERNAL_HOURS_NUMBER: 9,
   // COMPANY THIRD PARTY PAYERS

@@ -19,6 +19,7 @@ const {
   DAILY,
   HOURLY,
   UNJUSTIFIED,
+  ILLNESS,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -60,7 +61,7 @@ exports.plugin = {
             repetition: Joi.object().keys({
               frequency: Joi.string().required(),
             }),
-          })
+          }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
         auth: {
           strategy: 'jwt',
