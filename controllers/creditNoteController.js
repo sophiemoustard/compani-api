@@ -138,18 +138,18 @@ const generateCreditNotePdf = async (req, h) => {
       totalVAT: 0,
       totalInclTaxes: 0,
       date: moment(creditNote.date).format('DD/MM/YYYY'),
-      events: []
+      formattedEvents: []
     };
     if (creditNote.events.length > 0) {
       for (let i = 0, l = creditNote.events.length; i < l; i++) {
-        computedData.totalExclTaxes += creditNote.events[i].bills.exclTaxesCustomer;
-        computedData.totalInclTaxes += creditNote.events[i].bills.inclTaxesCustomer;
-        computedData.totalVAT = creditNote.events[i].bills.inclTaxesCustomer - creditNote.events[i].bills.exclTaxesCustomer;
-        creditNote.events[i].auxiliary.identity.firstname = creditNote.events[i].auxiliary.identity.firstname.substring(0, 1);
-        creditNote.events[i].date = moment(creditNote.events[i].startDate).format('DD/MM');
-        creditNote.events[i].startTime = moment(creditNote.events[i].startDate).format('HH:mm');
-        creditNote.events[i].endTime = moment(creditNote.events[i].endDate).format('HH:mm');
-        computedData.events.push(creditNote.events[i]);
+        computedData.formattedEvents.push(creditNote.events[i]);
+        computedData.totalExclTaxes += computedData.formattedEvents[i].bills.exclTaxesCustomer;
+        computedData.totalInclTaxes += computedData.formattedEvents[i].bills.inclTaxesCustomer;
+        computedData.totalVAT = computedData.formattedEvents[i].bills.inclTaxesCustomer - computedData.formattedEvents[i].bills.exclTaxesCustomer;
+        computedData.formattedEvents[i].auxiliary.identity.firstname = computedData.formattedEvents[i].auxiliary.identity.firstname.substring(0, 1);
+        computedData.formattedEvents[i].date = moment(computedData.formattedEvents[i].startDate).format('DD/MM');
+        computedData.formattedEvents[i].startTime = moment(computedData.formattedEvents[i].startDate).format('HH:mm');
+        computedData.formattedEvents[i].endTime = moment(computedData.formattedEvents[i].endDate).format('HH:mm');
       }
     }
     if (!creditNote.exclTaxesTpp) {

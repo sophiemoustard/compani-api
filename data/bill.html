@@ -73,7 +73,7 @@
       </tr>
     </thead>
     <tbody>
-      {{#table bill.subscriptions}}
+      {{#table bill.formattedSubs}}
         <tr>
           <td>{{ service }} (TVA {{vat}}%)</td>
           <td> {{ exclTaxes }}</td>
@@ -117,7 +117,7 @@
       </tr>
     </thead>
     <tbody>
-    {{#table bill.events}}
+    {{#table bill.formattedEvents}}
       <tr>
         <td> {{ date }} </td>
         <td> {{ auxiliary.identity.firstname }}. {{ auxiliary.identity.lastname }} </td>

@@ -97,20 +97,23 @@ const generateBillPdf = async (req, h) => {
       totalVAT: 0,
       totalInclTaxes: 0,
       date: moment(bill.date).format('DD/MM/YYYY'),
-      events: []
+      formattedSubs: [],
+      formattedEvents: []
     };
     for (let i = 0, l = bill.subscriptions.length; i < l; i++) {
-      computedData.totalExclTaxes += bill.subscriptions[i].exclTaxes;
-      computedData.totalVAT = bill.subscriptions[i].inclTaxes - bill.subscriptions[i].exclTaxes;
-      bill.subscriptions[i].exclTaxes = formatPrice(bill.subscriptions[i].exclTaxes);
-      bill.subscriptions[i].inclTaxes = formatPrice(bill.subscriptions[i].inclTaxes);
-      for (let j = 0, k = bill.subscriptions[i].events.length; j < k; j++) {
-        bill.subscriptions[i].events[j].auxiliary.identity.firstname = bill.subscriptions[i].events[j].auxiliary.identity.firstname.substring(0, 1);
-        bill.subscriptions[i].events[j].date = moment(bill.subscriptions[i].events[j].startDate).format('DD/MM');
-        bill.subscriptions[i].events[j].startTime = moment(bill.subscriptions[i].events[j].startDate).format('HH:mm');
-        bill.subscriptions[i].events[j].endTime = moment(bill.subscriptions[i].events[j].endDate).format('HH:mm');
-        bill.subscriptions[i].events[j].service = bill.subscriptions[i].service;
-        computedData.events.push(bill.subscriptions[i].events[j]);
+      computedData.formattedSubs.push(bill.subscriptions[i]);
+      computedData.totalExclTaxes += computedData.formattedSubs[i].exclTaxes;
+      computedData.totalVAT = computedData.formattedSubs[i].inclTaxes - computedData.formattedSubs[i].exclTaxes;
+      computedData.formattedSubs[i].exclTaxes = formatPrice(computedData.formattedSubs[i].exclTaxes);
+      computedData.formattedSubs[i].inclTaxes = formatPrice(computedData.formattedSubs[i].inclTaxes);
+      for (let j = 0, k = computedData.formattedSubs[i].events.length; j < k; j++) {
+        const newEvent = bill.subscriptions[i].events[j];
+        newEvent.auxiliary.identity.firstname = newEvent.auxiliary.identity.firstname.substring(0, 1);
+        newEvent.date = moment(newEvent.startDate).format('DD/MM');
+        newEvent.startTime = moment(newEvent.startDate).format('HH:mm');
+        newEvent.endTime = moment(newEvent.endDate).format('HH:mm');
+        newEvent.service = bill.subscriptions[i].service;
+        computedData.formattedEvents.push(newEvent);
       }
     }
     computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
