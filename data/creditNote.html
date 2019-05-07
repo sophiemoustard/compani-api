@@ -76,11 +76,11 @@
         <tr>
           <td>{{ creditNote.subscription.service }}</td>
           {{#if creditNote.exclTaxesTpp}}
-          <td> {{ creditNote.exclTaxesTpp }} €</td>
-          <td> {{ creditNote.inclTaxesTpp }} €</td>
+          <td> {{ creditNote.exclTaxesTpp }}</td>
+          <td> {{ creditNote.inclTaxesTpp }}</td>
           {{else}}
-          <td> {{ creditNote.exclTaxesCustomer }} €</td>
-          <td> {{ creditNote.inclTaxesCustomer }} €</td>
+          <td> {{ creditNote.exclTaxesCustomer }}</td>
+          <td> {{ creditNote.inclTaxesCustomer }}</td>
           {{/if}}
         </tr>
       </tbody>
@@ -125,9 +125,9 @@
       </thead>
       <tbody>
         <tr>
-          <td> {{ creditNote.totalExclTaxes }} €</td>
-          <td> {{ creditNote.totalVAT }} €</td>
-          <td> {{ creditNote.totalInclTaxes }} €</td>
+          <td> {{ creditNote.totalExclTaxes }}</td>
+          <td> {{ creditNote.totalVAT }}</td>
+          <td> {{ creditNote.totalInclTaxes }}</td>
         </tr>
       </tbody>
     </table>
