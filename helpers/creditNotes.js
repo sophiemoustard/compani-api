@@ -5,6 +5,7 @@ const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
 const { getFixedNumber } = require('./utils');
+const { formatPrice } = require('./utils');
 const { HOURLY } = require('./constants');
 
 const updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
@@ -81,7 +82,50 @@ const createCreditNotes = async (payload) => {
   return creditNotes;
 };
 
+const formatPDF = (creditNote, company) => {
+  const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
+  const computedData = {
+    totalExclTaxes: 0,
+    totalVAT: 0,
+    totalInclTaxes: 0,
+    date: moment(creditNote.date).format('DD/MM/YYYY'),
+    formattedEvents: []
+  };
+  if (creditNote.events.length > 0) {
+    for (let i = 0, l = creditNote.events.length; i < l; i++) {
+      computedData.formattedEvents.push(creditNote.events[i]);
+      computedData.totalExclTaxes += computedData.formattedEvents[i].bills.exclTaxesCustomer;
+      computedData.totalInclTaxes += computedData.formattedEvents[i].bills.inclTaxesCustomer;
+      computedData.totalVAT = computedData.formattedEvents[i].bills.inclTaxesCustomer - computedData.formattedEvents[i].bills.exclTaxesCustomer;
+      computedData.formattedEvents[i].auxiliary.identity.firstname = computedData.formattedEvents[i].auxiliary.identity.firstname.substring(0, 1);
+      computedData.formattedEvents[i].date = moment(computedData.formattedEvents[i].startDate).format('DD/MM');
+      computedData.formattedEvents[i].startTime = moment(computedData.formattedEvents[i].startDate).format('HH:mm');
+      computedData.formattedEvents[i].endTime = moment(computedData.formattedEvents[i].endDate).format('HH:mm');
+    }
+  }
+  if (!creditNote.exclTaxesTpp) {
+    creditNote.exclTaxesCustomer = formatPrice(creditNote.exclTaxesCustomer);
+    creditNote.inclTaxesCustomer = formatPrice(creditNote.inclTaxesCustomer);
+  } else {
+    creditNote.exclTaxesTpp = formatPrice(creditNote.exclTaxesTpp);
+    creditNote.inclTaxesTpp = formatPrice(creditNote.inclTaxesTpp);
+  }
+  computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
+  computedData.totalInclTaxes = formatPrice(computedData.totalInclTaxes);
+  computedData.totalVAT = formatPrice(computedData.totalVAT);
+  return {
+    creditNote: {
+      ...creditNote,
+      ...computedData,
+      company,
+      logo,
+    },
+  };
+
+}
+
 module.exports = {
   updateEventAndFundingHistory,
   createCreditNotes,
+  formatPDF,
 };

@@ -3,11 +3,11 @@ const Boom = require('boom');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { formatPrice } = require('../helpers/utils');
 const moment = require('moment');
 const { updateEventAndFundingHistory, createCreditNotes } = require('../helpers/creditNotes');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getDateQuery } = require('../helpers/utils');
+const { formatPDF } = require('../helpers/creditNotes');
 const { generatePdf } = require('../helpers/pdf');
 
 const { language } = translate;
@@ -127,50 +127,12 @@ const remove = async (req) => {
 
 const generateCreditNotePdf = async (req, h) => {
   try {
-    const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
     const creditNote = await CreditNote.findOne({ _id: req.params._id })
       .populate({ path: 'customer', select: '_id identity contact' })
       .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
     const company = await Company.findOne();
-    const computedData = {
-      totalExclTaxes: 0,
-      totalVAT: 0,
-      totalInclTaxes: 0,
-      date: moment(creditNote.date).format('DD/MM/YYYY'),
-      formattedEvents: []
-    };
-    if (creditNote.events.length > 0) {
-      for (let i = 0, l = creditNote.events.length; i < l; i++) {
-        computedData.formattedEvents.push(creditNote.events[i]);
-        computedData.totalExclTaxes += computedData.formattedEvents[i].bills.exclTaxesCustomer;
-        computedData.totalInclTaxes += computedData.formattedEvents[i].bills.inclTaxesCustomer;
-        computedData.totalVAT = computedData.formattedEvents[i].bills.inclTaxesCustomer - computedData.formattedEvents[i].bills.exclTaxesCustomer;
-        computedData.formattedEvents[i].auxiliary.identity.firstname = computedData.formattedEvents[i].auxiliary.identity.firstname.substring(0, 1);
-        computedData.formattedEvents[i].date = moment(computedData.formattedEvents[i].startDate).format('DD/MM');
-        computedData.formattedEvents[i].startTime = moment(computedData.formattedEvents[i].startDate).format('HH:mm');
-        computedData.formattedEvents[i].endTime = moment(computedData.formattedEvents[i].endDate).format('HH:mm');
-      }
-    }
-    if (!creditNote.exclTaxesTpp) {
-      creditNote.exclTaxesCustomer = formatPrice(creditNote.exclTaxesCustomer);
-      creditNote.inclTaxesCustomer = formatPrice(creditNote.inclTaxesCustomer);
-    } else {
-      creditNote.exclTaxesTpp = formatPrice(creditNote.exclTaxesTpp);
-      creditNote.inclTaxesTpp = formatPrice(creditNote.inclTaxesTpp);
-    }
-    computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
-    computedData.totalInclTaxes = formatPrice(computedData.totalInclTaxes);
-    computedData.totalVAT = formatPrice(computedData.totalVAT);
-    const data = {
-      creditNote: {
-        ...creditNote,
-        ...computedData,
-        company,
-        logo,
-      },
-    };
-
+    const data = formatPDF(creditNote, company);
     const pdf = await generatePdf(data, './data/creditNote.html');
 
     return h.response(pdf).type('application/pdf');

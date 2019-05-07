@@ -1,9 +1,11 @@
+const moment = require('moment');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const { getMatchingVersion, getFixedNumber } = require('./utils');
 const { HOURLY } = require('./constants');
+const { formatPrice } = require('./utils');
 
 const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
@@ -149,9 +151,48 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
   await Promise.all(promises);
 };
 
+const formatPDF = (bill, company) => {
+  const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
+  const computedData = {
+    totalExclTaxes: 0,
+    totalVAT: 0,
+    totalInclTaxes: 0,
+    date: moment(bill.date).format('DD/MM/YYYY'),
+    formattedSubs: [],
+    formattedEvents: []
+  };
+  for (let i = 0, l = bill.subscriptions.length; i < l; i++) {
+    computedData.formattedSubs.push(bill.subscriptions[i]);
+    computedData.totalExclTaxes += computedData.formattedSubs[i].exclTaxes;
+    computedData.totalVAT = computedData.formattedSubs[i].inclTaxes - computedData.formattedSubs[i].exclTaxes;
+    computedData.formattedSubs[i].exclTaxes = formatPrice(computedData.formattedSubs[i].exclTaxes);
+    computedData.formattedSubs[i].inclTaxes = formatPrice(computedData.formattedSubs[i].inclTaxes);
+    for (let j = 0, k = computedData.formattedSubs[i].events.length; j < k; j++) {
+      const newEvent = bill.subscriptions[i].events[j];
+      newEvent.auxiliary.identity.firstname = newEvent.auxiliary.identity.firstname.substring(0, 1);
+      newEvent.date = moment(newEvent.startDate).format('DD/MM');
+      newEvent.startTime = moment(newEvent.startDate).format('HH:mm');
+      newEvent.endTime = moment(newEvent.endDate).format('HH:mm');
+      newEvent.service = bill.subscriptions[i].service;
+      computedData.formattedEvents.push(newEvent);
+    }
+  }
+  computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
+  computedData.totalVAT = formatPrice(computedData.totalVAT);
+  return {
+    bill: {
+      ...bill,
+      ...computedData,
+      company,
+      logo,
+    },
+  };
+}
+
 module.exports = {
   formatAndCreateBills,
   formatBillNumber,
   formatCustomerBills,
   formatThirdPartyPayerBills,
+  formatPDF
 };
