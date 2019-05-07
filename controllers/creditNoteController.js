@@ -132,7 +132,7 @@ const generateCreditNotePdf = async (req, h) => {
       .populate({ path: 'customer', select: '_id identity contact' })
       .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
-    const company = await Company.findOne({});
+    const company = await Company.findOne();
     const computedData = {
       totalExclTaxes: 0,
       totalVAT: 0,
@@ -166,7 +166,7 @@ const generateCreditNotePdf = async (req, h) => {
       creditNote: {
         ...creditNote,
         ...computedData,
-        company: company[0],
+        company,
         logo,
       },
     };

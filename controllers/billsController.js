@@ -91,7 +91,7 @@ const generateBillPdf = async (req, h) => {
       .populate({ path: 'customer', select: '_id identity contact' })
       .populate({ path: 'subscriptions.events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
-    const company = await Company.findOne({});
+    const company = await Company.findOne();
     const computedData = {
       totalExclTaxes: 0,
       totalVAT: 0,
@@ -119,7 +119,7 @@ const generateBillPdf = async (req, h) => {
       bill: {
         ...bill,
         ...computedData,
-        company: company[0],
+        company,
         logo,
       },
     };
