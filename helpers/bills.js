@@ -65,14 +65,14 @@ const formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
         else billedEvents[ev.event] = { ...ev };
 
         if (ev.history.month) {
-          if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { [ev.history.month]: ev.history };
-          else if (!fundingHistories[ev.history.fundingVersion][ev.history.month]) fundingHistories[ev.history.fundingVersion][ev.history.month] = ev.history;
-          else fundingHistories[ev.history.fundingVersion][ev.history.month].careHours += ev.history.careHours;
-        } else if (!fundingHistories[ev.history.fundingVersion]) fundingHistories[ev.history.fundingVersion] = { ...ev.history };
+          if (!fundingHistories[ev.history.fundingId]) fundingHistories[ev.history.fundingId] = { [ev.history.month]: ev.history };
+          else if (!fundingHistories[ev.history.fundingId][ev.history.month]) fundingHistories[ev.history.fundingId][ev.history.month] = ev.history;
+          else fundingHistories[ev.history.fundingId][ev.history.month].careHours += ev.history.careHours;
+        } else if (!fundingHistories[ev.history.fundingId]) fundingHistories[ev.history.fundingId] = { ...ev.history };
         else if (ev.history.nature === HOURLY) {
-          fundingHistories[ev.history.fundingVersion].careHours += ev.history.careHours;
+          fundingHistories[ev.history.fundingId].careHours += ev.history.careHours;
         } else { // Funding with once frequency are only fixed !
-          fundingHistories[ev.history.fundingVersion].amountTTC += ev.history.amountTTC;
+          fundingHistories[ev.history.fundingId].amountTTC += ev.history.amountTTC;
         }
       }
     }
@@ -95,20 +95,20 @@ const updateFundingHistories = async (histories) => {
   for (const id of Object.keys(histories)) {
     if (histories[id].amountTTC) {
       promises.push(FundingHistory.findOneAndUpdate(
-        { fundingVersion: id },
+        { fundingId: id },
         { $inc: { amountTTC: histories[id].amountTTC } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else if (histories[id].careHours) {
       promises.push(FundingHistory.findOneAndUpdate(
-        { fundingVersion: id },
+        { fundingId: id },
         { $inc: { careHours: histories[id].careHours } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else {
       for (const month of Object.keys(histories[id])) {
         promises.push(FundingHistory.findOneAndUpdate(
-          { fundingVersion: id, month },
+          { fundingId: id, month },
           { $inc: { careHours: histories[id][month].careHours } },
           { new: true, upsert: true, setDefaultsOnInsert: true }
         ));

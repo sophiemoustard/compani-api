@@ -119,7 +119,20 @@ const CustomerSchema = mongoose.Schema({
     nature: { type: String, enum: [HOURLY, FIXED] },
     subscription: { type: mongoose.Schema.Types.ObjectId },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
+    frequency: { type: String, enum: [MONTHLY, ONCE] },
+    amountTTC: Number,
+    unitTTCRate: Number,
+    careHours: Number,
+    careDays: [Number],
+    customerParticipationRate: Number,
+    folderNumber: String,
+    startDate: Date,
+    endDate: Date,
+    createdAt: { type: Date, default: Date.now },
     versions: [{
+      nature: { type: String, enum: [HOURLY, FIXED] },
+      subscription: { type: mongoose.Schema.Types.ObjectId },
+      thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
       frequency: { type: String, enum: [MONTHLY, ONCE] },
       amountTTC: Number,
       unitTTCRate: Number,
@@ -129,9 +142,8 @@ const CustomerSchema = mongoose.Schema({
       folderNumber: String,
       startDate: Date,
       endDate: Date,
-      createdAt: { type: Date, default: Date.now },
+      createdAt: Date,
     }],
-    createdAt: { type: Date, default: Date.now }
   }]
 }, { timestamps: true });
 
