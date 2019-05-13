@@ -23,7 +23,7 @@ const getDistanceMatrix = async (req) => {
 
     req.query.key = process.env.GOOGLE_CLOUD_PLATFORM_API_KEY;
     const res = await maps.getDistanceMatrix(req.query);
-    if (res.status !== 'OK' || !res.data.rows[0] || !res.data.rows[0].elements || !res.data.rows[0].elements[0].duration || !res.data.rows[0].elements[0].distance) {
+    if (res.status !== 200 || !res.data.rows[0] || !res.data.rows[0].elements || !res.data.rows[0].elements[0].duration || !res.data.rows[0].elements[0].distance) {
       return { message: translate[language].distanceMatrixNotFound };
     }
 

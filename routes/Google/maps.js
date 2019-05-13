@@ -28,7 +28,7 @@ exports.plugin = {
           strategy: 'jwt',
         }
       },
-      handler: getDistanceMatrix
+      handler: getDistanceMatrix,
     });
   }
 };
