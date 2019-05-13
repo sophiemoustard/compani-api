@@ -55,10 +55,7 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    if (e.output && e.output.statusCode === 404) {
-      return e;
-    }
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
