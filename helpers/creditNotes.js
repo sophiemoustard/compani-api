@@ -94,9 +94,15 @@ const formatPDF = (creditNote, company) => {
   if (creditNote.events.length > 0) {
     for (let i = 0, l = creditNote.events.length; i < l; i++) {
       computedData.formattedEvents.push(creditNote.events[i]);
-      computedData.totalExclTaxes += computedData.formattedEvents[i].bills.exclTaxesCustomer;
-      computedData.totalInclTaxes += computedData.formattedEvents[i].bills.inclTaxesCustomer;
-      computedData.totalVAT = computedData.formattedEvents[i].bills.inclTaxesCustomer - computedData.formattedEvents[i].bills.exclTaxesCustomer;
+      if (computedData.formattedEvents[i].bills.exclTaxesTpp) {
+        computedData.totalExclTaxes += computedData.formattedEvents[i].bills.exclTaxesTpp;
+        computedData.totalInclTaxes += computedData.formattedEvents[i].bills.inclTaxesTpp;
+        computedData.totalVAT += computedData.formattedEvents[i].bills.inclTaxesTpp - computedData.formattedEvents[i].bills.exclTaxesTpp;
+      } else {
+        computedData.totalExclTaxes += computedData.formattedEvents[i].bills.exclTaxesCustomer;
+        computedData.totalInclTaxes += computedData.formattedEvents[i].bills.inclTaxesCustomer;
+        computedData.totalVAT += computedData.formattedEvents[i].bills.inclTaxesCustomer - computedData.formattedEvents[i].bills.exclTaxesCustomer;
+      }
       computedData.formattedEvents[i].auxiliary.identity.firstname = computedData.formattedEvents[i].auxiliary.identity.firstname.substring(0, 1);
       computedData.formattedEvents[i].date = moment(computedData.formattedEvents[i].startDate).format('DD/MM');
       computedData.formattedEvents[i].startTime = moment(computedData.formattedEvents[i].startDate).format('HH:mm');

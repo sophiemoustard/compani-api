@@ -156,7 +156,6 @@ const formatPDF = (bill, company) => {
   const computedData = {
     totalExclTaxes: 0,
     totalVAT: 0,
-    totalInclTaxes: 0,
     date: moment(bill.date).format('DD/MM/YYYY'),
     formattedSubs: [],
     formattedEvents: []
@@ -164,10 +163,11 @@ const formatPDF = (bill, company) => {
   for (let i = 0, l = bill.subscriptions.length; i < l; i++) {
     computedData.formattedSubs.push(bill.subscriptions[i]);
     computedData.totalExclTaxes += computedData.formattedSubs[i].exclTaxes;
-    computedData.totalVAT = computedData.formattedSubs[i].inclTaxes - computedData.formattedSubs[i].exclTaxes;
+    computedData.totalVAT += computedData.formattedSubs[i].inclTaxes - computedData.formattedSubs[i].exclTaxes;
     computedData.formattedSubs[i].exclTaxes = formatPrice(computedData.formattedSubs[i].exclTaxes);
     computedData.formattedSubs[i].inclTaxes = formatPrice(computedData.formattedSubs[i].inclTaxes);
-    for (let j = 0, k = computedData.formattedSubs[i].events.length; j < k; j++) {
+    computedData.formattedSubs[i].vat = computedData.formattedSubs[i].vat.replace(/./, ',');
+    for (let j = 0, k = bill.subscription[i].events.length; j < k; j++) {
       const newEvent = bill.subscriptions[i].events[j];
       newEvent.auxiliary.identity.firstname = newEvent.auxiliary.identity.firstname.substring(0, 1);
       newEvent.date = moment(newEvent.startDate).format('DD/MM');
@@ -179,6 +179,7 @@ const formatPDF = (bill, company) => {
   }
   computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
   computedData.totalVAT = formatPrice(computedData.totalVAT);
+  bill.netInclTaxes = formatPrice(bill.netInclTaxes);
   return {
     bill: {
       ...bill,
@@ -187,7 +188,7 @@ const formatPDF = (bill, company) => {
       logo,
     },
   };
-}
+};
 
 module.exports = {
   formatAndCreateBills,
