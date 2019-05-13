@@ -65,6 +65,8 @@ const isCreationAllowed = async (event) => {
 };
 
 const isEditionAllowed = async (eventFromDB, payload) => {
+  if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
+
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString()) {
     return false;
   }
