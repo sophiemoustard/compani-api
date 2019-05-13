@@ -1,7 +1,6 @@
 const Boom = require('boom');
 
 const Customer = require('../models/Customer');
-const { getLastVersion } = require('./utils');
 const { populateServices } = require('./subscriptions');
 
 const checkSubscriptionFunding = async (customerId, checkedFunding) => {
@@ -13,13 +12,10 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
   return customer.fundings
     .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() &&
       checkedFunding._id !== fund._id.toHexString())
-    .every((fund) => {
-      const lastVersion = getLastVersion(fund.versions, 'createdAt');
-      /** We allow two fundings to have the same subscription only if :
-       * - the 2 fundings are on the same period but not the same days
-       */
-      return checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
-    });
+  /** We allow two fundings to have the same subscription only if :
+  * - the 2 fundings are on the same period but not the same days
+  */
+    .every(fund => checkedFunding.careDays.every(day => !fund.careDays.includes(day)));
 };
 
 const populateFundings = async (funding, customer) => {

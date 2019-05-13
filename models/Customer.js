@@ -1,10 +1,17 @@
 const mongoose = require('mongoose');
+const omit = require('lodash/omit');
+const flat = require('flat');
+const Boom = require('boom');
+
 const {
   MONTHLY,
   ONCE,
   HOURLY,
   FIXED,
 } = require('../helpers/constants');
+const translate = require('../helpers/translate');
+
+const { language } = translate;
 
 const CustomerSchema = mongoose.Schema({
   driveFolder: {
@@ -146,5 +153,38 @@ const CustomerSchema = mongoose.Schema({
     }],
   }]
 }, { timestamps: true });
+
+
+async function updateFundingAndSaveHistory(params) {
+  try {
+    const customer = await this.findOne(
+      { _id: params._id },
+      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
+    ).lean();
+
+    if (!customer) throw Boom.notFound(translate[language].customerNotFound);
+    const prevFunding = customer.fundings.find(fund => fund._id.toHexString() === params.fundingId);
+    const prevVersions = [...prevFunding.versions] || [];
+    prevVersions.push({ ...omit(prevFunding, ['_id', 'versions']) });
+    params.payload.versions = prevVersions;
+
+    return this.findOneAndUpdate(
+      { _id: params._id, 'fundings._id': params.fundingId },
+      { $set: flat({ 'fundings.$': params.payload }, { safe: true }) },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
+        autopopulate: false,
+      },
+    )
+      .populate('subscriptions.service')
+      .populate('fundings.thirdPartyPayer')
+      .lean();
+  } catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+CustomerSchema.statics.updateFundingAndSaveHistory = updateFundingAndSaveHistory;
 
 module.exports = mongoose.model('Customer', CustomerSchema);

@@ -498,17 +498,15 @@ exports.plugin = {
             nature: Joi.string().valid(HOURLY, FIXED).required(),
             thirdPartyPayer: Joi.objectId().required(),
             subscription: Joi.objectId().required(),
-            versions: Joi.array().items(Joi.object().keys({
-              folderNumber: Joi.string(),
-              startDate: Joi.date().required(),
-              endDate: Joi.date(),
-              frequency: Joi.string().valid(MONTHLY, ONCE).required(),
-              amountTTC: Joi.number(),
-              unitTTCRate: Joi.number(),
-              careHours: Joi.number(),
-              careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
-              customerParticipationRate: Joi.number().default(0),
-            }))
+            folderNumber: Joi.string(),
+            startDate: Joi.date().required(),
+            endDate: Joi.date(),
+            frequency: Joi.string().valid(MONTHLY, ONCE).required(),
+            amountTTC: Joi.number(),
+            unitTTCRate: Joi.number(),
+            careHours: Joi.number(),
+            careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
+            customerParticipationRate: Joi.number().default(0),
           })
         },
         auth: { strategy: 'jwt' }
@@ -527,7 +525,6 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             subscription: Joi.objectId().required(),
-            fundingId: Joi.objectId().required(),
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),

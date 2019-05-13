@@ -137,8 +137,8 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 4, month: '02/2019', nature: 'hourly' } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'fund', careHours: 2, month: '03/2019', nature: 'hourly' } },
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 4, month: '02/2019', nature: 'hourly' } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'fund', careHours: 2, month: '03/2019', nature: 'hourly' } },
         ],
       }],
     }];
@@ -168,8 +168,8 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
       fund: {
-        '02/2019': { careHours: 4, fundingVersion: 'fund', month: '02/2019', nature: 'hourly' },
-        '03/2019': { careHours: 2, fundingVersion: 'fund', month: '03/2019', nature: 'hourly' },
+        '02/2019': { careHours: 4, fundingId: 'fund', month: '02/2019', nature: 'hourly' },
+        '03/2019': { careHours: 2, fundingId: 'fund', month: '03/2019', nature: 'hourly' },
       }
     });
   });
@@ -188,8 +188,8 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 4, nature: 'hourly' } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'fund', careHours: 2, nature: 'hourly' } },
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 4, nature: 'hourly' } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'fund', careHours: 2, nature: 'hourly' } },
         ],
       }],
     }];
@@ -218,7 +218,7 @@ describe('formatThirdPartyPayerBills', () => {
     });
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
-      fund: { careHours: 6, fundingVersion: 'fund', nature: 'hourly' },
+      fund: { careHours: 6, fundingId: 'fund', nature: 'hourly' },
     });
   });
 
@@ -237,8 +237,8 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', amountTTC: 40, nature: 'fixed' } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'fund', amountTTC: 20, nature: 'fixed' } },
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', amountTTC: 40, nature: 'fixed' } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'fund', amountTTC: 20, nature: 'fixed' } },
         ],
       }],
     }];
@@ -267,7 +267,7 @@ describe('formatThirdPartyPayerBills', () => {
     });
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
-      fund: { amountTTC: 60, fundingVersion: 'fund', nature: 'fixed' },
+      fund: { amountTTC: 60, fundingId: 'fund', nature: 'fixed' },
     });
   });
 
@@ -285,8 +285,8 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 2, month: '02/2019', nature: 'hourly' } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'lio', careHours: 4, month: '02/2019', nature: 'hourly' } },
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 2, month: '02/2019', nature: 'hourly' } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'lio', careHours: 4, month: '02/2019', nature: 'hourly' } },
         ],
       }, {
         thirdPartyPayer: 'Papa',
@@ -297,8 +297,8 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 11,
         hours: 5,
         eventsList: [
-          { event: '890', inclTaxesTpp: 45, history: { fundingVersion: 'fund', careHours: 4.5, month: '02/2019', nature: 'hourly' } },
-          { event: '736', inclTaxesTpp: 23, history: { fundingVersion: 'fund', careHours: 1, month: '03/2019', nature: 'hourly' } },
+          { event: '890', inclTaxesTpp: 45, history: { fundingId: 'fund', careHours: 4.5, month: '02/2019', nature: 'hourly' } },
+          { event: '736', inclTaxesTpp: 23, history: { fundingId: 'fund', careHours: 1, month: '03/2019', nature: 'hourly' } },
         ],
       }],
     }];
@@ -338,10 +338,10 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.fundingHistories).toBeDefined();
     expect(result.fundingHistories).toMatchObject({
       fund: {
-        '02/2019': { careHours: 6.5, fundingVersion: 'fund', month: '02/2019', nature: 'hourly' },
-        '03/2019': { careHours: 1, fundingVersion: 'fund', month: '03/2019', nature: 'hourly' },
+        '02/2019': { careHours: 6.5, fundingId: 'fund', month: '02/2019', nature: 'hourly' },
+        '03/2019': { careHours: 1, fundingId: 'fund', month: '03/2019', nature: 'hourly' },
       },
-      lio: { '02/2019': { careHours: 4, fundingVersion: 'lio', month: '02/2019', nature: 'hourly' } },
+      lio: { '02/2019': { careHours: 4, fundingId: 'lio', month: '02/2019', nature: 'hourly' } },
     });
   });
 
@@ -359,8 +359,8 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingVersion: 'fund', careHours: 2 } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingVersion: 'lio', careHours: 4 } },
+          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 2 } },
+          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'lio', careHours: 4 } },
         ],
       }]
     }, {
@@ -374,8 +374,8 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 11,
         hours: 5,
         eventsList: [
-          { event: '890', inclTaxesTpp: 45, history: { fundingVersion: 'fund', careHours: 4.5 } },
-          { event: '736', inclTaxesTpp: 23, history: { fundingVersion: 'fund', careHours: 1 } },
+          { event: '890', inclTaxesTpp: 45, history: { fundingId: 'fund', careHours: 4.5 } },
+          { event: '736', inclTaxesTpp: 23, history: { fundingId: 'fund', careHours: 1 } },
         ],
       }],
     }];

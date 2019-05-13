@@ -2,6 +2,7 @@ const expect = require('expect');
 const faker = require('faker');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const omit = require('lodash/omit');
 
 const app = require('../../server');
 const {
@@ -777,15 +778,13 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
         subscription: customer.subscriptions[1]._id,
-        versions: [{
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          frequency: MONTHLY,
-          endDate: moment.utc().add(6, 'months').toDate(),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [2, 5],
-        }]
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        frequency: MONTHLY,
+        endDate: moment.utc().add(6, 'months').toDate(),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [2, 5],
       };
       const res = await app.inject({
         method: 'POST',
@@ -800,7 +799,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.funding.thirdPartyPayer.name).toEqual(thirdPartyPayersList[0].name);
       expect(res.result.data.funding.nature).toEqual(payload.nature);
       expect(res.result.data.funding.subscription._id).toEqual(payload.subscription);
-      expect(res.result.data.funding.versions[0]).toMatchObject(payload.versions[0]);
+      expect(res.result.data.funding).toMatchObject(omit(payload, ['thirdPartyPayer', 'subscription']));
     });
 
     it('should return a 409 error if subscription is used by another funding', async () => {
@@ -809,15 +808,13 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
         subscription: customer.subscriptions[0]._id,
-        versions: [{
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          frequency: MONTHLY,
-          endDate: moment.utc().add(6, 'months').toDate(),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [2, 5],
-        }]
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        frequency: MONTHLY,
+        endDate: moment.utc().add(6, 'months').toDate(),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [2, 5],
       };
       const res = await app.inject({
         method: 'POST',
@@ -832,15 +829,13 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
-        versions: [{
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          frequency: MONTHLY,
-          endDate: moment.utc().add(6, 'months').toDate(),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [2, 5]
-        }]
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        frequency: MONTHLY,
+        endDate: moment.utc().add(6, 'months').toDate(),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [2, 5]
       };
       const res = await app.inject({
         method: 'POST',
@@ -855,15 +850,13 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         nature: FIXED,
         subscription: customersList[0].subscriptions[0]._id,
-        versions: [{
-          frequency: MONTHLY,
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          endDate: moment.utc().add(6, 'months'),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [2, 5],
-        }]
+        frequency: MONTHLY,
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        endDate: moment.utc().add(6, 'months'),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [2, 5],
       };
       const res = await app.inject({
         method: 'POST',
@@ -880,15 +873,13 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         subscription: customersList[0].subscriptions[0]._id,
         nature: FIXED,
         thirdPartyPayer: thirdPartyPayersList[0]._id,
-        versions: [{
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          frequency: MONTHLY,
-          endDate: moment.utc().add(6, 'months').toDate(),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [2, 5],
-        }]
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        frequency: MONTHLY,
+        endDate: moment.utc().add(6, 'months').toDate(),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [2, 5],
       };
       const res = await app.inject({
         method: 'POST',
@@ -901,11 +892,10 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   });
 
   describe('PUT customers/:id/fundings', () => {
-    it('should add a customer funding version', async () => {
+    it('should update a customer funding', async () => {
       const customer = customersList[0];
       const payload = {
         subscription: customer.subscriptions[0]._id,
-        fundingId: customer.fundings[0]._id.toHexString(),
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
@@ -923,14 +913,13 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.funding).toBeDefined();
       expect(res.result.data.customer._id).toEqual(customer._id);
-      expect(res.result.data.funding.versions.length).toBe(customer.fundings[0].versions.length + 1);
+      expect(res.result.data.funding.versions.length).toBe(1);
     });
 
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
-        fundingId: customersList[0].fundings[0]._id.toHexString(),
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,

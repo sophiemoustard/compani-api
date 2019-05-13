@@ -72,9 +72,9 @@ const populateFundings = async (fundings, endDate) => {
 };
 
 const getMatchingFunding = (date, fundings) => {
-  if (moment(date).isHoliday()) return fundings.find(funding => funding.careDays.includes(7));
+  if (moment(date).isHoliday()) return fundings.find(funding => funding.careDays.includes(7)) || null;
 
-  return fundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1));
+  return fundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
 
 const computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
@@ -159,7 +159,6 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
   const time = moment(event.endDate).diff(moment(event.startDate), 'm');
   const fundingExclTaxes = getExclTaxes(funding.unitTTCRate, service.vat);
-  console.log('fund excl', fundingExclTaxes);
   const history = getMatchingHistory(event, funding);
 
   let chargedTime = 0;
@@ -168,7 +167,6 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
       ? (funding.careHours - history.careHours) * 60
       : time;
     thirdPartyPayerPrice = getThirdPartyPayerPrice(chargedTime, fundingExclTaxes, funding.customerParticipationRate);
-    console.log('tppp', thirdPartyPayerPrice);
     history.careHours = (history.careHours + (time / 60) > funding.careHours)
       ? funding.careHours
       : history.careHours + (chargedTime / 60);
@@ -225,7 +223,6 @@ const getFixedFundingSplit = (event, funding, service, price) => {
  * Returns customer and tpp excluded taxes prices of the given event.
  */
 const getEventPrice = (event, unitTTCRate, service, funding) => {
-  console.log('event', event);
   const unitExclTaxes = getExclTaxes(unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;
 
