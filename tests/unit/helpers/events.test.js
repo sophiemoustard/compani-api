@@ -1,10 +1,12 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
 const Contract = require('../../../models/Contract');
+const Surcharge = require('../../../models/Surcharge');
 const { populateEventSubscription, populateEvents, isCreationAllowed, isEditionAllowed } = require('../../../helpers/events');
 const {
   INTERVENTION,
@@ -188,20 +190,25 @@ describe('isCreationAllowed', () => {
     customer.populate = () => customer;
     customer.toObject = () => customer;
 
-    const contract = {
+    const contract = new Contract({
       user: payload.auxiliary,
       customer: payload.customer,
       versions: [{}],
       startDate: moment(payload.startDate).add(1, 'd'),
-    };
-    Contract.findOne = () => contract;
+    });
+    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
 
     const user = { _id: payload.auxiliary, contracts: [contract] };
     User.findOne = () => user;
     user.populate = () => user;
     user.toObject = () => user;
 
-    expect(await isCreationAllowed(payload)).toBeFalsy();
+    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+
+    const result = await isCreationAllowed(payload);
+    findOneSurcharge.restore();
+    findOneContract.restore();
+    expect(result).toBeFalsy();
   });
 
   it('should return true if service event is customer contract and auxiliary has contract with customer', async () => {
@@ -232,14 +239,20 @@ describe('isCreationAllowed', () => {
       versions: [{ isActive: true }],
       startDate: moment(payload.startDate).subtract(1, 'd'),
     };
-    Contract.findOne = () => contract;
+    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
 
     const user = { _id: payload.auxiliary, contracts: [contract] };
     User.findOne = () => user;
     user.populate = () => user;
     user.toObject = () => user;
 
-    expect(await isCreationAllowed(payload)).toBeTruthy();
+    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+
+    const result = await isCreationAllowed(payload);
+    findOneSurcharge.restore();
+    findOneContract.restore();
+
+    expect(result).toBeTruthy();
   });
 
   it('should return false if company contract and no active contract on day', async () => {
@@ -271,14 +284,20 @@ describe('isCreationAllowed', () => {
       status: COMPANY_CONTRACT,
       startDate: moment(payload.startDate).add(1, 'd'),
     };
-    Contract.findOne = () => contract;
+    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
 
     const user = { _id: payload.auxiliary, contracts: [contract] };
     User.findOne = () => user;
     user.populate = () => user;
     user.toObject = () => user;
 
-    expect(await isCreationAllowed(payload)).toBeFalsy();
+    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+
+    const result = await isCreationAllowed(payload);
+    findOneSurcharge.restore();
+    findOneContract.restore();
+
+    expect(result).toBeFalsy();
   });
 
   it('should return true if company contract and active contract on day', async () => {
@@ -310,15 +329,20 @@ describe('isCreationAllowed', () => {
       status: COMPANY_CONTRACT,
       startDate: moment(payload.startDate).subtract(1, 'd'),
     };
-    Contract.findOne = () => contract;
-
+    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
 
     const user = { _id: payload.auxiliary, contracts: [contract] };
     User.findOne = () => user;
     user.populate = () => user;
     user.toObject = () => user;
 
-    expect(await isCreationAllowed(payload)).toBeTruthy();
+    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+
+    const result = await isCreationAllowed(payload);
+    findOneSurcharge.restore();
+    findOneContract.restore();
+
+    expect(result).toBeTruthy();
   });
 
   it('should return false if company contract and customer has no subscription', async () => {
@@ -349,7 +373,7 @@ describe('isCreationAllowed', () => {
       status: COMPANY_CONTRACT,
       startDate: moment(payload.startDate).subtract(1, 'd'),
     };
-    Contract.findOne = () => contract;
+    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
 
 
     const user = { _id: payload.auxiliary, contracts: [contract] };
@@ -357,7 +381,13 @@ describe('isCreationAllowed', () => {
     user.populate = () => user;
     user.toObject = () => user;
 
-    expect(await isCreationAllowed(payload)).toBeFalsy();
+    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+
+    const result = await isCreationAllowed(payload);
+    findOneSurcharge.restore();
+    findOneContract.restore();
+
+    expect(result).toBeFalsy();
   });
 
   it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
@@ -384,18 +414,34 @@ describe('isCreationAllowed', () => {
       versions: [{}],
       status: CUSTOMER_CONTRACT,
     };
-    Contract.findOne = () => contract;
+    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
 
     const user = { _id: payload.auxiliary, contracts: [contract] };
     User.findOne = () => user;
     user.populate = () => user;
     user.toObject = () => user;
 
-    expect(await isCreationAllowed(payload)).toBeFalsy();
+    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+
+    const result = await isCreationAllowed(payload);
+    findOneSurcharge.restore();
+    findOneContract.restore();
+
+    expect(result).toBeFalsy();
   });
 });
 
 describe('isEditionAllowed', () => {
+  it('should return false as eevnt is billed', async () => {
+    const eventFromDb = {
+      isBilled: true,
+      type: INTERVENTION,
+    };
+    const payload = {};
+
+    expect(await isEditionAllowed(eventFromDb, payload)).toBeFalsy();
+  });
+
   it('should return false as event is absence and auxiliary is updated', async () => {
     const eventFromDb = {
       type: ABSENCE,
