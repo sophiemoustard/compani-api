@@ -164,7 +164,7 @@ async function updateFundingAndSaveHistory(params) {
 
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
     const prevFunding = customer.fundings.find(fund => fund._id.toHexString() === params.fundingId);
-    const prevVersions = [...prevFunding.versions] || [];
+    const prevVersions = prevFunding.versions ? [...prevFunding.versions] : [];
     prevVersions.push({ ...omit(prevFunding, ['_id', 'versions']) });
     params.payload.versions = prevVersions;
 
