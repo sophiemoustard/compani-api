@@ -166,8 +166,8 @@ const formatPDF = (bill, company) => {
     computedData.totalVAT += computedData.formattedSubs[i].inclTaxes - computedData.formattedSubs[i].exclTaxes;
     computedData.formattedSubs[i].exclTaxes = formatPrice(computedData.formattedSubs[i].exclTaxes);
     computedData.formattedSubs[i].inclTaxes = formatPrice(computedData.formattedSubs[i].inclTaxes);
-    computedData.formattedSubs[i].vat = computedData.formattedSubs[i].vat.replace(/./, ',');
-    for (let j = 0, k = bill.subscription[i].events.length; j < k; j++) {
+    computedData.formattedSubs[i].vat = computedData.formattedSubs[i].vat.toString().replace(/\./g, ',');
+    for (let j = 0, k = bill.subscriptions[i].events.length; j < k; j++) {
       const newEvent = bill.subscriptions[i].events[j];
       newEvent.auxiliary.identity.firstname = newEvent.auxiliary.identity.firstname.substring(0, 1);
       newEvent.date = moment(newEvent.startDate).format('DD/MM');
