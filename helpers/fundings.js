@@ -2,7 +2,6 @@ const Boom = require('boom');
 const moment = require('moment');
 
 const Customer = require('../models/Customer');
-const { getLastVersion } = require('./utils');
 const { populateServices } = require('./subscriptions');
 
 const checkSubscriptionFunding = async (customerId, checkedFunding) => {
@@ -11,18 +10,15 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
 
   if (!customer.fundings || customer.fundings.length === 0) return true;
 
+  /* We allow two fundings to have the same subscription only if :
+  *     - the 2 fundings are not on the same period
+  *     - or the 2 fundings are on the same period but not the same days
+  */
   return customer.fundings
-    .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() &&
-      checkedFunding._id !== fund._id.toHexString())
-    .every((fund) => {
-      const lastVersion = getLastVersion(fund.versions, 'createdAt');
-      /** We allow two fundings to have the same subscription only if :
-       * - the 2 fundings are not on the same period
-       * - or the 2 fundings are on the same period but not the same days
-       */
-      return (!!lastVersion.endDate && moment(lastVersion.endDate).isBefore(checkedFunding.versions[0].startDate, 'day')) ||
-        checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
-    });
+    .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() && checkedFunding._id !== fund._id.toHexString())
+    .every(fund =>
+      (!!fund.endDate && moment(fund.endDate).isBefore(checkedFunding.startDate, 'day')) ||
+        checkedFunding.careDays.every(day => !fund.careDays.includes(day)));
 };
 
 const populateFundings = async (funding, customer) => {

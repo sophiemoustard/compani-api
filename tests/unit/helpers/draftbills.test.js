@@ -65,25 +65,28 @@ describe('populateFundings', () => {
 
   it('should populate third party payer funding', async () => {
     const tppId = new ObjectID();
-    const fundings = [{ thirdPartyPayer: tppId, _id: 1, versions: [] }];
+    const fundings = [{ thirdPartyPayer: tppId, _id: new ObjectID(), versions: [] }];
     const returnedTpp = { _id: tppId };
     const findOne = sinon.stub(ThirdPartyPayer, 'findOne').returns({ lean: () => returnedTpp });
+    const findOneFh = sinon.stub(FundingHistory, 'findOne').returns({ lean: () => null });
 
     const result = await populateFundings(fundings, new Date());
-    findOne.restore();
 
     expect(result).toBeDefined();
     expect(result[0].thirdPartyPayer).toBeDefined();
     expect(result[0].thirdPartyPayer._id).toEqual(tppId);
+    sinon.assert.calledOnce(findOneFh);
     sinon.assert.callCount(findOne, 1);
+    findOne.restore();
+    findOneFh.restore();
   });
 
   it('should populate funding history with once frequency and history', async () => {
-    const versionId = new ObjectID();
+    const fundingId = new ObjectID();
     const fundings = [
-      { versions: [{ frequency: 'once', _id: versionId }] },
+      { frequency: 'once', _id: fundingId },
     ];
-    const returnedHistory = { careHours: 4, fundingVersion: versionId };
+    const returnedHistory = { careHours: 4, fundingId };
     const findOneTpp = sinon.stub(ThirdPartyPayer, 'findOne').returns({ lean: () => null });
     const findOne = sinon.stub(FundingHistory, 'findOne').returns({ lean: () => returnedHistory });
 
@@ -92,14 +95,14 @@ describe('populateFundings', () => {
     findOne.restore();
 
     expect(result).toBeDefined();
-    expect(result[0].versions[0].history).toBeDefined();
-    expect(result[0].versions[0].history).toMatchObject({ careHours: 4, fundingVersion: versionId });
+    expect(result[0].history).toBeDefined();
+    expect(result[0].history).toMatchObject({ careHours: 4, fundingId });
   });
 
   it('should populate funding history with once frequency and without history', async () => {
-    const versionId = new ObjectID();
+    const fundingId = new ObjectID();
     const fundings = [
-      { versions: [{ frequency: 'once', _id: versionId }] },
+      { frequency: 'once', _id: fundingId },
     ];
     const findOneTpp = sinon.stub(ThirdPartyPayer, 'findOne').returns({ lean: () => null });
     const findOne = sinon.stub(FundingHistory, 'findOne').returns({ lean: () => null });
@@ -109,18 +112,18 @@ describe('populateFundings', () => {
     findOne.restore();
 
     expect(result).toBeDefined();
-    expect(result[0].versions[0].history).toBeDefined();
-    expect(result[0].versions[0].history).toMatchObject({ careHours: 0, amountTTC: 0, fundingVersion: versionId });
+    expect(result[0].history).toBeDefined();
+    expect(result[0].history).toMatchObject({ careHours: 0, amountTTC: 0, fundingId });
   });
 
   it('should populate funding history with monthly frequency', async () => {
-    const versionId = new ObjectID();
+    const fundingId = new ObjectID();
     const fundings = [
-      { versions: [{ frequency: 'monthly', _id: versionId }] },
+      { frequency: 'monthly', _id: fundingId },
     ];
     const returnedHistories = [
-      { careHours: 3, fundingVersion: versionId, month: '01/2019' },
-      { careHours: 5, fundingVersion: versionId, month: '02/2019' },
+      { careHours: 3, fundingId, month: '01/2019' },
+      { careHours: 5, fundingId, month: '02/2019' },
     ];
     const findOneTpp = sinon.stub(ThirdPartyPayer, 'findOne').returns({ lean: () => null });
     const find = sinon.stub(FundingHistory, 'find').returns(returnedHistories);
@@ -130,11 +133,11 @@ describe('populateFundings', () => {
     find.restore();
 
     expect(result).toBeDefined();
-    expect(result[0].versions[0].history).toBeDefined();
-    expect(result[0].versions[0].history.length).toEqual(3);
-    const addedHistory = result[0].versions[0].history.find(hist => hist.month === '03/2019');
+    expect(result[0].history).toBeDefined();
+    expect(result[0].history.length).toEqual(3);
+    const addedHistory = result[0].history.find(hist => hist.month === '03/2019');
     expect(addedHistory).toBeDefined();
-    expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingVersion: versionId, month: '03/2019' });
+    expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
   });
 });
 
@@ -145,39 +148,29 @@ describe('getMatchingFunding', () => {
 
   it('should return matching version with random day', () => {
     const fundings = [
-      {
-        versions: [
-          { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
-          { _id: 3, careDays: [0, 3], startDate: new Date('2019/02/23') }
-        ],
-      },
-      { versions: [{ _id: 2, careDays: [1, 5, 6], startDate: new Date('2019/04/23') }] },
+      { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23'), createdAt: new Date('2019/03/23') },
+      { _id: 3, careDays: [0, 3], startDate: new Date('2019/02/23'), createdAt: new Date('2019/02/23') },
+      { _id: 2, careDays: [1, 5, 6], startDate: new Date('2019/04/23'), createdAt: new Date('2019/04/23') },
     ];
     const result = getMatchingFunding(new Date('2019/04/23'), fundings);
     expect(result).toBeDefined();
-    expect(result.versionId).toEqual(2);
+    expect(result._id).toEqual(2);
   });
 
   it('should return matching version with holidays', () => {
     const fundings = [
-      {
-        versions: [{ _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') }],
-      },
-      { versions: [{ _id: 3, careDays: [4, 7], startDate: new Date('2019/04/23') }] },
+      { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
+      { _id: 3, careDays: [4, 7], startDate: new Date('2019/04/23') },
     ];
     const result = getMatchingFunding(new Date('2019/05/01'), fundings);
     expect(result).toBeDefined();
-    expect(result.versionId).toEqual(3);
+    expect(result._id).toEqual(3);
   });
 
   it('should return null if no matching version', () => {
     const fundings = [
-      {
-        versions: [
-          { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
-        ],
-      },
-      { versions: [{ _id: 2, careDays: [5, 6], startDate: new Date('2019/04/23') }] },
+      { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
+      { _id: 2, careDays: [5, 6], startDate: new Date('2019/04/23') },
     ];
     const result = getMatchingFunding(new Date('2019/04/23'), fundings);
     expect(result).toBeNull();
@@ -357,37 +350,37 @@ describe('getThirdPartyPayerPrice', () => {
 
 describe('getMatchingHistory', () => {
   it('should return history for once frequency', () => {
-    const versionId = new ObjectID();
-    const funding = { versionId, frequency: 'once', history: { fundingVersion: versionId, careHours: 2 } };
+    const fundingId = new ObjectID();
+    const funding = { _id: fundingId, frequency: 'once', history: { fundingId, careHours: 2 } };
     const result = getMatchingHistory({}, funding);
     expect(result).toBeDefined();
-    expect(result.fundingVersion).toEqual(versionId);
+    expect(result.fundingId).toEqual(fundingId);
   });
 
   it('should return existing history for monthly frequency', () => {
-    const versionId = new ObjectID();
+    const fundingId = new ObjectID();
     const funding = {
-      versionId,
+      _id: fundingId,
       frequency: 'monthly',
-      history: [{ fundingVersion: versionId, careHours: 2, month: '03/2019' }, { fundingVersion: versionId, careHours: 4, month: '02/2019' }]
+      history: [{ fundingId, careHours: 2, month: '03/2019' }, { fundingId, careHours: 4, month: '02/2019' }]
     };
     const event = { startDate: new Date('2019/03/12') };
     const result = getMatchingHistory(event, funding);
     expect(result).toBeDefined();
-    expect(result).toMatchObject({ fundingVersion: versionId, careHours: 2, month: '03/2019' });
+    expect(result).toMatchObject({ fundingId, careHours: 2, month: '03/2019' });
   });
 
   it('should create history and add to list when missing for monthly frequency', () => {
-    const versionId = new ObjectID();
+    const fundingId = new ObjectID();
     const funding = {
-      versionId,
+      _id: fundingId,
       frequency: 'monthly',
-      history: [{ fundingVersion: versionId, careHours: 2, month: '01/2019' }, { fundingVersion: versionId, careHours: 4, month: '02/2019' }]
+      history: [{ fundingId, careHours: 2, month: '01/2019' }, { fundingId, careHours: 4, month: '02/2019' }]
     };
     const event = { startDate: new Date('2019/03/12') };
     const result = getMatchingHistory(event, funding);
     expect(result).toBeDefined();
-    expect(result).toMatchObject({ careHours: 0, amountTTC: 0, fundingVersion: versionId, month: '03/2019' });
+    expect(result).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
   });
 });
 
@@ -644,28 +637,24 @@ describe('getDraftBillsPerSubscription', () => {
     const tppId = new ObjectID();
     const fundings = [
       {
+        _id: 'version',
         thirdPartyPayer: { _id: tppId },
-        versions: [{
-          _id: 'version',
-          careDays: [1, 4, 5],
-          startDate: new Date('2019/01/01'),
-          frequency: 'once',
-          nature: 'fixed',
-          amountTTC: 200,
-          history: { amountTTC: 185 },
-        }],
+        careDays: [1, 4, 5],
+        startDate: new Date('2019/01/01'),
+        frequency: 'once',
+        nature: 'fixed',
+        amountTTC: 200,
+        history: { amountTTC: 185 },
       },
       {
+        _id: 'version2',
         thirdPartyPayer: { _id: new ObjectID() },
-        versions: [{
-          _id: 'version2',
-          careDays: [0],
-          startDate: new Date('2019/01/01'),
-          frequency: 'once',
-          nature: 'fixed',
-          amountTTC: 200,
-          history: { amountTTC: 185 },
-        }],
+        careDays: [0],
+        startDate: new Date('2019/01/01'),
+        frequency: 'once',
+        nature: 'fixed',
+        amountTTC: 200,
+        history: { amountTTC: 185 },
       },
     ];
     const result = getDraftBillsPerSubscription(events, customer, subscription, fundings, query);

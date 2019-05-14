@@ -1,10 +1,17 @@
 const mongoose = require('mongoose');
+const omit = require('lodash/omit');
+const flat = require('flat');
+const Boom = require('boom');
+
 const {
   MONTHLY,
   ONCE,
   HOURLY,
   FIXED,
 } = require('../helpers/constants');
+const translate = require('../helpers/translate');
+
+const { language } = translate;
 
 const CustomerSchema = mongoose.Schema({
   driveFolder: {
@@ -119,6 +126,16 @@ const CustomerSchema = mongoose.Schema({
     nature: { type: String, enum: [HOURLY, FIXED] },
     subscription: { type: mongoose.Schema.Types.ObjectId },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
+    frequency: { type: String, enum: [MONTHLY, ONCE] },
+    amountTTC: Number,
+    unitTTCRate: Number,
+    careHours: Number,
+    careDays: [Number],
+    customerParticipationRate: Number,
+    folderNumber: String,
+    startDate: Date,
+    endDate: Date,
+    createdAt: { type: Date, default: Date.now },
     versions: [{
       frequency: { type: String, enum: [MONTHLY, ONCE] },
       amountTTC: Number,
@@ -129,10 +146,42 @@ const CustomerSchema = mongoose.Schema({
       folderNumber: String,
       startDate: Date,
       endDate: Date,
-      createdAt: { type: Date, default: Date.now },
+      createdAt: Date,
     }],
-    createdAt: { type: Date, default: Date.now }
   }]
 }, { timestamps: true });
+
+
+async function updateFundingAndSaveHistory(params) {
+  try {
+    const customer = await this.findOne(
+      { _id: params._id },
+      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
+    ).lean();
+
+    if (!customer) throw Boom.notFound(translate[language].customerNotFound);
+    const prevFunding = customer.fundings.find(fund => fund._id.toHexString() === params.fundingId);
+    const prevVersions = prevFunding.versions ? [...prevFunding.versions] : [];
+    prevVersions.push({ ...omit(prevFunding, ['_id', 'versions', 'thirdPartyPayers', 'nature', 'subscription']) });
+    params.payload.versions = prevVersions;
+
+    return this.findOneAndUpdate(
+      { _id: params._id, 'fundings._id': params.fundingId },
+      { $set: flat({ 'fundings.$': params.payload }, { safe: true }) },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
+        autopopulate: false,
+      },
+    )
+      .populate('subscriptions.service')
+      .populate('fundings.thirdPartyPayer')
+      .lean();
+  } catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+CustomerSchema.statics.updateFundingAndSaveHistory = updateFundingAndSaveHistory;
 
 module.exports = mongoose.model('Customer', CustomerSchema);

@@ -43,29 +43,27 @@ const populateSurcharge = async (subscription) => {
  * Funding version frequency = MONTHLY : there is one history PER MONTH
  */
 const populateFundings = async (fundings, endDate) => {
-  for (let i = 0, l = fundings.length; i < l; i++) {
-    const tpp = await ThirdPartyPayer.findOne({ _id: fundings[i].thirdPartyPayer }).lean();
-    if (tpp) fundings[i].thirdPartyPayer = tpp;
+  for (const funding of fundings) {
+    const tpp = await ThirdPartyPayer.findOne({ _id: funding.thirdPartyPayer }).lean();
+    if (tpp) funding.thirdPartyPayer = tpp;
 
-    for (let k = 0, m = fundings[i].versions.length; k < m; k++) {
-      if (fundings[i].versions[k].frequency !== MONTHLY) {
-        const history = await FundingHistory.findOne({ fundingVersion: fundings[i].versions[k]._id }).lean();
-        if (history) fundings[i].versions[k].history = history;
-        else {
-          fundings[i].versions[k].history = { careHours: 0, amountTTC: 0, fundingVersion: fundings[i].versions[k]._id };
-        }
-      } else {
-        const history = await FundingHistory.find({ fundingVersion: fundings[i].versions[k]._id });
-        if (history) fundings[i].versions[k].history = history;
-        if (history.length === 0 || !history) fundings[i].versions[k].history = [];
-        if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {
-          fundings[i].versions[k].history.push({
-            careHours: 0,
-            amountTTC: 0,
-            fundingVersion: fundings[i].versions[k]._id,
-            month: moment(endDate).format('MM/YYYY'),
-          });
-        }
+    if (funding.frequency !== MONTHLY) {
+      const history = await FundingHistory.findOne({ fundingId: funding._id }).lean();
+      if (history) funding.history = history;
+      else {
+        funding.history = { careHours: 0, amountTTC: 0, fundingId: funding._id };
+      }
+    } else {
+      const history = await FundingHistory.find({ fundingId: funding._id });
+      if (history) funding.history = history;
+      if (history.length === 0 || !history) funding.history = [];
+      if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {
+        funding.history.push({
+          careHours: 0,
+          amountTTC: 0,
+          fundingId: funding._id,
+          month: moment(endDate).format('MM/YYYY'),
+        });
       }
     }
   }
@@ -74,19 +72,9 @@ const populateFundings = async (fundings, endDate) => {
 };
 
 const getMatchingFunding = (date, fundings) => {
-  if (moment(date).isHoliday()) {
-    for (const funding of fundings) {
-      const matchingVersion = getMatchingVersion(date, funding, 'startDate');
-      if (matchingVersion.careDays.includes(7)) return matchingVersion;
-    }
-  }
+  if (moment(date).isHoliday()) return fundings.find(funding => funding.careDays.includes(7)) || null;
 
-  for (const funding of fundings) {
-    const matchingVersion = getMatchingVersion(date, funding, 'startDate');
-    if (matchingVersion && (matchingVersion.careDays.includes(moment(date).isoWeekday() - 1))) return matchingVersion;
-  }
-
-  return null;
+  return fundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
 
 const computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
@@ -158,7 +146,7 @@ const getMatchingHistory = (event, funding) => {
   let history = funding.history.find(his => his.month === moment(event.startDate).format('MM/YYYY'));
   if (history) return history;
 
-  funding.history.push({ careHours: 0, amountTTC: 0, fundingVersion: funding.versionId, month: moment(event.startDate).format('MM/YYYY') });
+  funding.history.push({ careHours: 0, amountTTC: 0, fundingId: funding._id, month: moment(event.startDate).format('MM/YYYY') });
   history = funding.history.find(his => his.month === moment(event.startDate).format('MM/YYYY'));
   return history;
 };
@@ -189,11 +177,11 @@ const getHourlyFundingSplit = (event, funding, service, price) => {
     thirdPartyPayerPrice,
     history: {
       careHours: chargedTime / 60,
-      fundingVersion: funding.versionId,
+      fundingId: funding._id,
       nature: funding.nature,
       ...(funding.frequency === MONTHLY && { month: moment(event.startDate).format('MM/YYYY') }),
     },
-    fundingVersion: funding.versionId,
+    fundingId: funding._id,
     thirdPartyPayer: funding.thirdPartyPayer._id,
     chargedTime,
   };
@@ -222,10 +210,10 @@ const getFixedFundingSplit = (event, funding, service, price) => {
     thirdPartyPayerPrice,
     history: {
       amountTTC: thirdPartyPayerPrice * (1 + (service.vat / 100)),
-      fundingVersion: funding.versionId,
+      fundingId: funding._id,
       nature: funding.nature,
     },
-    fundingVersion: funding.versionId,
+    fundingId: funding._id,
     thirdPartyPayer: funding.thirdPartyPayer._id,
     chargedTime,
   };
@@ -280,7 +268,7 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
     inclTaxesCustomer: getInclTaxes(eventPrice.customerPrice, service.vat),
     exclTaxesCustomer: eventPrice.customerPrice,
     history: { ...eventPrice.history },
-    fundingVersion: eventPrice.fundingVersion,
+    fundingId: eventPrice.fundingId,
     nature: eventPrice.history.nature,
   };
 

@@ -221,10 +221,10 @@ describe('BILLS ROUTES', () => {
                     exclTaxesCustomer: 0,
                     history: {
                       amountTTC: 24,
-                      fundingVersion: '5ccbfcf4bffe7646a387b45a',
+                      fundingId: '5ccbfcf4bffe7646a387b45a',
                       nature: 'fixed'
                     },
-                    fundingVersion: '5ccbfcf4bffe7646a387b45a',
+                    fundingId: '5ccbfcf4bffe7646a387b45a',
                     nature: 'fixed'
                   }
                 ],
