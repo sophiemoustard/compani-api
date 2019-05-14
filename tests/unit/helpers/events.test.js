@@ -160,6 +160,22 @@ describe('populateEvents', () => {
 });
 
 describe('isCreationAllowed', () => {
+  it('should return false as event has conflicts', async () => {
+    const payload = {
+      auxiliary: new ObjectID(),
+      startDate: '2019-10-02T08:00:00.000Z',
+      endDate: '2019-10-02T10:00:00.000Z',
+    };
+
+    const findEvents = sinon.stub(Event, 'find').returns([
+      { startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T10:00:00.000Z' },
+    ]);
+    const result = await isCreationAllowed(payload);
+    findEvents.restore();
+
+    expect(result).toBeFalsy();
+  });
+
   it('should return false as user has no contract', async () => {
     const payload = { auxiliary: new ObjectID() };
 
