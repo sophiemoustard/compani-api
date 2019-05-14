@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const moment = require('moment');
 
 const Customer = require('../models/Customer');
 const { populateServices } = require('./subscriptions');
@@ -9,13 +10,15 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
 
   if (!customer.fundings || customer.fundings.length === 0) return true;
 
-  return customer.fundings
-    .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() &&
-      checkedFunding._id !== fund._id.toHexString())
-  /** We allow two fundings to have the same subscription only if :
-  * - the 2 fundings are on the same period but not the same days
+  /* We allow two fundings to have the same subscription only if :
+  *     - the 2 fundings are not on the same period
+  *     - or the 2 fundings are on the same period but not the same days
   */
-    .every(fund => checkedFunding.careDays.every(day => !fund.careDays.includes(day)));
+  return customer.fundings
+    .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() && checkedFunding._id !== fund._id.toHexString())
+    .every(fund =>
+      (!!fund.endDate && moment(fund.endDate).isBefore(checkedFunding.startDate, 'day')) ||
+        checkedFunding.careDays.every(day => !fund.careDays.includes(day)));
 };
 
 const populateFundings = async (funding, customer) => {

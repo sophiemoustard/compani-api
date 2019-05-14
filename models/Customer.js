@@ -137,9 +137,6 @@ const CustomerSchema = mongoose.Schema({
     endDate: Date,
     createdAt: { type: Date, default: Date.now },
     versions: [{
-      nature: { type: String, enum: [HOURLY, FIXED] },
-      subscription: { type: mongoose.Schema.Types.ObjectId },
-      thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
       frequency: { type: String, enum: [MONTHLY, ONCE] },
       amountTTC: Number,
       unitTTCRate: Number,
@@ -165,7 +162,7 @@ async function updateFundingAndSaveHistory(params) {
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
     const prevFunding = customer.fundings.find(fund => fund._id.toHexString() === params.fundingId);
     const prevVersions = prevFunding.versions ? [...prevFunding.versions] : [];
-    prevVersions.push({ ...omit(prevFunding, ['_id', 'versions']) });
+    prevVersions.push({ ...omit(prevFunding, ['_id', 'versions', 'thirdPartyPayers', 'nature', 'subscription']) });
     params.payload.versions = prevVersions;
 
     return this.findOneAndUpdate(
