@@ -186,7 +186,7 @@ async function updateFundingAndSaveHistory(params) {
 const countSubscriptionUsage = async (doc) => {
   if (doc && doc.subscriptions && doc.subscriptions.length > 0) {
     for (const subscription of doc.subscriptions) {
-      subscription.eventCount = await Event.estimatedDocumentCount({ subscription: subscription._id });
+      subscription.eventCount = await Event.countDocuments({ subscription: subscription._id });
     }
   }
 };
