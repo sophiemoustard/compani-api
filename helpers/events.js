@@ -263,6 +263,7 @@ const deleteRepetition = async (event) => {
 };
 
 module.exports = {
+  hasConflicts,
   isCreationAllowed,
   isEditionAllowed,
   getListQuery,
