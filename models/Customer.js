@@ -183,15 +183,13 @@ async function updateFundingAndSaveHistory(params) {
   }
 }
 
-
 const countSubscriptionUsage = async (doc) => {
-  if (doc.subscriptions && doc.subscriptions.length > 0) {
+  if (doc && doc.subscriptions && doc.subscriptions.length > 0) {
     for (const subscription of doc.subscriptions) {
-      subscription.eventCount = await Event.count({ subscription: subscription._id });
+      subscription.eventCount = await Event.estimatedDocumentCount({ subscription: subscription._id });
     }
   }
 };
-
 
 CustomerSchema.statics.updateFundingAndSaveHistory = updateFundingAndSaveHistory;
 CustomerSchema.post('findOne', countSubscriptionUsage);
