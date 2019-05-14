@@ -27,7 +27,23 @@ const auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.som
   moment(contract.startDate).isSameOrBefore(day, 'd') &&
   ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
 
+const hasConflicts = async (event) => {
+  const auxiliaryEvents = await Event.find({
+    auxiliary: event.auxiliary,
+    startDate: { $gte: event.startDate, $lt: event.endDate },
+    endDate: { $gt: event.startDate, $lte: event.endDate },
+  });
+
+  return auxiliaryEvents.some((ev) => {
+    if (event._id && event._id.toHexString() === ev._id.toHexString()) return false;
+    return moment(event.startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[]') ||
+      moment(ev.startDate).isBetween(event.startDate, event.endDate, 'minutes', '[]');
+  });
+};
+
 const isCreationAllowed = async (event) => {
+  if (await hasConflicts(event)) return false;
+
   let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
   user = user.toObject();
   if (!user.contracts || user.contracts.length === 0) {

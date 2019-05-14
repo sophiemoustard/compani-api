@@ -7,6 +7,7 @@ const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
 const Contract = require('../../../models/Contract');
 const Surcharge = require('../../../models/Surcharge');
+const Event = require('../../../models/Event');
 const { populateEventSubscription, populateEvents, isCreationAllowed, isEditionAllowed } = require('../../../helpers/events');
 const {
   INTERVENTION,
@@ -159,6 +160,22 @@ describe('populateEvents', () => {
 });
 
 describe('isCreationAllowed', () => {
+  it('should return false as event has conflicts', async () => {
+    const payload = {
+      auxiliary: new ObjectID(),
+      startDate: '2019-10-02T08:00:00.000Z',
+      endDate: '2019-10-02T10:00:00.000Z',
+    };
+
+    const findEvents = sinon.stub(Event, 'find').returns([
+      { startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T10:00:00.000Z' },
+    ]);
+    const result = await isCreationAllowed(payload);
+    findEvents.restore();
+
+    expect(result).toBeFalsy();
+  });
+
   it('should return false as user has no contract', async () => {
     const payload = { auxiliary: new ObjectID() };
 
@@ -167,7 +184,11 @@ describe('isCreationAllowed', () => {
     user.populate = () => user;
     user.toObject = () => user;
 
-    expect(await isCreationAllowed(payload)).toBeFalsy();
+    const findEvents = sinon.stub(Event, 'find').returns([]);
+    const result = await isCreationAllowed(payload);
+    findEvents.restore();
+
+    expect(result).toBeFalsy();
   });
 
   it('should return false if service event is customer contract and auxiliary does not have contract with customer', async () => {
@@ -177,6 +198,8 @@ describe('isCreationAllowed', () => {
       customer: new ObjectID(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
+      startDate: '2019-10-02T08:00:00.000Z',
+      endDate: '2019-10-02T10:00:00.000Z',
     };
     const customer = {
       _id: payload.customer,
@@ -204,10 +227,12 @@ describe('isCreationAllowed', () => {
     user.toObject = () => user;
 
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+    const findEvents = sinon.stub(Event, 'find').returns([]);
 
     const result = await isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
+    findEvents.restore();
     expect(result).toBeFalsy();
   });
 
@@ -247,10 +272,12 @@ describe('isCreationAllowed', () => {
     user.toObject = () => user;
 
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+    const findEvents = sinon.stub(Event, 'find').returns([]);
 
     const result = await isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
+    findEvents.restore();
 
     expect(result).toBeTruthy();
   });
@@ -292,10 +319,12 @@ describe('isCreationAllowed', () => {
     user.toObject = () => user;
 
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+    const findEvents = sinon.stub(Event, 'find').returns([]);
 
     const result = await isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
+    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
@@ -337,10 +366,12 @@ describe('isCreationAllowed', () => {
     user.toObject = () => user;
 
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+    const findEvents = sinon.stub(Event, 'find').returns([]);
 
     const result = await isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
+    findEvents.restore();
 
     expect(result).toBeTruthy();
   });
@@ -375,17 +406,18 @@ describe('isCreationAllowed', () => {
     };
     const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
 
-
     const user = { _id: payload.auxiliary, contracts: [contract] };
     User.findOne = () => user;
     user.populate = () => user;
     user.toObject = () => user;
 
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+    const findEvents = sinon.stub(Event, 'find').returns([]);
 
     const result = await isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
+    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
@@ -422,10 +454,12 @@ describe('isCreationAllowed', () => {
     user.toObject = () => user;
 
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+    const findEvents = sinon.stub(Event, 'find').returns([]);
 
     const result = await isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
+    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
