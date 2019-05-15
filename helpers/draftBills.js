@@ -6,7 +6,7 @@ const Event = require('../models/Event');
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
-const { HOURLY, MONTHLY, ONCE } = require('./constants');
+const { HOURLY, MONTHLY, ONCE, FIXED } = require('./constants');
 const { getMatchingVersion, getLastVersion } = require('../helpers/utils');
 
 const holidays = new Holidays('FR');
@@ -226,6 +226,7 @@ const getEventPrice = (event, unitTTCRate, service, funding) => {
   const unitExclTaxes = getExclTaxes(unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;
 
+  if (service.nature === FIXED) price = unitExclTaxes;
   if (service.surcharge && service.nature === HOURLY) price = applySurcharge(event, price, service.surcharge);
 
   if (funding) {
