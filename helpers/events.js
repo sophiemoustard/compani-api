@@ -258,6 +258,35 @@ const updateRepetitions = async (event, payload) => {
   return Promise.all(promises);
 };
 
+const updateEvent = async (event, payload) => {
+  const { repetition, type } = event;
+  if (type === ABSENCE || !repetition || repetition.frequency === NEVER || payload.shouldUpdateRepetition) {
+    event = await Event
+      .findOneAndUpdate(
+        { _id: event._id },
+        { $set: flat(payload) },
+        { autopopulate: false, new: true }
+      )
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
+      .populate({ path: 'customer', select: 'identity subscriptions contact' })
+      .lean();
+
+    if (repetition && repetition.frequency !== NEVER && payload.shouldUpdateRepetition) await updateRepetitions(event, payload);
+  } else {
+    event = await Event
+      .findOneAndUpdate(
+        { _id: event._id },
+        { $set: flat(payload), $unset: { 'repetition.parentId': '' } },
+        { autopopulate: false, new: true }
+      )
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
+      .populate({ path: 'customer', select: 'identity subscriptions contact' })
+      .lean();
+  }
+
+  return populateEventSubscription(event);
+};
+
 const deleteRepetition = async (event) => {
   await Event.deleteMany({ 'repetition.parentId': event.repetition.parentId, startDate: { $gt: new Date(event.startDate) } });
 };
@@ -272,5 +301,6 @@ module.exports = {
   updateEventsInternalHourType,
   createRepetitions,
   updateRepetitions,
+  updateEvent,
   deleteRepetition,
 };
