@@ -90,7 +90,7 @@ const isEditionAllowed = async (eventFromDB, payload) => {
     return false;
   }
 
-  return isCreationAllowed({ ...eventFromDB.toObject(), ...payload });
+  return isCreationAllowed({ ...eventFromDB, ...payload });
 };
 
 const getListQuery = (req) => {
@@ -262,12 +262,21 @@ const updateEvent = async (event, payload) => {
   const { repetition, type } = event;
   /**
    * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the repetition
-   * i.e. delete the repetition object.
+   * i.e. delete the repetition object. EXCEPT if we are only updating the misc field
    *
    * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the camcellation
    * i.e. delete the cancel object and set isCancelled to false.
    */
-  if (type === ABSENCE || !repetition || repetition.frequency === NEVER || payload.shouldUpdateRepetition) {
+
+  let miscUpdatedOnly = false;
+  if (payload.misc) {
+    if (!event.misc || event.misc === '' || (payload.misc !== event.misc && _.isEqual(
+      _.omit(event, ['misc', 'repetition', 'location', 'isBilled', '_id', 'type', 'customer', 'createdAt', 'updatedAt']),
+      _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc'])
+    ))) miscUpdatedOnly = true;
+  }
+
+  if (type === ABSENCE || !repetition || repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
     event = await Event
       .findOneAndUpdate(
         { _id: event._id },
@@ -282,7 +291,7 @@ const updateEvent = async (event, payload) => {
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
-    if (repetition && repetition.frequency !== NEVER && payload.shouldUpdateRepetition) await updateRepetitions(event, payload);
+    if (!miscUpdatedOnly && repetition && repetition.frequency !== NEVER && payload.shouldUpdateRepetition) await updateRepetitions(event, payload);
   } else {
     event = await Event
       .findOneAndUpdate(

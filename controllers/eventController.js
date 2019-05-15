@@ -101,7 +101,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    let event = await Event.findOne({ _id: req.params._id });
+    let event = await Event.findOne({ _id: req.params._id }).lean();
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     if (!(await isEditionAllowed(event, req.payload))) return Boom.badData();
