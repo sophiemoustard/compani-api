@@ -5,6 +5,7 @@ const {
   formatBillNumber,
   formatCustomerBills,
   formatThirdPartyPayerBills,
+  formatPDF,
 } = require('../../../helpers/bills');
 
 describe('formatBillNumber', () => {
@@ -384,5 +385,113 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills.length).toEqual(2);
+  });
+});
+
+describe('formatPDF', () => {
+  it('should format correct bill PDF', () => {
+    const bill = {
+      subscriptions: [{
+        events: [{
+          auxiliary: {
+            identity: {
+              firstname: 'Nathanaelle',
+            }
+          },
+          startDate: '2019-04-10T06:00:00.000Z',
+          endDate: '2019-04-10T08:00:00.000Z',
+          bills: {
+            inclTaxesCustomer: 52,
+            exclTaxesCustomer: 49.28909952606635
+          }
+        }],
+        subscription: '5c64327a4a85340014894ee1',
+        startDate: '2019-03-31T22:00:00.000Z',
+        endDate: '2019-04-30T21:59:59.999Z',
+        unitExclTaxes: 24.644549763033176,
+        vat: 5.5,
+        hours: 40,
+        exclTaxes: 1018.0094786729859,
+        inclTaxes: 1074,
+        service: 'Temps de qualité - autonomie'
+      }],
+      billNumber: 'FACT-0519016',
+      netInclTaxes: 1074,
+      date: '2019-04-30T21:59:59.999Z',
+    };
+    const company = {};
+    const result = {
+      bill: {
+        subscriptions: [{
+          events: [{
+            auxiliary: { identity: { firstname: 'N' } },
+            startDate: '2019-04-10T06:00:00.000Z',
+            endDate: '2019-04-10T08:00:00.000Z',
+            bills: {
+              inclTaxesCustomer: 52,
+              exclTaxesCustomer: 49.28909952606635
+            },
+            date: '10/04',
+            startTime: '08:00',
+            endTime: '10:00',
+            service: 'Temps de qualité - autonomie'
+          }],
+          subscription: '5c64327a4a85340014894ee1',
+          startDate: '2019-03-31T22:00:00.000Z',
+          endDate: '2019-04-30T21:59:59.999Z',
+          unitExclTaxes: 24.644549763033176,
+          vat: '5,5',
+          hours: 40,
+          exclTaxes: '1 018,01 €',
+          inclTaxes: '1 074,00 €',
+          service: 'Temps de qualité - autonomie'
+        }],
+        billNumber: 'FACT-0519016',
+        netInclTaxes: '1 074,00 €',
+        date: '30/04/2019',
+        totalExclTaxes: '1 018,01 €',
+        totalVAT: '55,99 €',
+        formattedSubs: [{
+          events: [{
+            auxiliary: { identity: { firstname: 'N' } },
+            startDate: '2019-04-10T06:00:00.000Z',
+            endDate: '2019-04-10T08:00:00.000Z',
+            bills: {
+              inclTaxesCustomer: 52,
+              exclTaxesCustomer: 49.28909952606635
+            },
+            date: '10/04',
+            startTime: '08:00',
+            endTime: '10:00',
+            service: 'Temps de qualité - autonomie'
+          }],
+          subscription: '5c64327a4a85340014894ee1',
+          startDate: '2019-03-31T22:00:00.000Z',
+          endDate: '2019-04-30T21:59:59.999Z',
+          unitExclTaxes: 24.644549763033176,
+          vat: '5,5',
+          hours: 40,
+          exclTaxes: '1 018,01 €',
+          inclTaxes: '1 074,00 €',
+          service: 'Temps de qualité - autonomie'
+        }],
+        formattedEvents: [{
+          auxiliary: { identity: { firstname: 'N' } },
+          startDate: '2019-04-10T06:00:00.000Z',
+          endDate: '2019-04-10T08:00:00.000Z',
+          bills: {
+            inclTaxesCustomer: 52,
+            exclTaxesCustomer: 49.28909952606635
+          },
+          date: '10/04',
+          startTime: '08:00',
+          endTime: '10:00',
+          service: 'Temps de qualité - autonomie'
+        }],
+        company: {},
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
+      }
+    };
+    expect(formatPDF(bill, company)).toEqual(expect.objectContaining(result));
   });
 });
