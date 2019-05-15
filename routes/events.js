@@ -20,6 +20,10 @@ const {
   HOURLY,
   UNJUSTIFIED,
   ILLNESS,
+  INVOICED_AND_NOT_PAYED,
+  INVOICED_AND_PAYED,
+  CUSTOMER_INITIATIVE,
+  AUXILIARY_INITIATIVE,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -140,8 +144,12 @@ exports.plugin = {
             isCancelled: Joi.boolean(),
             shouldUpdateRepetition: Joi.boolean(),
             cancel: Joi.object().keys({
-              condition: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
-              reason: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
+              condition: Joi.string()
+                .valid(INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED)
+                .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
+              reason: Joi.string()
+                .valid(CUSTOMER_INITIATIVE, AUXILIARY_INITIATIVE)
+                .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
             isBilled: Joi.boolean()
           })

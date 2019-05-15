@@ -30,19 +30,22 @@ const auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.som
 const hasConflicts = async (event) => {
   const auxiliaryEvents = await Event.find({
     auxiliary: event.auxiliary,
-    startDate: { $gte: event.startDate, $lt: event.endDate },
-    endDate: { $gt: event.startDate, $lte: event.endDate },
+    $or: [
+      { startDate: { $gte: event.startDate, $lt: event.endDate } },
+      { endDate: { $gt: event.startDate, $lte: event.endDate } },
+      { startDate: { $lte: event.startDate }, endDate: { $gte: event.endDate } }
+    ],
   });
 
   return auxiliaryEvents.some((ev) => {
-    if (event._id && event._id.toHexString() === ev._id.toHexString()) return false;
+    if ((event._id && event._id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
     return moment(event.startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[]') ||
       moment(ev.startDate).isBetween(event.startDate, event.endDate, 'minutes', '[]');
   });
 };
 
 const isCreationAllowed = async (event) => {
-  if (await hasConflicts(event)) return false;
+  if (!event.isCancelled && await hasConflicts(event)) return false;
 
   let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
   user = user.toObject();
@@ -260,6 +263,7 @@ const deleteRepetition = async (event) => {
 };
 
 module.exports = {
+  hasConflicts,
   isCreationAllowed,
   isEditionAllowed,
   getListQuery,

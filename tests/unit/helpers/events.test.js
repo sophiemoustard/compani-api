@@ -8,7 +8,7 @@ const Customer = require('../../../models/Customer');
 const Contract = require('../../../models/Contract');
 const Surcharge = require('../../../models/Surcharge');
 const Event = require('../../../models/Event');
-const { populateEventSubscription, populateEvents, isCreationAllowed, isEditionAllowed } = require('../../../helpers/events');
+const { populateEventSubscription, populateEvents, isCreationAllowed, isEditionAllowed, hasConflicts } = require('../../../helpers/events');
 const {
   INTERVENTION,
   CUSTOMER_CONTRACT,
@@ -156,6 +156,59 @@ describe('populateEvents', () => {
     expect(result[1].subscription).toBeDefined();
     expect(result[0].subscription._id).toEqual(events[0].subscription);
     expect(result[1].subscription._id).toEqual(events[1].subscription);
+  });
+});
+
+describe('hasConflicts', () => {
+  it('should return true if event has conflicts', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2019-10-02T09:00:00.000Z',
+      endDate: '2019-10-02T11:00:00.000Z',
+      auxiliary: new ObjectID(),
+    };
+
+    const findEvents = sinon.stub(Event, 'find').returns([
+      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
+    ]);
+    const result = await hasConflicts(event);
+    findEvents.restore();
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false if event does not have conflicts', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2019-10-02T15:00:00.000Z',
+      endDate: '2019-10-02T16:00:00.000Z',
+      auxiliary: new ObjectID(),
+    };
+
+    const findEvents = sinon.stub(Event, 'find').returns([
+      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
+    ]);
+    const result = await hasConflicts(event);
+    findEvents.restore();
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false if event has conflicts only with cancelled events', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2019-10-02T09:00:00.000Z',
+      endDate: '2019-10-02T11:00:00.000Z',
+      auxiliary: new ObjectID(),
+    };
+
+    const findEvents = sinon.stub(Event, 'find').returns([
+      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z', isCancelled: true },
+    ]);
+    const result = await hasConflicts(event);
+    findEvents.restore();
+
+    expect(result).toBeFalsy();
   });
 });
 
