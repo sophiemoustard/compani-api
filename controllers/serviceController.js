@@ -7,7 +7,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const services = await Service.find(req.query).populate('versions.surcharge');
+    const services = await Service.find(req.query).populate('versions.surcharge').lean();
     return {
       message: services.length === 0 ? translate[language].servicesNotFound : translate[language].servicesFound,
       data: { services },

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, FIXED, HOURLY } = require('../helpers/constants');
+const Customer = require('./Customer');
 
 const ServiceSchema = mongoose.Schema({
   nature: { type: String, enum: [FIXED, HOURLY] },
@@ -15,5 +16,15 @@ const ServiceSchema = mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
   }]
 }, { timestamps: true });
+
+const countServiceUsage = async (docs) => {
+  if (docs.length > 0) {
+    for (const service of docs) {
+      service.subscriptionCount = await Customer.countDocuments({ 'subscriptions.service': service._id });
+    }
+  }
+};
+
+ServiceSchema.post('find', countServiceUsage);
 
 module.exports = mongoose.model('Service', ServiceSchema);
