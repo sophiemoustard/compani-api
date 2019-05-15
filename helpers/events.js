@@ -288,7 +288,11 @@ const updateEvent = async (event, payload) => {
 };
 
 const deleteRepetition = async (event) => {
-  await Event.deleteMany({ 'repetition.parentId': event.repetition.parentId, startDate: { $gt: new Date(event.startDate) } });
+  await Event.deleteMany({
+    'repetition.parentId': event.repetition.parentId,
+    startDate: { $gt: new Date(event.startDate) },
+    $or: [{ isBilled: false }, { isBilled: { $exists: false } }]
+  });
 };
 
 module.exports = {
