@@ -517,9 +517,17 @@ describe('getEventPrice', () => {
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 0, thirdPartyPayerPrice: 35 });
   });
+
+  it('should return event prices with fixed service', () => {
+    const service = { vat: 5.5, nature: 'fixed' };
+    const result = getEventPrice(event, unitTTCRate, service);
+    expect(result).toBeDefined();
+    result.customerPrice = Number.parseFloat(result.customerPrice.toFixed(2));
+    expect(result).toMatchObject({ customerPrice: 19.91, thirdPartyPayerPrice: 0 });
+  });
 });
 
-describe('formatDraftBillsForCustomer', () => {
+describe('wformatDraftBillsForCustomer', () => {
   const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
   const event = {
     _id: 'abc',
