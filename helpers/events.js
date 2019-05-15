@@ -260,6 +260,13 @@ const updateRepetitions = async (event, payload) => {
 
 const updateEvent = async (event, payload) => {
   const { repetition, type } = event;
+  /**
+   * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the repetition
+   * i.e. delete the repetition object.
+   *
+   * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the camcellation
+   * i.e. delete the cancel object and set isCancelled to false.
+   */
   if (type === ABSENCE || !repetition || repetition.frequency === NEVER || payload.shouldUpdateRepetition) {
     event = await Event
       .findOneAndUpdate(
@@ -282,8 +289,8 @@ const updateEvent = async (event, payload) => {
         { _id: event._id },
         {
           ...(!payload.isCancelled && event.isCancelled
-            ? { $set: flat({ ...payload, isCancelled: false }), $unset: { cancel: '', 'repetition.parentId': '' } }
-            : { $set: flat(payload), $unset: { 'repetition.parentId': '' } })
+            ? { $set: flat({ ...payload, isCancelled: false }), $unset: { cancel: '', repetition: '' } }
+            : { $set: flat(payload), $unset: { repetition: '' } })
         },
         { autopopulate: false, new: true }
       )
