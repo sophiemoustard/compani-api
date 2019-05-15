@@ -106,7 +106,7 @@ const update = async (req) => {
 
     if (!(await isEditionAllowed(event, req.payload))) return Boom.badData();
 
-    event = updateEvent(event, req.payload);
+    event = await updateEvent(event, req.payload);
 
     return {
       message: translate[language].eventUpdated,
