@@ -23,11 +23,11 @@ const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 
 momentRange.extendMoment(moment);
 
-const auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
+exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
   moment(contract.startDate).isSameOrBefore(day, 'd') &&
   ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
 
-const hasConflicts = async (event) => {
+exports.hasConflicts = async (event) => {
   const auxiliaryEvents = await Event.find({
     auxiliary: event.auxiliary,
     $or: [
@@ -44,8 +44,8 @@ const hasConflicts = async (event) => {
   });
 };
 
-const isCreationAllowed = async (event) => {
-  if (!event.isCancelled && await hasConflicts(event)) return false;
+exports.isCreationAllowed = async (event) => {
+  if (!event.isCancelled && await exports.hasConflicts(event)) return false;
 
   let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
   user = user.toObject();
@@ -72,28 +72,28 @@ const isCreationAllowed = async (event) => {
         : moment(event.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
     }
 
-    return auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return exports.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
 
   // If the auxiliary is only under customer contract, create internal hours is not allowed
   if (event.type === INTERNAL_HOUR) {
-    return auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
+    return exports.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
 
   return true;
 };
 
-const isEditionAllowed = async (eventFromDB, payload) => {
+exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
 
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString()) {
     return false;
   }
 
-  return isCreationAllowed({ ...eventFromDB, ...payload });
+  return exports.isCreationAllowed({ ...eventFromDB, ...payload });
 };
 
-const getListQuery = (req) => {
+exports.getListQuery = (req) => {
   let query = req.query.type ? { type: req.query.type } : {};
   if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
   if (req.query.customer) query.customer = { $in: req.query.customer };
@@ -132,7 +132,7 @@ const getListQuery = (req) => {
   return query;
 };
 
-const populateEventSubscription = (event) => {
+exports.populateEventSubscription = (event) => {
   if (event.type !== INTERVENTION) return event;
   if (!event.customer || !event.customer.subscriptions) throw Boom.badImplementation();
 
@@ -142,17 +142,17 @@ const populateEventSubscription = (event) => {
   return { ...event, subscription };
 };
 
-const populateEvents = async (events) => {
+exports.populateEvents = async (events) => {
   const populatedEvents = [];
   for (let i = 0; i < events.length; i++) {
-    const event = await populateEventSubscription(events[i]);
+    const event = await exports.populateEventSubscription(events[i]);
     populatedEvents.push(event);
   }
 
   return populatedEvents;
 };
 
-const updateEventsInternalHourType = async (oldInternalHourId, newInternalHour) => {
+exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour) => {
   const payload = { internalHour: newInternalHour };
   await Event.update(
     {
@@ -165,7 +165,7 @@ const updateEventsInternalHourType = async (oldInternalHourId, newInternalHour) 
   );
 };
 
-const createRepetitionsEveryDay = async (event) => {
+exports.createRepetitionsEveryDay = async (event) => {
   const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
   const promises = [];
   range.forEach((day, index) => {
@@ -181,7 +181,7 @@ const createRepetitionsEveryDay = async (event) => {
   return Promise.all(promises);
 };
 
-const createRepetitionsEveryWeekDay = async (event) => {
+exports.createRepetitionsEveryWeekDay = async (event) => {
   const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
   const promises = [];
   range.forEach((day, index) => {
@@ -199,7 +199,7 @@ const createRepetitionsEveryWeekDay = async (event) => {
   return Promise.all(promises);
 };
 
-const createRepetitionsEveryWeek = async (event) => {
+exports.createRepetitionsEveryWeek = async (event) => {
   const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('weeks'));
   const promises = [];
   range.forEach((day, index) => {
@@ -215,7 +215,7 @@ const createRepetitionsEveryWeek = async (event) => {
   return Promise.all(promises);
 };
 
-const createRepetitions = async (event) => {
+exports.createRepetitions = async (event) => {
   if (event.repetition.frequency === NEVER) return event;
 
   event.repetition.parentId = event._id;
@@ -223,13 +223,13 @@ const createRepetitions = async (event) => {
 
   switch (event.repetition.frequency) {
     case EVERY_DAY:
-      await createRepetitionsEveryDay(event);
+      await exports.createRepetitionsEveryDay(event);
       break;
     case EVERY_WEEK_DAY:
-      await createRepetitionsEveryWeekDay(event);
+      await exports.createRepetitionsEveryWeekDay(event);
       break;
     case EVERY_WEEK:
-      await createRepetitionsEveryWeek(event);
+      await exports.createRepetitionsEveryWeek(event);
       break;
     default:
       break;
@@ -238,7 +238,7 @@ const createRepetitions = async (event) => {
   return event;
 };
 
-const updateRepetitions = async (event, payload) => {
+exports.updateRepetitions = async (event, payload) => {
   const parentStartDate = moment(payload.startDate);
   const parentEndtDate = moment(payload.endDate);
   const promises = [];
@@ -258,8 +258,7 @@ const updateRepetitions = async (event, payload) => {
   return Promise.all(promises);
 };
 
-const updateEvent = async (event, payload) => {
-  const { repetition, type } = event;
+exports.updateEvent = async (event, payload) => {
   /**
    * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the repetition
    * i.e. delete the repetition object. EXCEPT if we are only updating the misc field
@@ -276,7 +275,7 @@ const updateEvent = async (event, payload) => {
     ))) miscUpdatedOnly = true;
   }
 
-  if (type === ABSENCE || !repetition || repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
+  if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
     event = await Event
       .findOneAndUpdate(
         { _id: event._id },
@@ -291,7 +290,7 @@ const updateEvent = async (event, payload) => {
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
-    if (!miscUpdatedOnly && repetition && repetition.frequency !== NEVER && payload.shouldUpdateRepetition) await updateRepetitions(event, payload);
+    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) await exports.updateRepetitions(event, payload);
   } else {
     event = await Event
       .findOneAndUpdate(
@@ -308,27 +307,13 @@ const updateEvent = async (event, payload) => {
       .lean();
   }
 
-  return populateEventSubscription(event);
+  return exports.populateEventSubscription(event);
 };
 
-const deleteRepetition = async (event) => {
+exports.deleteRepetition = async (event) => {
   await Event.deleteMany({
     'repetition.parentId': event.repetition.parentId,
     startDate: { $gt: new Date(event.startDate) },
     $or: [{ isBilled: false }, { isBilled: { $exists: false } }]
   });
-};
-
-module.exports = {
-  hasConflicts,
-  isCreationAllowed,
-  isEditionAllowed,
-  getListQuery,
-  populateEventSubscription,
-  populateEvents,
-  updateEventsInternalHourType,
-  createRepetitions,
-  updateRepetitions,
-  updateEvent,
-  deleteRepetition,
 };
