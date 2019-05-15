@@ -264,7 +264,11 @@ const updateEvent = async (event, payload) => {
     event = await Event
       .findOneAndUpdate(
         { _id: event._id },
-        { $set: flat(payload) },
+        {
+          ...(!payload.isCancelled && event.isCancelled
+            ? { $set: flat({ ...payload, isCancelled: false }), $unset: { cancel: '' } }
+            : { $set: flat(payload) })
+        },
         { autopopulate: false, new: true }
       )
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
@@ -276,7 +280,11 @@ const updateEvent = async (event, payload) => {
     event = await Event
       .findOneAndUpdate(
         { _id: event._id },
-        { $set: flat(payload), $unset: { 'repetition.parentId': '' } },
+        {
+          ...(!payload.isCancelled && event.isCancelled
+            ? { $set: flat({ ...payload, isCancelled: false }), $unset: { cancel: '', 'repetition.parentId': '' } }
+            : { $set: flat(payload), $unset: { 'repetition.parentId': '' } })
+        },
         { autopopulate: false, new: true }
       )
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
