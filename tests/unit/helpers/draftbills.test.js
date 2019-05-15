@@ -527,7 +527,7 @@ describe('getEventPrice', () => {
   });
 });
 
-describe('wformatDraftBillsForCustomer', () => {
+describe('formatDraftBillsForCustomer', () => {
   const customerPrices = { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] };
   const event = {
     _id: 'abc',
