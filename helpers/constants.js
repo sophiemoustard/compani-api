@@ -17,6 +17,12 @@ module.exports = {
   HOURLY: 'hourly',
   FIXED: 'fixed',
   DAILY: 'daily',
+  get SERVICE_NATURES() {
+    return [
+      { label: 'Forfaitaire', value: this.FIXED },
+      { label: 'Horaire', value: this.HOURLY },
+    ];
+  },
   // REPETITION FREQUENCY
   NEVER: 'never',
   EVERY_DAY: 'every_day',
@@ -24,6 +30,12 @@ module.exports = {
   EVERY_WEEK: 'every_week',
   CUSTOMER_CONTRACT: 'contract_with_customer',
   COMPANY_CONTRACT: 'contract_with_company',
+  get CONTRACT_TYPES() {
+    return [
+      { label: 'Prestataire', value: this.COMPANY_CONTRACT },
+      { label: 'Mandataire', value: this.CUSTOMER_CONTRACT },
+    ];
+  },
   TWO_WEEKS: 'two_weeks',
   MONTH: 'month',
   // PAYMENT
@@ -41,4 +53,11 @@ module.exports = {
   INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',
   CUSTOMER_INITIATIVE: 'customer_initiative',
   AUXILIARY_INITIATIVE: 'auxiliary_initiative',
+  // EXPORTS
+  SERVICE: 'service',
+  AUXILIARY: 'auxiliary',
+  HELPER: 'helper',
+  CUSTOMER: 'customer',
+  SUBSCRIPTION: 'subscription',
+  FUNDING: 'funding',
 };
