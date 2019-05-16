@@ -5,7 +5,7 @@ const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
   try {
-    const type = SERVICE;
+    const { type } = req.params;
 
     let data;
     switch (type) {

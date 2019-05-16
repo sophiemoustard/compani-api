@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { exportData } = require('../controllers/exportController');
+const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-exports',
@@ -15,7 +16,7 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           params: {
-            type: Joi.string().required(),
+            type: Joi.string().required().valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION),
           },
         },
       },
