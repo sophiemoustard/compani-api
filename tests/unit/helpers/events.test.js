@@ -8,7 +8,7 @@ const Customer = require('../../../models/Customer');
 const Contract = require('../../../models/Contract');
 const Surcharge = require('../../../models/Surcharge');
 const Event = require('../../../models/Event');
-const { populateEventSubscription, populateEvents, isCreationAllowed, isEditionAllowed, hasConflicts } = require('../../../helpers/events');
+const EventHelper = require('../../../helpers/events');
 const {
   INTERVENTION,
   CUSTOMER_CONTRACT,
@@ -16,7 +16,181 @@ const {
   INTERNAL_HOUR,
   ABSENCE,
   UNAVAILABILITY,
+  NEVER,
+  EVERY_WEEK,
+  INVOICED_AND_NOT_PAYED,
+  CUSTOMER_INITIATIVE,
 } = require('../../../helpers/constants');
+
+require('sinon-mongoose');
+
+
+describe('updateEvent', () => {
+  let populateEventSubscription;
+  let updateRepetitions;
+  let findOneAndUpdate;
+  beforeEach(() => {
+    populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
+    updateRepetitions = sinon.stub(EventHelper, 'updateRepetitions');
+    findOneAndUpdate = sinon.mock(Event);
+  });
+
+  afterEach(() => {
+    populateEventSubscription.restore();
+    updateRepetitions.restore();
+    findOneAndUpdate.restore();
+  });
+
+  it('1. should update absence without unset repetition property', async () => {
+    const eventId = new ObjectID();
+    const event = { _id: eventId, type: ABSENCE };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z' };
+
+    findOneAndUpdate.expects('findOneAndUpdate')
+      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .resolves(event);
+
+    await EventHelper.updateEvent(event, payload);
+    findOneAndUpdate.verify();
+    sinon.assert.notCalled(updateRepetitions);
+  });
+
+  it('2. should update event without repetition without unset repetition property', async () => {
+    const eventId = new ObjectID();
+    const event = { _id: eventId };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z' };
+
+    findOneAndUpdate.expects('findOneAndUpdate')
+      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload);
+    findOneAndUpdate.verify();
+    sinon.assert.notCalled(updateRepetitions);
+  });
+
+  it('3. should update event with NEVER frequency without unset repetition property', async () => {
+    const eventId = new ObjectID();
+    const event = { _id: eventId, repetition: { frequency: NEVER } };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z' };
+
+    findOneAndUpdate.expects('findOneAndUpdate')
+      .once()
+      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload);
+    findOneAndUpdate.verify();
+    sinon.assert.notCalled(updateRepetitions);
+  });
+
+  it('4. should update event and repeated events without unset repetition property', async () => {
+    const eventId = new ObjectID();
+    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK } };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: true };
+
+    findOneAndUpdate.expects('findOneAndUpdate')
+      .once()
+      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload);
+    findOneAndUpdate.verify();
+    sinon.assert.callCount(updateRepetitions, 1);
+  });
+
+  it('5. should update event when only misc is updated without unset repetition property', async () => {
+    const eventId = new ObjectID();
+    const event = { _id: eventId, startDate: '2019-01-21T09:38:18.653Z', repetition: { frequency: NEVER } };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', misc: 'Zoro est là' };
+
+    findOneAndUpdate.expects('findOneAndUpdate')
+      .once()
+      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload);
+    findOneAndUpdate.verify();
+    sinon.assert.notCalled(updateRepetitions);
+  });
+
+  it('6. should update event and unset repetition property if event in repetition and repetition not updated', async () => {
+    const eventId = new ObjectID();
+    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK } };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false };
+
+    findOneAndUpdate.expects('findOneAndUpdate')
+      .once()
+      .withExactArgs(
+        { _id: eventId },
+        { $set: { ...payload, 'repetition.frequency': NEVER }, $unset: { 'repetition.parentId': '' } },
+        { autopopulate: false, new: true }
+      )
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload);
+    findOneAndUpdate.verify();
+    sinon.assert.notCalled(updateRepetitions);
+  });
+
+  it('7. should update event and unset cancel property when cancellation cancelled', async () => {
+    const eventId = new ObjectID();
+    const event = { _id: eventId, repetition: { frequency: NEVER }, isCancelled: true, cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE } };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false };
+
+    findOneAndUpdate.expects('findOneAndUpdate')
+      .once()
+      .withExactArgs({ _id: eventId }, { $set: { ...payload, isCancelled: false }, $unset: { cancel: '' } }, { autopopulate: false, new: true })
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload);
+    findOneAndUpdate.verify();
+    sinon.assert.notCalled(updateRepetitions);
+  });
+
+  it('8. should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
+    const eventId = new ObjectID();
+    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, isCancelled: true, cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE } };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false };
+
+    findOneAndUpdate.expects('findOneAndUpdate')
+      .once()
+      .withExactArgs(
+        { _id: eventId },
+        { $set: { ...payload, isCancelled: false, 'repetition.frequency': NEVER }, $unset: { cancel: '', 'repetition.parentId': '' } },
+        { autopopulate: false, new: true }
+      )
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(event);
+    await EventHelper.updateEvent(event, payload);
+    findOneAndUpdate.verify();
+    sinon.assert.notCalled(updateRepetitions);
+  });
+});
 
 describe('populateEvent', () => {
   it('should populate subscription as event is an intervention', async () => {
@@ -45,7 +219,7 @@ describe('populateEvent', () => {
       subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
     };
 
-    const result = await populateEventSubscription(event);
+    const result = await EventHelper.populateEventSubscription(event);
     expect(result.subscription).toBeDefined();
     expect(result.subscription._id).toEqual(event.subscription);
   });
@@ -55,7 +229,7 @@ describe('populateEvent', () => {
       type: 'absence',
     };
 
-    const result = await populateEventSubscription(event);
+    const result = await EventHelper.populateEventSubscription(event);
     expect(result.subscription).not.toBeDefined();
     expect(result).toEqual(event);
   });
@@ -66,7 +240,7 @@ describe('populateEvent', () => {
     };
 
     try {
-      await populateEventSubscription(event);
+      await EventHelper.populateEventSubscription(event);
     } catch (e) {
       expect(e.output.statusCode).toEqual(500);
     }
@@ -91,7 +265,7 @@ describe('populateEvent', () => {
     };
 
     try {
-      await populateEventSubscription(event);
+      await EventHelper.populateEventSubscription(event);
     } catch (e) {
       expect(e.output.statusCode).toEqual(500);
     }
@@ -151,7 +325,7 @@ describe('populateEvents', () => {
       }
     ];
 
-    const result = await populateEvents(events);
+    const result = await EventHelper.populateEvents(events);
     expect(result[0].subscription).toBeDefined();
     expect(result[1].subscription).toBeDefined();
     expect(result[0].subscription._id).toEqual(events[0].subscription);
@@ -171,7 +345,7 @@ describe('hasConflicts', () => {
     const findEvents = sinon.stub(Event, 'find').returns([
       { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
     ]);
-    const result = await hasConflicts(event);
+    const result = await EventHelper.hasConflicts(event);
     findEvents.restore();
 
     expect(result).toBeTruthy();
@@ -188,7 +362,7 @@ describe('hasConflicts', () => {
     const findEvents = sinon.stub(Event, 'find').returns([
       { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
     ]);
-    const result = await hasConflicts(event);
+    const result = await EventHelper.hasConflicts(event);
     findEvents.restore();
 
     expect(result).toBeFalsy();
@@ -205,7 +379,7 @@ describe('hasConflicts', () => {
     const findEvents = sinon.stub(Event, 'find').returns([
       { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z', isCancelled: true },
     ]);
-    const result = await hasConflicts(event);
+    const result = await EventHelper.hasConflicts(event);
     findEvents.restore();
 
     expect(result).toBeFalsy();
@@ -223,7 +397,7 @@ describe('isCreationAllowed', () => {
     const findEvents = sinon.stub(Event, 'find').returns([
       { startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T10:00:00.000Z' },
     ]);
-    const result = await isCreationAllowed(payload);
+    const result = await EventHelper.isCreationAllowed(payload);
     findEvents.restore();
 
     expect(result).toBeFalsy();
@@ -238,7 +412,7 @@ describe('isCreationAllowed', () => {
     user.toObject = () => user;
 
     const findEvents = sinon.stub(Event, 'find').returns([]);
-    const result = await isCreationAllowed(payload);
+    const result = await EventHelper.isCreationAllowed(payload);
     findEvents.restore();
 
     expect(result).toBeFalsy();
@@ -282,7 +456,7 @@ describe('isCreationAllowed', () => {
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
     const findEvents = sinon.stub(Event, 'find').returns([]);
 
-    const result = await isCreationAllowed(payload);
+    const result = await EventHelper.isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
     findEvents.restore();
@@ -327,7 +501,7 @@ describe('isCreationAllowed', () => {
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
     const findEvents = sinon.stub(Event, 'find').returns([]);
 
-    const result = await isCreationAllowed(payload);
+    const result = await EventHelper.isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
     findEvents.restore();
@@ -374,7 +548,7 @@ describe('isCreationAllowed', () => {
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
     const findEvents = sinon.stub(Event, 'find').returns([]);
 
-    const result = await isCreationAllowed(payload);
+    const result = await EventHelper.isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
     findEvents.restore();
@@ -421,7 +595,7 @@ describe('isCreationAllowed', () => {
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
     const findEvents = sinon.stub(Event, 'find').returns([]);
 
-    const result = await isCreationAllowed(payload);
+    const result = await EventHelper.isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
     findEvents.restore();
@@ -467,7 +641,7 @@ describe('isCreationAllowed', () => {
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
     const findEvents = sinon.stub(Event, 'find').returns([]);
 
-    const result = await isCreationAllowed(payload);
+    const result = await EventHelper.isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
     findEvents.restore();
@@ -509,7 +683,7 @@ describe('isCreationAllowed', () => {
     const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
     const findEvents = sinon.stub(Event, 'find').returns([]);
 
-    const result = await isCreationAllowed(payload);
+    const result = await EventHelper.isCreationAllowed(payload);
     findOneSurcharge.restore();
     findOneContract.restore();
     findEvents.restore();
@@ -526,7 +700,7 @@ describe('isEditionAllowed', () => {
     };
     const payload = {};
 
-    expect(await isEditionAllowed(eventFromDb, payload)).toBeFalsy();
+    expect(await EventHelper.isEditionAllowed(eventFromDb, payload)).toBeFalsy();
   });
 
   it('should return false as event is absence and auxiliary is updated', async () => {
@@ -536,7 +710,7 @@ describe('isEditionAllowed', () => {
     };
     const payload = { auxiliary: '1234567890' };
 
-    expect(await isEditionAllowed(eventFromDb, payload)).toBeFalsy();
+    expect(await EventHelper.isEditionAllowed(eventFromDb, payload)).toBeFalsy();
   });
 
   it('should return false as event is unavailability and auxiliary is updated', async () => {
@@ -546,6 +720,6 @@ describe('isEditionAllowed', () => {
     };
     const payload = { auxiliary: '1234567890' };
 
-    expect(await isEditionAllowed(eventFromDb, payload)).toBeFalsy();
+    expect(await EventHelper.isEditionAllowed(eventFromDb, payload)).toBeFalsy();
   });
 });

@@ -11,7 +11,7 @@ const {
   populateEvents,
   populateEventSubscription,
   createRepetitions,
-  updateRepetitions,
+  updateEvent,
   deleteRepetition,
   isEditionAllowed,
 } = require('../helpers/events');
@@ -101,32 +101,16 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    let event = await Event.findOne({ _id: req.params._id });
+    let event = await Event.findOne({ _id: req.params._id }).lean();
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     if (!(await isEditionAllowed(event, req.payload))) return Boom.badData();
 
-    event = await Event
-      .findOneAndUpdate(
-        { _id: req.params._id },
-        { $set: flat(req.payload) },
-        { autopopulate: false, new: true }
-      )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
-
-
-    const { type, repetition } = event;
-    if (req.payload.shouldUpdateRepetition && type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
-      await updateRepetitions(event, req.payload);
-    }
-
-    const populatedEvent = await populateEventSubscription(event);
+    event = await updateEvent(event, req.payload);
 
     return {
       message: translate[language].eventUpdated,
-      data: { event: populatedEvent },
+      data: { event },
     };
   } catch (e) {
     req.log('error', e);
