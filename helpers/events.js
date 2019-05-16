@@ -297,8 +297,8 @@ exports.updateEvent = async (event, payload) => {
         { _id: event._id },
         {
           ...(!payload.isCancelled && event.isCancelled
-            ? { $set: flat({ ...payload, isCancelled: false }), $unset: { cancel: '', repetition: '' } }
-            : { $set: flat(payload), $unset: { repetition: '' } })
+            ? { $set: flat({ ...payload, isCancelled: false, 'repetition.frequency': NEVER }), $unset: { cancel: '', 'repetition.parentId': '' } }
+            : { $set: flat({ ...payload, 'repetition.frequency': NEVER }), $unset: { 'repetition.parentId': '' } })
         },
         { autopopulate: false, new: true }
       )

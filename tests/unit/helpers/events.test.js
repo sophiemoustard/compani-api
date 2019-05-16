@@ -136,7 +136,11 @@ describe('updateEvent', () => {
 
     findOneAndUpdate.expects('findOneAndUpdate')
       .once()
-      .withExactArgs({ _id: eventId }, { $set: payload, $unset: { repetition: '' } }, { autopopulate: false, new: true })
+      .withExactArgs(
+        { _id: eventId },
+        { $set: { ...payload, 'repetition.frequency': NEVER }, $unset: { 'repetition.parentId': '' } },
+        { autopopulate: false, new: true }
+      )
       .chain('populate')
       .chain('populate')
       .chain('lean')
@@ -172,7 +176,11 @@ describe('updateEvent', () => {
 
     findOneAndUpdate.expects('findOneAndUpdate')
       .once()
-      .withExactArgs({ _id: eventId }, { $set: { ...payload, isCancelled: false }, $unset: { cancel: '', repetition: '' } }, { autopopulate: false, new: true })
+      .withExactArgs(
+        { _id: eventId },
+        { $set: { ...payload, isCancelled: false, 'repetition.frequency': NEVER }, $unset: { cancel: '', 'repetition.parentId': '' } },
+        { autopopulate: false, new: true }
+      )
       .chain('populate')
       .chain('populate')
       .chain('lean')
