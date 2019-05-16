@@ -28,17 +28,17 @@ require('sinon-mongoose');
 describe('updateEvent', () => {
   let populateEventSubscription;
   let updateRepetitions;
-  let findOneAndUpdate;
+  let EventModel;
   beforeEach(() => {
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     updateRepetitions = sinon.stub(EventHelper, 'updateRepetitions');
-    findOneAndUpdate = sinon.mock(Event);
+    EventModel = sinon.mock(Event);
   });
 
   afterEach(() => {
     populateEventSubscription.restore();
     updateRepetitions.restore();
-    findOneAndUpdate.restore();
+    EventModel.restore();
   });
 
   it('1. should update absence without unset repetition property', async () => {
@@ -46,15 +46,16 @@ describe('updateEvent', () => {
     const event = { _id: eventId, type: ABSENCE };
     const payload = { startDate: '2019-01-21T09:38:18.653Z' };
 
-    findOneAndUpdate.expects('findOneAndUpdate')
+    EventModel.expects('findOneAndUpdate')
       .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
       .chain('populate')
       .chain('populate')
       .chain('lean')
+      .once()
       .resolves(event);
 
     await EventHelper.updateEvent(event, payload);
-    findOneAndUpdate.verify();
+    EventModel.verify();
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -63,7 +64,7 @@ describe('updateEvent', () => {
     const event = { _id: eventId };
     const payload = { startDate: '2019-01-21T09:38:18.653Z' };
 
-    findOneAndUpdate.expects('findOneAndUpdate')
+    EventModel.expects('findOneAndUpdate')
       .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
       .chain('populate')
       .chain('populate')
@@ -71,7 +72,7 @@ describe('updateEvent', () => {
       .once()
       .returns(event);
     await EventHelper.updateEvent(event, payload);
-    findOneAndUpdate.verify();
+    EventModel.verify();
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -80,7 +81,7 @@ describe('updateEvent', () => {
     const event = { _id: eventId, repetition: { frequency: NEVER } };
     const payload = { startDate: '2019-01-21T09:38:18.653Z' };
 
-    findOneAndUpdate.expects('findOneAndUpdate')
+    EventModel.expects('findOneAndUpdate')
       .once()
       .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
       .chain('populate')
@@ -89,7 +90,7 @@ describe('updateEvent', () => {
       .once()
       .returns(event);
     await EventHelper.updateEvent(event, payload);
-    findOneAndUpdate.verify();
+    EventModel.verify();
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -98,7 +99,7 @@ describe('updateEvent', () => {
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK } };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: true };
 
-    findOneAndUpdate.expects('findOneAndUpdate')
+    EventModel.expects('findOneAndUpdate')
       .once()
       .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
       .chain('populate')
@@ -107,7 +108,7 @@ describe('updateEvent', () => {
       .once()
       .returns(event);
     await EventHelper.updateEvent(event, payload);
-    findOneAndUpdate.verify();
+    EventModel.verify();
     sinon.assert.callCount(updateRepetitions, 1);
   });
 
@@ -116,7 +117,7 @@ describe('updateEvent', () => {
     const event = { _id: eventId, startDate: '2019-01-21T09:38:18.653Z', repetition: { frequency: NEVER } };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', misc: 'Zoro est là' };
 
-    findOneAndUpdate.expects('findOneAndUpdate')
+    EventModel.expects('findOneAndUpdate')
       .once()
       .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
       .chain('populate')
@@ -125,7 +126,7 @@ describe('updateEvent', () => {
       .once()
       .returns(event);
     await EventHelper.updateEvent(event, payload);
-    findOneAndUpdate.verify();
+    EventModel.verify();
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -134,7 +135,7 @@ describe('updateEvent', () => {
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK } };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false };
 
-    findOneAndUpdate.expects('findOneAndUpdate')
+    EventModel.expects('findOneAndUpdate')
       .once()
       .withExactArgs(
         { _id: eventId },
@@ -147,7 +148,7 @@ describe('updateEvent', () => {
       .once()
       .returns(event);
     await EventHelper.updateEvent(event, payload);
-    findOneAndUpdate.verify();
+    EventModel.verify();
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -156,7 +157,7 @@ describe('updateEvent', () => {
     const event = { _id: eventId, repetition: { frequency: NEVER }, isCancelled: true, cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE } };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false };
 
-    findOneAndUpdate.expects('findOneAndUpdate')
+    EventModel.expects('findOneAndUpdate')
       .once()
       .withExactArgs({ _id: eventId }, { $set: { ...payload, isCancelled: false }, $unset: { cancel: '' } }, { autopopulate: false, new: true })
       .chain('populate')
@@ -165,7 +166,7 @@ describe('updateEvent', () => {
       .once()
       .returns(event);
     await EventHelper.updateEvent(event, payload);
-    findOneAndUpdate.verify();
+    EventModel.verify();
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -174,7 +175,7 @@ describe('updateEvent', () => {
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, isCancelled: true, cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE } };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false };
 
-    findOneAndUpdate.expects('findOneAndUpdate')
+    EventModel.expects('findOneAndUpdate')
       .once()
       .withExactArgs(
         { _id: eventId },
@@ -187,7 +188,7 @@ describe('updateEvent', () => {
       .once()
       .returns(event);
     await EventHelper.updateEvent(event, payload);
-    findOneAndUpdate.verify();
+    EventModel.verify();
     sinon.assert.notCalled(updateRepetitions);
   });
 });
