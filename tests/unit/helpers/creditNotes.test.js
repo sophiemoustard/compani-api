@@ -1,8 +1,9 @@
 const { ObjectID } = require('mongodb');
+const expect = require('expect');
 const sinon = require('sinon');
 const FundingHistory = require('../../../models/FundingHistory');
 const Event = require('../../../models/Event');
-const { updateEventAndFundingHistory } = require('../../../helpers/creditNotes');
+const { updateEventAndFundingHistory, formatPDF } = require('../../../helpers/creditNotes');
 
 describe('updateEventAndFundingHistory', () => {
   let findOneAndUpdate = null;
@@ -106,5 +107,67 @@ describe('updateEventAndFundingHistory', () => {
       { fundingVersion: fundingVersionId },
       { $inc: { amountTTC: -666 } }
     );
+  });
+});
+
+describe('formatPDF', () => {
+  it('should format correct credit note PDF', () => {
+    const creditNote = {
+      events: [{
+        auxiliary: {
+          identity: { firstname: 'Nathanaelle' }
+        },
+        startDate: '2019-04-29T06:00:00.000Z',
+        endDate: '2019-04-29T15:00:00.000Z',
+        bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
+      }],
+      date: '2019-04-29T22:00:00.000Z',
+      startDate: '2019-03-31T22:00:00.000Z',
+      endDate: '2019-05-30T22:00:00.000Z',
+      exclTaxesCustomer: 221.8009478672986,
+      inclTaxesCustomer: 234,
+      exclTaxesTpp: 0,
+      inclTaxesTpp: 0,
+    };
+    const company = {};
+    const result = {
+      creditNote: {
+        events: [{
+          auxiliary: {
+            identity: { firstname: 'N' },
+          },
+          startDate: '2019-04-29T06:00:00.000Z',
+          endDate: '2019-04-29T15:00:00.000Z',
+          bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
+          date: '29/04',
+          startTime: '08:00',
+          endTime: '17:00'
+        }],
+        date: '30/04/2019',
+        startDate: '2019-03-31T22:00:00.000Z',
+        endDate: '2019-05-30T22:00:00.000Z',
+        exclTaxesCustomer: '221,80 €',
+        inclTaxesCustomer: '234,00 €',
+        exclTaxesTpp: 0,
+        inclTaxesTpp: 0,
+        totalExclTaxes: '221,80 €',
+        totalVAT: '12,20 €',
+        totalInclTaxes: '234,00 €',
+        formattedEvents: [{
+          auxiliary: {
+            identity: { firstname: 'N' }
+          },
+          startDate: '2019-04-29T06:00:00.000Z',
+          endDate: '2019-04-29T15:00:00.000Z',
+          bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
+          date: '29/04',
+          startTime: '08:00',
+          endTime: '17:00'
+        }],
+        company: {},
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
+      }
+    };
+    expect(formatPDF(creditNote, company)).toEqual(expect.objectContaining(result));
   });
 });

@@ -119,6 +119,14 @@ const formatPDF = (creditNote, company) => {
   computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
   computedData.totalInclTaxes = formatPrice(computedData.totalInclTaxes);
   computedData.totalVAT = formatPrice(computedData.totalVAT);
+  const after = {
+    creditNote: {
+      ...creditNote,
+      ...computedData,
+      company,
+      logo
+    }
+  };
   return {
     creditNote: {
       ...creditNote,
@@ -127,8 +135,7 @@ const formatPDF = (creditNote, company) => {
       logo,
     },
   };
-
-}
+};
 
 module.exports = {
   updateEventAndFundingHistory,
