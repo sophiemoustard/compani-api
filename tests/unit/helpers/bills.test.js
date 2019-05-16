@@ -405,7 +405,6 @@ describe('formatPDF', () => {
             exclTaxesCustomer: 49.28909952606635
           }
         }],
-        subscription: '5c64327a4a85340014894ee1',
         startDate: '2019-03-31T22:00:00.000Z',
         endDate: '2019-04-30T21:59:59.999Z',
         unitExclTaxes: 24.644549763033176,
@@ -415,7 +414,6 @@ describe('formatPDF', () => {
         inclTaxes: 1074,
         service: 'Temps de qualité - autonomie'
       }],
-      billNumber: 'FACT-0519016',
       netInclTaxes: 1074,
       date: '2019-04-30T21:59:59.999Z',
     };
@@ -436,7 +434,6 @@ describe('formatPDF', () => {
             endTime: '10:00',
             service: 'Temps de qualité - autonomie'
           }],
-          subscription: '5c64327a4a85340014894ee1',
           startDate: '2019-03-31T22:00:00.000Z',
           endDate: '2019-04-30T21:59:59.999Z',
           unitExclTaxes: 24.644549763033176,
@@ -446,7 +443,6 @@ describe('formatPDF', () => {
           inclTaxes: '1 074,00 €',
           service: 'Temps de qualité - autonomie'
         }],
-        billNumber: 'FACT-0519016',
         netInclTaxes: '1 074,00 €',
         date: '30/04/2019',
         totalExclTaxes: '1 018,01 €',
@@ -465,7 +461,6 @@ describe('formatPDF', () => {
             endTime: '10:00',
             service: 'Temps de qualité - autonomie'
           }],
-          subscription: '5c64327a4a85340014894ee1',
           startDate: '2019-03-31T22:00:00.000Z',
           endDate: '2019-04-30T21:59:59.999Z',
           unitExclTaxes: 24.644549763033176,
