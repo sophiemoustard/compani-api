@@ -9,6 +9,7 @@ const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
+const { removeEventsByContractStatus } = require('../helpers/events');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
@@ -84,10 +85,13 @@ const update = async (req) => {
       contract = await Contract
         .findByIdAndUpdate(req.params._id, req.paylaod)
         .populate({ path: 'user', select: 'identity' })
-        .populate({ path: 'customer', select: 'identity' });
+        .populate({ path: 'customer', select: 'identity' })
+        .lean();
     }
 
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
+
+    await removeEventsByContractStatus(contract);
 
     return {
       message: translate[language].contractUpdated,
