@@ -724,3 +724,51 @@ describe('isEditionAllowed', () => {
     expect(await EventHelper.isEditionAllowed(eventFromDb, payload)).toBeFalsy();
   });
 });
+
+describe('removeEventsByContractStatus', () => {
+  let EventAggregateStub = null;
+  let EventDeleteManyStub = null;
+
+  const customerId = new ObjectID();
+  const userId = new ObjectID();
+  const aggregation = [{
+    customer: { _id: customerId },
+    sub: {
+      _id: 'qwerty',
+      service: { type: COMPANY_CONTRACT }
+    }
+  }, {
+    customer: { _id: customerId },
+    sub: {
+      _id: 'asdfgh',
+      service: { type: CUSTOMER_CONTRACT }
+    }
+  }];
+
+  beforeEach(() => {
+    EventAggregateStub = sinon.stub(Event, 'aggregate');
+    EventDeleteManyStub = sinon.stub(Event, 'deleteMany');
+  });
+  afterEach(() => {
+    EventAggregateStub.restore();
+    EventDeleteManyStub.restore();
+  });
+
+  it('should remove future events linked to company contract', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: moment().toDate(), user: userId };
+    EventAggregateStub.returns(aggregation);
+
+    await EventHelper.removeEventsByContractStatus(contract);
+    sinon.assert.called(EventAggregateStub);
+    sinon.assert.called(EventDeleteManyStub);
+  });
+
+  it('should remove future events linked to corresponding customer contract', async () => {
+    const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
+    EventAggregateStub.returns(aggregation);
+
+    await EventHelper.removeEventsByContractStatus(contract);
+    sinon.assert.called(EventAggregateStub);
+    sinon.assert.called(EventDeleteManyStub);
+  });
+});
