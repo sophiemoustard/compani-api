@@ -97,7 +97,7 @@ const exportCustomers = async () => {
   const customers = await Customer.find().populate('subscriptions.service');
   const data = [['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Pathologie', 'Commentaire', 'Details intervention',
     'Autres', 'Referente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombres de souscriptions', 'Souscritpions',
-    'Nombre de financement']];
+    'Nombre de financement', 'Date de création']];
 
   for (const cus of customers) {
     const customerData = [cus.email];
@@ -136,6 +136,8 @@ const exportCustomers = async () => {
     if (cus.fundings && cus.fundings.length > 0) {
       customerData.push(cus.fundings.length);
     } else customerData.push(0);
+
+    customerData(cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '');
 
     data.push(customerData);
   }

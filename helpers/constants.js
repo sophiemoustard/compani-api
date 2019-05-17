@@ -59,11 +59,14 @@ module.exports = {
   INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',
   CUSTOMER_INITIATIVE: 'customer_initiative',
   AUXILIARY_INITIATIVE: 'auxiliary_initiative',
+  // ROLE
+  AUXILIARY: 'Auxiliaire',
+  HELPER: 'Aidants',
   // EXPORTS
   SERVICE: 'service',
-  AUXILIARY: 'auxiliary',
-  HELPER: 'helper',
-  CUSTOMER: 'customer',
+  AUXILIARY_EXPORT_TYPE: 'auxiliary',
+  HELPER_EXPORT_TYPE: 'helper',
+  CUSTOMER_EXPORT_TYPE: 'customer',
   SUBSCRIPTION: 'subscription',
   FUNDING: 'funding',
   DAYS_INDEX: {
