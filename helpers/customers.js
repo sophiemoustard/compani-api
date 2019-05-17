@@ -1,10 +1,12 @@
 const flat = require('flat');
 const Boom = require('boom');
+const moment = require('moment');
 
 const { addFile } = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
+const { getLastVersion } = require('../helpers/utils');
 
 const { language } = translate;
 
@@ -81,6 +83,69 @@ const createAndSaveFile = async (docKeys, params, payload) => {
   return uploadedFile;
 };
 
+const getServicesNameList = (subscriptions) => {
+  let list = `${getLastVersion(subscriptions[0].service.versions, 'startDate').name}`;
+  if (subscriptions.length > 1) {
+    for (const sub of subscriptions.slice(1)) {
+      list = list.concat(`\r\n ${getLastVersion(sub.service.versions, 'startDate').name}`);
+    }
+  }
+  return list;
+};
+
+const exportCustomers = async () => {
+  const customers = await Customer.find().populate('subscriptions.service');
+  const data = [['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Pathologie', 'Commentaire', 'Details intervention',
+    'Autres', 'Referente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombres de souscriptions', 'Souscritpions',
+    'Nombre de financement', 'Date de création']];
+
+  for (const cus of customers) {
+    const customerData = [cus.email];
+    if (cus.identity && Object.keys(cus.identity).length > 0) {
+      customerData.push(
+        cus.identity.title, cus.identity.lastname, cus.identity.firstname,
+        cus.identity.birthDate ? moment(cus.identity.birthDate).format('DD/MM/YYYY') : ''
+      );
+    } else customerData.push('', '', '', '');
+
+    if (cus.contact && cus.contact.address && cus.contact.address.fullAddress) customerData.push(cus.contact.address.fullAddress);
+    else customerData.push('');
+
+    if (cus.followUp && Object.keys(cus.followUp).length > 0) {
+      customerData.push(
+        cus.followUp.pathology ? `"${cus.followUp.pathology}"` : '',
+        cus.followUp.comments ? `"${cus.followUp.comments}"` : '',
+        cus.followUp.details ? `"${cus.followUp.details}"` : '',
+        cus.followUp.misc ? `"${cus.followUp.misc}"` : '',
+        cus.followUp.referent ? `"${cus.followUp.referent}"` : '',
+      );
+    } else customerData.push('', '', '', '', '');
+
+    if (cus.payment && Object.keys(cus.payment).length > 0) {
+      customerData.push(cus.payment.bankAccountOwner, cus.payment.iban, cus.payment.bic);
+      if (cus.payment.mandates && cus.payment.mandates.length > 0) {
+        const lastMandate = getLastVersion(cus.payment.mandates, 'createdAt');
+        customerData.push(lastMandate.rum, lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '');
+      } else customerData.push('', '');
+    } else customerData.push('', '', '', '', '');
+
+    if (cus.subscriptions && cus.subscriptions.length > 0) {
+      customerData.push(cus.subscriptions.length, `"${getServicesNameList(cus.subscriptions)}"`);
+    } else customerData.push(0, '');
+
+    if (cus.fundings && cus.fundings.length > 0) {
+      customerData.push(cus.fundings.length);
+    } else customerData.push(0);
+
+    customerData(cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '');
+
+    data.push(customerData);
+  }
+
+  return data;
+};
+
 module.exports = {
   createAndSaveFile,
+  exportCustomers,
 };

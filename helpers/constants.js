@@ -17,10 +17,16 @@ module.exports = {
   HOURLY: 'hourly',
   FIXED: 'fixed',
   DAILY: 'daily',
-  get SERVICE_NATURES() {
+  get FUNDING_NATURES() {
     return [
       { label: 'Forfaitaire', value: this.FIXED },
       { label: 'Horaire', value: this.HOURLY },
+    ];
+  },
+  get FUNDING_FREQUENCIES() {
+    return [
+      { value: this.MONTHLY, label: 'Mensuelle' },
+      { value: this.ONCE, label: 'Une seule fois' },
     ];
   },
   // REPETITION FREQUENCY
@@ -53,11 +59,28 @@ module.exports = {
   INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',
   CUSTOMER_INITIATIVE: 'customer_initiative',
   AUXILIARY_INITIATIVE: 'auxiliary_initiative',
+  // ROLE
+  AUXILIARY: 'Auxiliaire',
+  HELPER: 'Aidants',
   // EXPORTS
   SERVICE: 'service',
-  AUXILIARY: 'auxiliary',
-  HELPER: 'helper',
-  CUSTOMER: 'customer',
+  AUXILIARY_EXPORT_TYPE: 'auxiliary',
+  HELPER_EXPORT_TYPE: 'helper',
+  CUSTOMER_EXPORT_TYPE: 'customer',
   SUBSCRIPTION: 'subscription',
   FUNDING: 'funding',
+  DAYS_INDEX: {
+    0: 'Lundi',
+    1: 'Mardi',
+    2: 'Mercredi',
+    3: 'Jeudi',
+    4: 'Vendredi',
+    5: 'Samedi',
+    6: 'Dimanche',
+    7: 'Jours fériés'
+  },
+  // SERVICE
+  get SERVICE_NATURES() {
+    return this.FUNDING_NATURES;
+  }
 };

@@ -1,11 +1,15 @@
 const Boom = require('boom');
 const _ = require('lodash');
+const moment = require('moment');
 const flat = require('flat');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const drive = require('../models/Google/Drive');
 const translate = require('./translate');
 const { addFile } = require('./gdriveStorage');
+const { nationalities } = require('../data/nationalities.js');
+const { countries } = require('../data/countries');
+const { HELPER, AUXILIARY } = require('./constants.js');
 
 const { language } = translate;
 
@@ -85,7 +89,43 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
   return uploadedFile;
 };
 
+const exportHelpers = async () => {
+  const role = await Role.findOne({ name: HELPER });
+  const helpers = await User.find({ role: role._id }).populate('customers');
+  const data = [['Email', 'Nom', 'Prénom', 'Beneficiaire', 'Date de création']];
+
+  for (const hel of helpers) {
+    const customer = hel.customers && hel.customers[0] ? `${hel.customers[0].identity.title} ${hel.customers[0].identity.lastname}` : '';
+    data.push([hel.local.email, hel.identity.lastname, hel.identity.firstname, customer, hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);
+  }
+
+  return data;
+};
+
+const exportAuxiliaries = async () => {
+  const role = await Role.findOne({ name: AUXILIARY });
+  const auxiliaries = await User.find({ role: role._id }).populate('sector');
+  const data = [['Email', 'Secteur', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance', 'Departement de naissance',
+    'Ville de naissance', 'Nationalité', 'N° de sécurité socile', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Date d\'inactivité',
+    'Date de création']];
+
+  for (const aux of auxiliaries) {
+    const address = aux.contact && aux.contact.address && aux.contact.address.fullAddress ? aux.contact.address.fullAddress : '';
+    data.push([
+      aux.local.email, aux.sector && aux.sector.name, aux.identity.title, aux.identity.lastname, aux.identity.firstname,
+      aux.identity.birthDate ? moment(aux.identity.birthDate).format('DD/MM/YYYY') : '', countries[aux.identity.birthCountry],
+      aux.identity.birthState, aux.identity.birthCity, nationalities[aux.identity.nationality], aux.identity.socialSecurityNumber, address,
+      aux.mobilePhone, aux.contracts ? aux.contracts.length : 0, aux.inactivityDate ? moment(aux.inactivityDate).format('DD/MM/YYYY') : '',
+      aux.createdAt ? moment(aux.createdAt).format('DD/MM/YYYY') : '',
+    ]);
+  }
+
+  return data;
+};
+
 module.exports = {
   getUsers,
   createAndSaveFile,
+  exportHelpers,
+  exportAuxiliaries,
 };
