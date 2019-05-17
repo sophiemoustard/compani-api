@@ -379,5 +379,5 @@ exports.removeEventsByContractStatus = async (contract) => {
     correspondingSub = events.find(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status) || null;
   }
   if (!correspondingSub) throw Boom.notFound('Corresponding subscription not found');
-  await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: correspondingSub.sub._id });
+  await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: correspondingSub.sub._id, isBilled: false });
 };
