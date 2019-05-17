@@ -1,6 +1,8 @@
 const moment = require('moment');
 const _ = require('lodash');
 const Surcharge = require('../models/Surcharge');
+const Customer = require('../models/Customer');
+const { getLastVersion } = require('../helpers/utils');
 
 const populateServices = async (service) => {
   const currentVersion = [...service.versions]
@@ -53,8 +55,27 @@ const subscriptionsAccepted = (customer) => {
   return customer;
 };
 
+const exportSubscriptions = async () => {
+  const customers = await Customer.find({ subscriptions: { $exists: true, $not: { $size: 0 } } }).populate('subscriptions.service');
+  const data = [['Bénéficiaire', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']];
+
+  for (const cus of customers) {
+    for (const sub of cus.subscriptions) {
+      const lastVersion = getLastVersion(sub.versions, 'createdAt');
+      const lastServiceVersion = getLastVersion(sub.service.versions, 'startDate');
+      data.push([
+        `${cus.identity.title} ${cus.identity.lastname}`, lastServiceVersion.name, lastVersion.unitTTCRate, lastVersion.estimatedWeeklyVolume,
+        lastVersion.evenings || '', lastVersion.sundays || ''
+      ]);
+    }
+  }
+
+  return data;
+};
+
 module.exports = {
   populateServices,
   populateSubscriptionsServices,
   subscriptionsAccepted,
+  exportSubscriptions,
 };
