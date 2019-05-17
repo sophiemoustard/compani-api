@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION } = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
+const { exportCustomers } = require('../helpers/customers');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
@@ -13,9 +14,12 @@ const exportData = async (req, h) => {
       case HELPER:
       case FUNDING:
       case CUSTOMER:
+        data = await exportCustomers();
+        break;
       case SUBSCRIPTION:
       case SERVICE:
         data = await exportServices();
+        break;
     }
 
     const csv = await exportToCsv(data);
