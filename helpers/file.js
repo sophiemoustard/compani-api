@@ -45,8 +45,24 @@ const fileToBase64 = filePath => new Promise((resolve, reject) => {
   fileStream.once('error', err => reject(err));
 });
 
+const exportToCsv = async (data) => {
+  let csvContent = '';
+  data.forEach((rowArray) => {
+    const row = rowArray.join(';');
+    csvContent += row + '\r\n';
+  });
+
+  const date = new Date();
+  const tmpOutputPath = path.join(os.tmpdir(), `exports-${date.getTime()}.docx`);
+
+  await fsPromises.writeFile(tmpOutputPath, csvContent, 'utf8', () => {});
+
+  return tmpOutputPath;
+};
+
 module.exports = {
   generateDocx,
   createAndReadFile,
   fileToBase64,
+  exportToCsv,
 };

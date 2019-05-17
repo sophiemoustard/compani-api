@@ -6,7 +6,7 @@ const Customer = require('./Customer');
 const ServiceSchema = mongoose.Schema({
   nature: { type: String, enum: [FIXED, HOURLY] },
   type: { type: String, enum: [CUSTOMER_CONTRACT, COMPANY_CONTRACT] },
-  company: mongoose.Schema.Types.ObjectId,
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
   versions: [{
     name: String,
     defaultUnitAmount: Number,
