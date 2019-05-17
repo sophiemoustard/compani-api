@@ -327,7 +327,8 @@ exports.removeEventsByContractStatus = async (contract) => {
       $match: {
         $and: [
           { startDate: { $gt: new Date(contract.endDate) } },
-          { auxiliary: new ObjectID(contract.user) }
+          { auxiliary: new ObjectID(contract.user) },
+          { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
         ]
       },
     },
