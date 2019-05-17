@@ -117,14 +117,29 @@ const exportAuxiliaries = async () => {
     'Date de création']];
 
   for (const aux of auxiliaries) {
+    const auxInfo = [];
+    if (aux.local && aux.local.email) auxInfo.push(aux.local.email);
+    else auxInfo.push('');
+
+    if (aux.sector && aux.sector.name) auxInfo.push(aux.sector.name);
+    else auxInfo.push('');
+
+    if (aux.identity) {
+      auxInfo.push(
+        aux.identity.title || '', aux.identity.lastname || '', aux.identity.firstname || '',
+        aux.identity.birthDate ? moment(aux.identity.birthDate).format('DD/MM/YYYY') : '', countries[aux.identity.birthCountry] || '',
+        aux.identity.birthState || '', aux.identity.birthCity || '', nationalities[aux.identity.nationality] || '',
+        aux.identity.socialSecurityNumber || ''
+      );
+    } else auxInfo.push('', '', '', '', '', '', '', '', '');
+
     const address = aux.contact && aux.contact.address && aux.contact.address.fullAddress ? aux.contact.address.fullAddress : '';
-    data.push([
-      aux.local.email, aux.sector && aux.sector.name, aux.identity.title, aux.identity.lastname, aux.identity.firstname,
-      aux.identity.birthDate ? moment(aux.identity.birthDate).format('DD/MM/YYYY') : '', countries[aux.identity.birthCountry],
-      aux.identity.birthState, aux.identity.birthCity, nationalities[aux.identity.nationality], aux.identity.socialSecurityNumber, address,
-      aux.mobilePhone, aux.contracts ? aux.contracts.length : 0, aux.inactivityDate ? moment(aux.inactivityDate).format('DD/MM/YYYY') : '',
-      aux.createdAt ? moment(aux.createdAt).format('DD/MM/YYYY') : '',
-    ]);
+    auxInfo.push(
+      address, aux.mobilePhone || '', aux.contracts ? aux.contracts.length : 0, aux.inactivityDate ? moment(aux.inactivityDate).format('DD/MM/YYYY') : '',
+      aux.createdAt ? moment(aux.createdAt).format('DD/MM/YYYY') : ''
+    );
+
+    data.push(auxInfo);
   }
 
   return data;
