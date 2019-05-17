@@ -77,7 +77,7 @@ describe('USERS ROUTES', () => {
           email: 'test1@alenvi.io',
           password: '123456'
         },
-        role: 'Auxiliaire'
+        role: 'auxiliary'
       };
       expect(async () => {
         const response = await app.inject({
@@ -189,7 +189,7 @@ describe('USERS ROUTES', () => {
     it('should get all coachs users', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/users?role=Coach',
+        url: '/users?role=coach',
         headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
@@ -220,7 +220,7 @@ describe('USERS ROUTES', () => {
     it('should get all active coachs users', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/users/active?role=Coach',
+        url: '/users/active?role=coach',
         headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
@@ -337,7 +337,7 @@ describe('USERS ROUTES', () => {
     it('should return users presentation by role', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/users/presentation?role=Auxiliaire'
+        url: '/users/presentation?role=auxiliary'
       });
       expect(res.statusCode).toBe(200);
     });

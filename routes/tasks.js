@@ -10,6 +10,7 @@ const {
   showById,
   remove
 } = require('../controllers/taskController');
+const { ADMIN, COACH, TECH } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-tasks',
@@ -26,7 +27,7 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
-          scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
+          scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : [ADMIN, TECH, COACH]
         }
       },
       handler: create
@@ -44,9 +45,7 @@ exports.plugin = {
             name: Joi.string().required()
           })
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: update
     });

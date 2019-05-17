@@ -1,4 +1,5 @@
 const cloudinary = require('cloudinary');
+const { AUXILIARY, COACH, TECH } = require('../helpers/constants');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,16 +10,16 @@ cloudinary.config({
 exports.addImage = async params => new Promise((resolve, reject) => {
   let folder = '';
   switch (params.role) {
-    case 'Coach':
+    case COACH:
       folder = 'images/users/coaches';
       break;
-    case 'Tech':
+    case TECH:
       folder = 'images/users/IT';
       break;
     case 'Mkt':
       folder = 'images/users/Mkt';
       break;
-    case 'Auxiliaire':
+    case AUXILIARY:
       folder = 'images/users/auxiliaries';
       break;
     case 'ThirdPartyPayers':
