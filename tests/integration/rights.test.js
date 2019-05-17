@@ -49,7 +49,7 @@ describe('RIGHTS ROUTES', () => {
 
     it('should add right and no access to all existing roles exept admin', async () => {
       const roles = await Role.find({}, {}, { autopopulate: false });
-      roles.filter(role => !role.name.match(/^Admin$/i)).forEach((role) => {
+      roles.filter(role => !role.name.match(/^admin$/i)).forEach((role) => {
         expect(role.rights).toEqual(expect.arrayContaining([
           expect.objectContaining({
             right_id: res.result.data.right._id,
@@ -60,7 +60,7 @@ describe('RIGHTS ROUTES', () => {
     });
 
     it('should add right to admin role with access', async () => {
-      const admin = await Role.find({ name: 'Admin' }, {}, { autopopulate: false });
+      const admin = await Role.find({ name: 'admin' }, {}, { autopopulate: false });
       expect(admin[0].rights).toEqual(expect.arrayContaining([
         expect.objectContaining({
           right_id: res.result.data.right._id,

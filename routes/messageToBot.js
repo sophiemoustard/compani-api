@@ -25,10 +25,7 @@ exports.plugin = {
             senderId: Joi.objectId().required(),
           })
         },
-        auth: {
-          strategy: 'jwt',
-          // scope: ['Admin', 'Tech', 'Coach']
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: storeMessage
     });
@@ -43,10 +40,7 @@ exports.plugin = {
             recipientId: Joi.objectId().required(),
           })
         },
-        auth: {
-          strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: sendMessageById
     });
@@ -62,10 +56,7 @@ exports.plugin = {
             recipientId: Joi.objectId().required(),
           })
         },
-        auth: {
-          strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: addMessageRecipientById
     });
@@ -79,10 +70,7 @@ exports.plugin = {
             senderId: Joi.objectId()
           })
         },
-        auth: {
-          strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right1:read'] : ['Admin', 'Tech', 'Coach']
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: list
     });
@@ -94,10 +82,7 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() }
         },
-        auth: {
-          strategy: 'jwt',
-          // scope: process.env.NODE_ENV === 'test' ? ['right1:read'] : ['Admin', 'Tech', 'Coach']
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: getById
     });

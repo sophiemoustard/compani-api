@@ -16,6 +16,7 @@ const { createFolder } = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
+const { AUXILIARY } = require('../helpers/constants');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
@@ -404,7 +405,7 @@ const uploadImage = async (req) => {
   try {
     const pictureUploaded = await cloudinary.addImage({
       file: req.payload.picture,
-      role: req.payload.role || 'Auxiliaire',
+      role: req.payload.role || AUXILIARY,
       public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
     });
     const payload = {

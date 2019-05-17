@@ -137,7 +137,7 @@ const exportCustomers = async () => {
       customerData.push(cus.fundings.length);
     } else customerData.push(0);
 
-    customerData(cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '');
+    customerData.push(cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '');
 
     data.push(customerData);
   }

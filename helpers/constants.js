@@ -60,13 +60,15 @@ module.exports = {
   CUSTOMER_INITIATIVE: 'customer_initiative',
   AUXILIARY_INITIATIVE: 'auxiliary_initiative',
   // ROLE
-  AUXILIARY: 'Auxiliaire',
-  HELPER: 'Aidants',
+  AUXILIARY: 'auxiliary',
+  HELPER: 'helper',
+  COACH: 'coach',
+  TECH: 'tech',
+  ADMIN: 'admin',
+  PLANNING_REFERENT: 'planningReferent',
   // EXPORTS
   SERVICE: 'service',
-  AUXILIARY_EXPORT_TYPE: 'auxiliary',
-  HELPER_EXPORT_TYPE: 'helper',
-  CUSTOMER_EXPORT_TYPE: 'customer',
+  CUSTOMER: 'customer',
   SUBSCRIPTION: 'subscription',
   FUNDING: 'funding',
   DAYS_INDEX: {

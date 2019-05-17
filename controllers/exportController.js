@@ -1,5 +1,5 @@
 const Boom = require('boom');
-const { SERVICE, AUXILIARY_EXPORT_TYPE, HELPER_EXPORT_TYPE, CUSTOMER_EXPORT_TYPE, FUNDING, SUBSCRIPTION } = require('../helpers/constants');
+const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION } = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
 const { exportCustomers } = require('../helpers/customers');
 const { exportSubscriptions } = require('../helpers/subscriptions');
@@ -13,16 +13,16 @@ const exportData = async (req, h) => {
 
     let data;
     switch (type) {
-      case AUXILIARY_EXPORT_TYPE:
+      case AUXILIARY:
         data = await exportAuxiliaries();
         break;
-      case HELPER_EXPORT_TYPE:
+      case HELPER:
         data = await exportHelpers();
         break;
       case FUNDING:
         data = await exportFundings();
         break;
-      case CUSTOMER_EXPORT_TYPE:
+      case CUSTOMER:
         data = await exportCustomers();
         break;
       case SUBSCRIPTION:

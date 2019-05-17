@@ -14,11 +14,11 @@ const create = async (req) => {
     const roles = await Role.find();
     if (roles.length > 0) {
       await Role.updateMany(
-        { name: { $not: /^Admin$/ } },
+        { name: { $not: /^admin$/ } },
         { $push: { rights: { right_id: right._id, hasAccess: false } } }
       );
       await Role.update(
-        { name: 'Admin' },
+        { name: 'admin' },
         { $push: { rights: { right_id: right._id, hasAccess: true } } }
       );
     }
