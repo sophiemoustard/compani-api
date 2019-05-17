@@ -3,6 +3,7 @@ const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION } = require(
 const { exportServices } = require('../helpers/services');
 const { exportCustomers } = require('../helpers/customers');
 const { exportSubscriptions } = require('../helpers/subscriptions');
+const { exportFundings } = require('../helpers/fundings');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
@@ -14,6 +15,8 @@ const exportData = async (req, h) => {
       case AUXILIARY:
       case HELPER:
       case FUNDING:
+        data = await exportFundings();
+        break;
       case CUSTOMER:
         data = await exportCustomers();
         break;
