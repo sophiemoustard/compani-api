@@ -1,9 +1,19 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const { subscriptionsAccepted } = require('../../../helpers/subscriptions');
+const SubscriptionsHelper = require('../../../helpers/subscriptions');
 const Company = require('../../../models/Company');
 
 describe('subscriptionsAccepted', () => {
+  let findOne;
+  beforeEach(() => {
+    findOne = sinon.stub(Company, 'findOne');
+  });
+
+  afterEach(() => {
+    findOne.restore();
+  });
+
   it('should set subscriptionsAccepted to true', async () => {
     const customer = {
       subscriptions: [{
@@ -55,7 +65,7 @@ describe('subscriptionsAccepted', () => {
         _id: new ObjectID('5c45a98fa2e4e133a6774e46')
       }],
     };
-    Company.findOne = () => ({
+    findOne.returns({
       customersConfig: {
         services: [{
           _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
@@ -81,7 +91,7 @@ describe('subscriptionsAccepted', () => {
       }
     });
 
-    const result = await subscriptionsAccepted(customer);
+    const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
     expect(result).toBeDefined();
     expect(result.subscriptionsAccepted).toBeTruthy();
   });
@@ -126,7 +136,7 @@ describe('subscriptionsAccepted', () => {
         _id: new ObjectID('5c45a98fa2e4e133a6774e46')
       }],
     };
-    Company.findOne = () => ({
+    findOne.returns({
       customersConfig: {
         services: [{
           _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
@@ -143,7 +153,7 @@ describe('subscriptionsAccepted', () => {
       }
     });
 
-    const result = await subscriptionsAccepted(customer);
+    const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
     expect(result).toBeDefined();
     expect(result.subscriptionsAccepted).toBeFalsy();
   });
