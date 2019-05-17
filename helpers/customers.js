@@ -49,7 +49,7 @@ const uploadFinancialCertificate = async (customerId, file) => {
   );
 };
 
-const createAndSaveFile = async (docKeys, params, payload) => {
+exports.createAndSaveFile = async (docKeys, params, payload) => {
   const uploadedFile = await addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload[docKeys[0]].hapi.filename,
@@ -93,17 +93,17 @@ const getServicesNameList = (subscriptions) => {
   return list;
 };
 
-const exportCustomers = async () => {
+exports.exportCustomers = async () => {
   const customers = await Customer.find().populate('subscriptions.service');
   const data = [['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Pathologie', 'Commentaire', 'Details intervention',
     'Autres', 'Referente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombres de souscriptions', 'Souscritpions',
     'Nombre de financement', 'Date de création']];
 
   for (const cus of customers) {
-    const customerData = [cus.email];
+    const customerData = [cus.email || ''];
     if (cus.identity && Object.keys(cus.identity).length > 0) {
       customerData.push(
-        cus.identity.title, cus.identity.lastname, cus.identity.firstname,
+        cus.identity.title || '', cus.identity.lastname || '', cus.identity.firstname || '',
         cus.identity.birthDate ? moment(cus.identity.birthDate).format('DD/MM/YYYY') : ''
       );
     } else customerData.push('', '', '', '');
@@ -122,10 +122,10 @@ const exportCustomers = async () => {
     } else customerData.push('', '', '', '', '');
 
     if (cus.payment && Object.keys(cus.payment).length > 0) {
-      customerData.push(cus.payment.bankAccountOwner, cus.payment.iban, cus.payment.bic);
+      customerData.push(cus.payment.bankAccountOwner || '', cus.payment.iban || '', cus.payment.bic || '');
       if (cus.payment.mandates && cus.payment.mandates.length > 0) {
         const lastMandate = getLastVersion(cus.payment.mandates, 'createdAt');
-        customerData.push(lastMandate.rum, lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '');
+        customerData.push(lastMandate.rum || '', lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '');
       } else customerData.push('', '');
     } else customerData.push('', '', '', '', '');
 
@@ -143,9 +143,4 @@ const exportCustomers = async () => {
   }
 
   return data;
-};
-
-module.exports = {
-  createAndSaveFile,
-  exportCustomers,
 };
