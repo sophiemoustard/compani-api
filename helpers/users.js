@@ -95,8 +95,15 @@ const exportHelpers = async () => {
   const data = [['Email', 'Nom', 'Prénom', 'Beneficiaire', 'Date de création']];
 
   for (const hel of helpers) {
-    const customer = hel.customers && hel.customers[0] ? `${hel.customers[0].identity.title} ${hel.customers[0].identity.lastname}` : '';
-    data.push([hel.local.email, hel.identity.lastname, hel.identity.firstname, customer, hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);
+    const customer = hel.customers && hel.customers[0] && hel.customers[0].identity
+      ? `${hel.customers[0].identity.title} ${hel.customers[0].identity.lastname}`
+      : '';
+    data.push([
+      hel.local && hel.local.email ? hel.local.email : '',
+      hel.identity && hel.identity.lastname ? hel.identity.lastname : '',
+      hel.identity && hel.identity.firstname ? hel.identity.firstname : '',
+      customer,
+      hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);
   }
 
   return data;
