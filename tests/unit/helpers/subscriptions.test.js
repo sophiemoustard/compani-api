@@ -1,8 +1,12 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const UtilsHelper = require('../../../helpers/utils');
 const SubscriptionsHelper = require('../../../helpers/subscriptions');
 const Company = require('../../../models/Company');
+const Customer = require('../../../models/Customer');
+
+require('sinon-mongoose');
 
 describe('subscriptionsAccepted', () => {
   let findOne;
@@ -156,5 +160,56 @@ describe('subscriptionsAccepted', () => {
     const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
     expect(result).toBeDefined();
     expect(result.subscriptionsAccepted).toBeFalsy();
+  });
+});
+
+describe('exportSubscriptions', () => {
+  let CustomerModel;
+  let getLastVersion;
+  beforeEach(() => {
+    CustomerModel = sinon.mock(Customer);
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
+  });
+
+  afterEach(() => {
+    CustomerModel.restore();
+    getLastVersion.restore();
+  });
+
+  it('should return csv header', async () => {
+    const customers = [];
+    CustomerModel.expects('find')
+      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } } })
+      .chain('populate')
+      .once()
+      .returns(customers);
+
+    const result = await SubscriptionsHelper.exportSubscriptions();
+
+    expect(result).toBeDefined();
+    expect(result[0]).toMatchObject(['Bénéficiaire', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']);
+  });
+
+  it('should return subscriptions info', async () => {
+    const customers = [
+      {
+        identity: { lastname: 'Autonomie', title: 'M' },
+        subscriptions: [{
+          service: { versions: [{ name: 'Service' }] },
+          versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 4, sundays: 2, evenings: 9 }],
+        }],
+      }
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } } })
+      .chain('populate')
+      .once()
+      .returns(customers);
+
+    const result = await SubscriptionsHelper.exportSubscriptions();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['M Autonomie', 'Service', 12, 4, 9, 2]);
   });
 });

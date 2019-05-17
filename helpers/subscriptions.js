@@ -54,18 +54,26 @@ exports.subscriptionsAccepted = (customer) => {
   }
   return customer;
 };
+
 exports.exportSubscriptions = async () => {
   const customers = await Customer.find({ subscriptions: { $exists: true, $not: { $size: 0 } } }).populate('subscriptions.service');
   const data = [['Bénéficiaire', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']];
 
   for (const cus of customers) {
     for (const sub of cus.subscriptions) {
-      const lastVersion = getLastVersion(sub.versions, 'createdAt');
+      const subInfo = [];
+      if (cus.identity) subInfo.push(`${cus.identity.title} ${cus.identity.lastname}`);
+      else subInfo.push('');
+
       const lastServiceVersion = getLastVersion(sub.service.versions, 'startDate');
-      data.push([
-        `${cus.identity.title} ${cus.identity.lastname}`, lastServiceVersion.name, lastVersion.unitTTCRate, lastVersion.estimatedWeeklyVolume,
-        lastVersion.evenings || '', lastVersion.sundays || ''
-      ]);
+      if (lastServiceVersion) subInfo.push(lastServiceVersion.name);
+      else subInfo.push('');
+
+      const lastVersion = getLastVersion(sub.versions, 'createdAt');
+      if (lastVersion) subInfo.push(lastVersion.unitTTCRate, lastVersion.estimatedWeeklyVolume, lastVersion.evenings || '', lastVersion.sundays || '');
+      else subInfo.push('', '', '', '');
+
+      data.push(subInfo);
     }
   }
 
