@@ -38,14 +38,16 @@ const getEventToPay = async rules => Event.aggregate([
 
 exports.getContractHours = (contract, query) => {
   const versions = contract.versions.filter(ver =>
-    (moment(ver.startDate).isSameOrBefore(query.endDate) && moment(ver.endDate).isSameOrAfter(query.startDate)) ||
+    (moment(ver.startDate).isSameOrBefore(query.endDate) && moment(ver.endDate).isAfter(query.startDate)) ||
     (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.isActive));
 
   let contractHours = 0;
   for (const version of versions) {
     const hoursPerDay = version.weeklyHours / 6;
     const startDate = moment(version.startDate).isBefore(query.startDate) ? moment(query.startDate) : moment(version.startDate).startOf('d');
-    const endDate = moment(version.endDate).isBefore(query.endDate) ? moment(version.endDate).subtract(1, 'd').endOf('d') : moment(query.endDate);
+    const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
+      ? moment(version.endDate).subtract(1, 'd').endOf('d')
+      : moment(query.endDate);
     const range = Array.from(moment().range(startDate, endDate).by('days'));
     for (const day of range) {
       if (day.isoWeekday() !== 7) contractHours += hoursPerDay;
