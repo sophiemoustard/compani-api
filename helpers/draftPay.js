@@ -7,16 +7,44 @@ momentRange.extendMoment(moment);
 
 const getEventToPay = async rules => Event.aggregate([
   { $match: { $and: rules } },
-  { $group: { _id: '$auxiliary', events: { $push: '$$ROOT' } } },
+  {
+    $group: { _id: { SUBS: '$subscription', AUX: '$auxiliary', CUS: '$customer' }, events: { $push: '$$ROOT' } }
+  },
   {
     $lookup: {
       from: 'users',
-      localField: '_id',
+      localField: '_id.AUX',
       foreignField: '_id',
       as: 'auxiliary',
     },
   },
   { $unwind: { path: '$auxiliary' } },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: '_id.CUS',
+      foreignField: '_id',
+      as: 'customer',
+    },
+  },
+  { $unwind: { path: '$customer' } },
+  {
+    $addFields: {
+      sub: {
+        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+      }
+    }
+  },
+  { $unwind: { path: '$sub' } },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'sub.service',
+      foreignField: '_id',
+      as: 'sub.service',
+    }
+  },
+  { $unwind: { path: '$sub.service' } },
   {
     $lookup: {
       from: 'sectors',
@@ -35,7 +63,18 @@ const getEventToPay = async rules => Event.aggregate([
     },
   },
   {
+    $group: {
+      _id: '$_id.AUX',
+      auxiliary: { $addToSet: '$auxiliary' },
+      eventsBySubscription: {
+        $push: { subscription: '$sub', events: '$events' },
+      }
+    }
+  },
+  { $unwind: { path: '$auxiliary' } },
+  {
     $project: {
+      _id: 0,
       auxiliary: {
         _id: 1,
         identity: 1,
@@ -43,9 +82,9 @@ const getEventToPay = async rules => Event.aggregate([
         contracts: 1,
         administrative: { mutualFund: 1 },
       },
-      events: 1
+      eventsBySubscription: 1,
     }
-  },
+  }
 ]);
 
 exports.getContractHours = (contract, query) => {
@@ -69,12 +108,15 @@ exports.getContractHours = (contract, query) => {
   return contractHours;
 };
 
-exports.getDraftPayByAuxiliary = (events, auxiliary, company, query) => {
+exports.getDraftPayByAuxiliary = (eventsBySubscription, auxiliary, company, query) => {
   const { _id, identity, sector, contracts } = auxiliary;
 
   let workedHours = 0;
-  for (const event of events) {
-    workedHours += moment(event.endDate).diff(event.startDate, 'm') / 60;
+  for (const group of eventsBySubscription) {
+    const { events } = group;
+    for (const event of events) {
+      workedHours += moment(event.endDate).diff(event.startDate, 'm') / 60;
+    }
   }
 
   return {
@@ -95,7 +137,7 @@ exports.getDraftPay = async (rules, query) => {
 
   const draftPay = [];
   for (const group of eventsToPay) {
-    draftPay.push(exports.getDraftPayByAuxiliary(group.events, group.auxiliary, company, query));
+    draftPay.push(exports.getDraftPayByAuxiliary(group.eventsBySubscription, group.auxiliary, company, query));
   }
 
   return draftPay;
