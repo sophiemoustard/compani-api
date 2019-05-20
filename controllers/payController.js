@@ -24,7 +24,7 @@ const draftPayList = async (req) => {
       { endDate: { $lte: moment(req.query.endDate).endOf('d').toDate() } },
       { auxiliary: { $in: auxiliaries.map(aux => aux._id) } },
     ];
-    const draftPay = await getDraftPay(eventRules);
+    const draftPay = await getDraftPay(eventRules, req.query);
 
     return {
       message: translate[language].draftPay,
