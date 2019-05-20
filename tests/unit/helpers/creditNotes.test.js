@@ -4,6 +4,7 @@ const sinon = require('sinon');
 const FundingHistory = require('../../../models/FundingHistory');
 const Event = require('../../../models/Event');
 const { updateEventAndFundingHistory, formatPDF } = require('../../../helpers/creditNotes');
+const moment = require('moment');
 
 describe('updateEventAndFundingHistory', () => {
   let findOneAndUpdate = null;
@@ -140,8 +141,8 @@ describe('formatPDF', () => {
           endDate: '2019-04-29T15:00:00.000Z',
           bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
           date: '29/04',
-          startTime: '08:00',
-          endTime: '17:00'
+          startTime: moment('2019-04-29T06:00:00.000Z').format('HH:mm'),
+          endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm')
         }],
         date: '30/04/2019',
         startDate: '2019-03-31T22:00:00.000Z',
@@ -161,8 +162,8 @@ describe('formatPDF', () => {
           endDate: '2019-04-29T15:00:00.000Z',
           bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
           date: '29/04',
-          startTime: '08:00',
-          endTime: '17:00'
+          startTime: moment('2019-04-29T06:00:00.000Z').format('HH:mm'),
+          endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm')
         }],
         company: {},
         logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'

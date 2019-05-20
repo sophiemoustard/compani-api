@@ -430,8 +430,8 @@ describe('formatPDF', () => {
               exclTaxesCustomer: 49.28909952606635
             },
             date: '10/04',
-            startTime: '08:00',
-            endTime: '10:00',
+            startTime: moment('2019-04-10T06:00:00.000Z').format('HH:mm'),
+            endTime: moment('2019-04-10T08:00:00.000Z').format('HH:mm'),
             service: 'Temps de qualité - autonomie'
           }],
           startDate: '2019-03-31T22:00:00.000Z',
@@ -457,8 +457,8 @@ describe('formatPDF', () => {
               exclTaxesCustomer: 49.28909952606635
             },
             date: '10/04',
-            startTime: '08:00',
-            endTime: '10:00',
+            startTime: moment('2019-04-10T06:00:00.000Z').format('HH:mm'),
+            endTime: moment('2019-04-10T08:00:00.000Z').format('HH:mm'),
             service: 'Temps de qualité - autonomie'
           }],
           startDate: '2019-03-31T22:00:00.000Z',
@@ -479,8 +479,8 @@ describe('formatPDF', () => {
             exclTaxesCustomer: 49.28909952606635
           },
           date: '10/04',
-          startTime: '08:00',
-          endTime: '10:00',
+          startTime: moment('2019-04-10T06:00:00.000Z').format('HH:mm'),
+          endTime: moment('2019-04-10T08:00:00.000Z').format('HH:mm'),
           service: 'Temps de qualité - autonomie'
         }],
         company: {},
