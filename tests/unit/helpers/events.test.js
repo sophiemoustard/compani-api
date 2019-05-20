@@ -760,7 +760,7 @@ describe('removeEventsByContractStatus', () => {
 
     await EventHelper.removeEventsByContractStatus(contract);
     sinon.assert.called(EventAggregateStub);
-    sinon.assert.called(EventDeleteManyStub);
+    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: aggregation[0].sub._id, isBilled: false });
   });
 
   it('should remove future events linked to corresponding customer contract', async () => {
@@ -769,6 +769,6 @@ describe('removeEventsByContractStatus', () => {
 
     await EventHelper.removeEventsByContractStatus(contract);
     sinon.assert.called(EventAggregateStub);
-    sinon.assert.called(EventDeleteManyStub);
+    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: aggregation[1].sub._id, isBilled: false });
   });
 });

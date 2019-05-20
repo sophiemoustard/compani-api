@@ -197,7 +197,7 @@ describe('CONTRACTS ROUTES', () => {
 
   describe('PUT contract/:id', () => {
     it('should end the contract and remove future events', async () => {
-      const endDate = moment().toDate();
+      const endDate = moment().add(1, 'd').toDate();
       const payload = { endDate };
       const res = await app.inject({
         method: 'PUT',

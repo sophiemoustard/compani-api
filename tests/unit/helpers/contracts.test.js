@@ -32,10 +32,7 @@ describe('endContract', () => {
       {
         createdAt: moment('2018-12-04T16:34:04.144Z').toDate(),
         endDate: null,
-        grossHourlyRate: 10.28,
         isActive: true,
-        startDate: moment('2018-12-03T23:00:00.000Z').toDate(),
-        weeklyHours: 9,
         _id: new ObjectID(),
         signature: {
           signedBy: {
@@ -55,10 +52,7 @@ describe('endContract', () => {
       {
         createdAt: moment('2019-05-04T16:34:04.144Z').toDate(),
         endDate: null,
-        grossHourlyRate: 10.28,
         isActive: true,
-        startDate: moment('2019-05-06T23:00:00.000Z').toDate(),
-        weeklyHours: 9,
         _id: new ObjectID(),
         signature: {
           signedBy: {
