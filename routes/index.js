@@ -123,4 +123,8 @@ exports.routes = [
     plugin: require('./exports'),
     routes: { prefix: '/exports' }
   },
+  {
+    plugin: require('./pay'),
+    routes: { prefix: '/pay' }
+  },
 ];
