@@ -140,11 +140,11 @@ describe('formatPDF', () => {
           startDate: '2019-04-29T06:00:00.000Z',
           endDate: '2019-04-29T15:00:00.000Z',
           bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
-          date: '29/04',
+          date: moment('2019-04-29T22:00:00.000Z').format('DD/MM'),
           startTime: moment('2019-04-29T06:00:00.000Z').format('HH:mm'),
           endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm')
         }],
-        date: '30/04/2019',
+        date: moment('2019-04-29T22:00:00.000Z').format('DD/MM'),
         startDate: '2019-05-30T20:00:00.000Z',
         endDate: '2019-05-30T22:00:00.000Z',
         exclTaxesCustomer: '221,80 €',
@@ -161,7 +161,7 @@ describe('formatPDF', () => {
           startDate: '2019-04-29T06:00:00.000Z',
           endDate: '2019-04-29T15:00:00.000Z',
           bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
-          date: '29/04',
+          date: moment('2019-04-29T22:00:00.000Z').format('DD/MM'),
           startTime: moment('2019-04-29T06:00:00.000Z').format('HH:mm'),
           endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm')
         }],
