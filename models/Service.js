@@ -14,6 +14,7 @@ const ServiceSchema = mongoose.Schema({
     surcharge: { type: mongoose.Schema.Types.ObjectId, ref: 'Surcharge' },
     startDate: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now },
+    exemptFromCharges: { type: Boolean, default: false },
   }]
 }, { timestamps: true });
 

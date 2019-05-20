@@ -28,6 +28,7 @@ describe('SERVICES ROUTES', () => {
         name: 'Service',
         defaultUnitAmount: 12,
         vat: 12,
+        exemptFromCharges: true,
       }],
       nature: HOURLY,
     };
