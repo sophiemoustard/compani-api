@@ -2,6 +2,9 @@ const moment = require('moment');
 const momentRange = require('moment-range');
 const Event = require('../models/Event');
 const Company = require('../models/Company');
+const Surcharge = require('../models/Surcharge');
+const { getMatchingVersion } = require('../helpers/utils');
+const { FIXED } = require('./constants');
 
 momentRange.extendMoment(moment);
 
@@ -87,6 +90,17 @@ const getEventToPay = async rules => Event.aggregate([
   }
 ]);
 
+const populateSurcharge = async (subscription) => {
+  for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
+    if (subscription.service.versions[i].surcharge) {
+      const surcharge = await Surcharge.findOne({ _id: subscription.service.versions[i].surcharge });
+      subscription.service.versions[i] = { ...subscription.service.versions[i], surcharge };
+    }
+  }
+
+  return subscription;
+};
+
 exports.getContractHours = (contract, query) => {
   const versions = contract.versions.filter(ver =>
     (moment(ver.startDate).isSameOrBefore(query.endDate) && moment(ver.endDate).isAfter(query.startDate)) ||
@@ -108,14 +122,87 @@ exports.getContractHours = (contract, query) => {
   return contractHours;
 };
 
-exports.getDraftPayByAuxiliary = (eventsBySubscription, auxiliary, company, query) => {
+exports.computeCustomSurcharge = (event, startHour, endHour) => {
+  const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(3));
+  let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(3));
+  if (start.isAfter(end)) end = end.add(1, 'd');
+
+  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return moment(event.endDate).diff(moment(event.startDate), 'm');
+
+  let inflatedTime = 0;
+  if (start.isSameOrBefore(event.startDate) && end.isAfter(event.startDate) && end.isBefore(event.endDate)) {
+    inflatedTime = end.diff(event.startDate, 'm');
+  } else if (start.isAfter(event.startDate) && start.isBefore(event.endDate) && end.isSameOrAfter(event.endDate)) {
+    inflatedTime = moment(event.endDate).diff(start, 'm');
+  } else if (start.isAfter(event.startDate) && end.isBefore(event.endDate)) {
+    inflatedTime = end.diff(start, 'm');
+  }
+
+  return inflatedTime;
+};
+
+// TODO : custom and evening surcharge
+exports.isSurcharged = (event, surcharge) => {
+  const {
+    saturday,
+    sunday,
+    publicHoliday,
+    firstOfMay,
+    twentyFifthOfDecember,
+    evening,
+    eveningEndTime,
+    eveningStartTime,
+    custom,
+    customStartTime,
+    customEndTime
+  } = surcharge;
+
+  const eventDuration = moment(event.endDate).diff(event.startDate, 'm') / 60;
+
+  if ((twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') ||
+    (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') ||
+    (publicHoliday && publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) ||
+    (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) ||
+    (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7)) {
+    return { surcharged: eventDuration, notSurcharged: 0 };
+  }
+
+  let surchargedHours = 0;
+  if (evening) surchargedHours += exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, surchargedHours);
+  if (custom) surchargedHours += exports.computeCustomSurcharge(event, customStartTime, customEndTime, surchargedHours);
+
+  return { surcharged: surchargedHours / 60, notSurcharged: eventDuration - (surchargedHours / 60) };
+};
+
+const getEventHours = (event, service) => {
+  if (service.nature === FIXED || !service.surcharge) return { surcharged: 0, notSurcharged: moment(event.endDate).diff(event.startDate, 'm') / 60 };
+
+  return exports.isSurcharged(event, service.surcharge);
+};
+
+exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company, query) => {
   const { _id, identity, sector, contracts } = auxiliary;
 
   let workedHours = 0;
+  let notSurchargedAndNotExempt = 0;
+  let surchargedAndNotExempt = 0;
+  let notSurchargedAndExempt = 0;
+  let surchargedAndExempt = 0;
   for (const group of eventsBySubscription) {
     const { events } = group;
+    const subscription = await populateSurcharge(group.subscription);
     for (const event of events) {
       workedHours += moment(event.endDate).diff(event.startDate, 'm') / 60;
+      const serviceVersion = getMatchingVersion(event.startDate, subscription.service, 'startDate');
+      if (serviceVersion.exemptFromCharges) {
+        const hours = getEventHours(event, serviceVersion);
+        surchargedAndExempt += hours.surcharged;
+        notSurchargedAndExempt += hours.notSurcharged;
+      } else {
+        const hours = getEventHours(event, serviceVersion);
+        surchargedAndNotExempt += hours.surcharged;
+        notSurchargedAndNotExempt += hours.notSurcharged;
+      }
     }
   }
 
@@ -125,6 +212,10 @@ exports.getDraftPayByAuxiliary = (eventsBySubscription, auxiliary, company, quer
     endDate: query.endDate,
     contractHours: exports.getContractHours(contracts[0], query),
     workedHours,
+    notSurchargedAndExempt,
+    surchargedAndExempt,
+    notSurchargedAndNotExempt,
+    surchargedAndNotExempt,
     mutual: !(auxiliary.administrative && auxiliary.administrative.mutualFund && auxiliary.administrative.mutualFund.has),
     otherFees: company.rhConfig && company.rhConfig.phoneSubRefunding ? company.rhConfig.phoneSubRefunding : 0,
     bonus: 0,
@@ -137,7 +228,7 @@ exports.getDraftPay = async (rules, query) => {
 
   const draftPay = [];
   for (const group of eventsToPay) {
-    draftPay.push(exports.getDraftPayByAuxiliary(group.eventsBySubscription, group.auxiliary, company, query));
+    draftPay.push(await exports.getDraftPayByAuxiliary(group.eventsBySubscription, group.auxiliary, company, query));
   }
 
   return draftPay;
