@@ -123,7 +123,7 @@ describe('formatPDF', () => {
         bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
       }],
       date: '2019-04-29T22:00:00.000Z',
-      startDate: '2019-03-31T22:00:00.000Z',
+      startDate: '2019-05-30T20:00:00.000Z',
       endDate: '2019-05-30T22:00:00.000Z',
       exclTaxesCustomer: 221.8009478672986,
       inclTaxesCustomer: 234,
@@ -145,7 +145,7 @@ describe('formatPDF', () => {
           endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm')
         }],
         date: '30/04/2019',
-        startDate: '2019-03-31T22:00:00.000Z',
+        startDate: '2019-05-30T20:00:00.000Z',
         endDate: '2019-05-30T22:00:00.000Z',
         exclTaxesCustomer: '221,80 €',
         inclTaxesCustomer: '234,00 €',
