@@ -3,6 +3,7 @@ const moment = require('moment');
 const flat = require('flat');
 const _ = require('lodash');
 const momentRange = require('moment-range');
+const { ObjectID } = require('mongodb');
 const {
   INTERVENTION,
   INTERNAL_HOUR,
@@ -316,4 +317,67 @@ exports.deleteRepetition = async (event) => {
     startDate: { $gt: new Date(event.startDate) },
     $or: [{ isBilled: false }, { isBilled: { $exists: false } }]
   });
+};
+
+exports.removeEventsByContractStatus = async (contract) => {
+  if (!contract) throw Boom.badRequest();
+
+  const events = await Event.aggregate([
+    {
+      $match: {
+        $and: [
+          { startDate: { $gt: new Date(contract.endDate) } },
+          { auxiliary: new ObjectID(contract.user) },
+          { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
+        ]
+      },
+    },
+    {
+      $group: {
+        _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
+      }
+    },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: '_id.CUSTOMER',
+        foreignField: '_id',
+        as: 'customer'
+      }
+    },
+    { $unwind: { path: '$customer' } },
+    {
+      $addFields: {
+        sub: {
+          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+        }
+      }
+    },
+    { $unwind: { path: '$sub' } },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'sub.service',
+        foreignField: '_id',
+        as: 'sub.service',
+      }
+    },
+    { $unwind: { path: '$sub.service' } },
+    {
+      $project: {
+        _id: 0,
+        customer: { _id: 1 },
+        sub: 1
+      }
+    },
+  ]);
+
+  let correspondingSub;
+  if (contract.status === COMPANY_CONTRACT) {
+    correspondingSub = events.find(ev => ev.sub.service.type === contract.status) || null;
+  } else {
+    correspondingSub = events.find(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status) || null;
+  }
+  if (!correspondingSub) throw Boom.notFound('Corresponding subscription not found');
+  await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: correspondingSub.sub._id, isBilled: false });
 };

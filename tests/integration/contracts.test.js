@@ -5,9 +5,14 @@ const app = require('../../server');
 const Contract = require('../../models/Contract');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');
+const Event = require('../../models/Event');
 const { getToken, userList, populateUsers } = require('./seed/usersSeed');
 const { customersList, populateCustomers } = require('./seed/customersSeed');
 const { populateContracts, contractsList } = require('./seed/contractsSeed');
+const { populateEvents, eventsList } = require('./seed/eventsSeed');
+const { populateRoles } = require('./seed/rolesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
+const { populateServices } = require('./seed/servicesSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
@@ -16,10 +21,14 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('CONTRACT ROUTES', () => {
+describe('CONTRACTS ROUTES', () => {
   let authToken = null;
-  before(populateUsers);
+  before(populateCompanies);
+  before(populateServices);
+  before(populateRoles);
   before(populateCustomers);
+  before(populateUsers);
+  beforeEach(populateEvents);
   beforeEach(populateContracts);
   beforeEach(async () => {
     authToken = await getToken();
@@ -187,8 +196,8 @@ describe('CONTRACT ROUTES', () => {
   });
 
   describe('PUT contract/:id', () => {
-    it('should end the contract', async () => {
-      const endDate = moment().toDate();
+    it('should end the contract and remove future events', async () => {
+      const endDate = moment().add(1, 'd').toDate();
       const payload = { endDate };
       const res = await app.inject({
         method: 'PUT',
@@ -204,6 +213,8 @@ describe('CONTRACT ROUTES', () => {
       const user = await User.findOne({ _id: contractsList[0].user });
       expect(user.inactivityDate).not.toBeNull();
       expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment().add('1', 'months').startOf('M').format('YYYY-MM-DD'));
+      const events = await Event.find().lean();
+      expect(events.length).toBe(eventsList.length - 1);
     });
 
     it('should return 404 error if no contract', async () => {

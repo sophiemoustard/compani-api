@@ -70,7 +70,7 @@ const customersList = [
           sundays: 1,
           startDate: moment().subtract(1, 'month').toDate(),
         }],
-      }
+      },
     ],
     fundings: [
       {
