@@ -5,7 +5,7 @@ describe('getContractHours', () => {
   it('Case 1. One version no sunday', () => {
     const contract = {
       versions: [
-        { isActive: false, endDate: '2019-01-01T00:00:00.000Z', startDate: '2019-05-04T00:00:00.000Z', weeklyHours: 18 },
+        { isActive: false, startDate: '2019-01-01T00:00:00.000Z', endDate: '2019-05-04T00:00:00.000Z', weeklyHours: 18 },
         { isActive: true, endDate: '', startDate: '2019-05-04T00:00:00.000Z', weeklyHours: 24 },
       ],
     };
