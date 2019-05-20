@@ -1,6 +1,7 @@
 const moment = require('moment');
 const momentRange = require('moment-range');
 const Event = require('../models/Event');
+const Company = require('../models/Company');
 
 momentRange.extendMoment(moment);
 
@@ -33,7 +34,18 @@ const getEventToPay = async rules => Event.aggregate([
       as: 'auxiliary.contracts',
     },
   },
-  { $project: { auxiliary: { _id: 1, identity: 1, sector: 1, contracts: 1 }, events: 1 } },
+  {
+    $project: {
+      auxiliary: {
+        _id: 1,
+        identity: 1,
+        sector: 1,
+        contracts: 1,
+        administrative: { mutualFund: 1 },
+      },
+      events: 1
+    }
+  },
 ]);
 
 exports.getContractHours = (contract, query) => {
@@ -57,7 +69,7 @@ exports.getContractHours = (contract, query) => {
   return contractHours;
 };
 
-exports.getDraftPayByAuxiliary = (events, auxiliary, query) => {
+exports.getDraftPayByAuxiliary = (events, auxiliary, company, query) => {
   const { _id, identity, sector, contracts } = auxiliary;
 
   let workedHours = 0;
@@ -71,15 +83,19 @@ exports.getDraftPayByAuxiliary = (events, auxiliary, query) => {
     endDate: query.endDate,
     contractHours: exports.getContractHours(contracts[0], query),
     workedHours,
+    mutual: !(auxiliary.administrative && auxiliary.administrative.mutualFund && auxiliary.administrative.mutualFund.has),
+    otherFees: company.rhConfig && company.rhConfig.phoneSubRefunding ? company.rhConfig.phoneSubRefunding : 0,
+    bonus: 0,
   };
 };
 
 exports.getDraftPay = async (rules, query) => {
   const eventsToPay = await getEventToPay(rules);
+  const company = await Company.findOne({});
 
   const draftPay = [];
   for (const group of eventsToPay) {
-    draftPay.push(exports.getDraftPayByAuxiliary(group.events, group.auxiliary, query));
+    draftPay.push(exports.getDraftPayByAuxiliary(group.events, group.auxiliary, company, query));
   }
 
   return draftPay;
