@@ -1,0 +1,254 @@
+const expect = require('expect');
+const sinon = require('sinon');
+const { ObjectID } = require('mongodb');
+const UtilsHelper = require('../../../helpers/utils');
+const UsersHelper = require('../../../helpers/users');
+const User = require('../../../models/User');
+const Role = require('../../../models/Role');
+
+require('sinon-mongoose');
+
+describe('exportHelpers', () => {
+  let UserModel;
+  let RoleModel;
+  let getLastVersion;
+  beforeEach(() => {
+    UserModel = sinon.mock(User);
+    RoleModel = sinon.mock(Role);
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
+  });
+
+  afterEach(() => {
+    UserModel.restore();
+    RoleModel.restore();
+    getLastVersion.restore();
+  });
+
+  it('should return csv header', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
+
+    const helpers = [];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(helpers);
+
+    const result = await UsersHelper.exportHelpers();
+
+    expect(result).toBeDefined();
+    expect(result[0]).toMatchObject(['Email', 'Nom', 'Prénom', 'Beneficiaire', 'Date de création']);
+  });
+
+  it('should return helper info', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
+
+    const helpers = [
+      {
+        local: { email: 'aide@sos.io' },
+        identity: { lastname: 'Je', firstname: 'suis' },
+        createdAt: '2019-02-01T09:38:18.653Z',
+      },
+    ];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(helpers);
+
+    const result = await UsersHelper.exportHelpers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['aide@sos.io', 'Je', 'suis', '', '01/02/2019']);
+  });
+
+  it('should return customer helper info', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
+
+    const helpers = [
+      {
+        customers: [{ identity: { title: 'M', lastname: 'Patate' } }],
+      },
+    ];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(helpers);
+
+    const result = await UsersHelper.exportHelpers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', 'M Patate', '']);
+  });
+});
+
+describe('exportAuxiliaries', () => {
+  let UserModel;
+  let RoleModel;
+  let getLastVersion;
+  beforeEach(() => {
+    UserModel = sinon.mock(User);
+    RoleModel = sinon.mock(Role);
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
+  });
+
+  afterEach(() => {
+    UserModel.restore();
+    RoleModel.restore();
+    getLastVersion.restore();
+  });
+
+  it('should return csv header', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne')
+      .withExactArgs({ name: 'auxiliary' })
+      .returns({ _id: roleId });
+
+    const auxiliaries = [];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(auxiliaries);
+
+    const result = await UsersHelper.exportAuxiliaries();
+
+    expect(result).toBeDefined();
+    expect(result[0]).toMatchObject(['Email', 'Secteur', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
+      'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité socile', 'Addresse', 'Téléphone',
+      'Nombre de contracts', 'Date d\'inactivité', 'Date de création']);
+  });
+
+  it('should return auxiliary info', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne')
+      .withExactArgs({ name: 'auxiliary' })
+      .returns({ _id: roleId });
+
+    const auxiliaries = [
+      {
+        local: { email: 'aide@sos.io' },
+        mobilePhone: '0123456789',
+        inactivityDate: '2019-02-01T09:38:18.653Z',
+        createdAt: '2019-02-01T09:38:18.653Z',
+      },
+    ];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(auxiliaries);
+
+    const result = await UsersHelper.exportAuxiliaries();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['aide@sos.io', '', '', '', '', '', '', '', '', '', '', '', '0123456789', 0, '01/02/2019', '01/02/2019']);
+  });
+
+  it('should return auxiliary sector', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne')
+      .withExactArgs({ name: 'auxiliary' })
+      .returns({ _id: roleId });
+
+    const auxiliaries = [
+      { sector: { name: 'La ruche' }, },
+    ];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(auxiliaries);
+
+    const result = await UsersHelper.exportAuxiliaries();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', 'La ruche', '', '', '', '', '', '', '', '', '', '', '', 0, '', '']);
+  });
+
+  it('should return auxiliary identity', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne')
+      .withExactArgs({ name: 'auxiliary' })
+      .returns({ _id: roleId });
+
+    const auxiliaries = [
+      {
+        identity: {
+          title: 'M',
+          firstname: 'Super',
+          lastname: 'Mario',
+          birthDate: '1994-02-07T09:38:18.653Z',
+          birthCountry: 'FR',
+          birthState: 78,
+          birthCity: 'Paris',
+          nationality: 'FR',
+          socialSecurityNumber: '0987654321',
+        },
+      },
+    ];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(auxiliaries);
+
+    const result = await UsersHelper.exportAuxiliaries();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', 'M', 'Mario', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
+  });
+
+  it('should return auxiliary contracts count', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne')
+      .withExactArgs({ name: 'auxiliary' })
+      .returns({ _id: roleId });
+
+    const auxiliaries = [
+      { contracts: [{ _id: 1 }, { _id: 2 }] },
+    ];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(auxiliaries);
+
+    const result = await UsersHelper.exportAuxiliaries();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', 2, '', '']);
+  });
+
+  it('should return auxiliary address', async () => {
+    const roleId = new ObjectID();
+    RoleModel.expects('findOne')
+      .withExactArgs({ name: 'auxiliary' })
+      .returns({ _id: roleId });
+
+    const auxiliaries = [
+      { contact: { address: { fullAddress: 'La ruche' } }, },
+    ];
+    UserModel.expects('find')
+      .withExactArgs({ role: roleId })
+      .chain('populate')
+      .once()
+      .returns(auxiliaries);
+
+    const result = await UsersHelper.exportAuxiliaries();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '']);
+  });
+});

@@ -6,7 +6,7 @@ const { populateServices } = require('./subscriptions');
 const { getLastVersion } = require('./utils');
 const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES } = require('./constants');
 
-const checkSubscriptionFunding = async (customerId, checkedFunding) => {
+exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   const customer = await Customer.findOne({ _id: customerId }).lean();
   if (!customer) return Boom.notFound('Error while checking subscription funding: customer not found.');
 
@@ -23,7 +23,7 @@ const checkSubscriptionFunding = async (customerId, checkedFunding) => {
         checkedFunding.careDays.every(day => !fund.careDays.includes(day)));
 };
 
-const populateFundings = async (funding, customer) => {
+exports.populateFundings = async (funding, customer) => {
   if (!funding) return false;
 
   const sub = customer.subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
@@ -36,7 +36,7 @@ const populateFundings = async (funding, customer) => {
   return funding;
 };
 
-const exportFundings = async () => {
+exports.exportFundings = async () => {
   const customers = await Customer.aggregate([
     { $match: { fundings: { $exists: true, $not: { $size: 0 } } } },
     { $unwind: '$fundings' },
@@ -74,24 +74,37 @@ const exportFundings = async () => {
   const data = [['Bénéficiaire', 'Tiers payeur', 'Nature', 'Service', 'Date de début', 'Date de fin', 'Numéro de dossier', 'Fréquence',
     'Montant TTC', 'Montant unitaire TTC', 'Nombre d\'heures', 'Jours', 'Participation du bénéficiaire']];
   for (const cus of customers) {
+    const fundInfo = [];
+    if (cus.identity) fundInfo.push(`${cus.identity.title} ${cus.identity.lastname}`);
+    else fundInfo.push('');
+
     const { funding } = cus;
-    const lastServiceVersion = getLastVersion(funding.subscription.service.versions, 'startDate');
-    const careDays = funding.careDays.map(dayIndex => DAYS_INDEX[dayIndex]);
-    const frequency = FUNDING_FREQUENCIES.find(freq => freq.value === funding.frequency).label;
-    const nature = FUNDING_NATURES.find(nat => nat.value === funding.nature).label;
-    data.push([
-      `${cus.identity.title} ${cus.identity.lastname}`, funding.thirdPartyPayer.name, nature, lastServiceVersion.name,
-      funding.startDate && moment(funding.startDate).format('DD/MM/YYYY'), funding.endDate && moment(funding.endDate).format('DD/MM/YYYY'),
-      funding.folderNumber, frequency, funding.amountTTC, funding.unitTTCRate, funding.careHours, careDays,
-      funding.customerParticipationRate
-    ]);
+    if (!funding) fundInfo.push('', '', '', '', '', '', '', '', '', '', '', '');
+    else {
+      const nature = FUNDING_NATURES.find(nat => nat.value === funding.nature);
+      const lastServiceVersion = funding.subscription && funding.subscription.service && funding.subscription.service.versions
+        ? getLastVersion(funding.subscription.service.versions, 'startDate')
+        : null;
+      const frequency = FUNDING_FREQUENCIES.find(freq => freq.value === funding.frequency);
+      let careDays = '';
+      if (funding.careDays) {
+        funding.careDays.map((dayIndex) => {
+          careDays = careDays.concat(`${DAYS_INDEX[dayIndex]} `);
+        });
+      }
+
+      fundInfo.push(
+        funding.thirdPartyPayer ? (funding.thirdPartyPayer.name || '') : '',
+        nature ? nature.label : '', lastServiceVersion ? lastServiceVersion.name : '',
+        funding.startDate ? moment(funding.startDate).format('DD/MM/YYYY') : '',
+        funding.endDate ? moment(funding.endDate).format('DD/MM/YYYY') : '', funding.folderNumber || '',
+        frequency ? frequency.label : '', funding.amountTTC || '', funding.unitTTCRate || '',
+        funding.careHours || '', careDays || '', funding.customerParticipationRate || '',
+      );
+    }
+
+    data.push(fundInfo);
   }
 
   return data;
-};
-
-module.exports = {
-  checkSubscriptionFunding,
-  populateFundings,
-  exportFundings,
 };

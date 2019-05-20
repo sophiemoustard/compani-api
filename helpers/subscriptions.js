@@ -4,7 +4,7 @@ const Surcharge = require('../models/Surcharge');
 const Customer = require('../models/Customer');
 const { getLastVersion } = require('../helpers/utils');
 
-const populateServices = async (service) => {
+exports.populateServices = async (service) => {
   const currentVersion = [...service.versions]
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
@@ -21,19 +21,19 @@ const populateServices = async (service) => {
   };
 };
 
-const populateSubscriptionsServices = async (customer) => {
+exports.populateSubscriptionsServices = async (customer) => {
   if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
   const subscriptions = [];
   for (let i = 0, l = customer.subscriptions.length; i < l; i++) {
     subscriptions.push({
       ...customer.subscriptions[i],
-      service: await populateServices(customer.subscriptions[i].service)
+      service: await exports.populateServices(customer.subscriptions[i].service)
     });
   }
   return { ...customer, subscriptions };
 };
 
-const subscriptionsAccepted = (customer) => {
+exports.subscriptionsAccepted = (customer) => {
   if (customer.subscriptions && customer.subscriptions.length > 0) {
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = _.map(customer.subscriptions, (subscription) => {
@@ -55,27 +55,27 @@ const subscriptionsAccepted = (customer) => {
   return customer;
 };
 
-const exportSubscriptions = async () => {
+exports.exportSubscriptions = async () => {
   const customers = await Customer.find({ subscriptions: { $exists: true, $not: { $size: 0 } } }).populate('subscriptions.service');
   const data = [['Bénéficiaire', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']];
 
   for (const cus of customers) {
     for (const sub of cus.subscriptions) {
-      const lastVersion = getLastVersion(sub.versions, 'createdAt');
+      const subInfo = [];
+      if (cus.identity) subInfo.push(`${cus.identity.title} ${cus.identity.lastname}`);
+      else subInfo.push('');
+
       const lastServiceVersion = getLastVersion(sub.service.versions, 'startDate');
-      data.push([
-        `${cus.identity.title} ${cus.identity.lastname}`, lastServiceVersion.name, lastVersion.unitTTCRate, lastVersion.estimatedWeeklyVolume,
-        lastVersion.evenings || '', lastVersion.sundays || ''
-      ]);
+      if (lastServiceVersion) subInfo.push(lastServiceVersion.name);
+      else subInfo.push('');
+
+      const lastVersion = getLastVersion(sub.versions, 'createdAt');
+      if (lastVersion) subInfo.push(lastVersion.unitTTCRate, lastVersion.estimatedWeeklyVolume, lastVersion.evenings || '', lastVersion.sundays || '');
+      else subInfo.push('', '', '', '');
+
+      data.push(subInfo);
     }
   }
 
   return data;
-};
-
-module.exports = {
-  populateServices,
-  populateSubscriptionsServices,
-  subscriptionsAccepted,
-  exportSubscriptions,
 };

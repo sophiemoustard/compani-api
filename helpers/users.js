@@ -95,8 +95,15 @@ const exportHelpers = async () => {
   const data = [['Email', 'Nom', 'Prénom', 'Beneficiaire', 'Date de création']];
 
   for (const hel of helpers) {
-    const customer = hel.customers && hel.customers[0] ? `${hel.customers[0].identity.title} ${hel.customers[0].identity.lastname}` : '';
-    data.push([hel.local.email, hel.identity.lastname, hel.identity.firstname, customer, hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);
+    const customer = hel.customers && hel.customers[0] && hel.customers[0].identity
+      ? `${hel.customers[0].identity.title} ${hel.customers[0].identity.lastname}`
+      : '';
+    data.push([
+      hel.local && hel.local.email ? hel.local.email : '',
+      hel.identity && hel.identity.lastname ? hel.identity.lastname : '',
+      hel.identity && hel.identity.firstname ? hel.identity.firstname : '',
+      customer,
+      hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);
   }
 
   return data;
@@ -110,14 +117,29 @@ const exportAuxiliaries = async () => {
     'Date de création']];
 
   for (const aux of auxiliaries) {
+    const auxInfo = [];
+    if (aux.local && aux.local.email) auxInfo.push(aux.local.email);
+    else auxInfo.push('');
+
+    if (aux.sector && aux.sector.name) auxInfo.push(aux.sector.name);
+    else auxInfo.push('');
+
+    if (aux.identity) {
+      auxInfo.push(
+        aux.identity.title || '', aux.identity.lastname || '', aux.identity.firstname || '',
+        aux.identity.birthDate ? moment(aux.identity.birthDate).format('DD/MM/YYYY') : '', countries[aux.identity.birthCountry] || '',
+        aux.identity.birthState || '', aux.identity.birthCity || '', nationalities[aux.identity.nationality] || '',
+        aux.identity.socialSecurityNumber || ''
+      );
+    } else auxInfo.push('', '', '', '', '', '', '', '', '');
+
     const address = aux.contact && aux.contact.address && aux.contact.address.fullAddress ? aux.contact.address.fullAddress : '';
-    data.push([
-      aux.local.email, aux.sector && aux.sector.name, aux.identity.title, aux.identity.lastname, aux.identity.firstname,
-      aux.identity.birthDate ? moment(aux.identity.birthDate).format('DD/MM/YYYY') : '', countries[aux.identity.birthCountry],
-      aux.identity.birthState, aux.identity.birthCity, nationalities[aux.identity.nationality], aux.identity.socialSecurityNumber, address,
-      aux.mobilePhone, aux.contracts ? aux.contracts.length : 0, aux.inactivityDate ? moment(aux.inactivityDate).format('DD/MM/YYYY') : '',
-      aux.createdAt ? moment(aux.createdAt).format('DD/MM/YYYY') : '',
-    ]);
+    auxInfo.push(
+      address, aux.mobilePhone || '', aux.contracts ? aux.contracts.length : 0, aux.inactivityDate ? moment(aux.inactivityDate).format('DD/MM/YYYY') : '',
+      aux.createdAt ? moment(aux.createdAt).format('DD/MM/YYYY') : ''
+    );
+
+    data.push(auxInfo);
   }
 
   return data;
