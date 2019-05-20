@@ -88,7 +88,7 @@ const formatPDF = (creditNote, company) => {
     totalExclTaxes: 0,
     totalVAT: 0,
     totalInclTaxes: 0,
-    date: moment(creditNote.date).format('DD/MM/YYYY'),
+    date: moment.utc(creditNote.date).format('DD/MM/YYYY'),
     formattedEvents: []
   };
   if (creditNote.events.length > 0) {
@@ -104,9 +104,9 @@ const formatPDF = (creditNote, company) => {
         computedData.totalVAT += computedData.formattedEvents[i].bills.inclTaxesCustomer - computedData.formattedEvents[i].bills.exclTaxesCustomer;
       }
       computedData.formattedEvents[i].auxiliary.identity.firstname = computedData.formattedEvents[i].auxiliary.identity.firstname.substring(0, 1);
-      computedData.formattedEvents[i].date = moment(computedData.formattedEvents[i].startDate).format('DD/MM');
-      computedData.formattedEvents[i].startTime = moment(computedData.formattedEvents[i].startDate).format('HH:mm');
-      computedData.formattedEvents[i].endTime = moment(computedData.formattedEvents[i].endDate).format('HH:mm');
+      computedData.formattedEvents[i].date = moment.utc(computedData.formattedEvents[i].startDate).format('DD/MM');
+      computedData.formattedEvents[i].startTime = moment.utc(computedData.formattedEvents[i].startDate).format('HH:mm');
+      computedData.formattedEvents[i].endTime = moment.utc(computedData.formattedEvents[i].endDate).format('HH:mm');
     }
   }
   if (!creditNote.exclTaxesTpp) {

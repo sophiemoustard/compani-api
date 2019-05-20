@@ -156,7 +156,7 @@ const formatPDF = (bill, company) => {
   const computedData = {
     totalExclTaxes: 0,
     totalVAT: 0,
-    date: moment(bill.date).format('DD/MM/YYYY'),
+    date: moment.utc(bill.date).format('DD/MM/YYYY'),
     formattedSubs: [],
     formattedEvents: []
   };
@@ -170,9 +170,9 @@ const formatPDF = (bill, company) => {
     for (let j = 0, k = bill.subscriptions[i].events.length; j < k; j++) {
       const newEvent = bill.subscriptions[i].events[j];
       newEvent.auxiliary.identity.firstname = newEvent.auxiliary.identity.firstname.substring(0, 1);
-      newEvent.date = moment(newEvent.startDate).format('DD/MM');
-      newEvent.startTime = moment(newEvent.startDate).format('HH:mm');
-      newEvent.endTime = moment(newEvent.endDate).format('HH:mm');
+      newEvent.date = moment.utc(newEvent.startDate).format('DD/MM');
+      newEvent.startTime = moment.utc(newEvent.startDate).format('HH:mm');
+      newEvent.endTime = moment.utc(newEvent.endDate).format('HH:mm');
       newEvent.service = bill.subscriptions[i].service;
       computedData.formattedEvents.push(newEvent);
     }
