@@ -429,7 +429,7 @@ describe('formatPDF', () => {
               inclTaxesCustomer: 52,
               exclTaxesCustomer: 49.28909952606635
             },
-            date: '10/04',
+            date: moment('2019-04-10T06:00:00.000Z').format('DD/MM'),
             startTime: moment('2019-04-10T06:00:00.000Z').format('HH:mm'),
             endTime: moment('2019-04-10T08:00:00.000Z').format('HH:mm'),
             service: 'Temps de qualité - autonomie'
@@ -444,7 +444,7 @@ describe('formatPDF', () => {
           service: 'Temps de qualité - autonomie'
         }],
         netInclTaxes: '1 074,00 €',
-        date: '30/04/2019',
+        date: moment('2019-04-30T21:59:59.999Z').format('DD/MM/YYYY'),
         totalExclTaxes: '1 018,01 €',
         totalVAT: '55,99 €',
         formattedSubs: [{
@@ -456,7 +456,7 @@ describe('formatPDF', () => {
               inclTaxesCustomer: 52,
               exclTaxesCustomer: 49.28909952606635
             },
-            date: '10/04',
+            date: moment('2019-04-10T06:00:00.000Z').format('DD/MM'),
             startTime: moment('2019-04-10T06:00:00.000Z').format('HH:mm'),
             endTime: moment('2019-04-10T08:00:00.000Z').format('HH:mm'),
             service: 'Temps de qualité - autonomie'
@@ -478,7 +478,7 @@ describe('formatPDF', () => {
             inclTaxesCustomer: 52,
             exclTaxesCustomer: 49.28909952606635
           },
-          date: '10/04',
+          date: moment('2019-04-10T06:00:00.000Z').format('DD/MM'),
           startTime: moment('2019-04-10T06:00:00.000Z').format('HH:mm'),
           endTime: moment('2019-04-10T08:00:00.000Z').format('HH:mm'),
           service: 'Temps de qualité - autonomie'
