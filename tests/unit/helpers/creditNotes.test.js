@@ -3,8 +3,9 @@ const expect = require('expect');
 const sinon = require('sinon');
 const FundingHistory = require('../../../models/FundingHistory');
 const Event = require('../../../models/Event');
-const { updateEventAndFundingHistory, formatPDF } = require('../../../helpers/creditNotes');
+const CreditNoteHelper = require('../../../helpers/creditNotes');
 const moment = require('moment');
+const UtilsHelper = require('../../../helpers/utils');
 
 describe('updateEventAndFundingHistory', () => {
   let findOneAndUpdate = null;
@@ -33,7 +34,7 @@ describe('updateEventAndFundingHistory', () => {
     find.returns(events);
     findOneAndUpdate.returns(null);
 
-    await updateEventAndFundingHistory([], false);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false);
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
@@ -59,7 +60,7 @@ describe('updateEventAndFundingHistory', () => {
     find.returns(events);
     findOneAndUpdate.returns(new FundingHistory());
 
-    await updateEventAndFundingHistory([], false);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false);
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
@@ -80,7 +81,7 @@ describe('updateEventAndFundingHistory', () => {
     find.returns(events);
     findOneAndUpdate.returns(null);
 
-    await updateEventAndFundingHistory([], true);
+    await CreditNoteHelper.updateEventAndFundingHistory([], true);
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
@@ -101,7 +102,7 @@ describe('updateEventAndFundingHistory', () => {
     find.returns(events);
     findOneAndUpdate.returns(new FundingHistory());
 
-    await updateEventAndFundingHistory([], false);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false);
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
@@ -113,62 +114,57 @@ describe('updateEventAndFundingHistory', () => {
 
 describe('formatPDF', () => {
   it('should format correct credit note PDF', () => {
+    const subId = new ObjectID();
     const creditNote = {
+      number: 1,
       events: [{
         auxiliary: {
-          identity: { firstname: 'Nathanaelle' }
+          identity: { firstname: 'Nathanaelle', lastname: 'Tata' }
         },
         startDate: '2019-04-29T06:00:00.000Z',
         endDate: '2019-04-29T15:00:00.000Z',
+        subscription: subId,
         bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
       }],
+      customer: {
+        identity: { firstname: 'Toto' },
+        contact: { address: {} },
+        subscriptions: [{ _id: subId, service: { versions: [{ startDate: '2019-01-01', name: 'Toto' }] } }],
+      },
       date: '2019-04-29T22:00:00.000Z',
-      startDate: '2019-05-30T20:00:00.000Z',
-      endDate: '2019-05-30T22:00:00.000Z',
       exclTaxesCustomer: 221.8009478672986,
       inclTaxesCustomer: 234,
       exclTaxesTpp: 0,
       inclTaxesTpp: 0,
     };
-    const company = {};
-    const result = {
+
+    const expectedResult = {
       creditNote: {
-        events: [{
-          auxiliary: {
-            identity: { firstname: 'N' },
-          },
-          startDate: '2019-04-29T06:00:00.000Z',
-          endDate: '2019-04-29T15:00:00.000Z',
-          bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
-          date: moment('2019-04-29T06:00:00.000Z').format('DD/MM'),
-          startTime: moment('2019-04-29T06:00:00.000Z').format('HH:mm'),
-          endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm')
-        }],
+        number: 1,
+        customer: {
+          identity: { firstname: 'Toto' },
+          contact: { address: {} },
+        },
         date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
-        startDate: '2019-05-30T20:00:00.000Z',
-        endDate: '2019-05-30T22:00:00.000Z',
         exclTaxesCustomer: '221,80 €',
         inclTaxesCustomer: '234,00 €',
-        exclTaxesTpp: 0,
-        inclTaxesTpp: 0,
         totalExclTaxes: '221,80 €',
         totalVAT: '12,20 €',
         totalInclTaxes: '234,00 €',
         formattedEvents: [{
-          auxiliary: {
-            identity: { firstname: 'N' }
-          },
-          startDate: '2019-04-29T06:00:00.000Z',
-          endDate: '2019-04-29T15:00:00.000Z',
-          bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
+          identity: 'N. Tata',
           date: moment('2019-04-29T06:00:00.000Z').format('DD/MM'),
           startTime: moment('2019-04-29T06:00:00.000Z').format('HH:mm'),
-          endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm')
+          endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm'),
+          service: 'Toto',
         }],
         company: {},
         logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
       }
     };
-    expect(formatPDF(creditNote, company)).toEqual(expect.objectContaining(result));
+
+    const result = CreditNoteHelper.formatPDF(creditNote, {});
+
+    expect(result).toEqual(expectedResult);
   });
 });

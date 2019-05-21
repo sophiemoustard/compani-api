@@ -186,7 +186,7 @@ const formatPDF = (bill, company) => {
   computedData.totalVAT = formatPrice(computedData.totalVAT);
 
   return {
-    bill: { ...bill, ...computedData, company, logo },
+    bill: { ...computedData, company, logo },
   };
 };
 

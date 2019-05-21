@@ -4,11 +4,10 @@ const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
-const { getFixedNumber, getMatchingVersion } = require('./utils');
-const { formatPrice } = require('./utils');
+const { getFixedNumber, getMatchingVersion, formatPrice } = require('./utils');
 const { HOURLY } = require('./constants');
 
-const updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
+exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
   const promises = [];
   const events = await Event.find({ _id: { $in: eventsToUpdate } });
   for (const event of events) {
@@ -38,7 +37,7 @@ const updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
   await Promise.all(promises);
 };
 
-const createCreditNote = (payload, prefix, seq) => {
+exports.createCreditNote = (payload, prefix, seq) => {
   payload.number = `${prefix}${seq.toString().padStart(3, '0')}`;
   if (payload.inclTaxesCustomer) payload.inclTaxesCustomer = getFixedNumber(payload.inclTaxesCustomer, 2);
   if (payload.inclTaxesTpp) payload.inclTaxesTpp = getFixedNumber(payload.inclTaxesTpp, 2);
@@ -47,7 +46,7 @@ const createCreditNote = (payload, prefix, seq) => {
   return customerCreditNote.save();
 };
 
-const createCreditNotes = async (payload) => {
+exports.createCreditNotes = async (payload) => {
   const query = { prefix: `AV-${moment().format('YYMM')}` };
   const number = await CreditNoteNumber.findOneAndUpdate(query, {}, { new: true, upsert: true, setDefaultsOnInsert: true });
   let { seq } = number;
@@ -57,14 +56,14 @@ const createCreditNotes = async (payload) => {
   let customerCreditNote;
   if (payload.inclTaxesTpp) {
     const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0 };
-    tppCreditNote = await createCreditNote(tppPayload, number.prefix, seq);
+    tppCreditNote = await exports.createCreditNote(tppPayload, number.prefix, seq);
     creditNotes.push(tppCreditNote);
     seq++;
   }
   if (payload.inclTaxesCustomer) {
     delete payload.thirdPartyPayer;
     const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0 };
-    customerCreditNote = await createCreditNote(customerPayload, number.prefix, seq);
+    customerCreditNote = await exports.createCreditNote(customerPayload, number.prefix, seq);
     creditNotes.push(customerCreditNote);
     seq++;
   }
@@ -76,13 +75,13 @@ const createCreditNotes = async (payload) => {
     ]);
   }
 
-  if (payload.events) await updateEventAndFundingHistory(payload.events);
+  if (payload.events) await exports.updateEventAndFundingHistory(payload.events);
   await CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } });
 
   return creditNotes;
 };
 
-const formatPDF = (creditNote, company) => {
+exports.formatPDF = (creditNote, company) => {
   const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
   const computedData = {
     totalExclTaxes: 0,
@@ -90,6 +89,7 @@ const formatPDF = (creditNote, company) => {
     totalInclTaxes: 0,
     date: moment(creditNote.date).format('DD/MM/YYYY'),
     formattedEvents: [],
+    number: creditNote.number,
   };
 
   if (creditNote.events.length > 0) {
@@ -101,12 +101,13 @@ const formatPDF = (creditNote, company) => {
         : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer;
 
       const sub = creditNote.customer.subscriptions.find(sb => sb._id.toHexString() === event.subscription.toHexString());
+      const version = getMatchingVersion(event.startDate, sub.service);
       computedData.formattedEvents.push({
         identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
         date: moment(event.startDate).format('DD/MM'),
         startTime: moment(event.startDate).format('HH:mm'),
         endTime: moment(event.endDate).format('HH:mm'),
-        service: sub ? getMatchingVersion(event.startDate, sub.service).name : '',
+        service: sub && version ? version.name : '',
       });
     }
   }
@@ -117,7 +118,7 @@ const formatPDF = (creditNote, company) => {
 
   return {
     creditNote: {
-      ...creditNote,
+      customer: { identity: creditNote.customer.identity, contact: creditNote.customer.contact },
       ...(creditNote.exclTaxesTpp
         ? { exclTaxesTpp: formatPrice(creditNote.exclTaxesTpp), inclTaxesTpp: formatPrice(creditNote.inclTaxesTpp) }
         : { exclTaxesCustomer: formatPrice(creditNote.exclTaxesCustomer), inclTaxesCustomer: formatPrice(creditNote.inclTaxesCustomer) }
@@ -127,10 +128,4 @@ const formatPDF = (creditNote, company) => {
       logo
     },
   };
-};
-
-module.exports = {
-  updateEventAndFundingHistory,
-  createCreditNotes,
-  formatPDF,
 };
