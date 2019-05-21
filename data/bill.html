@@ -107,7 +107,7 @@
   </table>
 </div>
 <br />
-<p>Prestations réalisées chez {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}, <span class="capitalize">{{ bill.customer.contact.address.fullAddress }}</span></p>
+<p>Prestations réalisées chez {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}, <span class="capitalize">{{ bill.customer.contact.address.fullAddress }}.</span></p>
 <div class="wrapper">
   <table class="events">
     <thead>
@@ -123,7 +123,7 @@
     {{#table bill.formattedEvents}}
       <tr>
         <td> {{ date }} </td>
-        <td> {{ auxiliary.identity.firstname }}. {{ auxiliary.identity.lastname }} </td>
+        <td> {{ identity }} </td>
         <td> {{ startTime }} </td>
         <td> {{ endTime }} </td>
         <td> {{ service }} </td>

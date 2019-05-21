@@ -156,37 +156,37 @@ const formatPDF = (bill, company) => {
   const computedData = {
     totalExclTaxes: 0,
     totalVAT: 0,
+    netInclTaxes: formatPrice(bill.netInclTaxes),
     date: moment(bill.date).format('DD/MM/YYYY'),
     formattedSubs: [],
     formattedEvents: []
   };
-  for (let i = 0, l = bill.subscriptions.length; i < l; i++) {
-    computedData.formattedSubs.push(bill.subscriptions[i]);
-    computedData.totalExclTaxes += computedData.formattedSubs[i].exclTaxes;
-    computedData.totalVAT += computedData.formattedSubs[i].inclTaxes - computedData.formattedSubs[i].exclTaxes;
-    computedData.formattedSubs[i].exclTaxes = formatPrice(computedData.formattedSubs[i].exclTaxes);
-    computedData.formattedSubs[i].inclTaxes = formatPrice(computedData.formattedSubs[i].inclTaxes);
-    computedData.formattedSubs[i].vat = computedData.formattedSubs[i].vat.toString().replace(/\./g, ',');
-    for (let j = 0, k = bill.subscriptions[i].events.length; j < k; j++) {
-      const newEvent = bill.subscriptions[i].events[j];
-      newEvent.auxiliary.identity.firstname = newEvent.auxiliary.identity.firstname.substring(0, 1);
-      newEvent.date = moment(newEvent.startDate).format('DD/MM');
-      newEvent.startTime = moment(newEvent.startDate).format('HH:mm');
-      newEvent.endTime = moment(newEvent.endDate).format('HH:mm');
-      newEvent.service = bill.subscriptions[i].service;
-      computedData.formattedEvents.push(newEvent);
+
+  for (const sub of bill.subscriptions) {
+    computedData.totalExclTaxes += sub.exclTaxes;
+    computedData.totalVAT += sub.inclTaxes - sub.exclTaxes;
+    computedData.formattedSubs.push({
+      exclTaxes: formatPrice(sub.exclTaxes),
+      inclTaxes: formatPrice(sub.inclTaxes),
+      vat: sub.vat.toString().replace(/\./g, ','),
+      service: sub.service,
+      hours: sub.hours
+    });
+    for (const event of sub.events) {
+      computedData.formattedEvents.push({
+        identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
+        date: moment(event.startDate).format('DD/MM'),
+        startTime: moment(event.startDate).format('HH:mm'),
+        endTime: moment(event.endDate).format('HH:mm'),
+        service: sub.service,
+      });
     }
   }
   computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
   computedData.totalVAT = formatPrice(computedData.totalVAT);
-  bill.netInclTaxes = formatPrice(bill.netInclTaxes);
+
   return {
-    bill: {
-      ...bill,
-      ...computedData,
-      company,
-      logo,
-    },
+    bill: { ...bill, ...computedData, company, logo },
   };
 };
 
