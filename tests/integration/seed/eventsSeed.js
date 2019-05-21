@@ -60,6 +60,16 @@ const eventsList = [
     createdAt: moment().subtract(1, 'd').toDate(),
     subscription: customersList[0].subscriptions[1]._id,
   },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    startDate: moment().add(2, 'months').set({ hour: 19 }),
+    endDate: moment().add(2, 'months').set({ hour: 21 }),
+    auxiliary: auxiliary._id,
+    customer: customersList[0]._id,
+    createdAt: moment().subtract(1, 'd').toDate(),
+    subscription: customersList[0].subscriptions[2]._id,
+  },
 ];
 
 const populateEvents = async () => {

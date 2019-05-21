@@ -71,6 +71,17 @@ const customersList = [
           startDate: moment().subtract(1, 'month').toDate(),
         }],
       },
+      {
+        _id: new ObjectID(),
+        service: servicesList[2]._id,
+        versions: [{
+          unitTTCRate: 150,
+          estimatedWeeklyVolume: 3,
+          evenings: 0,
+          sundays: 0,
+          startDate: moment().subtract(1, 'month').toDate(),
+        }],
+      },
     ],
     fundings: [
       {

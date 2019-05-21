@@ -2,6 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const Boom = require('boom');
 
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
@@ -760,7 +761,7 @@ describe('removeEventsByContractStatus', () => {
 
     await EventHelper.removeEventsByContractStatus(contract);
     sinon.assert.called(EventAggregateStub);
-    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: aggregation[0].sub._id, isBilled: false });
+    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[0].sub._id] }, isBilled: false });
   });
 
   it('should remove future events linked to corresponding customer contract', async () => {
@@ -769,6 +770,26 @@ describe('removeEventsByContractStatus', () => {
 
     await EventHelper.removeEventsByContractStatus(contract);
     sinon.assert.called(EventAggregateStub);
-    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: aggregation[1].sub._id, isBilled: false });
+    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[1].sub._id] }, isBilled: false });
+  });
+
+  it('should return a 400 error if no contract provided', async () => {
+    try {
+      await EventHelper.removeEventsByContractStatus();
+    } catch (e) {
+      expect(e).toEqual(Boom.badRequest());
+    }
+  });
+
+  it('should return a 404 error if no subscriptions match contract status', async () => {
+    try {
+      const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
+      EventAggregateStub.returns([]);
+
+      await EventHelper.removeEventsByContractStatus(contract);
+      sinon.assert.called(EventAggregateStub);
+    } catch (e) {
+      expect(e).toEqual(Boom.notFound('Corresponding subscriptions not found'));
+    }
   });
 });

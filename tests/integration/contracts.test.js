@@ -214,7 +214,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(user.inactivityDate).not.toBeNull();
       expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment().add('1', 'months').startOf('M').format('YYYY-MM-DD'));
       const events = await Event.find().lean();
-      expect(events.length).toBe(eventsList.length - 1);
+      expect(events.length).toBe(eventsList.length - 2);
     });
 
     it('should return 404 error if no contract', async () => {
