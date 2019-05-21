@@ -1,6 +1,7 @@
-const moment = require('moment');
+const moment = require('moment-business-days');
 const momentRange = require('moment-range');
 const Holidays = require('date-holidays');
+const get = require('lodash/get');
 const Event = require('../models/Event');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
@@ -262,8 +263,8 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
     hoursCounter: 0,
     overtimeHours: 0,
     additionnalHours: 0,
-    mutual: !(auxiliary.administrative && auxiliary.administrative.mutualFund && auxiliary.administrative.mutualFund.has),
-    otherFees: company.rhConfig && company.rhConfig.phoneSubRefunding ? company.rhConfig.phoneSubRefunding : 0,
+    mutual: !get(auxiliary, 'administrative.mutualFund.has'),
+    otherFees: get(company, 'rhConfig.phoneSubRefuning', 0),
     bonus: 0,
   };
 };
