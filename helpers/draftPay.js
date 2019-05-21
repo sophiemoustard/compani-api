@@ -1,5 +1,6 @@
 const moment = require('moment');
 const momentRange = require('moment-range');
+const Holidays = require('date-holidays');
 const Event = require('../models/Event');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
@@ -7,6 +8,15 @@ const { getMatchingVersion } = require('../helpers/utils');
 const { FIXED } = require('./constants');
 
 momentRange.extendMoment(moment);
+const holidays = new Holidays('FR');
+const now = new Date();
+const currentYear = now.getFullYear();
+const currentHolidays = [...holidays.getHolidays(currentYear), ...holidays.getHolidays(currentYear - 1)];
+moment.updateLocale('fr', {
+  holidays: currentHolidays.map(holiday => holiday.date),
+  holidayFormat: 'YYYY-MM-DD HH:mm:ss',
+  workingWeekdays: [1, 2, 3, 4, 5, 6]
+});
 
 const getEventToPay = async rules => Event.aggregate([
   { $match: { $and: rules } },
@@ -141,43 +151,59 @@ exports.computeCustomSurcharge = (event, startHour, endHour) => {
   return inflatedTime;
 };
 
-// TODO : custom and evening surcharge
-exports.isSurcharged = (event, surcharge) => {
+exports.getSurchargeDetails = (details, surcharge, surchargeDuration) => (!details[surcharge]
+  ? { ...details, [surcharge]: surchargeDuration }
+  : { ...details, [surcharge]: details[surcharge] + surchargeDuration }
+);
+
+exports.applySurcharge = (eventDuration, surcharge, details) => ({
+  surcharged: eventDuration,
+  notSurcharged: 0,
+  details: exports.getSurchargeDetails(details, surcharge, eventDuration)
+});
+
+exports.getSurchargeSplit = (event, surcharge, surchargeDetails) => {
   const {
-    saturday,
-    sunday,
-    publicHoliday,
-    firstOfMay,
-    twentyFifthOfDecember,
-    evening,
-    eveningEndTime,
-    eveningStartTime,
-    custom,
-    customStartTime,
-    customEndTime
+    saturday, sunday, publicHoliday, firstOfMay, twentyFifthOfDecember, evening,
+    eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime,
   } = surcharge;
 
   const eventDuration = moment(event.endDate).diff(event.startDate, 'm') / 60;
-
-  if ((twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') ||
-    (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') ||
-    (publicHoliday && publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) ||
-    (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) ||
-    (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7)) {
-    return { surcharged: eventDuration, notSurcharged: 0 };
+  if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
+    return exports.applySurcharge(eventDuration, twentyFifthOfDecember, surchargeDetails);
+  } else if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
+    return exports.applySurcharge(eventDuration, firstOfMay, surchargeDetails);
+  } else if (publicHoliday && publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) {
+    return exports.applySurcharge(eventDuration, publicHoliday, surchargeDetails);
+  } else if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
+    return exports.applySurcharge(eventDuration, saturday, surchargeDetails);
+  } else if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) {
+    return exports.applySurcharge(eventDuration, sunday, surchargeDetails);
   }
 
   let surchargedHours = 0;
-  if (evening) surchargedHours += exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, surchargedHours);
-  if (custom) surchargedHours += exports.computeCustomSurcharge(event, customStartTime, customEndTime, surchargedHours);
+  let details = { ...surchargeDetails };
+  if (evening) {
+    const surchargeDuration = exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, surchargedHours);
+    if (surchargeDuration) details = exports.getSurchargeDetails(details, evening, surchargeDuration / 60);
+    surchargedHours += surchargeDuration;
+  }
+  if (custom) {
+    const surchargeDuration = exports.computeCustomSurcharge(event, customStartTime, customEndTime, surchargedHours);
+    if (surchargeDuration) details = exports.getSurchargeDetails(details, custom, surchargeDuration / 60);
+    surchargedHours += surchargeDuration;
+  }
 
-  return { surcharged: surchargedHours / 60, notSurcharged: eventDuration - (surchargedHours / 60) };
+  return { surcharged: surchargedHours / 60, notSurcharged: eventDuration - (surchargedHours / 60), details };
 };
 
-const getEventHours = (event, service) => {
-  if (service.nature === FIXED || !service.surcharge) return { surcharged: 0, notSurcharged: moment(event.endDate).diff(event.startDate, 'm') / 60 };
+exports.getEventHours = (event, service, details) => {
+  // Fixed services don't have surcharge
+  if (service.nature === FIXED || !service.surcharge) {
+    return { surcharged: 0, notSurcharged: moment(event.endDate).diff(event.startDate, 'm') / 60, details: { ...details } };
+  }
 
-  return exports.isSurcharged(event, service.surcharge);
+  return exports.getSurchargeSplit(event, service.surcharge, details);
 };
 
 exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company, query) => {
@@ -188,6 +214,8 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
   let surchargedAndNotExempt = 0;
   let notSurchargedAndExempt = 0;
   let surchargedAndExempt = 0;
+  let surchargedAndNotExemptDetail = {};
+  let surchargedAndExemptDetail = {};
   for (const group of eventsBySubscription) {
     const { events } = group;
     const subscription = await populateSurcharge(group.subscription);
@@ -195,13 +223,15 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
       workedHours += moment(event.endDate).diff(event.startDate, 'm') / 60;
       const serviceVersion = getMatchingVersion(event.startDate, subscription.service, 'startDate');
       if (serviceVersion.exemptFromCharges) {
-        const hours = getEventHours(event, serviceVersion);
+        const hours = exports.getEventHours(event, serviceVersion, surchargedAndExemptDetail);
         surchargedAndExempt += hours.surcharged;
         notSurchargedAndExempt += hours.notSurcharged;
+        surchargedAndExemptDetail = hours.details;
       } else {
-        const hours = getEventHours(event, serviceVersion);
+        const hours = exports.getEventHours(event, serviceVersion, surchargedAndNotExemptDetail);
         surchargedAndNotExempt += hours.surcharged;
         notSurchargedAndNotExempt += hours.notSurcharged;
+        surchargedAndNotExemptDetail = hours.details;
       }
     }
   }
@@ -214,8 +244,10 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
     workedHours,
     notSurchargedAndExempt,
     surchargedAndExempt,
+    surchargedAndExemptDetail,
     notSurchargedAndNotExempt,
     surchargedAndNotExempt,
+    surchargedAndNotExemptDetail,
     mutual: !(auxiliary.administrative && auxiliary.administrative.mutualFund && auxiliary.administrative.mutualFund.has),
     otherFees: company.rhConfig && company.rhConfig.phoneSubRefunding ? company.rhConfig.phoneSubRefunding : 0,
     bonus: 0,
