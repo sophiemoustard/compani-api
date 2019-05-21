@@ -3,7 +3,6 @@ const Boom = require('boom');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const moment = require('moment');
 const { updateEventAndFundingHistory, createCreditNotes } = require('../helpers/creditNotes');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getDateQuery } = require('../helpers/utils');
@@ -128,7 +127,7 @@ const remove = async (req) => {
 const generateCreditNotePdf = async (req, h) => {
   try {
     const creditNote = await CreditNote.findOne({ _id: req.params._id })
-      .populate({ path: 'customer', select: '_id identity contact' })
+      .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service' } })
       .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
     const company = await Company.findOne();

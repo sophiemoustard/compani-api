@@ -4,7 +4,7 @@ const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
-const { getFixedNumber } = require('./utils');
+const { getFixedNumber, getMatchingVersion } = require('./utils');
 const { formatPrice } = require('./utils');
 const { HOURLY } = require('./constants');
 
@@ -89,42 +89,42 @@ const formatPDF = (creditNote, company) => {
     totalVAT: 0,
     totalInclTaxes: 0,
     date: moment(creditNote.date).format('DD/MM/YYYY'),
-    formattedEvents: []
+    formattedEvents: [],
   };
+
   if (creditNote.events.length > 0) {
-    for (let i = 0, l = creditNote.events.length; i < l; i++) {
-      computedData.formattedEvents.push(creditNote.events[i]);
-      if (computedData.formattedEvents[i].bills.exclTaxesTpp) {
-        computedData.totalExclTaxes += computedData.formattedEvents[i].bills.exclTaxesTpp;
-        computedData.totalInclTaxes += computedData.formattedEvents[i].bills.inclTaxesTpp;
-        computedData.totalVAT += computedData.formattedEvents[i].bills.inclTaxesTpp - computedData.formattedEvents[i].bills.exclTaxesTpp;
-      } else {
-        computedData.totalExclTaxes += computedData.formattedEvents[i].bills.exclTaxesCustomer;
-        computedData.totalInclTaxes += computedData.formattedEvents[i].bills.inclTaxesCustomer;
-        computedData.totalVAT += computedData.formattedEvents[i].bills.inclTaxesCustomer - computedData.formattedEvents[i].bills.exclTaxesCustomer;
-      }
-      computedData.formattedEvents[i].auxiliary.identity.firstname = computedData.formattedEvents[i].auxiliary.identity.firstname.substring(0, 1);
-      computedData.formattedEvents[i].date = moment(computedData.formattedEvents[i].startDate).format('DD/MM');
-      computedData.formattedEvents[i].startTime = moment(computedData.formattedEvents[i].startDate).format('HH:mm');
-      computedData.formattedEvents[i].endTime = moment(computedData.formattedEvents[i].endDate).format('HH:mm');
+    for (const event of creditNote.events) {
+      computedData.totalExclTaxes += creditNote.exclTaxesTpp ? event.bills.exclTaxesTpp : event.bills.exclTaxesCustomer;
+      computedData.totalInclTaxes += creditNote.exclTaxesTpp ? event.bills.inclTaxesTpp : event.bills.inclTaxesCustomer;
+      computedData.totalVAT += creditNote.exclTaxesTpp
+        ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
+        : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer;
+
+      const sub = creditNote.customer.subscriptions.find(sb => sb._id.toHexString() === event.subscription.toHexString());
+      computedData.formattedEvents.push({
+        identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
+        date: moment(event.startDate).format('DD/MM'),
+        startTime: moment(event.startDate).format('HH:mm'),
+        endTime: moment(event.endDate).format('HH:mm'),
+        service: sub ? getMatchingVersion(event.startDate, sub.service).name : '',
+      });
     }
   }
-  if (!creditNote.exclTaxesTpp) {
-    creditNote.exclTaxesCustomer = formatPrice(creditNote.exclTaxesCustomer);
-    creditNote.inclTaxesCustomer = formatPrice(creditNote.inclTaxesCustomer);
-  } else {
-    creditNote.exclTaxesTpp = formatPrice(creditNote.exclTaxesTpp);
-    creditNote.inclTaxesTpp = formatPrice(creditNote.inclTaxesTpp);
-  }
+
   computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
   computedData.totalInclTaxes = formatPrice(computedData.totalInclTaxes);
   computedData.totalVAT = formatPrice(computedData.totalVAT);
+
   return {
     creditNote: {
       ...creditNote,
+      ...(creditNote.exclTaxesTpp
+        ? { exclTaxesTpp: formatPrice(creditNote.exclTaxesTpp), inclTaxesTpp: formatPrice(creditNote.inclTaxesTpp) }
+        : { exclTaxesCustomer: formatPrice(creditNote.exclTaxesCustomer), inclTaxesCustomer: formatPrice(creditNote.inclTaxesCustomer) }
+      ),
       ...computedData,
       company,
-      logo,
+      logo
     },
   };
 };
