@@ -112,6 +112,19 @@ exports.populateSurcharge = async (subscription) => {
   return subscription;
 };
 
+exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
+  let count = 0;
+  const range = Array.from(moment().range(start, end).by('days'));
+  for (const day of range) {
+    if (moment(day.format('YYYY-MM-DD')).isBusinessDay()) count += 1;
+  }
+
+  return count;
+};
+
+exports.getMontBusinessDaysCount = start =>
+  exports.getBusinessDaysCountBetweenTwoDates(moment(start).startOf('M').toDate(), moment(start).endOf('M'));
+
 exports.getContractHours = (contract, query) => {
   const versions = contract.versions.filter(ver =>
     (moment(ver.startDate).isSameOrBefore(query.endDate) && moment(ver.endDate).isAfter(query.startDate)) ||
@@ -119,15 +132,13 @@ exports.getContractHours = (contract, query) => {
 
   let contractHours = 0;
   for (const version of versions) {
-    const hoursPerDay = version.weeklyHours / 6;
     const startDate = moment(version.startDate).isBefore(query.startDate) ? moment(query.startDate) : moment(version.startDate).startOf('d');
     const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
       ? moment(version.endDate).subtract(1, 'd').endOf('d')
       : moment(query.endDate);
-    const range = Array.from(moment().range(startDate, endDate).by('days'));
-    for (const day of range) {
-      if (day.isoWeekday() !== 7) contractHours += hoursPerDay;
-    }
+    const businessDays = exports.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
+    const monthBusinessDays = exports.getMontBusinessDaysCount(startDate);
+    contractHours += version.weeklyHours * (businessDays / monthBusinessDays) * 4.33;
   }
 
   return contractHours;

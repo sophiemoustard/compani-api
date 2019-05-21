@@ -1,52 +1,105 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const moment = require('moment');
 const DraftPayHelper = require('../../../helpers/draftPay');
 const Surcharge = require('../../../models/Surcharge');
 
+describe('getBusinessDaysCountBetweenTwoDates', () => {
+  it('Case 1. No sundays nor holidays in range', () => {
+    const start = new Date('2019/05/21');
+    const end = new Date('2019/05/23');
+    const result = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(3);
+  });
+
+  it('Case 2. Sundays in range', () => {
+    const start = new Date('2019/05/18');
+    const end = new Date('2019/05/23');
+    const result = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(5);
+  });
+
+  it('Case 3. Holidays in range', () => {
+    const start = new Date('2019/05/07');
+    const end = new Date('2019/05/09');
+    const result = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(2);
+  });
+});
+
+describe('getMontBusinessDaysCount', () => {
+  it('should call getBusinessDaysCountBetweenTwoDates', () => {
+    const mock = sinon.mock(DraftPayHelper);
+    mock.expects('getBusinessDaysCountBetweenTwoDates').once();
+    DraftPayHelper.getMontBusinessDaysCount(new Date('2019/05/18'));
+
+    mock.restore();
+  });
+});
+
 describe('getContractHours', () => {
+  let mock;
+  beforeEach(() => {
+    mock = sinon.mock(DraftPayHelper);
+  });
+
+  afterEach(() => {
+    mock.restore();
+  });
+
   it('Case 1. One version no sunday', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01T00:00:00.000Z', endDate: '2019-05-04T00:00:00.000Z', weeklyHours: 18 },
-        { isActive: true, endDate: '', startDate: '2019-05-04T00:00:00.000Z', weeklyHours: 24 },
+        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { isActive: true, endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
       ],
     };
-    const query = { startDate: '2019-05-06T00:00:00.000Z', endDate: '2019-05-10T00:00:00.000Z' };
+    const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
+    mock.expects('getBusinessDaysCountBetweenTwoDates').once().withArgs(moment('2019-05-06'), moment('2019-05-10')).returns(4);
+    mock.expects('getMontBusinessDaysCount').once().withArgs(moment('2019-05-06')).returns(4);
 
     const result = DraftPayHelper.getContractHours(contract, query);
 
     expect(result).toBeDefined();
-    expect(result).toBe(20);
+    expect(result).toBe(103.92);
   });
 
   it('Case 2. One version and sunday included', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01T00:00:00.000Z', endDate: '2019-05-04T00:00:00.000Z', weeklyHours: 18 },
-        { isActive: true, endDate: '', startDate: '2019-05-04T00:00:00.000Z', weeklyHours: 24 },
+        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { isActive: true, endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
       ],
     };
-    const query = { startDate: '2019-05-04T00:00:00.000Z', endDate: '2019-05-10T00:00:00.000Z' };
+    const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
+    mock.expects('getBusinessDaysCountBetweenTwoDates').once().withArgs(moment('2019-05-04').startOf('d'), moment('2019-05-10'));
+    mock.expects('getMontBusinessDaysCount').once().withArgs(moment('2019-05-04').startOf('d'));
 
     const result = DraftPayHelper.getContractHours(contract, query);
 
     expect(result).toBeDefined();
-    expect(result).toBe(24);
   });
 
   it('Case 3. Multiple versions', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01T00:00:00.000Z', endDate: '2019-05-04T00:00:00.000Z', weeklyHours: 18 },
-        { isActive: true, endDate: '', startDate: '2019-05-04T00:00:00.000Z', weeklyHours: 24 },
+        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { isActive: true, endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
       ],
     };
-    const query = { startDate: '2019-05-01T00:00:00.000Z', endDate: '2019-05-10T00:00:00.000Z' };
+    const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
+    mock.expects('getBusinessDaysCountBetweenTwoDates').twice();
+    mock.expects('getMontBusinessDaysCount').twice();
 
     const result = DraftPayHelper.getContractHours(contract, query);
 
     expect(result).toBeDefined();
-    expect(result).toBe(33);
   });
 });
 
