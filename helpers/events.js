@@ -379,7 +379,7 @@ exports.removeEventsByContractStatus = async (contract) => {
   } else {
     correspondingSubs = customerSubscriptions.filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status);
   }
-  if (!correspondingSubs.length === 0) throw Boom.notFound('Corresponding subscriptions not found');
+  if (correspondingSubs.length === 0) throw Boom.notFound('Corresponding subscriptions not found');
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
   await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false });
 };
