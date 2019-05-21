@@ -236,11 +236,13 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
     }
   }
 
+  const contractHours = exports.getContractHours(contracts[0], query);
+
   return {
     auxiliary: { _id, identity, sector },
     startDate: query.startDate,
     endDate: query.endDate,
-    contractHours: exports.getContractHours(contracts[0], query),
+    contractHours,
     workedHours,
     notSurchargedAndExempt,
     surchargedAndExempt,
@@ -248,6 +250,10 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
     notSurchargedAndNotExempt,
     surchargedAndNotExempt,
     surchargedAndNotExemptDetail,
+    hoursBalance: workedHours - contractHours,
+    hoursCounter: 0,
+    overtimeHours: 0,
+    additionnalHours: 0,
     mutual: !(auxiliary.administrative && auxiliary.administrative.mutualFund && auxiliary.administrative.mutualFund.has),
     otherFees: company.rhConfig && company.rhConfig.phoneSubRefunding ? company.rhConfig.phoneSubRefunding : 0,
     bonus: 0,
