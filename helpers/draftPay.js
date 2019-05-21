@@ -222,8 +222,8 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
   let surchargedAndNotExempt = 0;
   let notSurchargedAndExempt = 0;
   let surchargedAndExempt = 0;
-  let surchargedAndNotExemptDetail = {};
-  let surchargedAndExemptDetail = {};
+  let surchargedAndNotExemptDetails = {};
+  let surchargedAndExemptDetails = {};
   for (const group of eventsBySubscription) {
     const { events } = group;
     const subscription = await exports.populateSurcharge(group.subscription);
@@ -231,15 +231,15 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
       workedHours += moment(event.endDate).diff(event.startDate, 'm') / 60;
       const serviceVersion = getMatchingVersion(event.startDate, subscription.service, 'startDate');
       if (serviceVersion.exemptFromCharges) {
-        const hours = exports.getEventHours(event, serviceVersion, surchargedAndExemptDetail);
+        const hours = exports.getEventHours(event, serviceVersion, surchargedAndExemptDetails);
         surchargedAndExempt += hours.surcharged;
         notSurchargedAndExempt += hours.notSurcharged;
-        surchargedAndExemptDetail = hours.details;
+        surchargedAndExemptDetails = hours.details;
       } else {
-        const hours = exports.getEventHours(event, serviceVersion, surchargedAndNotExemptDetail);
+        const hours = exports.getEventHours(event, serviceVersion, surchargedAndNotExemptDetails);
         surchargedAndNotExempt += hours.surcharged;
         notSurchargedAndNotExempt += hours.notSurcharged;
-        surchargedAndNotExemptDetail = hours.details;
+        surchargedAndNotExemptDetails = hours.details;
       }
     }
   }
@@ -254,10 +254,10 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
     workedHours,
     notSurchargedAndExempt,
     surchargedAndExempt,
-    surchargedAndExemptDetail,
+    surchargedAndExemptDetails,
     notSurchargedAndNotExempt,
     surchargedAndNotExempt,
-    surchargedAndNotExemptDetail,
+    surchargedAndNotExemptDetails,
     hoursBalance: workedHours - contractHours,
     hoursCounter: 0,
     overtimeHours: 0,
