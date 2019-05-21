@@ -322,7 +322,7 @@ exports.deleteRepetition = async (event) => {
 exports.removeEventsByContractStatus = async (contract) => {
   if (!contract) throw Boom.badRequest();
 
-  const events = await Event.aggregate([
+  const customerSubscriptions = await Event.aggregate([
     {
       $match: {
         $and: [
@@ -372,12 +372,14 @@ exports.removeEventsByContractStatus = async (contract) => {
     },
   ]);
 
-  let correspondingSub;
+
+  let correspondingSubs;
   if (contract.status === COMPANY_CONTRACT) {
-    correspondingSub = events.find(ev => ev.sub.service.type === contract.status) || null;
+    correspondingSubs = customerSubscriptions.filter(ev => ev.sub.service.type === contract.status);
   } else {
-    correspondingSub = events.find(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status) || null;
+    correspondingSubs = customerSubscriptions.filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status);
   }
-  if (!correspondingSub) throw Boom.notFound('Corresponding subscription not found');
-  await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: correspondingSub.sub._id, isBilled: false });
+  if (!correspondingSubs.length === 0) throw Boom.notFound('Corresponding subscriptions not found');
+  const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
+  await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false });
 };
