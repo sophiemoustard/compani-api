@@ -100,7 +100,7 @@ const getEventToPay = async rules => Event.aggregate([
   }
 ]);
 
-const populateSurcharge = async (subscription) => {
+exports.populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
     if (subscription.service.versions[i].surcharge) {
       const surcharge = await Surcharge.findOne({ _id: subscription.service.versions[i].surcharge });
@@ -137,7 +137,7 @@ exports.computeCustomSurcharge = (event, startHour, endHour) => {
   let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(3));
   if (start.isAfter(end)) end = end.add(1, 'd');
 
-  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return moment(event.endDate).diff(moment(event.startDate), 'm');
+  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return moment(event.endDate).diff(moment(event.startDate), 'm') / 60;
 
   let inflatedTime = 0;
   if (start.isSameOrBefore(event.startDate) && end.isAfter(event.startDate) && end.isBefore(event.endDate)) {
@@ -148,10 +148,10 @@ exports.computeCustomSurcharge = (event, startHour, endHour) => {
     inflatedTime = end.diff(start, 'm');
   }
 
-  return inflatedTime;
+  return inflatedTime / 60;
 };
 
-exports.getSurchargeDetails = (details, surcharge, surchargeDuration) => (!details[surcharge]
+exports.getSurchargeDetails = (surchargeDuration, surcharge, details) => (!details[surcharge]
   ? { ...details, [surcharge]: surchargeDuration }
   : { ...details, [surcharge]: details[surcharge] + surchargeDuration }
 );
@@ -159,7 +159,7 @@ exports.getSurchargeDetails = (details, surcharge, surchargeDuration) => (!detai
 exports.applySurcharge = (eventDuration, surcharge, details) => ({
   surcharged: eventDuration,
   notSurcharged: 0,
-  details: exports.getSurchargeDetails(details, surcharge, eventDuration)
+  details: exports.getSurchargeDetails(eventDuration, surcharge, details)
 });
 
 exports.getSurchargeSplit = (event, surcharge, surchargeDetails) => {
@@ -185,16 +185,16 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails) => {
   let details = { ...surchargeDetails };
   if (evening) {
     const surchargeDuration = exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, surchargedHours);
-    if (surchargeDuration) details = exports.getSurchargeDetails(details, evening, surchargeDuration / 60);
+    if (surchargeDuration) details = exports.getSurchargeDetails(surchargeDuration, evening, details);
     surchargedHours += surchargeDuration;
   }
   if (custom) {
     const surchargeDuration = exports.computeCustomSurcharge(event, customStartTime, customEndTime, surchargedHours);
-    if (surchargeDuration) details = exports.getSurchargeDetails(details, custom, surchargeDuration / 60);
+    if (surchargeDuration) details = exports.getSurchargeDetails(surchargeDuration, custom, details);
     surchargedHours += surchargeDuration;
   }
 
-  return { surcharged: surchargedHours / 60, notSurcharged: eventDuration - (surchargedHours / 60), details };
+  return { surcharged: surchargedHours, notSurcharged: eventDuration - surchargedHours, details };
 };
 
 exports.getEventHours = (event, service, details) => {
@@ -218,7 +218,7 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
   let surchargedAndExemptDetail = {};
   for (const group of eventsBySubscription) {
     const { events } = group;
-    const subscription = await populateSurcharge(group.subscription);
+    const subscription = await exports.populateSurcharge(group.subscription);
     for (const event of events) {
       workedHours += moment(event.endDate).diff(event.startDate, 'm') / 60;
       const serviceVersion = getMatchingVersion(event.startDate, subscription.service, 'startDate');
