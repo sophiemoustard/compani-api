@@ -130,19 +130,26 @@ describe('computeCustomSurcharge', () => {
   });
 });
 
-describe('applySurcharge', () => {
-  it('Case 1. surcharge included in details', () => {
-    const result = DraftPayHelper.getSurchargeDetails(2, 10, { 10: 3 });
+describe('getSurchargeDetails', () => {
+  it('Case 1. surcharge plan and type included in details', () => {
+    const result = DraftPayHelper.getSurchargeDetails(2, 'Super Mario', 'Noel', { 'Super Mario': { Noel: 3 } });
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ 10: 5 });
+    expect(result).toEqual({ 'Super Mario': { Noel: 5 } });
   });
 
-  it('Case 2. surcharge not included in details', () => {
-    const result = DraftPayHelper.getSurchargeDetails(2, 10, { 15: 3 });
+  it('Case 2. surcharge plan included in details but not surcharge type', () => {
+    const result = DraftPayHelper.getSurchargeDetails(2, 'Super Mario', 'Noel', { 'Super Mario': { 10: 3 } });
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ 10: 2, 15: 3 });
+    expect(result).toEqual({ 'Super Mario': { 10: 3, Noel: 2 } });
+  });
+
+  it('Case 3. surcharge plan and type not included in details', () => {
+    const result = DraftPayHelper.getSurchargeDetails(2, 'Luigi', 'Noel', { 'Super Mario': { 10: 3 } });
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ 'Super Mario': { 10: 3 }, Luigi: { Noel: 2 } });
   });
 });
 
@@ -157,7 +164,7 @@ describe('applySurcharge', () => {
 
   it('should apply surcharge', () => {
     getSurchargeDetails.returns({});
-    const result = DraftPayHelper.applySurcharge(2, 10, {});
+    const result = DraftPayHelper.applySurcharge(2, 'Luigi', 10, {});
 
     sinon.assert.called(getSurchargeDetails);
     expect(result).toBeDefined();

@@ -151,46 +151,54 @@ exports.computeCustomSurcharge = (event, startHour, endHour) => {
   return inflatedTime / 60;
 };
 
-exports.getSurchargeDetails = (surchargeDuration, surcharge, details) => (!details[surcharge]
-  ? { ...details, [surcharge]: surchargeDuration }
-  : { ...details, [surcharge]: details[surcharge] + surchargeDuration }
-);
+exports.getSurchargeDetails = (surchargeDuration, surchargePlan, surcharge, details) => {
+  if (!details[surchargePlan]) return { ...details, [surchargePlan]: { [surcharge]: surchargeDuration } };
+  if (!details[surchargePlan][surcharge]) return { ...details, [surchargePlan]: { ...details[surchargePlan], [surcharge]: surchargeDuration } };
 
-exports.applySurcharge = (eventDuration, surcharge, details) => ({
+  return {
+    ...details,
+    [surchargePlan]: {
+      ...details[surchargePlan],
+      [surcharge]: details[surchargePlan][surcharge] + surchargeDuration
+    }
+  };
+};
+
+exports.applySurcharge = (eventDuration, surchargePlan, surcharge, details) => ({
   surcharged: eventDuration,
   notSurcharged: 0,
-  details: exports.getSurchargeDetails(eventDuration, surcharge, details)
+  details: exports.getSurchargeDetails(eventDuration, surchargePlan, surcharge, details)
 });
 
 exports.getSurchargeSplit = (event, surcharge, surchargeDetails) => {
   const {
     saturday, sunday, publicHoliday, firstOfMay, twentyFifthOfDecember, evening,
-    eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime,
+    eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime, name
   } = surcharge;
 
   const eventDuration = moment(event.endDate).diff(event.startDate, 'm') / 60;
   if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
-    return exports.applySurcharge(eventDuration, twentyFifthOfDecember, surchargeDetails);
+    return exports.applySurcharge(eventDuration, name, `25 décembre - ${twentyFifthOfDecember}%`, surchargeDetails);
   } else if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
-    return exports.applySurcharge(eventDuration, firstOfMay, surchargeDetails);
+    return exports.applySurcharge(eventDuration, name, `1er mai - ${firstOfMay}%`, surchargeDetails);
   } else if (publicHoliday && publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) {
-    return exports.applySurcharge(eventDuration, publicHoliday, surchargeDetails);
+    return exports.applySurcharge(eventDuration, name, `Jours fériés - ${publicHoliday}%`, surchargeDetails);
   } else if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
-    return exports.applySurcharge(eventDuration, saturday, surchargeDetails);
+    return exports.applySurcharge(eventDuration, name, `Samedi - ${saturday}%`, surchargeDetails);
   } else if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) {
-    return exports.applySurcharge(eventDuration, sunday, surchargeDetails);
+    return exports.applySurcharge(eventDuration, name, `Dimanche - ${sunday}%`, surchargeDetails);
   }
 
   let surchargedHours = 0;
   let details = { ...surchargeDetails };
   if (evening) {
     const surchargeDuration = exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, surchargedHours);
-    if (surchargeDuration) details = exports.getSurchargeDetails(surchargeDuration, evening, details);
+    if (surchargeDuration) details = exports.getSurchargeDetails(surchargeDuration, name, `Soirée - ${evening}%`, details);
     surchargedHours += surchargeDuration;
   }
   if (custom) {
     const surchargeDuration = exports.computeCustomSurcharge(event, customStartTime, customEndTime, surchargedHours);
-    if (surchargeDuration) details = exports.getSurchargeDetails(surchargeDuration, custom, details);
+    if (surchargeDuration) details = exports.getSurchargeDetails(surchargeDuration, name, `Personnalisée - ${custom}%`, details);
     surchargedHours += surchargeDuration;
   }
 
