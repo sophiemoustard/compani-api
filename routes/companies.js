@@ -85,6 +85,7 @@ exports.plugin = {
                 grossHourlyRate: Joi.number(),
               },
               phoneSubRefunding: Joi.number(),
+              amountPerKm: Joi.number(),
               transportSubs: [Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
