@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const BillSchema = mongoose.Schema({
   billNumber: String,
   date: Date,
-  customer: { type: mongoose.Schema.Types.ObjectId },
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
   subscriptions: [{
     startDate: Date,
@@ -11,7 +11,7 @@ const BillSchema = mongoose.Schema({
     subscription: { type: mongoose.Schema.Types.ObjectId },
     service: String,
     vat: Number,
-    events: [{ type: mongoose.Schema.Types.ObjectId }],
+    events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     hours: Number,
     unitExclTaxes: Number,
     exclTaxes: Number,

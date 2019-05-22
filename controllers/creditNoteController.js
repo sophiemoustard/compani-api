@@ -1,10 +1,12 @@
 const Boom = require('boom');
 
 const CreditNote = require('../models/CreditNote');
+const Company = require('../models/Company');
 const translate = require('../helpers/translate');
 const { updateEventAndFundingHistory, createCreditNotes } = require('../helpers/creditNotes');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getDateQuery } = require('../helpers/utils');
+const { formatPDF } = require('../helpers/creditNotes');
 const { generatePdf } = require('../helpers/pdf');
 
 const { language } = translate;
@@ -124,22 +126,13 @@ const remove = async (req) => {
 
 const generateCreditNotePdf = async (req, h) => {
   try {
-    const data = {
-      invoice: {
-        id: 2452,
-        createdAt: '2018-10-12',
-        customer: { name: 'International Bank of Blueprintya' },
-        shipping: 10,
-        total: 104.95,
-        comments: 'Credit notes',
-        lines: [
-          { id: 1, item: 'Best dry cleaner', price: '52.43' },
-          { id: 2, item: 'Not so good toaster', price: '11.62' },
-        ],
-      },
-    };
-
-    const pdf = await generatePdf(data, './data/template.html');
+    const creditNote = await CreditNote.findOne({ _id: req.params._id })
+      .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service' } })
+      .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
+      .lean();
+    const company = await Company.findOne();
+    const data = formatPDF(creditNote, company);
+    const pdf = await generatePdf(data, './data/creditNote.html');
 
     return h.response(pdf).type('application/pdf');
   } catch (e) {
