@@ -43,7 +43,7 @@ describe('getMontBusinessDaysCount', () => {
   });
 });
 
-describe('getContractHours', () => {
+describe('getContractMonthInfo', () => {
   let mock;
   beforeEach(() => {
     mock = sinon.mock(DraftPayHelper);
@@ -62,12 +62,15 @@ describe('getContractHours', () => {
     };
     const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
     mock.expects('getBusinessDaysCountBetweenTwoDates').once().withArgs(moment('2019-05-06'), moment('2019-05-10')).returns(4);
-    mock.expects('getMontBusinessDaysCount').once().withArgs(moment('2019-05-06')).returns(4);
+    mock.expects('getMontBusinessDaysCount').once().withArgs('2019-05-06').returns(16);
 
-    const result = DraftPayHelper.getContractHours(contract, query);
+    const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
-    expect(result).toBe(103.92);
+    expect(result.contractHours).toBeDefined();
+    expect(result.contractHours).toBe(25.98);
+    expect(result.workedDaysRatio).toBeDefined();
+    expect(result.workedDaysRatio).toBe(1 / 4);
   });
 
   it('Case 2. One version and sunday included', () => {
@@ -79,9 +82,9 @@ describe('getContractHours', () => {
     };
     const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
     mock.expects('getBusinessDaysCountBetweenTwoDates').once().withArgs(moment('2019-05-04').startOf('d'), moment('2019-05-10'));
-    mock.expects('getMontBusinessDaysCount').once().withArgs(moment('2019-05-04').startOf('d'));
+    mock.expects('getMontBusinessDaysCount').once().withArgs('2019-05-04');
 
-    const result = DraftPayHelper.getContractHours(contract, query);
+    const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
   });
@@ -97,7 +100,7 @@ describe('getContractHours', () => {
     mock.expects('getBusinessDaysCountBetweenTwoDates').twice();
     mock.expects('getMontBusinessDaysCount').twice();
 
-    const result = DraftPayHelper.getContractHours(contract, query);
+    const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
   });
@@ -127,37 +130,38 @@ describe('populateSurcharge', () => {
 describe('computeCustomSurcharge', () => {
   const start = '09:00';
   const end = '12:00';
+  const paidTransport = 30;
   it('case 1 : dates included between start and end', async () => {
     const event = {
       startDate: (new Date('2019/03/12')).setHours(9),
       endDate: (new Date('2019/03/12')).setHours(11),
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end);
+    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
-    expect(result).toBe(2);
+    expect(result).toBe(2.5);
   });
 
   it('case 2 : startDate included between start and end and endDate after end', async () => {
-    const event = {
-      startDate: (new Date('2019/03/12')).setHours(8),
-      endDate: (new Date('2019/03/12')).setHours(10),
-    };
-
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end);
-    expect(result).toBeDefined();
-    expect(result).toBe(1);
-  });
-
-  it('case 3 : startDate before start and endDate included between start and end', async () => {
     const event = {
       startDate: (new Date('2019/03/12')).setHours(10),
       endDate: (new Date('2019/03/12')).setHours(13),
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end);
+    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
-    expect(result).toBe(2);
+    expect(result).toBe(2.5);
+  });
+
+  it('case 3 : startDate before start and endDate included between start and end', async () => {
+    const event = {
+      startDate: (new Date('2019/03/12')).setHours(8),
+      endDate: (new Date('2019/03/12')).setHours(10),
+    };
+
+    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
+    expect(result).toBeDefined();
+    expect(result).toBe(1);
   });
 
   it('case 4 : startDate before start and endDate after end', async () => {
@@ -166,7 +170,7 @@ describe('computeCustomSurcharge', () => {
       endDate: (new Date('2019/03/12')).setHours(13),
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end);
+    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
     expect(result).toBe(3);
   });
@@ -177,7 +181,7 @@ describe('computeCustomSurcharge', () => {
       endDate: (new Date('2019/03/12')).setHours(7),
     };
 
-    const result = DraftPayHelper.computeCustomSurcharge(event, start, end);
+    const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
     expect(result).toBeDefined();
     expect(result).toBe(0);
   });
@@ -229,6 +233,7 @@ describe('getSurchargeSplit', () => {
   let event;
   let surcharge = {};
   let applySurcharge;
+  const paidTransport = 30;
   beforeEach(() => {
     applySurcharge = sinon.stub(DraftPayHelper, 'applySurcharge');
   });
@@ -239,96 +244,96 @@ describe('getSurchargeSplit', () => {
   it('should apply 25th of december surcharge', () => {
     event = { startDate: (new Date('2018/12/25')).setHours(9), endDate: (new Date('2018/12/25')).setHours(11) };
     surcharge = { twentyFifthOfDecember: 20 };
-    applySurcharge.returns({ surcharged: 2 });
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    applySurcharge.returns({ surcharged: 2.5 });
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2 });
+    expect(result).toEqual({ surcharged: 2.5 });
   });
 
   it('should not apply 25th of december surcharge', () => {
     event = { startDate: (new Date('2018/12/25')).setHours(9), endDate: (new Date('2018/12/25')).setHours(11) };
     surcharge = { saturday: 20 };
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2, details: {} });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {} });
   });
 
   it('should apply 1st of May surcharge', () => {
     event = { startDate: (new Date('2018/05/01')).setHours(9), endDate: (new Date('2018/05/01')).setHours(11) };
     surcharge = { firstOfMay: 20 };
-    applySurcharge.returns({ surcharged: 2 });
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    applySurcharge.returns({ surcharged: 2.5 });
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2 });
+    expect(result).toEqual({ surcharged: 2.5 });
   });
 
   it('should not apply 1st of May surcharge', () => {
     event = { startDate: (new Date('2019/05/01')).setHours(9), endDate: (new Date('2019/05/01')).setHours(11) };
     surcharge = { saturday: 20 };
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2, details: {} });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {} });
   });
 
   it('should apply holiday surcharge', () => {
     event = { startDate: (new Date('2019/05/08')).setHours(9), endDate: (new Date('2019/05/08')).setHours(11) };
     surcharge = { publicHoliday: 20 };
-    applySurcharge.returns({ surcharged: 2 });
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    applySurcharge.returns({ surcharged: 2.5 });
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2 });
+    expect(result).toEqual({ surcharged: 2.5 });
   });
 
   it('should not apply holiday surcharge', () => {
     event = { startDate: (new Date('2019/05/08')).setHours(9), endDate: (new Date('2019/05/08')).setHours(11) };
     surcharge = { saturday: 20 };
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2, details: {} });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {} });
   });
 
   it('should apply saturday surcharge', () => {
     event = { startDate: (new Date('2019/04/27')).setHours(9), endDate: (new Date('2019/04/27')).setHours(11) };
     surcharge = { saturday: 20 };
-    applySurcharge.returns({ surcharged: 2 });
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    applySurcharge.returns({ surcharged: 2.5 });
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2 });
+    expect(result).toEqual({ surcharged: 2.5 });
   });
 
   it('should not apply saturday surcharge', () => {
     event = { startDate: (new Date('2019/04/27')).setHours(9), endDate: (new Date('2019/04/27')).setHours(11) };
     surcharge = { sunday: 20 };
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2, details: {} });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {} });
   });
 
   it('should apply sunday surcharge', () => {
     event = { startDate: (new Date('2019/04/28')).setHours(9), endDate: (new Date('2019/04/28')).setHours(11) };
     surcharge = { sunday: 20 };
-    applySurcharge.returns({ surcharged: 2 });
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    applySurcharge.returns({ surcharged: 2.5 });
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2 });
+    expect(result).toEqual({ surcharged: 2.5 });
   });
 
   it('should not apply sunday surcharge', () => {
     event = { startDate: (new Date('2019/04/28')).setHours(9), endDate: (new Date('2019/04/28')).setHours(11) };
     surcharge = { saturday: 20 };
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2, details: {} });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {} });
   });
 
   it('should apply evening surcharge', () => {
@@ -338,11 +343,11 @@ describe('getSurchargeSplit', () => {
     surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
     computeCustomSurcharge.returns(2);
     getSurchargeDetails.returns({});
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(computeCustomSurcharge);
     sinon.assert.called(getSurchargeDetails);
-    expect(result).toEqual({ surcharged: 2, notSurcharged: 0, details: {} });
+    expect(result).toEqual({ surcharged: 2, notSurcharged: 0.5, details: {} });
     computeCustomSurcharge.restore();
     getSurchargeDetails.restore();
   });
@@ -354,11 +359,11 @@ describe('getSurchargeSplit', () => {
     surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
     computeCustomSurcharge.returns(2);
     getSurchargeDetails.returns({});
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(computeCustomSurcharge);
     sinon.assert.called(getSurchargeDetails);
-    expect(result).toEqual({ surcharged: 2, notSurcharged: 0, details: {} });
+    expect(result).toEqual({ surcharged: 2, notSurcharged: 0.5, details: {} });
     computeCustomSurcharge.restore();
     getSurchargeDetails.restore();
   });
@@ -366,8 +371,8 @@ describe('getSurchargeSplit', () => {
   it('should not apply surcharge', () => {
     event = { startDate: (new Date('2019/04/23')).setHours(18), endDate: (new Date('2019/04/23')).setHours(20) };
     surcharge = { saturday: 10 };
-    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {});
+    const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2, details: {} });
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {} });
   });
 });
