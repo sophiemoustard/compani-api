@@ -780,16 +780,4 @@ describe('removeEventsByContractStatus', () => {
       expect(e).toEqual(Boom.badRequest());
     }
   });
-
-  it('should return a 404 error if no subscriptions match contract status', async () => {
-    try {
-      const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
-      EventAggregateStub.returns([]);
-
-      await EventHelper.removeEventsByContractStatus(contract);
-      sinon.assert.called(EventAggregateStub);
-    } catch (e) {
-      expect(e).toEqual(Boom.notFound('Corresponding subscriptions not found'));
-    }
-  });
 });
