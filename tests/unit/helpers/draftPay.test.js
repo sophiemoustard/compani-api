@@ -428,3 +428,75 @@ describe('getTransportDuration', () => {
     expect(result).toBe(2);
   });
 });
+
+describe('getPaidTransport', () => {
+  let getTransportDuration;
+  beforeEach(() => {
+    getTransportDuration = sinon.stub(DraftPayHelper, 'getTransportDuration');
+  });
+
+  afterEach(() => {
+    getTransportDuration.restore();
+  });
+
+  it('should return 0 if prevEvent is null', async () => {
+    const event = {};
+    const result = await DraftPayHelper.getPaidTransport(event, null, []);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should compute driving transport', async () => {
+    const event = {
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      customer: {
+        contact: { address: { fullAddress: 'jébobolà' } },
+      },
+    };
+    const prevEvent = {
+      startDate: '2019-01-18T15:46:30.636Z',
+      customer: {
+        contact: { address: { fullAddress: 'tamalou' } },
+      },
+    };
+    const result = await DraftPayHelper.getPaidTransport(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    sinon.assert.calledWith(getTransportDuration, [], 'tamalou', 'jébobolà', 'driving');
+  });
+
+  it('should compute transit transport', async () => {
+    const event = {
+      startDate: '2019-01-18T18:00:00.636Z',
+    };
+    const prevEvent = {
+      endDate: '2019-01-18T15:00:00.636Z',
+    };
+    getTransportDuration.resolves(60);
+    const result = await DraftPayHelper.getPaidTransport(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(60);
+  });
+
+  it('should return transport duration', async () => {
+    const event = {
+      startDate: '2019-01-18T16:10:00.636Z',
+    };
+    const prevEvent = {
+      endDate: '2019-01-18T15:00:00.636Z',
+    };
+    getTransportDuration.resolves(60);
+    const result = await DraftPayHelper.getPaidTransport(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(70);
+  });
+
+  it('should return break duration', async () => {
+
+  });
+});
