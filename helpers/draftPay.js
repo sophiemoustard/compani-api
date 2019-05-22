@@ -9,7 +9,7 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const { getMatchingVersion } = require('./utils');
 const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING } = require('./constants');
-const { getOrCreateDistanceMatrix } = require('./distanceMatrix');
+const DistanceMatrixHelper = require('./distanceMatrix');
 
 momentRange.extendMoment(moment);
 const holidays = new Holidays('FR');
@@ -241,11 +241,10 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
 
 exports.getTransportDuration = async (distances, origins, destinations, mode) => {
   if (!origins || !destinations || !mode) return 0;
-  let distanceMatrix = distances.find(dm => dm.origin === origins && dm.destination === destinations && dm.mode === mode);
+  let distanceMatrix = distances.find(dm => dm.origins === origins && dm.destinations === destinations && dm.mode === mode);
 
   if (!distanceMatrix) {
-    distanceMatrix = { duration: 0 };
-    distanceMatrix = await getOrCreateDistanceMatrix({ origins, destinations, mode });
+    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix({ origins, destinations, mode });
   }
 
   return distanceMatrix && distanceMatrix.duration ? Math.round(distanceMatrix.duration / 60) : 0;

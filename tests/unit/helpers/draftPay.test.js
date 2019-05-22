@@ -2,6 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
 const DraftPayHelper = require('../../../helpers/draftPay');
+const DistanceMatrixHelper = require('../../../helpers/distanceMatrix');
 const Surcharge = require('../../../models/Surcharge');
 
 describe('getBusinessDaysCountBetweenTwoDates', () => {
@@ -374,5 +375,56 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {} });
+  });
+});
+
+describe('getTransportDuration', () => {
+  let getOrCreateDistanceMatrix;
+  beforeEach(() => {
+    getOrCreateDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'getOrCreateDistanceMatrix');
+  });
+  afterEach(() => {
+    getOrCreateDistanceMatrix.restore();
+  });
+
+  it('should return 0 if no origins', async () => {
+    const distances = [];
+    const result = await DraftPayHelper.getTransportDuration(distances, null, 'lalal', 'repos');
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 if no destination', async () => {
+    const distances = [];
+    const result = await DraftPayHelper.getTransportDuration(distances, 'lalal', null, 'repos');
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 if no mode', async () => {
+    const distances = [];
+    const result = await DraftPayHelper.getTransportDuration(distances, 'lalal', 'repos', null);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return distance info found in db', async () => {
+    const distances = [{ origins: 'lalal', destinations: 'paradis', mode: 'repos', duration: 120 }];
+    const result = await DraftPayHelper.getTransportDuration(distances, 'lalal', 'paradis', 'repos');
+
+    expect(result).toBeDefined();
+    expect(result).toBe(2);
+  });
+
+  it('should call google maps api as no data found in database', async () => {
+    const distances = [{ origins: 'lilili', destinations: 'enfer', mode: 'boulot', duration: 120 }];
+    getOrCreateDistanceMatrix.resolves({ duration: 120 });
+    const result = await DraftPayHelper.getTransportDuration(distances, 'lalal', 'paradis', 'repos');
+
+    expect(result).toBeDefined();
+    expect(result).toBe(2);
   });
 });
