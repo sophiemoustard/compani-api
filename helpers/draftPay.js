@@ -23,12 +23,9 @@ moment.updateLocale('fr', {
 const getEventToPay = async rules => Event.aggregate([
   { $match: { $and: rules } },
   {
-    $group: { _id: { SUBS: '$subscription', AUX: '$auxiliary', CUS: '$customer' }, events: { $push: '$$ROOT' } }
-  },
-  {
     $lookup: {
       from: 'users',
-      localField: '_id.AUX',
+      localField: 'auxiliary',
       foreignField: '_id',
       as: 'auxiliary',
     },
@@ -37,29 +34,29 @@ const getEventToPay = async rules => Event.aggregate([
   {
     $lookup: {
       from: 'customers',
-      localField: '_id.CUS',
+      localField: 'customer',
       foreignField: '_id',
       as: 'customer',
     },
   },
-  { $unwind: { path: '$customer' } },
+  { $unwind: { path: '$customer' } }, // WARNING heures internes
   {
     $addFields: {
-      sub: {
-        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+      subscription: {
+        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$$ROOT.subscription'] } },
       }
     }
   },
-  { $unwind: { path: '$sub' } },
+  { $unwind: { path: '$subscription' } }, // WARNING heures internes
   {
     $lookup: {
       from: 'services',
-      localField: 'sub.service',
+      localField: 'subscription.service',
       foreignField: '_id',
-      as: 'sub.service',
+      as: 'subscription.service',
     }
   },
-  { $unwind: { path: '$sub.service' } },
+  { $unwind: { path: '$subscription.service' } }, // WARNING heures internes
   {
     $lookup: {
       from: 'sectors',
@@ -78,29 +75,43 @@ const getEventToPay = async rules => Event.aggregate([
     },
   },
   {
-    $group: {
-      _id: '$_id.AUX',
-      auxiliary: { $addToSet: '$auxiliary' },
-      eventsBySubscription: {
-        $push: { subscription: '$sub', events: '$events' },
-      }
-    }
-  },
-  { $unwind: { path: '$auxiliary' } },
-  {
     $project: {
-      _id: 0,
       auxiliary: {
         _id: 1,
-        identity: 1,
+        identity: { firstname: 1, lastname: 1 },
         sector: 1,
         contracts: 1,
         contact: 1,
         administrative: { mutualFund: 1, transportInvoice: 1 },
       },
-      eventsBySubscription: 1,
+      customer: { contact: 1 },
+      startDate: 1,
+      endDate: 1,
+      subscription: { service: 1 },
     }
-  }
+  },
+  {
+    $group: {
+      _id: {
+        aux: '$auxiliary',
+        year: { $year: '$startDate' },
+        month: { $month: '$startDate' },
+        week: { $week: '$startDate' },
+        day: { $dayOfWeek: '$startDate' }
+      },
+      eventsPerDay: { $push: '$$ROOT' },
+      auxiliary: { $addToSet: '$auxiliary' },
+    },
+  },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $group: {
+      _id: '$_id.aux._id',
+      events: { $push: '$eventsPerDay' },
+      auxiliary: { $addToSet: '$auxiliary' },
+    },
+  },
+  { $unwind: { path: '$auxiliary' } },
 ]);
 
 exports.populateSurcharge = async (subscription) => {
@@ -247,7 +258,7 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio) => {
   return 0;
 };
 
-exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company, query) => {
+exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query) => {
   const { _id, identity, sector, contracts } = auxiliary;
 
   let workedHours = 0;
@@ -257,10 +268,9 @@ exports.getDraftPayByAuxiliary = async (eventsBySubscription, auxiliary, company
   let surchargedAndExempt = 0;
   let surchargedAndNotExemptDetails = {};
   let surchargedAndExemptDetails = {};
-  for (const group of eventsBySubscription) {
-    const { events } = group;
-    const subscription = await exports.populateSurcharge(group.subscription);
-    for (const event of events) {
+  for (const eventsPerDay of events) {
+    for (const event of eventsPerDay) {
+      const subscription = await exports.populateSurcharge(event.subscription);
       workedHours += moment(event.endDate).diff(event.startDate, 'm') / 60;
       const serviceVersion = getMatchingVersion(event.startDate, subscription.service, 'startDate');
       if (serviceVersion.exemptFromCharges) {
@@ -308,8 +318,9 @@ exports.getDraftPay = async (rules, query) => {
 
   const draftPay = [];
   for (const group of eventsToPay) {
-    draftPay.push(await exports.getDraftPayByAuxiliary(group.eventsBySubscription, group.auxiliary, company, query));
+    draftPay.push(await exports.getDraftPayByAuxiliary(group.events, group.events[0][0].auxiliary, company, query));
   }
 
   return draftPay;
+  // return eventsToPay;
 };
