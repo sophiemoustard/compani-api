@@ -268,19 +268,13 @@ describe('applySurcharge', () => {
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
-  it('should apply saturday surcharge', () => {
+  it('should apply sunday surcharge', () => {
     event = { startDate: new Date('2019/04/28') };
     surcharge = { sunday: 5 };
     expect(applySurcharge(event, price, surcharge)).toEqual(21);
   });
 
-  it('should not apply saturday surcharge', () => {
-    event = { startDate: new Date('2019/04/28') };
-    surcharge = { saturday: 10 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(20);
-  });
-
-  it('should not apply saturday surcharge', () => {
+  it('should not apply sunday surcharge', () => {
     event = { startDate: new Date('2019/04/28') };
     surcharge = { saturday: 10 };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
