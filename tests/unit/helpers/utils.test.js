@@ -7,7 +7,6 @@ const {
   clean,
   getFixedNumber,
   removeSpaces,
-  formatPrice
 } = require('../../../helpers/utils');
 
 describe('getLastVersion', () => {
@@ -163,12 +162,5 @@ describe('removeSpaces', () => {
   it('should return an empty string if parameter is missing', () => {
     const result = removeSpaces();
     expect(result).toBe('');
-  });
-});
-
-describe('formatPrice', () => {
-  it('should format price', () => {
-    const res = formatPrice(5.5);
-    expect(res).toEqual('5,50\u00a0€');
   });
 });

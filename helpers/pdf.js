@@ -23,7 +23,7 @@ const generatePdf = async (data, templateUrl) => {
   handlebars.registerHelper('table', formatTable);
   const template = handlebars.compile(content);
   const html = template(data);
-  await page.setContent(html);
+  page.setContent(html);
 
   return page.pdf({ format: 'A4', printBackground: true });
 };

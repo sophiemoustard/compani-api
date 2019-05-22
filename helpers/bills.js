@@ -1,11 +1,9 @@
-const moment = require('moment');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const { getMatchingVersion, getFixedNumber } = require('./utils');
 const { HOURLY } = require('./constants');
-const { formatPrice } = require('./utils');
 
 const formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
@@ -151,49 +149,9 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
   await Promise.all(promises);
 };
 
-const formatPDF = (bill, company) => {
-  const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
-  const computedData = {
-    totalExclTaxes: 0,
-    totalVAT: 0,
-    netInclTaxes: formatPrice(bill.netInclTaxes),
-    date: moment(bill.date).format('DD/MM/YYYY'),
-    formattedSubs: [],
-    formattedEvents: []
-  };
-
-  for (const sub of bill.subscriptions) {
-    computedData.totalExclTaxes += sub.exclTaxes;
-    computedData.totalVAT += sub.inclTaxes - sub.exclTaxes;
-    computedData.formattedSubs.push({
-      exclTaxes: formatPrice(sub.exclTaxes),
-      inclTaxes: formatPrice(sub.inclTaxes),
-      vat: sub.vat.toString().replace(/\./g, ','),
-      service: sub.service,
-      hours: sub.hours
-    });
-    for (const event of sub.events) {
-      computedData.formattedEvents.push({
-        identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
-        date: moment(event.startDate).format('DD/MM'),
-        startTime: moment(event.startDate).format('HH:mm'),
-        endTime: moment(event.endDate).format('HH:mm'),
-        service: sub.service,
-      });
-    }
-  }
-  computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
-  computedData.totalVAT = formatPrice(computedData.totalVAT);
-
-  return {
-    bill: { ...computedData, company, logo },
-  };
-};
-
 module.exports = {
   formatAndCreateBills,
   formatBillNumber,
   formatCustomerBills,
   formatThirdPartyPayerBills,
-  formatPDF
 };

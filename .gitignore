@@ -50,5 +50,3 @@ jspm_packages
 
 # Env local variables
 .env
-
-.vscode
