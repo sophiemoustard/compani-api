@@ -500,3 +500,62 @@ describe('getPaidTransport', () => {
 
   });
 });
+
+describe('getTransportRefund', () => {
+  const workedDaysRatio = 0.8;
+
+  it('should return 0 as no transport type', () => {
+    const auxiliary = {};
+    const company = {};
+    const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 as no subvention', () => {
+    const auxiliary = { administrative: { transportInvoice: { transportType: 'public' } } };
+    const company = {};
+    const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 as no zipcode', () => {
+    const auxiliary = { administrative: { transportInvoice: { transportType: 'public' } } };
+    const company = { rhConfig: { transportSubs: [] } };
+    const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 as no matching subvention', () => {
+    const auxiliary = {
+      administrative: { transportInvoice: { transportType: 'public' } },
+      contact: { address: { zipCode: '75' } },
+    };
+    const company = {
+      rhConfig: { transportSubs: [{ department: '92', price: 10 }] }
+    };
+    const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return transport refund', () => {
+    const auxiliary = {
+      administrative: { transportInvoice: { transportType: 'public' } },
+      contact: { address: { zipCode: '75' } },
+    };
+    const company = {
+      rhConfig: { transportSubs: [{ department: '75', price: 10 }] }
+    };
+    const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(4);
+  });
+});
