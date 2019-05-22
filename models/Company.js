@@ -26,6 +26,7 @@ const CompanySchema = mongoose.Schema({
       grossHourlyRate: Number
     },
     phoneSubRefunding: Number,
+    amountPerKm: Number,
     transportSubs: [{
       department: String,
       price: Number
