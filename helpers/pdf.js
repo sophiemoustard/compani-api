@@ -16,7 +16,7 @@ const formatTable = (items, options) => {
 };
 
 const generatePdf = async (data, templateUrl) => {
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   const templatePath = path.resolve('./', templateUrl);
   const content = await ReadFile(templatePath, 'utf8');
