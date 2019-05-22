@@ -87,4 +87,6 @@ module.exports = {
   },
   // TRANSPORT
   PUBLIC_TRANSPORT: 'public',
+  TRANSIT: 'transit',
+  DRIVING: 'driving',
 };

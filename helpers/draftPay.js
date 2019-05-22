@@ -5,9 +5,11 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const Event = require('../models/Event');
 const Company = require('../models/Company');
+const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
-const { getMatchingVersion } = require('../helpers/utils');
-const { FIXED, PUBLIC_TRANSPORT } = require('./constants');
+const { getMatchingVersion } = require('./utils');
+const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING } = require('./constants');
+const { getOrCreateDistanceMatrix } = require('./distanceMatrix');
 
 momentRange.extendMoment(moment);
 const holidays = new Holidays('FR');
@@ -159,16 +161,21 @@ exports.getContractMonthInfo = (contract, query) => {
   return { contractHours, workedDaysRatio: workedDays / monthBusinessDays };
 };
 
-exports.computeCustomSurcharge = (event, startHour, endHour) => {
+/**
+ * Le temps de transport est compté dans la majoration si l'heure de début de l'évènement est majorée
+ */
+exports.computeCustomSurcharge = (event, startHour, endHour, paidTransport) => {
   const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(3));
   let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(3));
   if (start.isAfter(end)) end = end.add(1, 'd');
 
-  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return moment(event.endDate).diff(moment(event.startDate), 'm') / 60;
+  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) {
+    return (moment(event.endDate).diff(moment(event.startDate), 'm') + paidTransport) / 60;
+  }
 
   let inflatedTime = 0;
   if (start.isSameOrBefore(event.startDate) && end.isAfter(event.startDate) && end.isBefore(event.endDate)) {
-    inflatedTime = end.diff(event.startDate, 'm');
+    inflatedTime = end.diff(event.startDate, 'm') + paidTransport;
   } else if (start.isAfter(event.startDate) && start.isBefore(event.endDate) && end.isSameOrAfter(event.endDate)) {
     inflatedTime = moment(event.endDate).diff(start, 'm');
   } else if (start.isAfter(event.startDate) && end.isBefore(event.endDate)) {
@@ -197,13 +204,13 @@ exports.applySurcharge = (eventDuration, surchargePlan, surcharge, details) => (
   details: exports.getSurchargeDetails(eventDuration, surchargePlan, surcharge, details)
 });
 
-exports.getSurchargeSplit = (event, surcharge, surchargeDetails) => {
+exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) => {
   const {
     saturday, sunday, publicHoliday, firstOfMay, twentyFifthOfDecember, evening,
     eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime, name
   } = surcharge;
 
-  const eventDuration = moment(event.endDate).diff(event.startDate, 'm') / 60;
+  const eventDuration = (moment(event.endDate).diff(event.startDate, 'm') + paidTransport) / 60;
   if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
     return exports.applySurcharge(eventDuration, name, `25 décembre - ${twentyFifthOfDecember}%`, surchargeDetails);
   } else if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
@@ -219,12 +226,12 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails) => {
   let surchargedHours = 0;
   let details = { ...surchargeDetails };
   if (evening) {
-    const surchargeDuration = exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, surchargedHours);
+    const surchargeDuration = exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, surchargedHours, paidTransport);
     if (surchargeDuration) details = exports.getSurchargeDetails(surchargeDuration, name, `Soirée - ${evening}%`, details);
     surchargedHours += surchargeDuration;
   }
   if (custom) {
-    const surchargeDuration = exports.computeCustomSurcharge(event, customStartTime, customEndTime, surchargedHours);
+    const surchargeDuration = exports.computeCustomSurcharge(event, customStartTime, customEndTime, surchargedHours, paidTransport);
     if (surchargeDuration) details = exports.getSurchargeDetails(surchargeDuration, name, `Personnalisée - ${custom}%`, details);
     surchargedHours += surchargeDuration;
   }
@@ -232,13 +239,44 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails) => {
   return { surcharged: surchargedHours, notSurcharged: eventDuration - surchargedHours, details };
 };
 
-exports.getEventHours = (event, service, details) => {
-  // Fixed services don't have surcharge
-  if (service.nature === FIXED || !service.surcharge) {
-    return { surcharged: 0, notSurcharged: moment(event.endDate).diff(event.startDate, 'm') / 60, details: { ...details } };
+exports.getTransportDuration = async (distances, origins, destinations, mode) => {
+  if (!origins || !destinations || !mode) return 0;
+  let distanceMatrix = distances.find(dm => dm.origin === origins && dm.destination === destinations && dm.mode === mode);
+
+  if (!distanceMatrix) {
+    distanceMatrix = { duration: 0 };
+    distanceMatrix = await getOrCreateDistanceMatrix({ origins, destinations, mode });
   }
 
-  return exports.getSurchargeSplit(event, service.surcharge, details);
+  return distanceMatrix && distanceMatrix.duration ? Math.round(distanceMatrix.duration / 60) : 0;
+};
+
+exports.getPaidTransport = async (event, prevEvent, distanceMatrix) => {
+  let paidTransport = 0;
+  if (prevEvent) {
+    const origins = get(prevEvent, 'customer.contact.address.fullAddress', null);
+    const destinations = get(event, 'customer.contact.address.fullAddress', null);
+    let transportMode = null;
+    if (has(event, 'auxiliary.administrative.transportInvoice.transportType', null)) {
+      transportMode = event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT ? TRANSIT : DRIVING;
+    }
+
+    const transportDuration = await exports.getTransportDuration(distanceMatrix, origins, destinations, transportMode);
+    const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
+    paidTransport = breakDuration > (transportDuration + 15) ? transportDuration : breakDuration;
+  }
+
+  return paidTransport;
+};
+
+exports.getEventHours = async (event, prevEvent, service, details, distanceMatrix) => {
+  const paidTransport = await exports.getPaidTransport(event, prevEvent, distanceMatrix);
+
+  if (service.nature === FIXED || !service.surcharge) { // Fixed services don't have surcharge
+    return { surcharged: 0, notSurcharged: (moment(event.endDate).diff(event.startDate, 'm') + paidTransport) / 60, details: { ...details } };
+  }
+
+  return exports.getSurchargeSplit(event, service.surcharge, details, paidTransport);
 };
 
 exports.getTransportRefund = (auxiliary, company, workedDaysRatio) => {
@@ -258,7 +296,7 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio) => {
   return 0;
 };
 
-exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query) => {
+exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, distanceMatrix) => {
   const { _id, identity, sector, contracts } = auxiliary;
 
   let workedHours = 0;
@@ -269,20 +307,26 @@ exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query) => {
   let surchargedAndNotExemptDetails = {};
   let surchargedAndExemptDetails = {};
   for (const eventsPerDay of events) {
-    for (const event of eventsPerDay) {
-      const subscription = await exports.populateSurcharge(event.subscription);
-      workedHours += moment(event.endDate).diff(event.startDate, 'm') / 60;
-      const serviceVersion = getMatchingVersion(event.startDate, subscription.service, 'startDate');
-      if (serviceVersion.exemptFromCharges) {
-        const hours = exports.getEventHours(event, serviceVersion, surchargedAndExemptDetails);
+    const sortedEvents = [...eventsPerDay].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    for (let i = 0, l = sortedEvents.length; i < l; i++) {
+      const subscription = await exports.populateSurcharge(sortedEvents[i].subscription);
+      const service = getMatchingVersion(sortedEvents[i].startDate, subscription.service, 'startDate');
+      if (service.exemptFromCharges) {
+        const hours = (i === 0)
+          ? await exports.getEventHours(sortedEvents[i], null, service, surchargedAndExemptDetails, distanceMatrix)
+          : await exports.getEventHours(sortedEvents[i], sortedEvents[i - 1], service, surchargedAndExemptDetails, distanceMatrix);
         surchargedAndExempt += hours.surcharged;
         notSurchargedAndExempt += hours.notSurcharged;
         surchargedAndExemptDetails = hours.details;
+        workedHours += hours.surcharged + hours.notSurcharged;
       } else {
-        const hours = exports.getEventHours(event, serviceVersion, surchargedAndNotExemptDetails);
+        const hours = (i === 0)
+          ? await exports.getEventHours(sortedEvents[i], null, service, surchargedAndNotExemptDetails, distanceMatrix)
+          : await exports.getEventHours(sortedEvents[i], sortedEvents[i - 1], service, surchargedAndNotExemptDetails, distanceMatrix);
         surchargedAndNotExempt += hours.surcharged;
         notSurchargedAndNotExempt += hours.notSurcharged;
         surchargedAndNotExemptDetails = hours.details;
+        workedHours += hours.surcharged + hours.notSurcharged;
       }
     }
   }
@@ -315,10 +359,11 @@ exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query) => {
 exports.getDraftPay = async (rules, query) => {
   const eventsToPay = await getEventToPay(rules);
   const company = await Company.findOne({}).lean();
+  const distanceMatrix = await DistanceMatrix.find();
 
   const draftPay = [];
   for (const group of eventsToPay) {
-    draftPay.push(await exports.getDraftPayByAuxiliary(group.events, group.events[0][0].auxiliary, company, query));
+    draftPay.push(await exports.getDraftPayByAuxiliary(group.events, group.events[0][0].auxiliary, company, query, distanceMatrix));
   }
 
   return draftPay;
