@@ -381,5 +381,5 @@ exports.removeEventsByContractStatus = async (contract) => {
   }
   if (correspondingSubs.length === 0) throw Boom.notFound('Corresponding subscriptions not found');
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
-  await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false });
+  await Event.deleteMany({ startDate: { $gt: moment(contract.endDate).add(1, 'd') }, subscription: { $in: correspondingSubsIds }, isBilled: false });
 };

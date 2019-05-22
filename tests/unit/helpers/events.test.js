@@ -761,7 +761,7 @@ describe('removeEventsByContractStatus', () => {
 
     await EventHelper.removeEventsByContractStatus(contract);
     sinon.assert.called(EventAggregateStub);
-    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[0].sub._id] }, isBilled: false });
+    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: moment(contract.endDate).add(1, 'd') }, subscription: { $in: [aggregation[0].sub._id] }, isBilled: false });
   });
 
   it('should remove future events linked to corresponding customer contract', async () => {
@@ -770,7 +770,7 @@ describe('removeEventsByContractStatus', () => {
 
     await EventHelper.removeEventsByContractStatus(contract);
     sinon.assert.called(EventAggregateStub);
-    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[1].sub._id] }, isBilled: false });
+    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: moment(contract.endDate).add(1, 'd') }, subscription: { $in: [aggregation[1].sub._id] }, isBilled: false });
   });
 
   it('should return a 400 error if no contract provided', async () => {
