@@ -26,7 +26,10 @@ const customersList = [
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
         city: faker.address.city(),
-        location: [faker.address.latitude(), faker.address.longitude()]
+        location: {
+          type: 'Point',
+          coordinates: [faker.address.latitude(), faker.address.longitude()],
+        },
       },
       phone: faker.phone.phoneNumber()
     },
@@ -161,7 +164,10 @@ const customersList = [
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
         city: faker.address.city(),
-        location: [faker.address.latitude(), faker.address.longitude()]
+        location: {
+          type: 'Point',
+          coordinates: [faker.address.latitude(), faker.address.longitude()],
+        },
       },
       phone: faker.phone.phoneNumber()
     },
