@@ -8,7 +8,7 @@ const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const { getMatchingVersion } = require('./utils');
-const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT } = require('./constants');
+const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 
 momentRange.extendMoment(moment);
@@ -41,7 +41,7 @@ const getEventToPay = async rules => Event.aggregate([
       as: 'customer',
     },
   },
-  { $unwind: { path: '$customer' } }, // WARNING heures internes
+  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } }, // WARNING heures internes
   {
     $addFields: {
       subscription: {
@@ -49,7 +49,7 @@ const getEventToPay = async rules => Event.aggregate([
       }
     }
   },
-  { $unwind: { path: '$subscription' } }, // WARNING heures internes
+  { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } }, // WARNING heures internes
   {
     $lookup: {
       from: 'services',
@@ -58,7 +58,7 @@ const getEventToPay = async rules => Event.aggregate([
       as: 'subscription.service',
     }
   },
-  { $unwind: { path: '$subscription.service' } }, // WARNING heures internes
+  { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } }, // WARNING heures internes
   {
     $lookup: {
       from: 'sectors',
@@ -90,6 +90,8 @@ const getEventToPay = async rules => Event.aggregate([
       startDate: 1,
       endDate: 1,
       subscription: { service: 1 },
+      type: 1,
+      location: 1,
     }
   },
   {
@@ -254,7 +256,7 @@ exports.getTransportInfo = async (distances, origins, destinations, mode) => {
   }
 
   return !distanceMatrix ? { distance: 0, duration: 0 }
-    : { duration: Math.round(distanceMatrix.duration / 60), distance: Math.round(distanceMatrix.distance / 1000) };
+    : { duration: distanceMatrix.duration / 60, distance: distanceMatrix.distance / 1000 };
 };
 
 exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
@@ -262,8 +264,12 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
   let paidKm = 0;
 
   if (prevEvent) {
-    const origins = get(prevEvent, 'customer.contact.address.fullAddress', null);
-    const destinations = get(event, 'customer.contact.address.fullAddress', null);
+    const origins = prevEvent.type === INTERVENTION
+      ? get(prevEvent, 'customer.contact.address.fullAddress', null)
+      : get(prevEvent, 'location.fullAddress', null);
+    const destinations = event.type === INTERVENTION
+      ? get(event, 'customer.contact.address.fullAddress', null)
+      : get(event, 'location.fullAddress', null);
     let transportMode = null;
     if (has(event, 'auxiliary.administrative.transportInvoice.transportType', null)) {
       transportMode = event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT ? TRANSIT : DRIVING;
@@ -281,7 +287,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
 exports.getEventHours = async (event, prevEvent, service, details, distanceMatrix) => {
   const paidTransport = await exports.getPaidTransportInfo(event, prevEvent, distanceMatrix);
 
-  if (service.nature === FIXED || !service.surcharge) { // Fixed services don't have surcharge
+  if (!service || service.nature === FIXED || !service.surcharge) { // Fixed services don't have surcharge
     return {
       surcharged: 0,
       notSurcharged: (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60,
@@ -327,9 +333,13 @@ exports.getPayFromEvents = async (events, distanceMatrix) => {
   for (const eventsPerDay of events) {
     const sortedEvents = [...eventsPerDay].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
-      const subscription = await exports.populateSurcharge(sortedEvents[i].subscription);
-      const service = getMatchingVersion(sortedEvents[i].startDate, subscription.service, 'startDate');
-      if (service.exemptFromCharges) {
+      let service = null;
+      if (sortedEvents[i].type === INTERVENTION) {
+        const subscription = await exports.populateSurcharge(sortedEvents[i].subscription);
+        service = getMatchingVersion(sortedEvents[i].startDate, subscription.service, 'startDate');
+      }
+
+      if (service && service.exemptFromCharges) {
         const hours = await exports.getEventHours(sortedEvents[i], (i !== 0) && sortedEvents[i - 1], service, surchargedAndExemptDetails, distanceMatrix);
         surchargedAndExempt += hours.surcharged;
         notSurchargedAndExempt += hours.notSurcharged;

@@ -455,6 +455,7 @@ describe('getPaidTransportInfo', () => {
 
   it('should compute driving transport', async () => {
     const event = {
+      type: 'intervention',
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
@@ -463,6 +464,7 @@ describe('getPaidTransportInfo', () => {
       },
     };
     const prevEvent = {
+      type: 'intervention',
       startDate: '2019-01-18T15:46:30.636Z',
       customer: {
         contact: { address: { fullAddress: 'tamalou' } },

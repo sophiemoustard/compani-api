@@ -3,7 +3,7 @@ const moment = require('moment');
 const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
 const Contract = require('../models/Contract');
-const { COMPANY_CONTRACT } = require('../helpers/constants');
+const { COMPANY_CONTRACT, INTERNAL_HOUR, INTERVENTION } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -20,6 +20,7 @@ const draftPayList = async (req) => {
     ]);
 
     const eventRules = [
+      { type: { $in: [INTERNAL_HOUR, INTERVENTION] } },
       { startDate: { $gte: moment(req.query.startDate).startOf('d').toDate() } },
       { endDate: { $lte: moment(req.query.endDate).endOf('d').toDate() } },
       { auxiliary: { $in: auxiliaries.map(aux => aux._id) } },
