@@ -1,4 +1,5 @@
 const moment = require('moment');
+const get = require('lodash/get');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
@@ -151,6 +152,10 @@ const formatAndCreateBills = async (number, groupByCustomerBills) => {
   await Promise.all(promises);
 };
 
+const formatCustomerName = customer => (customer.identity.firstname
+  ? `${customer.identity.title} ${customer.identity.firstname} ${customer.identity.lastname}`
+  : `${customer.identity.title} ${customer.identity.lastname}`);
+
 const formatPDF = (bill, company) => {
   const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
   const computedData = {
@@ -159,7 +164,11 @@ const formatPDF = (bill, company) => {
     netInclTaxes: formatPrice(bill.netInclTaxes),
     date: moment(bill.date).format('DD/MM/YYYY'),
     formattedSubs: [],
-    formattedEvents: []
+    formattedEvents: [],
+    recipient: {
+      address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.address', {}),
+      name: bill.client ? bill.client.name : formatCustomerName(bill.cusotmer),
+    }
   };
 
   for (const sub of bill.subscriptions) {
@@ -186,7 +195,7 @@ const formatPDF = (bill, company) => {
   computedData.totalVAT = formatPrice(computedData.totalVAT);
 
   return {
-    bill: { ...computedData, company, logo },
+    bill: { customer: bill.customer, ...computedData, company, logo },
   };
 };
 
