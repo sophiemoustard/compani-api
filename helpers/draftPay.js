@@ -131,20 +131,20 @@ exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
   let count = 0;
   const range = Array.from(moment().range(start, end).by('days'));
   for (const day of range) {
-    if (moment(day.format('YYYY-MM-DD')).isBusinessDay()) count += 1;
+    if (moment(day).isBusinessDay()) count += 1;
   }
 
   return count;
 };
 
-exports.getMontBusinessDaysCount = start =>
+exports.getMonthBusinessDaysCount = start =>
   exports.getBusinessDaysCountBetweenTwoDates(moment(start).startOf('M').toDate(), moment(start).endOf('M'));
 
 exports.getContractMonthInfo = (contract, query) => {
   const versions = contract.versions.filter(ver =>
     (moment(ver.startDate).isSameOrBefore(query.endDate) && moment(ver.endDate).isAfter(query.startDate)) ||
     (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.isActive));
-  const monthBusinessDays = exports.getMontBusinessDaysCount(query.startDate);
+  const monthBusinessDays = exports.getMonthBusinessDaysCount(query.startDate);
 
   let contractHours = 0;
   let workedDays = 0;

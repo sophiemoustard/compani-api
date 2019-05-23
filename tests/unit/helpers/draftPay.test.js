@@ -34,11 +34,11 @@ describe('getBusinessDaysCountBetweenTwoDates', () => {
   });
 });
 
-describe('getMontBusinessDaysCount', () => {
+describe('getMonthBusinessDaysCount', () => {
   it('should call getBusinessDaysCountBetweenTwoDates', () => {
     const mock = sinon.mock(DraftPayHelper);
     mock.expects('getBusinessDaysCountBetweenTwoDates').once();
-    DraftPayHelper.getMontBusinessDaysCount(new Date('2019/05/18'));
+    DraftPayHelper.getMonthBusinessDaysCount(new Date('2019/05/18'));
 
     mock.restore();
   });
@@ -63,7 +63,7 @@ describe('getContractMonthInfo', () => {
     };
     const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
     mock.expects('getBusinessDaysCountBetweenTwoDates').once().withArgs(moment('2019-05-06'), moment('2019-05-10')).returns(4);
-    mock.expects('getMontBusinessDaysCount').once().withArgs('2019-05-06').returns(16);
+    mock.expects('getMonthBusinessDaysCount').once().withArgs('2019-05-06').returns(16);
 
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
@@ -83,7 +83,7 @@ describe('getContractMonthInfo', () => {
     };
     const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
     mock.expects('getBusinessDaysCountBetweenTwoDates').once().withArgs(moment('2019-05-04').startOf('d'), moment('2019-05-10'));
-    mock.expects('getMontBusinessDaysCount').once().withArgs('2019-05-04');
+    mock.expects('getMonthBusinessDaysCount').once().withArgs('2019-05-04');
 
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
@@ -99,7 +99,7 @@ describe('getContractMonthInfo', () => {
     };
     const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
     mock.expects('getBusinessDaysCountBetweenTwoDates').twice();
-    mock.expects('getMontBusinessDaysCount').twice();
+    mock.expects('getMonthBusinessDaysCount').twice();
 
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
