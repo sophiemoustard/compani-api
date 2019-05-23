@@ -36,7 +36,7 @@ exports.plugin = {
               contractWithCustomer: {
                 grossHourlyRate: Joi.number()
               },
-              phoneSubRefunding: Joi.number(),
+              feeAmount: Joi.number(),
               transportSubs: Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
@@ -84,7 +84,7 @@ exports.plugin = {
               contractWithCustomer: {
                 grossHourlyRate: Joi.number(),
               },
-              phoneSubRefunding: Joi.number(),
+              feeAmount: Joi.number(),
               amountPerKm: Joi.number(),
               transportSubs: [Joi.array().items({
                 department: Joi.string(),
