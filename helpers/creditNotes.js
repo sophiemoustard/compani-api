@@ -1,10 +1,10 @@
 const moment = require('moment');
-
+const get = require('lodash/get');
 const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
-const { getFixedNumber, getMatchingVersion, formatPrice } = require('./utils');
+const UtilsHelper = require('./utils');
 const { HOURLY } = require('./constants');
 
 exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
@@ -39,8 +39,8 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
 
 exports.createCreditNote = (payload, prefix, seq) => {
   payload.number = `${prefix}${seq.toString().padStart(3, '0')}`;
-  if (payload.inclTaxesCustomer) payload.inclTaxesCustomer = getFixedNumber(payload.inclTaxesCustomer, 2);
-  if (payload.inclTaxesTpp) payload.inclTaxesTpp = getFixedNumber(payload.inclTaxesTpp, 2);
+  if (payload.inclTaxesCustomer) payload.inclTaxesCustomer = UtilsHelper.getFixedNumber(payload.inclTaxesCustomer, 2);
+  if (payload.inclTaxesTpp) payload.inclTaxesTpp = UtilsHelper.getFixedNumber(payload.inclTaxesTpp, 2);
   const customerCreditNote = new CreditNote(payload);
 
   return customerCreditNote.save();
@@ -81,27 +81,31 @@ exports.createCreditNotes = async (payload) => {
   return creditNotes;
 };
 
+const formatCustomerName = customer => (customer.identity.firstname
+  ? `${customer.identity.title} ${customer.identity.firstname} ${customer.identity.lastname}`
+  : `${customer.identity.title} ${customer.identity.lastname}`);
+
 exports.formatPDF = (creditNote, company) => {
   const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
   const computedData = {
-    totalExclTaxes: 0,
     totalVAT: 0,
-    totalInclTaxes: 0,
     date: moment(creditNote.date).format('DD/MM/YYYY'),
-    formattedEvents: [],
     number: creditNote.number,
+    recipient: {
+      address: creditNote.thirdPartyPayer ? get(creditNote, 'thirdPartyPayer.address', {}) : get(creditNote, 'customer.contact.address', {}),
+      name: creditNote.thirdPartyPayer ? creditNote.thirdPartyPayer.name : formatCustomerName(creditNote.customer),
+    },
   };
 
-  if (creditNote.events.length > 0) {
+  if (creditNote.events && creditNote.events.length > 0) {
+    computedData.formattedEvents = [];
     for (const event of creditNote.events) {
-      computedData.totalExclTaxes += creditNote.exclTaxesTpp ? event.bills.exclTaxesTpp : event.bills.exclTaxesCustomer;
-      computedData.totalInclTaxes += creditNote.exclTaxesTpp ? event.bills.inclTaxesTpp : event.bills.inclTaxesCustomer;
       computedData.totalVAT += creditNote.exclTaxesTpp
         ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
         : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer;
 
       const sub = creditNote.customer.subscriptions.find(sb => sb._id.toHexString() === event.subscription.toHexString());
-      const version = getMatchingVersion(event.startDate, sub.service);
+      const version = UtilsHelper.getMatchingVersion(event.startDate, sub.service);
       computedData.formattedEvents.push({
         identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
         date: moment(event.startDate).format('DD/MM'),
@@ -110,19 +114,17 @@ exports.formatPDF = (creditNote, company) => {
         service: sub && version ? version.name : '',
       });
     }
+  } else {
+    computedData.subscription = { service: creditNote.subscription.service };
   }
 
-  computedData.totalExclTaxes = formatPrice(computedData.totalExclTaxes);
-  computedData.totalInclTaxes = formatPrice(computedData.totalInclTaxes);
-  computedData.totalVAT = formatPrice(computedData.totalVAT);
+  computedData.totalVAT = UtilsHelper.formatPrice(computedData.totalVAT);
 
   return {
     creditNote: {
       customer: { identity: creditNote.customer.identity, contact: creditNote.customer.contact },
-      ...(creditNote.exclTaxesTpp
-        ? { exclTaxesTpp: formatPrice(creditNote.exclTaxesTpp), inclTaxesTpp: formatPrice(creditNote.inclTaxesTpp) }
-        : { exclTaxesCustomer: formatPrice(creditNote.exclTaxesCustomer), inclTaxesCustomer: formatPrice(creditNote.inclTaxesCustomer) }
-      ),
+      exclTaxes: creditNote.exclTaxesTpp ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp) : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
+      inclTaxes: creditNote.inclTaxesTpp ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp) : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,
       company,
       logo

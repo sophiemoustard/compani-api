@@ -4,6 +4,7 @@ const sinon = require('sinon');
 const FundingHistory = require('../../../models/FundingHistory');
 const Event = require('../../../models/Event');
 const CreditNoteHelper = require('../../../helpers/creditNotes');
+const UtilsHelper = require('../../../helpers/utils');
 const moment = require('moment');
 
 describe('updateEventAndFundingHistory', () => {
@@ -112,7 +113,19 @@ describe('updateEventAndFundingHistory', () => {
 });
 
 describe('formatPDF', () => {
-  it('should format correct credit note PDF', () => {
+  let getMatchingVersion;
+  let formatPrice;
+  beforeEach(() => {
+    getMatchingVersion = sinon.stub(UtilsHelper, 'getMatchingVersion').returns({ name: 'Toto' });
+    formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
+  });
+
+  afterEach(() => {
+    getMatchingVersion.restore();
+    formatPrice.restore();
+  });
+
+  it('should format correct credit note PDF with events for customer', () => {
     const subId = new ObjectID();
     const creditNote = {
       number: 1,
@@ -123,33 +136,31 @@ describe('formatPDF', () => {
         startDate: '2019-04-29T06:00:00.000Z',
         endDate: '2019-04-29T15:00:00.000Z',
         subscription: subId,
-        bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221.8009478672986 },
+        bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221 },
       }],
       customer: {
-        identity: { firstname: 'Toto' },
-        contact: { address: {} },
-        subscriptions: [{ _id: subId, service: { versions: [{ startDate: '2019-01-01', name: 'Toto' }] } }],
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+        contact: { address: { fullAddress: 'La ruche' } },
+        subscriptions: [{ _id: subId, service: { versions: [{ name: 'Toto' }] } }],
       },
       date: '2019-04-29T22:00:00.000Z',
-      exclTaxesCustomer: 221.8009478672986,
+      exclTaxesCustomer: 221,
       inclTaxesCustomer: 234,
-      exclTaxesTpp: 0,
-      inclTaxesTpp: 0,
+      exclTaxesTpp: 21,
+      inclTaxesTpp: 34,
     };
 
     const expectedResult = {
       creditNote: {
         number: 1,
         customer: {
-          identity: { firstname: 'Toto' },
-          contact: { address: {} },
+          identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+          contact: { address: { fullAddress: 'La ruche' } },
         },
         date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
-        exclTaxesCustomer: '221,80 €',
-        inclTaxesCustomer: '234,00 €',
-        totalExclTaxes: '221,80 €',
-        totalVAT: '12,20 €',
-        totalInclTaxes: '234,00 €',
+        exclTaxes: '221,00 €',
+        inclTaxes: '234,00 €',
+        totalVAT: '13,00 €',
         formattedEvents: [{
           identity: 'N. Tata',
           date: moment('2019-04-29T06:00:00.000Z').format('DD/MM'),
@@ -157,13 +168,109 @@ describe('formatPDF', () => {
           endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm'),
           service: 'Toto',
         }],
+        recipient: {
+          name: 'Lolo Toto Bobo',
+          address: { fullAddress: 'La ruche' },
+        },
         company: {},
         logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
       }
     };
 
+    formatPrice.onCall(0).returns('13,00 €');
+    formatPrice.onCall(1).returns('221,00 €');
+    formatPrice.onCall(2).returns('234,00 €');
+
     const result = CreditNoteHelper.formatPDF(creditNote, {});
 
     expect(result).toEqual(expectedResult);
+  });
+
+  it('should format correct credit note PDF with events for tpp', () => {
+    const subId = new ObjectID();
+    const creditNote = {
+      number: 1,
+      events: [{
+        auxiliary: {
+          identity: { firstname: 'Nathanaelle', lastname: 'Tata' }
+        },
+        startDate: '2019-04-29T06:00:00.000Z',
+        endDate: '2019-04-29T15:00:00.000Z',
+        subscription: subId,
+        bills: { inclTaxesTpp: 234, exclTaxesTpp: 221 },
+      }],
+      customer: {
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+        contact: { address: { fullAddress: 'La ruche' } },
+        subscriptions: [{ _id: subId, service: { versions: [{ name: 'Toto' }] } }],
+      },
+      date: '2019-04-29T22:00:00.000Z',
+      exclTaxesTpp: 21,
+      inclTaxesTpp: 34,
+      exclTaxesCustomer: 221,
+      inclTaxesCustomer: 234,
+      thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } }
+    };
+
+    const expectedResult = {
+      creditNote: {
+        number: 1,
+        customer: {
+          identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+          contact: { address: { fullAddress: 'La ruche' } },
+        },
+        date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
+        exclTaxes: '21,00 €',
+        inclTaxes: '34,00 €',
+        totalVAT: '13,00 €',
+        formattedEvents: [{
+          identity: 'N. Tata',
+          date: moment('2019-04-29T06:00:00.000Z').format('DD/MM'),
+          startTime: moment('2019-04-29T06:00:00.000Z').format('HH:mm'),
+          endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm'),
+          service: 'Toto',
+        }],
+        recipient: {
+          name: 'tpp',
+          address: { fullAddress: 'j\'habite ici' },
+        },
+        company: {},
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
+      }
+    };
+
+    formatPrice.onCall(0).returns('13,00 €');
+    formatPrice.onCall(1).returns('21,00 €');
+    formatPrice.onCall(2).returns('34,00 €');
+
+    const result = CreditNoteHelper.formatPDF(creditNote, {});
+
+    expect(result).toBeDefined();
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('should format correct credit note PDF with subscription', () => {
+    const creditNote = {
+      number: 1,
+      subscription: {
+        service: 'service',
+      },
+      customer: {
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+        contact: { address: { fullAddress: 'La ruche' } },
+      },
+      date: '2019-04-29T22:00:00.000Z',
+      exclTaxesTpp: 21,
+      inclTaxesTpp: 34,
+      exclTaxesCustomer: 221,
+      inclTaxesCustomer: 234,
+      thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } }
+    };
+
+    const result = CreditNoteHelper.formatPDF(creditNote, {});
+
+    expect(result).toBeDefined();
+    expect(result.creditNote.subscription).toBeDefined();
+    expect(result.creditNote.subscription.service).toBe('service');
   });
 });

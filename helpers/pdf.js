@@ -8,8 +8,10 @@ const ReadFile = util.promisify(fs.readFile);
 
 const formatTable = (items, options) => {
   let out = '';
-  for (let i = 0, l = items.length; i < l; i++) {
-    out += options.fn(items[i]);
+  if (items) {
+    for (let i = 0, l = items.length; i < l; i++) {
+      out += options.fn(items[i]);
+    }
   }
 
   return out;

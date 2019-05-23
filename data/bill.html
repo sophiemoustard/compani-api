@@ -54,6 +54,7 @@
   </div>
 </div>
 <br />
+<br />
 <div class="header">
   <div class="company">
     {{ bill.company.name }}<br />
@@ -66,7 +67,6 @@
     {{ bill.recipient.address.zipCode }} <span class="capitalize">{{ bill.recipient.address.city }}</span><br />
   </div>
 </div>
-<br />
 <br />
 <br />
 <br />
@@ -115,7 +115,9 @@
 <br />
 <br />
 <br />
-<p>Prestations réalisées chez {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}, <span class="capitalize">{{ bill.customer.contact.address.fullAddress }}.</span></p>
+<br />
+<br />
+<p>Prestations réalisées chez {{ bill.customer.identity.title }} {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}, <span class="capitalize">{{ bill.customer.contact.address.fullAddress }}.</span></p>
 <div class="wrapper">
   <table class="events">
     <thead>
