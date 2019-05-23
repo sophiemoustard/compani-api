@@ -159,14 +159,14 @@ const update = async (req) => {
         req.payload.payment.bic = null;
         customerUpdated = await Customer.findOneAndUpdate(
           { _id: req.params._id },
-          { $set: flat(req.payload), $push: { 'payment.mandates': mandate } },
+          { $set: flat(req.payload, { safe: true }), $push: { 'payment.mandates': mandate } },
           { new: true }
         );
       } else {
-        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
       }
     } else {
-      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
     }
 
     if (!customerUpdated) {
