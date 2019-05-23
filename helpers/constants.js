@@ -84,5 +84,9 @@ module.exports = {
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;
-  }
+  },
+  // TRANSPORT
+  PUBLIC_TRANSPORT: 'public',
+  TRANSIT: 'transit',
+  DRIVING: 'driving',
 };

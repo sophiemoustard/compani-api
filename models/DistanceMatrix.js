@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const DistanceMatrixSchema = mongoose.Schema({
-  origin: { type: String },
-  destination: { type: String },
+  origins: { type: String },
+  destinations: { type: String },
   mode: { type: String },
   distance: { type: Number },
   duration: { type: Number },
