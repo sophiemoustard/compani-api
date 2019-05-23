@@ -429,7 +429,7 @@ describe('getTransportDuration', () => {
   });
 });
 
-describe('getPaidTransport', () => {
+describe('getPaidTransportDuration', () => {
   let getTransportDuration;
   beforeEach(() => {
     getTransportDuration = sinon.stub(DraftPayHelper, 'getTransportDuration');
@@ -441,7 +441,7 @@ describe('getPaidTransport', () => {
 
   it('should return 0 if prevEvent is null', async () => {
     const event = {};
-    const result = await DraftPayHelper.getPaidTransport(event, null, []);
+    const result = await DraftPayHelper.getPaidTransportDuration(event, null, []);
 
     expect(result).toBeDefined();
     expect(result).toBe(0);
@@ -462,7 +462,7 @@ describe('getPaidTransport', () => {
         contact: { address: { fullAddress: 'tamalou' } },
       },
     };
-    const result = await DraftPayHelper.getPaidTransport(event, prevEvent, []);
+    const result = await DraftPayHelper.getPaidTransportDuration(event, prevEvent, []);
 
     expect(result).toBeDefined();
     sinon.assert.calledWith(getTransportDuration, [], 'tamalou', 'jébobolà', 'driving');
@@ -476,7 +476,7 @@ describe('getPaidTransport', () => {
       endDate: '2019-01-18T15:00:00.636Z',
     };
     getTransportDuration.resolves(60);
-    const result = await DraftPayHelper.getPaidTransport(event, prevEvent, []);
+    const result = await DraftPayHelper.getPaidTransportDuration(event, prevEvent, []);
 
     expect(result).toBeDefined();
     expect(result).toBe(60);
@@ -490,7 +490,7 @@ describe('getPaidTransport', () => {
       endDate: '2019-01-18T15:00:00.636Z',
     };
     getTransportDuration.resolves(60);
-    const result = await DraftPayHelper.getPaidTransport(event, prevEvent, []);
+    const result = await DraftPayHelper.getPaidTransportDuration(event, prevEvent, []);
 
     expect(result).toBeDefined();
     expect(result).toBe(70);
