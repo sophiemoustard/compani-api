@@ -305,14 +305,15 @@ const update = async (req) => {
         req.payload.payment.bic = null;
         customerUpdated = await Customer.findOneAndUpdate(
           { _id: req.params._id },
-          { $set: flat(req.payload), $push: { 'payment.mandates': mandate } },
+          { $set: flat(req.payload, { safe: true }), $push: { 'payment.mandates': mandate } },
           { new: true }
         );
       } else {
-        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
       }
     } else {
-      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+      console.log('contact', req.payload.contact.location);
+      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
     }
 
     if (!customerUpdated) {
@@ -511,6 +512,7 @@ const updateMandate = async (req) => {
 const generateMandateSignatureRequest = async (req) => {
   try {
     const customer = await Customer.findById(req.params._id);
+    console.log('MEH');
     if (!customer) return Boom.notFound();
     const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
@@ -528,6 +530,7 @@ const generateMandateSignatureRequest = async (req) => {
     });
     if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
     customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
+    console.log('test', customer.contact.address);
     await customer.save();
     return {
       message: translate[language].signatureRequestCreated,
