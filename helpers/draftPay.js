@@ -291,13 +291,11 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio) => {
     return transportSub.price * 0.5 * workedDaysRatio;
   }
 
-  // TODO : remboursement des transport en cas de voiture
+  // TODO : remboursement des transports en cas de voiture
   return 0;
 };
 
-exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, distanceMatrix) => {
-  const { _id, identity, sector, contracts } = auxiliary;
-
+exports.getPayFromEvents = async (events, distanceMatrix) => {
   let workedHours = 0;
   let notSurchargedAndNotExempt = 0;
   let surchargedAndNotExempt = 0;
@@ -311,17 +309,13 @@ exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, dista
       const subscription = await exports.populateSurcharge(sortedEvents[i].subscription);
       const service = getMatchingVersion(sortedEvents[i].startDate, subscription.service, 'startDate');
       if (service.exemptFromCharges) {
-        const hours = (i === 0)
-          ? await exports.getEventHours(sortedEvents[i], null, service, surchargedAndExemptDetails, distanceMatrix)
-          : await exports.getEventHours(sortedEvents[i], sortedEvents[i - 1], service, surchargedAndExemptDetails, distanceMatrix);
+        const hours = await exports.getEventHours(sortedEvents[i], (i !== 0) && sortedEvents[i - 1], service, surchargedAndExemptDetails, distanceMatrix);
         surchargedAndExempt += hours.surcharged;
         notSurchargedAndExempt += hours.notSurcharged;
         surchargedAndExemptDetails = hours.details;
         workedHours += hours.surcharged + hours.notSurcharged;
       } else {
-        const hours = (i === 0)
-          ? await exports.getEventHours(sortedEvents[i], null, service, surchargedAndNotExemptDetails, distanceMatrix)
-          : await exports.getEventHours(sortedEvents[i], sortedEvents[i - 1], service, surchargedAndNotExemptDetails, distanceMatrix);
+        const hours = await exports.getEventHours(sortedEvents[i], (i !== 0) && sortedEvents[i - 1], service, surchargedAndNotExemptDetails, distanceMatrix);
         surchargedAndNotExempt += hours.surcharged;
         notSurchargedAndNotExempt += hours.notSurcharged;
         surchargedAndNotExemptDetails = hours.details;
@@ -330,6 +324,21 @@ exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, dista
     }
   }
 
+  return {
+    workedHours,
+    notSurchargedAndNotExempt,
+    surchargedAndNotExempt,
+    surchargedAndNotExemptDetails,
+    notSurchargedAndExempt,
+    surchargedAndExempt,
+    surchargedAndExemptDetails,
+  };
+};
+
+exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, distanceMatrix) => {
+  const { _id, identity, sector, contracts } = auxiliary;
+
+  const hours = await exports.getPayFromEvents(events, distanceMatrix);
   const contractInfo = exports.getContractMonthInfo(contracts[0], query);
 
   return {
@@ -337,14 +346,8 @@ exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, dista
     startDate: query.startDate,
     endDate: query.endDate,
     contractHours: contractInfo.contractHours,
-    workedHours,
-    notSurchargedAndExempt,
-    surchargedAndExempt,
-    surchargedAndExemptDetails,
-    notSurchargedAndNotExempt,
-    surchargedAndNotExempt,
-    surchargedAndNotExemptDetails,
-    hoursBalance: workedHours - contractInfo.contractHours,
+    ...hours,
+    hoursBalance: hours.workedHours - contractInfo.contractHours,
     hoursCounter: 0,
     overtimeHours: 0,
     additionnalHours: 0,
