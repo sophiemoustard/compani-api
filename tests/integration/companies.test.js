@@ -64,6 +64,7 @@ describe('COMPANIES ROUTES', () => {
       const company = companiesList[0];
       const payload = {
         name: 'Alenvi Alenvi',
+        rhConfig: { feeAmount: 70 },
       };
       const response = await app.inject({
         method: 'PUT',

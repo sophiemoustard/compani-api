@@ -12,6 +12,7 @@ const companiesList = [
         { name: 'Code', default: false, _id: new ObjectID() },
         { name: 'Gouter', default: false, _id: new ObjectID() },
       ],
+      feeAmount: 12,
     },
     iban: faker.finance.iban(),
     bic: faker.finance.bic(),
