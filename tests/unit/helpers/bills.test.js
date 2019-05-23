@@ -1,5 +1,6 @@
 const expect = require('expect');
 const moment = require('moment');
+const sinon = require('sinon');
 
 const {
   formatBillNumber,
@@ -7,6 +8,7 @@ const {
   formatThirdPartyPayerBills,
   formatPDF,
 } = require('../../../helpers/bills');
+const UtilsHelper = require('../../../helpers/utils');
 
 describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
@@ -389,7 +391,16 @@ describe('formatThirdPartyPayerBills', () => {
 });
 
 describe('formatPDF', () => {
-  it('should format correct bill PDF', () => {
+  let formatPrice;
+  beforeEach(() => {
+    formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
+  });
+
+  afterEach(() => {
+    formatPrice.restore();
+  });
+
+  it('should format correct bill PDF for customer', () => {
     const bill = {
       subscriptions: [{
         events: [{
@@ -405,16 +416,24 @@ describe('formatPDF', () => {
         unitExclTaxes: 24.644549763033176,
         vat: 5.5,
         hours: 40,
-        exclTaxes: 1018.0094786729859,
+        exclTaxes: 1018.009,
         inclTaxes: 1074,
         service: 'Temps de qualité - autonomie'
       }],
+      customer: {
+        identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
+        contact: { address: { fullAddress: 'La ruche' } },
+      },
       netInclTaxes: 1074,
       date: '2019-04-30T21:59:59.999Z',
     };
 
-    const result = {
+    const expectedResult = {
       bill: {
+        customer: {
+          identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
+          contact: { address: { fullAddress: 'La ruche' } },
+        },
         formattedSubs: [{
           vat: '5,5',
           hours: 40,
@@ -422,6 +441,10 @@ describe('formatPDF', () => {
           inclTaxes: '1 074,00 €',
           service: 'Temps de qualité - autonomie'
         }],
+        recipient: {
+          name: 'M Donald Duck',
+          address: { fullAddress: 'La ruche' },
+        },
         netInclTaxes: '1 074,00 €',
         date: '30/04/2019',
         totalExclTaxes: '1 018,01 €',
@@ -437,6 +460,56 @@ describe('formatPDF', () => {
         logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
       }
     };
-    expect(formatPDF(bill, {})).toEqual(result);
+
+    formatPrice.onCall(0).returns('1 074,00 €');
+    formatPrice.onCall(1).returns('1 018,01 €');
+    formatPrice.onCall(2).returns('1 074,00 €');
+    formatPrice.onCall(3).returns('1 018,01 €');
+    formatPrice.onCall(4).returns('55,99 €');
+
+    const result = formatPDF(bill, {});
+
+    expect(result).toBeDefined();
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('should format correct bill PDF for third party payer', () => {
+    const bill = {
+      subscriptions: [{
+        events: [{
+          auxiliary: {
+            identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
+          },
+          startDate: '2019-04-10T06:00:00.000Z',
+          endDate: '2019-04-10T08:00:00.000Z',
+          bills: { inclTaxesCustomer: 52, exclTaxesCustomer: 49 },
+        }],
+        startDate: '2019-03-31T22:00:00.000Z',
+        endDate: '2019-04-30T21:59:59.999Z',
+        unitExclTaxes: 24.644549763033176,
+        vat: 5.5,
+        hours: 40,
+        exclTaxes: 1018.009,
+        inclTaxes: 1074,
+        service: 'Temps de qualité - autonomie'
+      }],
+      customer: {
+        identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
+        contact: { address: { fullAddress: 'La ruche' } },
+      },
+      client: {
+        name: 'tpp',
+        address: { fullAddress: 'j\'habite ici' },
+      },
+      netInclTaxes: 1074,
+      date: '2019-04-30T21:59:59.999Z',
+    };
+
+    const result = formatPDF(bill, {});
+
+    expect(result).toBeDefined();
+    expect(result.bill.recipient).toBeDefined();
+    expect(result.bill.recipient.name).toBe('tpp');
+    expect(result.bill.recipient.address).toEqual({ fullAddress: 'j\'habite ici' });
   });
 });

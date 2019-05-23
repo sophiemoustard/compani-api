@@ -128,6 +128,7 @@ const generateCreditNotePdf = async (req, h) => {
   try {
     const creditNote = await CreditNote.findOne({ _id: req.params._id })
       .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service' } })
+      .populate({ path: 'thirdPartyPayer', select: '_id name address' })
       .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
     const company = await Company.findOne();

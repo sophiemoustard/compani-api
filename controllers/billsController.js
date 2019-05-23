@@ -85,7 +85,7 @@ const list = async (req) => {
 const generateBillPdf = async (req, h) => {
   try {
     const bill = await Bill.findOne({ _id: req.params._id })
-      .populate({ path: 'client', select: '_id name' })
+      .populate({ path: 'client', select: '_id name address' })
       .populate({ path: 'customer', select: '_id identity contact' })
       .populate({ path: 'subscriptions.events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();

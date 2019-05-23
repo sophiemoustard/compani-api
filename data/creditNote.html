@@ -1,69 +1,79 @@
 <style>
-    body {
-      padding: 10%;
-      font-family: 'Source Sans Pro', 'Roboto', 'Helvetica', 'Arial';
-    }
-    table {
-      border-collapse: collapse;
-    }
-    table, th, td {
-      border: 1px solid rgba(0,0,0,0.12);
-    }
-    th, td {
-      padding: 5px;
-    }
-    .wrapper {
-      display: flex;
-      flex-flow: row wrap;
-    }
-    .logo, .company {
-      flex: 1 50%;
-    }
-    .subscriptions, .events {
-      flex: 1 100%;
-    }
-    .total {
-      flex: 0.3 30%;
-      margin-left: auto;
-    }
-    .creditNote, .customer {
-      text-align: right
-    }
-    .capitalize {
-      text-transform: capitalize;
-    }
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm;
+  }
+  body {
+    font-family: 'Source Sans Pro', 'Roboto', 'Helvetica', 'Arial';
+  }
+  table {
+    border-collapse: collapse;
+  }
+  table, th, td {
+    border: 1px solid rgba(0,0,0,0.12);
+  }
+  th, td {
+    padding: 5px;
+  }
+  .header {
+    display: flex;
+  }
+  .logo {
+    width: 70%;
+  }
+  .creditNote {
+    width: 30%;
+    text-align: right;
+  }
+  .company, .recipient {
+    width: 50%;
+  }
+  .recipient {
+    text-align: right;
+  }
+  .subscriptions, .events {
+    width: 100%;
+  }
+  .total {
+    width: 50%;
+    margin-left: auto;
+  }
+  .capitalize {
+    text-transform: capitalize;
+  }
   </style>
 
-  <div class="wrapper">
+  <div class="header">
     <div class="logo">
       <img src="{{ creditNote.logo }}">
     </div>
     <div class="creditNote">
       {{ creditNote.number }}<br />
       {{ creditNote.date }}<br />
-      Paiment à réception<br />
     </div>
   </div>
   <br />
-  <div class="wrapper">
+  <br />
+  <div class="header">
     <div class="company">
       {{ creditNote.company.name }}<br />
       {{ creditNote.company.address.street }}<br />
       {{ creditNote.company.address.zipCode }} {{ creditNote.company.address.city }}<br />
     </div>
-    <div class="customer">
-      {{ creditNote.customer.identity.title }} {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }}<br />
-      <span class="capitalize">{{ creditNote.customer.contact.address.street }}</span><br />
-      {{ creditNote.customer.contact.address.zipCode }} <span class="capitalize">{{ creditNote.customer.contact.address.city }}</span><br />
+    <div class="recipient">
+      <span>{{ creditNote.recipient.name }}</span><br />
+      <span class="capitalize">{{ creditNote.recipient.address.street }}</span><br />
+      {{ creditNote.recipient.address.zipCode }} <span class="capitalize">{{ creditNote.recipient.address.city }}</span><br />
     </div>
   </div>
-  <br />
   <br />
   <br />
   <br />
   <br />
   {{#if creditNote.subscription}}
   <div class="wrapper">
+    <p>Prestations réalisées chez {{ creditNote.customer.identity.title }} {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }},
+      <span class="capitalize">{{ creditNote.customer.contact.address.fullAddress }}.</span></p>
     <table class="subscriptions">
       <thead>
         <tr>
@@ -75,20 +85,16 @@
       <tbody>
         <tr>
           <td>{{ creditNote.subscription.service }}</td>
-          {{#if creditNote.exclTaxesTpp}}
-          <td> {{ creditNote.exclTaxesTpp }}</td>
-          <td> {{ creditNote.inclTaxesTpp }}</td>
-          {{else}}
-          <td> {{ creditNote.exclTaxesCustomer }}</td>
-          <td> {{ creditNote.inclTaxesCustomer }}</td>
-          {{/if}}
+          <td> {{ creditNote.exclTaxes }}</td>
+          <td> {{ creditNote.inclTaxes }}</td>
         </tr>
       </tbody>
     </table>
     <p>*ce total intègre les majorations et les éventuelles remises.</p>
   </div>
   {{else}}
-  <p>Prestations annulées</p>
+  <p>Prestations annulées chez {{ creditNote.customer.identity.title }} {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }},
+    <span class="capitalize">{{ creditNote.customer.contact.address.fullAddress }}.</span></p>
   <div class="wrapper">
     <table class="events">
       <thead>
@@ -125,9 +131,9 @@
       </thead>
       <tbody>
         <tr>
-          <td> {{ creditNote.totalExclTaxes }}</td>
+          <td> {{ creditNote.exclTaxes }}</td>
           <td> {{ creditNote.totalVAT }}</td>
-          <td> {{ creditNote.totalInclTaxes }}</td>
+          <td> {{ creditNote.inclTaxes }}</td>
         </tr>
       </tbody>
     </table>

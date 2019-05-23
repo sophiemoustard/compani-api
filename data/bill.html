@@ -13,31 +13,37 @@
     border: 1px solid rgba(0, 0, 0, 0.12);
   }
   th, td {
-    padding: 1%
+    padding: 5px
   }
-  .wrapper {
+  .header {
     display: flex;
-    flex-flow: row wrap;
   }
-  .logo, .company {
-    flex: 1 50%;
+  .logo {
+    width: 70%;
+  }
+  .bill {
+    width: 30%;
+    text-align: right;
+  }
+  .company, .recipient {
+    width: 50%;
+  }
+  .recipient {
+    text-align: right;
   }
   .subscriptions, .events {
-    flex: 1 100%;
+    width: 100%;
   }
   .total {
-    flex: 0.3 30%;
+    width: 50%;
     margin-left: auto;
-  }
-  .bill, .customer {
-    text-align: right
   }
   .capitalize {
     text-transform: capitalize;
   }
 </style>
 
-<div class="wrapper">
+<div class="header">
   <div class="logo">
     <img src="{{ bill.logo }}">
   </div>
@@ -48,24 +54,24 @@
   </div>
 </div>
 <br />
-<div class="wrapper">
+<br />
+<div class="header">
   <div class="company">
     {{ bill.company.name }}<br />
     {{ bill.company.address.street }}<br />
     {{ bill.company.address.zipCode }} {{ bill.company.address.city }}<br />
   </div>
-  <div class="customer">
-    {{ bill.customer.identity.title }} {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}<br />
-    <span class="capitalize">{{ bill.customer.contact.address.street }}</span><br />
-    {{ bill.customer.contact.address.zipCode }} <span class="capitalize">{{ bill.customer.contact.address.city }}</span><br />
+  <div class="recipient">
+    <span>{{ bill.recipient.name }}</span><br />
+    <span class="capitalize">{{ bill.recipient.address.street }}</span><br />
+    {{ bill.recipient.address.zipCode }} <span class="capitalize">{{ bill.recipient.address.city }}</span><br />
   </div>
 </div>
 <br />
 <br />
 <br />
 <br />
-<br />
-<div class="wrapper">
+<div class="subscriptions-wrapper">
   <table class="subscriptions">
     <thead>
       <tr>
@@ -109,7 +115,9 @@
 <br />
 <br />
 <br />
-<p>Prestations réalisées chez {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}, <span class="capitalize">{{ bill.customer.contact.address.fullAddress }}.</span></p>
+<br />
+<br />
+<p>Prestations réalisées chez {{ bill.customer.identity.title }} {{ bill.customer.identity.firstname }} {{ bill.customer.identity.lastname }}, <span class="capitalize">{{ bill.customer.contact.address.fullAddress }}.</span></p>
 <div class="wrapper">
   <table class="events">
     <thead>
