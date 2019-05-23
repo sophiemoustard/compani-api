@@ -8,8 +8,9 @@ const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const { getMatchingVersion } = require('./utils');
-const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION } = require('./constants');
+const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION, INTERNAL_HOUR, ABSENCE, DAILY, PAID_LEAVE, BIRTH, DEATH, WEDDING } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
+const UtilsHelper = require('./utils');
 
 momentRange.extendMoment(moment);
 const holidays = new Holidays('FR');
@@ -23,7 +24,7 @@ moment.updateLocale('fr', {
 });
 
 const getEventToPay = async rules => Event.aggregate([
-  { $match: { $and: rules } },
+  { $match: { ...rules } },
   {
     $lookup: {
       from: 'users',
@@ -118,6 +119,58 @@ const getEventToPay = async rules => Event.aggregate([
   { $unwind: { path: '$auxiliary' } },
 ]);
 
+const getPaidAbsences = async auxiliaries => Event.aggregate([
+  {
+    $match: {
+      type: ABSENCE,
+      absenceNature: DAILY,
+      absence: { $in: [DEATH, BIRTH, WEDDING, PAID_LEAVE] },
+      auxiliary: { $in: auxiliaries },
+    }
+  },
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'auxiliary',
+      foreignField: '_id',
+      as: 'auxiliary',
+    },
+  },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $lookup: {
+      from: 'sectors',
+      localField: 'auxiliary.sector',
+      foreignField: '_id',
+      as: 'auxiliary.sector',
+    },
+  },
+  { $unwind: { path: '$auxiliary.sector' } },
+  {
+    $lookup: {
+      from: 'contracts',
+      localField: 'auxiliary.contracts',
+      foreignField: '_id',
+      as: 'auxiliary.contracts',
+    },
+  },
+  {
+    $project: {
+      auxiliary: {
+        _id: 1,
+        identity: { firstname: 1, lastname: 1 },
+        sector: 1,
+        contracts: 1,
+        contact: 1,
+        administrative: { mutualFund: 1, transportInvoice: 1 },
+      },
+      startDate: 1,
+      endDate: 1,
+    }
+  },
+  { $group: { _id: '$auxiliary._id', events: { $push: '$$ROOT' } } },
+]);
+
 exports.populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
     if (subscription.service.versions[i].surcharge) {
@@ -133,7 +186,7 @@ exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
   let count = 0;
   const range = Array.from(moment().range(start, end).by('days'));
   for (const day of range) {
-    if (moment(day).isBusinessDay()) count += 1;
+    if (moment(day.format('YYYY-MM-DD')).isBusinessDay()) count += 1; // Format is necessery to check fr holidays in business day
   }
 
   return count;
@@ -369,10 +422,29 @@ exports.getPayFromEvents = async (events, distanceMatrix) => {
   };
 };
 
-exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, distanceMatrix) => {
+exports.getPayFromAbsences = (absences, contract) => {
+  let hours = 0;
+  if (absences) {
+    for (const absence of absences) {
+      const range = Array.from(moment().range(absence.startDate, absence.endDate).by('days'));
+      for (const day of range) {
+        if (moment(day.format('YYYY-MM-DD')).isBusinessDay()) {
+          const version = contract.versions.length === 1 ? contract.versions[0] : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
+          hours += version.weeklyHours / 6; // Format is necessery to check fr holidays in business day
+        }
+      }
+    }
+  }
+
+  return hours;
+};
+
+exports.getDraftPayByAuxiliary = async (events, absences, company, query, distanceMatrix) => {
+  const { auxiliary } = events[0] && events[0][0] ? events[0][0] : absences[0];
   const { _id, identity, sector, contracts } = auxiliary;
 
   const hours = await exports.getPayFromEvents(events, distanceMatrix);
+  const absencesHours = exports.getPayFromAbsences(absences, contracts[0]);
   const contractInfo = exports.getContractMonthInfo(contracts[0], query);
 
   return {
@@ -381,7 +453,7 @@ exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, dista
     endDate: query.endDate,
     contractHours: contractInfo.contractHours,
     ...hours,
-    hoursBalance: hours.workedHours - contractInfo.contractHours,
+    hoursBalance: (hours.workedHours - contractInfo.contractHours) + absencesHours,
     hoursCounter: 0,
     overtimeHours: 0,
     additionnalHours: 0,
@@ -392,14 +464,25 @@ exports.getDraftPayByAuxiliary = async (events, auxiliary, company, query, dista
   };
 };
 
-exports.getDraftPay = async (rules, query) => {
+exports.getDraftPay = async (auxiliaries, query) => {
+  const rules = {
+    type: { $in: [INTERNAL_HOUR, INTERVENTION] },
+    startDate: { $gte: moment(query.startDate).startOf('d').toDate() },
+    endDate: { $lte: moment(query.endDate).endOf('d').toDate() },
+    auxiliary: { $in: auxiliaries },
+  };
   const eventsToPay = await getEventToPay(rules);
   const company = await Company.findOne({}).lean();
   const distanceMatrix = await DistanceMatrix.find();
+  const absences = await getPaidAbsences(auxiliaries);
 
   const draftPay = [];
-  for (const group of eventsToPay) {
-    draftPay.push(await exports.getDraftPayByAuxiliary(group.events, group.events[0][0].auxiliary, company, query, distanceMatrix));
+  for (const aux of auxiliaries) {
+    const auxAbsences = absences.find(abs => abs._id.toHexString() === aux.toHexString());
+    const auxEvents = eventsToPay.find(abs => abs._id.toHexString() === aux.toHexString());
+    if (auxEvents || auxAbsences) {
+      draftPay.push(await exports.getDraftPayByAuxiliary(auxEvents ? auxEvents.events : [], auxAbsences ? auxAbsences.events : [], company, query, distanceMatrix));
+    }
   }
 
   return draftPay;

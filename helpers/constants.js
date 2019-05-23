@@ -6,6 +6,10 @@ module.exports = {
   INTERNAL_HOUR: 'internalHour',
   UNJUSTIFIED: 'unjustified absence',
   ILLNESS: 'illness',
+  PAID_LEAVE: 'leave',
+  WEDDING: 'wedding',
+  BIRTH: 'birth',
+  DEATH: 'death',
   // COMPANY
   MAX_INTERNAL_HOURS_NUMBER: 9,
   // COMPANY THIRD PARTY PAYERS

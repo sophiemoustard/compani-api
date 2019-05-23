@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const moment = require('moment');
 const DraftPayHelper = require('../../../helpers/draftPay');
 const DistanceMatrixHelper = require('../../../helpers/distanceMatrix');
+const UtilsPayHelper = require('../../../helpers/utils');
 const Surcharge = require('../../../models/Surcharge');
 
 describe('getBusinessDaysCountBetweenTwoDates', () => {
@@ -562,5 +563,54 @@ describe('getTransportRefund', () => {
 
     expect(result).toBeDefined();
     expect(result).toBe(4);
+  });
+});
+
+describe('getPayFromAbsences', () => {
+  let getMatchingVersion;
+  beforeEach(() => {
+    getMatchingVersion = sinon.stub(UtilsPayHelper, 'getMatchingVersion');
+  });
+
+  afterEach(() => {
+    getMatchingVersion.restore();
+  });
+
+  it('should return 0 if no absences', () => {
+    const result = DraftPayHelper.getPayFromAbsences([], {});
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return paid hours from absence with one version in contract', () => {
+    const absences = [
+      { startDate: '2019-01-18T07:00:00.636Z', endDate: '2019-01-18T22:00:00.636Z' },
+      { startDate: '2019-05-01T07:00:00.636Z', endDate: '2019-05-03T22:00:00.636Z' },
+    ];
+    const contract = { versions: [{ weeklyHours: 12 }] };
+
+    const result = DraftPayHelper.getPayFromAbsences(absences, contract);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(6);
+    sinon.assert.notCalled(getMatchingVersion);
+  });
+
+  it('should return paid hours from absence with two versions in contract', () => {
+    const absences = [
+      { startDate: '2019-01-18T07:00:00.636Z', endDate: '2019-01-18T22:00:00.636Z' },
+      { startDate: '2019-05-01T07:00:00.636Z', endDate: '2019-05-03T22:00:00.636Z' },
+    ];
+    const contract = { versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }] };
+
+    getMatchingVersion.onCall(0).returns({ weeklyHours: 12 });
+    getMatchingVersion.onCall(1).returns({ weeklyHours: 24 });
+    getMatchingVersion.onCall(2).returns({ weeklyHours: 24 });
+    const result = DraftPayHelper.getPayFromAbsences(absences, contract);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(10);
+    sinon.assert.called(getMatchingVersion);
   });
 });
