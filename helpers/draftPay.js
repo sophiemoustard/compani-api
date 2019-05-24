@@ -171,17 +171,6 @@ const getPaidAbsences = async auxiliaries => Event.aggregate([
   { $group: { _id: '$auxiliary._id', events: { $push: '$$ROOT' } } },
 ]);
 
-exports.populateSurcharge = async (subscription) => {
-  for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
-    if (subscription.service.versions[i].surcharge) {
-      const surcharge = await Surcharge.findOne({ _id: subscription.service.versions[i].surcharge });
-      subscription.service.versions[i] = { ...subscription.service.versions[i], surcharge };
-    }
-  }
-
-  return subscription;
-};
-
 exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
   let count = 0;
   const range = Array.from(moment().range(start, end).by('days'));
@@ -374,7 +363,7 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
   return 0;
 };
 
-exports.getPayFromEvents = async (events, distanceMatrix) => {
+exports.getPayFromEvents = async (events, distanceMatrix, surcharges) => {
   let workedHours = 0;
   let notSurchargedAndNotExempt = 0;
   let surchargedAndNotExempt = 0;
@@ -388,8 +377,8 @@ exports.getPayFromEvents = async (events, distanceMatrix) => {
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
       let service = null;
       if (sortedEvents[i].type === INTERVENTION) {
-        const subscription = await exports.populateSurcharge(sortedEvents[i].subscription);
-        service = getMatchingVersion(sortedEvents[i].startDate, subscription.service, 'startDate');
+        service = getMatchingVersion(sortedEvents[i].startDate, sortedEvents[i].subscription.service, 'startDate');
+        service.surcharge = surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null;
       }
 
       if (service && service.exemptFromCharges) {
@@ -439,13 +428,14 @@ exports.getPayFromAbsences = (absences, contract) => {
   return hours;
 };
 
-exports.getDraftPayByAuxiliary = async (events, absences, company, query, distanceMatrix) => {
+exports.getDraftPayByAuxiliary = async (events, absences, company, query, distanceMatrix, surcharges) => {
   const { auxiliary } = events[0] && events[0][0] ? events[0][0] : absences[0];
   const { _id, identity, sector, contracts } = auxiliary;
 
-  const hours = await exports.getPayFromEvents(events, distanceMatrix);
+  const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges);
   const absencesHours = exports.getPayFromAbsences(absences, contracts[0]);
   const contractInfo = exports.getContractMonthInfo(contracts[0], query);
+  const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
 
   return {
     auxiliary: { _id, identity, sector },
@@ -453,8 +443,8 @@ exports.getDraftPayByAuxiliary = async (events, absences, company, query, distan
     endDate: query.endDate,
     contractHours: contractInfo.contractHours,
     ...hours,
-    hoursBalance: (hours.workedHours - contractInfo.contractHours) + absencesHours,
-    hoursCounter: 0,
+    hoursBalance,
+    hoursCounter: hoursBalance,
     overtimeHours: 0,
     additionnalHours: 0,
     mutual: !get(auxiliary, 'administrative.mutualFund.has'),
@@ -472,19 +462,26 @@ exports.getDraftPay = async (auxiliaries, query) => {
     auxiliary: { $in: auxiliaries },
   };
   const eventsToPay = await getEventToPay(rules);
-  const company = await Company.findOne({}).lean();
-  const distanceMatrix = await DistanceMatrix.find();
   const absences = await getPaidAbsences(auxiliaries);
+  const company = await Company.findOne({}).lean();
+  const surcharges = await Surcharge.find({});
+  const distanceMatrix = await DistanceMatrix.find();
 
   const draftPay = [];
   for (const aux of auxiliaries) {
     const auxAbsences = absences.find(abs => abs._id.toHexString() === aux.toHexString());
     const auxEvents = eventsToPay.find(abs => abs._id.toHexString() === aux.toHexString());
     if (auxEvents || auxAbsences) {
-      draftPay.push(await exports.getDraftPayByAuxiliary(auxEvents ? auxEvents.events : [], auxAbsences ? auxAbsences.events : [], company, query, distanceMatrix));
+      draftPay.push(await exports.getDraftPayByAuxiliary(
+        auxEvents ? auxEvents.events : [],
+        auxAbsences ? auxAbsences.events : [],
+        company,
+        query,
+        distanceMatrix,
+        surcharges,
+      ));
     }
   }
 
   return draftPay;
-  // return eventsToPay;
 };

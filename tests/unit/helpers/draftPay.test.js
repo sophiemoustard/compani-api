@@ -4,7 +4,6 @@ const moment = require('moment');
 const DraftPayHelper = require('../../../helpers/draftPay');
 const DistanceMatrixHelper = require('../../../helpers/distanceMatrix');
 const UtilsPayHelper = require('../../../helpers/utils');
-const Surcharge = require('../../../models/Surcharge');
 
 describe('getBusinessDaysCountBetweenTwoDates', () => {
   it('Case 1. No sundays nor holidays in range', () => {
@@ -105,27 +104,6 @@ describe('getContractMonthInfo', () => {
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
-  });
-});
-
-describe('populateSurcharge', () => {
-  it('should return subscription without change if no surcharge', async () => {
-    const subscription = { service: { versions: [{ _id: '1234567890' }] } };
-    const result = await DraftPayHelper.populateSurcharge(subscription);
-
-    expect(result).toBeDefined();
-    expect(result.service.versions[0].surcharge).not.toBeDefined();
-    expect(result).toBe(subscription);
-  });
-
-  it('should populate surcharge', async () => {
-    const stub = sinon.stub(Surcharge, 'findOne').returns(new Surcharge({ name: 'Toto' }));
-    const subscription = { service: { versions: [{ _id: '1234567890', surcharge: 'qwertyuiop' }] } };
-    const result = await DraftPayHelper.populateSurcharge(subscription);
-    stub.restore();
-
-    expect(result).toBeDefined();
-    expect(result.service.versions[0].surcharge).toBeDefined();
   });
 });
 
