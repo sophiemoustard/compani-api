@@ -124,8 +124,6 @@ const getPaidAbsences = async auxiliaries => Event.aggregate([
   {
     $match: {
       type: ABSENCE,
-      absenceNature: DAILY,
-      absence: { $in: [DEATH, BIRTH, WEDDING, PAID_LEAVE] },
       auxiliary: { $in: auxiliaries },
     }
   },
@@ -167,6 +165,7 @@ const getPaidAbsences = async auxiliaries => Event.aggregate([
       },
       startDate: 1,
       endDate: 1,
+      absenceNature: 1,
     }
   },
   { $group: { _id: '$auxiliary._id', events: { $push: '$$ROOT' } } },
@@ -416,12 +415,16 @@ exports.getPayFromAbsences = (absences, contract) => {
   let hours = 0;
   if (absences) {
     for (const absence of absences) {
-      const range = Array.from(moment().range(absence.startDate, absence.endDate).by('days'));
-      for (const day of range) {
-        if (moment(day.format('YYYY-MM-DD')).isBusinessDay()) {
-          const version = contract.versions.length === 1 ? contract.versions[0] : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
-          hours += version.weeklyHours / 6; // Format is necessery to check fr holidays in business day
+      if (absence.absenceNature === DAILY) {
+        const range = Array.from(moment().range(absence.startDate, absence.endDate).by('days'));
+        for (const day of range) {
+          if (moment(day.format('YYYY-MM-DD')).isBusinessDay()) {
+            const version = contract.versions.length === 1 ? contract.versions[0] : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
+            hours += version.weeklyHours / 6; // Format is necessery to check fr holidays in business day
+          }
         }
+      } else {
+        hours += moment(absence.endDate).diff(absence.startDate, 'm') / 60;
       }
     }
   }

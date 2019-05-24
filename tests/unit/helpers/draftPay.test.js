@@ -561,10 +561,10 @@ describe('getPayFromAbsences', () => {
     expect(result).toBe(0);
   });
 
-  it('should return paid hours from absence with one version in contract', () => {
+  it('should return paid hours from daily absence with one version in contract', () => {
     const absences = [
-      { startDate: '2019-01-18T07:00:00.636Z', endDate: '2019-01-18T22:00:00.636Z' },
-      { startDate: '2019-05-01T07:00:00.636Z', endDate: '2019-05-03T22:00:00.636Z' },
+      { absenceNature: 'daily', startDate: '2019-01-18T07:00:00.636Z', endDate: '2019-01-18T22:00:00.636Z' },
+      { absenceNature: 'daily', startDate: '2019-05-01T07:00:00.636Z', endDate: '2019-05-03T22:00:00.636Z' },
     ];
     const contract = { versions: [{ weeklyHours: 12 }] };
 
@@ -575,10 +575,10 @@ describe('getPayFromAbsences', () => {
     sinon.assert.notCalled(getMatchingVersion);
   });
 
-  it('should return paid hours from absence with two versions in contract', () => {
+  it('should return paid hours from daily absence with two versions in contract', () => {
     const absences = [
-      { startDate: '2019-01-18T07:00:00.636Z', endDate: '2019-01-18T22:00:00.636Z' },
-      { startDate: '2019-05-01T07:00:00.636Z', endDate: '2019-05-03T22:00:00.636Z' },
+      { absenceNature: 'daily', startDate: '2019-01-18T07:00:00.636Z', endDate: '2019-01-18T22:00:00.636Z' },
+      { absenceNature: 'daily', startDate: '2019-05-01T07:00:00.636Z', endDate: '2019-05-03T22:00:00.636Z' },
     ];
     const contract = { versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }] };
 
@@ -590,5 +590,18 @@ describe('getPayFromAbsences', () => {
     expect(result).toBeDefined();
     expect(result).toBe(10);
     sinon.assert.called(getMatchingVersion);
+  });
+
+  it('should return paid hours from hourly absence', () => {
+    const absences = [
+      { absenceNature: 'hourly', startDate: '2019-01-18T10:00:00.636Z', endDate: '2019-01-18T12:00:00.636Z' },
+    ];
+    const contract = { versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }] };
+
+    const result = DraftPayHelper.getPayFromAbsences(absences, contract);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(2);
+    sinon.assert.notCalled(getMatchingVersion);
   });
 });
