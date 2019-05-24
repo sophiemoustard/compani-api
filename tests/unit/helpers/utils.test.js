@@ -105,14 +105,14 @@ describe('getMatchingVersion', () => {
         },
         {
           startDate: moment()
-            .add(2, 'd')
+            .add(3, 'd')
             .toISOString(),
           _id: 2
         }
       ]
     };
 
-    expect(getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate')).toBeNull();
+    expect(getMatchingVersion(moment().add(2, 'd').toISOString(), obj, 'startDate')).toBeNull();
   });
 });
 
