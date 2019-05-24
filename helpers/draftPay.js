@@ -42,7 +42,7 @@ const getEventToPay = async rules => Event.aggregate([
       as: 'customer',
     },
   },
-  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } }, // WARNING heures internes
+  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
   {
     $addFields: {
       subscription: {
@@ -50,7 +50,7 @@ const getEventToPay = async rules => Event.aggregate([
       }
     }
   },
-  { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } }, // WARNING heures internes
+  { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
   {
     $lookup: {
       from: 'services',
@@ -59,7 +59,7 @@ const getEventToPay = async rules => Event.aggregate([
       as: 'subscription.service',
     }
   },
-  { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } }, // WARNING heures internes
+  { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
   {
     $lookup: {
       from: 'sectors',
@@ -438,6 +438,7 @@ exports.getDraftPayByAuxiliary = async (events, absences, company, query, distan
   const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
 
   return {
+    auxiliaryId: auxiliary._id,
     auxiliary: { _id, identity, sector },
     startDate: query.startDate,
     endDate: query.endDate,
