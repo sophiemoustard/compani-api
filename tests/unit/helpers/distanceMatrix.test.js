@@ -3,39 +3,22 @@ const sinon = require('sinon');
 const _ = require('lodash');
 
 const DistanceMatrixHelper = require('../../../helpers/distanceMatrix');
-
 const DistanceMatrix = require('../../../models/DistanceMatrix');
 const maps = require('../../../models/Google/Maps');
-
 
 const distanceMatrixRequest = {
   origins: 'Washington, DC',
   destinations: 'New York City, NY',
   mode: 'DRIVING'
 };
-
 const distanceMatrixResult = {
   data: {
-    destination_addresses: ['New York, État de New York, États-Unis'],
-    origin_addresses: ['Washington, District de Columbia, États-Unis'],
-    rows: [
-      {
-        elements: [
-          {
-            distance: {
-              text: '226 miles',
-              value: 363998
-            },
-            duration: {
-              text: '3 heures 50 minutes',
-              value: 13790
-            },
-            status: 'OK'
-          }
-        ]
-      }
-    ],
-    status: 'OK'
+    rows: [{
+      elements: [{
+        distance: { value: 363998 },
+        duration: { value: 13790 },
+      }]
+    }]
   },
   status: 200
 };
@@ -48,7 +31,6 @@ describe('getOrCreateDistanceMatrix', () => {
   beforeEach(() => {
     findOne = sinon.stub(DistanceMatrix, 'findOne');
     save = sinon.stub(DistanceMatrix.prototype, 'save').returnsThis();
-
     getDistanceMatrix = sinon.stub(maps, 'getDistanceMatrix').returns(distanceMatrixResult);
   });
 
@@ -59,9 +41,7 @@ describe('getOrCreateDistanceMatrix', () => {
   });
 
   it('should return the document already saved', async () => {
-    findOne.returns({
-      duration: 13792
-    });
+    findOne.returns({ duration: 13792 });
 
     const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest);
 
