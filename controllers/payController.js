@@ -2,6 +2,7 @@ const Boom = require('boom');
 const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
 const Contract = require('../models/Contract');
+const Pay = require('../models/Pay');
 const { COMPANY_CONTRACT } = require('../helpers/constants');
 
 const { language } = translate;
@@ -30,6 +31,23 @@ const draftPayList = async (req) => {
   }
 };
 
+const createList = (req) => {
+  try {
+    const promises = [];
+    for (const pay of req.payload) {
+      promises.push((new Pay(pay)).save());
+    }
+
+    Promise.resolve(promises);
+
+    return { message: translate[language].payListCreated };
+  } catch (e) {
+    req.log('error', e);
+    Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   draftPayList,
+  createList,
 };

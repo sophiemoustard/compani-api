@@ -442,6 +442,7 @@ exports.getDraftPayByAuxiliary = async (events, absences, company, query, distan
     auxiliary: { _id, identity, sector },
     startDate: query.startDate,
     endDate: query.endDate,
+    month: moment(query.startDate).format('MMM'),
     contractHours: contractInfo.contractHours,
     ...hours,
     hoursBalance,
