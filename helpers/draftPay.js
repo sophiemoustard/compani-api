@@ -467,8 +467,8 @@ exports.getDraftPay = async (auxiliaries, query) => {
     endDate: { $lte: moment(query.endDate).endOf('d').toDate() },
     auxiliary: { $in: auxiliaries },
   };
-  const eventsToPay = await getEventToPay(rules);
-  const absences = await getPaidAbsences(auxiliaries);
+  const eventsByAuxiliary = await getEventToPay(rules);
+  const absencesByAuxiliary = await getPaidAbsences(auxiliaries);
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();
@@ -476,8 +476,8 @@ exports.getDraftPay = async (auxiliaries, query) => {
 
   const draftPay = [];
   for (const aux of auxiliaries) {
-    const auxAbsences = absences.find(abs => abs._id.toHexString() === aux.toHexString());
-    const auxEvents = eventsToPay.find(abs => abs._id.toHexString() === aux.toHexString());
+    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === aux.toHexString());
+    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === aux.toHexString());
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux.toHexString());
     if (auxEvents || auxAbsences) {
       draftPay.push(await exports.getDraftPayByAuxiliary(
