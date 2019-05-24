@@ -6,24 +6,23 @@ const DistanceMatrixHelper = require('../../../helpers/distanceMatrix');
 const DistanceMatrix = require('../../../models/DistanceMatrix');
 const maps = require('../../../models/Google/Maps');
 
-const distanceMatrixRequest = {
-  origins: 'Washington, DC',
-  destinations: 'New York City, NY',
-  mode: 'DRIVING'
-};
-const distanceMatrixResult = {
-  data: {
-    rows: [{
-      elements: [{
-        distance: { value: 363998 },
-        duration: { value: 13790 },
-      }]
-    }]
-  },
-  status: 200
-};
-
 describe('getOrCreateDistanceMatrix', () => {
+  const distanceMatrixRequest = {
+    origins: 'Washington, DC',
+    destinations: 'New York City, NY',
+    mode: 'DRIVING'
+  };
+  const distanceMatrixResult = {
+    data: {
+      rows: [{
+        elements: [{
+          distance: { value: 363998 },
+          duration: { value: 13790 },
+        }]
+      }]
+    },
+    status: 200
+  };
   let findOne;
   let save;
   let getDistanceMatrix;
