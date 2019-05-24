@@ -45,6 +45,8 @@ describe('getOrCreateDistanceMatrix', () => {
 
     const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest);
 
+    sinon.assert.calledOnce(findOne);
+    sinon.assert.notCalled(getDistanceMatrix);
     expect(result).toMatchObject({ duration: 13792 });
   });
 
@@ -57,6 +59,8 @@ describe('getOrCreateDistanceMatrix', () => {
 
     const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest);
 
+    sinon.assert.calledOnce(getDistanceMatrix);
+    sinon.assert.notCalled(save);
     expect(result).toBe(null);
   });
 
@@ -69,6 +73,8 @@ describe('getOrCreateDistanceMatrix', () => {
 
     const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest);
 
+    sinon.assert.calledOnce(getDistanceMatrix);
+    sinon.assert.notCalled(save);
     expect(result).toBe(null);
   });
 
@@ -81,6 +87,8 @@ describe('getOrCreateDistanceMatrix', () => {
 
     const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest);
 
+    sinon.assert.calledOnce(getDistanceMatrix);
+    sinon.assert.notCalled(save);
     expect(result).toBe(null);
   });
 
@@ -90,6 +98,7 @@ describe('getOrCreateDistanceMatrix', () => {
 
     const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest);
 
+    sinon.assert.calledOnce(save);
     expect(result).toEqual(expect.objectContaining({
       _id: expect.any(Object),
       destinations: 'New York City, NY',
