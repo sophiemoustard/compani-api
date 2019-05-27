@@ -48,7 +48,7 @@ exports.plugin = {
             hoursBalance: Joi.number().required(),
             hoursCounter: Joi.number().required(),
             overtimeHours: Joi.number().required(),
-            additionnalHours: Joi.number().required(),
+            additionalHours: Joi.number().required(),
             mutual: Joi.boolean().required(),
             transport: Joi.number().required(),
             otherFees: Joi.number().required(),

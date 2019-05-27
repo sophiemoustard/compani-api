@@ -9,14 +9,14 @@ const PaySchema = mongoose.Schema({
   workedHours: Number,
   notSurchargedAndNotExempt: Number,
   surchargedAndNotExempt: Number,
-  surchargedAndNotExemptDetails: Object, // TODO: à préciser
+  surchargedAndNotExemptDetails: String,
   notSurchargedAndExempt: Number,
   surchargedAndExempt: Number,
-  surchargedAndExemptDetails: Object, // TODO: à préciser
+  surchargedAndExemptDetails: String,
   hoursBalance: Number,
   hoursCounter: Number,
   overtimeHours: Number,
-  additionnalHours: Number,
+  additionalHours: Number,
   mutual: Boolean,
   transport: Number,
   otherFees: Number,

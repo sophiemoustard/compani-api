@@ -301,7 +301,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
-  const serviceMatchingVersion = getMatchingVersion(query.billingStartDate, subscription.service, 'startDate');
+  const serviceMatchingVersion = getMatchingVersion(query.endDate, subscription.service, 'startDate');
 
   const draftBillInfo = {
     _id: mongoose.Types.ObjectId(),

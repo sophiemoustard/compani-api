@@ -1,4 +1,6 @@
 const Boom = require('boom');
+const differenceBy = require('lodash/differenceBy');
+const moment = require('moment');
 const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
 const Contract = require('../models/Contract');
@@ -11,15 +13,19 @@ const draftPayList = async (req) => {
   try {
     const contractRules = [
       { status: COMPANY_CONTRACT },
-      { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
+      { $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gte: moment(req.endDate).endOf('d').toDate() } }] },
     ];
     const auxiliaries = await Contract.aggregate([
       { $match: { $and: contractRules } },
       { $group: { _id: '$user' } },
       { $project: { _id: 1 } },
     ]);
+    const alreadyPaidAuxiliaries = await Pay.find({ month: moment(req.query.startDate).format('MMMM') });
 
-    const draftPay = await getDraftPay(auxiliaries.map(aux => aux._id), req.query);
+    const draftPay = await getDraftPay(
+      differenceBy(auxiliaries.map(aux => aux._id), alreadyPaidAuxiliaries.map(aux => aux.auxiliary), x => x.toHexString()),
+      req.query
+    );
 
     return {
       message: translate[language].draftPay,
@@ -35,10 +41,14 @@ const createList = (req) => {
   try {
     const promises = [];
     for (const pay of req.payload) {
-      promises.push((new Pay(pay)).save());
+      promises.push((new Pay({
+        ...pay,
+        ...(pay.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: JSON.stringify(pay.surchargedAndNotExemptDetails) }),
+        ...(pay.surchargedAndExemptDetails && { surchargedAndExemptDetails: JSON.stringify(pay.surchargedAndExemptDetails) }),
+      })).save());
     }
 
-    Promise.resolve(promises);
+    Promise.all(promises);
 
     return { message: translate[language].payListCreated };
   } catch (e) {

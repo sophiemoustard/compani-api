@@ -201,11 +201,11 @@ describe('applySurcharge', () => {
 
   it('should apply surcharge', () => {
     getSurchargeDetails.returns({});
-    const result = DraftPayHelper.applySurcharge(120, 'Luigi', 10, {}, { distance: 10, duration: 30 });
+    const result = DraftPayHelper.applySurcharge(2.8, 'Luigi', 10, {}, 10);
 
     sinon.assert.called(getSurchargeDetails);
     expect(result).toBeDefined();
-    expect(result).toEqual({ surcharged: 2.5, notSurcharged: 0, details: {}, paidKm: 10 });
+    expect(result).toEqual({ surcharged: 2.8, notSurcharged: 0, details: {}, paidKm: 10 });
   });
 });
 
