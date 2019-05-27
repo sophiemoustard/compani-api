@@ -18,7 +18,8 @@ const CreditNoteSchema = mongoose.Schema({
   subscription: {
     _id: { type: mongoose.Schema.Types.ObjectId },
     service: String,
-    vat: Number
+    vat: Number,
+    unitExclTaxes: Number,
   },
   linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' }
 }, { timestamps: true });
