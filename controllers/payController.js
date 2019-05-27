@@ -20,10 +20,7 @@ const draftPayList = async (req) => {
       { $group: { _id: '$user' } },
       { $project: { _id: 1 } },
     ]);
-    const alreadyPaidAuxiliaries = await Pay.aggregate([
-      { $match: { month: moment(req.query.startDate).format('MMMM') } },
-      { $project: { auxiliary: 1 } },
-    ]);
+    const alreadyPaidAuxiliaries = await Pay.find({ month: moment(req.query.startDate).format('MMMM') });
 
     const draftPay = await getDraftPay(
       differenceBy(auxiliaries.map(aux => aux._id), alreadyPaidAuxiliaries.map(aux => aux.auxiliary), x => x.toHexString()),
@@ -51,7 +48,7 @@ const createList = (req) => {
       })).save());
     }
 
-    Promise.resolve(promises);
+    Promise.all(promises);
 
     return { message: translate[language].payListCreated };
   } catch (e) {

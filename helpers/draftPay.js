@@ -242,10 +242,10 @@ exports.getSurchargeDetails = (surchargedHours, surchargePlan, surcharge, detail
   };
 };
 
-exports.applySurcharge = (paidDuration, surchargePlan, surcharge, details, paidDistance) => ({
-  surcharged: paidDuration,
+exports.applySurcharge = (paidHours, surchargePlan, surcharge, details, paidDistance) => ({
+  surcharged: paidHours,
   notSurcharged: 0,
-  details: exports.getSurchargeDetails(paidDuration, surchargePlan, surcharge, details),
+  details: exports.getSurchargeDetails(paidHours, surchargePlan, surcharge, details),
   paidKm: paidDistance,
 });
 
@@ -255,17 +255,17 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
     eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime, name
   } = surcharge;
 
-  const paidDuration = (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60;
+  const paidHours = (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60;
   if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
-    return exports.applySurcharge(paidDuration, name, `25 décembre - ${twentyFifthOfDecember}%`, surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, name, `25 décembre - ${twentyFifthOfDecember}%`, surchargeDetails, paidTransport.distance);
   } else if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
-    return exports.applySurcharge(paidDuration, name, `1er mai - ${firstOfMay}%`, surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, name, `1er mai - ${firstOfMay}%`, surchargeDetails, paidTransport.distance);
   } else if (publicHoliday && publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) {
-    return exports.applySurcharge(paidDuration, name, `Jours fériés - ${publicHoliday}%`, surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, name, `Jours fériés - ${publicHoliday}%`, surchargeDetails, paidTransport.distance);
   } else if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
-    return exports.applySurcharge(paidDuration, name, `Samedi - ${saturday}%`, surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, name, `Samedi - ${saturday}%`, surchargeDetails, paidTransport.distance);
   } else if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) {
-    return exports.applySurcharge(paidDuration, name, `Dimanche - ${sunday}%`, surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, name, `Dimanche - ${sunday}%`, surchargeDetails, paidTransport.distance);
   }
 
   let totalSurchargedHours = 0;
@@ -283,7 +283,7 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
 
   return {
     surcharged: totalSurchargedHours,
-    notSurcharged: paidDuration - totalSurchargedHours,
+    notSurcharged: paidHours - totalSurchargedHours,
     details,
     paidKm: paidTransport.distance,
   };
@@ -378,7 +378,7 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges) => {
       let service = null;
       if (sortedEvents[i].type === INTERVENTION) {
         service = getMatchingVersion(sortedEvents[i].startDate, sortedEvents[i].subscription.service, 'startDate');
-        service.surcharge = surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null;
+        service.surcharge = service.surcharge ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null : null;
       }
 
       if (service && service.exemptFromCharges) {
