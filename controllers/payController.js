@@ -1,4 +1,6 @@
 const Boom = require('boom');
+const differenceBy = require('lodash/differenceBy');
+const moment = require('moment');
 const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
 const Contract = require('../models/Contract');
@@ -18,8 +20,15 @@ const draftPayList = async (req) => {
       { $group: { _id: '$user' } },
       { $project: { _id: 1 } },
     ]);
+    const alreadyPaidAuxiliaries = await Pay.aggregate([
+      { $match: { month: moment(req.query.startDate).format('MMMM') } },
+      { $project: { auxiliary: 1 } },
+    ]);
 
-    const draftPay = await getDraftPay(auxiliaries.map(aux => aux._id), req.query);
+    const draftPay = await getDraftPay(
+      differenceBy(auxiliaries.map(aux => aux._id), alreadyPaidAuxiliaries.map(aux => aux.auxiliary), x => x.toHexString()),
+      req.query
+    );
 
     return {
       message: translate[language].draftPay,
