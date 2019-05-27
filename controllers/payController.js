@@ -13,7 +13,7 @@ const draftPayList = async (req) => {
   try {
     const contractRules = [
       { status: COMPANY_CONTRACT },
-      { $or: [{ endDate: null }, { endDate: { $exists: false } }] },
+      { $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gte: moment(req.endDate).endOf('d').toDate() } }] },
     ];
     const auxiliaries = await Contract.aggregate([
       { $match: { $and: contractRules } },
