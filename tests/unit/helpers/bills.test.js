@@ -1,6 +1,7 @@
 const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
+const { ObjectID } = require('mongodb');
 
 const BillHelper = require('../../../helpers/bills');
 const UtilsHelper = require('../../../helpers/utils');
@@ -511,5 +512,80 @@ describe('formatPDF', () => {
     expect(result.bill.recipient).toBeDefined();
     expect(result.bill.recipient.name).toBe('tpp');
     expect(result.bill.recipient.address).toEqual({ fullAddress: 'j\'habite ici' });
+  });
+});
+
+describe('getUnitExclTaxes', () => {
+  let getLastVersion;
+  beforeEach(() => {
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
+  });
+  afterEach(() => {
+    getLastVersion.restore();
+  });
+
+  it('should return unitExclTaxes from subscription if no client', () => {
+    const bill = {};
+    const subscription = { unitExclTaxes: 20 };
+    const result = BillHelper.getUnitExclTaxes(bill, subscription);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(20);
+    sinon.assert.notCalled(getLastVersion);
+  });
+
+  it('should return 0 if no matching funding found', () => {
+    const bill = {
+      client: { _id: new ObjectID() },
+      customer: { fundings: [{ thirdPartyPayer: new ObjectID() }] }
+    };
+    const subscription = { unitExclTaxes: 20 };
+    const result = BillHelper.getUnitExclTaxes(bill, subscription);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+    sinon.assert.notCalled(getLastVersion);
+  });
+
+  it('should return excl taxes amount for FIXED funding', () => {
+    const tppId = new ObjectID();
+    const bill = {
+      client: { _id: tppId },
+      customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] }
+    };
+    const subscription = { unitExclTaxes: 20, vat: 20 };
+
+    getLastVersion.returns({ amountTTC: 14.4 });
+
+    const result = BillHelper.getUnitExclTaxes(bill, subscription);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(12);
+    sinon.assert.called(getLastVersion);
+  });
+
+  it('should return unit excl taxes from funding if HOURLY fudning', () => {
+    const tppId = new ObjectID();
+    const bill = {
+      client: { _id: tppId },
+      customer: {
+        fundings: [
+          {
+            thirdPartyPayer: tppId,
+            nature: 'hourly',
+            versions: [{ unitTTCRate: 18, customerParticipationRate: 20 }],
+          }
+        ],
+      },
+    };
+    const subscription = { unitExclTaxes: 20, vat: 20 };
+
+    getLastVersion.returns({ unitTTCRate: 18, customerParticipationRate: 20 });
+
+    const result = BillHelper.getUnitExclTaxes(bill, subscription);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(12);
+    sinon.assert.called(getLastVersion);
   });
 });
