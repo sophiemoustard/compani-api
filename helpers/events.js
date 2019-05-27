@@ -15,6 +15,8 @@ const {
   COMPANY_CONTRACT,
   ABSENCE,
   UNAVAILABILITY,
+  EVENT_TYPE_HUMANIZE,
+  REPETITION_FREQUENCY_TYPE_HUMANIZE,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -382,4 +384,78 @@ exports.removeEventsByContractStatus = async (contract) => {
   }
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
   await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false });
+};
+
+function getFullTitleFromIdentity(identity) {
+  const lastname = _.get(identity, 'lastname') || '';
+  let fullTitle = [
+    _.get(identity, 'title'),
+    _.get(identity, 'firstname'),
+    lastname.toUpperCase(),
+  ];
+
+  fullTitle = fullTitle.filter(value => !_.isEmpty(value));
+
+  return fullTitle.join(' ');
+}
+
+exports.exportWorkingEventsHistory = async (startDate, endDate) => {
+  const searchStartDate = moment(startDate).toDate();
+  const searchEndDate = moment(endDate).toDate();
+
+  const query = {
+    type: { $in: [INTERVENTION, INTERNAL_HOUR] },
+    $or: [
+      { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
+      { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
+      { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+    ],
+  };
+
+  const events = await Event.find(query)
+    .sort({ startDate: 'desc' })
+    .populate({ path: 'auxiliary', select: 'identity' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'sector' })
+    .lean();
+
+  const header = [
+    'Type',
+    'Début',
+    'Fin',
+    'Répétition',
+    'Secteur',
+    'Auxiliaire',
+    'Bénéficiaire',
+    'Divers',
+    'Facturé',
+    'Annulé',
+    'Status de l\'annulation',
+    'Raison de l\'annulation',
+  ];
+
+  const rows = events.map((event) => {
+    let repetition = _.get(event.repetition, 'frequency');
+    repetition = (NEVER === repetition) ? '' : REPETITION_FREQUENCY_TYPE_HUMANIZE[repetition];
+
+    const cells = [
+      EVENT_TYPE_HUMANIZE[event.type],
+      moment(event.startDate).format('DD/MM/YYYY'),
+      moment(event.endDate).format('DD/MM/YYYY'),
+      repetition || '',
+      _.get(event.sector, 'name') || '',
+      getFullTitleFromIdentity(_.get(event.auxiliary, 'identity')),
+      getFullTitleFromIdentity(_.get(event.customer, 'identity')),
+      event.misc || '',
+      event.isBilled ? 'Oui' : 'Non',
+      event.isCancelled ? 'Oui' : 'Non',
+      _.get(event.cancel, 'condition') || '',
+      _.get(event.cancel, 'reason') || '',
+    ];
+    return cells;
+  });
+
+  rows.unshift(header);
+
+  return rows;
 };

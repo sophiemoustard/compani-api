@@ -1,10 +1,11 @@
 const Boom = require('boom');
-const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION } = require('../helpers/constants');
+const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, WORKING_EVENTS } = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
 const { exportCustomers } = require('../helpers/customers');
 const { exportSubscriptions } = require('../helpers/subscriptions');
 const { exportFundings } = require('../helpers/fundings');
 const { exportAuxiliaries, exportHelpers } = require('../helpers/users');
+const { exportWorkingEventsHistory } = require('../helpers/events');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
@@ -48,7 +49,9 @@ const exportHistory = async (req, h) => {
 
     let exportArray;
     switch (type) {
-      // TODO: Add your history export types
+      case WORKING_EVENTS:
+        exportArray = exportWorkingEventsHistory(req.startDate, req.endDate);
+        break;
     }
 
     const csv = await exportToCsv(exportArray);

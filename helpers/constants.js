@@ -10,6 +10,14 @@ module.exports = {
   WEDDING: 'wedding',
   BIRTH: 'birth',
   DEATH: 'death',
+  get EVENT_TYPE_HUMANIZE() {
+    return {
+      [this.INTERNAL_HOUR]: 'Heure interne',
+      [this.INTERVENTION]: 'Intervention',
+      [this.ABSENCE]: 'Absence',
+      [this.UNAVAILABILITY]: 'Indisponibilité',
+    };
+  },
   // COMPANY
   MAX_INTERNAL_HOURS_NUMBER: 9,
   // COMPANY THIRD PARTY PAYERS
@@ -38,6 +46,14 @@ module.exports = {
   EVERY_DAY: 'every_day',
   EVERY_WEEK_DAY: 'every_week_day',
   EVERY_WEEK: 'every_week',
+  get REPETITION_FREQUENCY_TYPE_HUMANIZE() {
+    return {
+      [this.NEVER]: 'Jamais',
+      [this.EVERY_DAY]: 'Tous les jours',
+      [this.EVERY_WEEK_DAY]: 'Du lundi au vendredi',
+      [this.EVERY_WEEK]: 'Une fois par semaine'
+    };
+  },
   CUSTOMER_CONTRACT: 'contract_with_customer',
   COMPANY_CONTRACT: 'contract_with_company',
   get CONTRACT_TYPES() {
@@ -85,6 +101,8 @@ module.exports = {
     6: 'Dimanche',
     7: 'Jours fériés'
   },
+  // EXPORTS HISTORY
+  WORKING_EVENTS: 'working_events', // intervention or internal hours
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;
