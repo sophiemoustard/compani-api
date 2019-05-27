@@ -20,7 +20,9 @@ exports.getDraftStcByAuxiliary = async (events, absences, company, query, distan
     auxiliaryId: auxiliary._id,
     auxiliary: { _id, identity, sector },
     startDate: query.startDate,
-    endDate: query.endDate,
+    endDate: contracts[0].endDate,
+    endReason: contracts[0].endReason,
+    endNotificationDate: contracts[0].endNotificationDate,
     month: moment(query.startDate).format('MMMM'),
     contractHours: contractInfo.contractHours,
     ...hours,
@@ -32,6 +34,7 @@ exports.getDraftStcByAuxiliary = async (events, absences, company, query, distan
     transport: DraftPayHelper.getTransportRefund(auxiliary, company, contractInfo.workedDaysRatio, hours.paidKm),
     otherFees: get(company, 'rhConfig.phoneSubRefunding', 0),
     bonus: 0,
+    compensation: 0,
   };
 };
 
