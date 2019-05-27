@@ -174,7 +174,7 @@ exports.formatPDF = (bill, company) => {
     computedData.totalExclTaxes += sub.exclTaxes;
     computedData.totalVAT += sub.inclTaxes - sub.exclTaxes;
     computedData.formattedSubs.push({
-      exclTaxes: UtilsHelper.formatPrice(sub.exclTaxes),
+      unitExclTaxes: UtilsHelper.formatPrice(sub.unitExclTaxes),
       inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
       vat: sub.vat.toString().replace(/\./g, ','),
       service: sub.service,
