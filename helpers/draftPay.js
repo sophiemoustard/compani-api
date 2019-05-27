@@ -25,7 +25,7 @@ moment.updateLocale('fr', {
 });
 moment.tz('Europe/Paris');
 
-const getEventToPay = async rules => Event.aggregate([
+exports.getEventToPay = async rules => Event.aggregate([
   { $match: { ...rules } },
   {
     $lookup: {
@@ -121,7 +121,7 @@ const getEventToPay = async rules => Event.aggregate([
   { $unwind: { path: '$auxiliary' } },
 ]);
 
-const getPaidAbsences = async auxiliaries => Event.aggregate([
+exports.getPaidAbsences = async auxiliaries => Event.aggregate([
   {
     $match: {
       type: ABSENCE,
@@ -469,8 +469,8 @@ exports.getDraftPay = async (auxiliaries, query) => {
     auxiliary: { $in: auxiliaries },
     status: COMPANY_CONTRACT,
   };
-  const eventsByAuxiliary = await getEventToPay(rules);
-  const absencesByAuxiliary = await getPaidAbsences(auxiliaries);
+  const eventsByAuxiliary = await exports.getEventToPay(rules);
+  const absencesByAuxiliary = await exports.getPaidAbsences(auxiliaries);
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();
