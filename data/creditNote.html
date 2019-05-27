@@ -98,6 +98,25 @@
     <p>*ce total intègre les financements, majorations et éventuelles remises.</p>
   </div>
   {{else}}
+  <div class="wrapper">
+    <table class="total">
+      <thead>
+        <tr>
+          <th align="left">Total HT</th>
+          <th align="left">TVA</th>
+          <th align="left">Total TTC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td> {{ creditNote.exclTaxes }}</td>
+          <td> {{ creditNote.totalVAT }}</td>
+          <td> {{ creditNote.inclTaxes }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <br/>
   <p>Prestations annulées chez {{ creditNote.customer.identity.title }} {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }},
     <span class="capitalize">{{ creditNote.customer.contact.address.fullAddress }}.</span></p>
   <div class="wrapper">
@@ -121,25 +140,6 @@
           <td> {{ service }} </td>
         </tr>
       {{/table}}
-      </tbody>
-    </table>
-  </div>
-  <br />
-  <div class="wrapper">
-    <table class="total">
-      <thead>
-        <tr>
-          <th align="left">Total HT</th>
-          <th align="left">TVA</th>
-          <th align="left">Total TTC</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td> {{ creditNote.exclTaxes }}</td>
-          <td> {{ creditNote.totalVAT }}</td>
-          <td> {{ creditNote.inclTaxes }}</td>
-        </tr>
       </tbody>
     </table>
   </div>
