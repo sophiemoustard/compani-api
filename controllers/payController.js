@@ -44,7 +44,11 @@ const createList = (req) => {
   try {
     const promises = [];
     for (const pay of req.payload) {
-      promises.push((new Pay(pay)).save());
+      promises.push((new Pay({
+        ...pay,
+        ...(pay.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: JSON.stringify(pay.surchargedAndNotExemptDetails) }),
+        ...(pay.surchargedAndExemptDetails && { surchargedAndExemptDetails: JSON.stringify(pay.surchargedAndExemptDetails) }),
+      })).save());
     }
 
     Promise.resolve(promises);
