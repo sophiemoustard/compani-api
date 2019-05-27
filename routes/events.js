@@ -157,6 +157,7 @@ exports.plugin = {
             }),
             isBilled: Joi.boolean(),
             status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
+            bills: Joi.object(),
           })
         },
         auth: {
