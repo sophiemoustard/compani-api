@@ -48,7 +48,7 @@ const exportHistory = async (req, h) => {
 
     let exportArray;
     switch (type) {
-      // Add your history export types
+      // TODO: Add your history export types
     }
 
     const csv = await exportToCsv(exportArray);

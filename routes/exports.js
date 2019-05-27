@@ -30,7 +30,7 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           params: {
-            type: Joi.string().required().valid(), // Add your history export types
+            type: Joi.string().required().valid(), // TODO: Add your history export types
           },
           query: {
             startDate: Joi.date().required(),
