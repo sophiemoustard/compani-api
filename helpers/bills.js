@@ -194,6 +194,12 @@ exports.formatPDF = (bill, company) => {
   computedData.totalVAT = UtilsHelper.formatPrice(computedData.totalVAT);
 
   return {
-    bill: { customer: bill.customer, ...computedData, company, logo },
+    bill: {
+      billNumber: bill.billNumber,
+      customer: bill.customer,
+      ...computedData,
+      company,
+      logo,
+    },
   };
 };
