@@ -16,7 +16,7 @@ const PaySchema = mongoose.Schema({
   hoursBalance: Number,
   hoursCounter: Number,
   overtimeHours: Number,
-  additionnalHours: Number,
+  additionalHours: Number,
   mutual: Boolean,
   transport: Number,
   otherFees: Number,
