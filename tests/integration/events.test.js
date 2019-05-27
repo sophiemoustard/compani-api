@@ -117,6 +117,7 @@ describe('EVENTS ROUTES', () => {
         sector: sectorsList[0]._id,
         customer: customer._id,
         subscription: customer.subscriptions[0]._id,
+        status: 'contract_with_company',
       };
 
       const response = await app.inject({

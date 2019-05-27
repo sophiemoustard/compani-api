@@ -6,6 +6,8 @@ const {
   INTERVENTION,
   DAILY,
   HOURLY,
+  CUSTOMER_CONTRACT,
+  COMPANY_CONTRACT,
 } = require('../helpers/constants');
 
 const EventSchema = mongoose.Schema({
@@ -56,6 +58,7 @@ const EventSchema = mongoose.Schema({
     nature: String,
     careHours: Number,
   },
+  status: { type: String, enum: [COMPANY_CONTRACT, CUSTOMER_CONTRACT] }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Event', EventSchema);
