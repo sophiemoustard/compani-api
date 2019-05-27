@@ -2,18 +2,13 @@ const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
 
-const {
-  formatBillNumber,
-  formatCustomerBills,
-  formatThirdPartyPayerBills,
-  formatPDF,
-} = require('../../../helpers/bills');
+const BillHelper = require('../../../helpers/bills');
 const UtilsHelper = require('../../../helpers/utils');
 
 describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
-    expect(formatBillNumber('toto', 5)).toEqual('toto005');
-    expect(formatBillNumber('toto', 345)).toEqual('toto345');
+    expect(BillHelper.formatBillNumber('toto', 5)).toEqual('toto005');
+    expect(BillHelper.formatBillNumber('toto', 345)).toEqual('toto345');
   });
 });
 
@@ -37,7 +32,7 @@ describe('formatCustomerBills', () => {
       total: 14.4,
     };
 
-    const result = formatCustomerBills(customerBills, customer, number);
+    const result = BillHelper.formatCustomerBills(customerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
@@ -91,7 +86,7 @@ describe('formatCustomerBills', () => {
       }],
     };
 
-    const result = formatCustomerBills(customerBills, customer, number);
+    const result = BillHelper.formatCustomerBills(customerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
@@ -146,7 +141,7 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
@@ -197,7 +192,7 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
@@ -246,7 +241,7 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
@@ -306,7 +301,7 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
@@ -383,7 +378,7 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills.length).toEqual(2);
@@ -392,16 +387,19 @@ describe('formatThirdPartyPayerBills', () => {
 
 describe('formatPDF', () => {
   let formatPrice;
+  let getUnitExclTaxes;
   beforeEach(() => {
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
+    getUnitExclTaxes = sinon.stub(BillHelper, 'getUnitExclTaxes');
   });
-
   afterEach(() => {
     formatPrice.restore();
+    getUnitExclTaxes.restore();
   });
 
   it('should format correct bill PDF for customer', () => {
     const bill = {
+      billNumber: '12345',
       subscriptions: [{
         events: [{
           auxiliary: {
@@ -430,6 +428,7 @@ describe('formatPDF', () => {
 
     const expectedResult = {
       bill: {
+        billNumber: '12345',
         customer: {
           identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
           contact: { address: { fullAddress: 'La ruche' } },
@@ -437,9 +436,9 @@ describe('formatPDF', () => {
         formattedSubs: [{
           vat: '5,5',
           hours: 40,
-          exclTaxes: '1 018,01 €',
           inclTaxes: '1 074,00 €',
-          service: 'Temps de qualité - autonomie'
+          service: 'Temps de qualité - autonomie',
+          unitExclTaxes: '24,64 €'
         }],
         recipient: {
           name: 'M Donald Duck',
@@ -461,13 +460,14 @@ describe('formatPDF', () => {
       }
     };
 
+    getUnitExclTaxes.returns('24.63');
     formatPrice.onCall(0).returns('1 074,00 €');
-    formatPrice.onCall(1).returns('1 018,01 €');
+    formatPrice.onCall(1).returns('24,64 €');
     formatPrice.onCall(2).returns('1 074,00 €');
     formatPrice.onCall(3).returns('1 018,01 €');
     formatPrice.onCall(4).returns('55,99 €');
 
-    const result = formatPDF(bill, {});
+    const result = BillHelper.formatPDF(bill, {});
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
@@ -505,7 +505,7 @@ describe('formatPDF', () => {
       date: '2019-04-30T21:59:59.999Z',
     };
 
-    const result = formatPDF(bill, {});
+    const result = BillHelper.formatPDF(bill, {});
 
     expect(result).toBeDefined();
     expect(result.bill.recipient).toBeDefined();
