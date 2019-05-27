@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { exportData } = require('../controllers/exportController');
+const { exportData, exportHistory } = require('../controllers/exportController');
 const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION } = require('../helpers/constants');
 
 exports.plugin = {
@@ -21,6 +21,24 @@ exports.plugin = {
         },
       },
       handler: exportData,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{type}/history',
+      options: {
+        auth: { strategy: 'jwt' },
+        validate: {
+          params: {
+            type: Joi.string().required().valid(), // TODO: Add your history export types
+          },
+          query: {
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+          },
+        },
+      },
+      handler: exportHistory,
     });
   }
 };

@@ -42,6 +42,25 @@ const exportData = async (req, h) => {
   }
 };
 
+const exportHistory = async (req, h) => {
+  try {
+    const { type } = req.params;
+
+    let exportArray;
+    switch (type) {
+      // TODO: Add your history export types
+    }
+
+    const csv = await exportToCsv(exportArray);
+
+    return h.file(csv, { confine: false });
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   exportData,
+  exportHistory,
 };
