@@ -553,7 +553,7 @@ describe('getUnitExclTaxes', () => {
       client: { _id: tppId },
       customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] }
     };
-    const subscription = { unitExclTaxes: 20, vat: 20 };
+    const subscription = { vat: 20 };
 
     getLastVersion.returns({ amountTTC: 14.4 });
 
@@ -578,7 +578,7 @@ describe('getUnitExclTaxes', () => {
         ],
       },
     };
-    const subscription = { unitExclTaxes: 20, vat: 20 };
+    const subscription = { vat: 20 };
 
     getLastVersion.returns({ unitTTCRate: 18, customerParticipationRate: 20 });
 
