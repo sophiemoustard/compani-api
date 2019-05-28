@@ -18,6 +18,7 @@ moment.updateLocale('fr', {
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
+moment.tz('Europe/Paris');
 
 const populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
@@ -72,7 +73,7 @@ const populateFundings = async (fundings, endDate) => {
 };
 
 const getMatchingFunding = (date, fundings) => {
-  if (moment(date).isHoliday()) return fundings.find(funding => funding.careDays.includes(7)) || null;
+  if (moment(date).startOf('d').isHoliday()) return fundings.find(funding => funding.careDays.includes(7)) || null;
 
   return fundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
@@ -120,7 +121,7 @@ const applySurcharge = (event, price, surcharge) => {
     return price * (1 + (twentyFifthOfDecember / 100));
   }
   if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') return price * (1 + (firstOfMay / 100));
-  if (publicHoliday && publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) {
+  if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
     return price * (1 + (publicHoliday / 100));
   }
   if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) return price * (1 + (saturday / 100));

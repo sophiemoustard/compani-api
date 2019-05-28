@@ -23,6 +23,7 @@ moment.updateLocale('fr', {
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
+moment.tz('Europe/Paris');
 
 const getEventToPay = async rules => Event.aggregate([
   { $match: { ...rules } },
@@ -260,7 +261,7 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
     return exports.applySurcharge(paidHours, name, `25 décembre - ${twentyFifthOfDecember}%`, surchargeDetails, paidTransport.distance);
   } else if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
     return exports.applySurcharge(paidHours, name, `1er mai - ${firstOfMay}%`, surchargeDetails, paidTransport.distance);
-  } else if (publicHoliday && publicHoliday > 0 && moment(moment(event.startDate).format('YYYY-MM-DD')).isHoliday()) {
+  } else if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
     return exports.applySurcharge(paidHours, name, `Jours fériés - ${publicHoliday}%`, surchargeDetails, paidTransport.distance);
   } else if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
     return exports.applySurcharge(paidHours, name, `Samedi - ${saturday}%`, surchargeDetails, paidTransport.distance);

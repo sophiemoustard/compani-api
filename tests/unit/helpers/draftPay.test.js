@@ -113,8 +113,8 @@ describe('computeCustomSurcharge', () => {
   const paidTransport = 30;
   it('case 1 : dates included between start and end', async () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(9),
-      endDate: (new Date('2019/03/12')).setHours(11),
+      startDate: '2019-03-12T09:00:00',
+      endDate: '2019-03-12T11:00:00',
     };
 
     const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
@@ -124,8 +124,8 @@ describe('computeCustomSurcharge', () => {
 
   it('case 2 : startDate included between start and end and endDate after end', async () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(10),
-      endDate: (new Date('2019/03/12')).setHours(13),
+      startDate: '2019-03-12T10:00:00',
+      endDate: '2019-03-12T13:00:00',
     };
 
     const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
@@ -135,8 +135,8 @@ describe('computeCustomSurcharge', () => {
 
   it('case 3 : startDate before start and endDate included between start and end', async () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(8),
-      endDate: (new Date('2019/03/12')).setHours(10),
+      startDate: '2019-03-12T08:00:00',
+      endDate: '2019-03-12T10:00:00',
     };
 
     const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
@@ -146,8 +146,8 @@ describe('computeCustomSurcharge', () => {
 
   it('case 4 : startDate before start and endDate after end', async () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(7),
-      endDate: (new Date('2019/03/12')).setHours(13),
+      startDate: '2019-03-12T07:00:00',
+      endDate: '2019-03-12T13:00:00',
     };
 
     const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
@@ -157,8 +157,8 @@ describe('computeCustomSurcharge', () => {
 
   it('case 4 : startDate and endDate before start', async () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(5),
-      endDate: (new Date('2019/03/12')).setHours(7),
+      startDate: '2019-03-12T05:00:00',
+      endDate: '2019-03-12T07:00:00',
     };
 
     const result = DraftPayHelper.computeCustomSurcharge(event, start, end, paidTransport);
@@ -222,7 +222,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should apply 25th of december surcharge', () => {
-    event = { startDate: (new Date('2018/12/25')).setHours(9), endDate: (new Date('2018/12/25')).setHours(11) };
+    event = { startDate: '2019-12-25T09:00:00', endDate: '2019-12-25T11:00:00' };
     surcharge = { twentyFifthOfDecember: 20 };
     applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
@@ -232,7 +232,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should not apply 25th of december surcharge', () => {
-    event = { startDate: (new Date('2018/12/25')).setHours(9), endDate: (new Date('2018/12/25')).setHours(11) };
+    event = { startDate: '2019-12-25T09:00:00', endDate: '2019-12-25T11:00:00' };
     surcharge = { saturday: 20 };
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
@@ -241,7 +241,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should apply 1st of May surcharge', () => {
-    event = { startDate: (new Date('2018/05/01')).setHours(9), endDate: (new Date('2018/05/01')).setHours(11) };
+    event = { startDate: '2019-05-01T09:00:00', endDate: '2019-05-01T11:00:00' };
     surcharge = { firstOfMay: 20 };
     applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
@@ -251,7 +251,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should not apply 1st of May surcharge', () => {
-    event = { startDate: (new Date('2019/05/01')).setHours(9), endDate: (new Date('2019/05/01')).setHours(11) };
+    event = { startDate: '2019-05-01T09:00:00', endDate: '2019-05-01T11:00:00' };
     surcharge = { saturday: 20 };
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
@@ -260,7 +260,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should apply holiday surcharge', () => {
-    event = { startDate: (new Date('2019/05/08')).setHours(9), endDate: (new Date('2019/05/08')).setHours(11) };
+    event = { startDate: '2019-05-08T09:00:00', endDate: '2019-05-08T11:00:00' };
     surcharge = { publicHoliday: 20 };
     applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
@@ -270,7 +270,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should not apply holiday surcharge', () => {
-    event = { startDate: (new Date('2019/05/08')).setHours(9), endDate: (new Date('2019/05/08')).setHours(11) };
+    event = { startDate: '2019-05-08T09:00:00', endDate: '2019-05-08T11:00:00' };
     surcharge = { saturday: 20 };
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
@@ -279,7 +279,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should apply saturday surcharge', () => {
-    event = { startDate: (new Date('2019/04/27')).setHours(9), endDate: (new Date('2019/04/27')).setHours(11) };
+    event = { startDate: '2019-04-27T09:00:00', endDate: '2019-04-27T11:00:00' };
     surcharge = { saturday: 20 };
     applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
@@ -289,7 +289,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should not apply saturday surcharge', () => {
-    event = { startDate: (new Date('2019/04/27')).setHours(9), endDate: (new Date('2019/04/27')).setHours(11) };
+    event = { startDate: '2019-04-27T09:00:00', endDate: '2019-04-27T11:00:00' };
     surcharge = { sunday: 20 };
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
@@ -298,7 +298,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should apply sunday surcharge', () => {
-    event = { startDate: (new Date('2019/04/28')).setHours(9), endDate: (new Date('2019/04/28')).setHours(11) };
+    event = { startDate: '2019-04-28T09:00:00', endDate: '2019-04-28T11:00:00' };
     surcharge = { sunday: 20 };
     applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
@@ -308,7 +308,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should not apply sunday surcharge', () => {
-    event = { startDate: (new Date('2019/04/28')).setHours(9), endDate: (new Date('2019/04/28')).setHours(11) };
+    event = { startDate: '2019-04-28T09:00:00', endDate: '2019-04-28T11:00:00' };
     surcharge = { saturday: 20 };
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
@@ -319,7 +319,7 @@ describe('getSurchargeSplit', () => {
   it('should apply evening surcharge', () => {
     const computeCustomSurcharge = sinon.stub(DraftPayHelper, 'computeCustomSurcharge');
     const getSurchargeDetails = sinon.stub(DraftPayHelper, 'getSurchargeDetails');
-    event = { startDate: (new Date('2019/04/23')).setHours(18), endDate: (new Date('2019/04/23')).setHours(20) };
+    event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
     computeCustomSurcharge.returns(2);
     getSurchargeDetails.returns({});
@@ -335,7 +335,7 @@ describe('getSurchargeSplit', () => {
   it('should apply custom surcharge', () => {
     const computeCustomSurcharge = sinon.stub(DraftPayHelper, 'computeCustomSurcharge');
     const getSurchargeDetails = sinon.stub(DraftPayHelper, 'getSurchargeDetails');
-    event = { startDate: (new Date('2019/04/23')).setHours(18), endDate: (new Date('2019/04/23')).setHours(20) };
+    event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
     computeCustomSurcharge.returns(2);
     getSurchargeDetails.returns({});
@@ -349,7 +349,7 @@ describe('getSurchargeSplit', () => {
   });
 
   it('should not apply surcharge', () => {
-    event = { startDate: (new Date('2019/04/23')).setHours(18), endDate: (new Date('2019/04/23')).setHours(20) };
+    event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { saturday: 10 };
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
@@ -457,12 +457,8 @@ describe('getPaidTransportInfo', () => {
   });
 
   it('should compute transit transport', async () => {
-    const event = {
-      startDate: '2019-01-18T18:00:00.636Z',
-    };
-    const prevEvent = {
-      endDate: '2019-01-18T15:00:00.636Z',
-    };
+    const event = { startDate: '2019-01-18T18:00:00' };
+    const prevEvent = { endDate: '2019-01-18T15:00:00' };
     getTransportInfo.resolves({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
@@ -471,12 +467,8 @@ describe('getPaidTransportInfo', () => {
   });
 
   it('should return break duration', async () => {
-    const event = {
-      startDate: '2019-01-18T16:10:00.636Z',
-    };
-    const prevEvent = {
-      endDate: '2019-01-18T15:00:00.636Z',
-    };
+    const event = { startDate: '2019-01-18T16:10:00' };
+    const prevEvent = { endDate: '2019-01-18T15:00:00' };
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
@@ -563,8 +555,8 @@ describe('getPayFromAbsences', () => {
 
   it('should return paid hours from daily absence with one version in contract', () => {
     const absences = [
-      { absenceNature: 'daily', startDate: '2019-01-18T07:00:00.636Z', endDate: '2019-01-18T22:00:00.636Z' },
-      { absenceNature: 'daily', startDate: '2019-05-01T07:00:00.636Z', endDate: '2019-05-03T22:00:00.636Z' },
+      { absenceNature: 'daily', startDate: '2019-01-18T07:00:00', endDate: '2019-01-18T22:00:00' },
+      { absenceNature: 'daily', startDate: '2019-05-01T07:00:00', endDate: '2019-05-03T22:00:00' },
     ];
     const contract = { versions: [{ weeklyHours: 12 }] };
 
@@ -577,8 +569,8 @@ describe('getPayFromAbsences', () => {
 
   it('should return paid hours from daily absence with two versions in contract', () => {
     const absences = [
-      { absenceNature: 'daily', startDate: '2019-01-18T07:00:00.636Z', endDate: '2019-01-18T22:00:00.636Z' },
-      { absenceNature: 'daily', startDate: '2019-05-01T07:00:00.636Z', endDate: '2019-05-03T22:00:00.636Z' },
+      { absenceNature: 'daily', startDate: '2019-01-18T07:00:00', endDate: '2019-01-18T22:00:00' },
+      { absenceNature: 'daily', startDate: '2019-05-01T07:00:00', endDate: '2019-05-03T22:00:00' },
     ];
     const contract = { versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }] };
 
@@ -594,7 +586,7 @@ describe('getPayFromAbsences', () => {
 
   it('should return paid hours from hourly absence', () => {
     const absences = [
-      { absenceNature: 'hourly', startDate: '2019-01-18T10:00:00.636Z', endDate: '2019-01-18T12:00:00.636Z' },
+      { absenceNature: 'hourly', startDate: '2019-01-18T10:00:00', endDate: '2019-01-18T12:00:00' },
     ];
     const contract = { versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }] };
 
