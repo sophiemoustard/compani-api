@@ -37,7 +37,7 @@ const draftPayList = async (req) => {
   }
 };
 
-const createList = (req) => {
+const createList = async (req) => {
   try {
     const promises = [];
     for (const pay of req.payload) {
@@ -48,7 +48,7 @@ const createList = (req) => {
       })).save());
     }
 
-    Promise.all(promises);
+    await Promise.all(promises);
 
     return { message: translate[language].payListCreated };
   } catch (e) {
