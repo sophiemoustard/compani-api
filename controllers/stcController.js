@@ -11,7 +11,7 @@ const getDraftStcList = async (req) => {
   try {
     const contractRules = [
       { status: COMPANY_CONTRACT },
-      { endDate: { $exists: true, $lte: moment(req.endDate).endOf('d').toDate() } },
+      { endDate: { $exists: true, $lte: moment(req.query.endDate).endOf('d').toDate() } },
     ];
 
     const auxiliaries = await Contract.aggregate([

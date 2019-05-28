@@ -419,9 +419,9 @@ exports.getPayFromAbsences = (absences, contract) => {
       if (absence.absenceNature === DAILY) {
         const range = Array.from(moment().range(absence.startDate, absence.endDate).by('days'));
         for (const day of range) {
-          if (moment(day.format('YYYY-MM-DD')).isBusinessDay()) {
+          if (day.startOf('d').isBusinessDay()) {
             const version = contract.versions.length === 1 ? contract.versions[0] : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
-            hours += version.weeklyHours / 6; // Format is necessery to check fr holidays in business day
+            hours += version.weeklyHours / 6;
           }
         }
       } else {
