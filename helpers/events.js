@@ -400,8 +400,8 @@ function getFullTitleFromIdentity(identity) {
 }
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
-  const searchStartDate = moment(startDate).toDate();
-  const searchEndDate = moment(endDate).toDate();
+  const searchStartDate = moment(startDate).startOf('day').toDate();
+  const searchEndDate = moment(endDate).endOf('day').toDate();
 
   const query = {
     type: { $in: [INTERVENTION, INTERNAL_HOUR] },

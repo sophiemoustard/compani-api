@@ -50,7 +50,7 @@ const exportHistory = async (req, h) => {
     let exportArray;
     switch (type) {
       case WORKING_EVENTS:
-        exportArray = exportWorkingEventsHistory(req.startDate, req.endDate);
+        exportArray = await exportWorkingEventsHistory(req.query.startDate, req.query.endDate);
         break;
     }
 
