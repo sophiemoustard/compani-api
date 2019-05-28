@@ -437,9 +437,10 @@ exports.getDraftPayByAuxiliary = async (events, absences, company, query, distan
   const { auxiliary } = events[0] && events[0][0] ? events[0][0] : absences[0];
   const { _id, identity, sector, contracts } = auxiliary;
 
+  const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
   const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges);
-  const absencesHours = exports.getPayFromAbsences(absences, contracts[0]);
-  const contractInfo = exports.getContractMonthInfo(contracts[0], query);
+  const absencesHours = exports.getPayFromAbsences(absences, contract);
+  const contractInfo = exports.getContractMonthInfo(contract, query);
   const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
 
   return {

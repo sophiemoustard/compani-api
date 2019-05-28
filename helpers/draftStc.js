@@ -11,6 +11,7 @@ exports.getDraftStcByAuxiliary = async (events, absences, company, query, distan
   const { auxiliary } = events[0] && events[0][0] ? events[0][0] : absences[0];
   const { _id, identity, sector, contracts } = auxiliary;
 
+  const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
   const hours = await DraftPayHelper.getPayFromEvents(events, distanceMatrix, surcharges);
   const absencesHours = DraftPayHelper.getPayFromAbsences(absences, contracts[0]);
   const contractInfo = DraftPayHelper.getContractMonthInfo(contracts[0], query);
@@ -20,9 +21,9 @@ exports.getDraftStcByAuxiliary = async (events, absences, company, query, distan
     auxiliaryId: auxiliary._id,
     auxiliary: { _id, identity, sector },
     startDate: query.startDate,
-    endDate: contracts[0].endDate,
-    endReason: contracts[0].endReason,
-    endNotificationDate: contracts[0].endNotificationDate,
+    endDate: contract.endDate,
+    endReason: contract.endReason,
+    endNotificationDate: contract.endNotificationDate,
     month: moment(query.startDate).format('MMMM'),
     contractHours: contractInfo.contractHours,
     ...hours,
