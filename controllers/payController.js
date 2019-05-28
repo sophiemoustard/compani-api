@@ -20,10 +20,10 @@ const draftPayList = async (req) => {
       { $group: { _id: '$user' } },
       { $project: { _id: 1 } },
     ]);
-    const alreadyPaidAuxiliaries = await Pay.find({ month: moment(req.query.startDate).format('MMMM') });
+    const existingPay = await Pay.find({ month: moment(req.query.startDate).format('MMMM') });
 
     const draftPay = await getDraftPay(
-      differenceBy(auxiliaries.map(aux => aux._id), alreadyPaidAuxiliaries.map(aux => aux.auxiliary), x => x.toHexString()),
+      differenceBy(auxiliaries.map(aux => aux._id), existingPay.map(pay => pay.auxiliary), x => x.toHexString()),
       req.query
     );
 

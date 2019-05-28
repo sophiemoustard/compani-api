@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const moment = require('moment');
+const differenceBy = require('lodash/differenceBy');
 const translate = require('../helpers/translate');
 const { getDraftStc } = require('../helpers/draftStc');
 const Contract = require('../models/Contract');
@@ -20,9 +21,12 @@ const draftStcList = async (req) => {
       { $group: { _id: '$user' } },
       { $project: { _id: 1 } },
     ]);
-    // TODO : add existing STC
+    const existingStc = await Stc.find({ month: moment(req.query.startDate).format('MMMM') });
 
-    const draftStc = await getDraftStc(auxiliaries.map(aux => aux._id), req.query);
+    const draftStc = await getDraftStc(
+      differenceBy(auxiliaries.map(aux => aux._id), existingStc.map(stc => stc.auxiliary), x => x.toHexString()),
+      req.query
+    );
 
     return {
       message: translate[language].draftStc,
