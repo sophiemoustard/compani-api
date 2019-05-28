@@ -4,10 +4,11 @@ const translate = require('../helpers/translate');
 const { getDraftStc } = require('../helpers/draftStc');
 const Contract = require('../models/Contract');
 const { COMPANY_CONTRACT } = require('../helpers/constants');
+const Stc = require('../models/Stc');
 
 const { language } = translate;
 
-const getDraftStcList = async (req) => {
+const draftStcList = async (req) => {
   try {
     const contractRules = [
       { status: COMPANY_CONTRACT },
@@ -33,6 +34,27 @@ const getDraftStcList = async (req) => {
   }
 };
 
+const createList = (req) => {
+  try {
+    const promises = [];
+    for (const stc of req.payload) {
+      promises.push((new Stc({
+        ...stc,
+        ...(stc.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: JSON.stringify(stc.surchargedAndNotExemptDetails) }),
+        ...(stc.surchargedAndExemptDetails && { surchargedAndExemptDetails: JSON.stringify(stc.surchargedAndExemptDetails) }),
+      })).save());
+    }
+
+    Promise.all(promises);
+
+    return { message: translate[language].stcListCreated };
+  } catch (e) {
+    req.log('error', e);
+    Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
-  getDraftStcList,
+  draftStcList,
+  createList
 };
