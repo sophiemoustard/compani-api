@@ -1,6 +1,7 @@
 <style>
   body {
     font-family: 'Source Sans Pro', 'Roboto', 'Helvetica', 'Arial';
+    font-size: 14px;
   }
   @page {
     size: A4 portrait;
@@ -8,12 +9,14 @@
   }
   table {
     border-collapse: collapse;
+    font-size: 14px;
   }
   table, th, td {
     border: 1px solid rgba(0, 0, 0, 0.12);
   }
   th, td {
-    padding: 5px
+    padding: 5px;
+    vertical-align: top;
   }
   .header {
     display: flex;
@@ -48,6 +51,7 @@
     <img src="{{ bill.logo }}">
   </div>
   <div class="bill">
+    Facture</br>
     {{ bill.billNumber }}<br />
     {{ bill.date }}<br />
     Paiment à réception<br />
@@ -60,6 +64,7 @@
     {{ bill.company.name }}<br />
     {{ bill.company.address.street }}<br />
     {{ bill.company.address.zipCode }} {{ bill.company.address.city }}<br />
+    RCS : {{ bill.company.rcs }}
   </div>
   <div class="recipient">
     <span>{{ bill.recipient.name }}</span><br />
@@ -85,14 +90,14 @@
       {{#table bill.formattedSubs}}
         <tr>
           <td>{{ service }} (TVA {{vat}} %)</td>
-          <td> {{ exclTaxes }}</td>
+          <td> {{ unitExclTaxes }}</td>
           <td> {{ hours }} </td>
           <td> {{ inclTaxes }}</td>
         </tr>
       {{/table}}
     </tbody>
   </table>
-  <p>*ce total intègre les majorations et les éventuelles remises.</p>
+  <p>*ce total intègre les financements, majorations et éventuelles remises.</p>
 </div>
 <div class="wrapper">
   <table class="total">

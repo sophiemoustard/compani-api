@@ -37,6 +37,7 @@ exports.plugin = {
               _id: Joi.objectId(),
               service: Joi.string(),
               vat: Joi.number(),
+              unitExclTaxes: Joi.number(),
             }),
           })
         },

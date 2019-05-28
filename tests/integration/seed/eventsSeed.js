@@ -33,6 +33,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     type: 'intervention',
+    status: 'contract_with_company',
     startDate: moment().set({ hour: 9 }),
     endDate: moment().set({ hour: 11 }),
     auxiliary: auxiliary._id,
@@ -43,6 +44,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     type: 'intervention',
+    status: 'contract_with_company',
     startDate: moment().set({ hour: 14 }),
     endDate: moment().set({ hour: 16 }),
     auxiliary: auxiliary._id,
@@ -53,6 +55,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     type: 'intervention',
+    status: 'contract_with_company',
     startDate: moment().add(2, 'months').set({ hour: 14 }),
     endDate: moment().add(2, 'months').set({ hour: 16 }),
     auxiliary: auxiliary._id,
@@ -63,6 +66,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     type: 'intervention',
+    status: 'contract_with_company',
     startDate: moment().add(2, 'months').set({ hour: 19 }),
     endDate: moment().add(2, 'months').set({ hour: 21 }),
     auxiliary: auxiliary._id,

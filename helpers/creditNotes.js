@@ -115,7 +115,10 @@ exports.formatPDF = (creditNote, company) => {
       });
     }
   } else {
-    computedData.subscription = { service: creditNote.subscription.service };
+    computedData.subscription = {
+      service: creditNote.subscription.service,
+      unitExclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitExclTaxes)
+    };
   }
 
   computedData.totalVAT = UtilsHelper.formatPrice(computedData.totalVAT);

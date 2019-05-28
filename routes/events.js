@@ -24,6 +24,8 @@ const {
   INVOICED_AND_PAYED,
   CUSTOMER_INITIATIVE,
   AUXILIARY_INITIATIVE,
+  CUSTOMER_CONTRACT,
+  COMPANY_CONTRACT,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -65,6 +67,8 @@ exports.plugin = {
             repetition: Joi.object().keys({
               frequency: Joi.string().required(),
             }),
+            status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT)
+              .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
         auth: {
@@ -151,7 +155,9 @@ exports.plugin = {
                 .valid(CUSTOMER_INITIATIVE, AUXILIARY_INITIATIVE)
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
-            isBilled: Joi.boolean()
+            isBilled: Joi.boolean(),
+            status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
+            bills: Joi.object(),
           })
         },
         auth: {

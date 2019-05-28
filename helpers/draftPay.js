@@ -9,7 +9,7 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const Pay = require('../models/Pay');
 const { getMatchingVersion } = require('./utils');
-const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION, INTERNAL_HOUR, ABSENCE, DAILY, PAID_LEAVE, BIRTH, DEATH, WEDDING } = require('./constants');
+const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION, INTERNAL_HOUR, ABSENCE, DAILY, COMPANY_CONTRACT } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 
@@ -466,6 +466,7 @@ exports.getDraftPay = async (auxiliaries, query) => {
     startDate: { $gte: moment(query.startDate).startOf('d').toDate() },
     endDate: { $lte: moment(query.endDate).endOf('d').toDate() },
     auxiliary: { $in: auxiliaries },
+    status: COMPANY_CONTRACT,
   };
   const eventsByAuxiliary = await getEventToPay(rules);
   const absencesByAuxiliary = await getPaidAbsences(auxiliaries);

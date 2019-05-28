@@ -5,7 +5,7 @@ const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED } = require('../helpers/constants');
+const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED, COMPANY_CONTRACT } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const { formatAndCreateBills } = require('../helpers/bills');
 const { getDateQuery } = require('../helpers/utils');
@@ -28,6 +28,7 @@ const draftBillsList = async (req) => {
         ]
       },
       { type: INTERVENTION },
+      { status: COMPANY_CONTRACT }
     ];
     if (req.query.startDate) rules.push({ startDate: { $gte: req.query.startDate } });
     if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
@@ -86,7 +87,7 @@ const generateBillPdf = async (req, h) => {
   try {
     const bill = await Bill.findOne({ _id: req.params._id })
       .populate({ path: 'client', select: '_id name address' })
-      .populate({ path: 'customer', select: '_id identity contact' })
+      .populate({ path: 'customer', select: '_id identity contact fundings' })
       .populate({ path: 'subscriptions.events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
     const company = await Company.findOne();

@@ -155,6 +155,18 @@ const formatCustomerName = customer => (customer.identity.firstname
   ? `${customer.identity.title} ${customer.identity.firstname} ${customer.identity.lastname}`
   : `${customer.identity.title} ${customer.identity.lastname}`);
 
+exports.getUnitExclTaxes = (bill, subscription) => {
+  if (!bill.client) return subscription.unitExclTaxes;
+
+  const funding = bill.customer.fundings.find(fund => fund.thirdPartyPayer.toHexString() === bill.client._id.toHexString());
+  if (!funding) return 0;
+  const version = UtilsHelper.getLastVersion(funding.versions, 'createdAt');
+
+  return funding.nature === HOURLY
+    ? (version.unitTTCRate * (1 - (version.customerParticipationRate / 100))) / (1 + (subscription.vat / 100))
+    : version.amountTTC / (1 + (subscription.vat / 100));
+};
+
 exports.formatPDF = (bill, company) => {
   const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
   const computedData = {
@@ -174,7 +186,7 @@ exports.formatPDF = (bill, company) => {
     computedData.totalExclTaxes += sub.exclTaxes;
     computedData.totalVAT += sub.inclTaxes - sub.exclTaxes;
     computedData.formattedSubs.push({
-      exclTaxes: UtilsHelper.formatPrice(sub.exclTaxes),
+      unitExclTaxes: UtilsHelper.formatPrice(exports.getUnitExclTaxes(bill, sub)),
       inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
       vat: sub.vat.toString().replace(/\./g, ','),
       service: sub.service,
@@ -194,6 +206,12 @@ exports.formatPDF = (bill, company) => {
   computedData.totalVAT = UtilsHelper.formatPrice(computedData.totalVAT);
 
   return {
-    bill: { customer: bill.customer, ...computedData, company, logo },
+    bill: {
+      billNumber: bill.billNumber,
+      customer: bill.customer,
+      ...computedData,
+      company,
+      logo,
+    },
   };
 };
