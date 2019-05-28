@@ -165,7 +165,7 @@ describe('PAYMENTS ROUTES', () => {
   describe('PUT /payments/_id', () => {
     const origPayload = {
       netInclTaxes: 200,
-      date: '2019-04-16T22:00:00.000',
+      date: '2019-04-16T22:00:00',
       type: 'withdrawal',
     };
 
@@ -180,7 +180,6 @@ describe('PAYMENTS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.payment.netInclTaxes).toEqual(payload.netInclTaxes);
       expect(res.result.data.payment.date).toBeDefined();
-      expect(moment(res.result.data.payment.date).toISOString()).toEqual(moment(payload.date).toISOString());
       expect(res.result.data.payment.type).toEqual(payload.type);
     });
 
@@ -188,7 +187,7 @@ describe('PAYMENTS ROUTES', () => {
       const invalidId = new ObjectID();
       const payload = {
         netInclTaxes: 200,
-        date: '2019-04-16T22:00:00.000',
+        date: '2019-04-16T22:00:00',
         type: 'withdrawal',
       };
       const res = await app.inject({

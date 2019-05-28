@@ -148,31 +148,31 @@ describe('getMatchingFunding', () => {
 
   it('should return matching version with random day', () => {
     const fundings = [
-      { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23'), createdAt: new Date('2019/03/23') },
-      { _id: 3, careDays: [0, 3], startDate: new Date('2019/02/23'), createdAt: new Date('2019/02/23') },
-      { _id: 2, careDays: [1, 5, 6], startDate: new Date('2019/04/23'), createdAt: new Date('2019/04/23') },
+      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00', createdAt: '2019-03-23T09:00:00' },
+      { _id: 3, careDays: [0, 3], startDate: '2019-02-23T09:00:00', createdAt: '2019-02-23T09:00:00' },
+      { _id: 2, careDays: [1, 5, 6], startDate: '2019-04-23T09:00:00', createdAt: '2019-04-23T09:00:00' },
     ];
-    const result = getMatchingFunding(new Date('2019/04/23'), fundings);
+    const result = getMatchingFunding('2019-04-23T09:00:00', fundings);
     expect(result).toBeDefined();
     expect(result._id).toEqual(2);
   });
 
   it('should return matching version with holidays', () => {
     const fundings = [
-      { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
-      { _id: 3, careDays: [4, 7], startDate: new Date('2019/04/23') },
+      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
+      { _id: 3, careDays: [4, 7], startDate: '2019-04-23T09:00:00' },
     ];
-    const result = getMatchingFunding(new Date('2019/05/01'), fundings);
+    const result = getMatchingFunding('2019-05-01T09:00:00', fundings);
     expect(result).toBeDefined();
     expect(result._id).toEqual(3);
   });
 
   it('should return null if no matching version', () => {
     const fundings = [
-      { _id: 1, careDays: [0, 2, 3], startDate: new Date('2019/03/23') },
-      { _id: 2, careDays: [5, 6], startDate: new Date('2019/04/23') },
+      { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
+      { _id: 2, careDays: [5, 6], startDate: '2019-04-23T09:00:00' },
     ];
-    const result = getMatchingFunding(new Date('2019/04/23'), fundings);
+    const result = getMatchingFunding('2019-04-23T09:00:00', fundings);
     expect(result).toBeNull();
   });
 });
@@ -185,34 +185,38 @@ describe('computeCustomSurcharge', () => {
 
   it('case 1 : dates included between start and end', () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(9),
-      endDate: (new Date('2019/03/12')).setHours(11),
+      startDate: '2019-03-12T09:00:00',
+      endDate: '2019-03-12T11:00:00',
     };
-    expect(Number.parseFloat(computeCustomSurcharge(event, start, end, surcharge, price).toFixed(1))).toEqual(14.4);
+    const result = computeCustomSurcharge(event, start, end, surcharge, price);
+    expect(Number.parseFloat(result.toFixed(1))).toEqual(14.4);
   });
 
   it('case 2 : startDate included between start and end and endDate after end', () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(8),
-      endDate: (new Date('2019/03/12')).setHours(10),
+      startDate: '2019-03-12T08:00:00',
+      endDate: '2019-03-12T10:00:00',
     };
-    expect(Number.parseFloat(computeCustomSurcharge(event, start, end, surcharge, price).toFixed(1))).toEqual(13.2);
+    const result = computeCustomSurcharge(event, start, end, surcharge, price);
+    expect(Number.parseFloat(result.toFixed(1))).toEqual(13.2);
   });
 
   it('case 3 : startDate before start and endDate included between start and end', () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(10),
-      endDate: (new Date('2019/03/12')).setHours(13),
+      startDate: '2019-03-12T10:00:00',
+      endDate: '2019-03-12T13:00:00',
     };
-    expect(Number.parseFloat(computeCustomSurcharge(event, start, end, surcharge, price).toFixed(1))).toEqual(13.6);
+    const result = computeCustomSurcharge(event, start, end, surcharge, price);
+    expect(Number.parseFloat(result.toFixed(1))).toEqual(13.6);
   });
 
   it('case 4 : startDate before start and endDate after endDate', () => {
     const event = {
-      startDate: (new Date('2019/03/12')).setHours(7),
-      endDate: (new Date('2019/03/12')).setHours(13),
+      startDate: '2019-03-12T07:00:00',
+      endDate: '2019-03-12T13:00:00',
     };
-    expect(Number.parseFloat(computeCustomSurcharge(event, start, end, surcharge, price).toFixed(1))).toEqual(13.2);
+    const result = computeCustomSurcharge(event, start, end, surcharge, price);
+    expect(Number.parseFloat(result.toFixed(1))).toEqual(13.2);
   });
 });
 
@@ -221,97 +225,97 @@ describe('applySurcharge', () => {
   let event;
   let surcharge = {};
   it('should apply 25th of december surcharge', () => {
-    event = { startDate: new Date('2019/12/25') };
+    event = { startDate: '2019-12-25T07:00:00' };
     surcharge = { twentyFifthOfDecember: 20 };
     expect(applySurcharge(event, price, surcharge)).toEqual(24);
   });
 
   it('should not apply 25th of december surcharge', () => {
-    event = { startDate: new Date('2019/12/25') };
+    event = { startDate: '2019-12-25T07:00:00' };
     surcharge = { saturday: 20 };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply 1st of May surcharge', () => {
-    event = { startDate: new Date('2019/05/01') };
+    event = { startDate: '2019-05-01T07:00:00' };
     surcharge = { firstOfMay: 10 };
     expect(applySurcharge(event, price, surcharge)).toEqual(22);
   });
 
   it('should not apply 1st of May surcharge', () => {
-    event = { startDate: new Date('2019/05/01') };
+    event = { startDate: '2019-05-01T07:00:00' };
     surcharge = { saturday: 10 };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply holiday surcharge', () => {
-    event = { startDate: new Date('2019/01/01') };
+    event = { startDate: '2019-01-01T07:00:00' };
     surcharge = { publicHoliday: 15 };
     expect(applySurcharge(event, price, surcharge)).toEqual(23);
   });
 
   it('should not apply holiday surcharge', () => {
-    event = { startDate: new Date('2019/01/01') };
+    event = { startDate: '2019-01-01T07:00:00' };
     surcharge = { saturday: 10 };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply saturday surcharge', () => {
-    event = { startDate: new Date('2019/04/27') };
+    event = { startDate: '2019-04-27T07:00:00' };
     surcharge = { saturday: 5 };
     expect(applySurcharge(event, price, surcharge)).toEqual(21);
   });
 
   it('should not apply saturday surcharge', () => {
-    event = { startDate: new Date('2019/04/27') };
+    event = { startDate: '2019-04-27T07:00:00' };
     surcharge = { sunday: 10 };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply sunday surcharge', () => {
-    event = { startDate: new Date('2019/04/28') };
+    event = { startDate: '2019-04-28T07:00:00' };
     surcharge = { sunday: 5 };
     expect(applySurcharge(event, price, surcharge)).toEqual(21);
   });
 
   it('should not apply sunday surcharge', () => {
-    event = { startDate: new Date('2019/04/28') };
+    event = { startDate: '2019-04-28T07:00:00' };
     surcharge = { saturday: 10 };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply holiday and not sunday surcharge', () => {
-    event = { startDate: new Date('2019/07/14') };
+    event = { startDate: '2019-07-14T07:00:00' };
     surcharge = { sunday: 10, publicHoliday: 20 };
     expect(applySurcharge(event, price, surcharge)).toEqual(24);
   });
 
   it('should apply evening surcharge', () => {
-    event = { startDate: (new Date('2019/04/23')).setHours(18), endDate: (new Date('2019/04/23')).setHours(20) };
+    event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
     expect(applySurcharge(event, price, surcharge)).toEqual(22);
   });
 
   it('should not apply evening surcharge', () => {
-    event = { startDate: (new Date('2019/04/23')).setHours(15), endDate: (new Date('2019/04/23')).setHours(17) };
+    event = { startDate: '2019-04-23T15:00:00', endDate: '2019-04-23T17:00:00' };
     surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply custom surcharge', () => {
-    event = { startDate: (new Date('2019/04/23')).setHours(18), endDate: (new Date('2019/04/23')).setHours(20) };
+    event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
     expect(applySurcharge(event, price, surcharge)).toEqual(22);
   });
 
   it('should not apply custom surcharge', () => {
-    event = { startDate: (new Date('2019/04/23')).setHours(15), endDate: (new Date('2019/04/23')).setHours(17) };
+    event = { startDate: '2019-04-23T15:00:00', endDate: '2019-04-23T17:00:00' };
     surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
     expect(applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply custom surcharge ', () => {
-    event = { startDate: (new Date('2019/04/23')).setHours(15), endDate: (new Date('2019/04/23')).setHours(17) };
+    event = { startDate: '2019-04-23T15:00:00', endDate: '2019-04-23T17:00:00' };
     surcharge = {
       custom: 10,
       customEndTime: '20:00',

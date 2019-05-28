@@ -9,7 +9,6 @@ const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE, FIXED } = require('./constants');
 const { getMatchingVersion, getLastVersion } = require('../helpers/utils');
 
-moment.tz.setDefault('Europe/Paris');
 const holidays = new Holidays('FR');
 const now = new Date();
 const currentYear = now.getFullYear();
@@ -19,6 +18,7 @@ moment.updateLocale('fr', {
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
+moment.tz('Europe/Paris');
 
 const populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
@@ -73,7 +73,7 @@ const populateFundings = async (fundings, endDate) => {
 };
 
 const getMatchingFunding = (date, fundings) => {
-  if (moment(date).isHoliday()) return fundings.find(funding => funding.careDays.includes(7)) || null;
+  if (moment(moment(date).format('YYYY-MM-DD')).isHoliday()) return fundings.find(funding => funding.careDays.includes(7)) || null;
 
   return fundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
