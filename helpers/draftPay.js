@@ -13,6 +13,7 @@ const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTI
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 
+moment.tz.setDefault('Europe/Paris');
 momentRange.extendMoment(moment);
 const holidays = new Holidays('FR');
 const now = new Date();

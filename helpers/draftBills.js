@@ -9,6 +9,7 @@ const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE, FIXED } = require('./constants');
 const { getMatchingVersion, getLastVersion } = require('../helpers/utils');
 
+moment.tz.setDefault('Europe/Paris');
 const holidays = new Holidays('FR');
 const now = new Date();
 const currentYear = now.getFullYear();

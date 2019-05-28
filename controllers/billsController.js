@@ -28,7 +28,7 @@ const draftBillsList = async (req) => {
         ]
       },
       { type: INTERVENTION },
-      { status: COMPANY_CONTRACT }
+      { status: COMPANY_CONTRACT },
     ];
     if (req.query.startDate) rules.push({ startDate: { $gte: req.query.startDate } });
     if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
