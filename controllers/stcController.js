@@ -11,20 +11,14 @@ const { language } = translate;
 
 const draftStcList = async (req) => {
   try {
-    const contractRules = [
-      { status: COMPANY_CONTRACT },
-      { endDate: { $exists: true, $lte: moment(req.query.endDate).endOf('d').toDate() } },
-    ];
-
-    const auxiliaries = await Contract.aggregate([
-      { $match: { $and: contractRules } },
-      { $group: { _id: '$user' } },
-      { $project: { _id: 1 } },
-    ]);
+    const contracts = await Contract.find({
+      status: COMPANY_CONTRACT,
+      endDate: { $exists: true, $lte: moment(req.query.endDate).endOf('d').toDate(), $gte: moment(req.query.startDate).endOf('d').toDate() }
+    });
     const existingStc = await Stc.find({ month: moment(req.query.startDate).format('MMMM') });
 
     const draftStc = await getDraftStc(
-      differenceBy(auxiliaries.map(aux => aux._id), existingStc.map(stc => stc.auxiliary), x => x.toHexString()),
+      differenceBy(contracts.map(con => con.user), existingStc.map(stc => stc.auxiliary), x => x.toHexString()),
       req.query
     );
 
