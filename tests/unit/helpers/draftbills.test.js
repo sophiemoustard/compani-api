@@ -2,6 +2,8 @@ const sinon = require('sinon');
 const expect = require('expect');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
+require('sinon-mongoose');
 
 const Surcharge = require('../../../models/Surcharge');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
@@ -23,6 +25,7 @@ const {
   formatDraftBillsForTPP,
   getDraftBillsPerSubscription,
 } = require('../../../helpers/draftBills');
+const UtilsHelper = require('../../../helpers/utils');
 
 describe('populateSurcharge', () => {
   it('should populate surcharge and order versions', async () => {
@@ -58,6 +61,17 @@ describe('populateSurcharge', () => {
 });
 
 describe('populateFundings', () => {
+  let ThirdPartyPayerMock = null;
+  let FundingHistoryMock = null;
+  beforeEach(() => {
+    ThirdPartyPayerMock = sinon.mock(ThirdPartyPayer);
+    FundingHistoryMock = sinon.mock(FundingHistory);
+  });
+  afterEach(() => {
+    ThirdPartyPayerMock.restore();
+    FundingHistoryMock.restore();
+  });
+
   it('should return empty array if input empty', async () => {
     const result = await populateFundings([], new Date());
     expect(result).toEqual([]);
@@ -67,70 +81,125 @@ describe('populateFundings', () => {
     const tppId = new ObjectID();
     const fundings = [{ thirdPartyPayer: tppId, _id: new ObjectID(), versions: [] }];
     const returnedTpp = { _id: tppId };
-    const findOne = sinon.stub(ThirdPartyPayer, 'findOne').returns({ lean: () => returnedTpp });
-    const findOneFh = sinon.stub(FundingHistory, 'findOne').returns({ lean: () => null });
+    const funding = { ...omit(fundings[0], ['versions']) };
+    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
+
+    ThirdPartyPayerMock
+      .expects('findOne')
+      .withArgs({ _id: fundings[0].thirdPartyPayer })
+      .chain('lean')
+      .resolves(returnedTpp);
+
+    FundingHistoryMock
+      .expects('findOne')
+      .withArgs({ fundingId: fundings[0]._id })
+      .chain('lean')
+      .resolves(null);
 
     const result = await populateFundings(fundings, new Date());
 
     expect(result).toBeDefined();
     expect(result[0].thirdPartyPayer).toBeDefined();
     expect(result[0].thirdPartyPayer._id).toEqual(tppId);
-    sinon.assert.calledOnce(findOneFh);
-    sinon.assert.callCount(findOne, 1);
-    findOne.restore();
-    findOneFh.restore();
+    sinon.assert.called(mergeLastVersionWithBaseObjectStub);
+    mergeLastVersionWithBaseObjectStub.restore();
+    ThirdPartyPayerMock.verify();
+    FundingHistoryMock.verify();
   });
 
   it('should populate funding history with once frequency and history', async () => {
     const fundingId = new ObjectID();
-    const fundings = [
-      { frequency: 'once', _id: fundingId },
-    ];
+    const fundings = [{
+      _id: new ObjectID(),
+      thirdPartyPayer: new ObjectID(),
+      versions: [{ frequency: 'once', _id: fundingId }]
+    }];
+    const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     const returnedHistory = { careHours: 4, fundingId };
-    const findOneTpp = sinon.stub(ThirdPartyPayer, 'findOne').returns({ lean: () => null });
-    const findOne = sinon.stub(FundingHistory, 'findOne').returns({ lean: () => returnedHistory });
+    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
+
+    ThirdPartyPayerMock
+      .expects('findOne')
+      .withArgs({ _id: fundings[0].thirdPartyPayer })
+      .chain('lean')
+      .resolves(null);
+
+    FundingHistoryMock
+      .expects('findOne')
+      .withArgs({ fundingId: fundings[0]._id })
+      .chain('lean')
+      .resolves(returnedHistory);
 
     const result = await populateFundings(fundings, new Date());
-    findOneTpp.restore();
-    findOne.restore();
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
     expect(result[0].history).toMatchObject({ careHours: 4, fundingId });
+    sinon.assert.called(mergeLastVersionWithBaseObjectStub);
+    mergeLastVersionWithBaseObjectStub.restore();
+    ThirdPartyPayerMock.verify();
+    FundingHistoryMock.verify();
   });
 
   it('should populate funding history with once frequency and without history', async () => {
     const fundingId = new ObjectID();
-    const fundings = [
-      { frequency: 'once', _id: fundingId },
-    ];
-    const findOneTpp = sinon.stub(ThirdPartyPayer, 'findOne').returns({ lean: () => null });
-    const findOne = sinon.stub(FundingHistory, 'findOne').returns({ lean: () => null });
+    const fundings = [{
+      _id: fundingId,
+      thirdPartyPayer: new ObjectID(),
+      versions: [{ frequency: 'once', _id: fundingId }]
+    }];
+    const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
+    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
+
+    ThirdPartyPayerMock
+      .expects('findOne')
+      .withArgs({ _id: fundings[0].thirdPartyPayer })
+      .chain('lean')
+      .resolves(null);
+
+    FundingHistoryMock
+      .expects('findOne')
+      .withArgs({ fundingId: fundings[0]._id })
+      .chain('lean')
+      .resolves(null);
 
     const result = await populateFundings(fundings, new Date());
-    findOneTpp.restore();
-    findOne.restore();
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
     expect(result[0].history).toMatchObject({ careHours: 0, amountTTC: 0, fundingId });
+    sinon.assert.called(mergeLastVersionWithBaseObjectStub);
+    mergeLastVersionWithBaseObjectStub.restore();
+    ThirdPartyPayerMock.verify();
+    FundingHistoryMock.verify();
   });
 
   it('should populate funding history with monthly frequency', async () => {
     const fundingId = new ObjectID();
-    const fundings = [
-      { frequency: 'monthly', _id: fundingId },
-    ];
+    const fundings = [{
+      _id: fundingId,
+      thirdPartyPayer: new ObjectID(),
+      versions: [{ frequency: 'monthly', _id: fundingId }]
+    }];
     const returnedHistories = [
       { careHours: 3, fundingId, month: '01/2019' },
       { careHours: 5, fundingId, month: '02/2019' },
     ];
-    const findOneTpp = sinon.stub(ThirdPartyPayer, 'findOne').returns({ lean: () => null });
-    const find = sinon.stub(FundingHistory, 'find').returns(returnedHistories);
+    const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
+    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
+
+    ThirdPartyPayerMock
+      .expects('findOne')
+      .withArgs({ _id: fundings[0].thirdPartyPayer })
+      .chain('lean')
+      .resolves(null);
+
+    FundingHistoryMock
+      .expects('find')
+      .withArgs({ fundingId: fundings[0]._id })
+      .resolves(returnedHistories);
 
     const result = await populateFundings(fundings, new Date('2019/03/10'));
-    findOneTpp.restore();
-    find.restore();
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
@@ -138,6 +207,10 @@ describe('populateFundings', () => {
     const addedHistory = result[0].history.find(hist => hist.month === '03/2019');
     expect(addedHistory).toBeDefined();
     expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
+    sinon.assert.called(mergeLastVersionWithBaseObjectStub);
+    mergeLastVersionWithBaseObjectStub.restore();
+    ThirdPartyPayerMock.verify();
+    FundingHistoryMock.verify();
   });
 });
 
