@@ -18,7 +18,7 @@ moment.updateLocale('fr', {
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
-moment.tz('Europe/Paris');
+moment.tz.setDefault('Europe/Paris');
 
 const populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
@@ -312,6 +312,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     startDate: startDate.toDate(),
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: getExclTaxes(unitTTCRate, serviceMatchingVersion.vat),
+    unitInclTaxes: unitTTCRate,
     vat: serviceMatchingVersion.vat,
   };
 

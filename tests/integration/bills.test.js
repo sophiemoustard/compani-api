@@ -143,6 +143,7 @@ describe('BILLS ROUTES', () => {
               startDate: '2019-05-01T00:00:00.000Z',
               endDate: '2019-05-31T23:59:59.999Z',
               unitExclTaxes: 10.714285714285714,
+              unitInclTaxes: 12,
               vat: 12,
               eventsList: [
                 {
@@ -207,6 +208,7 @@ describe('BILLS ROUTES', () => {
                 startDate: '2019-05-01T00:00:00.000Z',
                 endDate: '2019-05-31T23:59:59.999Z',
                 unitExclTaxes: 10.714285714285714,
+                unitInclTaxes: 12,
                 vat: 12,
                 exclTaxes: 21.428571428571427,
                 inclTaxes: 24,

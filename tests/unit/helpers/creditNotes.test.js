@@ -254,6 +254,7 @@ describe('formatPDF', () => {
       number: 1,
       subscription: {
         service: 'service',
+        unitInclTaxes: 12,
       },
       customer: {
         identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
@@ -267,10 +268,13 @@ describe('formatPDF', () => {
       thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } }
     };
 
+    formatPrice.onCall(0).returns('12,00 €');
+
     const result = CreditNoteHelper.formatPDF(creditNote, {});
 
     expect(result).toBeDefined();
     expect(result.creditNote.subscription).toBeDefined();
     expect(result.creditNote.subscription.service).toBe('service');
+    expect(result.creditNote.subscription.unitInclTaxes).toBe('12,00 €');
   });
 });

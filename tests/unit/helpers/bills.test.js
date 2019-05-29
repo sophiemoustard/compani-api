@@ -388,14 +388,14 @@ describe('formatThirdPartyPayerBills', () => {
 
 describe('formatPDF', () => {
   let formatPrice;
-  let getUnitExclTaxes;
+  let getUnitInclTaxes;
   beforeEach(() => {
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
-    getUnitExclTaxes = sinon.stub(BillHelper, 'getUnitExclTaxes');
+    getUnitInclTaxes = sinon.stub(BillHelper, 'getUnitInclTaxes');
   });
   afterEach(() => {
     formatPrice.restore();
-    getUnitExclTaxes.restore();
+    getUnitInclTaxes.restore();
   });
 
   it('should format correct bill PDF for customer', () => {
@@ -412,7 +412,7 @@ describe('formatPDF', () => {
         }],
         startDate: '2019-03-31T22:00:00.000Z',
         endDate: '2019-04-30T21:59:59.999Z',
-        unitExclTaxes: 24.644549763033176,
+        unitInclTaxes: 24.644549763033176,
         vat: 5.5,
         hours: 40,
         exclTaxes: 1018.009,
@@ -439,7 +439,7 @@ describe('formatPDF', () => {
           hours: 40,
           inclTaxes: '1 074,00 €',
           service: 'Temps de qualité - autonomie',
-          unitExclTaxes: '24,64 €'
+          unitInclTaxes: '24,64 €'
         }],
         recipient: {
           name: 'M Donald Duck',
@@ -461,7 +461,7 @@ describe('formatPDF', () => {
       }
     };
 
-    getUnitExclTaxes.returns('24.63');
+    getUnitInclTaxes.returns('24.63');
     formatPrice.onCall(0).returns('1 074,00 €');
     formatPrice.onCall(1).returns('24,64 €');
     formatPrice.onCall(2).returns('1 074,00 €');
@@ -515,7 +515,7 @@ describe('formatPDF', () => {
   });
 });
 
-describe('getUnitExclTaxes', () => {
+describe('getUnitInclTaxes', () => {
   let getLastVersion;
   beforeEach(() => {
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
@@ -524,10 +524,10 @@ describe('getUnitExclTaxes', () => {
     getLastVersion.restore();
   });
 
-  it('should return unitExclTaxes from subscription if no client', () => {
+  it('should return unitInclTaxes from subscription if no client', () => {
     const bill = {};
-    const subscription = { unitExclTaxes: 20 };
-    const result = BillHelper.getUnitExclTaxes(bill, subscription);
+    const subscription = { unitInclTaxes: 20 };
+    const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
     expect(result).toBe(20);
@@ -539,15 +539,15 @@ describe('getUnitExclTaxes', () => {
       client: { _id: new ObjectID() },
       customer: { fundings: [{ thirdPartyPayer: new ObjectID() }] }
     };
-    const subscription = { unitExclTaxes: 20 };
-    const result = BillHelper.getUnitExclTaxes(bill, subscription);
+    const subscription = { unitInclTaxes: 20 };
+    const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
     expect(result).toBe(0);
     sinon.assert.notCalled(getLastVersion);
   });
 
-  it('should return excl taxes amount for FIXED funding', () => {
+  it('should return incl taxes amount for FIXED funding', () => {
     const tppId = new ObjectID();
     const bill = {
       client: { _id: tppId },
@@ -557,14 +557,14 @@ describe('getUnitExclTaxes', () => {
 
     getLastVersion.returns({ amountTTC: 14.4 });
 
-    const result = BillHelper.getUnitExclTaxes(bill, subscription);
+    const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
-    expect(result).toBe(12);
+    expect(result).toBe(14.4);
     sinon.assert.called(getLastVersion);
   });
 
-  it('should return unit excl taxes from funding if HOURLY fudning', () => {
+  it('should return unit incl taxes from funding if HOURLY fudning', () => {
     const tppId = new ObjectID();
     const bill = {
       client: { _id: tppId },
@@ -582,10 +582,10 @@ describe('getUnitExclTaxes', () => {
 
     getLastVersion.returns({ unitTTCRate: 18, customerParticipationRate: 20 });
 
-    const result = BillHelper.getUnitExclTaxes(bill, subscription);
+    const result = BillHelper.getUnitInclTaxes(bill, subscription);
 
     expect(result).toBeDefined();
-    expect(result).toBe(12);
+    expect(result).toBe(14.4);
     sinon.assert.called(getLastVersion);
   });
 });

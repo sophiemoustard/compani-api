@@ -155,16 +155,16 @@ const formatCustomerName = customer => (customer.identity.firstname
   ? `${customer.identity.title} ${customer.identity.firstname} ${customer.identity.lastname}`
   : `${customer.identity.title} ${customer.identity.lastname}`);
 
-exports.getUnitExclTaxes = (bill, subscription) => {
-  if (!bill.client) return subscription.unitExclTaxes;
+exports.getUnitInclTaxes = (bill, subscription) => {
+  if (!bill.client) return subscription.unitInclTaxes;
 
   const funding = bill.customer.fundings.find(fund => fund.thirdPartyPayer.toHexString() === bill.client._id.toHexString());
   if (!funding) return 0;
   const version = UtilsHelper.getLastVersion(funding.versions, 'createdAt');
 
   return funding.nature === HOURLY
-    ? (version.unitTTCRate * (1 - (version.customerParticipationRate / 100))) / (1 + (subscription.vat / 100))
-    : version.amountTTC / (1 + (subscription.vat / 100));
+    ? (version.unitTTCRate * (1 - (version.customerParticipationRate / 100)))
+    : version.amountTTC;
 };
 
 exports.formatPDF = (bill, company) => {
@@ -186,7 +186,7 @@ exports.formatPDF = (bill, company) => {
     computedData.totalExclTaxes += sub.exclTaxes;
     computedData.totalVAT += sub.inclTaxes - sub.exclTaxes;
     computedData.formattedSubs.push({
-      unitExclTaxes: UtilsHelper.formatPrice(exports.getUnitExclTaxes(bill, sub)),
+      unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
       inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
       vat: sub.vat.toString().replace(/\./g, ','),
       service: sub.service,
