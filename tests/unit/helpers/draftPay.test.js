@@ -477,6 +477,63 @@ describe('getPaidTransportInfo', () => {
   });
 });
 
+describe('getEventHours', () => {
+  let getPaidTransportInfo;
+  let getSurchargeSplit;
+  beforeEach(() => {
+    getPaidTransportInfo = sinon.stub(DraftPayHelper, 'getPaidTransportInfo');
+    getSurchargeSplit = sinon.stub(DraftPayHelper, 'getSurchargeSplit');
+  });
+
+  afterEach(() => {
+    getPaidTransportInfo.restore();
+    getSurchargeSplit.restore();
+  });
+
+  const event = { startDate: '2019-03-12T09:00:00', endDate: '2019-03-12T11:00:00' };
+  const prevEvent = {};
+  const details = {};
+  const distanceMatrix = [];
+
+  it('should not call getSurchargeSplit if no service', async () => {
+    const service = null;
+    getPaidTransportInfo.returns({ distance: 12, duration: 30 });
+
+    const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
+    expect(result).toBeDefined();
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
+  });
+
+  it('should not call getSurchargeSplit if fixed service', async () => {
+    const service = { nature: 'fixed' };
+    getPaidTransportInfo.returns({ distance: 12, duration: 30 });
+
+    const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
+    expect(result).toBeDefined();
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
+  });
+
+  it('should not call getSurchargeSplit if no surcharge', async () => {
+    const service = { nature: 'hourly' };
+    getPaidTransportInfo.returns({ distance: 12, duration: 30 });
+
+    const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
+    expect(result).toBeDefined();
+    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
+  });
+
+  it('should call getSurchargeSplit if hourly service with surcharge', async () => {
+    const service = { surcharge: { sunday: 10 }, nature: 'hourly' };
+    getPaidTransportInfo.returns({ distance: 12, duration: 30 });
+    getSurchargeSplit.returns({ surcharged: 10, notSurcharged: 2.5 });
+
+    const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
+    expect(result).toBeDefined();
+    expect(result).toEqual({ surcharged: 10, notSurcharged: 2.5 });
+    sinon.assert.calledWith(getSurchargeSplit, event, { sunday: 10 }, details, { distance: 12, duration: 30 });
+  });
+});
+
 describe('getTransportRefund', () => {
   const workedDaysRatio = 0.8;
 
