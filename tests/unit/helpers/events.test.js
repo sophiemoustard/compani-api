@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Boom = require('boom');
+const _ = require('lodash');
 
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
@@ -779,5 +780,96 @@ describe('removeEventsByContractStatus', () => {
     } catch (e) {
       expect(e).toEqual(Boom.badRequest());
     }
+  });
+});
+
+describe('exportWorkingEventsHistory', () => {
+  const header = ['Type', 'Début', 'Fin', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
+  const events = [
+    {
+      isCancelled: false,
+      isBilled: true,
+      type: 'intervention',
+      repetition: { frequency: 'every_week' },
+      sector: { name: 'Girafes - 75' },
+      subscription: {},
+      customer: {
+        identity: {
+          title: 'Mme',
+          firstname: 'Mimi',
+          lastname: 'Mathy',
+        },
+      },
+      auxiliary: {
+        identity: {
+          firstname: 'Jean-Claude',
+          lastname: 'Van Damme',
+        },
+      },
+      startDate: '2019-05-20T06:00:00.000+00:00',
+      endDate: '2019-05-20T08:00:00.000+00:00',
+    }, {
+      isCancelled: true,
+      cancel: {
+        condition: 'invoiced_and_not_payed',
+        reason: 'auxiliary_initiative',
+      },
+      isBilled: false,
+      type: 'internalHour',
+      repetition: { frequency: 'never' },
+      sector: { name: 'Etoiles - 75' },
+      subscription: {},
+      customer: {
+        identity: {
+          title: 'M',
+          firstname: 'Bojack',
+          lastname: 'Horseman',
+        },
+      },
+      auxiliary: {
+        identity: {
+          firstname: 'Princess',
+          lastname: 'Carolyn',
+        },
+      },
+      startDate: '2019-05-20T06:00:00.000+00:00',
+      endDate: '2019-05-20T08:00:00.000+00:00',
+      misc: 'brbr'
+    }
+  ];
+  let expectsFind;
+  let mockEvent;
+
+  beforeEach(() => {
+    mockEvent = sinon.mock(Event);
+    expectsFind = mockEvent.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once();
+  });
+
+  afterEach(() => {
+    mockEvent.restore();
+  });
+
+  it('should return an array containing just the header', async () => {
+    expectsFind.resolves([]);
+    const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
+
+    expect(exportArray).toEqual([header]);
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    expectsFind.resolves(events);
+    const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
+
+    expect(exportArray).toEqual([
+      header,
+      ['Intervention', '20/05/2019', '20/05/2019', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
+      ['Heure interne', '20/05/2019', '20/05/2019', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant']
+    ]);
   });
 });

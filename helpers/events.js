@@ -15,6 +15,10 @@ const {
   COMPANY_CONTRACT,
   ABSENCE,
   UNAVAILABILITY,
+  EVENT_TYPE_LIST,
+  REPETITION_FREQUENCY_TYPE_LIST,
+  CANCELLATION_CONDITION_LIST,
+  CANCELLATION_REASON_LIST,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -382,4 +386,79 @@ exports.removeEventsByContractStatus = async (contract) => {
   }
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
   await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false });
+};
+
+function getFullTitleFromIdentity(identity) {
+  const lastname = identity.lastname || '';
+  let fullTitle = [
+    identity.title || '',
+    identity.firstname || '',
+    lastname.toUpperCase(),
+  ];
+
+  fullTitle = fullTitle.filter(value => !_.isEmpty(value));
+
+  return fullTitle.join(' ');
+}
+
+exports.exportWorkingEventsHistory = async (startDate, endDate) => {
+  const searchStartDate = moment(startDate).startOf('day').toDate();
+  const searchEndDate = moment(endDate).endOf('day').toDate();
+
+  const query = {
+    type: { $in: [INTERVENTION, INTERNAL_HOUR] },
+    $or: [
+      { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
+      { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
+      { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+    ],
+  };
+
+  const events = await Event.find(query)
+    .sort({ startDate: 'desc' })
+    .populate({ path: 'auxiliary', select: 'identity' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'sector' })
+    .lean();
+
+  const header = [
+    'Type',
+    'Début',
+    'Fin',
+    'Répétition',
+    'Secteur',
+    'Auxiliaire',
+    'Bénéficiaire',
+    'Divers',
+    'Facturé',
+    'Annulé',
+    'Statut de l\'annulation',
+    'Raison de l\'annulation',
+  ];
+
+  const rows = [header];
+
+  for (const event of events) {
+    let repetition = _.get(event.repetition, 'frequency');
+    repetition = (NEVER === repetition) ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
+
+    const cells = [
+      EVENT_TYPE_LIST[event.type],
+      moment(event.startDate).format('DD/MM/YYYY'),
+      moment(event.endDate).format('DD/MM/YYYY'),
+      repetition || '',
+      _.get(event.sector, 'name') || '',
+      getFullTitleFromIdentity(_.get(event.auxiliary, 'identity') || {}),
+      getFullTitleFromIdentity(_.get(event.customer, 'identity') || {}),
+      event.misc || '',
+      event.isBilled ? 'Oui' : 'Non',
+      event.isCancelled ? 'Oui' : 'Non',
+      CANCELLATION_CONDITION_LIST[_.get(event.cancel, 'condition')] || '',
+      CANCELLATION_REASON_LIST[_.get(event.cancel, 'reason')] || '',
+    ];
+
+    rows.push(cells);
+  }
+
+  return rows;
 };
