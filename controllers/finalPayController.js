@@ -1,28 +1,13 @@
 const Boom = require('boom');
-const moment = require('moment');
-const differenceBy = require('lodash/differenceBy');
 const translate = require('../helpers/translate');
 const { getDraftFinalPay } = require('../helpers/draftFinalPay');
-const Contract = require('../models/Contract');
-const { COMPANY_CONTRACT } = require('../helpers/constants');
 const FinalPay = require('../models/FinalPay');
 
 const { language } = translate;
 
 const draftFinalPayList = async (req) => {
   try {
-    const contracts = await Contract.aggregate([
-      {
-        $match: {
-          status: COMPANY_CONTRACT,
-          endDate: { $exists: true, $lte: moment(req.query.endDate).endOf('d').toDate(), $gte: moment(req.query.startDate).endOf('d').toDate() }
-        }
-      },
-    ]);
-    const existingFinalPay = await FinalPay.find({ month: moment(req.query.startDate).format('MMMM') });
-
-    const finalPayAuxiliaries = differenceBy(contracts.map(con => con.user), existingFinalPay.map(fp => fp.auxiliary), x => x.toHexString());
-    const draftFinalPay = await getDraftFinalPay(finalPayAuxiliaries, req.query);
+    const draftFinalPay = await getDraftFinalPay(req.query);
 
     return {
       message: translate[language].draftFinalPay,

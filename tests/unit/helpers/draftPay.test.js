@@ -1015,7 +1015,7 @@ describe('getDraftPay', () => {
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaryId = new ObjectID();
-    const auxiliaries = [{ _id: auxiliaryId }];
+    const auxiliaries = [{ _id: auxiliaryId, auxiliary: { _id: auxiliaryId, sector: { name: 'Abeilles' } } }];
     const events = [
       { _id: auxiliaryId, events: [{ stratDate: '2019-05-03T10:00:00' }] },
       { _id: new ObjectID(), events: [{ stratDate: '2019-05-04T10:00:00' }] },
@@ -1045,7 +1045,7 @@ describe('getDraftPay', () => {
     expect(result).toEqual([{ hoursBalance: 120 }]);
     sinon.assert.calledWith(
       getDraftPayByAuxiliary,
-      auxiliaries[0],
+      { _id: auxiliaryId, sector: { name: 'Abeilles' } },
       [{ stratDate: '2019-05-03T10:00:00' }],
       [{ stratDate: '2019-05-06T10:00:00' }],
       {},
