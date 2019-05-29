@@ -115,6 +115,7 @@ module.exports = {
   },
   // EXPORTS HISTORY
   WORKING_EVENTS: 'working_events', // intervention or internal hours
+  BILLS: 'bills',
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;

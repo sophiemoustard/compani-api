@@ -4,7 +4,16 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { exportData, exportHistory } = require('../controllers/exportController');
-const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, WORKING_EVENTS } = require('../helpers/constants');
+const {
+  SERVICE,
+  AUXILIARY,
+  HELPER,
+  CUSTOMER,
+  FUNDING,
+  SUBSCRIPTION,
+  WORKING_EVENTS,
+  BILLS,
+} = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-exports',
@@ -30,7 +39,7 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           params: {
-            type: Joi.string().required().valid(WORKING_EVENTS),
+            type: Joi.string().required().valid(WORKING_EVENTS, BILLS),
           },
           query: {
             startDate: Joi.date().required(),
