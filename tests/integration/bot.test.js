@@ -4,6 +4,7 @@ const expect = require('expect');
 const app = require('../../server');
 const { userList, populateUsers } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -13,6 +14,7 @@ describe('NODE ENV', () => {
 
 describe('BOT ROUTES', () => {
   beforeEach(populateRoles);
+  beforeEach(populateCompanies);
   beforeEach(populateUsers);
 
   describe('POST /bot/authorize', () => {

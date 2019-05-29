@@ -14,6 +14,7 @@ const {
   getToken
 } = require('./seed/usersSeed');
 const { servicesList, populateServices } = require('./seed/servicesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const Customer = require('../../models/Customer');
 const { MONTHLY, FIXED } = require('../../helpers/constants');
@@ -27,6 +28,7 @@ describe('NODE ENV', () => {
 describe('CUSTOMERS ROUTES', () => {
   let token = null;
   before(populateServices);
+  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(populateUsers);
   beforeEach(async () => {

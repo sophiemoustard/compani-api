@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
 const { getToken, populateUsers } = require('./seed/usersSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const { populateRoles, rightPayload, rightsList } = require('./seed/rolesSeed');
 const Role = require('../../models/Role');
 const Right = require('../../models/Right');
@@ -16,6 +17,7 @@ describe('NODE ENV', () => {
 describe('RIGHTS ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);
+  beforeEach(populateCompanies);
   beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();

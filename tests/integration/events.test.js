@@ -8,6 +8,7 @@ const { populateCustomers, customersList } = require('./seed/customersSeed');
 const { populateContracts } = require('./seed/contractsSeed');
 const { populateServices } = require('./seed/servicesSeed');
 const { sectorsList } = require('./seed/sectorsSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
 
@@ -21,6 +22,7 @@ describe('EVENTS ROUTES', () => {
   let authToken = null;
   before(populateContracts);
   before(populateServices);
+  before(populateCompanies);
   before(populateUsers);
   before(populateCustomers);
   beforeEach(populateEvents);
