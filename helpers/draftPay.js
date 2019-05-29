@@ -23,7 +23,7 @@ moment.updateLocale('fr', {
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
-moment.tz('Europe/Paris');
+moment.tz.setDefault('Europe/Paris');
 
 exports.getEventToPay = async (start, end, auxiliaries) => Event.aggregate([
   {

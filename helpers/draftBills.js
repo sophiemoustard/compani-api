@@ -18,7 +18,7 @@ moment.updateLocale('fr', {
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
-moment.tz('Europe/Paris');
+moment.tz.setDefault('Europe/Paris');
 
 const populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
