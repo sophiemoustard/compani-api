@@ -216,6 +216,13 @@ exports.formatPDF = (bill, company) => {
   };
 };
 
+function exportBillSubscribtions(bill) {
+  const subscriptions = bill.subscriptions.map(sub =>
+    `${sub.service} ; ${sub.hours} heures ; ${sub.inclTaxes.toFixed(2)}€ TTC`);
+
+  return subscriptions.join('\r\n');
+}
+
 exports.exportBillsHistory = async (startDate, endDate) => {
   const query = {
     date: { $lte: endDate, $gte: startDate }
@@ -231,8 +238,9 @@ exports.exportBillsHistory = async (startDate, endDate) => {
     'Identifiant',
     'Date',
     'Bénéficiaire',
-    'Client',
-    'Montant TTC'
+    'Tiers Payer',
+    'Montant TTC',
+    'Services',
   ];
 
   const rows = [header];
@@ -244,6 +252,7 @@ exports.exportBillsHistory = async (startDate, endDate) => {
       UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity') || {}),
       get(bill.client, 'name') || '',
       bill.netInclTaxes.toFixed(2),
+      exportBillSubscribtions(bill),
     ];
 
     rows.push(cells);

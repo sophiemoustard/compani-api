@@ -594,7 +594,7 @@ describe('getUnitInclTaxes', () => {
 });
 
 describe('exportBillsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Client', 'Montant TTC'];
+  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Tiers Payer', 'Montant TTC', 'Services'];
   const bills = [
     {
       billNumber: 'FACT-0549236',
@@ -607,7 +607,12 @@ describe('exportBillsHistory', () => {
         },
       },
       client: { name: 'TF1' },
-      netInclTaxes: 389276.02,
+      netInclTaxes: 389276.023,
+      subscriptions: [{
+        service: 'Temps de qualité - autonomie',
+        hours: 20,
+        inclTaxes: 389276.0208
+      }]
     }, {
       billNumber: 'FACT-0419457',
       date: '2019-05-22T06:00:00.000+00:00',
@@ -620,6 +625,15 @@ describe('exportBillsHistory', () => {
       },
       client: { name: 'The Sherif' },
       netInclTaxes: 1002.4,
+      subscriptions: [{
+        service: 'Forfait nuit',
+        hours: 15,
+        inclTaxes: 700.0208
+      }, {
+        service: 'Forfait nuit',
+        hours: 7,
+        inclTaxes: 302
+      }]
     }
   ];
   let expectsFind;
@@ -652,8 +666,8 @@ describe('exportBillsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['FACT-0549236', '20/05/2019', 'Mme Mimi MATHY', 'TF1', '389276.02'],
-      ['FACT-0419457', '22/05/2019', 'M Bojack HORSEMAN', 'The Sherif', '1002.40'],
+      ['FACT-0549236', '20/05/2019', 'Mme Mimi MATHY', 'TF1', '389276.02', 'Temps de qualité - autonomie ; 20 heures ; 389276.02€ TTC'],
+      ['FACT-0419457', '22/05/2019', 'M Bojack HORSEMAN', 'The Sherif', '1002.40', 'Forfait nuit ; 15 heures ; 700.02€ TTC\r\nForfait nuit ; 7 heures ; 302.00€ TTC'],
     ]);
   });
 });
