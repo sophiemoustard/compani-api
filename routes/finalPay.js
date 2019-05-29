@@ -2,10 +2,10 @@
 
 const Joi = require('joi');
 
-const { draftStcList, createList } = require('../controllers/stcController');
+const { draftFinalPayList, createList } = require('../controllers/finalPayController');
 
 exports.plugin = {
-  name: 'routes-stc',
+  name: 'routes-final-pay',
   register: async (server) => {
     server.route({
       method: 'GET',
@@ -19,7 +19,7 @@ exports.plugin = {
           },
         },
       },
-      handler: draftStcList,
+      handler: draftFinalPayList,
     });
 
     server.route({

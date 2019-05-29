@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const StcSchema = mongoose.Schema({
+const FinalPaySchema = mongoose.Schema({
   auxiliary: { type: mongoose.Schema.Types.ObjectId, Ref: 'User' },
   startDate: Date,
   endNotificationDate: Date,
@@ -26,4 +26,4 @@ const StcSchema = mongoose.Schema({
   compensation: Number,
 }, { timestamps: true });
 
-module.exports = mongoose.model('Stc', StcSchema);
+module.exports = mongoose.model('FinalPay', FinalPaySchema);

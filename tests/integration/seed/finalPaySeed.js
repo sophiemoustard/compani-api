@@ -8,7 +8,7 @@ const Service = require('../../../models/Service');
 const Event = require('../../../models/Event');
 const Company = require('../../../models/Company');
 const Sector = require('../../../models/Sector');
-const Stc = require('../../../models/Stc');
+const FinalPay = require('../../../models/FinalPay');
 
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
@@ -137,7 +137,7 @@ const populateDB = async () => {
   await Event.deleteMany({});
   await Company.deleteMany({});
   await Sector.deleteMany({});
-  await Stc.deleteMany({});
+  await FinalPay.deleteMany({});
 
   await (new User(user)).saveByParams({ role: user.role });
   await (new User(auxiliary)).saveByParams({ role: user.role });

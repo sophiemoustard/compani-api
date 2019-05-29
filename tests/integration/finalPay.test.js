@@ -1,9 +1,9 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const { getToken } = require('./seed/usersSeed');
-const { populateDB } = require('./seed/stcSeed');
+const { populateDB } = require('./seed/finalPaySeed');
 const app = require('../../server');
-const Stc = require('../../models/Stc');
+const FinalPay = require('../../models/FinalPay');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -11,28 +11,28 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('STC ROUTES', () => {
+describe('FINAL PAY ROUTES', () => {
   let authToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken();
   });
 
-  describe('GET /stc/draft', () => {
-    it('should compute draft stc', async () => {
+  describe('GET /finalpay/draft', () => {
+    it('should compute draft final pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/stc/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
+        url: '/finalpay/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.draftStc).toBeDefined();
-      expect(response.result.data.draftStc.length).toEqual(1);
+      expect(response.result.data.draftFinalPay).toBeDefined();
+      expect(response.result.data.draftFinalPay.length).toEqual(1);
     });
   });
 
-  describe('POST /stc', () => {
+  describe('POST /finalpay', () => {
     const payload = [{
       auxiliary: new ObjectID(),
       startDate: '2019-04-30T22:00:00.000Z',
@@ -59,18 +59,18 @@ describe('STC ROUTES', () => {
       compensation: 0,
     }];
 
-    it('should create a new stc', async () => {
+    it('should create a new final pay', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/stc',
+        url: '/finalpay',
         headers: { 'x-access-token': authToken },
         payload
       });
 
       expect(response.statusCode).toBe(200);
 
-      const stcList = await Stc.find().lean();
-      expect(stcList.length).toEqual(1);
+      const finalPayList = await FinalPay.find().lean();
+      expect(finalPayList.length).toEqual(1);
     });
 
     Object.keys(payload[0]).forEach((key) => {
@@ -80,7 +80,7 @@ describe('STC ROUTES', () => {
 
         const res = await app.inject({
           method: 'POST',
-          url: '/stc',
+          url: '/finalpay',
           payload: invalidPayload,
           headers: { 'x-access-token': authToken },
         });

@@ -263,8 +263,8 @@ module.exports = {
     /* Pay */
     payListCreated: 'Pay list created',
 
-    /* Stc */
-    stcListCreated: 'Stc list created',
+    /* Final pay */
+    finalPayListCreated: 'Final pay list created',
   },
   'fr-FR': {
     /* Global errors */
@@ -525,7 +525,7 @@ module.exports = {
     /* Pay */
     payListCreated: 'Liste de paie créée',
 
-    /* Stc */
-    stcListCreated: 'Liste des stc créée',
+    /* Final pay */
+    finalPayListCreated: 'Liste des stc créée',
   }
 };

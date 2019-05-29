@@ -1,13 +1,13 @@
 const moment = require('moment');
 const get = require('lodash/get');
-const { INTERNAL_HOUR, INTERVENTION, COMPANY_CONTRACT } = require('./constants');
+const { COMPANY_CONTRACT } = require('./constants');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Pay = require('../models/Pay');
 const DraftPayHelper = require('./draftPay');
 
-exports.getDraftStcByAuxiliary = async (events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
+exports.getDraftFinalPayByAuxiliary = async (events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
   const { auxiliary } = events[0] && events[0][0] ? events[0][0] : absences[0];
   const { _id, identity, sector, contracts } = auxiliary;
 
@@ -39,7 +39,7 @@ exports.getDraftStcByAuxiliary = async (events, absences, company, query, distan
   };
 };
 
-exports.getDraftStc = async (auxiliaries, query) => {
+exports.getDraftFinalPay = async (auxiliaries, query) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
 
@@ -50,15 +50,15 @@ exports.getDraftStc = async (auxiliaries, query) => {
   const distanceMatrix = await DistanceMatrix.find();
   const prevPayList = await Pay.find({ month: moment(query.startDate).subtract(1, 'M').format('MMMM') });
 
-  const draftStc = [];
+  const draftFinalPay = [];
   for (const auxId of auxiliaries) {
     const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === auxId.toHexString()) || { events: [] };
     const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === auxId.toHexString()) || { events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxId.toHexString());
-    if (auxEvents || auxAbsences) {
-      draftStc.push(await exports.getDraftStcByAuxiliary(auxEvents.events, auxAbsences.events, company, query, distanceMatrix, surcharges, prevPay));
+    if (auxEvents.events.length > 0 || auxAbsences.events.length > 0) {
+      draftFinalPay.push(await exports.getDraftFinalPayByAuxiliary(auxEvents.events, auxAbsences.events, company, query, distanceMatrix, surcharges, prevPay));
     }
   }
 
-  return draftStc;
+  return draftFinalPay;
 };
