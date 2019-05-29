@@ -24,7 +24,7 @@ moment.updateLocale('fr', {
 });
 moment.tz('Europe/Paris');
 
-exports.getEventToPay = async (start, end, auxiliaries) => Event.aggregate([
+exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   {
     $match: {
       type: { $in: [INTERNAL_HOUR, INTERVENTION] },
@@ -131,7 +131,7 @@ exports.getEventToPay = async (start, end, auxiliaries) => Event.aggregate([
   { $unwind: { path: '$auxiliary' } },
 ]);
 
-exports.getPaidAbsences = async (start, end, auxiliaries) => Event.aggregate([
+exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
   {
     $match: {
       type: ABSENCE,
@@ -489,8 +489,8 @@ exports.getDraftPay = async (auxiliaries, query) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
 
-  const eventsByAuxiliary = await exports.getEventToPay(start, end, auxiliaries);
-  const absencesByAuxiliary = await exports.getPaidAbsences(start, end, auxiliaries);
+  const eventsByAuxiliary = await exports.getEventsToPay(start, end, auxiliaries);
+  const absencesByAuxiliary = await exports.getAbsencesToPay(start, end, auxiliaries);
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();
