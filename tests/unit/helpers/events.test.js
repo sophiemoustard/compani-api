@@ -3,7 +3,6 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Boom = require('boom');
-const _ = require('lodash');
 
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');

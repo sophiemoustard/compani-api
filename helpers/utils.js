@@ -79,3 +79,16 @@ const roundFrenchNumber = (number) => {
 };
 
 exports.formatPrice = val => (val ? roundFrenchNumber(val) : roundFrenchNumber(0));
+
+exports.getFullTitleFromIdentity = (identity) => {
+  const lastname = identity.lastname || '';
+  let fullTitle = [
+    identity.title || '',
+    identity.firstname || '',
+    lastname.toUpperCase(),
+  ];
+
+  fullTitle = fullTitle.filter(value => !_.isEmpty(value));
+
+  return fullTitle.join(' ');
+};
