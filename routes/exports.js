@@ -11,7 +11,7 @@ const {
   CUSTOMER,
   FUNDING,
   SUBSCRIPTION,
-  WORKING_EVENTS,
+  WORKING_EVENT,
   BILL,
 } = require('../helpers/constants');
 
@@ -39,7 +39,7 @@ exports.plugin = {
         auth: { strategy: 'jwt' },
         validate: {
           params: {
-            type: Joi.string().required().valid(WORKING_EVENTS, BILL),
+            type: Joi.string().required().valid(WORKING_EVENT, BILL),
           },
           query: {
             startDate: Joi.date().required(),

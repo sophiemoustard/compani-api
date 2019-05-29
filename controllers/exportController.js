@@ -8,7 +8,7 @@ const {
   CUSTOMER,
   FUNDING,
   SUBSCRIPTION,
-  WORKING_EVENTS,
+  WORKING_EVENT,
   BILL,
 } = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
@@ -64,7 +64,7 @@ const exportHistory = async (req, h) => {
 
     let exportArray;
     switch (type) {
-      case WORKING_EVENTS:
+      case WORKING_EVENT:
         exportArray = await exportWorkingEventsHistory(startDate, endDate);
         break;
       case BILL:

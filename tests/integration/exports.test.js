@@ -27,11 +27,11 @@ describe('EXPORTS ROUTES', () => {
     authToken = await getToken();
   });
 
-  describe('GET /exports/working_events/history', () => {
+  describe('GET /exports/working_event/history', () => {
     it('should get working events', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/exports/working_events/history?startDate=2019-01-15T15%3A47%3A42.077%2B01%3A00&endDate=2019-01-17T15%3A47%3A42.077%2B01%3A00',
+        url: '/exports/working_event/history?startDate=2019-01-15T15%3A47%3A42.077%2B01%3A00&endDate=2019-01-17T15%3A47%3A42.077%2B01%3A00',
         headers: { 'x-access-token': authToken },
       });
 
