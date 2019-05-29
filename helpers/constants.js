@@ -10,7 +10,7 @@ module.exports = {
   WEDDING: 'wedding',
   BIRTH: 'birth',
   DEATH: 'death',
-  get EVENT_TYPE_HUMANIZE() {
+  get EVENT_TYPE_LIST() {
     return {
       [this.INTERNAL_HOUR]: 'Heure interne',
       [this.INTERVENTION]: 'Intervention',
@@ -46,7 +46,7 @@ module.exports = {
   EVERY_DAY: 'every_day',
   EVERY_WEEK_DAY: 'every_week_day',
   EVERY_WEEK: 'every_week',
-  get REPETITION_FREQUENCY_TYPE_HUMANIZE() {
+  get REPETITION_FREQUENCY_TYPE_LIST() {
     return {
       [this.NEVER]: 'Jamais',
       [this.EVERY_DAY]: 'Tous les jours',
@@ -79,6 +79,18 @@ module.exports = {
   INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',
   CUSTOMER_INITIATIVE: 'customer_initiative',
   AUXILIARY_INITIATIVE: 'auxiliary_initiative',
+  get CANCELLATION_CONDITION_LIST() {
+    return {
+      [this.INVOICED_AND_PAYED]: 'Facturée & payée',
+      [this.INVOICED_AND_NOT_PAYED]: 'Facturée & non payée',
+    };
+  },
+  get CANCELLATION_REASON_LIST() {
+    return {
+      [this.CUSTOMER_INITIATIVE]: 'Initiative du client',
+      [this.AUXILIARY_INITIATIVE]: 'Initiative du de l\'intervenant',
+    };
+  },
   // ROLE
   AUXILIARY: 'auxiliary',
   HELPER: 'helper',

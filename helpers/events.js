@@ -15,8 +15,10 @@ const {
   COMPANY_CONTRACT,
   ABSENCE,
   UNAVAILABILITY,
-  EVENT_TYPE_HUMANIZE,
-  REPETITION_FREQUENCY_TYPE_HUMANIZE,
+  EVENT_TYPE_LIST,
+  REPETITION_FREQUENCY_TYPE_LIST,
+  CANCELLATION_CONDITION_LIST,
+  CANCELLATION_REASON_LIST,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -387,10 +389,10 @@ exports.removeEventsByContractStatus = async (contract) => {
 };
 
 function getFullTitleFromIdentity(identity) {
-  const lastname = _.get(identity, 'lastname') || '';
+  const lastname = identity.lastname || '';
   let fullTitle = [
-    _.get(identity, 'title'),
-    _.get(identity, 'firstname'),
+    identity.title || '',
+    identity.firstname || '',
     lastname.toUpperCase(),
   ];
 
@@ -430,32 +432,33 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
     'Divers',
     'Facturé',
     'Annulé',
-    'Status de l\'annulation',
+    'Statut de l\'annulation',
     'Raison de l\'annulation',
   ];
 
-  const rows = events.map((event) => {
+  const rows = [header];
+
+  for (const event of events) {
     let repetition = _.get(event.repetition, 'frequency');
-    repetition = (NEVER === repetition) ? '' : REPETITION_FREQUENCY_TYPE_HUMANIZE[repetition];
+    repetition = (NEVER === repetition) ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
 
     const cells = [
-      EVENT_TYPE_HUMANIZE[event.type],
+      EVENT_TYPE_LIST[event.type],
       moment(event.startDate).format('DD/MM/YYYY'),
       moment(event.endDate).format('DD/MM/YYYY'),
       repetition || '',
       _.get(event.sector, 'name') || '',
-      getFullTitleFromIdentity(_.get(event.auxiliary, 'identity')),
-      getFullTitleFromIdentity(_.get(event.customer, 'identity')),
+      getFullTitleFromIdentity(_.get(event.auxiliary, 'identity') || {}),
+      getFullTitleFromIdentity(_.get(event.customer, 'identity') || {}),
       event.misc || '',
       event.isBilled ? 'Oui' : 'Non',
       event.isCancelled ? 'Oui' : 'Non',
-      _.get(event.cancel, 'condition') || '',
-      _.get(event.cancel, 'reason') || '',
+      CANCELLATION_CONDITION_LIST[_.get(event.cancel, 'condition')] || '',
+      CANCELLATION_REASON_LIST[_.get(event.cancel, 'reason')] || '',
     ];
-    return cells;
-  });
 
-  rows.unshift(header);
+    rows.push(cells);
+  }
 
   return rows;
 };

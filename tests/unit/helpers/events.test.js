@@ -784,18 +784,14 @@ describe('removeEventsByContractStatus', () => {
 });
 
 describe('exportWorkingEventsHistory', () => {
-  const header = ['Type', 'Début', 'Fin', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Status de l\'annulation', 'Raison de l\'annulation'];
+  const header = ['Type', 'Début', 'Fin', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
   const events = [
     {
       isCancelled: false,
       isBilled: true,
       type: 'intervention',
-      repetition: {
-        frequency: 'every_week',
-      },
-      sector: {
-        name: 'Girafes - 75'
-      },
+      repetition: { frequency: 'every_week' },
+      sector: { name: 'Girafes - 75' },
       subscription: {},
       customer: {
         identity: {
@@ -815,17 +811,13 @@ describe('exportWorkingEventsHistory', () => {
     }, {
       isCancelled: true,
       cancel: {
-        condition: 'stuck',
-        reason: 'death',
+        condition: 'invoiced_and_not_payed',
+        reason: 'auxiliary_initiative',
       },
       isBilled: false,
       type: 'internalHour',
-      repetition: {
-        frequency: 'never',
-      },
-      sector: {
-        name: 'Etoiles - 75'
-      },
+      repetition: { frequency: 'never' },
+      sector: { name: 'Etoiles - 75' },
       subscription: {},
       customer: {
         identity: {
@@ -845,12 +837,12 @@ describe('exportWorkingEventsHistory', () => {
       misc: 'brbr'
     }
   ];
-  let mockFind;
+  let expectsFind;
   let mockEvent;
 
   beforeEach(() => {
     mockEvent = sinon.mock(Event);
-    mockFind = mockEvent.expects('find')
+    expectsFind = mockEvent.expects('find')
       .chain('sort')
       .chain('populate')
       .chain('populate')
@@ -864,20 +856,20 @@ describe('exportWorkingEventsHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    mockFind.resolves([]);
+    expectsFind.resolves([]);
     const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    mockFind.resolves(_.toArray(events));
+    expectsFind.resolves(events);
     const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
 
     expect(exportArray).toEqual([
       header,
       ['Intervention', '20/05/2019', '20/05/2019', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', '20/05/2019', '20/05/2019', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'stuck', 'death']
+      ['Heure interne', '20/05/2019', '20/05/2019', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant']
     ]);
   });
 });
