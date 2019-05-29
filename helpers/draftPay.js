@@ -8,7 +8,6 @@ const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const Pay = require('../models/Pay');
-const { getMatchingVersion } = require('./utils');
 const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION, INTERNAL_HOUR, ABSENCE, DAILY, COMPANY_CONTRACT } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
@@ -394,13 +393,13 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => 
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
       const paidEvent = {
         ...sortedEvents[i],
-        startDate: moment.max(moment(sortedEvents[i].startDate), moment(query.startDate)),
-        endDate: moment.min(moment(sortedEvents[i].endDate), moment(query.endDate)),
+        startDate: moment(sortedEvents[i].startDate).isSameOrAfter(query.startDate) ? sortedEvents[i].startDate : query.startDate,
+        endDate: moment(sortedEvents[i].endDate).isSameOrBefore(query.endDate) ? sortedEvents[i].endDate : query.endDate,
       };
 
       let service = null;
       if (paidEvent.type === INTERVENTION) {
-        service = getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
+        service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
         service.surcharge = service.surcharge ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null : null;
       }
 
