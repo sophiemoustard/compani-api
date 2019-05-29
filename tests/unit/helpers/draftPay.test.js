@@ -547,20 +547,22 @@ describe('getPayFromAbsences', () => {
   });
 
   it('should return 0 if no absences', () => {
-    const result = DraftPayHelper.getPayFromAbsences([], {});
+    const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
+    const result = DraftPayHelper.getPayFromAbsences([], {}, query);
 
     expect(result).toBeDefined();
     expect(result).toBe(0);
   });
 
   it('should return paid hours from daily absence with one version in contract', () => {
+    const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
     const absences = [
-      { absenceNature: 'daily', startDate: '2019-01-18T07:00:00', endDate: '2019-01-18T22:00:00' },
+      { absenceNature: 'daily', startDate: '2019-05-18T07:00:00', endDate: '2019-05-18T22:00:00' },
       { absenceNature: 'daily', startDate: '2019-05-01T07:00:00', endDate: '2019-05-03T22:00:00' },
     ];
     const contract = { versions: [{ weeklyHours: 12 }] };
 
-    const result = DraftPayHelper.getPayFromAbsences(absences, contract);
+    const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
     expect(result).toBeDefined();
     expect(result).toBe(6);
@@ -568,8 +570,9 @@ describe('getPayFromAbsences', () => {
   });
 
   it('should return paid hours from daily absence with two versions in contract', () => {
+    const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
     const absences = [
-      { absenceNature: 'daily', startDate: '2019-01-18T07:00:00', endDate: '2019-01-18T22:00:00' },
+      { absenceNature: 'daily', startDate: '2019-05-18T07:00:00', endDate: '2019-05-18T22:00:00' },
       { absenceNature: 'daily', startDate: '2019-05-01T07:00:00', endDate: '2019-05-03T22:00:00' },
     ];
     const contract = { versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }] };
@@ -577,7 +580,7 @@ describe('getPayFromAbsences', () => {
     getMatchingVersion.onCall(0).returns({ weeklyHours: 12 });
     getMatchingVersion.onCall(1).returns({ weeklyHours: 24 });
     getMatchingVersion.onCall(2).returns({ weeklyHours: 24 });
-    const result = DraftPayHelper.getPayFromAbsences(absences, contract);
+    const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
     expect(result).toBeDefined();
     expect(result).toBe(10);
@@ -585,15 +588,31 @@ describe('getPayFromAbsences', () => {
   });
 
   it('should return paid hours from hourly absence', () => {
+    const query = { startDate: '2019-05-01T07:00:00', endDate: '2019-05-31T07:00:00' };
     const absences = [
-      { absenceNature: 'hourly', startDate: '2019-01-18T10:00:00', endDate: '2019-01-18T12:00:00' },
+      { absenceNature: 'hourly', startDate: '2019-05-18T10:00:00', endDate: '2019-05-18T12:00:00' },
     ];
     const contract = { versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }] };
 
-    const result = DraftPayHelper.getPayFromAbsences(absences, contract);
+    const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
     expect(result).toBeDefined();
     expect(result).toBe(2);
     sinon.assert.notCalled(getMatchingVersion);
+  });
+
+  it('should only consider in query range event days', () => {
+    const query = { startDate: '2019-05-02T07:00:00', endDate: '2019-05-31T07:00:00' };
+    const absences = [
+      { absenceNature: 'daily', startDate: '2019-04-18T10:00:00', endDate: '2019-05-18T12:00:00' },
+    ];
+    const contract = { versions: [{ weeklyHours: 12 }, { weeklyHours: 24 }] };
+
+    getMatchingVersion.returns({ weeklyHours: 12 });
+
+    const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
+
+    expect(result).toBeDefined();
+    sinon.assert.calledWith(getMatchingVersion.getCall(0), moment(query.startDate).startOf('d'), contract, 'startDate');
   });
 });
