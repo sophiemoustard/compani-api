@@ -6,16 +6,19 @@ const { customersList } = require('./customersSeed');
 const { thirdPartyPayersList } = require('./thirdPartyPayersSeed');
 const { eventsList } = require('./eventsSeed');
 
+const date1 = '2019-05-29';
+const date2 = '2019-05-25';
+
 const billsList = [
   {
     _id: new ObjectID(),
-    date: moment().toDate(),
+    date: moment(date1).toDate(),
     customer: customersList[0]._id,
     client: thirdPartyPayersList[0]._id,
     netInclTaxes: 75.96,
     subscriptions: [{
-      startDate: moment().toDate(),
-      endDate: moment().add(6, 'months').toDate(),
+      startDate: moment(date1).toDate(),
+      endDate: moment(date1).add(6, 'months').toDate(),
       subscription: customersList[0].subscriptions[0]._id,
       vat: 5.5,
       events: [eventsList[2]._id],
@@ -28,12 +31,12 @@ const billsList = [
   },
   {
     _id: new ObjectID(),
-    date: moment().toDate(),
+    date: moment(date2).toDate(),
     customer: customersList[1]._id,
     netInclTaxes: 101.28,
     subscriptions: [{
-      startDate: moment().toDate(),
-      endDate: moment().add(6, 'months').toDate(),
+      startDate: moment(date2).toDate(),
+      endDate: moment(date2).add(6, 'months').toDate(),
       subscription: customersList[0].subscriptions[0]._id,
       vat: 5.5,
       events: [eventsList[2]._id],
