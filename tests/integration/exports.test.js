@@ -33,6 +33,7 @@ describe('EXPORTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result).toBeDefined();
+      expect(response.result.split('\r\n').length).toBe(5);
     });
   });
 });
