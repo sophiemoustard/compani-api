@@ -899,3 +899,67 @@ describe('getPayFromAbsences', () => {
     sinon.assert.calledWith(getMatchingVersion.getCall(0), moment(query.startDate).startOf('d'), contract, 'startDate');
   });
 });
+
+describe('getDraftPayByAuxiliary', () => {
+  let getPayFromEvents;
+  let getPayFromAbsences;
+  let getContractMonthInfo;
+  let getTransportRefund;
+  beforeEach(() => {
+    getPayFromEvents = sinon.stub(DraftPayHelper, 'getPayFromEvents');
+    getPayFromAbsences = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
+    getContractMonthInfo = sinon.stub(DraftPayHelper, 'getContractMonthInfo');
+    getTransportRefund = sinon.stub(DraftPayHelper, 'getTransportRefund');
+  });
+  afterEach(() => {
+    getPayFromEvents.restore();
+    getPayFromAbsences.restore();
+    getContractMonthInfo.restore();
+    getTransportRefund.restore();
+  });
+
+  it('should return draft pay for one auxiliary', async () => {
+    const events = [[{
+      auxiliary: {
+        _id: '1234567890',
+        identity: { firstname: 'Hugo', lastname: 'Lloris' },
+        sector: { name: 'La ruche' },
+        contracts: [
+          { status: 'contract_with_company' },
+        ],
+        administrative: { mutualFund: { has: true } },
+      },
+    }]];
+    const absences = [];
+    const company = { rhConfig: { feeAmount: 37 } };
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const prevPay = { hoursBalance: 10 };
+
+    getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
+    getPayFromAbsences.returns(16);
+    getContractMonthInfo.returns({ contractHours: 150, workedDayRatio: 0.8 });
+    getTransportRefund.returns(26.54);
+
+    const result = await DraftPayHelper.getDraftPayByAuxiliary(events, absences, company, query, [], [], prevPay);
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      auxiliaryId: '1234567890',
+      auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
+      startDate: '2019-05-01T00:00:00',
+      endDate: '2019-05-31T23:59:59',
+      month: 'mai',
+      contractHours: 150,
+      workedHours: 138,
+      notSurchargedAndNotExempt: 15,
+      surchargedAndNotExempt: 9,
+      hoursBalance: 4,
+      hoursCounter: 14,
+      overtimeHours: 0,
+      additionalHours: 0,
+      mutual: false,
+      transport: 26.54,
+      otherFees: 37,
+      bonus: 0,
+    });
+  });
+});
