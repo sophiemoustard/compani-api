@@ -1,10 +1,11 @@
 const moment = require('moment');
+const get = require('lodash/get');
 const randomize = require('randomatic');
 const { ObjectID } = require('mongodb');
 
 const Payment = require('../models/Payment');
 const PaymentNumber = require('../models/PaymentNumber');
-const { REFUND, PAYMENT, WITHDRAWAL } = require('./constants');
+const { REFUND, PAYMENT, WITHDRAWAL, PAYMENT_TYPES_LIST } = require('./constants');
 const {
   createDocument,
   generateSEPAHeader,
@@ -12,6 +13,7 @@ const {
   generatePaymentInfo,
   addTransactionInfo
 } = require('../helpers/xml');
+const UtilsHelper = require('./utils');
 
 
 exports.generatePaymentNumber = async (paymentNature) => {
@@ -117,3 +119,41 @@ exports.savePayments = async (req) => {
   return generateXML(firstPayments, recurPayments, req.auth.credentials.company);
 };
 
+exports.exportPaymentsHistory = async (startDate, endDate) => {
+  const query = {
+    nature: PAYMENT,
+    date: { $lte: endDate, $gte: startDate }
+  };
+
+  const payments = await Payment.find(query)
+    .sort({ date: 'desc' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'client' })
+    .lean();
+
+  const header = [
+    'Identifiant',
+    'Date',
+    'Bénéficiaire',
+    'Tiers Payeur',
+    'Moyen de paiement',
+    'Montant TTC'
+  ];
+
+  const rows = [header];
+
+  for (const payment of payments) {
+    const cells = [
+      payment.paymentNumber || '',
+      moment(payment.date).format('DD/MM/YYYY'),
+      UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity') || {}),
+      get(payment.client, 'name') || '',
+      PAYMENT_TYPES_LIST[payment.type] || '',
+      payment.netInclTaxes.toFixed(2),
+    ];
+
+    rows.push(cells);
+  }
+
+  return rows;
+};

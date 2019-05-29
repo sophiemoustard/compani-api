@@ -5,6 +5,7 @@ const { populateCustomers } = require('./seed/customersSeed');
 const { populateSectors } = require('./seed/sectorsSeed');
 const { populateBills } = require('./seed/billsSeed');
 const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
+const { populatePayments } = require('./seed/paymentsSeed');
 const { getToken } = require('./seed/usersSeed');
 const app = require('../../server');
 
@@ -22,6 +23,7 @@ describe('EXPORTS ROUTES', () => {
   before(populateSectors);
   before(populateBills);
   before(populateThirdPartyPayers);
+  before(populatePayments);
 
   beforeEach(async () => {
     authToken = await getToken();
@@ -46,6 +48,20 @@ describe('EXPORTS ROUTES', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/exports/bill/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
+      expect(response.result.split('\r\n').length).toBe(3);
+    });
+  });
+
+  describe('GET /exports/payment/history', () => {
+    it('should get payments', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/exports/payment/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
         headers: { 'x-access-token': authToken },
       });
 
