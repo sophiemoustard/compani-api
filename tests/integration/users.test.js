@@ -3,9 +3,13 @@ const expect = require('expect');
 const app = require('../../server');
 const User = require('../../models/User');
 const {
-  userList, userPayload, populateUsers, getToken
+  userList,
+  userPayload,
+  populateUsers,
+  getToken
 } = require('./seed/usersSeed');
 const { populateRoles, rolesList } = require('./seed/rolesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -16,6 +20,7 @@ describe('NODE ENV', () => {
 describe('USERS ROUTES', () => {
   let authToken = null;
   before(populateRoles);
+  before(populateCompanies);
   beforeEach(populateUsers);
   beforeEach(async () => {
     authToken = await getToken();

@@ -3,6 +3,7 @@ const expect = require('expect');
 const app = require('../../server');
 const { getToken, populateUsers, userList } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const {
   populatePlanningUpdates,
   planningUpdatePayload,
@@ -20,6 +21,7 @@ describe('NODE ENV', () => {
 describe('PLANNING UPDATES ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);
+  beforeEach(populateCompanies);
   beforeEach(populateUsers);
   beforeEach(populatePlanningUpdates);
   beforeEach(async () => {

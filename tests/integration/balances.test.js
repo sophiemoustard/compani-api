@@ -5,6 +5,7 @@ const { billsList, populateBills } = require('./seed/billsSeed');
 const { populateEvents } = require('./seed/eventsSeed');
 const { populateUsers, getToken } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
@@ -16,6 +17,7 @@ describe('NODE ENV', () => {
 describe('BALANCES ROUTES', () => {
   let authToken = null;
   before(populateRoles);
+  before(populateCompanies);
   before(populateCustomers);
   before(populateUsers);
   before(populateThirdPartyPayers);

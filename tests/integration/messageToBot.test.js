@@ -4,6 +4,7 @@ const expect = require('expect');
 const app = require('../../server');
 const { populateUsers, getToken, userList } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const { populateMessagesToBot, messagePayload, messagesList } = require('./seed/messageToBotSeed');
 const MessageToBot = require('../../models/MessageToBot');
 
@@ -16,6 +17,7 @@ describe('NODE ENV', () => {
 describe('MESSAGE TO BOT ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);
+  beforeEach(populateCompanies);
   beforeEach(populateUsers);
   beforeEach(populateMessagesToBot);
   beforeEach(async () => {

@@ -13,17 +13,17 @@ const draftPayList = async (req) => {
   try {
     const contractRules = [
       { status: COMPANY_CONTRACT },
-      { $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gte: moment(req.endDate).endOf('d').toDate() } }] },
+      { $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gte: moment(req.query.endDate).endOf('d').toDate() } }] },
     ];
     const auxiliaries = await Contract.aggregate([
       { $match: { $and: contractRules } },
       { $group: { _id: '$user' } },
       { $project: { _id: 1 } },
     ]);
-    const alreadyPaidAuxiliaries = await Pay.find({ month: moment(req.query.startDate).format('MMMM') });
+    const existingPay = await Pay.find({ month: moment(req.query.startDate).format('MMMM') });
 
     const draftPay = await getDraftPay(
-      differenceBy(auxiliaries.map(aux => aux._id), alreadyPaidAuxiliaries.map(aux => aux.auxiliary), x => x.toHexString()),
+      differenceBy(auxiliaries.map(aux => aux._id), existingPay.map(pay => pay.auxiliary), x => x.toHexString()),
       req.query
     );
 
@@ -37,7 +37,7 @@ const draftPayList = async (req) => {
   }
 };
 
-const createList = (req) => {
+const createList = async (req) => {
   try {
     const promises = [];
     for (const pay of req.payload) {
@@ -48,7 +48,7 @@ const createList = (req) => {
       })).save());
     }
 
-    Promise.all(promises);
+    await Promise.all(promises);
 
     return { message: translate[language].payListCreated };
   } catch (e) {
