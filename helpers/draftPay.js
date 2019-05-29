@@ -25,8 +25,19 @@ moment.updateLocale('fr', {
 });
 moment.tz('Europe/Paris');
 
-exports.getEventToPay = async rules => Event.aggregate([
-  { $match: { ...rules } },
+exports.getEventToPay = async (start, end, auxiliaries) => Event.aggregate([
+  {
+    $match: {
+      type: { $in: [INTERNAL_HOUR, INTERVENTION] },
+      $or: [
+        { startDate: { $gte: start, $lt: end } },
+        { endDate: { $gt: start, $lte: end } },
+        { endDate: { $gte: end }, startDate: { $lte: start } },
+      ],
+      auxiliary: { $in: auxiliaries },
+      status: COMPANY_CONTRACT,
+    },
+  },
   {
     $lookup: {
       from: 'users',
@@ -121,8 +132,18 @@ exports.getEventToPay = async rules => Event.aggregate([
   { $unwind: { path: '$auxiliary' } },
 ]);
 
-exports.getPaidAbsences = async rules => Event.aggregate([
-  { $match: { ...rules } },
+exports.getPaidAbsences = async (start, end, auxiliaries) => Event.aggregate([
+  {
+    $match: {
+      type: ABSENCE,
+      auxiliary: { $in: auxiliaries },
+      $or: [
+        { startDate: { $gte: start, $lt: end } },
+        { endDate: { $gt: start, $lte: end } },
+        { endDate: { $gte: end }, startDate: { $lte: start } },
+      ],
+    }
+  },
   {
     $lookup: {
       from: 'users',
@@ -466,28 +487,11 @@ exports.getDraftPayByAuxiliary = async (events, absences, company, query, distan
 };
 
 exports.getDraftPay = async (auxiliaries, query) => {
-  const eventRules = {
-    type: { $in: [INTERNAL_HOUR, INTERVENTION] },
-    $or: [
-      { startDate: { $gte: moment(query.startDate).startOf('d').toDate(), $lt: moment(query.endDate).endOf('d').toDate() } },
-      { endDate: { $gt: moment(query.startDate).startOf('d').toDate(), $lte: moment(query.endDate).endOf('d').toDate() } },
-      { endDate: { $gte: moment(query.endDate).endOf('d').toDate() }, startDate: { $lte: moment(query.startDate).startOf('d').toDate() } },
-    ],
-    auxiliary: { $in: auxiliaries },
-    status: COMPANY_CONTRACT,
-  };
-  const eventsByAuxiliary = await exports.getEventToPay(eventRules);
+  const start = moment(query.startDate).startOf('d').toDate();
+  const end = moment(query.endDate).endOf('d').toDate();
 
-  const absenceRules = {
-    type: ABSENCE,
-    auxiliary: { $in: auxiliaries },
-    $or: [
-      { startDate: { $gte: moment(query.startDate).startOf('d').toDate(), $lt: moment(query.endDate).endOf('d').toDate() } },
-      { endDate: { $gt: moment(query.startDate).startOf('d').toDate(), $lte: moment(query.endDate).endOf('d').toDate() } },
-      { endDate: { $gte: moment(query.endDate).endOf('d').toDate() }, startDate: { $lte: moment(query.startDate).startOf('d').toDate() } },
-    ],
-  };
-  const absencesByAuxiliary = await exports.getPaidAbsences(absenceRules);
+  const eventsByAuxiliary = await exports.getEventToPay(start, end, auxiliaries);
+  const absencesByAuxiliary = await exports.getPaidAbsences(start, end, auxiliaries);
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();

@@ -17,10 +17,8 @@ const draftStcList = async (req) => {
     });
     const existingStc = await Stc.find({ month: moment(req.query.startDate).format('MMMM') });
 
-    const draftStc = await getDraftStc(
-      differenceBy(contracts.map(con => con.user), existingStc.map(stc => stc.auxiliary), x => x.toHexString()),
-      req.query
-    );
+    const finalPayAuxiliaries = differenceBy(contracts.map(con => con.user), existingStc.map(stc => stc.auxiliary), x => x.toHexString());
+    const draftStc = await getDraftStc(finalPayAuxiliaries, req.query);
 
     return {
       message: translate[language].draftStc,

@@ -526,6 +526,6 @@ module.exports = {
     payListCreated: 'Liste de paie créée',
 
     /* Stc */
-    stcListCreated: 'Liste des stc créeée',
+    stcListCreated: 'Liste des stc créée',
   }
 };

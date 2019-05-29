@@ -40,15 +40,11 @@ exports.getDraftStcByAuxiliary = async (events, absences, company, query, distan
 };
 
 exports.getDraftStc = async (auxiliaries, query) => {
-  const rules = {
-    type: { $in: [INTERNAL_HOUR, INTERVENTION] },
-    startDate: { $gte: moment(query.startDate).startOf('d').toDate() },
-    endDate: { $lte: moment(query.endDate).endOf('d').toDate() },
-    auxiliary: { $in: auxiliaries },
-    status: COMPANY_CONTRACT,
-  };
-  const eventsByAuxiliary = await DraftPayHelper.getEventToPay(rules);
-  const absencesByAuxiliary = await DraftPayHelper.getPaidAbsences(auxiliaries);
+  const start = moment(query.startDate).startOf('d').toDate();
+  const end = moment(query.endDate).endOf('d').toDate();
+
+  const eventsByAuxiliary = await DraftPayHelper.getEventToPay(start, end, auxiliaries);
+  const absencesByAuxiliary = await DraftPayHelper.getPaidAbsences(start, end, auxiliaries);
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();
