@@ -25,6 +25,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
+const { getFullTitleFromIdentity } = require('./utils');
 
 momentRange.extendMoment(moment);
 
@@ -388,29 +389,13 @@ exports.removeEventsByContractStatus = async (contract) => {
   await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false });
 };
 
-function getFullTitleFromIdentity(identity) {
-  const lastname = identity.lastname || '';
-  let fullTitle = [
-    identity.title || '',
-    identity.firstname || '',
-    lastname.toUpperCase(),
-  ];
-
-  fullTitle = fullTitle.filter(value => !_.isEmpty(value));
-
-  return fullTitle.join(' ');
-}
-
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
-  const searchStartDate = moment(startDate).startOf('day').toDate();
-  const searchEndDate = moment(endDate).endOf('day').toDate();
-
   const query = {
     type: { $in: [INTERVENTION, INTERNAL_HOUR] },
     $or: [
-      { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
-      { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
-      { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+      { startDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
     ],
   };
 

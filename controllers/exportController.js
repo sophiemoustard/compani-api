@@ -1,11 +1,23 @@
 const Boom = require('boom');
-const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, WORKING_EVENTS } = require('../helpers/constants');
+const moment = require('moment');
+
+const {
+  SERVICE,
+  AUXILIARY,
+  HELPER,
+  CUSTOMER,
+  FUNDING,
+  SUBSCRIPTION,
+  WORKING_EVENT,
+  BILL,
+} = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
 const { exportCustomers } = require('../helpers/customers');
 const { exportSubscriptions } = require('../helpers/subscriptions');
 const { exportFundings } = require('../helpers/fundings');
 const { exportAuxiliaries, exportHelpers } = require('../helpers/users');
 const { exportWorkingEventsHistory } = require('../helpers/events');
+const { exportBillsHistory } = require('../helpers/bills');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
@@ -47,10 +59,16 @@ const exportHistory = async (req, h) => {
   try {
     const { type } = req.params;
 
+    const startDate = moment(req.query.startDate).startOf('day').toDate();
+    const endDate = moment(req.query.endDate).endOf('day').toDate();
+
     let exportArray;
     switch (type) {
-      case WORKING_EVENTS:
-        exportArray = await exportWorkingEventsHistory(req.query.startDate, req.query.endDate);
+      case WORKING_EVENT:
+        exportArray = await exportWorkingEventsHistory(startDate, endDate);
+        break;
+      case BILL:
+        exportArray = await exportBillsHistory(startDate, endDate);
         break;
     }
 

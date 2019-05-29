@@ -114,7 +114,8 @@ module.exports = {
     7: 'Jours fériés'
   },
   // EXPORTS HISTORY
-  WORKING_EVENTS: 'working_events', // intervention or internal hours
+  WORKING_EVENT: 'working_event', // intervention or internal hours
+  BILL: 'bill',
   // SERVICE
   get SERVICE_NATURES() {
     return this.FUNDING_NATURES;

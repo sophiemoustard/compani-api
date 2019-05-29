@@ -215,3 +215,48 @@ exports.formatPDF = (bill, company) => {
     },
   };
 };
+
+function exportBillSubscribtions(bill) {
+  const subscriptions = bill.subscriptions.map(sub =>
+    `${sub.service} ; ${sub.hours} heures ; ${sub.inclTaxes.toFixed(2)}€ TTC`);
+
+  return subscriptions.join('\r\n');
+}
+
+exports.exportBillsHistory = async (startDate, endDate) => {
+  const query = {
+    date: { $lte: endDate, $gte: startDate }
+  };
+
+  const bills = await Bill.find(query)
+    .sort({ date: 'desc' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'client' })
+    .lean();
+
+  const header = [
+    'Identifiant',
+    'Date',
+    'Bénéficiaire',
+    'Tiers Payer',
+    'Montant TTC',
+    'Services',
+  ];
+
+  const rows = [header];
+
+  for (const bill of bills) {
+    const cells = [
+      bill.billNumber || '',
+      moment(bill.date).format('DD/MM/YYYY'),
+      UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity') || {}),
+      get(bill.client, 'name') || '',
+      bill.netInclTaxes.toFixed(2),
+      exportBillSubscribtions(bill),
+    ];
+
+    rows.push(cells);
+  }
+
+  return rows;
+};

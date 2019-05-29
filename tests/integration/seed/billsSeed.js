@@ -1,5 +1,4 @@
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
 
 const Bill = require('../../../models/Bill');
 const { customersList } = require('./customersSeed');
@@ -9,13 +8,13 @@ const { eventsList } = require('./eventsSeed');
 const billsList = [
   {
     _id: new ObjectID(),
-    date: moment().toDate(),
+    date: '2019-05-29',
     customer: customersList[0]._id,
     client: thirdPartyPayersList[0]._id,
     netInclTaxes: 75.96,
     subscriptions: [{
-      startDate: moment().toDate(),
-      endDate: moment().add(6, 'months').toDate(),
+      startDate: '2019-05-29',
+      endDate: '2019-11-29',
       subscription: customersList[0].subscriptions[0]._id,
       vat: 5.5,
       events: [eventsList[2]._id],
@@ -28,12 +27,12 @@ const billsList = [
   },
   {
     _id: new ObjectID(),
-    date: moment().toDate(),
+    date: '2019-05-25',
     customer: customersList[1]._id,
     netInclTaxes: 101.28,
     subscriptions: [{
-      startDate: moment().toDate(),
-      endDate: moment().add(6, 'months').toDate(),
+      startDate: '2019-05-25',
+      endDate: '2019-11-25',
       subscription: customersList[0].subscriptions[0]._id,
       vat: 5.5,
       events: [eventsList[2]._id],

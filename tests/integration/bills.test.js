@@ -21,7 +21,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('BILLS ROUTES', () => {
+describe('BILL ROUTES', () => {
   let authToken = null;
   before(populateCompanies);
   before(populateRoles);

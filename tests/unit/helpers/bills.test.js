@@ -3,8 +3,11 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 
+const Bill = require('../../../models/Bill');
 const BillHelper = require('../../../helpers/bills');
 const UtilsHelper = require('../../../helpers/utils');
+
+require('sinon-mongoose');
 
 describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
@@ -587,5 +590,84 @@ describe('getUnitInclTaxes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(14.4);
     sinon.assert.called(getLastVersion);
+  });
+});
+
+describe('exportBillsHistory', () => {
+  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Tiers Payer', 'Montant TTC', 'Services'];
+  const bills = [
+    {
+      billNumber: 'FACT-0549236',
+      date: '2019-05-20T06:00:00.000+00:00',
+      customer: {
+        identity: {
+          title: 'Mme',
+          firstname: 'Mimi',
+          lastname: 'Mathy',
+        },
+      },
+      client: { name: 'TF1' },
+      netInclTaxes: 389276.023,
+      subscriptions: [{
+        service: 'Temps de qualité - autonomie',
+        hours: 20,
+        inclTaxes: 389276.0208
+      }]
+    }, {
+      billNumber: 'FACT-0419457',
+      date: '2019-05-22T06:00:00.000+00:00',
+      customer: {
+        identity: {
+          title: 'M',
+          firstname: 'Bojack',
+          lastname: 'Horseman',
+        },
+      },
+      client: { name: 'The Sherif' },
+      netInclTaxes: 1002.4,
+      subscriptions: [{
+        service: 'Forfait nuit',
+        hours: 15,
+        inclTaxes: 700.0208
+      }, {
+        service: 'Forfait nuit',
+        hours: 7,
+        inclTaxes: 302
+      }]
+    }
+  ];
+  let expectsFind;
+  let mockBill;
+
+  beforeEach(() => {
+    mockBill = sinon.mock(Bill);
+    expectsFind = mockBill.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once();
+  });
+
+  afterEach(() => {
+    mockBill.restore();
+  });
+
+  it('should return an array containing just the header', async () => {
+    expectsFind.resolves([]);
+    const exportArray = await BillHelper.exportBillsHistory(null, null);
+
+    expect(exportArray).toEqual([header]);
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    expectsFind.resolves(bills);
+    const exportArray = await BillHelper.exportBillsHistory(null, null);
+
+    expect(exportArray).toEqual([
+      header,
+      ['FACT-0549236', '20/05/2019', 'Mme Mimi MATHY', 'TF1', '389276.02', 'Temps de qualité - autonomie ; 20 heures ; 389276.02€ TTC'],
+      ['FACT-0419457', '22/05/2019', 'M Bojack HORSEMAN', 'The Sherif', '1002.40', 'Forfait nuit ; 15 heures ; 700.02€ TTC\r\nForfait nuit ; 7 heures ; 302.00€ TTC'],
+    ]);
   });
 });
