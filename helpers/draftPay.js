@@ -9,6 +9,7 @@ const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const Pay = require('../models/Pay');
+const Contract = require('../models/Contract');
 const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION, INTERNAL_HOUR, ABSENCE, DAILY, COMPANY_CONTRACT } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
@@ -24,6 +25,50 @@ moment.updateLocale('fr', {
   workingWeekdays: [1, 2, 3, 4, 5, 6]
 });
 moment.tz('Europe/Paris');
+
+exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate([
+  { $match: { ...contractRules } },
+  { $group: { _id: '$user' } },
+  {
+    $lookup: {
+      from: 'users',
+      localField: '_id',
+      foreignField: '_id',
+      as: 'auxiliary',
+    },
+  },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $lookup: {
+      from: 'sectors',
+      localField: 'auxiliary.sector',
+      foreignField: '_id',
+      as: 'auxiliary.sector',
+    },
+  },
+  { $unwind: { path: '$auxiliary.sector' } },
+  {
+    $lookup: {
+      from: 'contracts',
+      localField: 'auxiliary.contracts',
+      foreignField: '_id',
+      as: 'auxiliary.contracts',
+    },
+  },
+  {
+    $project: {
+      _id: 1,
+      auxiliary: {
+        _id: 1,
+        identity: { firstname: 1, lastname: 1 },
+        sector: 1,
+        contracts: 1,
+        contact: 1,
+        administrative: { mutualFund: 1, transportInvoice: 1 },
+      }
+    },
+  },
+]);
 
 exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   {
@@ -443,7 +488,6 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, company, qu
     hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
     const absencesHours = exports.getPayFromAbsences(absences, contract, query);
     hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
-    console.log(identity.lastname, events, absences)
   }
 
   return {
@@ -465,9 +509,15 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, company, qu
   };
 };
 
-exports.getDraftPay = async (auxiliaries, existingPay, query) => {
+exports.getDraftPay = async (query) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
+  const contractRules = {
+    status: COMPANY_CONTRACT,
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gte: moment(query.endDate).endOf('d').toDate() } }]
+  };
+  const auxiliaries = exports.getAuxiliariesFromContracts(contractRules);
+  const existingPay = await Pay.find({ month: moment(query.startDate).format('MMMM') });
 
   const auxIds = differenceBy(auxiliaries.map(aux => aux._id), existingPay.map(pay => pay.auxiliary), x => x.toHexString());
   const eventsByAuxiliary = await exports.getEventsToPay(start, end, auxIds);

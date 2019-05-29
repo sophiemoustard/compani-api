@@ -970,6 +970,7 @@ describe('getDraftPayByAuxiliary', () => {
 });
 
 describe('getDraftPay', () => {
+  let getAuxiliariesFromContracts;
   let getEventsToPay;
   let getAbsencesToPay;
   let companyMock;
@@ -979,6 +980,7 @@ describe('getDraftPay', () => {
   let getDraftPayByAuxiliary;
 
   beforeEach(() => {
+    getAuxiliariesFromContracts = sinon.stub(DraftPayHelper, 'getAuxiliariesFromContracts')
     getEventsToPay = sinon.stub(DraftPayHelper, 'getEventsToPay');
     getAbsencesToPay = sinon.stub(DraftPayHelper, 'getAbsencesToPay');
     companyMock = sinon.mock(Company);
@@ -989,6 +991,7 @@ describe('getDraftPay', () => {
   });
 
   afterEach(() => {
+    getAuxiliariesFromContracts.restore();
     getEventsToPay.restore();
     getAbsencesToPay.restore();
     companyMock.restore();
@@ -1000,7 +1003,9 @@ describe('getDraftPay', () => {
 
   it('should return an empty array if no auxiliary', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    getAuxiliariesFromContracts.returns([]);
     companyMock.expects('findOne').chain('lean');
+    findPay.onCall(0).returns([]);
     const result = await DraftPayHelper.getDraftPay([], [], query);
 
     expect(result).toBeDefined();
@@ -1025,14 +1030,16 @@ describe('getDraftPay', () => {
     ];
     const existingPay = [{ auxiliary: new ObjectID() }];
 
+    getAuxiliariesFromContracts.returns(auxiliaries);
     getEventsToPay.returns(events);
     getAbsencesToPay.returns(absences);
     findSurcharge.returns([]);
     findDistanceMatrix.returns([]);
-    findPay.returns(pay);
+    findPay.onCall(0).returns(existingPay);
+    findPay.onCall(1).returns(pay);
     companyMock.expects('findOne').chain('lean').returns({});
     getDraftPayByAuxiliary.returns({ hoursBalance: 120 });
-    const result = await DraftPayHelper.getDraftPay(auxiliaries, existingPay, query);
+    const result = await DraftPayHelper.getDraftPay(query);
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
