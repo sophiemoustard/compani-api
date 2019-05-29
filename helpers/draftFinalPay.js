@@ -43,8 +43,8 @@ exports.getDraftFinalPay = async (auxiliaries, query) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
 
-  const eventsByAuxiliary = await DraftPayHelper.getEventToPay(start, end, auxiliaries);
-  const absencesByAuxiliary = await DraftPayHelper.getPaidAbsences(start, end, auxiliaries);
+  const eventsByAuxiliary = await DraftPayHelper.getEventsToPay(start, end, auxiliaries);
+  const absencesByAuxiliary = await DraftPayHelper.getAbsencesToPay(start, end, auxiliaries);
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();

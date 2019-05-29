@@ -3,6 +3,7 @@ const momentRange = require('moment-range');
 const Holidays = require('date-holidays');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const differenceBy = require('lodash/differenceBy');
 const Event = require('../models/Event');
 const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
@@ -39,15 +40,6 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   },
   {
     $lookup: {
-      from: 'users',
-      localField: 'auxiliary',
-      foreignField: '_id',
-      as: 'auxiliary',
-    },
-  },
-  { $unwind: { path: '$auxiliary' } },
-  {
-    $lookup: {
       from: 'customers',
       localField: 'customer',
       foreignField: '_id',
@@ -73,32 +65,8 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   },
   { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
   {
-    $lookup: {
-      from: 'sectors',
-      localField: 'auxiliary.sector',
-      foreignField: '_id',
-      as: 'auxiliary.sector',
-    },
-  },
-  { $unwind: { path: '$auxiliary.sector' } },
-  {
-    $lookup: {
-      from: 'contracts',
-      localField: 'auxiliary.contracts',
-      foreignField: '_id',
-      as: 'auxiliary.contracts',
-    },
-  },
-  {
     $project: {
-      auxiliary: {
-        _id: 1,
-        identity: { firstname: 1, lastname: 1 },
-        sector: 1,
-        contracts: 1,
-        contact: 1,
-        administrative: { mutualFund: 1, transportInvoice: 1 },
-      },
+      auxiliary: 1,
       customer: { contact: 1 },
       startDate: 1,
       endDate: 1,
@@ -123,12 +91,10 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   { $unwind: { path: '$auxiliary' } },
   {
     $group: {
-      _id: '$_id.aux._id',
+      _id: '$_id.aux',
       events: { $push: '$eventsPerDay' },
-      auxiliary: { $addToSet: '$auxiliary' },
     },
   },
-  { $unwind: { path: '$auxiliary' } },
 ]);
 
 exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
@@ -456,15 +422,29 @@ exports.getPayFromAbsences = (absences, contract, query) => {
   return hours;
 };
 
-exports.getDraftPayByAuxiliary = async (events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
-  const { auxiliary } = events[0] && events[0][0] ? events[0][0] : absences[0];
-  const { _id, identity, sector, contracts } = auxiliary;
+exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
+  let hours = {
+    workedHours: 0,
+    notSurchargedAndNotExempt: 0,
+    surchargedAndNotExempt: 0,
+    notSurchargedAndExempt: 0,
+    surchargedAndExempt: 0,
+    surchargedAndNotExemptDetails: {},
+    surchargedAndExemptDetails: {},
+    paidKm: 0,
+  };
+  let hoursBalance = 0;
 
+  const { _id, identity, sector, contracts } = auxiliary;
   const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
-  const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
-  const absencesHours = exports.getPayFromAbsences(absences, contract, query);
   const contractInfo = exports.getContractMonthInfo(contract, query);
-  const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
+
+  if (events.length !== 0 || absences.length !== 0) {
+    hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
+    const absencesHours = exports.getPayFromAbsences(absences, contract, query);
+    hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
+    console.log(identity.lastname, events, absences)
+  }
 
   return {
     auxiliaryId: auxiliary._id,
@@ -485,12 +465,13 @@ exports.getDraftPayByAuxiliary = async (events, absences, company, query, distan
   };
 };
 
-exports.getDraftPay = async (auxiliaries, query) => {
+exports.getDraftPay = async (auxiliaries, existingPay, query) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
 
-  const eventsByAuxiliary = await exports.getEventsToPay(start, end, auxiliaries);
-  const absencesByAuxiliary = await exports.getAbsencesToPay(start, end, auxiliaries);
+  const auxIds = differenceBy(auxiliaries.map(aux => aux._id), existingPay.map(pay => pay.auxiliary), x => x.toHexString());
+  const eventsByAuxiliary = await exports.getEventsToPay(start, end, auxIds);
+  const absencesByAuxiliary = await exports.getAbsencesToPay(start, end, auxIds);
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();
@@ -498,20 +479,10 @@ exports.getDraftPay = async (auxiliaries, query) => {
 
   const draftPay = [];
   for (const aux of auxiliaries) {
-    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === aux.toHexString());
-    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === aux.toHexString());
-    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux.toHexString());
-    if (auxEvents || auxAbsences) {
-      draftPay.push(await exports.getDraftPayByAuxiliary(
-        auxEvents ? auxEvents.events : [],
-        auxAbsences ? auxAbsences.events : [],
-        company,
-        query,
-        distanceMatrix,
-        surcharges,
-        prevPay,
-      ));
-    }
+    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === aux._id.toHexString()) || { events: [] };
+    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === aux._id.toHexString()) || { events: [] };
+    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux._id.toHexString());
+    draftPay.push(await exports.getDraftPayByAuxiliary(aux, auxEvents.events, auxAbsences.events, company, query, distanceMatrix, surcharges, prevPay));
   }
 
   return draftPay;
