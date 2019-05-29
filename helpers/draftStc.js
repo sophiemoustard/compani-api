@@ -56,19 +56,11 @@ exports.getDraftStc = async (auxiliaries, query) => {
 
   const draftStc = [];
   for (const aux of auxiliaries) {
-    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === aux.toHexString());
-    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === aux.toHexString());
+    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === aux.toHexString()) || { events: [] };
+    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === aux.toHexString()) || { events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux.toHexString());
     if (auxEvents || auxAbsences) {
-      draftStc.push(await exports.getDraftStcByAuxiliary(
-        auxEvents ? auxEvents.events : [],
-        auxAbsences ? auxAbsences.events : [],
-        company,
-        query,
-        distanceMatrix,
-        surcharges,
-        prevPay,
-      ));
+      draftStc.push(await exports.getDraftStcByAuxiliary(auxEvents.events, auxAbsences.events, company, query, distanceMatrix, surcharges, prevPay));
     }
   }
 
