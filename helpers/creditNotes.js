@@ -117,7 +117,7 @@ exports.formatPDF = (creditNote, company) => {
   } else {
     computedData.subscription = {
       service: creditNote.subscription.service,
-      unitExclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitExclTaxes)
+      unitInclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitInclTaxes)
     };
   }
 

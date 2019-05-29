@@ -13,7 +13,7 @@ const BillSchema = mongoose.Schema({
     vat: Number,
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     hours: Number,
-    unitExclTaxes: Number,
+    unitInclTaxes: Number,
     exclTaxes: Number,
     inclTaxes: Number,
     discount: Number,

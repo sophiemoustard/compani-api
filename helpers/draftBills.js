@@ -312,6 +312,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     startDate: startDate.toDate(),
     endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: getExclTaxes(unitTTCRate, serviceMatchingVersion.vat),
+    unitInclTaxes: unitTTCRate,
     vat: serviceMatchingVersion.vat,
   };
 
