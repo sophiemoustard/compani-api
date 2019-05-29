@@ -32,16 +32,16 @@ const draftStcList = async (req) => {
 
 const createList = async (req) => {
   try {
-    const promises = [];
+    const finalPayList = [];
     for (const stc of req.payload) {
-      promises.push((new Stc({
+      finalPayList.push((new Stc({
         ...stc,
         ...(stc.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: JSON.stringify(stc.surchargedAndNotExemptDetails) }),
         ...(stc.surchargedAndExemptDetails && { surchargedAndExemptDetails: JSON.stringify(stc.surchargedAndExemptDetails) }),
-      })).save());
+      })));
     }
 
-    await Promise.all(promises);
+    await Stc.insertMany(finalPayList);
 
     return { message: translate[language].stcListCreated };
   } catch (e) {
