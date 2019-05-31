@@ -134,7 +134,6 @@ const CustomerSchema = mongoose.Schema({
       endDate: Date,
       createdAt: { type: Date, default: Date.now },
     }],
-    createdAt: { type: Date, default: Date.now },
   }],
 }, { timestamps: true });
 

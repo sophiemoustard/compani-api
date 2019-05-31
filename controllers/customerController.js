@@ -773,7 +773,7 @@ const createFunding = async (req) => {
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
-    let funding = [...customer.fundings].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    let funding = customer.fundings[customer.fundings.length - 1];
     funding = await populateFundings(funding, customer);
 
     return {
@@ -792,8 +792,8 @@ const createFunding = async (req) => {
 const updateFunding = async (req) => {
   try {
     if (req.payload.careDays) {
-      const payload = { _id: req.payload.fundingId, subscriptions: req.payload.subscriptions, versions: [req.payload] };
-      const check = await checkSubscriptionFunding(req.params._id, payload);
+      const checkFundingPayload = { _id: req.payload.fundingId, subscription: req.payload.subscription, versions: [req.payload] };
+      const check = await checkSubscriptionFunding(req.params._id, checkFundingPayload);
       if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     }
     const customer = await Customer.findOneAndUpdate(
@@ -810,7 +810,6 @@ const updateFunding = async (req) => {
 
     let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);
     funding = await populateFundings(funding, customer);
-
 
     return {
       message: translate[language].customerFundingUpdated,
