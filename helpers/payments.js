@@ -134,19 +134,25 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
   const header = [
     'Identifiant',
     'Date',
+    'Id Bénéficiaire',
     'Bénéficiaire',
-    'Tiers Payeur',
+    'Id tiers payeur',
+    'Tiers payeur',
     'Moyen de paiement',
-    'Montant en € TTC'
+    'Montant TTC en €'
   ];
 
   const rows = [header];
 
   for (const payment of payments) {
+    const customerId = get(payment.customer, '_id');
+    const clientId = get(payment.client, '_id');
     const cells = [
       payment.paymentNumber || '',
       moment(payment.date).format('DD/MM/YYYY'),
+      customerId ? customerId.toHexString() : '',
       UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity') || {}),
+      clientId ? clientId.toHexString() : '',
       get(payment.client, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',
       payment.netInclTaxes.toFixed(2),
