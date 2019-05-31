@@ -88,7 +88,6 @@ describe('exportPayHistory', () => {
     expectsFind = mockPay.expects('find')
       .chain('sort')
       .chain('populate')
-      .chain('lean')
       .once();
   });
 
