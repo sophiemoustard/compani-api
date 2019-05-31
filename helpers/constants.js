@@ -7,6 +7,8 @@ module.exports = {
   UNJUSTIFIED: 'unjustified absence',
   ILLNESS: 'illness',
   PAID_LEAVE: 'leave',
+  UNPAID_LEAVE: 'unpaid leave',
+  MATERNITY_LEAVE: 'maternity leave',
   WEDDING: 'wedding',
   BIRTH: 'birth',
   DEATH: 'death',
@@ -16,6 +18,18 @@ module.exports = {
       [this.INTERVENTION]: 'Intervention',
       [this.ABSENCE]: 'Absence',
       [this.UNAVAILABILITY]: 'Indisponibilité',
+    };
+  },
+  get ABSENCES_TYPE_LIST() {
+    return {
+      [this.PAID_LEAVE]: 'Congé',
+      [this.UNPAID_LEAVE]: 'Congé sans solde',
+      [this.MATERNITY_LEAVE]: 'Congé maternité',
+      [this.ILLNESS]: 'Maladie',
+      [this.UNJUSTIFIED]: 'Absence injustifiée',
+      [this.WEDDING]: 'Mariage',
+      [this.BIRTH]: 'Naissance',
+      [this.DEATH]: 'Décès',
     };
   },
   // COMPANY
