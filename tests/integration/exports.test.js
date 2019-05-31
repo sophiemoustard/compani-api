@@ -7,6 +7,7 @@ const { populateBills } = require('./seed/billsSeed');
 const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const { populatePayments } = require('./seed/paymentsSeed');
 const { getToken } = require('./seed/usersSeed');
+const { populateDB } = require('./seed/paySeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
@@ -68,6 +69,21 @@ describe('EXPORTS ROUTES', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result).toBeDefined();
       expect(response.result.split('\r\n').length).toBe(3);
+    });
+  });
+
+  describe('GET /exports/payment/history', () => {
+    before(populateDB);
+    it('should get payments', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/exports/pay/history?startDate=2019-05-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result).toBeDefined();
+      expect(response.result.split('\r\n').length).toBe(2);
     });
   });
 });
