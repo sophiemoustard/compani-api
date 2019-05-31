@@ -74,6 +74,14 @@ module.exports = {
   get PAYMENT_TYPES() {
     return [this.WITHDRAWAL, this.BANK_TRANSFER, this.CHECK, this.CESU];
   },
+  get PAYMENT_TYPES_LIST() {
+    return {
+      [this.WITHDRAWAL]: 'Retrait',
+      [this.BANK_TRANSFER]: 'Virement',
+      [this.CHECK]: 'Chèque',
+      [this.CESU]: 'Cesu',
+    };
+  },
   // CANCELLATION OPTIONS
   INVOICED_AND_PAYED: 'invoiced_and_payed',
   INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',

@@ -238,7 +238,7 @@ exports.exportBillsHistory = async (startDate, endDate) => {
     'Identifiant',
     'Date',
     'Bénéficiaire',
-    'Tiers Payer',
+    'Tiers Payeur',
     'Montant TTC',
     'Services',
   ];
