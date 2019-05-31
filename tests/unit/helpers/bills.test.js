@@ -594,7 +594,7 @@ describe('getUnitInclTaxes', () => {
 });
 
 describe('exportBillsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Tiers Payer', 'Montant TTC', 'Services'];
+  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Tiers Payeur', 'Montant TTC', 'Services'];
   const bills = [
     {
       billNumber: 'FACT-0549236',
