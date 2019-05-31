@@ -594,45 +594,50 @@ describe('getUnitInclTaxes', () => {
 });
 
 describe('exportBillsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Tiers Payeur', 'Montant TTC', 'Services'];
+  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Bénéficiaire', 'Id tiers payeur', 'Tiers payeur', 'Montant HT en €', 'Montant TTC en €', 'Services'];
   const bills = [
     {
       billNumber: 'FACT-0549236',
       date: '2019-05-20T06:00:00.000+00:00',
       customer: {
+        _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
         identity: {
           title: 'Mme',
           firstname: 'Mimi',
           lastname: 'Mathy',
         },
       },
-      client: { name: 'TF1' },
+      client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
       subscriptions: [{
         service: 'Temps de qualité - autonomie',
         hours: 20,
-        inclTaxes: 389276.0208
+        exclTaxes: 389276.0208,
+        inclTaxes: 410686.201944,
       }]
     }, {
       billNumber: 'FACT-0419457',
       date: '2019-05-22T06:00:00.000+00:00',
       customer: {
+        _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
         identity: {
           title: 'M',
           firstname: 'Bojack',
           lastname: 'Horseman',
         },
       },
-      client: { name: 'The Sherif' },
-      netInclTaxes: 1002.4,
+      client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
+      netInclTaxes: 1057.1319439,
       subscriptions: [{
         service: 'Forfait nuit',
         hours: 15,
-        inclTaxes: 700.0208
+        exclTaxes: 700.0208,
+        inclTaxes: 738.521944,
       }, {
         service: 'Forfait nuit',
         hours: 7,
-        inclTaxes: 302
+        inclTaxes: 302,
+        exclTaxes: 318.6099999,
       }]
     }
   ];
@@ -666,8 +671,8 @@ describe('exportBillsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['FACT-0549236', '20/05/2019', 'Mme Mimi MATHY', 'TF1', '389276.02', 'Temps de qualité - autonomie ; 20 heures ; 389276.02€ TTC'],
-      ['FACT-0419457', '22/05/2019', 'M Bojack HORSEMAN', 'The Sherif', '1002.40', 'Forfait nuit ; 15 heures ; 700.02€ TTC\r\nForfait nuit ; 7 heures ; 302.00€ TTC'],
+      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', '389276.02', '389276.02', 'Temps de qualité - autonomie - 20 heures - 410686.20€ TTC'],
+      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', '1018.63', '1057.13', 'Forfait nuit - 15 heures - 738.52€ TTC\r\nForfait nuit - 7 heures - 302.00€ TTC'],
     ]);
   });
 });

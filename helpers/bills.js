@@ -218,7 +218,7 @@ exports.formatPDF = (bill, company) => {
 
 function exportBillSubscribtions(bill) {
   const subscriptions = bill.subscriptions.map(sub =>
-    `${sub.service} ; ${sub.hours} heures ; ${sub.inclTaxes.toFixed(2)}€ TTC`);
+    `${sub.service} - ${sub.hours} heures - ${sub.inclTaxes.toFixed(2)}€ TTC`);
 
   return subscriptions.join('\r\n');
 }
@@ -237,20 +237,34 @@ exports.exportBillsHistory = async (startDate, endDate) => {
   const header = [
     'Identifiant',
     'Date',
+    'Id Bénéficiaire',
     'Bénéficiaire',
-    'Tiers Payeur',
-    'Montant TTC',
+    'Id tiers payeur',
+    'Tiers payeur',
+    'Montant HT en €',
+    'Montant TTC en €',
     'Services',
   ];
 
   const rows = [header];
 
   for (const bill of bills) {
+    const customerId = get(bill.customer, '_id');
+    const clientId = get(bill.client, '_id');
+
+    let totalExclTaxes = 0;
+    for (const sub of bill.subscriptions) {
+      totalExclTaxes += sub.exclTaxes;
+    }
+
     const cells = [
       bill.billNumber || '',
       moment(bill.date).format('DD/MM/YYYY'),
+      customerId ? customerId.toHexString() : '',
       UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity') || {}),
+      clientId ? clientId.toHexString() : '',
       get(bill.client, 'name') || '',
+      totalExclTaxes.toFixed(2),
       bill.netInclTaxes.toFixed(2),
       exportBillSubscribtions(bill),
     ];

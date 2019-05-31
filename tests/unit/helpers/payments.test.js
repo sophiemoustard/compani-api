@@ -48,33 +48,35 @@ describe('formatPayment', () => {
 });
 
 describe('exportPaymentsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Tiers Payeur', 'Moyen de paiement', 'Montant en € TTC'];
+  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Bénéficiaire', 'Id tiers payeur', 'Tiers payeur', 'Moyen de paiement', 'Montant TTC en €'];
   const bills = [
     {
       number: 'REG-1905562',
       type: 'bank_transfer',
       date: '2019-05-20T06:00:00.000+00:00',
       customer: {
+        _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
         identity: {
           title: 'Mme',
           firstname: 'Mimi',
           lastname: 'Mathy',
         },
       },
-      client: { name: 'TF1' },
+      client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
     }, {
       number: 'REG-1905342',
       type: 'withdrawal',
       date: '2019-05-22T06:00:00.000+00:00',
       customer: {
+        _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
         identity: {
           title: 'M',
           firstname: 'Bojack',
           lastname: 'Horseman',
         },
       },
-      client: { name: 'The Sherif' },
+      client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
       netInclTaxes: 1002.4,
     }
   ];
@@ -108,8 +110,8 @@ describe('exportPaymentsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['', '20/05/2019', 'Mme Mimi MATHY', 'TF1', 'Virement', '389276.02'],
-      ['', '22/05/2019', 'M Bojack HORSEMAN', 'The Sherif', 'Retrait', '1002.40'],
+      ['', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276.02'],
+      ['', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Retrait', '1002.40'],
     ]);
   });
 });
