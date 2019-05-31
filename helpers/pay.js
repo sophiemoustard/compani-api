@@ -12,8 +12,7 @@ exports.exportPayHistory = async (startDate, endDate) => {
 
   const pays = await Pay.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity', populate: { path: 'sector', select: 'name' } })
-    .lean();
+    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } });
 
   const header = [
     'Auxiliaire',
@@ -41,7 +40,7 @@ exports.exportPayHistory = async (startDate, endDate) => {
   for (const pay of pays) {
     const cells = [
       utils.getFullTitleFromIdentity(_.get(pay.auxiliary, 'identity') || {}),
-      _.get(pay.auxiliary.sector, 'name') || '',
+      _.get(pay.auxiliary, 'sector.name') || '',
       moment(pay.startDate).format('DD/MM/YYYY'),
       moment(pay.endDate).format('DD/MM/YYYY'),
       pay.contractHours || '',
