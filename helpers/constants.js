@@ -147,4 +147,6 @@ module.exports = {
   PRIVATE_TRANSPORT: 'private',
   TRANSIT: 'transit',
   DRIVING: 'driving',
+  // PAY
+  PAY: 'pay',
 };
