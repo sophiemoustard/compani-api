@@ -60,7 +60,7 @@ exports.getDraftFinalPay = async (query) => {
   const end = moment(query.endDate).endOf('d').toDate();
   const contractRules = {
     status: COMPANY_CONTRACT,
-    endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).endOf('d').toDate() }
+    endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() }
   };
   const auxiliaries = await DraftPayHelper.getAuxiliariesFromContracts(contractRules);
   const existingFinalPay = await FinalPay.find({ month: moment(query.startDate).format('MMMM') });
