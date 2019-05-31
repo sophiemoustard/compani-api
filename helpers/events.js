@@ -447,3 +447,47 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
 
   return rows;
 };
+
+exports.exportAbsencesHistory = async (startDate, endDate) => {
+  const query = {
+    type: ABSENCE,
+    $or: [
+      { startDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
+    ],
+  };
+
+  const events = await Event.find(query)
+    .sort({ startDate: 'desc' })
+    .populate({ path: 'auxiliary', select: 'identity' })
+    .populate({ path: 'sector' })
+    .lean();
+
+  const header = [
+    'Type',
+    'Début',
+    'Fin',
+    'Secteur',
+    'Auxiliaire',
+    'Divers',
+  ];
+
+  const rows = [header];
+
+  for (const event of events) {
+
+    const cells = [
+      event.absence,
+      moment(event.startDate).format('DD/MM/YYYY'),
+      moment(event.endDate).format('DD/MM/YYYY'),
+      _.get(event.sector, 'name') || '',
+      getFullTitleFromIdentity(_.get(event.auxiliary, 'identity') || {}),
+      event.misc || '',
+    ];
+
+    rows.push(cells);
+  }
+
+  return rows;
+};
