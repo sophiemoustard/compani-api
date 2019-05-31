@@ -149,7 +149,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
       UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity') || {}),
       get(payment.client, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',
-      payment.netInclTaxes.toFixed(2),
+      `${payment.netInclTaxes.toFixed(2)}€ TTC`,
     ];
 
     rows.push(cells);
