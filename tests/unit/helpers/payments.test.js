@@ -48,7 +48,7 @@ describe('formatPayment', () => {
 });
 
 describe('exportPaymentsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Tiers Payeur', 'Moyen de paiement', 'Montant TTC'];
+  const header = ['Identifiant', 'Date', 'Bénéficiaire', 'Tiers Payeur', 'Moyen de paiement', 'Montant en € TTC'];
   const bills = [
     {
       number: 'REG-1905562',
@@ -108,8 +108,8 @@ describe('exportPaymentsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['', '20/05/2019', 'Mme Mimi MATHY', 'TF1', 'Virement', '389276.02€ TTC'],
-      ['', '22/05/2019', 'M Bojack HORSEMAN', 'The Sherif', 'Retrait', '1002.40€ TTC'],
+      ['', '20/05/2019', 'Mme Mimi MATHY', 'TF1', 'Virement', '389276.02'],
+      ['', '22/05/2019', 'M Bojack HORSEMAN', 'The Sherif', 'Retrait', '1002.40'],
     ]);
   });
 });

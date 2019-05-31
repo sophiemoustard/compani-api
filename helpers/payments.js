@@ -137,7 +137,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
     'Bénéficiaire',
     'Tiers Payeur',
     'Moyen de paiement',
-    'Montant TTC'
+    'Montant en € TTC'
   ];
 
   const rows = [header];
@@ -149,7 +149,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
       UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity') || {}),
       get(payment.client, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',
-      `${payment.netInclTaxes.toFixed(2)}€ TTC`,
+      payment.netInclTaxes.toFixed(2),
     ];
 
     rows.push(cells);
