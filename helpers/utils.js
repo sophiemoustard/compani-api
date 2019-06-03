@@ -100,8 +100,6 @@ exports.getFullTitleFromIdentity = (identity) => {
 };
 
 exports.formatFloatForExport = (number) => {
-  if (number == null) {
-    return '';
-  }
+  if (Number.isNaN(number)) return '';
   return number.toFixed(2).replace('.', ',');
 };

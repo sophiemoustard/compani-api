@@ -49,10 +49,8 @@ const exportToCsv = async (data) => {
   let csvContent = '';
   data.forEach((rowArray) => {
     const rowArrayQuoted = rowArray.map((cell) => {
-      if (cell === '') {
-        return cell;
-      }
-      return `"${cell.replace('"', '""')}"`;
+      if (cell === '') return cell;
+      return `"${cell.replace(/"/g, '""')}"`;
     });
     const row = rowArrayQuoted.join(';');
     csvContent += `${row}\r\n`;
