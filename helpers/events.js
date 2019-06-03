@@ -25,7 +25,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
-const { getFullTitleFromIdentity } = require('./utils');
+const UtilsHelper = require('./utils');
 
 momentRange.extendMoment(moment);
 
@@ -433,8 +433,8 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
       moment(event.endDate).format('DD/MM/YYYY'),
       repetition || '',
       _.get(event.sector, 'name') || '',
-      getFullTitleFromIdentity(_.get(event.auxiliary, 'identity') || {}),
-      getFullTitleFromIdentity(_.get(event.customer, 'identity') || {}),
+      UtilsHelper.getFullTitleFromIdentity(_.get(event.auxiliary, 'identity') || {}),
+      UtilsHelper.getFullTitleFromIdentity(_.get(event.customer, 'identity') || {}),
       event.misc || '',
       event.isBilled ? 'Oui' : 'Non',
       event.isCancelled ? 'Oui' : 'Non',
@@ -476,13 +476,12 @@ exports.exportAbsencesHistory = async (startDate, endDate) => {
   const rows = [header];
 
   for (const event of events) {
-
     const cells = [
       event.absence,
       moment(event.startDate).format('DD/MM/YYYY'),
       moment(event.endDate).format('DD/MM/YYYY'),
       _.get(event.sector, 'name') || '',
-      getFullTitleFromIdentity(_.get(event.auxiliary, 'identity') || {}),
+      UtilsHelper.getFullTitleFromIdentity(_.get(event.auxiliary, 'identity') || {}),
       event.misc || '',
     ];
 
