@@ -10,28 +10,13 @@ const FinalPay = require('../models/FinalPay');
 const DraftPayHelper = require('./draftPay');
 
 exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
-  let hours = {
-    workedHours: 0,
-    notSurchargedAndNotExempt: 0,
-    surchargedAndNotExempt: 0,
-    notSurchargedAndExempt: 0,
-    surchargedAndExempt: 0,
-    surchargedAndNotExemptDetails: {},
-    surchargedAndExemptDetails: {},
-    paidKm: 0,
-  };
-  let hoursBalance = 0;
-  let absencesHours = 0;
   const { _id, identity, sector, contracts } = auxiliary;
   const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
   const contractInfo = DraftPayHelper.getContractMonthInfo(contracts[0], query);
 
-  if (events.length !== 0 || absences.length !== 0) {
-    hours = await DraftPayHelper.getPayFromEvents(events, distanceMatrix, surcharges, query);
-    absencesHours = DraftPayHelper.getPayFromAbsences(absences, contracts[0], query);
-  }
-
-  hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
+  const hours = await DraftPayHelper.getPayFromEvents(events, distanceMatrix, surcharges, query);
+  const absencesHours = DraftPayHelper.getPayFromAbsences(absences, contracts[0], query);
+  const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
 
   return {
     auxiliaryId: auxiliary._id,
