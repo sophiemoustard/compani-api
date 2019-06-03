@@ -85,6 +85,15 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   },
   {
     $lookup: {
+      from: 'users',
+      localField: 'auxiliary',
+      foreignField: '_id',
+      as: 'auxiliary',
+    },
+  },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $lookup: {
       from: 'customers',
       localField: 'customer',
       foreignField: '_id',
@@ -111,7 +120,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
   {
     $project: {
-      auxiliary: 1,
+      auxiliary: { _id: 1, administrative: { transportInvoice: 1 } },
       customer: { contact: 1 },
       startDate: 1,
       endDate: 1,
@@ -123,7 +132,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   {
     $group: {
       _id: {
-        aux: '$auxiliary',
+        aux: '$auxiliary._id',
         year: { $year: '$startDate' },
         month: { $month: '$startDate' },
         week: { $week: '$startDate' },
@@ -340,7 +349,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
       ? get(event, 'customer.contact.address.fullAddress', null)
       : get(event, 'location.fullAddress', null);
     let transportMode = null;
-    if (has(event, 'auxiliary.administrative.transportInvoice.transportType', null)) {
+    if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {
       transportMode = event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT ? TRANSIT : DRIVING;
     }
 
