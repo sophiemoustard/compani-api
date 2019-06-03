@@ -38,10 +38,10 @@ exports.getContractMonthInfo = (contract, query) => {
 exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
   const { _id, identity, sector, contracts } = auxiliary;
   const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
-  const contractInfo = exports.getContractMonthInfo(contracts[0], query);
+  const contractInfo = exports.getContractMonthInfo(contract, query);
 
   const hours = await DraftPayHelper.getPayFromEvents(events, distanceMatrix, surcharges, query);
-  const absencesHours = DraftPayHelper.getPayFromAbsences(absences, contracts[0], query);
+  const absencesHours = DraftPayHelper.getPayFromAbsences(absences, contract, query);
   const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
 
   return {
