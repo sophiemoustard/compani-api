@@ -433,11 +433,10 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => 
 
       let service = null;
       if (paidEvent.type === INTERVENTION) {
-        service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
-
         // eslint-disable-next-line no-continue
-        if (service.nature === FIXED) continue; // Fixed services are included manually in bonus
+        if (paidEvent.subscription.service.nature === FIXED) continue; // Fixed services are included manually in bonus
 
+        service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
         service.surcharge = service.surcharge ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null : null;
       }
 

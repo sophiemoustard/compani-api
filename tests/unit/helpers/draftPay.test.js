@@ -512,16 +512,6 @@ describe('getEventHours', () => {
     sinon.assert.notCalled(getSurchargeSplit);
   });
 
-  it('should not call getSurchargeSplit if fixed service', async () => {
-    const service = { nature: 'fixed' };
-    getPaidTransportInfo.returns({ distance: 12, duration: 30 });
-
-    const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
-    expect(result).toBeDefined();
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
-    sinon.assert.notCalled(getSurchargeSplit);
-  });
-
   it('should not call getSurchargeSplit if no surcharge', async () => {
     const service = { nature: 'hourly' };
     getPaidTransportInfo.returns({ distance: 12, duration: 30 });
@@ -618,6 +608,38 @@ describe('getPayFromEvents', () => {
 
   it('should return 0 for all keys if no events', async () => {
     const result = await DraftPayHelper.getPayFromEvents([], [], [], {});
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      workedHours: 0,
+      notSurchargedAndNotExempt: 0,
+      surchargedAndNotExempt: 0,
+      notSurchargedAndExempt: 0,
+      surchargedAndExempt: 0,
+      surchargedAndNotExemptDetails: {},
+      surchargedAndExemptDetails: {},
+      paidKm: 0,
+    });
+    sinon.assert.notCalled(getMatchingVersion);
+    sinon.assert.notCalled(getEventHours);
+  });
+
+  it('should return 0 for all keys if one event linked to fixed service', async () => {
+    const events = [
+      [{
+        startDate: '2019-07-12T09:00:00',
+        endDate: '2019-07-01T11:00:00',
+        type: 'intervention',
+        subscription: {
+          service: {
+            nature: 'fixed',
+            versions: [{ startDate: '2019-02-22T00:00:00' }],
+          },
+        },
+      }],
+    ];
+    const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
+    const result = await DraftPayHelper.getPayFromEvents(events, [], [], query);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
