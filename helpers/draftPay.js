@@ -379,7 +379,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
 exports.getEventHours = async (event, prevEvent, service, details, distanceMatrix) => {
   const paidTransport = await exports.getPaidTransportInfo(event, prevEvent, distanceMatrix);
 
-  if (!service || service.nature === FIXED || !service.surcharge) { // Fixed services don't have surcharge
+  if (!service || !service.surcharge) {
     return {
       surcharged: 0,
       notSurcharged: (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60,
@@ -433,6 +433,8 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => 
 
       let service = null;
       if (paidEvent.type === INTERVENTION) {
+        if (paidEvent.subscription.service.nature === FIXED) continue; // Fixed services are included manually in bonus
+
         service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
         service.surcharge = service.surcharge ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null : null;
       }
