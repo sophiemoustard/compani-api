@@ -509,6 +509,7 @@ describe('getEventHours', () => {
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
     expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
+    sinon.assert.notCalled(getSurchargeSplit);
   });
 
   it('should not call getSurchargeSplit if fixed service', async () => {
@@ -518,6 +519,7 @@ describe('getEventHours', () => {
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
     expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
+    sinon.assert.notCalled(getSurchargeSplit);
   });
 
   it('should not call getSurchargeSplit if no surcharge', async () => {
@@ -527,6 +529,7 @@ describe('getEventHours', () => {
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
     expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
+    sinon.assert.notCalled(getSurchargeSplit);
   });
 
   it('should call getSurchargeSplit if hourly service with surcharge', async () => {
@@ -631,7 +634,7 @@ describe('getPayFromEvents', () => {
     sinon.assert.notCalled(getEventHours);
   });
 
-  it('should get marching service version for intervention', async () => {
+  it('should get matching service version for intervention', async () => {
     const surchargeId = new ObjectID();
     const events = [
       [{
@@ -654,11 +657,9 @@ describe('getPayFromEvents', () => {
 
     getMatchingVersion.returns({ startDate: '2019-02-22T00:00:00', surcharge: surchargeId });
     getEventHours.returns({ surcharged: 2, notSurcharged: 5, details: {}, paidKm: 5.8 });
-    console.log('toto');
     const result = await DraftPayHelper.getPayFromEvents(events, [], surcharges, query);
 
     expect(result).toBeDefined();
-    sinon.assert.called(getMatchingVersion);
     sinon.assert.calledWith(
       getMatchingVersion,
       '2019-07-12T09:00:00',
@@ -764,7 +765,7 @@ describe('getPayFromEvents', () => {
     const events = [
       [{
         startDate: '2019-07-12T09:00:00',
-        endDate: '2019-07-01T11:00:00',
+        endDate: '2019-07-12T11:00:00',
         type: 'intervention',
         subscription: {
           service: {
@@ -774,8 +775,8 @@ describe('getPayFromEvents', () => {
         },
       }],
       [{
-        startDate: '2019-07-12T09:00:00',
-        endDate: '2019-07-01T11:00:00',
+        startDate: '2019-07-13T09:00:00',
+        endDate: '2019-07-13T11:00:00',
         type: 'intervention',
         subscription: {
           service: {
@@ -785,8 +786,8 @@ describe('getPayFromEvents', () => {
         },
       }],
       [{
-        startDate: '2019-07-12T09:00:00',
-        endDate: '2019-07-01T11:00:00',
+        startDate: '2019-07-14T09:00:00',
+        endDate: '2019-07-14T11:00:00',
         type: 'intervention',
         subscription: {
           service: {
@@ -980,7 +981,7 @@ describe('getDraftPay', () => {
   let getDraftPayByAuxiliary;
 
   beforeEach(() => {
-    getAuxiliariesFromContracts = sinon.stub(DraftPayHelper, 'getAuxiliariesFromContracts')
+    getAuxiliariesFromContracts = sinon.stub(DraftPayHelper, 'getAuxiliariesFromContracts');
     getEventsToPay = sinon.stub(DraftPayHelper, 'getEventsToPay');
     getAbsencesToPay = sinon.stub(DraftPayHelper, 'getAbsencesToPay');
     companyMock = sinon.mock(Company);

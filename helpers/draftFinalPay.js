@@ -9,29 +9,40 @@ const Pay = require('../models/Pay');
 const FinalPay = require('../models/FinalPay');
 const DraftPayHelper = require('./draftPay');
 
-exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
-  let hours = {
-    workedHours: 0,
-    notSurchargedAndNotExempt: 0,
-    surchargedAndNotExempt: 0,
-    notSurchargedAndExempt: 0,
-    surchargedAndExempt: 0,
-    surchargedAndNotExemptDetails: {},
-    surchargedAndExemptDetails: {},
-    paidKm: 0,
-  };
-  let hoursBalance = 0;
-  let absencesHours = 0;
-  const { _id, identity, sector, contracts } = auxiliary;
-  const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
-  const contractInfo = DraftPayHelper.getContractMonthInfo(contracts[0], query);
+const getEndDate = (contract, version) => {
+  if (contract.endDate && version.endDate && moment(contract.endDate).isSame(version.endDate)) return moment(contract.endDate).endOf('d');
 
-  if (events.length !== 0 || absences.length !== 0) {
-    hours = await DraftPayHelper.getPayFromEvents(events, distanceMatrix, surcharges, query);
-    absencesHours = DraftPayHelper.getPayFromAbsences(absences, contracts[0], query);
+  return moment(version.endDate).subtract(1, 'd').endOf('d');
+};
+
+exports.getContractMonthInfo = (contract, query) => {
+  const versions = contract.versions.filter(ver =>
+    (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate)));
+  const monthBusinessDays = DraftPayHelper.getMonthBusinessDaysCount(query.startDate);
+
+  let contractHours = 0;
+  let workedDays = 0;
+  for (const version of versions) {
+    const startDate = moment(version.startDate).isBefore(query.startDate) ? moment(query.startDate) : moment(version.startDate).startOf('d');
+    const endDate = version.endDate && moment(version.endDate).isSameOrBefore(query.endDate)
+      ? getEndDate(contract, version)
+      : moment(query.endDate);
+    const businessDays = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
+    workedDays += businessDays;
+    contractHours += version.weeklyHours * (businessDays / monthBusinessDays) * 4.33;
   }
 
-  hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
+  return { contractHours, workedDaysRatio: workedDays / monthBusinessDays };
+};
+
+exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
+  const { _id, identity, sector, contracts } = auxiliary;
+  const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
+  const contractInfo = exports.getContractMonthInfo(contract, query);
+
+  const hours = await DraftPayHelper.getPayFromEvents(events, distanceMatrix, surcharges, query);
+  const absencesHours = DraftPayHelper.getPayFromAbsences(absences, contract, query);
+  const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
 
   return {
     auxiliaryId: auxiliary._id,
