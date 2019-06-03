@@ -10,6 +10,7 @@ const Contract = require('../../../models/Contract');
 const Surcharge = require('../../../models/Surcharge');
 const Event = require('../../../models/Event');
 const EventHelper = require('../../../helpers/events');
+const UtilsHelper = require('../../../helpers/utils');
 const {
   INTERVENTION,
   CUSTOMER_CONTRACT,
@@ -863,12 +864,19 @@ describe('exportWorkingEventsHistory', () => {
 
   it('should return an array with the header and 2 rows', async () => {
     expectsFind.resolves(events);
+    const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
+    const names = ['Jean-Claude VAN DAMME', 'Mme Mimi MATHY', 'Princess CAROLYN', 'M Bojack HORSEMAN'];
+    for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
+
     const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
 
+    sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
     expect(exportArray).toEqual([
       header,
       ['Intervention', '20/05/2019', '20/05/2019', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
       ['Heure interne', '20/05/2019', '20/05/2019', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant']
     ]);
+
+    getFullTitleFromIdentityStub.restore();
   });
 });
