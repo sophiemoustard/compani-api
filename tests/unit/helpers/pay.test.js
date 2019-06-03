@@ -14,20 +14,21 @@ describe('exportPayHistory', () => {
     'Début',
     'Fin',
     'Heures contrat',
-    'Total heures travaillées',
-    'Dont exo SAP non majorées',
-    'Dont majorées et exo SAP',
-    'Dont non majorées non exo SAP',
-    'Dont majorées et non exo SAP',
-    'Solde heures période',
-    "Compteur d'heures",
+    'Heures travaillées',
+    'Dont exo non majo',
+    'Dont exo et majo',
+    'Dont non exo et non majo',
+    'Dont non exo et majo',
+    'Solde heures',
+    'Compteur',
     'Heures sup à payer',
-    'Heures complémentaires à payer',
+    'Heures comp à payer',
     'Mutuelle',
     'Transport',
     'Autres frais',
-    'Prime'
+    'Prime',
   ];
+
   const pays = [
     {
       auxiliary: {
@@ -105,16 +106,20 @@ describe('exportPayHistory', () => {
   it('should return an array with the header and 2 rows', async () => {
     expectsFind.resolves(pays);
     const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
+    const formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
     getFullTitleFromIdentityStub.onFirstCall().returns('Tata TOTO');
     getFullTitleFromIdentityStub.onSecondCall().returns('Titi TUTU');
+    formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
     const exportArray = await PayHelper.exportPayHistory(null, null);
 
     expect(exportArray).toEqual([
       header,
-      ['Tata TOTO', 'Test', '01/05/2019', '31/05/2019', '77,94', '0,00', '0,00', '0,00', '0,00', '', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00'],
-      ['Titi TUTU', 'Autre test', '01/05/2019', '31/05/2019', '97,94', '0,00', '0,00', '0,00', '0,00', '', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00'],
+      ['Tata TOTO', 'Test', '01/05/2019', '31/05/2019', '77,94', '0,00', '0,00', '0,00', '0,00', '0,00', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00'],
+      ['Titi TUTU', 'Autre test', '01/05/2019', '31/05/2019', '97,94', '0,00', '0,00', '0,00', '0,00', '0,00', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00'],
     ]);
     sinon.assert.callCount(getFullTitleFromIdentityStub, 2);
+    sinon.assert.callCount(formatFloatForExportStub, 26);
     getFullTitleFromIdentityStub.restore();
+    formatFloatForExportStub.restore();
   });
 });

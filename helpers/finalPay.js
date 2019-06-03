@@ -7,8 +7,8 @@ const { END_CONTRACT_REASONS } = require('./constants');
 
 exports.exportFinalPayHistory = async (startDate, endDate) => {
   const query = {
-    endDate: { $lte: moment(endDate).endOf('M').toDate() },
-    startDate: { $gte: moment(startDate).startOf('M').toDate() },
+    endDate: { $lte: moment(endDate).endOf('d').toDate() },
+    startDate: { $gte: moment(startDate).startOf('d').toDate() },
   };
 
   const finalPays = await FinalPay.find(query)
@@ -18,20 +18,20 @@ exports.exportFinalPayHistory = async (startDate, endDate) => {
   const header = [
     'Auxiliaire',
     'Equipe',
-    'Début de STC',
-    'Date de notification',
+    'Début',
+    'Date de notif',
     'Motif',
-    'Fin de contrat',
+    'Fin',
     'Heures contrat',
-    'Total heures travaillées',
-    'Dont exo SAP non majorées',
-    'Dont majorées et exo SAP',
-    'Dont non majorées et non exo SAP',
-    'Dont majorées et non exo SAP',
-    'Solde heures période',
-    'Compteur d\'heures',
+    'Heures travaillées',
+    'Dont exo non majo',
+    'Dont exo et majo',
+    'Dont non exo et non majo',
+    'Dont non exo et majo',
+    'Solde heures',
+    'Compteur',
     'Heures sup à payer',
-    'Heures complémentaires à payer',
+    'Heures comp à payer',
     'Mutuelle',
     'Transport',
     'Autres frais',
@@ -54,7 +54,7 @@ exports.exportFinalPayHistory = async (startDate, endDate) => {
       utils.formatFloatForExport(finalPay.notSurchargedAndExempt),
       utils.formatFloatForExport(finalPay.surchargedAndExempt),
       utils.formatFloatForExport(finalPay.notSurchargedAndNotExempt),
-      utils.formatFloatForExport(finalPay.surchargedAndNotExmpt),
+      utils.formatFloatForExport(finalPay.surchargedAndNotExempt),
       utils.formatFloatForExport(finalPay.hoursBalance),
       utils.formatFloatForExport(finalPay.hoursCounter),
       utils.formatFloatForExport(finalPay.overtimeHours),
