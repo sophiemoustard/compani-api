@@ -6,8 +6,8 @@ const utils = require('./utils');
 
 exports.exportPayHistory = async (startDate, endDate) => {
   const query = {
-    endDate: { $lte: moment(endDate).endOf('M').endOf('d').toDate() },
-    startDate: { $gte: moment(startDate).startOf('M').startOf('d').toDate() },
+    endDate: { $lte: moment(endDate).endOf('M').toDate() },
+    startDate: { $gte: moment(startDate).startOf('M').toDate() },
   };
 
   const pays = await Pay.find(query)
