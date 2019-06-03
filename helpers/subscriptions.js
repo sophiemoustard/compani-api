@@ -2,7 +2,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const Surcharge = require('../models/Surcharge');
 const Customer = require('../models/Customer');
-const { getLastVersion } = require('../helpers/utils');
+const { getLastVersion, formatFloatForExport } = require('../helpers/utils');
 
 exports.populateServices = async (service) => {
   const currentVersion = [...service.versions]
@@ -70,8 +70,14 @@ exports.exportSubscriptions = async () => {
       else subInfo.push('');
 
       const lastVersion = getLastVersion(sub.versions, 'createdAt');
-      if (lastVersion) subInfo.push(lastVersion.unitTTCRate, lastVersion.estimatedWeeklyVolume, lastVersion.evenings || '', lastVersion.sundays || '');
-      else subInfo.push('', '', '', '');
+      if (lastVersion) {
+        subInfo.push(
+          formatFloatForExport(lastVersion.unitTTCRate),
+          formatFloatForExport(lastVersion.estimatedWeeklyVolume),
+          lastVersion.evenings || '',
+          lastVersion.sundays || ''
+        );
+      } else subInfo.push('', '', '', '');
 
       data.push(subInfo);
     }

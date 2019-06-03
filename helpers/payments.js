@@ -155,7 +155,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
       clientId ? clientId.toHexString() : '',
       get(payment.client, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',
-      payment.netInclTaxes.toFixed(2),
+      UtilsHelper.formatFloatForExport(payment.netInclTaxes),
     ];
 
     rows.push(cells);

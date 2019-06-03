@@ -671,8 +671,8 @@ describe('exportBillsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', '389276.02', '389276.02', 'Temps de qualité - autonomie - 20 heures - 410686.20€ TTC'],
-      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', '1018.63', '1057.13', 'Forfait nuit - 15 heures - 738.52€ TTC\r\nForfait nuit - 7 heures - 302.00€ TTC'],
+      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', '389276,02', '389276,02', 'Temps de qualité - autonomie - 20 heures - 410 686,20 € TTC'],
+      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', '1018,63', '1057,13', 'Forfait nuit - 15 heures - 738,52 € TTC\r\nForfait nuit - 7 heures - 302,00 € TTC'],
     ]);
   });
 });

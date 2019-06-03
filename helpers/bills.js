@@ -218,7 +218,7 @@ exports.formatPDF = (bill, company) => {
 
 function exportBillSubscribtions(bill) {
   const subscriptions = bill.subscriptions.map(sub =>
-    `${sub.service} - ${sub.hours} heures - ${sub.inclTaxes.toFixed(2)}€ TTC`);
+    `${sub.service} - ${sub.hours} heures - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
 
   return subscriptions.join('\r\n');
 }
@@ -264,8 +264,8 @@ exports.exportBillsHistory = async (startDate, endDate) => {
       UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity') || {}),
       clientId ? clientId.toHexString() : '',
       get(bill.client, 'name') || '',
-      totalExclTaxes.toFixed(2),
-      bill.netInclTaxes.toFixed(2),
+      UtilsHelper.formatFloatForExport(totalExclTaxes),
+      UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       exportBillSubscribtions(bill),
     ];
 

@@ -3,7 +3,7 @@ const moment = require('moment');
 
 const Customer = require('../models/Customer');
 const { populateServices } = require('./subscriptions');
-const { getLastVersion } = require('./utils');
+const { getLastVersion, formatFloatForExport } = require('./utils');
 const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES } = require('./constants');
 
 exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
@@ -98,11 +98,17 @@ exports.exportFundings = async () => {
 
       fundInfo.push(
         funding.thirdPartyPayer ? (funding.thirdPartyPayer.name || '') : '',
-        nature ? nature.label : '', lastServiceVersion ? lastServiceVersion.name : '',
+        nature ? nature.label : '',
+        lastServiceVersion ? lastServiceVersion.name : '',
         funding.startDate ? moment(funding.startDate).format('DD/MM/YYYY') : '',
-        funding.endDate ? moment(funding.endDate).format('DD/MM/YYYY') : '', funding.folderNumber || '',
-        frequency ? frequency.label : '', funding.amountTTC || '', funding.unitTTCRate || '',
-        funding.careHours || '', careDays || '', funding.customerParticipationRate || '',
+        funding.endDate ? moment(funding.endDate).format('DD/MM/YYYY') : '',
+        funding.folderNumber || '',
+        frequency ? frequency.label : '',
+        formatFloatForExport(funding.amountTTC),
+        formatFloatForExport(funding.unitTTCRate),
+        formatFloatForExport(funding.careHours),
+        careDays || '',
+        formatFloatForExport(funding.customerParticipationRate),
       );
     }
 
