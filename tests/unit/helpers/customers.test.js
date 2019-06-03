@@ -31,8 +31,8 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Pathologie', 'Commentaire', 'Details intervention',
-      'Autres', 'Referente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombres de souscriptions', 'Souscritpions',
-      'Nombre de financement', 'Date de création']);
+      'Autres', 'Référente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombre de souscriptions', 'Souscriptions',
+      'Nombre de financements', 'Date de création']);
   });
 
   it('should return customer email', async () => {
