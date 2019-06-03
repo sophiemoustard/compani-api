@@ -42,6 +42,12 @@ exports.getLastVersion = (versions, dateKey) => {
   return [...versions].sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
 };
 
+exports.mergeLastVersionWithBaseObject = (baseObj, dateKey) => {
+  const lastVersion = exports.getLastVersion(baseObj.versions, dateKey);
+  if (!lastVersion) throw new Error('Unable to find last version from base object !');
+  return { ...lastVersion, ..._.omit(baseObj, ['versions', 'createdAt']) };
+};
+
 // `obj` should by sort in descending order
 exports.getMatchingVersion = (date, obj, dateKey) => {
   if (!Array.isArray(obj.versions)) throw new Error('versions must be an array !');

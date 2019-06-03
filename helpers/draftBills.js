@@ -7,7 +7,7 @@ const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE, FIXED } = require('./constants');
-const { getMatchingVersion, getLastVersion } = require('../helpers/utils');
+const utils = require('../helpers/utils');
 
 const holidays = new Holidays('FR');
 const now = new Date();
@@ -44,31 +44,31 @@ const populateSurcharge = async (subscription) => {
  * Funding version frequency = MONTHLY : there is one history PER MONTH
  */
 const populateFundings = async (fundings, endDate) => {
-  for (const funding of fundings) {
-    const tpp = await ThirdPartyPayer.findOne({ _id: funding.thirdPartyPayer }).lean();
-    if (tpp) funding.thirdPartyPayer = tpp;
+  for (let i = 0, l = fundings.length; i < l; i++) {
+    fundings[i] = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
+    const tpp = await ThirdPartyPayer.findOne({ _id: fundings[i].thirdPartyPayer }).lean();
+    if (tpp) fundings[i].thirdPartyPayer = tpp;
 
-    if (funding.frequency !== MONTHLY) {
-      const history = await FundingHistory.findOne({ fundingId: funding._id }).lean();
-      if (history) funding.history = history;
+    if (fundings[i].frequency !== MONTHLY) {
+      const history = await FundingHistory.findOne({ fundingId: fundings[i]._id }).lean();
+      if (history) fundings[i].history = history;
       else {
-        funding.history = { careHours: 0, amountTTC: 0, fundingId: funding._id };
+        fundings[i].history = { careHours: 0, amountTTC: 0, fundingId: fundings[i]._id };
       }
     } else {
-      const history = await FundingHistory.find({ fundingId: funding._id });
-      if (history) funding.history = history;
-      if (history.length === 0 || !history) funding.history = [];
+      const history = await FundingHistory.find({ fundingId: fundings[i]._id });
+      if (history) fundings[i].history = history;
+      if (history.length === 0 || !history) fundings[i].history = [];
       if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {
-        funding.history.push({
+        fundings[i].history.push({
           careHours: 0,
           amountTTC: 0,
-          fundingId: funding._id,
+          fundingId: fundings[i]._id,
           month: moment(endDate).format('MM/YYYY'),
         });
       }
     }
   }
-
   return fundings;
 };
 
@@ -289,9 +289,9 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(query.billingStartDate);
-  const { unitTTCRate } = getLastVersion(subscription.versions, 'createdAt');
+  const { unitTTCRate } = utils.getLastVersion(subscription.versions, 'createdAt');
   for (const event of events) {
-    const matchingService = getMatchingVersion(event.startDate, subscription.service, 'startDate');
+    const matchingService = utils.getMatchingVersion(event.startDate, subscription.service, 'startDate');
     const matchingFunding = fundings && fundings.length > 0 ? getMatchingFunding(event.startDate, fundings) : null;
     const eventPrice = getEventPrice(event, unitTTCRate, matchingService, matchingFunding);
 
@@ -302,7 +302,7 @@ const getDraftBillsPerSubscription = (events, customer, subscription, fundings, 
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
-  const serviceMatchingVersion = getMatchingVersion(query.endDate, subscription.service, 'startDate');
+  const serviceMatchingVersion = utils.getMatchingVersion(query.endDate, subscription.service, 'startDate');
 
   const draftBillInfo = {
     _id: mongoose.Types.ObjectId(),

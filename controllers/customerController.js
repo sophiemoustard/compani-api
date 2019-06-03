@@ -773,7 +773,7 @@ const createFunding = async (req) => {
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
-    let funding = [...customer.fundings].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    let funding = customer.fundings[customer.fundings.length - 1];
     funding = await populateFundings(funding, customer);
 
     return {
@@ -785,20 +785,27 @@ const createFunding = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const updateFunding = async (req) => {
   try {
     if (req.payload.careDays) {
-      const checkFundingPayload = { _id: req.params.fundingId, ...req.payload };
+      const checkFundingPayload = { _id: req.payload.fundingId, subscription: req.payload.subscription, versions: [req.payload] };
       const check = await checkSubscriptionFunding(req.params._id, checkFundingPayload);
       if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     }
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id, 'fundings._id': req.params.fundingId },
+      { $push: { 'fundings.$.versions': req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
+        autopopulate: false,
+      },
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
-
-    const customer = await Customer.updateFundingAndSaveHistory({ ...req.params, payload: req.payload });
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
     let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);

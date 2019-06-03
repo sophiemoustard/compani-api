@@ -18,9 +18,12 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   */
   return customer.fundings
     .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() && checkedFunding._id !== fund._id.toHexString())
-    .every(fund =>
-      (!!fund.endDate && moment(fund.endDate).isBefore(checkedFunding.startDate, 'day')) ||
-        checkedFunding.careDays.every(day => !fund.careDays.includes(day)));
+    .every((fund) => {
+      const lastVersion = getLastVersion(fund.versions, 'createdAt');
+
+      return (!!lastVersion.endDate && moment(lastVersion.endDate).isBefore(checkedFunding.versions[0].startDate, 'day')) ||
+        checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
+    });
 };
 
 exports.populateFundings = async (funding, customer) => {
