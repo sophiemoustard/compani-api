@@ -433,7 +433,6 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => 
 
       let service = null;
       if (paidEvent.type === INTERVENTION) {
-        // eslint-disable-next-line no-continue
         if (paidEvent.subscription.service.nature === FIXED) continue; // Fixed services are included manually in bonus
 
         service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
