@@ -2,6 +2,7 @@ const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 
 const UtilsHelper = require('../../../helpers/utils');
 
@@ -185,5 +186,66 @@ describe('formatPrice', () => {
   it('should format price', () => {
     const res = UtilsHelper.formatPrice(5.5);
     expect(res).toEqual('5,50\u00a0€');
+  });
+});
+
+describe('getFullTitleFromIdentity', () => {
+  const identityBase = {
+    title: 'M',
+    firstname: 'Bojack',
+    lastname: 'Horseman',
+  };
+
+  it('should return the title, the firstname and the name', () => {
+    const result = UtilsHelper.getFullTitleFromIdentity(identityBase);
+    expect(result).toBe('M Bojack HORSEMAN');
+  });
+
+  it('should return the title and the lastname', () => {
+    const result = UtilsHelper.getFullTitleFromIdentity(omit(identityBase, 'firstname'));
+    expect(result).toBe('M HORSEMAN');
+  });
+
+  it('should return the firstname and the name', () => {
+    const result = UtilsHelper.getFullTitleFromIdentity(omit(identityBase, 'title'));
+    expect(result).toBe('Bojack HORSEMAN');
+  });
+
+  it('should return the firstname', () => {
+    const result = UtilsHelper.getFullTitleFromIdentity(pick(identityBase, 'firstname'));
+    expect(result).toBe('Bojack');
+  });
+
+  it('should return the lastname', () => {
+    const result = UtilsHelper.getFullTitleFromIdentity(pick(identityBase, 'lastname'));
+    expect(result).toBe('HORSEMAN');
+  });
+
+  it('should throw if no identity is provided', () => {
+    expect(() => UtilsHelper.getFullTitleFromIdentity()).toThrow();
+  });
+});
+
+describe('formatFloatForExport', () => {
+  const validCases = [[0, '0,00'], [1, '1,00'], [7.1, '7,10'], [3.56, '3,56'], [4.23506, '4,24']];
+  const invalidValues = [null, undefined, NaN];
+  const invalidTypes = [{}, [], ''];
+
+  validCases.forEach(([param, result]) => {
+    it('should return a formatted float on a valid float', () => {
+      expect(UtilsHelper.formatFloatForExport(param)).toBe(result);
+    });
+  });
+
+  invalidValues.forEach((param) => {
+    it('should return an empty string on an invalid value', () => {
+      expect(UtilsHelper.formatFloatForExport(param)).toBe('');
+    });
+  });
+
+  invalidTypes.forEach((param) => {
+    it('should throw on a bad type', () => {
+      expect(() => UtilsHelper.formatFloatForExport(param)).toThrow();
+    });
   });
 });
