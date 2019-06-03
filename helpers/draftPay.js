@@ -73,14 +73,27 @@ exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate(
 exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   {
     $match: {
-      type: { $in: [INTERNAL_HOUR, INTERVENTION] },
       $or: [
-        { startDate: { $gte: start, $lt: end } },
-        { endDate: { $gt: start, $lte: end } },
-        { endDate: { $gte: end }, startDate: { $lte: start } },
+        {
+          status: COMPANY_CONTRACT,
+          type: INTERVENTION,
+          auxiliary: { $in: auxiliaries },
+          $or: [
+            { startDate: { $gte: start, $lt: end } },
+            { endDate: { $gt: start, $lte: end } },
+            { endDate: { $gte: end }, startDate: { $lte: start } },
+          ],
+        },
+        {
+          type: INTERNAL_HOUR,
+          auxiliary: { $in: auxiliaries },
+          $or: [
+            { startDate: { $gte: start, $lt: end } },
+            { endDate: { $gt: start, $lte: end } },
+            { endDate: { $gte: end }, startDate: { $lte: start } },
+          ],
+        },
       ],
-      auxiliary: { $in: auxiliaries },
-      status: COMPANY_CONTRACT,
     },
   },
   {
@@ -222,7 +235,7 @@ exports.getMonthBusinessDaysCount = start =>
 
 exports.getContractMonthInfo = (contract, query) => {
   const versions = contract.versions.filter(ver =>
-    (moment(ver.startDate).isSameOrBefore(query.endDate) && moment(ver.endDate).isAfter(query.startDate)) ||
+    (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.endDate && moment(ver.endDate).isAfter(query.startDate)) ||
     (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.isActive));
   const monthBusinessDays = exports.getMonthBusinessDaysCount(query.startDate);
 
