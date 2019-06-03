@@ -155,7 +155,6 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
       auxiliary: { $addToSet: '$auxiliary' },
     },
   },
-  { $unwind: { path: '$auxiliary' } },
   {
     $group: {
       _id: '$_id.aux',
