@@ -468,21 +468,19 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => 
 
 exports.getPayFromAbsences = (absences, contract, query) => {
   let hours = 0;
-  if (absences) {
-    for (const absence of absences) {
-      if (absence.absenceNature === DAILY) {
-        const start = moment.max(moment(absence.startDate), moment(query.startDate));
-        const end = moment.min(moment(absence.endDate), moment(query.endDate));
-        const range = Array.from(moment().range(start, end).by('days'));
-        for (const day of range) {
-          if (day.startOf('d').isBusinessDay()) {
-            const version = contract.versions.length === 1 ? contract.versions[0] : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
-            hours += version.weeklyHours / 6;
-          }
+  for (const absence of absences) {
+    if (absence.absenceNature === DAILY) {
+      const start = moment.max(moment(absence.startDate), moment(query.startDate));
+      const end = moment.min(moment(absence.endDate), moment(query.endDate));
+      const range = Array.from(moment().range(start, end).by('days'));
+      for (const day of range) {
+        if (day.startOf('d').isBusinessDay()) { // startOf('day') is necessery to check fr holidays in business day
+          const version = contract.versions.length === 1 ? contract.versions[0] : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
+          hours += version.weeklyHours / 6;
         }
-      } else {
-        hours += moment(absence.endDate).diff(absence.startDate, 'm') / 60;
       }
+    } else {
+      hours += moment(absence.endDate).diff(absence.startDate, 'm') / 60;
     }
   }
 
@@ -490,28 +488,14 @@ exports.getPayFromAbsences = (absences, contract, query) => {
 };
 
 exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, company, query, distanceMatrix, surcharges, prevPay) => {
-  let hours = {
-    workedHours: 0,
-    notSurchargedAndNotExempt: 0,
-    surchargedAndNotExempt: 0,
-    notSurchargedAndExempt: 0,
-    surchargedAndExempt: 0,
-    surchargedAndNotExemptDetails: {},
-    surchargedAndExemptDetails: {},
-    paidKm: 0,
-  };
-  let hoursBalance = 0;
-  let absencesHours = 0;
   const { _id, identity, sector, contracts } = auxiliary;
   const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
   const contractInfo = exports.getContractMonthInfo(contract, query);
 
-  if (events.length !== 0 || absences.length !== 0) {
-    hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
-    absencesHours = exports.getPayFromAbsences(absences, contract, query);
-  }
+  const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
+  const absencesHours = exports.getPayFromAbsences(absences, contract, query);
 
-  hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
+  const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
 
   return {
     auxiliaryId: auxiliary._id,
