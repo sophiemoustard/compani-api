@@ -221,7 +221,7 @@ exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
 
 exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
   let count = 0;
-  if (end.isBefore(start)) return count;
+  if (moment(end).isBefore(start)) return count;
 
   const range = Array.from(moment().range(start, end).by('days'));
   for (const day of range) {
