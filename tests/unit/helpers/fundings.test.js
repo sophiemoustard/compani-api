@@ -98,7 +98,7 @@ describe('exportFundings', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', 12, 14, 3,
-      'Mardi Vendredi Samedi ', 90]);
+    expect(result[1]).toMatchObject(['', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', '12,00', '14,00', '3,00',
+      'Mardi Vendredi Samedi ', '90,00']);
   });
 });

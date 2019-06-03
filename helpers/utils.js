@@ -98,3 +98,8 @@ exports.getFullTitleFromIdentity = (identity) => {
 
   return fullTitle.join(' ');
 };
+
+exports.formatFloatForExport = (number) => {
+  if (number == null || Number.isNaN(number)) return '';
+  return number.toFixed(2).replace('.', ',');
+};

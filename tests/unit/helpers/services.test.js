@@ -72,7 +72,7 @@ describe('exportServices', () => {
 
     expect(result).toBeDefined();
     expect(result.length).toEqual(services.length + 1);
-    expect(result[1]).toMatchObject(['Horaire', 'Prestataire', 'Alenvi', 'lifté', 12, 10, '', '08/02/2019', '21/01/2019', '14/02/2019']);
-    expect(result[2]).toMatchObject(['Forfaitaire', 'Mandataire', 'Compani', 'kické', 13, 5.5, 'smatch', '01/02/2019', '21/01/2019', '14/02/2019']);
+    expect(result[1]).toMatchObject(['Horaire', 'Prestataire', 'Alenvi', 'lifté', '12,00', '10,00', '', '08/02/2019', '21/01/2019', '14/02/2019']);
+    expect(result[2]).toMatchObject(['Forfaitaire', 'Mandataire', 'Compani', 'kické', '13,00', '5,50', 'smatch', '01/02/2019', '21/01/2019', '14/02/2019']);
   });
 });

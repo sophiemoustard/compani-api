@@ -210,6 +210,6 @@ describe('exportSubscriptions', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M Autonomie', 'Service', 12, 4, 9, 2]);
+    expect(result[1]).toMatchObject(['M Autonomie', 'Service', '12,00', '4,00', 9, 2]);
   });
 });
