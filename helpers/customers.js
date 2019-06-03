@@ -113,11 +113,11 @@ exports.exportCustomers = async () => {
 
     if (cus.followUp && Object.keys(cus.followUp).length > 0) {
       customerData.push(
-        cus.followUp.pathology ? `"${cus.followUp.pathology}"` : '',
-        cus.followUp.comments ? `"${cus.followUp.comments}"` : '',
-        cus.followUp.details ? `"${cus.followUp.details}"` : '',
-        cus.followUp.misc ? `"${cus.followUp.misc}"` : '',
-        cus.followUp.referent ? `"${cus.followUp.referent}"` : '',
+        cus.followUp.pathology ? cus.followUp.pathology : '',
+        cus.followUp.comments ? cus.followUp.comments : '',
+        cus.followUp.details ? cus.followUp.details : '',
+        cus.followUp.misc ? cus.followUp.misc : '',
+        cus.followUp.referent ? cus.followUp.referent : '',
       );
     } else customerData.push('', '', '', '', '');
 
@@ -130,7 +130,7 @@ exports.exportCustomers = async () => {
     } else customerData.push('', '', '', '', '');
 
     if (cus.subscriptions && cus.subscriptions.length > 0) {
-      customerData.push(cus.subscriptions.length, `"${getServicesNameList(cus.subscriptions)}"`);
+      customerData.push(cus.subscriptions.length, getServicesNameList(cus.subscriptions));
     } else customerData.push(0, '');
 
     if (cus.fundings && cus.fundings.length > 0) {

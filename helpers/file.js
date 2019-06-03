@@ -48,8 +48,14 @@ const fileToBase64 = filePath => new Promise((resolve, reject) => {
 const exportToCsv = async (data) => {
   let csvContent = '';
   data.forEach((rowArray) => {
-    const row = rowArray.join(';');
-    csvContent += row + '\r\n';
+    const rowArrayQuoted = rowArray.map((cell) => {
+      if (cell === '') {
+        return cell;
+      }
+      return `"${cell.replace('"', '""')}"`;
+    });
+    const row = rowArrayQuoted.join(';');
+    csvContent += `${row}\r\n`;
   });
 
   const date = new Date();

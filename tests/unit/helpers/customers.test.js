@@ -138,7 +138,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '"Alzheimer"', '"Père Castor"', '"Savate et charentaises"', '"Lala"', '"Moi"',
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', 'Alzheimer', 'Père Castor', 'Savate et charentaises', 'Lala', 'Moi',
       '', '', '', '', '', 0, '', 0, '']);
   });
 
@@ -158,7 +158,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '"Père Castor"', '', '"Lala"', '"Moi"', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', 'Père Castor', '', 'Lala', 'Moi', '', '', '', '', '', 0, '', 0, '']);
   });
 
   it('should return customer payment', async () => {
@@ -230,7 +230,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 3,
-      '"Au service de sa majesté\r\n Service public\r\n Service civique"', 0, '']);
+      'Au service de sa majesté\r\n Service public\r\n Service civique', 0, '']);
   });
 
   it('should return customer funding count', async () => {
