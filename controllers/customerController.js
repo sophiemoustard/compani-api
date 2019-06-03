@@ -792,7 +792,7 @@ const createFunding = async (req) => {
 const updateFunding = async (req) => {
   try {
     if (req.payload.careDays) {
-      const checkFundingPayload = { _id: req.payload.fundingId, subscription: req.payload.subscription, versions: [req.payload] };
+      const checkFundingPayload = { _id: req.params.fundingId, subscription: req.payload.subscription, versions: [req.payload] };
       const check = await checkSubscriptionFunding(req.params._id, checkFundingPayload);
       if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     }
