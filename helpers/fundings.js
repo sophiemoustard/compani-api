@@ -3,7 +3,7 @@ const moment = require('moment');
 
 const Customer = require('../models/Customer');
 const { populateServices } = require('./subscriptions');
-const { getLastVersion, formatFloatForExport } = require('./utils');
+const UtilsHelper = require('./utils');
 const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES } = require('./constants');
 
 exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
@@ -19,7 +19,7 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   return customer.fundings
     .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() && checkedFunding._id !== fund._id.toHexString())
     .every((fund) => {
-      const lastVersion = getLastVersion(fund.versions, 'createdAt');
+      const lastVersion = UtilsHelper.getLastVersion(fund.versions, 'createdAt');
 
       return (!!lastVersion.endDate && moment(lastVersion.endDate).isBefore(checkedFunding.versions[0].startDate, 'day')) ||
         checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
@@ -86,7 +86,7 @@ exports.exportFundings = async () => {
     else {
       const nature = FUNDING_NATURES.find(nat => nat.value === funding.nature);
       const lastServiceVersion = funding.subscription && funding.subscription.service && funding.subscription.service.versions
-        ? getLastVersion(funding.subscription.service.versions, 'startDate')
+        ? UtilsHelper.getLastVersion(funding.subscription.service.versions, 'startDate')
         : null;
       const frequency = FUNDING_FREQUENCIES.find(freq => freq.value === funding.frequency);
       let careDays = '';
@@ -104,11 +104,11 @@ exports.exportFundings = async () => {
         funding.endDate ? moment(funding.endDate).format('DD/MM/YYYY') : '',
         funding.folderNumber || '',
         frequency ? frequency.label : '',
-        formatFloatForExport(funding.amountTTC),
-        formatFloatForExport(funding.unitTTCRate),
-        formatFloatForExport(funding.careHours),
+        UtilsHelper.formatFloatForExport(funding.amountTTC),
+        UtilsHelper.formatFloatForExport(funding.unitTTCRate),
+        UtilsHelper.formatFloatForExport(funding.careHours),
         careDays || '',
-        formatFloatForExport(funding.customerParticipationRate),
+        UtilsHelper.formatFloatForExport(funding.customerParticipationRate),
       );
     }
 
