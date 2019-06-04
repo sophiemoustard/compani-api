@@ -58,14 +58,11 @@ exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate(
   {
     $project: {
       _id: 1,
-      auxiliary: {
-        _id: 1,
-        identity: { firstname: 1, lastname: 1 },
-        sector: 1,
-        contracts: 1,
-        contact: 1,
-        administrative: { mutualFund: 1, transportInvoice: 1 },
-      }
+      identity: { firstname: '$auxiliary.identity.firstname', lastname: '$auxiliary.identity.lastname' },
+      sector: '$auxiliary.sector',
+      contracts: '$auxiliary.contracts',
+      contact: '$auxiliary.contact',
+      administrative: { mutualFund: '$auxiliary.administrative.mutualFund', transportInvoice: '$auxiliary.administrative.transportInvoice' },
     },
   },
 ]);
@@ -538,11 +535,12 @@ exports.getDraftPay = async (query) => {
   const prevPayList = await Pay.find({ month: moment(query.startDate).subtract(1, 'M').format('MMMM') });
 
   const draftPay = [];
-  for (const aux of auxiliaries) {
-    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === aux._id.toHexString()) || { events: [] };
-    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === aux._id.toHexString()) || { events: [] };
-    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux._id.toHexString());
-    draftPay.push(await exports.getDraftPayByAuxiliary(aux.auxiliary, auxEvents.events, auxAbsences.events, company, query, distanceMatrix, surcharges, prevPay));
+  for (const id of auxIds) {
+    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === id.toHexString()) || { events: [] };
+    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === id.toHexString()) || { events: [] };
+    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === id.toHexString());
+    const auxiliary = auxiliaries.find(aux => aux._id.toHexString() === id.toHexString());
+    draftPay.push(await exports.getDraftPayByAuxiliary(auxiliary, auxEvents.events, auxAbsences.events, company, query, distanceMatrix, surcharges, prevPay));
   }
 
   return draftPay;

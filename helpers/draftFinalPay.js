@@ -85,11 +85,12 @@ exports.getDraftFinalPay = async (query) => {
   const prevPayList = await Pay.find({ month: moment(query.startDate).subtract(1, 'M').format('MMMM') });
 
   const draftFinalPay = [];
-  for (const aux of auxiliaries) {
-    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === aux._id.toHexString()) || { events: [] };
-    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === aux._id.toHexString()) || { events: [] };
-    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === aux._id.toHexString());
-    draftFinalPay.push(await exports.getDraftFinalPayByAuxiliary(aux.auxiliary, auxEvents.events, auxAbsences.events, company, query, distanceMatrix, surcharges, prevPay));
+  for (const id of auxIds) {
+    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === id.toHexString()) || { events: [] };
+    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === id.toHexString()) || { events: [] };
+    const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === id.toHexString());
+    const auxiliary = auxiliaries.find(aux => aux._id.toHexString() === id.toHexString());
+    draftFinalPay.push(await exports.getDraftFinalPayByAuxiliary(auxiliary, auxEvents.events, auxAbsences.events, company, query, distanceMatrix, surcharges, prevPay));
   }
 
   return draftFinalPay;
