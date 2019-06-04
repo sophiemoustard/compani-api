@@ -9,14 +9,25 @@ require('sinon-mongoose');
 describe('exportFundings', () => {
   let CustomerModel;
   let getLastVersion;
+  let formatFloatForExport;
+
+  before(() => {
+    formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
+    formatFloatForExport.callsFake(float => float || '');
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
+  });
+
+  after(() => {
+    formatFloatForExport.restore();
+    getLastVersion.restore();
+  });
+
   beforeEach(() => {
     CustomerModel = sinon.mock(Customer);
-    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
   });
 
   afterEach(() => {
     CustomerModel.restore();
-    getLastVersion.restore();
   });
 
   it('should return csv header', async () => {
@@ -98,7 +109,7 @@ describe('exportFundings', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', '12,00', '14,00', '3,00',
-      'Mardi Vendredi Samedi ', '90,00']);
+    expect(result[1]).toMatchObject(['', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', 12, 14, 3,
+      'Mardi Vendredi Samedi ', 90]);
   });
 });
