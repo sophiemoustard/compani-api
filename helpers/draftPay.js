@@ -10,7 +10,7 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const Pay = require('../models/Pay');
 const Contract = require('../models/Contract');
-const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION, INTERNAL_HOUR, ABSENCE, DAILY, COMPANY_CONTRACT } = require('./constants');
+const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION, INTERNAL_HOUR, ABSENCE, DAILY, COMPANY_CONTRACT, INVOICED_AND_PAYED } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 
@@ -74,12 +74,22 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
         {
           status: COMPANY_CONTRACT,
           type: INTERVENTION,
-          auxiliary: { $in: auxiliaries },
-          $or: [
-            { startDate: { $gte: start, $lt: end } },
-            { endDate: { $gt: start, $lte: end } },
-            { endDate: { $gte: end }, startDate: { $lte: start } },
+          $and: [{
+            $or: [
+              { isCancelled: false },
+              { isCancelled: { $exists: false } },
+              { 'cancel.condition': INVOICED_AND_PAYED },
+            ],
+          },
+          {
+            $or: [
+              { startDate: { $gte: start, $lt: end } },
+              { endDate: { $gt: start, $lte: end } },
+              { endDate: { $gte: end }, startDate: { $lte: start } },
+            ],
+          }
           ],
+          auxiliary: { $in: auxiliaries },
         },
         {
           type: INTERNAL_HOUR,

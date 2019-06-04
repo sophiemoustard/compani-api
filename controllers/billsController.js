@@ -30,7 +30,7 @@ const draftBillsList = async (req) => {
           { isCancelled: false },
           { isCancelled: { $exists: false } },
           { 'cancel.condition': INVOICED_AND_PAYED },
-          { 'cancel.condition': INVOICED_AND_NOT_PAYED }
+          { 'cancel.condition': INVOICED_AND_NOT_PAYED },
         ]
       },
       { type: INTERVENTION },
