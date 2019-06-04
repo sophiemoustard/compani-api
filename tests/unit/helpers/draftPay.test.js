@@ -1038,7 +1038,7 @@ describe('getDraftPay', () => {
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaryId = new ObjectID();
-    const auxiliaries = [{ _id: auxiliaryId, auxiliary: { _id: auxiliaryId, sector: { name: 'Abeilles' } } }];
+    const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
     const events = [
       { _id: auxiliaryId, events: [{ stratDate: '2019-05-03T10:00:00' }] },
       { _id: new ObjectID(), events: [{ stratDate: '2019-05-04T10:00:00' }] },
@@ -1066,6 +1066,7 @@ describe('getDraftPay', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
+    companyMock.verify();
     sinon.assert.calledWith(
       getDraftPayByAuxiliary,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
@@ -1077,5 +1078,29 @@ describe('getDraftPay', () => {
       [],
       { auxiliary: auxiliaryId, contractHours: 23 }
     );
+  });
+
+  it('should not compute draft pay if pay already exist in db', async () => {
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const auxiliaryId = new ObjectID();
+    const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
+    const events = [
+      { _id: auxiliaryId, events: [{ stratDate: '2019-05-03T10:00:00' }] },
+    ];
+    const existingPay = [{ auxiliary: auxiliaryId }];
+
+    getAuxiliariesFromContracts.returns(auxiliaries);
+    getEventsToPay.returns(events);
+    getAbsencesToPay.returns([]);
+    findSurcharge.returns([]);
+    findDistanceMatrix.returns([]);
+    findPay.onCall(0).returns(existingPay);
+    findPay.onCall(1).returns([]);
+    companyMock.expects('findOne').chain('lean').returns({});
+
+    const result = await DraftPayHelper.getDraftPay(query);
+
+    expect(result).toBeDefined();
+    sinon.assert.notCalled(getDraftPayByAuxiliary);
   });
 });
