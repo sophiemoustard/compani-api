@@ -11,23 +11,17 @@ describe('exportFundings', () => {
   let getLastVersion;
   let formatFloatForExport;
 
-  before(() => {
-    formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
-    formatFloatForExport.callsFake(float => float || '');
-    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
-  });
-
-  after(() => {
-    formatFloatForExport.restore();
-    getLastVersion.restore();
-  });
-
   beforeEach(() => {
     CustomerModel = sinon.mock(Customer);
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
+    formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
+    formatFloatForExport.callsFake(float => (float != null ? `F-${float}` : ''));
   });
 
   afterEach(() => {
     CustomerModel.restore();
+    formatFloatForExport.restore();
+    getLastVersion.restore();
   });
 
   it('should return csv header', async () => {
@@ -36,6 +30,8 @@ describe('exportFundings', () => {
 
     const result = await FundingsHelper.exportFundings();
 
+    sinon.assert.notCalled(getLastVersion);
+    sinon.assert.notCalled(formatFloatForExport);
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Bénéficiaire', 'Tiers payeur', 'Nature', 'Service', 'Date de début', 'Date de fin', 'Numéro de dossier',
       'Fréquence', 'Montant TTC', 'Montant unitaire TTC', 'Nombre d\'heures', 'Jours', 'Participation du bénéficiaire']);
@@ -80,6 +76,8 @@ describe('exportFundings', () => {
 
     const result = await FundingsHelper.exportFundings();
 
+    sinon.assert.calledOnce(getLastVersion);
+    sinon.assert.callCount(formatFloatForExport, 4);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', 'Toto', '', '', '', '', '', '', '', '', '']);
@@ -107,9 +105,11 @@ describe('exportFundings', () => {
 
     const result = await FundingsHelper.exportFundings();
 
+    sinon.assert.notCalled(getLastVersion);
+    sinon.assert.callCount(formatFloatForExport, 4);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', 12, 14, 3,
-      'Mardi Vendredi Samedi ', 90]);
+    expect(result[1]).toMatchObject(['', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', 'F-12', 'F-14', 'F-3',
+      'Mardi Vendredi Samedi ', 'F-90']);
   });
 });
