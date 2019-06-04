@@ -39,7 +39,7 @@ exports.exportPayHistory = async (startDate, endDate) => {
 
   for (const pay of pays) {
     const cells = [
-      utils.getFullTitleFromIdentity(_.get(pay.auxiliary, 'identity') || {}),
+      utils.getFullTitleFromIdentity(_.get(pay.auxiliary, 'identity')),
       _.get(pay.auxiliary, 'sector.name') || '',
       moment(pay.startDate).format('DD/MM/YYYY'),
       moment(pay.endDate).format('DD/MM/YYYY'),

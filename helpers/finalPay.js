@@ -43,7 +43,7 @@ exports.exportFinalPayHistory = async (startDate, endDate) => {
 
   for (const finalPay of finalPays) {
     const cells = [
-      utils.getFullTitleFromIdentity(_.get(finalPay.auxiliary, 'identity') || {}),
+      utils.getFullTitleFromIdentity(_.get(finalPay.auxiliary, 'identity')),
       _.get(finalPay.auxiliary, 'sector.name') || '',
       moment(finalPay.startDate).format('DD/MM/YYYY'),
       moment(finalPay.endNotificationDate).format('DD/MM/YYYY'),

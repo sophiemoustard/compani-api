@@ -261,7 +261,7 @@ exports.exportBillsHistory = async (startDate, endDate) => {
       bill.billNumber || '',
       moment(bill.date).format('DD/MM/YYYY'),
       customerId ? customerId.toHexString() : '',
-      UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity') || {}),
+      UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity')),
       clientId ? clientId.toHexString() : '',
       get(bill.client, 'name') || '',
       UtilsHelper.formatFloatForExport(totalExclTaxes),

@@ -220,6 +220,10 @@ describe('getFullTitleFromIdentity', () => {
     const result = UtilsHelper.getFullTitleFromIdentity(pick(identityBase, 'lastname'));
     expect(result).toBe('HORSEMAN');
   });
+
+  it('should return an empty string if the identity is not provided', () => {
+    expect(UtilsHelper.getFullTitleFromIdentity()).toBe('');
+  });
 });
 
 describe('formatFloatForExport', () => {

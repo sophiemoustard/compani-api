@@ -87,6 +87,8 @@ const roundFrenchNumber = (number) => {
 exports.formatPrice = val => (val ? roundFrenchNumber(val) : roundFrenchNumber(0));
 
 exports.getFullTitleFromIdentity = (identity) => {
+  if (!identity) return '';
+
   const lastname = identity.lastname || '';
   let fullTitle = [
     identity.title || '',
