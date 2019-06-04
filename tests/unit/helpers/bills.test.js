@@ -667,12 +667,28 @@ describe('exportBillsHistory', () => {
 
   it('should return an array with the header and 2 rows', async () => {
     expectsFind.resolves(bills);
+    const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
+    const formatPriceStub = sinon.stub(UtilsHelper, 'formatPrice');
+    const formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
+
+    getFullTitleFromIdentityStub.onFirstCall().returns('Mme Mimi MATHY');
+    getFullTitleFromIdentityStub.onSecondCall().returns('M Bojack HORSEMAN');
+    formatPriceStub.callsFake(price => `P-${price}`);
+    formatFloatForExportStub.callsFake(float => `F-${float}`);
+
     const exportArray = await BillHelper.exportBillsHistory(null, null);
 
+    sinon.assert.callCount(getFullTitleFromIdentityStub, 2);
+    sinon.assert.callCount(formatPriceStub, 3);
+    sinon.assert.callCount(formatFloatForExportStub, 4);
     expect(exportArray).toEqual([
       header,
-      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', '389276,02', '389276,02', 'Temps de qualité - autonomie - 20 heures - 410 686,20 € TTC'],
-      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', '1018,63', '1057,13', 'Forfait nuit - 15 heures - 738,52 € TTC\r\nForfait nuit - 7 heures - 302,00 € TTC'],
+      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
+      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
     ]);
+
+    getFullTitleFromIdentityStub.restore();
+    formatPriceStub.restore();
+    formatFloatForExportStub.restore();
   });
 });

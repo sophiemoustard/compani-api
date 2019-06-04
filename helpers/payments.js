@@ -151,7 +151,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
       payment.paymentNumber || '',
       moment(payment.date).format('DD/MM/YYYY'),
       customerId ? customerId.toHexString() : '',
-      UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity') || {}),
+      UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity')),
       clientId ? clientId.toHexString() : '',
       get(payment.client, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',
