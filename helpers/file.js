@@ -46,7 +46,7 @@ const fileToBase64 = filePath => new Promise((resolve, reject) => {
 });
 
 const exportToCsv = async (data) => {
-  let csvContent = '';
+  let csvContent = '\ufeff'; // UTF16LE BOM for Microsoft Excel
   data.forEach((rowArray) => {
     const rowArrayQuoted = rowArray.map((cell) => {
       if (cell === '') return cell;
