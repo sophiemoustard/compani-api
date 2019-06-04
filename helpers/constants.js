@@ -149,4 +149,33 @@ module.exports = {
   DRIVING: 'driving',
   // PAY
   PAY: 'pay',
+  // FINAL PAY
+  FINAL_PAY: 'finalpay',
+  // CONTRACTS
+  EMPLOYER_TRIAL_PERIOD_TERMINATION: 'employer_trial_period_termination',
+  EMPLOYEE_TRIAL_PERIOD_TERMINATION: 'employee_trial_period_termination',
+  RESIGNATION: 'resignation',
+  SERIOUS_MISCONDUCT_LAYOFF: 'serious_misconduct_layoff',
+  GROSS_FAULT_LAYOFF: 'gross_fault_layoff',
+  OTHER_REASON_LAYOFF: 'other_reason_layoff',
+  MUTATION: 'mutation',
+  CONTRACTUAL_TERMINATION: 'contractual_termination',
+  INTERNSHIP_END: 'internship_end',
+  CDD_END: 'cdd_end',
+  OTHER: 'other',
+  get END_CONTRACT_REASONS() {
+    return {
+      [this.EMPLOYER_TRIAL_PERIOD_TERMINATION]: 'Rupture période d’essai employeur',
+      [this.EMPLOYEE_TRIAL_PERIOD_TERMINATION]: 'Rupture période d’essai salarié',
+      [this.RESIGNATION]: 'Démission',
+      [this.SERIOUS_MISCONDUCT_LAYOFF]: 'Licenciement faute grave',
+      [this.GROSS_FAULT_LAYOFF]: 'Licenciement faute lourde',
+      [this.OTHER_REASON_LAYOFF]: 'Licenciement autre motif',
+      [this.MUTATION]: 'Mutation',
+      [this.CONTRACTUAL_TERMINATION]: 'Rupture conventionnelle',
+      [this.INTERNSHIP_END]: 'Fin de stage',
+      [this.CDD_END]: 'Fin de contrat CDD',
+      [this.OTHER]: 'Autres',
+    };
+  }
 };

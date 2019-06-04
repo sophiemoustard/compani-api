@@ -1,17 +1,19 @@
 const expect = require('expect');
 const sinon = require('sinon');
 
-const Pay = require('../../../models/Pay');
-const PayHelper = require('../../../helpers/pay');
+const FinalPay = require('../../../models/FinalPay');
+const FinalPayHelper = require('../../../helpers/finalPay');
 const UtilsHelper = require('../../../helpers/utils');
 
 require('sinon-mongoose');
 
-describe('exportPayHistory', () => {
+describe('exportFinalPayHistory', () => {
   const header = [
     'Auxiliaire',
     'Equipe',
     'Début',
+    'Date de notif',
+    'Motif',
     'Fin',
     'Heures contrat',
     'Heures travaillées',
@@ -27,9 +29,10 @@ describe('exportPayHistory', () => {
     'Transport',
     'Autres frais',
     'Prime',
+    'Indemnité'
   ];
 
-  const pays = [
+  const finalPays = [
     {
       auxiliary: {
         identity: {
@@ -39,6 +42,8 @@ describe('exportPayHistory', () => {
         sector: { name: 'Test' },
       },
       startDate: '2019-05-01T00:00:00.000Z',
+      endNotificationDate: '2019-05-31T20:00:00.000Z',
+      endReason: 'resignation',
       endDate: '2019-05-31T20:00:00.000Z',
       contractHours: 77.94,
       workedHours: 0,
@@ -54,6 +59,7 @@ describe('exportPayHistory', () => {
       transport: 37.6,
       otherFees: 18,
       bonus: 0,
+      compensation: 156,
     },
     {
       auxiliary: {
@@ -64,6 +70,8 @@ describe('exportPayHistory', () => {
         sector: { name: 'Autre test' },
       },
       startDate: '2019-05-01T00:00:00.000Z',
+      endNotificationDate: '2019-05-31T20:00:00.000Z',
+      endReason: 'mutation',
       endDate: '2019-05-31T20:00:00.000Z',
       contractHours: 97.94,
       workedHours: 0,
@@ -79,46 +87,47 @@ describe('exportPayHistory', () => {
       transport: 47.6,
       otherFees: 20,
       bonus: 100,
+      compensation: 0,
     }
   ];
   let expectsFind;
-  let mockPay;
+  let mockFinalPay;
 
   beforeEach(() => {
-    mockPay = sinon.mock(Pay);
-    expectsFind = mockPay.expects('find')
+    mockFinalPay = sinon.mock(FinalPay);
+    expectsFind = mockFinalPay.expects('find')
       .chain('sort')
       .chain('populate')
       .once();
   });
 
   afterEach(() => {
-    mockPay.restore();
+    mockFinalPay.restore();
   });
 
   it('should return an array containing just the header', async () => {
     expectsFind.resolves([]);
-    const exportArray = await PayHelper.exportPayHistory(null, null);
+    const exportArray = await FinalPayHelper.exportFinalPayHistory(null, null);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    expectsFind.resolves(pays);
+    expectsFind.resolves(finalPays);
     const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
     const formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
     getFullTitleFromIdentityStub.onFirstCall().returns('Tata TOTO');
     getFullTitleFromIdentityStub.onSecondCall().returns('Titi TUTU');
     formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
-    const exportArray = await PayHelper.exportPayHistory(null, null);
+    const exportArray = await FinalPayHelper.exportFinalPayHistory(null, null);
 
     expect(exportArray).toEqual([
       header,
-      ['Tata TOTO', 'Test', '01/05/2019', '31/05/2019', '77,94', '0,00', '0,00', '0,00', '0,00', '0,00', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00'],
-      ['Titi TUTU', 'Autre test', '01/05/2019', '31/05/2019', '97,94', '0,00', '0,00', '0,00', '0,00', '0,00', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00'],
+      ['Tata TOTO', 'Test', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '0,00', '0,00', '0,00', '0,00', '0,00', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
+      ['Titi TUTU', 'Autre test', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '0,00', '0,00', '0,00', '0,00', '0,00', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
     ]);
     sinon.assert.callCount(getFullTitleFromIdentityStub, 2);
-    sinon.assert.callCount(formatFloatForExportStub, 26);
+    sinon.assert.callCount(formatFloatForExportStub, 28);
     getFullTitleFromIdentityStub.restore();
     formatFloatForExportStub.restore();
   });

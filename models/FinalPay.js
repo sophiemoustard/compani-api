@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const FinalPaySchema = mongoose.Schema({
-  auxiliary: { type: mongoose.Schema.Types.ObjectId, Ref: 'User' },
+  auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   startDate: Date,
   endNotificationDate: Date,
   endReason: String,

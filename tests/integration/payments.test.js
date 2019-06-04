@@ -10,6 +10,7 @@ const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const { paymentsList, populatePayments } = require('./seed/paymentsSeed');
 const { populateCompanies } = require('./seed/companiesSeed');
 const { populateUsers } = require('./seed/usersSeed');
+const { populateRoles } = require('./seed/rolesSeed');
 const { PAYMENT, REFUND, PAYMENT_TYPES } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Payment = require('../../models/Payment');
@@ -25,6 +26,7 @@ describe('NODE ENV', () => {
 
 describe('PAYMENTS ROUTES', () => {
   let token = null;
+  before(populateRoles);
   before(populateCompanies);
   before(populateUsers);
   before(populateCustomers);

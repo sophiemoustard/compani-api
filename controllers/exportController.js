@@ -13,6 +13,7 @@ const {
   PAYMENT,
   ABSENCE,
   PAY,
+  FINAL_PAY,
 } = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
 const { exportCustomers } = require('../helpers/customers');
@@ -23,6 +24,7 @@ const { exportWorkingEventsHistory, exportAbsencesHistory } = require('../helper
 const { exportBillsHistory } = require('../helpers/bills');
 const { exportPaymentsHistory } = require('../helpers/payments');
 const { exportPayHistory } = require('../helpers/pay');
+const { exportFinalPayHistory } = require('../helpers/finalPay');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
@@ -83,6 +85,9 @@ const exportHistory = async (req, h) => {
         break;
       case PAY:
         exportArray = await exportPayHistory(startDate, endDate);
+        break;
+      case FINAL_PAY:
+        exportArray = await exportFinalPayHistory(startDate, endDate);
         break;
     }
 
