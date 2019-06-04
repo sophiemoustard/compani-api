@@ -973,7 +973,7 @@ describe('getDraftPayByAuxiliary', () => {
     const absences = [];
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const prevPay = { hoursBalance: 10 };
+    const prevPay = { hoursCounter: 10, diff: 2 };
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
     getPayFromAbsences.returns(16);
@@ -993,7 +993,7 @@ describe('getDraftPayByAuxiliary', () => {
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 4,
-      hoursCounter: 14,
+      hoursCounter: 16,
       overtimeHours: 0,
       additionalHours: 0,
       mutual: false,
@@ -1012,6 +1012,7 @@ describe('getDraftPay', () => {
   let findSurcharge;
   let findDistanceMatrix;
   let findPay;
+  let getPreviousMonthPay;
   let getDraftPayByAuxiliary;
 
   beforeEach(() => {
@@ -1022,6 +1023,7 @@ describe('getDraftPay', () => {
     findSurcharge = sinon.stub(Surcharge, 'find');
     findDistanceMatrix = sinon.stub(DistanceMatrix, 'find');
     findPay = sinon.stub(Pay, 'find');
+    getPreviousMonthPay = sinon.stub(DraftPayHelper, 'getPreviousMonthPay');
     getDraftPayByAuxiliary = sinon.stub(DraftPayHelper, 'getDraftPayByAuxiliary');
   });
 
@@ -1033,6 +1035,7 @@ describe('getDraftPay', () => {
     findSurcharge.restore();
     findDistanceMatrix.restore();
     findPay.restore();
+    getPreviousMonthPay.restore();
     getDraftPayByAuxiliary.restore();
   });
 
@@ -1040,7 +1043,7 @@ describe('getDraftPay', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     getAuxiliariesFromContracts.returns([]);
     companyMock.expects('findOne').chain('lean');
-    findPay.onCall(0).returns([]);
+    findPay.returns([]);
     const result = await DraftPayHelper.getDraftPay([], [], query);
 
     expect(result).toBeDefined();
@@ -1059,9 +1062,9 @@ describe('getDraftPay', () => {
       { _id: auxiliaryId, events: [{ stratDate: '2019-05-06T10:00:00' }] },
       { _id: new ObjectID(), events: [{ stratDate: '2019-05-07T10:00:00' }] },
     ];
-    const pay = [
-      { auxiliary: auxiliaryId, contractHours: 23 },
-      { auxiliary: new ObjectID(), contractHours: 31 },
+    const prevPay = [
+      { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
+      { auxiliary: new ObjectID(), hoursCounter: 25, diff: -3 },
     ];
     const existingPay = [{ auxiliary: new ObjectID() }];
 
@@ -1070,8 +1073,8 @@ describe('getDraftPay', () => {
     getAbsencesToPay.returns(absences);
     findSurcharge.returns([]);
     findDistanceMatrix.returns([]);
-    findPay.onCall(0).returns(existingPay);
-    findPay.onCall(1).returns(pay);
+    findPay.returns(existingPay);
+    getPreviousMonthPay.returns(prevPay);
     companyMock.expects('findOne').chain('lean').returns({});
     getDraftPayByAuxiliary.returns({ hoursBalance: 120 });
     const result = await DraftPayHelper.getDraftPay(query);
@@ -1088,7 +1091,7 @@ describe('getDraftPay', () => {
       { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' },
       [],
       [],
-      { auxiliary: auxiliaryId, contractHours: 23 }
+      { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
     );
   });
 
@@ -1106,8 +1109,8 @@ describe('getDraftPay', () => {
     getAbsencesToPay.returns([]);
     findSurcharge.returns([]);
     findDistanceMatrix.returns([]);
-    findPay.onCall(0).returns(existingPay);
-    findPay.onCall(1).returns([]);
+    findPay.returns(existingPay);
+    getPreviousMonthPay.returns([]);
     companyMock.expects('findOne').chain('lean').returns({});
 
     const result = await DraftPayHelper.getDraftPay(query);
