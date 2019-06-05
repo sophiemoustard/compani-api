@@ -784,7 +784,7 @@ describe('removeEventsByContractStatus', () => {
 });
 
 describe('exportWorkingEventsHistory', () => {
-  const header = ['Type', 'Début', 'Fin', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
+  const header = ['Type', 'Heure interne', 'Début', 'Fin', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
   const events = [
     {
       isCancelled: false,
@@ -816,6 +816,7 @@ describe('exportWorkingEventsHistory', () => {
       },
       isBilled: false,
       type: 'internalHour',
+      internalHour: { name: 'Formation' },
       repetition: { frequency: 'never' },
       sector: { name: 'Etoiles - 75' },
       subscription: {},
@@ -873,8 +874,8 @@ describe('exportWorkingEventsHistory', () => {
     sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
     expect(exportArray).toEqual([
       header,
-      ['Intervention', '20/05/2019', '20/05/2019', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', '20/05/2019', '20/05/2019', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant']
+      ['Intervention', '', '20/05/2019', '20/05/2019', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
+      ['Heure interne', 'Formation', '20/05/2019', '20/05/2019', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant']
     ]);
 
     getFullTitleFromIdentityStub.restore();
