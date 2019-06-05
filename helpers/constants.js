@@ -177,5 +177,9 @@ module.exports = {
       [this.CDD_END]: 'Fin de contrat CDD',
       [this.OTHER]: 'Autres',
     };
-  }
+  },
+  // ORIGINS
+  COMPANI: 'compani',
+  THIRD_PARTY: 'third_party',
+  OGUST: 'ogust',
 };
