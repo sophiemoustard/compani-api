@@ -11,14 +11,17 @@ require('sinon-mongoose');
 describe('exportServices', () => {
   let ServcieModel;
   let getLastVersion;
+  let formatFloatForExport;
   beforeEach(() => {
     ServcieModel = sinon.mock(Service);
-    ServcieModel = sinon.mock(Service);
-    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
+    formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
+    formatFloatForExport.callsFake(float => (float != null ? `F-${float}` : ''));
   });
   afterEach(() => {
     ServcieModel.restore();
     getLastVersion.restore();
+    formatFloatForExport.restore();
   });
 
   it('should return csv header', async () => {
@@ -70,9 +73,11 @@ describe('exportServices', () => {
       .returns(services);
     const result = await ServiceHelper.exportServices();
 
+    sinon.assert.calledTwice(getLastVersion);
+    sinon.assert.callCount(formatFloatForExport, 4);
     expect(result).toBeDefined();
     expect(result.length).toEqual(services.length + 1);
-    expect(result[1]).toMatchObject(['Horaire', 'Prestataire', 'Alenvi', 'lifté', '12,00', '10,00', '', '08/02/2019', '21/01/2019', '14/02/2019']);
-    expect(result[2]).toMatchObject(['Forfaitaire', 'Mandataire', 'Compani', 'kické', '13,00', '5,50', 'smatch', '01/02/2019', '21/01/2019', '14/02/2019']);
+    expect(result[1]).toMatchObject(['Horaire', 'Prestataire', 'Alenvi', 'lifté', 'F-12', 'F-10', '', '08/02/2019', '21/01/2019', '14/02/2019']);
+    expect(result[2]).toMatchObject(['Forfaitaire', 'Mandataire', 'Compani', 'kické', 'F-13', 'F-5.5', 'smatch', '01/02/2019', '21/01/2019', '14/02/2019']);
   });
 });
