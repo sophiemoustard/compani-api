@@ -408,6 +408,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
 
   const header = [
     'Type',
+    'Heure interne',
     'Début',
     'Fin',
     'Répétition',
@@ -429,6 +430,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
 
     const cells = [
       EVENT_TYPE_LIST[event.type],
+      _.get(event.internalHour, 'name') || '',
       moment(event.startDate).format('DD/MM/YYYY'),
       moment(event.endDate).format('DD/MM/YYYY'),
       repetition || '',
