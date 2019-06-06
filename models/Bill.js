@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
 
 const BillSchema = mongoose.Schema({
   billNumber: String,
@@ -18,6 +19,7 @@ const BillSchema = mongoose.Schema({
     inclTaxes: Number,
     discount: Number,
   }],
+  origin: { type: String, enum: [COMPANI, THIRD_PARTY, OGUST], default: COMPANI },
   netInclTaxes: Number,
 }, { timestamps: true });
 
