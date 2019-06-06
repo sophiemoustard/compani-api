@@ -5,12 +5,18 @@ const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { INTERVENTION, INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED, COMPANY_CONTRACT } = require('../helpers/constants');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const { formatAndCreateBills } = require('../helpers/bills');
 const { getDateQuery } = require('../helpers/utils');
 const { formatPDF } = require('../helpers/bills');
 const { generatePdf } = require('../helpers/pdf');
+const {
+  INTERVENTION,
+  INVOICED_AND_NOT_PAYED,
+  INVOICED_AND_PAYED,
+  COMPANY_CONTRACT,
+  COMPANI,
+} = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -85,11 +91,14 @@ const list = async (req) => {
 
 const generateBillPdf = async (req, h) => {
   try {
-    const bill = await Bill.findOne({ _id: req.params._id })
+    const bill = await Bill.findOne({ _id: req.params._id, origin: COMPANI })
       .populate({ path: 'client', select: '_id name address' })
       .populate({ path: 'customer', select: '_id identity contact fundings' })
       .populate({ path: 'subscriptions.events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
+
+    if (!bill) throw Boom.notFound('Bill not found');
+
     const company = await Company.findOne();
     const data = formatPDF(bill, company);
     const pdf = await generatePdf(data, './data/bill.html');
@@ -97,7 +106,7 @@ const generateBillPdf = async (req, h) => {
     return h.response(pdf).type('application/pdf');
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
