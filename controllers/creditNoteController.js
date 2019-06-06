@@ -8,6 +8,7 @@ const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getDateQuery } = require('../helpers/utils');
 const { formatPDF } = require('../helpers/creditNotes');
 const { generatePdf } = require('../helpers/pdf');
+const { COMPANI } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -126,11 +127,14 @@ const remove = async (req) => {
 
 const generateCreditNotePdf = async (req, h) => {
   try {
-    const creditNote = await CreditNote.findOne({ _id: req.params._id })
+    const creditNote = await CreditNote.findOne({ _id: req.params._id, origin: COMPANI })
       .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service' } })
       .populate({ path: 'thirdPartyPayer', select: '_id name address' })
       .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
+
+    if (!creditNote) throw Boom.notFound('Credit note not found');
+
     const company = await Company.findOne();
     const data = formatPDF(creditNote, company);
     const pdf = await generatePdf(data, './data/creditNote.html');
@@ -138,7 +142,7 @@ const generateCreditNotePdf = async (req, h) => {
     return h.response(pdf).type('application/pdf');
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
