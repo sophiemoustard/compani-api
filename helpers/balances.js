@@ -54,7 +54,7 @@ const getBalancesFromCreditNotes = (creditNote, payments) => {
       && pay._id.tpp && pay._id.tpp.toHexString() === creditNote._id.tpp.toHexString());
 
   const bill = {
-    customer: { _id: creditNote.customer },
+    customer: creditNote.customer,
     billed: -creditNote.refund,
     paid: correspondingPayment && correspondingPayment.payments ? computePayments(correspondingPayment.payments) : 0,
     toPay: 0,
@@ -67,7 +67,7 @@ const getBalancesFromCreditNotes = (creditNote, payments) => {
 
 const getBalancesFromPayments = (payment) => {
   const bill = {
-    customer: { _id: payment.customer },
+    customer: payment.customer,
     billed: 0,
     paid: payment.payments ? computePayments(payment.payments) : 0,
     toPay: 0,
