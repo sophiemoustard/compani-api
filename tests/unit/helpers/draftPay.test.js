@@ -977,7 +977,7 @@ describe('getDraftPayByAuxiliary', () => {
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
     getPayFromAbsences.returns(16);
-    getContractMonthInfo.returns({ contractHours: 150, workedDayRatio: 0.8 });
+    getContractMonthInfo.returns({ contractHours: 150, workedDaysRatio: 0.8 });
     getTransportRefund.returns(26.54);
 
     const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, absences, company, query, [], [], prevPay);
@@ -998,7 +998,7 @@ describe('getDraftPayByAuxiliary', () => {
       additionalHours: 0,
       mutual: false,
       transport: 26.54,
-      otherFees: 37,
+      otherFees: 29.6,
       bonus: 0,
     });
   });

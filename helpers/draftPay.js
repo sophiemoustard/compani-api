@@ -511,7 +511,7 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, company, qu
     additionalHours: 0,
     mutual: !get(auxiliary, 'administrative.mutualFund.has'),
     transport: exports.getTransportRefund(auxiliary, company, contractInfo.workedDaysRatio, hours.paidKm),
-    otherFees: get(company, 'rhConfig.feeAmount', 0),
+    otherFees: (get(company, 'rhConfig.feeAmount') || 0) * contractInfo.workedDaysRatio,
     bonus: 0,
   };
 };
