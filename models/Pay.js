@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
 
+const surchargedDetails = [{
+  planName: String,
+  surcharges: [{
+    name: String,
+    hours: Number,
+    percentage: Number,
+  }]
+}];
+
 const PaySchema = mongoose.Schema({
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   startDate: Date,
@@ -9,10 +18,10 @@ const PaySchema = mongoose.Schema({
   workedHours: Number,
   notSurchargedAndNotExempt: Number,
   surchargedAndNotExempt: Number,
-  surchargedAndNotExemptDetails: String,
+  surchargedAndNotExemptDetails: surchargedDetails,
   notSurchargedAndExempt: Number,
   surchargedAndExempt: Number,
-  surchargedAndExemptDetails: String,
+  surchargedAndExemptDetails: surchargedDetails,
   hoursBalance: Number,
   hoursCounter: Number,
   overtimeHours: Number,
