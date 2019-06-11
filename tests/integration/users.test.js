@@ -48,15 +48,10 @@ describe('USERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data).toEqual(expect.objectContaining({
-        token: expect.any(String),
-        refreshToken: expect.any(String),
-        expiresIn: expect.any(Number),
-        user: expect.objectContaining({
-          _id: expect.any(String),
-          role: expect.objectContaining({ name: userPayload.role })
-        })
+        _id: expect.any(String),
+        role: expect.objectContaining({ name: userPayload.role })
       }));
-      user = await User.findById(res.result.data.user._id);
+      user = await User.findById(res.result.data._id);
       expect(user.firstname).toBe(userPayload.firstname);
       expect(user.identity.lastname).toBe(userPayload.identity.lastname);
       expect(user.local.email).toBe(userPayload.local.email);

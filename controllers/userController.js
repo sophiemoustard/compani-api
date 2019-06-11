@@ -69,13 +69,9 @@ const create = async (req) => {
       role: populatedUser.role,
     };
     const userPayload = _.pickBy(payload);
-    const expireTime = 86400;
-    const token = encode(userPayload, expireTime);
     return {
       message: translate[language].userSaved,
-      data: {
-        token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload
-      }
+      data: userPayload
     };
   } catch (e) {
     // Error code when there is a duplicate key, in this case : the email (unique field)
