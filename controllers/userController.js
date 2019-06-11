@@ -491,7 +491,6 @@ const updateUserAbsence = async (req) => {
         new: true,
         select: {
           identity: 1,
-          employee_id: 1,
           'administrative.absences': 1
         }
       }

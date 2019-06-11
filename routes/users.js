@@ -56,12 +56,10 @@ exports.plugin = {
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             customer_id: Joi.string(),
-            employee_id: Joi.string(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
             },
-            ogustInterlocId: Joi.string(),
             role: Joi.string().required(),
             picture: Joi.object().keys({
               link: Joi.string()

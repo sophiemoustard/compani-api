@@ -41,7 +41,6 @@ const authorize = async (req) => {
       },
       role: user.role.name,
       customer_id: user.customer_id,
-      employee_id: user.employee_id,
       sector: user.sector,
       createdAt: user.createdAt,
     };
@@ -80,7 +79,6 @@ const getUserByParamId = async (req) => {
       },
       role: user.role.name,
       customer_id: user.customer_id,
-      employee_id: user.employee_id,
       sector: user.sector,
       administrative: user.administrative,
       createdAt: user.createdAt,
