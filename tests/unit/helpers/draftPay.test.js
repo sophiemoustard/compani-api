@@ -578,7 +578,7 @@ describe('getTransportRefund', () => {
     expect(result).toBe(0);
   });
 
-  it('should return transport refund', () => {
+  it('should return public transport refund', () => {
     const auxiliary = {
       administrative: { transportInvoice: { transportType: 'public' } },
       contact: { address: { zipCode: '75' } },
@@ -590,6 +590,18 @@ describe('getTransportRefund', () => {
 
     expect(result).toBeDefined();
     expect(result).toBe(4);
+  });
+
+  it('should return private transport refund', () => {
+    const auxiliary = {
+      administrative: { transportInvoice: { transportType: 'private' } },
+    };
+    const company = {
+      rhConfig: { amountPerKm: 0.35 }
+    };
+    const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio, 15);
+
+    expect(result).toBe(5.25);
   });
 });
 
