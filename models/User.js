@@ -106,7 +106,6 @@ const UserSchema = mongoose.Schema({
     socialSecurityNumber: Number
   },
   contact: {
-    addressId: String,
     address: {
       street: String,
       additionalAddress: String,
@@ -147,9 +146,7 @@ const UserSchema = mongoose.Schema({
   isConstrained: Boolean,
   mobilePhone: String,
   emergencyPhone: String,
-  managerId: { type: mongoose.Schema.Types.ObjectId },
   mentor: String,
-  ogustManagerId: String,
   ogustInterlocId: String,
   contracts: [{
     type: mongoose.Schema.Types.ObjectId,

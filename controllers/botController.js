@@ -83,7 +83,6 @@ const getUserByParamId = async (req) => {
       employee_id: user.employee_id,
       sector: user.sector,
       administrative: user.administrative,
-      managerId: user.managerId,
       createdAt: user.createdAt,
       slack: user.slack,
       token: alenviToken
