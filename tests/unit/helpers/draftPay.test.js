@@ -973,14 +973,14 @@ describe('getDraftPayByAuxiliary', () => {
     const absences = [];
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const prevPay = { hoursBalance: 10 };
+    const prevPay = { hoursCounter: 10, diff: 2 };
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
     getPayFromAbsences.returns(16);
     getContractMonthInfo.returns({ contractHours: 150, workedDaysRatio: 0.8 });
     getTransportRefund.returns(26.54);
 
-    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, absences, company, query, [], [], prevPay);
+    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, absences, prevPay, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
       auxiliaryId: '1234567890',
@@ -993,7 +993,7 @@ describe('getDraftPayByAuxiliary', () => {
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 4,
-      hoursCounter: 14,
+      hoursCounter: 16,
       overtimeHours: 0,
       additionalHours: 0,
       mutual: false,
@@ -1001,6 +1001,91 @@ describe('getDraftPayByAuxiliary', () => {
       otherFees: 29.6,
       bonus: 0,
     });
+  });
+});
+
+describe('getPreviousMonthPay', () => {
+  let getAuxiliariesFromContracts;
+  let getEventsToPay;
+  let getAbsencesToPay;
+  let findPay;
+  let computePrevPayCounterDiff;
+
+  beforeEach(() => {
+    getAuxiliariesFromContracts = sinon.stub(DraftPayHelper, 'getAuxiliariesFromContracts');
+    getEventsToPay = sinon.stub(DraftPayHelper, 'getEventsToPay');
+    getAbsencesToPay = sinon.stub(DraftPayHelper, 'getAbsencesToPay');
+    findPay = sinon.stub(Pay, 'find');
+    computePrevPayCounterDiff = sinon.stub(DraftPayHelper, 'computePrevPayCounterDiff');
+  });
+
+  afterEach(() => {
+    getAuxiliariesFromContracts.restore();
+    getEventsToPay.restore();
+    getAbsencesToPay.restore();
+    findPay.restore();
+    computePrevPayCounterDiff.restore();
+  });
+
+  it('should return an empty array if no auxiliary', async () => {
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    getAuxiliariesFromContracts.returns([]);
+    findPay.returns([]);
+
+    const result = await DraftPayHelper.getPreviousMonthPay(query, [], []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual([]);
+  });
+
+  it('should not call getDraftPayByAuxiliary if no events, nor absences nor previous pay for auxiliary', async () => {
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    getAuxiliariesFromContracts.returns([{ _id: new ObjectID() }]);
+    getEventsToPay.returns([{ _id: new ObjectID() }]);
+    getAbsencesToPay.returns([{ _id: new ObjectID() }]);
+    findPay.returns([{ auxiliary: new ObjectID() }]);
+
+    const result = await DraftPayHelper.getPreviousMonthPay(query, [], []);
+
+    expect(result).toBeDefined();
+    sinon.assert.notCalled(computePrevPayCounterDiff);
+  });
+
+  it('should compute prev pay counter difference', async () => {
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const auxiliaryId = new ObjectID();
+    const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
+    const events = [
+      { _id: auxiliaryId, events: [{ startDate: '2019-05-03T10:00:00' }] },
+      { _id: new ObjectID(), events: [{ startDate: '2019-05-04T10:00:00' }] },
+    ];
+    const absences = [
+      { _id: auxiliaryId, events: [{ startDate: '2019-05-06T10:00:00' }] },
+      { _id: new ObjectID(), events: [{ startDate: '2019-05-07T10:00:00' }] },
+    ];
+    const prevPay = [
+      { auxiliary: auxiliaryId, hoursCounter: 23 },
+      { auxiliary: new ObjectID(), hoursCounter: 25 },
+    ];
+
+    getAuxiliariesFromContracts.returns(auxiliaries);
+    getEventsToPay.returns(events);
+    getAbsencesToPay.returns(absences);
+    findPay.returns(prevPay);
+
+    const result = await DraftPayHelper.getPreviousMonthPay(query, [], []);
+
+    expect(result).toBeDefined();
+    sinon.assert.calledWith(
+      computePrevPayCounterDiff,
+      { _id: auxiliaryId, sector: { name: 'Abeilles' } },
+      [{ startDate: '2019-05-03T10:00:00' }],
+      [{ startDate: '2019-05-06T10:00:00' }],
+      { auxiliary: auxiliaryId, hoursCounter: 23 },
+      query,
+      [],
+      []
+    );
   });
 });
 
@@ -1012,6 +1097,7 @@ describe('getDraftPay', () => {
   let findSurcharge;
   let findDistanceMatrix;
   let findPay;
+  let getPreviousMonthPay;
   let getDraftPayByAuxiliary;
 
   beforeEach(() => {
@@ -1022,6 +1108,7 @@ describe('getDraftPay', () => {
     findSurcharge = sinon.stub(Surcharge, 'find');
     findDistanceMatrix = sinon.stub(DistanceMatrix, 'find');
     findPay = sinon.stub(Pay, 'find');
+    getPreviousMonthPay = sinon.stub(DraftPayHelper, 'getPreviousMonthPay');
     getDraftPayByAuxiliary = sinon.stub(DraftPayHelper, 'getDraftPayByAuxiliary');
   });
 
@@ -1033,6 +1120,7 @@ describe('getDraftPay', () => {
     findSurcharge.restore();
     findDistanceMatrix.restore();
     findPay.restore();
+    getPreviousMonthPay.restore();
     getDraftPayByAuxiliary.restore();
   });
 
@@ -1040,9 +1128,10 @@ describe('getDraftPay', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     getAuxiliariesFromContracts.returns([]);
     companyMock.expects('findOne').chain('lean');
-    findPay.onCall(0).returns([]);
+    findPay.returns([]);
     const result = await DraftPayHelper.getDraftPay([], [], query);
 
+    companyMock.verify();
     expect(result).toBeDefined();
     expect(result).toEqual([]);
   });
@@ -1052,16 +1141,16 @@ describe('getDraftPay', () => {
     const auxiliaryId = new ObjectID();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
     const events = [
-      { _id: auxiliaryId, events: [{ stratDate: '2019-05-03T10:00:00' }] },
-      { _id: new ObjectID(), events: [{ stratDate: '2019-05-04T10:00:00' }] },
+      { _id: auxiliaryId, events: [{ startDate: '2019-05-03T10:00:00' }] },
+      { _id: new ObjectID(), events: [{ startDate: '2019-05-04T10:00:00' }] },
     ];
     const absences = [
-      { _id: auxiliaryId, events: [{ stratDate: '2019-05-06T10:00:00' }] },
-      { _id: new ObjectID(), events: [{ stratDate: '2019-05-07T10:00:00' }] },
+      { _id: auxiliaryId, events: [{ startDate: '2019-05-06T10:00:00' }] },
+      { _id: new ObjectID(), events: [{ startDate: '2019-05-07T10:00:00' }] },
     ];
-    const pay = [
-      { auxiliary: auxiliaryId, contractHours: 23 },
-      { auxiliary: new ObjectID(), contractHours: 31 },
+    const prevPay = [
+      { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
+      { auxiliary: new ObjectID(), hoursCounter: 25, diff: -3 },
     ];
     const existingPay = [{ auxiliary: new ObjectID() }];
 
@@ -1070,8 +1159,8 @@ describe('getDraftPay', () => {
     getAbsencesToPay.returns(absences);
     findSurcharge.returns([]);
     findDistanceMatrix.returns([]);
-    findPay.onCall(0).returns(existingPay);
-    findPay.onCall(1).returns(pay);
+    findPay.returns(existingPay);
+    getPreviousMonthPay.returns(prevPay);
     companyMock.expects('findOne').chain('lean').returns({});
     getDraftPayByAuxiliary.returns({ hoursBalance: 120 });
     const result = await DraftPayHelper.getDraftPay(query);
@@ -1082,13 +1171,13 @@ describe('getDraftPay', () => {
     sinon.assert.calledWith(
       getDraftPayByAuxiliary,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
-      [{ stratDate: '2019-05-03T10:00:00' }],
-      [{ stratDate: '2019-05-06T10:00:00' }],
+      [{ startDate: '2019-05-03T10:00:00' }],
+      [{ startDate: '2019-05-06T10:00:00' }],
+      { auxiliary: auxiliaryId, hoursCounter: 23, diff: 2 },
       {},
       { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' },
       [],
       [],
-      { auxiliary: auxiliaryId, contractHours: 23 }
     );
   });
 
@@ -1097,7 +1186,7 @@ describe('getDraftPay', () => {
     const auxiliaryId = new ObjectID();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
     const events = [
-      { _id: auxiliaryId, events: [{ stratDate: '2019-05-03T10:00:00' }] },
+      { _id: auxiliaryId, events: [{ startDate: '2019-05-03T10:00:00' }] },
     ];
     const existingPay = [{ auxiliary: auxiliaryId }];
 
@@ -1106,8 +1195,8 @@ describe('getDraftPay', () => {
     getAbsencesToPay.returns([]);
     findSurcharge.returns([]);
     findDistanceMatrix.returns([]);
-    findPay.onCall(0).returns(existingPay);
-    findPay.onCall(1).returns([]);
+    findPay.returns(existingPay);
+    getPreviousMonthPay.returns([]);
     companyMock.expects('findOne').chain('lean').returns({});
 
     const result = await DraftPayHelper.getDraftPay(query);

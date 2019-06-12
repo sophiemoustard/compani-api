@@ -5,7 +5,6 @@ const { COMPANY_CONTRACT } = require('./constants');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
 const DistanceMatrix = require('../models/DistanceMatrix');
-const Pay = require('../models/Pay');
 const FinalPay = require('../models/FinalPay');
 const DraftPayHelper = require('./draftPay');
 
@@ -55,7 +54,7 @@ exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, absences, compan
     contractHours: contractInfo.contractHours,
     ...hours,
     hoursBalance,
-    hoursCounter: prevPay ? prevPay.hoursBalance + hoursBalance : hoursBalance,
+    hoursCounter: prevPay ? prevPay.hoursCounter + hoursBalance : hoursBalance,
     overtimeHours: 0,
     additionalHours: 0,
     mutual: !get(auxiliary, 'administrative.mutualFund.has'),
@@ -82,7 +81,9 @@ exports.getDraftFinalPay = async (query) => {
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();
-  const prevPayList = await Pay.find({ month: moment(query.startDate).subtract(1, 'M').format('MMMM') });
+
+  const prevMonthQuery = { startDate: moment(query.startDate).subtract(1, 'M').startOf('M'), endDate: moment(query.endDate).subtract(1, 'M').endOf('M') };
+  const prevPayList = await DraftPayHelper.getPreviousMonthPay(prevMonthQuery, surcharges, distanceMatrix);
 
   const draftFinalPay = [];
   for (const id of auxIds) {
