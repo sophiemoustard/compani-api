@@ -72,10 +72,6 @@ const UserSchema = mongoose.Schema({
     type: Number,
     trim: true
   },
-  customer_id: {
-    type: Number,
-    trim: true
-  },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
     link: {
@@ -147,6 +143,7 @@ const UserSchema = mongoose.Schema({
   mobilePhone: String,
   emergencyPhone: String,
   mentor: String,
+  ogustInterlocId: String,
   contracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Contract',

@@ -55,7 +55,6 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            customer_id: Joi.string(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
@@ -164,7 +163,6 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            customer_id: Joi.number(),
             isConstrained: Joi.boolean(),
             facebook: Joi.object().keys({
               address: Joi.object()

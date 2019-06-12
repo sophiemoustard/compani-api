@@ -71,7 +71,7 @@ const create = async (req) => {
     const userPayload = _.pickBy(payload);
     return {
       message: translate[language].userSaved,
-      data: userPayload
+      data: { user: userPayload },
     };
   } catch (e) {
     // Error code when there is a duplicate key, in this case : the email (unique field)

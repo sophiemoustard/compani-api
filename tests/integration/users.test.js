@@ -47,11 +47,11 @@ describe('USERS ROUTES', () => {
         payload: userPayload
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data).toEqual(expect.objectContaining({
+      expect(res.result.data.user).toEqual(expect.objectContaining({
         _id: expect.any(String),
         role: expect.objectContaining({ name: userPayload.role })
       }));
-      user = await User.findById(res.result.data._id);
+      user = await User.findById(res.result.data.user._id);
       expect(user.firstname).toBe(userPayload.firstname);
       expect(user.identity.lastname).toBe(userPayload.identity.lastname);
       expect(user.local.email).toBe(userPayload.local.email);
