@@ -87,8 +87,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
               { endDate: { $gt: start, $lte: end } },
               { endDate: { $gte: end }, startDate: { $lte: start } },
             ],
-          }
-          ],
+          }],
           auxiliary: { $in: auxiliaries },
         },
         {
@@ -586,8 +585,8 @@ exports.getDraftPay = async (query) => {
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();
 
-  const prevMontQuery = { startDate: moment(query.startDate).subtract(1, 'M').startOf('M'), endDate: moment(query.endDate).subtract(1, 'M').endOf('M') };
-  const prevPayList = await exports.getPreviousMonthPay(prevMontQuery, surcharges, distanceMatrix);
+  const prevMonthQuery = { startDate: moment(query.startDate).subtract(1, 'M').startOf('M'), endDate: moment(query.endDate).subtract(1, 'M').endOf('M') };
+  const prevPayList = await exports.getPreviousMonthPay(prevMonthQuery, surcharges, distanceMatrix);
 
   const draftPay = [];
   for (const id of auxIds) {

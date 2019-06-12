@@ -1038,7 +1038,7 @@ describe('getPreviousMonthPay', () => {
     expect(result).toEqual([]);
   });
 
-  it('should return not call getDraftPayByAuxiliary if no events, nor absences nor previous pay for auxiliary', async () => {
+  it('should not call getDraftPayByAuxiliary if no events, nor absences nor previous pay for auxiliary', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     getAuxiliariesFromContracts.returns([{ _id: new ObjectID() }]);
     getEventsToPay.returns([{ _id: new ObjectID() }]);
@@ -1131,6 +1131,7 @@ describe('getDraftPay', () => {
     findPay.returns([]);
     const result = await DraftPayHelper.getDraftPay([], [], query);
 
+    companyMock.verify();
     expect(result).toBeDefined();
     expect(result).toEqual([]);
   });
