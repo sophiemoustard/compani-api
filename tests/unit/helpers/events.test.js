@@ -929,6 +929,7 @@ describe('exportAbsencesHistory', () => {
   });
 
   afterEach(() => {
+    mockEvent.verify();
     mockEvent.restore();
   });
 
