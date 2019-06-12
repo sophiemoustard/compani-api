@@ -784,7 +784,7 @@ describe('removeEventsByContractStatus', () => {
 });
 
 describe('exportWorkingEventsHistory', () => {
-  const header = ['Type', 'Heure interne', 'Début', 'Fin', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
+  const header = ['Type', 'Heure interne', 'Début', 'Fin', 'Durée', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
   const events = [
     {
       isCancelled: false,
@@ -874,8 +874,85 @@ describe('exportWorkingEventsHistory', () => {
     sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
     expect(exportArray).toEqual([
       header,
-      ['Intervention', '', '20/05/2019', '20/05/2019', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '20/05/2019', '20/05/2019', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant']
+      ['Intervention', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
+      ['Heure interne', 'Formation', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant']
+    ]);
+
+    getFullTitleFromIdentityStub.restore();
+  });
+});
+
+describe('exportAbsencesHistory', () => {
+  const header = ['Type', 'Nature', 'Début', 'Fin', 'Durée', 'Secteur', 'Auxiliaire', 'Divers'];
+  const events = [
+    {
+      type: 'absence',
+      absence: 'unjustified absence',
+      absenceNature: 'hourly',
+      sector: { name: 'Girafes - 75' },
+      auxiliary: {
+        identity: {
+          firstname: 'Jean-Claude',
+          lastname: 'Van Damme',
+        },
+      },
+      startDate: '2019-05-20T06:00:00.000+00:00',
+      endDate: '2019-05-20T08:00:00.000+00:00',
+    }, {
+      type: 'absence',
+      absence: 'leave',
+      absenceNature: 'daily',
+      internalHour: { name: 'Formation' },
+      sector: { name: 'Etoiles - 75' },
+      auxiliary: {
+        identity: {
+          firstname: 'Princess',
+          lastname: 'Carolyn',
+        },
+      },
+      startDate: '2019-05-20T06:00:00.000+00:00',
+      endDate: '2019-05-20T08:00:00.000+00:00',
+      misc: 'brbr',
+    }
+  ];
+  let expectsFind;
+  let mockEvent;
+
+  beforeEach(() => {
+    mockEvent = sinon.mock(Event);
+    expectsFind = mockEvent.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once();
+  });
+
+  afterEach(() => {
+    mockEvent.verify();
+    mockEvent.restore();
+  });
+
+  it('should return an array containing just the header', async () => {
+    expectsFind.resolves([]);
+    const exportArray = await EventHelper.exportAbsencesHistory(null, null);
+
+    expect(exportArray).toEqual([header]);
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    expectsFind.resolves(events);
+    const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
+    const names = ['Jean-Claude VAN DAMME', 'Princess CAROLYN'];
+    for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
+
+    const exportArray = await EventHelper.exportAbsencesHistory(null, null);
+
+    sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
+    expect(exportArray).toEqual([
+      header,
+      ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Girafes - 75', 'Jean-Claude VAN DAMME', ''],
+      ['Congé', 'Journalière', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Etoiles - 75', 'Princess CAROLYN', 'brbr']
     ]);
 
     getFullTitleFromIdentityStub.restore();

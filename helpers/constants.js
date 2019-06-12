@@ -20,7 +20,7 @@ module.exports = {
       [this.UNAVAILABILITY]: 'Indisponibilité',
     };
   },
-  get ABSENCES_TYPE_LIST() {
+  get ABSENCE_TYPE_LIST() {
     return {
       [this.PAID_LEAVE]: 'Congé',
       [this.UNPAID_LEAVE]: 'Congé sans solde',
@@ -30,6 +30,12 @@ module.exports = {
       [this.WEDDING]: 'Mariage',
       [this.BIRTH]: 'Naissance',
       [this.DEATH]: 'Décès',
+    };
+  },
+  get ABSENCE_NATURE_LIST() {
+    return {
+      [this.HOURLY]: 'Horaire',
+      [this.DAILY]: 'Journalière',
     };
   },
   // COMPANY
