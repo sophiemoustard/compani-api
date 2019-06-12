@@ -19,6 +19,8 @@ const {
   REPETITION_FREQUENCY_TYPE_LIST,
   CANCELLATION_CONDITION_LIST,
   CANCELLATION_REASON_LIST,
+  ABSENCE_TYPE_LIST,
+  ABSENCE_NATURE_LIST,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -470,20 +472,23 @@ exports.exportAbsencesHistory = async (startDate, endDate) => {
 
   const header = [
     'Type',
+    'Nature',
     'Début',
     'Fin',
+    'Durée',
     'Secteur',
     'Auxiliaire',
     'Divers',
   ];
 
   const rows = [header];
-
   for (const event of events) {
     const cells = [
-      event.absence,
-      moment(event.startDate).format('DD/MM/YYYY'),
-      moment(event.endDate).format('DD/MM/YYYY'),
+      ABSENCE_TYPE_LIST[event.absence],
+      ABSENCE_NATURE_LIST[event.absenceNature],
+      moment(event.startDate).format('DD/MM/YYYY HH:mm'),
+      moment(event.endDate).format('DD/MM/YYYY HH:mm'),
+      UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'm') / 60),
       _.get(event.sector, 'name') || '',
       UtilsHelper.getFullTitleFromIdentity(_.get(event.auxiliary, 'identity')),
       event.misc || '',
