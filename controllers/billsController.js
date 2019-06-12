@@ -12,8 +12,6 @@ const { formatPDF } = require('../helpers/bills');
 const { generatePdf } = require('../helpers/pdf');
 const {
   INTERVENTION,
-  INVOICED_AND_NOT_PAYED,
-  INVOICED_AND_PAYED,
   COMPANY_CONTRACT,
   COMPANI,
 } = require('../helpers/constants');
@@ -25,14 +23,6 @@ const draftBillsList = async (req) => {
     const rules = [
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-      {
-        $or: [
-          { isCancelled: false },
-          { isCancelled: { $exists: false } },
-          { 'cancel.condition': INVOICED_AND_PAYED },
-          { 'cancel.condition': INVOICED_AND_NOT_PAYED },
-        ]
-      },
       { type: INTERVENTION },
       { status: COMPANY_CONTRACT },
     ];
