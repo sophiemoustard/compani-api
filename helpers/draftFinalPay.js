@@ -50,7 +50,7 @@ exports.getDraftFinalPayByAuxiliary = async (auxiliary, events, absences, compan
     endDate: contract.endDate,
     endReason: contract.endReason,
     endNotificationDate: contract.endNotificationDate,
-    month: moment(query.startDate).format('MMMM'),
+    month: moment(query.startDate).format('MM-YYYY'),
     contractHours: contractInfo.contractHours,
     ...hours,
     hoursBalance,
@@ -73,7 +73,7 @@ exports.getDraftFinalPay = async (query) => {
     endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() }
   };
   const auxiliaries = await DraftPayHelper.getAuxiliariesFromContracts(contractRules);
-  const existingFinalPay = await FinalPay.find({ month: moment(query.startDate).format('MMMM') });
+  const existingFinalPay = await FinalPay.find({ month: moment(query.startDate).format('MM-YYYY') });
   const auxIds = differenceBy(auxiliaries.map(aux => aux._id), existingFinalPay.map(pay => pay.auxiliary), x => x.toHexString());
 
   const eventsByAuxiliary = await DraftPayHelper.getEventsToPay(start, end, auxIds);
