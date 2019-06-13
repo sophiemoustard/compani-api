@@ -117,7 +117,6 @@ describe('BOT ROUTES', () => {
         lastname: userList[1].identity.lastname,
         local: expect.objectContaining({ email: userList[1].local.email }),
         role: userList[1].role,
-        employee_id: userList[1].employee_id,
         sector: userList[1].sector,
         token: expect.any(String),
         administrative: expect.any(Object)

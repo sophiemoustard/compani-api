@@ -55,14 +55,10 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            customer_id: Joi.string(),
-            employee_id: Joi.string(),
-            ogustManagerId: Joi.string(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
             },
-            ogustInterlocId: Joi.string(),
             role: Joi.string().required(),
             picture: Joi.object().keys({
               link: Joi.string()
@@ -79,7 +75,6 @@ exports.plugin = {
               socialSecurityNumber: Joi.number()
             }),
             contact: Joi.object().keys({
-              addressId: Joi.string(),
               address: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string().allow('', null),
@@ -168,7 +163,6 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            customer_id: Joi.number(),
             isConstrained: Joi.boolean(),
             facebook: Joi.object().keys({
               address: Joi.object()

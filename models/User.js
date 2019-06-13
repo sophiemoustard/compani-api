@@ -72,10 +72,6 @@ const UserSchema = mongoose.Schema({
     type: Number,
     trim: true
   },
-  customer_id: {
-    type: Number,
-    trim: true
-  },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
     link: {
@@ -106,7 +102,6 @@ const UserSchema = mongoose.Schema({
     socialSecurityNumber: Number
   },
   contact: {
-    addressId: String,
     address: {
       street: String,
       additionalAddress: String,
@@ -147,9 +142,7 @@ const UserSchema = mongoose.Schema({
   isConstrained: Boolean,
   mobilePhone: String,
   emergencyPhone: String,
-  managerId: { type: mongoose.Schema.Types.ObjectId },
   mentor: String,
-  ogustManagerId: String,
   ogustInterlocId: String,
   contracts: [{
     type: mongoose.Schema.Types.ObjectId,
