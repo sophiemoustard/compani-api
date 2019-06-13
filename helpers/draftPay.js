@@ -511,7 +511,7 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, co
     auxiliary: { _id, identity, sector },
     startDate: query.startDate,
     endDate: query.endDate,
-    month: moment(query.startDate).format('MMMM'),
+    month: moment(query.startDate).format('MM-YYYY'),
     contractHours: contractInfo.contractHours,
     ...hours,
     hoursBalance,
@@ -552,7 +552,7 @@ exports.getPreviousMonthPay = async (query, surcharges, distanceMatrix) => {
   const auxIds = auxiliaries.map(aux => aux._id);
   const eventsByAuxiliary = await exports.getEventsToPay(start, end, auxIds);
   const absencesByAuxiliary = await exports.getAbsencesToPay(start, end, auxIds);
-  const prevPayList = await Pay.find({ month: moment(query.startDate).format('MMMM') });
+  const prevPayList = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });
 
   const prevPayDiff = [];
   for (const auxiliary of auxiliaries) {
@@ -576,7 +576,7 @@ exports.getDraftPay = async (query) => {
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } }]
   };
   const auxiliaries = await exports.getAuxiliariesFromContracts(contractRules);
-  const existingPay = await Pay.find({ month: moment(query.startDate).format('MMMM') });
+  const existingPay = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });
 
   const auxIds = differenceBy(auxiliaries.map(aux => aux._id), existingPay.map(pay => pay.auxiliary), x => x.toHexString());
   const eventsByAuxiliary = await exports.getEventsToPay(start, end, auxIds);
