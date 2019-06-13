@@ -2,7 +2,6 @@ module.exports = {
   language: 'fr-FR',
   'en-EN': {
     /* Global errors */
-    missingParameters: 'Missing parameters :(',
     unexpectedBehavior: 'Unexpected behavior.',
     /* Token errors */
     tokenAuthFailed: 'Failed to authenticate token.',
@@ -29,30 +28,9 @@ module.exports = {
     /* Ogust */
     OgustGetTokenOk: 'Ogust Token well retrieved.',
     OgustGetTokenFailed: 'Ogust Token retrieving failed.',
-    ogustServicesFound: 'Ogust services found.',
-    ogustServicesNotFound: 'Ogust services not found.',
-    ogustServiceFound: 'Ogust service found.',
-    ogustServiceNotFound: 'Ogust service not found.',
-    ogustServiceUpdated: 'Ogust service updated.',
-    thirdPartyInfoNotFound: 'Ogust third party information not found.',
-    thirdPartyInfoFound: 'Ogust third party information retrieving failed.',
-    thirdPartyInfoEdited: 'Ogust third party information edited successully.',
     salariesNotFound: 'Ogust employee\'s salaries not found.',
     salariesFound: 'Ogust employee\'s found.',
-    facebookGetWhitelistedDomainsOk: 'Facebook whitelisted domains found.',
-    facebookPostWhitelistedDomainsOk: 'Facebook whitelisted domain(s) added.',
-    facebookNoToken: 'Facebook Token not provided.',
     blogGetRssFeedsOk: 'Rss feed found.',
-    blogGetRssFeedsNoUrl: 'URL not provided.',
-    customerCodesEdited: 'Ogust customer codes edited successfully',
-    fiscalAttestsFound: 'Customer fiscal attestations found.',
-    fiscalAttestsNotFound: 'Customer fiscal attestations not found.',
-    invoicesFound: 'Customer invoices found.',
-    invoicesNotFound: 'Customer invoices not found.',
-    employmentContractShowAllFound: 'Employment contracts found.',
-    employmentContractFound: 'Employment contract found.',
-    employmentContractCreated: 'Employment contract created.',
-    employmentContractSaved: 'Employment contract saved.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
     getAllMessagesNotFound: 'Messages not found.',
@@ -99,8 +77,6 @@ module.exports = {
     /* Reset password token */
     resetPasswordTokenFound: 'Reset password token found.',
     resetPasswordTokenNotFound: 'Reset password token not found.',
-    /* ID number */
-    idNumberCreated: 'ID number successfully created.',
     /* Uploader */
     fileNotFound: 'File not found.',
     filesNotFound: 'Files not found.',
@@ -268,7 +244,6 @@ module.exports = {
   },
   'fr-FR': {
     /* Global errors */
-    missingParameters: 'Paramètres manquants :(',
     unexpectedBehavior: 'Comportement inattendu.',
     /* Token errors */
     tokenAuthFailed: "Impossible d'authentifier le token.",
@@ -295,30 +270,9 @@ module.exports = {
     /* Ogust */
     OgustGetTokenOk: 'Token Ogust reçu avec succès.',
     OgustGetTokenFailed: 'Problème lors de la récupération du Token Ogust.',
-    ogustServicesFound: 'Services Ogust reçus avec succès.',
-    ogustServicesNotFound: 'Services Ogust non trouvés.',
-    ogustServiceFound: 'Service Ogust reçu avec succès.',
-    ogustServiceNotFound: 'Service Ogust non trouvé.',
-    ogustServiceUpdated: 'Service Ogust mis à jour',
-    thirdPartyInfoNotFound: 'La récupération des informations tierces a échoué.',
-    thirdPartyInfoFound: 'Informations tierces récupérées avec succès.',
-    thirdPartyInfoEdited: 'Informations tierces éditées avec succès.',
     salariesNotFound: 'Echec lors de la récupération des bulletins de salaire de l\'employé.',
     salariesFound: 'Bulletins de salaire de l\'employé trouvés avec succès.',
-    facebookGetWhitelistedDomainsOk: 'Domains whitelistés Facebook récupérés avec succès.',
-    facebookPostWhitelistedDomainsOk: 'Domaine(s) whitelisté(s) ajoutés avec succès.',
-    facebookNoToken: 'Merci de fournir un token d\'accès de page Facebook.',
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
-    blogGetRssFeedsNoUrl: 'URL manquante',
-    customerCodesEdited: 'Codes bénéficiaires edités avec succès.',
-    fiscalAttestsFound: 'Attestations fiscales du bénéficiaire trouvées.',
-    fiscalAttestsNotFound: 'Attestations fiscales du bénéficiaire non trouvées',
-    invoicesFound: 'Factures bénéficiaire trouvées.',
-    invoicesNotFound: 'Factures bénéficiaire non trouvées.',
-    employmentContractShowAllFound: "Contrats d'embauche trouvés.",
-    employmentContractFound: "Contrat d'embauche trouvé.",
-    employmentContractCreated: "Contrat d'embauche créé.",
-    employmentContractSaved: "Contrat d'embauche enregistré.",
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
     getAllMessagesNotFound: 'Pas de messages.',
@@ -364,8 +318,6 @@ module.exports = {
     /* Reset password token */
     resetPasswordTokenFound: 'Token de changement de password trouvé.',
     resetPasswordTokenNotFound: 'Token de changement de password non trouvé.',
-    /* ID number */
-    idNumberCreated: 'Matricule créé.',
     /* Uploader */
     fileNotFound: 'Fichier non trouvé.',
     fileFound: 'Fichier trouvé.',
