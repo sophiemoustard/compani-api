@@ -1,5 +1,6 @@
 {
     "rules": {
+      "no-continue": "off",
       "no-console": "off",
       "consistent-return": "off",
       "no-param-reassign": "off",
@@ -15,7 +16,11 @@
       "max-len": "off",
       "no-underscore-dangle": "off",
       "global-require": "off",
-      "strict": "off"
+      "strict": "off",
+      "object-curly-newline": ["error", {
+        "ObjectExpression": { "multiline": true, "minProperties": 5, "consistent": true },
+        "ExportDeclaration": "always"
+      }]
     },
     "extends": "airbnb-base",
     "plugins": [

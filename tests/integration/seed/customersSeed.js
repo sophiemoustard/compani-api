@@ -3,11 +3,13 @@ const faker = require('faker');
 const moment = require('moment');
 
 const Customer = require('../../../models/Customer');
-const { companiesList } = require('./companiesSeed');
-const { MONTHLY, FIXED } = require('../../../helpers/constants');
+const { servicesList } = require('./servicesSeed');
+const { thirdPartyPayersList } = require('./thirdPartyPayersSeed');
+const { ONCE, FIXED } = require('../../../helpers/constants');
 
 faker.locale = 'fr';
 
+const subId = new ObjectID();
 const customersList = [
   {
     _id: new ObjectID(),
@@ -20,12 +22,14 @@ const customersList = [
     },
     sectors: ['1e*'],
     contact: {
-      ogustAddressId: faker.random.number({ max: 8 }).toString(),
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
         city: faker.address.city(),
-        location: [faker.address.latitude(), faker.address.longitude()]
+        location: {
+          type: 'Point',
+          coordinates: [faker.address.latitude(), faker.address.longitude()],
+        },
       },
       phone: faker.phone.phoneNumber()
     },
@@ -43,20 +47,62 @@ const customersList = [
         {
           rum: faker.helpers.randomize(),
           _id: new ObjectID(),
+          signedAt: moment().toDate(),
         },
       ],
     },
     subscriptions: [
       {
-        _id: new ObjectID(),
-        service: companiesList[0].customersConfig.services[0]._id,
+        _id: subId,
+        service: servicesList[0]._id,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
           evenings: 2,
           sundays: 1,
+          startDate: '2018-01-01T10:00:00.000+01:00',
         }],
-      }
+      },
+      {
+        _id: new ObjectID(),
+        service: servicesList[0]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+          startDate: moment().subtract(1, 'month').toDate(),
+        }],
+      },
+      {
+        _id: new ObjectID(),
+        service: servicesList[2]._id,
+        versions: [{
+          unitTTCRate: 150,
+          estimatedWeeklyVolume: 3,
+          evenings: 0,
+          sundays: 0,
+          startDate: moment().subtract(1, 'month').toDate(),
+        }],
+      },
+    ],
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
+        subscription: subId,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
+          frequency: ONCE,
+          endDate: moment.utc().add(6, 'months').toDate(),
+          effectiveDate: moment.utc().toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        }]
+      },
     ],
     quotes: [{
       _id: new ObjectID(),
@@ -82,7 +128,6 @@ const customersList = [
     },
     sectors: ['1e*'],
     contact: {
-      ogustAddressId: faker.random.number({ max: 8 }).toString(),
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
@@ -102,43 +147,9 @@ const customersList = [
       iban: faker.finance.iban(),
       bic: faker.finance.bic(),
       mandates: [
-        { rum: faker.helpers.randomize() },
+        { rum: faker.helpers.randomize(), _id: new ObjectID(), signedAt: moment().toDate() },
       ],
     },
-    fundings: [
-      {
-        _id: new ObjectID(),
-        nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        services: [companiesList[0].customersConfig.services[0]._id],
-        versions: [{
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          frequency: MONTHLY,
-          endDate: moment.utc().add(6, 'months').toDate(),
-          effectiveDate: moment.utc().toDate(),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [2, 5],
-        }]
-      },
-      {
-        _id: new ObjectID(),
-        nature: FIXED,
-        folderNumber: 'D7890',
-        startDate: moment.utc().toDate(),
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        versions: [{
-          frequency: MONTHLY,
-          endDate: moment.utc().add(2, 'years').toDate(),
-          effectiveDate: moment.utc().add(1, 'year').toDate(),
-          amountTTC: 90,
-          customerParticipationRate: 0,
-          careDays: [5, 6],
-          services: [companiesList[0].customersConfig.services[0]._id]
-        }]
-      }
-    ]
   },
   {
     _id: new ObjectID(),
@@ -151,12 +162,14 @@ const customersList = [
     },
     sectors: ['1e*'],
     contact: {
-      ogustAddressId: faker.random.number({ max: 8 }).toString(),
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
         city: faker.address.city(),
-        location: [faker.address.latitude(), faker.address.longitude()]
+        location: {
+          type: 'Point',
+          coordinates: [faker.address.latitude(), faker.address.longitude()],
+        },
       },
       phone: faker.phone.phoneNumber()
     },
@@ -178,7 +191,7 @@ const customersList = [
 ];
 
 const populateCustomers = async () => {
-  await Customer.remove({});
+  await Customer.deleteMany({});
   await Customer.insertMany(customersList);
 };
 

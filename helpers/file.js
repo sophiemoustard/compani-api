@@ -3,25 +3,25 @@ const os = require('os');
 const path = require('path');
 const JSZip = require('jszip');
 const DocxTemplater = require('docxtemplater');
-const drive = require('../models/GoogleDrive');
+const drive = require('../models/Google/Drive');
 
 const fsPromises = fs.promises;
 
 const generateDocx = async (params) => {
   params.file.tmpFilePath = path.join(os.tmpdir(), 'template.docx');
   await drive.downloadFileById(params.file);
+
   const file = await fsPromises.readFile(params.file.tmpFilePath, 'binary');
   const zip = new JSZip(file);
   const doc = new DocxTemplater();
   doc.loadZip(zip);
   doc.setData(params.data);
   doc.render();
-  const filledZip = doc.getZip().generate({
-    type: 'nodebuffer'
-  });
+  const filledZip = doc.getZip().generate({ type: 'nodebuffer' });
   const date = new Date();
   const tmpOutputPath = path.join(os.tmpdir(), `template-filled-${date.getTime()}.docx`);
   await fsPromises.writeFile(tmpOutputPath, filledZip);
+
   return tmpOutputPath;
 };
 
@@ -45,8 +45,28 @@ const fileToBase64 = filePath => new Promise((resolve, reject) => {
   fileStream.once('error', err => reject(err));
 });
 
+const exportToCsv = async (data) => {
+  let csvContent = '\ufeff'; // UTF16LE BOM for Microsoft Excel
+  data.forEach((rowArray) => {
+    const rowArrayQuoted = rowArray.map((cell) => {
+      if (cell === '') return cell;
+      return `"${cell.replace(/"/g, '""')}"`;
+    });
+    const row = rowArrayQuoted.join(';');
+    csvContent += `${row}\r\n`;
+  });
+
+  const date = new Date();
+  const tmpOutputPath = path.join(os.tmpdir(), `exports-${date.getTime()}.docx`);
+
+  await fsPromises.writeFile(tmpOutputPath, csvContent, 'utf8', () => {});
+
+  return tmpOutputPath;
+};
+
 module.exports = {
   generateDocx,
   createAndReadFile,
   fileToBase64,
+  exportToCsv,
 };

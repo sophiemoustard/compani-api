@@ -2,7 +2,6 @@ const expect = require('expect');
 const faker = require('faker');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const _ = require('lodash');
 
 const app = require('../../server');
 const {
@@ -13,8 +12,9 @@ const {
   populateUsers,
   getToken
 } = require('./seed/usersSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateCompanies, companiesList } = require('./seed/companiesSeed');
+const { servicesList, populateServices } = require('./seed/servicesSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
+const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const Customer = require('../../models/Customer');
 const { MONTHLY, FIXED } = require('../../helpers/constants');
 
@@ -26,9 +26,9 @@ describe('NODE ENV', () => {
 
 describe('CUSTOMERS ROUTES', () => {
   let token = null;
+  before(populateServices);
   before(populateCompanies);
   beforeEach(populateCustomers);
-  before(populateRoles);
   beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();
@@ -38,7 +38,6 @@ describe('CUSTOMERS ROUTES', () => {
   const payload = {
     identity: { lastname: faker.name.lastName() },
     contact: {
-      ogustAddressId: faker.random.number({ max: 8 }).toString(),
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
@@ -62,7 +61,6 @@ describe('CUSTOMERS ROUTES', () => {
         _id: expect.any(Object),
         identity: expect.objectContaining({ lastname: payload.identity.lastname }),
         contact: expect.objectContaining({
-          ogustAddressId: payload.contact.ogustAddressId,
           address: expect.objectContaining({
             street: payload.contact.address.street,
             zipCode: payload.contact.address.zipCode,
@@ -83,13 +81,6 @@ describe('CUSTOMERS ROUTES', () => {
         payload: { ...payload },
         remove() {
           delete payload.identity[this.paramName];
-        }
-      },
-      {
-        paramName: 'ogustAddressId',
-        payload: { ...payload },
-        remove() {
-          delete payload.contact[this.paramName];
         }
       },
       {
@@ -156,7 +147,6 @@ describe('CUSTOMERS ROUTES', () => {
           lastname: customersList[0].identity.lastname
         }),
         contact: expect.objectContaining({
-          ogustAddressId: customersList[0].contact.ogustAddressId,
           address: expect.objectContaining({
             street: customersList[0].contact.address.street,
             zipCode: customersList[0].contact.address.zipCode,
@@ -273,7 +263,7 @@ describe('CUSTOMERS ROUTES', () => {
 
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   let token = null;
-  before(populateCompanies);
+  before(populateServices);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -282,9 +272,8 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   describe('POST /customers/{id}/subscriptions', () => {
     it('should add subscription to customer', async () => {
       const customer = customersList[1];
-      const company = companiesList[0];
       const payload = {
-        service: company.customersConfig.services[0]._id,
+        service: servicesList[1]._id,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -359,7 +348,6 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     const payload = {
       estimatedWeeklyVolume: 24,
       evenings: 3,
-      startDate: '2019-01-18T10:07:56.707Z',
     };
 
     it('should update customer subscription', async () => {
@@ -394,7 +382,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(404);
     });
 
-    it('should return 404 as  subscription not found', async () => {
+    it('should return 404 as subscription not found', async () => {
       const customer = customersList[0];
       const invalidId = new ObjectID().toHexString();
 
@@ -427,7 +415,6 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
 describe('CUSTOMER MANDATES ROUTES', () => {
   let token = null;
-  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -565,7 +552,6 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
 describe('CUSTOMERS QUOTES ROUTES', () => {
   let token = null;
-  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -674,7 +660,6 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
   let token = null;
-  before(populateCompanies);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -780,7 +765,8 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let token = null;
-  before(populateCompanies);
+  before(populateServices);
+  before(populateThirdPartyPayers);
   beforeEach(populateCustomers);
   beforeEach(async () => {
     token = await getToken();
@@ -788,10 +774,11 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
   describe('POST customers/:id/fundings', () => {
     it('should create a customer funding', async () => {
+      const customer = customersList[0];
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        services: [companiesList[0].customersConfig.services[0]._id],
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
+        subscription: customer.subscriptions[1]._id,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -804,25 +791,26 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       };
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
+        url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.funding).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(customersList[0]._id);
-      expect(res.result.data.funding.thirdPartyPayer.name).toEqual(companiesList[0].customersConfig.thirdPartyPayers[0].name);
+      expect(res.result.data.customer._id).toEqual(customer._id);
+      expect(res.result.data.funding.thirdPartyPayer.name).toEqual(thirdPartyPayersList[0].name);
       expect(res.result.data.funding.nature).toEqual(payload.nature);
-      expect(res.result.data.funding.services[0]._id).toEqual(payload.services[0]);
+      expect(res.result.data.funding.subscription._id).toEqual(payload.subscription);
       expect(res.result.data.funding.versions[0]).toMatchObject(payload.versions[0]);
     });
 
     it('should return a 409 error if subscription is used by another funding', async () => {
+      const customer = customersList[0];
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
-        services: [companiesList[0].customersConfig.services[0]._id],
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
+        subscription: customer.subscriptions[0]._id,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -835,17 +823,17 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       };
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[1]._id.toHexString()}/fundings`,
+        url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(409);
     });
 
-    it("should return a 400 error if 'services' array is missing from payload", async () => {
+    it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -868,7 +856,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it("should return a 400 error if 'thirdPartyPayer' object is missing from payload", async () => {
       const payload = {
         nature: FIXED,
-        services: [companiesList[0].customersConfig.services[0]._id],
+        subscription: customersList[0].subscriptions[0]._id,
         versions: [{
           frequency: MONTHLY,
           folderNumber: 'D123456',
@@ -891,9 +879,9 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
-        services: [companiesList[0].customersConfig.services[0]._id],
+        subscription: customersList[0].subscriptions[0]._id,
         nature: FIXED,
-        thirdPartyPayer: companiesList[0].customersConfig.thirdPartyPayers[0]._id,
+        thirdPartyPayer: thirdPartyPayersList[0]._id,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -904,6 +892,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           careDays: [2, 5],
         }]
       };
+
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${invalidId}/fundings`,
@@ -915,8 +904,10 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
   });
 
   describe('PUT customers/:id/fundings', () => {
-    it('should add a customer funding version', async () => {
+    it('should update a customer funding', async () => {
+      const customer = customersList[0];
       const payload = {
+        subscription: customer.subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
@@ -926,19 +917,21 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       };
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${customersList[1]._id.toHexString()}/fundings/${customersList[1].fundings[0]._id.toHexString()}`,
+        url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
         payload,
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.funding).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(customersList[1]._id);
-      expect(res.result.data.funding.versions.length).toBe(customersList[1].fundings[0].versions.length + 1);
+      expect(res.result.data.customer._id).toEqual(customer._id);
+      expect(res.result.data.funding.versions.length).toBe(2);
     });
+
     it('should return a 404 error if customer does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
+        subscription: customersList[0].subscriptions[0]._id,
         amountTTC: 90,
         customerParticipationRate: 20,
         frequency: MONTHLY,
@@ -948,7 +941,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       };
       const res = await app.inject({
         method: 'PUT',
-        url: `/customers/${invalidId}/fundings/${customersList[1].fundings[0]._id.toHexString()}`,
+        url: `/customers/${invalidId}/fundings/${customersList[0].fundings[0]._id.toHexString()}`,
         payload,
         headers: { 'x-access-token': token },
       });
@@ -958,7 +951,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
   describe('GET /customers/{id}/fundings', () => {
     it('should get customer fundings', async () => {
-      const customer = customersList[1];
+      const customer = customersList[0];
 
       const result = await app.inject({
         method: 'GET',
@@ -984,7 +977,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
 
   describe('DELETE /customers/{id}/fundings/{fundingId}', () => {
     it('should delete customer funding', async () => {
-      const customer = customersList[1];
+      const customer = customersList[0];
       const funding = customer.fundings[0];
 
       const result = await app.inject({

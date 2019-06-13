@@ -1,20 +1,25 @@
 const { ObjectID } = require('mongodb');
+
 const Event = require('../../../models/Event');
 const { userList } = require('./usersSeed');
 const { customersList } = require('./customersSeed');
 
-const auxiliary = userList.find(user => user.role === 'Auxiliaire');
+const auxiliary = userList[4];
 
 const eventsList = [
   {
     _id: new ObjectID(),
-    type: 'intervention',
+    type: 'internalHour',
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
     auxiliary: auxiliary._id,
     customer: customersList[0]._id,
     createdAt: '2019-01-05T15:24:18.653Z',
-    subscription: customersList[0].subscriptions[0]._id,
+    internalHour: {
+      _id: new ObjectID(),
+      name: 'Formation',
+      default: false,
+    }
   },
   {
     _id: new ObjectID(),
@@ -27,17 +32,51 @@ const eventsList = [
   {
     _id: new ObjectID(),
     type: 'intervention',
-    startDate: '2019-01-18T09:30:18.653Z',
-    endDate: '2019-01-18T12:30:18.653Z',
+    status: 'contract_with_company',
+    startDate: '2019-01-16T09:30:19.543Z',
+    endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: auxiliary._id,
     customer: customersList[0]._id,
-    createdAt: '2019-07-11T12:54:18.653Z',
+    createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customersList[0].subscriptions[0]._id,
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-01-17T14:30:19.543Z',
+    endDate: '2019-01-17T16:30:19.543Z',
+    auxiliary: auxiliary._id,
+    customer: customersList[0]._id,
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customersList[0].subscriptions[1]._id,
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-07-17T14:30:19.543Z',
+    endDate: '2019-07-17T16:30:19.543Z',
+    auxiliary: auxiliary._id,
+    customer: customersList[0]._id,
+    createdAt: '2019-05-16T14:30:19.543Z',
+    subscription: customersList[0].subscriptions[1]._id,
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-07-17T19:30:19.543Z',
+    endDate: '2019-07-17T21:30:19.543Z',
+    auxiliary: auxiliary._id,
+    customer: customersList[0]._id,
+    createdAt: '2019-05-16T14:30:19.543Z',
+    subscription: customersList[0].subscriptions[2]._id,
   },
 ];
 
 const populateEvents = async () => {
-  await Event.remove({});
+  await Event.deleteMany({});
   await Event.insertMany(eventsList);
 };
 

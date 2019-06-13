@@ -25,7 +25,7 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -44,22 +44,27 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
-const showAll = async (req) => {
+const list = async (req) => {
   try {
     const tasks = await Task.find(req.query).select('_id name').lean();
-    if (tasks.length === 0) return Boom.notFound(translate[language].tasksShowAllNotFound);
+    if (tasks.length === 0) {
+      return {
+        message: translate[language].tasksNotFound,
+        data: { tasks: [] }
+      };
+    }
 
     return {
-      message: translate[language].tasksShowAllFound,
+      message: translate[language].tasksFound,
       data: { tasks }
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -75,7 +80,7 @@ const showById = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -96,14 +101,14 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 module.exports = {
   create,
   update,
-  showAll,
+  list,
   showById,
   remove
 };

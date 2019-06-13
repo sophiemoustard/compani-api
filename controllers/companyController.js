@@ -4,7 +4,7 @@ const flat = require('flat');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
-const drive = require('../models/GoogleDrive');
+const drive = require('../models/Google/Drive');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
 const { updateEventsInternalHourType } = require('../helpers/events');
 
@@ -15,12 +15,12 @@ const list = async (req) => {
     const companies = await Company.find(req.query);
 
     return {
-      message: translate[language].companiesShowAllFound,
+      message: translate[language].companiesFound,
       data: companies
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -35,7 +35,7 @@ const show = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -54,7 +54,7 @@ const create = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].companyExists);
     }
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -88,7 +88,7 @@ const update = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].companyExists);
     }
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -99,15 +99,17 @@ const remove = async (req) => {
     return { message: translate[language].companyDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 const uploadFile = async (req) => {
   try {
     const allowedFields = [
-      'contract',
-      'amendment',
+      'contractWithCompany',
+      'contractWithCompanyVersion',
+      'contractWithCustomer',
+      'contractWithCustomerVersion',
       'debitMandate',
       'quote',
     ];
@@ -122,7 +124,7 @@ const uploadFile = async (req) => {
       body: req.payload[keys[0]]
     });
     const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
-    const configKey = (keys[0] === 'contract' || keys[0] === 'amendment') ? 'rhConfig' : 'customersConfig';
+    const configKey = (keys[0].match(/contract/i)) ? 'rhConfig' : 'customersConfig';
     const payload = {
       [configKey]: {
         templates: {
@@ -135,89 +137,7 @@ const uploadFile = async (req) => {
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const getCompanyServices = async (req) => {
-  try {
-    const company = await Company.findOne(
-      {
-        _id: req.params._id,
-        'customersConfig.services': { $exists: true },
-      },
-      { name: 1, 'customersConfig.services': 1 },
-    );
-
-    if (!company) return Boom.notFound(translate[language].companyServicesNotFound);
-
-    return {
-      message: translate[language].companyServicesFound,
-      data: { services: company.customersConfig.services },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const createCompanyService = async (req) => {
-  try {
-    const company = await Company.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { 'customersConfig.services': req.payload } },
-      {
-        new: true,
-        select: { name: 1, 'customersConfig.services': 1 },
-      },
-    );
-
-    return {
-      message: translate[language].companyServiceCreated,
-      data: { services: company.customersConfig.services },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const updateCompanyService = async (req) => {
-  try {
-    const company = await Company.findOneAndUpdate(
-      { _id: req.params._id, 'customersConfig.services._id': req.params.serviceId },
-      { $push: { 'customersConfig.services.$.versions': req.payload } },
-      {
-        new: true,
-        select: { name: 1, 'customersConfig.services': 1 },
-      },
-    );
-
-    if (!company) return Boom.notFound(translate[language].companyServicesNotFound);
-
-    return {
-      message: translate[language].companyServicesUpdated,
-      data: { services: company.customersConfig.services },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const deleteCompanyService = async (req) => {
-  try {
-    await Company.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: { 'customersConfig.services': { _id: req.params.serviceId } } },
-    );
-
-    return {
-      message: translate[language].companyServiceDeleted,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -245,7 +165,7 @@ const addInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -278,7 +198,7 @@ const updateInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -300,7 +220,7 @@ const getInternalHours = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -330,116 +250,7 @@ const removeInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const createCompanyThirdPartyPayers = async (req) => {
-  try {
-    const company = await Company.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { 'customersConfig.thirdPartyPayers': req.payload } },
-      {
-        new: true,
-        select: {
-          name: 1,
-          'customersConfig.thirdPartyPayers': 1
-        },
-      },
-    );
-
-    if (!company) return Boom.notFound(translate[language].companyNotFound);
-
-    return {
-      message: translate[language].companyThirdPartyPayerCreated,
-      data: {
-        thirdPartyPayers: company.customersConfig.thirdPartyPayers
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const getCompanyThirdPartyPayers = async (req) => {
-  try {
-    const company = await Company.findOne(
-      {
-        _id: req.params._id,
-        'customersConfig.thirdPartyPayers': { $exists: true },
-      },
-      {
-        name: 1,
-        'customersConfig.thirdPartyPayers': 1
-      },
-    );
-
-    if (!company) {
-      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
-    }
-
-    return {
-      message: translate[language].companyThirdPartyPayersFound,
-      data: {
-        thirdPartyPayers: company.customersConfig.thirdPartyPayers,
-      },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const updateCompanyThirdPartyPayer = async (req) => {
-  try {
-    const payload = { 'customersConfig.thirdPartyPayers.$': { ...req.payload } };
-    const company = await Company.findOneAndUpdate(
-      {
-        _id: req.params._id,
-        'customersConfig.thirdPartyPayers._id': req.params.thirdPartyPayerId,
-      },
-      { $set: flat(payload) },
-      {
-        new: true,
-        select: {
-          name: 1,
-          'customersConfig.thirdPartyPayers': 1
-        },
-      },
-    );
-
-    if (!company) {
-      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
-    }
-    return {
-      message: translate[language].companyThirdPartyPayersUpdated,
-      data: {
-        thirdPartyPayers: company.customersConfig.thirdPartyPayers.find(thirdPartyPayer => thirdPartyPayer._id.toHexString() === req.params.thirdPartyPayerId),
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
-  }
-};
-
-const deleteCompanyThirdPartyPayer = async (req) => {
-  try {
-    const company = await Company.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: { 'customersConfig.thirdPartyPayers': { _id: req.params.thirdPartyPayerId } } },
-    );
-
-    if (!company) {
-      return Boom.notFound(translate[language].companyThirdPartyPayersNotFound);
-    }
-    return {
-      message: translate[language].companyThirdPartyPayerDeleted
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -450,16 +261,8 @@ module.exports = {
   update,
   remove,
   uploadFile,
-  getCompanyServices,
-  createCompanyService,
-  deleteCompanyService,
-  updateCompanyService,
   addInternalHour,
   updateInternalHour,
   getInternalHours,
   removeInternalHour,
-  createCompanyThirdPartyPayers,
-  getCompanyThirdPartyPayers,
-  updateCompanyThirdPartyPayer,
-  deleteCompanyThirdPartyPayer
 };

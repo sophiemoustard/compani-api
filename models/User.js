@@ -72,14 +72,7 @@ const UserSchema = mongoose.Schema({
     type: Number,
     trim: true
   },
-  customer_id: {
-    type: Number,
-    trim: true
-  },
-  sector: {
-    type: String,
-    trim: true
-  },
+  sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
     link: {
       type: String,
@@ -109,11 +102,17 @@ const UserSchema = mongoose.Schema({
     socialSecurityNumber: Number
   },
   contact: {
-    addressId: String,
-    address: String,
-    additionalAddress: String,
-    zipCode: String,
-    city: String
+    address: {
+      street: String,
+      additionalAddress: String,
+      zipCode: String,
+      city: String,
+      fullAddress: String,
+      location: {
+        type: { type: String },
+        coordinates: [Number]
+      }
+    }
   },
   planningModification: [
     {
@@ -143,10 +142,11 @@ const UserSchema = mongoose.Schema({
   isConstrained: Boolean,
   mobilePhone: String,
   emergencyPhone: String,
-  managerId: { type: mongoose.Schema.Types.ObjectId },
   mentor: String,
-  ogustManagerId: String,
-  ogustInterlocId: String,
+  contracts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Contract',
+  }],
   administrative: {
     driveFolder: {
       id: String,
@@ -235,39 +235,6 @@ const UserSchema = mongoose.Schema({
       driveId: String,
       link: String
     },
-    contracts: [{
-      creationDate: {
-        type: Date,
-        default: Date.now
-      },
-      startDate: Date,
-      endDate: Date,
-      status: String,
-      ogustContractId: String,
-      customer: {
-        firstname: String,
-        lastname: String,
-        customer_id: String
-      },
-      versions: [{
-        ogustContractId: String,
-        creationDate: {
-          type: Date,
-          default: Date.now
-        },
-        startDate: Date,
-        endDate: Date,
-        weeklyHours: Number,
-        salary: Number,
-        grossHourlyRate: Number,
-        isActive: {
-          type: Boolean,
-          default: false
-        },
-        link: String,
-        driveId: String
-      }]
-    }],
     emergencyContact: {
       name: String,
       phoneNumber: String
@@ -329,12 +296,8 @@ const UserSchema = mongoose.Schema({
   inactivityDate: { type: Date, default: null },
 }, {
   timestamps: true,
-  toObject: {
-    virtuals: true
-  },
-  toJSON: {
-    virtuals: true
-  }
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true },
 });
 // timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
 

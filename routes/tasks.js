@@ -1,16 +1,16 @@
 'use strict';
 
 const Joi = require('joi');
-const Boom = require('boom');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   create,
   update,
-  showAll,
+  list,
   showById,
   remove
 } = require('../controllers/taskController');
+const { ADMIN, COACH, TECH } = require('../helpers/constants');
 
 exports.plugin = {
   name: 'routes-tasks',
@@ -23,20 +23,11 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             isDone: Joi.boolean()
-          }),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          })
         },
         auth: {
           strategy: 'jwt',
-          scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : ['Admin', 'Tech', 'Coach']
+          scope: process.env.NODE_ENV === 'test' ? ['right2:write'] : [ADMIN, TECH, COACH]
         }
       },
       handler: create
@@ -52,20 +43,9 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string().required()
-          }),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          })
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: update
     });
@@ -77,20 +57,11 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             name: Joi.string()
-          }),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          })
         },
         auth: 'jwt'
       },
-      handler: showAll
+      handler: list,
     });
 
     server.route({
@@ -100,15 +71,6 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
           },
         },
         auth: 'jwt'
@@ -123,15 +85,6 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
           },
         },
         auth: 'jwt'

@@ -3,7 +3,11 @@ const {
   INTERNAL_HOUR,
   ABSENCE,
   UNAVAILABILITY,
-  INTERVENTION
+  INTERVENTION,
+  DAILY,
+  HOURLY,
+  CUSTOMER_CONTRACT,
+  COMPANY_CONTRACT,
 } = require('../helpers/constants');
 
 const EventSchema = mongoose.Schema({
@@ -14,7 +18,7 @@ const EventSchema = mongoose.Schema({
   startDate: Date,
   endDate: Date,
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  sector: String,
+  sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   subscription: { type: mongoose.Schema.Types.ObjectId },
   internalHour: {
@@ -22,6 +26,7 @@ const EventSchema = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId },
   },
   absence: String,
+  absenceNature: { type: String, enum: [HOURLY, DAILY] },
   location: {
     street: String,
     fullAddress: String,
@@ -42,8 +47,18 @@ const EventSchema = mongoose.Schema({
     condition: String,
     reason: String,
   },
-}, {
-  timestamps: true
-});
+  isBilled: { type: Boolean, default: false },
+  bills: {
+    inclTaxesCustomer: Number,
+    exclTaxesCustomer: Number,
+    thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
+    inclTaxesTpp: Number,
+    exclTaxesTpp: Number,
+    fundingVersion: { type: mongoose.Schema.Types.ObjectId },
+    nature: String,
+    careHours: Number,
+  },
+  status: { type: String, enum: [COMPANY_CONTRACT, CUSTOMER_CONTRACT] }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Event', EventSchema);

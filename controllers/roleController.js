@@ -35,7 +35,7 @@ const create = async (req) => {
       return Boom.conflict(translate[language].roleExists);
     }
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -55,28 +55,30 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    if (e.output && e.output.statusCode === 404) {
-      return e;
-    }
-    return Boom.badImplementation();
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 
-const showAll = async (req) => {
+const list = async (req) => {
   try {
     let roles = await Role.find(req.query);
-    if (roles.length === 0) return Boom.notFound(translate[language].rolesShowAllNotFound);
+    if (roles.length === 0) {
+      return {
+        message: translate[language].rolesNotFound,
+        data: { roles: [] },
+      };
+    }
 
     roles = populateRoles(roles);
 
     return {
-      message: translate[language].rolesShowAllFound,
+      message: translate[language].rolesFound,
       data: { roles }
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -94,7 +96,7 @@ const showById = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -109,14 +111,14 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 module.exports = {
   create,
   update,
-  showAll,
+  list,
   showById,
   remove
 };

@@ -1,34 +1,41 @@
 const Boom = require('boom');
-const moment = require('moment');
-const _ = require('lodash');
 const flat = require('flat');
+const moment = require('moment');
 const Event = require('../models/Event');
-const GoogleDrive = require('../models/GoogleDrive');
+const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const {
-  populateEvents, populateEventSubscription, createRepetitions, updateRepetitions, deleteRepetition
+  isCreationAllowed,
+  getListQuery,
+  populateEvents,
+  populateEventSubscription,
+  createRepetitions,
+  updateEvent,
+  deleteRepetition,
+  isEditionAllowed,
 } = require('../helpers/events');
-const { ABSENCE, NEVER } = require('../helpers/constants');
+const { ABSENCE, NEVER, INTERVENTION } = require('../helpers/constants');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = { ...req.query };
-    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
-    if (req.query.endStartDate) {
-      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
-      _.unset(query, 'endStartDate');
-    }
-    if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
-    if (req.query.customer) query.customer = { $in: req.query.customer };
-
+    const query = getListQuery(req);
     const events = await Event.find(query)
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
+      .populate({
+        path: 'customer',
+        select: 'identity subscriptions contact',
+        populate: { path: 'subscriptions.service' }
+      })
       .lean();
-    if (events.length === 0) return Boom.notFound(translate[language].eventsNotFound);
+    if (events.length === 0) {
+      return {
+        message: translate[language].eventsNotFound,
+        data: { events: [] }
+      };
+    }
 
     const populatedEvents = await populateEvents(events);
 
@@ -38,16 +45,41 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
+  }
+};
+
+const listForCreditNotes = async (req) => {
+  try {
+    let query = {
+      startDate: { $gte: moment(req.query.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(req.query.endDate).endOf('d').toDate() },
+      customer: req.query.customer,
+      isBilled: true,
+      type: INTERVENTION,
+    };
+    if (req.query.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': req.query.thirdPartyPayer };
+    else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 }, 'bills.inclTaxesTpp': { $exists: false } };
+    const events = await Event.find(query).lean();
+
+    return {
+      message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
+      data: { events }
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
   }
 };
 
 const create = async (req) => {
   try {
+    if (!(await isCreationAllowed(req.payload))) return Boom.badData();
+
     let event = new Event(req.payload);
     await event.save();
     event = await Event.findOne({ _id: event._id })
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company' })
+      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
@@ -63,38 +95,26 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 const update = async (req) => {
   try {
-    const event = await Event
-      .findOneAndUpdate(
-        { _id: req.params._id },
-        { $set: flat(req.payload) },
-        { autopopulate: false, new: true }
-      )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
-
+    let event = await Event.findOne({ _id: req.params._id }).lean();
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    const { type, repetition } = event;
-    if (req.payload.shouldUpdateRepetition && type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
-      await updateRepetitions(event, req.payload);
-    }
+    if (!(await isEditionAllowed(event, req.payload))) return Boom.badData();
 
-    const populatedEvent = await populateEventSubscription(event);
+    event = await updateEvent(event, req.payload);
 
     return {
       message: translate[language].eventUpdated,
-      data: { event: populatedEvent },
+      data: { event },
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -103,13 +123,10 @@ const remove = async (req) => {
     const event = await Event.findByIdAndRemove({ _id: req.params._id });
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    return {
-      message: translate[language].eventDeleted,
-      data: { event }
-    };
+    return { message: translate[language].eventDeleted, };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -129,7 +146,7 @@ const removeRepetition = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -154,7 +171,7 @@ const uploadFile = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -165,4 +182,5 @@ module.exports = {
   remove,
   uploadFile,
   removeRepetition,
+  listForCreditNotes,
 };

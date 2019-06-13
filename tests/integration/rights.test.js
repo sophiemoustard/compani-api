@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
 const { getToken, populateUsers } = require('./seed/usersSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const { populateRoles, rightPayload, rightsList } = require('./seed/rolesSeed');
 const Role = require('../../models/Role');
 const Right = require('../../models/Right');
@@ -16,6 +17,7 @@ describe('NODE ENV', () => {
 describe('RIGHTS ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);
+  beforeEach(populateCompanies);
   beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();
@@ -49,7 +51,7 @@ describe('RIGHTS ROUTES', () => {
 
     it('should add right and no access to all existing roles exept admin', async () => {
       const roles = await Role.find({}, {}, { autopopulate: false });
-      roles.filter(role => !role.name.match(/^Admin$/i)).forEach((role) => {
+      roles.filter(role => !role.name.match(/^admin$/i)).forEach((role) => {
         expect(role.rights).toEqual(expect.arrayContaining([
           expect.objectContaining({
             right_id: res.result.data.right._id,
@@ -60,7 +62,7 @@ describe('RIGHTS ROUTES', () => {
     });
 
     it('should add right to admin role with access', async () => {
-      const admin = await Role.find({ name: 'Admin' }, {}, { autopopulate: false });
+      const admin = await Role.find({ name: 'admin' }, {}, { autopopulate: false });
       expect(admin[0].rights).toEqual(expect.arrayContaining([
         expect.objectContaining({
           right_id: res.result.data.right._id,
@@ -149,14 +151,15 @@ describe('RIGHTS ROUTES', () => {
       expect(res.result.data.rights[0].name).toBe('right1');
     });
 
-    it('should return a 404 error if no rights are found', async () => {
-      await Right.remove({});
+    it('should return an empty list if no rights are found', async () => {
+      await Right.deleteMany({});
       const res = await app.inject({
         method: 'GET',
         url: '/rights',
         headers: { 'x-access-token': token }
       });
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.rights).toEqual([]);
     });
 
     it('should return a 400 error if bad parameters are passed', async () => {

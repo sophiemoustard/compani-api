@@ -4,7 +4,7 @@ const flat = require('flat');
 
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
-const drive = require('../models/GoogleDrive');
+const drive = require('../models/Google/Drive');
 const cloudinary = require('../models/Cloudinary');
 const User = require('../models/User');
 
@@ -67,7 +67,7 @@ const uploadFile = async (req) => {
     return { message: translate[language].fileCreated, data: uploadedFile };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -93,7 +93,7 @@ const uploadImage = async (req) => {
     return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

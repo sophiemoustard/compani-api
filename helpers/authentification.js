@@ -1,4 +1,3 @@
-const Role = require('../models/Role');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 
@@ -13,27 +12,21 @@ const validate = async (decoded, req) => {
       return { isValid: false };
     }
 
-    if (!decoded.role && decoded._id) {
-      const user = await User.findById(decoded._id);
-      decoded.role = user.role;
-    } else if (!decoded.role && !decoded._id) {
-      throw new Error('No id / role present in token');
-    }
+    if (!decoded._id) throw new Error('No id / role present in token');
+    const user = await User.findById(decoded._id, '_id identity role company local');
 
-    const decodedRole = typeof decoded.role === 'string' ? decoded.role : decoded.role.name;
-    const role = await Role.find({ name: decodedRole });
-    if (role.length === 0) throw new Error('Role not found !');
-    if (role[0].rights.length === 0) throw new Error('Rights are not set !');
-
-    let rights = [];
-    rights = role[0].rights.filter(right => right.hasAccess).map((right) => {
+    const rights = user.role.rights.filter(right => right.hasAccess).map((right) => {
       if (right.right_id && right.right_id.permission) return right.right_id.permission;
     });
 
     const credentials = {
       _id: decoded._id,
-      scope: [`user-${decoded._id}`, decodedRole, ...rights]
+      identity: user.identity || null,
+      email: user.local && user.local.email ? user.local.email : null,
+      company: user.company || null,
+      scope: [`user-${decoded._id}`, user.role.name, ...rights]
     };
+
     return {
       isValid: true,
       credentials

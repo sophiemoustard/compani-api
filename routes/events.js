@@ -1,7 +1,6 @@
 'use strict';
 
 const Joi = require('joi');
-const Boom = require('boom');
 Joi.objectId = require('joi-objectid')(Joi);
 const {
   list,
@@ -10,12 +9,23 @@ const {
   remove,
   uploadFile,
   removeRepetition,
+  listForCreditNotes,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
   ABSENCE,
   UNAVAILABILITY,
-  INTERVENTION
+  INTERVENTION,
+  DAILY,
+  HOURLY,
+  UNJUSTIFIED,
+  ILLNESS,
+  INVOICED_AND_NOT_PAYED,
+  INVOICED_AND_PAYED,
+  CUSTOMER_INITIATIVE,
+  AUXILIARY_INITIATIVE,
+  CUSTOMER_CONTRACT,
+  COMPANY_CONTRACT,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -38,7 +48,7 @@ exports.plugin = {
               city: Joi.string(),
               fullAddress: Joi.string(),
             }),
-            sector: Joi.string().required(),
+            sector: Joi.objectId().required(),
             misc: Joi.string().allow(null, ''),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             internalHour: Joi.object().keys({
@@ -46,7 +56,10 @@ exports.plugin = {
               _id: Joi.objectId(),
               default: Joi.boolean(),
             }).when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
-            absence: Joi.string().when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
+            absence: Joi.string()
+              .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() })
+              .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
+            absenceNature: Joi.string().valid(DAILY, HOURLY).when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
@@ -54,16 +67,9 @@ exports.plugin = {
             repetition: Joi.object().keys({
               frequency: Joi.string().required(),
             }),
-          }),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+            status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT)
+              .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
+          }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
         auth: {
           strategy: 'jwt',
@@ -79,26 +85,34 @@ exports.plugin = {
         validate: {
           query: {
             startDate: Joi.string(),
-            endStartDate: Joi.string(),
-            auxiliary: Joi.array().items(Joi.string()),
-            customer: Joi.array().items(Joi.string()),
+            endDate: Joi.string(),
+            auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
+            customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
-          },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
+            isBilled: Joi.boolean(),
           },
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' }
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/credit-notes',
+      options: {
+        validate: {
+          query: {
+            startDate: Joi.string(),
+            endDate: Joi.string(),
+            customer: Joi.objectId(),
+            thirdPartyPayer: Joi.objectId(),
+            isBilled: Joi.boolean()
+          },
+        },
+        auth: { strategy: 'jwt' }
+      },
+      handler: listForCreditNotes,
     });
 
     server.route({
@@ -120,7 +134,8 @@ exports.plugin = {
             }),
             subscription: Joi.objectId(),
             internalHour: Joi.object(),
-            absence: Joi.string(),
+            absence: Joi.string().when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
+            absenceNature: Joi.string().valid(DAILY, HOURLY),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
@@ -133,19 +148,17 @@ exports.plugin = {
             isCancelled: Joi.boolean(),
             shouldUpdateRepetition: Joi.boolean(),
             cancel: Joi.object().keys({
-              condition: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
-              reason: Joi.string().when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
+              condition: Joi.string()
+                .valid(INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED)
+                .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
+              reason: Joi.string()
+                .valid(CUSTOMER_INITIATIVE, AUXILIARY_INITIATIVE)
+                .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
-          }),
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+            isBilled: Joi.boolean(),
+            status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
+            bills: Joi.object(),
+          })
         },
         auth: {
           strategy: 'jwt',
@@ -159,16 +172,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: { _id: Joi.objectId() },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          params: { _id: Joi.objectId() }
         },
         auth: {
           strategy: 'jwt',
@@ -182,16 +186,7 @@ exports.plugin = {
       path: '/{_id}/repetition',
       options: {
         validate: {
-          params: { _id: Joi.objectId() },
-          failAction: async (request, h, err) => {
-            if (process.env.NODE_ENV === 'production') {
-              console.error('ValidationError:', err.message);
-              throw Boom.badRequest('Invalid request payload input');
-            } else {
-              console.error(err);
-              throw err;
-            }
-          },
+          params: { _id: Joi.objectId() }
         },
         auth: {
           strategy: 'jwt',

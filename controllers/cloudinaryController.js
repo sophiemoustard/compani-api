@@ -3,6 +3,7 @@ const moment = require('moment');
 
 const translate = require('../helpers/translate');
 const cloudinary = require('../models/Cloudinary');
+const { AUXILIARY } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -12,7 +13,7 @@ const deleteImage = async (req) => {
     return { message: translate[language].fileDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -20,7 +21,7 @@ const uploadImage = async (req) => {
   try {
     const pictureUploaded = await cloudinary.addImage({
       file: req.payload.picture,
-      role: req.payload.role || 'Auxiliaire',
+      role: req.payload.role || AUXILIARY,
       public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
     });
 
@@ -30,7 +31,7 @@ const uploadImage = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 

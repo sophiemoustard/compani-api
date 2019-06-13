@@ -5,7 +5,12 @@ const { getToken } = require('./seed/usersSeed');
 const { populateEvents, eventsList } = require('./seed/eventsSeed');
 const { populateUsers, userList } = require('./seed/usersSeed');
 const { populateCustomers, customersList } = require('./seed/customersSeed');
+const { populateContracts } = require('./seed/contractsSeed');
+const { populateServices } = require('./seed/servicesSeed');
+const { sectorsList } = require('./seed/sectorsSeed');
+const { populateCompanies } = require('./seed/companiesSeed');
 const app = require('../../server');
+const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -15,6 +20,9 @@ describe('NODE ENV', () => {
 
 describe('EVENTS ROUTES', () => {
   let authToken = null;
+  before(populateContracts);
+  before(populateServices);
+  before(populateCompanies);
   before(populateUsers);
   before(populateCustomers);
   beforeEach(populateEvents);
@@ -40,7 +48,7 @@ describe('EVENTS ROUTES', () => {
       const endDate = moment('2019-01-20');
       const response = await app.inject({
         method: 'GET',
-        url: `/events?startDate=${startDate.format('YYYYMMDD')}&endStartDate=${endDate.format('YYYYMMDD')}`,
+        url: `/events?startDate=${startDate.format('YYYYMMDD')}&endDate=${endDate.format('YYYYMMDD')}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -55,35 +63,38 @@ describe('EVENTS ROUTES', () => {
       });
     });
 
-    it('should return an error if list is empty', async () => {
+    it('should return an empty list as no event is matching the request', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/events?startDate=20000101&endStartDate=20001010',
+        url: '/events?startDate=20000101&endDate=20001010',
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toEqual(404);
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.events).toEqual([]);
     });
   });
 
   describe('POST /events', () => {
-    it('should create new event', async () => {
-      const auxiliary = userList.find(user => user.role === 'Auxiliaire');
-      const customer = customersList[0];
+    it('should create an internal hour', async () => {
+      const auxiliary = userList[4];
       const payload = {
-        type: 'intervention',
+        type: INTERNAL_HOUR,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        customer: customer._id,
-        sector: '1b*',
+        sector: sectorsList[0]._id,
         location: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
           zipCode: '92160',
           city: 'Antony'
         },
-        subscription: customer.subscriptions[0]._id,
+        internalHour: {
+          name: 'Formation',
+          _id: new ObjectID(),
+          default: false,
+        }
       };
 
       const response = await app.inject({
@@ -92,9 +103,85 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.event).toBeDefined();
     });
+
+    it('should create an intervention', async () => {
+      const auxiliary = userList[4];
+      const customer = customersList[0];
+      const payload = {
+        type: INTERVENTION,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: auxiliary._id,
+        sector: sectorsList[0]._id,
+        customer: customer._id,
+        subscription: customer.subscriptions[0]._id,
+        status: 'contract_with_company',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.event).toBeDefined();
+    });
+
+    it('should create an absence', async () => {
+      const auxiliary = userList[4];
+      const payload = {
+        type: ABSENCE,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: auxiliary._id,
+        sector: sectorsList[0]._id,
+        absence: ILLNESS,
+        absenceNature: DAILY,
+        attachment: {
+          driveId: 'qwertyuiop',
+          link: 'asdfghjkl;',
+        }
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.event).toBeDefined();
+    });
+
+
+    it('should create an unavailability', async () => {
+      const auxiliary = userList[4];
+      const payload = {
+        type: UNAVAILABILITY,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: auxiliary._id,
+        sector: sectorsList[0]._id,
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/events',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.event).toBeDefined();
+    });
+
     it('should return a 400 error as payload is invalid (subscription missing with type intervention)', async () => {
       const payload = {
         type: 'intervention',
@@ -131,6 +218,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(200);
       expect(response.result.data.event).toBeDefined();
       expect(response.result.data.event._id).toEqual(event._id);
@@ -147,6 +235,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(400);
     });
 
@@ -160,6 +249,7 @@ describe('EVENTS ROUTES', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(404);
     });
   });
@@ -174,8 +264,6 @@ describe('EVENTS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.event).toBeDefined();
-      expect(response.result.data.event._id).toEqual(event._id);
     });
 
     it('should return a 404 error as event is not found', async () => {

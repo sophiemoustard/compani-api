@@ -7,19 +7,19 @@ const os = require('os');
 
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
-const Company = require('../models/Company');
+const Service = require('../models/Service');
 const Event = require('../models/Event');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
-const Drive = require('../models/GoogleDrive');
-const { subscriptionsAccepted, populateSubscriptionsSerivces } = require('../helpers/subscriptions');
+const Drive = require('../models/Google/Drive');
+const { subscriptionsAccepted, populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
-const { createAndReadFile, fileToBase64, generateDocx } = require('../helpers/file');
+const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 const { createAndSaveFile } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
-const { INTERVENTION } = require('../helpers/constants');
+const { INTERVENTION, CUSTOMER_CONTRACT } = require('../helpers/constants');
 
 const { language } = translate;
 
@@ -35,66 +35,212 @@ const list = async (req) => {
     if (req.query.sectors && Array.isArray(req.query.sectors)) payload.sectors = { $in: req.query.sectors };
     if (req.query.subscriptions) payload.subscriptions = { $exists: true, $not: { $size: 0 } };
 
-    const customersRaw = await Customer.find(payload).lean();
+    const customers = await Customer.find(payload)
+      .populate('subscriptions.service')
+      .lean();
+    if (customers.length === 0) {
+      return {
+        message: translate[language].customersNotFound,
+        data: { customers: [] },
+      };
+    }
 
-    const customersSubscriptionsPromises = customersRaw.map(populateSubscriptionsSerivces);
-    let [...customers] = await Promise.all(customersSubscriptionsPromises);
-    const customersApprovalPromises = customers.map(subscriptionsAccepted);
-    [...customers] = await Promise.all(customersApprovalPromises);
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+      customers[i] = subscriptionsAccepted(customers[i]);
+    }
 
     return {
-      message: translate[language].customersShowAllFound,
+      message: translate[language].customersFound,
       data: { customers }
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 const listBySector = async (req) => {
   try {
-    const query = { type: INTERVENTION, sector: { $in: req.query.sector } };
-    if (req.query.startDate) query.startDate = { $gte: moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate() };
-    if (req.query.endStartDate) {
-      query.startDate = { ...query.startDate, $lte: moment(req.query.endStartDate, 'YYYYMMDD hh:mm').toDate() };
-      _.unset(query, 'endStartDate');
+    let query = { type: INTERVENTION, sector: { $in: req.query.sector } };
+    if (req.query.startDate && req.query.endDate) {
+      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
+          { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
+          { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+        ],
+      };
+    } else if (req.query.startDate && !req.query.endDate) {
+      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $gte: searchStartDate } },
+          { endDate: { $gte: searchStartDate } },
+        ],
+      };
+    } else if (req.query.endDate) {
+      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+      query = {
+        ...query,
+        $or: [
+          { startDate: { $lte: searchEndDate } },
+          { endDate: { $lte: searchEndDate } },
+        ],
+      };
     }
 
     const eventsBySector = await Event.find(query).lean();
-    if (eventsBySector.length === 0) return Boom.notFound(translate[language].eventsNotFound);
+    if (eventsBySector.length === 0) {
+      return {
+        message: translate[language].eventsNotFound,
+        data: { customers: [] },
+      };
+    }
 
     const customerIds = [];
     eventsBySector.map((event) => {
       if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
     });
 
-    const customers = await Customer.find({ _id: customerIds });
+    const customers = await Customer.find({ _id: customerIds }).populate('subscriptions.service').lean();
+
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+      customers[i] = subscriptionsAccepted(customers[i]);
+    }
 
     return {
-      message: translate[language].eventsFound,
+      message: translate[language].customersFound,
       data: { customers },
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
+  }
+};
+
+const listWithBilledEvents = async (req) => {
+  try {
+    const rules = [
+      { type: INTERVENTION },
+      { isBilled: true },
+    ];
+    const customers = await Event.aggregate([
+      { $match: { $and: rules } },
+      { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' }, } },
+      {
+        $lookup: {
+          from: 'customers',
+          localField: '_id.CUSTOMER',
+          foreignField: '_id',
+          as: 'customer',
+        }
+      },
+      { $unwind: { path: '$customer' } },
+      {
+        $lookup: {
+          from: 'thirdpartypayers',
+          localField: '_id.TPP',
+          foreignField: '_id',
+          as: 'thirdPartyPayer',
+        }
+      },
+      { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          sub: {
+            $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+          }
+        }
+      },
+      { $unwind: { path: '$sub' } },
+      {
+        $lookup: {
+          from: 'services',
+          localField: 'sub.service',
+          foreignField: '_id',
+          as: 'sub.service',
+        }
+      },
+      { $unwind: { path: '$sub.service' } },
+      { $group: { _id: { CUS: '$customer' }, subscriptions: { $push: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
+      {
+        $project: {
+          _id: '$_id.CUS._id',
+          subscriptions: 1,
+          identity: '$_id.CUS.identity',
+          thirdPartyPayers: 1,
+        }
+      }
+    ]);
+
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+    }
+
+    return { data: { customers } };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
+
+const listWithCustomerContractSubscriptions = async (req) => {
+  try {
+    const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
+    if (customerContractServices.length === 0) {
+      return {
+        message: translate[language].customersNotFound,
+        data: { customers: [] },
+      };
+    }
+
+    const ids = customerContractServices.map(service => service._id);
+    const customers = await Customer.find({ 'subscriptions.service': { $in: ids } }).populate('subscriptions.service').lean();
+    if (customers.length === 0) {
+      return {
+        message: translate[language].customersNotFound,
+        data: { customers: [] },
+      };
+    }
+
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+      customers[i] = subscriptionsAccepted(customers[i]);
+    }
+
+    return {
+      message: translate[language].customersFound,
+      data: { customers },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
   }
 };
 
 const show = async (req) => {
   try {
-    let customer = await Customer.findOne({ _id: req.params._id }).lean();
+    let customer = await Customer.findOne({ _id: req.params._id })
+      .populate('subscriptions.service')
+      .populate('fundings.thirdPartyPayer')
+      .lean();
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
     }
 
-    customer = await populateSubscriptionsSerivces(customer);
-    customer = await subscriptionsAccepted(customer);
+    customer = await populateSubscriptionsServices(customer);
+    customer = subscriptionsAccepted(customer);
 
     const fundingsVersions = [];
     if (customer.fundings && customer.fundings.length > 0) {
       for (const funding of customer.fundings) {
-        fundingsVersions.push(await populateFundings(funding));
+        fundingsVersions.push(await populateFundings(funding, customer));
       }
       customer.fundings = fundingsVersions;
     }
@@ -105,7 +251,7 @@ const show = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -126,7 +272,7 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -144,7 +290,7 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -159,14 +305,14 @@ const update = async (req) => {
         req.payload.payment.bic = null;
         customerUpdated = await Customer.findOneAndUpdate(
           { _id: req.params._id },
-          { $set: flat(req.payload), $push: { 'payment.mandates': mandate } },
+          { $set: flat(req.payload, { safe: true }), $push: { 'payment.mandates': mandate } },
           { new: true }
         );
       } else {
-        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
       }
     } else {
-      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
     }
 
     if (!customerUpdated) {
@@ -180,7 +326,7 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -193,11 +339,11 @@ const getSubscriptions = async (req) => {
       },
       { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
       { autopopulate: false }
-    ).lean();
+    ).populate('subscriptions.service').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const { subscriptions } = await populateSubscriptionsSerivces(customer);
+    const { subscriptions } = await populateSubscriptionsServices(customer);
 
     return {
       message: translate[language].customerSubscriptionsFound,
@@ -208,7 +354,7 @@ const getSubscriptions = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -222,11 +368,11 @@ const updateSubscription = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
         autopopulate: false,
       },
-    ).lean();
+    ).populate('subscriptions.service').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const { subscriptions } = await populateSubscriptionsSerivces(customer);
+    const { subscriptions } = await populateSubscriptionsServices(customer);
 
     return {
       message: translate[language].customerSubscriptionUpdated,
@@ -237,19 +383,16 @@ const updateSubscription = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 const addSubscription = async (req) => {
   try {
     const serviceId = req.payload.service;
-    const company = await Company.findOne({ 'customersConfig.services._id': serviceId });
+    const subscribedService = await Service.findOne({ _id: serviceId });
 
-    if (!company) return Boom.notFound(translate[language].companyServiceNotFound);
-
-    const subscribedService = company.customersConfig.services.find(service => service._id == serviceId);
-    if (!subscribedService) return Boom.notFound(translate[language].companyServiceNotFound);
+    if (!subscribedService) return Boom.notFound(translate[language].serviceNotFound);
 
     const customer = await Customer.findById(req.params._id);
     if (customer.subscriptions && customer.subscriptions.length > 0) {
@@ -265,9 +408,9 @@ const addSubscription = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
         autopopulate: false,
       },
-    ).lean();
+    ).populate('subscriptions.service').lean();
 
-    const { subscriptions } = await populateSubscriptionsSerivces(updatedCustomer);
+    const { subscriptions } = await populateSubscriptionsServices(updatedCustomer);
 
     return {
       message: translate[language].customerSubscriptionAdded,
@@ -278,7 +421,7 @@ const addSubscription = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -296,14 +439,14 @@ const removeSubscription = async (req) => {
         },
         autopopulate: false,
       }
-    );
+    ).populate('subscriptions.service');
 
     return {
       message: translate[language].customerSubscriptionRemoved,
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -331,7 +474,7 @@ const getMandates = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -361,7 +504,7 @@ const updateMandate = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -371,20 +514,15 @@ const generateMandateSignatureRequest = async (req) => {
     if (!customer) return Boom.notFound();
     const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
-    const docxPayload = {
-      file: { fileId: req.payload.fileId },
-      data: req.payload.fields
-    };
-    const filePath = await generateDocx(docxPayload);
-    const file64 = await fileToBase64(filePath);
     const doc = await generateSignatureRequest({
-      type: 'mandate',
+      templateId: req.payload.fileId,
+      fields: req.payload.fields,
       title: `MANDAT SEPA ${customer.payment.mandates[mandateIndex].rum}`,
-      file: file64,
-      signer: {
+      signers: [{
+        id: '1',
         name: req.payload.customer.name,
         email: req.payload.customer.email
-      },
+      }],
       redirect: req.payload.redirect,
       redirectDecline: req.payload.redirectDecline
     });
@@ -397,20 +535,21 @@ const generateMandateSignatureRequest = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 const getCustomerQuotes = async (req) => {
   try {
-    const quotes = await Customer.findOne({
-      _id: req.params._id,
-      quotes: { $exists: true }
-    }, {
-      'identity.firstname': 1,
-      'identity.lastname': 1,
-      quotes: 1
-    }, { autopopulate: false }).lean();
+    const quotes = await Customer.findOne(
+      { _id: req.params._id, quotes: { $exists: true } },
+      {
+        'identity.firstname': 1,
+        'identity.lastname': 1,
+        quotes: 1
+      },
+      { autopopulate: false }
+    ).lean();
     if (!quotes) return Boom.notFound();
     return {
       message: translate[language].customerQuotesFound,
@@ -421,7 +560,7 @@ const getCustomerQuotes = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -450,7 +589,7 @@ const createCustomerQuote = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -474,7 +613,7 @@ const removeCustomerQuote = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -506,7 +645,7 @@ const createDriveFolder = async (req) => {
       return Boom.notFound(translate[language].googleDriveFolderNotFound);
     }
 
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -524,7 +663,7 @@ const uploadFile = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -548,7 +687,7 @@ const updateCertificates = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -590,7 +729,7 @@ const saveSignedMandate = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -614,7 +753,7 @@ const createHistorySubscription = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -627,15 +766,15 @@ const createFunding = async (req) => {
       { $push: { fundings: req.payload } },
       {
         new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       },
-    ).lean();
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
-    let funding = customer.fundings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-    funding = await populateFundings(funding);
+    let funding = customer.fundings[customer.fundings.length - 1];
+    funding = await populateFundings(funding, customer);
 
     return {
       message: translate[language].customerFundingCreated,
@@ -646,26 +785,31 @@ const createFunding = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const updateFunding = async (req) => {
   try {
+    if (req.payload.careDays) {
+      const checkFundingPayload = { _id: req.params.fundingId, subscription: req.payload.subscription, versions: [req.payload] };
+      const check = await checkSubscriptionFunding(req.params._id, checkFundingPayload);
+      if (!check) return Boom.conflict(translate[language].customerFundingConflict);
+    }
     const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id, 'fundings._id': req.params.fundingId },
       { $push: { 'fundings.$.versions': req.payload } },
       {
         new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       },
-    ).lean();
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
     let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);
-    funding = await populateFundings(funding);
+    funding = await populateFundings(funding, customer);
 
     return {
       message: translate[language].customerFundingUpdated,
@@ -676,7 +820,7 @@ const updateFunding = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -684,15 +828,15 @@ const getFundings = async (req) => {
   try {
     const customer = await Customer.findOne(
       { _id: req.params._id, fundings: { $exists: true } },
-      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1 },
+      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
       { autopopulate: false },
-    ).lean();
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
     const versions = [];
     for (const funding of customer.fundings) {
-      versions.push(await populateFundings(funding));
+      versions.push(await populateFundings(funding, customer));
     }
     customer.fundings = versions;
 
@@ -705,31 +849,27 @@ const getFundings = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 const removeFunding = async (req) => {
   try {
-    await Customer.findByIdAndUpdate(
+    await Customer.findOneAndUpdate(
       { _id: req.params._id },
       { $pull: { fundings: { _id: req.params.fundingId } } },
       {
-        select: {
-          'identity.firstname': 1,
-          'identity.lastname': 1,
-          fundings: 1,
-        },
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       }
-    );
+    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer');
 
     return {
       message: translate[language].customerFundingRemoved,
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -737,6 +877,8 @@ const removeFunding = async (req) => {
 module.exports = {
   list,
   listBySector,
+  listWithCustomerContractSubscriptions,
+  listWithBilledEvents,
   show,
   create,
   remove,
@@ -759,5 +901,5 @@ module.exports = {
   createFunding,
   updateFunding,
   getFundings,
-  removeFunding
+  removeFunding,
 };

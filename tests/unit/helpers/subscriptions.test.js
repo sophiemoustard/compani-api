@@ -1,76 +1,23 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const { populateSubscriptionsSerivces, subscriptionsAccepted } = require('../../../helpers/subscriptions');
+const UtilsHelper = require('../../../helpers/utils');
+const SubscriptionsHelper = require('../../../helpers/subscriptions');
 const Company = require('../../../models/Company');
+const Customer = require('../../../models/Customer');
 
-describe('populateService', () => {
-  it('should populate services', async () => {
-    const customer = {
-      subscriptions: [{
-        versions: [{
-          startDate: '2019-01-18T15:46:30.636Z',
-          createdAt: '2019-01-18T15:46:30.636Z',
-          _id: new ObjectID('5c41f4d62fc4d8780f0628ea'),
-          unitTTCRate: 13,
-          estimatedWeeklyVolume: 12,
-          sundays: 2,
-        }, {
-          startDate: '2019-01-19T15:46:30.636Z',
-          createdAt: '2019-01-18T15:46:37.471Z',
-          _id: new ObjectID('5c41f4dd2fc4d8780f0628eb'),
-          unitTTCRate: 24,
-          estimatedWeeklyVolume: 12,
-          sundays: 2,
-          evenings: 0
-        }],
-        createdAt: '2019-01-18T15:46:30.637Z',
-        _id: new ObjectID('5c41f4d62fc4d8780f0628e9'),
-        service: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
-      }],
-    };
-    Company.findOne = () => ({
-      customersConfig: {
-        services: [{
-          _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
-          nature: 'Horaire',
-          versions: [{
-            defaultUnitAmount: 25,
-            vat: 5.5,
-            holidaySurcharge: 10,
-            eveningSurcharge: 25,
-            name: 'Temps de qualité - Autonomie',
-            startDate: '2019-01-18T15:37:30.636Z',
-          }]
-        }, {
-          _id: new ObjectID('5c41f4e42fc4d8780f0628ec'),
-          versions: [{
-            name: 'Nuit',
-            defaultUnitAmount: 175,
-            vat: 12,
-            startDate: '2019-01-19T18:46:30.636Z',
-          }],
-          nature: 'Horaire',
-        }],
-      }
-    });
-
-    const result = await populateSubscriptionsSerivces(customer);
-    expect(result.subscriptions).toBeDefined();
-    expect(result.subscriptions[0]._id).toEqual(customer.subscriptions[0]._id);
-    expect(result.subscriptions[0].service).toBeDefined();
-    expect(result.subscriptions[0].service).toEqual({
-      _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
-      name: 'Temps de qualité - Autonomie',
-      nature: 'Horaire',
-      defaultUnitAmount: 25,
-      vat: 5.5,
-      holidaySurcharge: 10,
-      eveningSurcharge: 25,
-    });
-  });
-});
+require('sinon-mongoose');
 
 describe('subscriptionsAccepted', () => {
+  let findOne;
+  beforeEach(() => {
+    findOne = sinon.stub(Company, 'findOne');
+  });
+
+  afterEach(() => {
+    findOne.restore();
+  });
+
   it('should set subscriptionsAccepted to true', async () => {
     const customer = {
       subscriptions: [{
@@ -122,7 +69,7 @@ describe('subscriptionsAccepted', () => {
         _id: new ObjectID('5c45a98fa2e4e133a6774e46')
       }],
     };
-    Company.findOne = () => ({
+    findOne.returns({
       customersConfig: {
         services: [{
           _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
@@ -148,7 +95,7 @@ describe('subscriptionsAccepted', () => {
       }
     });
 
-    const result = await subscriptionsAccepted(customer);
+    const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
     expect(result).toBeDefined();
     expect(result.subscriptionsAccepted).toBeTruthy();
   });
@@ -193,7 +140,7 @@ describe('subscriptionsAccepted', () => {
         _id: new ObjectID('5c45a98fa2e4e133a6774e46')
       }],
     };
-    Company.findOne = () => ({
+    findOne.returns({
       customersConfig: {
         services: [{
           _id: new ObjectID('5c35cdc2bd5e3e7360b853fa'),
@@ -210,8 +157,65 @@ describe('subscriptionsAccepted', () => {
       }
     });
 
-    const result = await subscriptionsAccepted(customer);
+    const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
     expect(result).toBeDefined();
     expect(result.subscriptionsAccepted).toBeFalsy();
+  });
+});
+
+describe('exportSubscriptions', () => {
+  let CustomerModel;
+  let getLastVersion;
+  let formatFloatForExport;
+  beforeEach(() => {
+    CustomerModel = sinon.mock(Customer);
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
+    formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
+    formatFloatForExport.callsFake(float => `F-${float || ''}`);
+  });
+
+  afterEach(() => {
+    CustomerModel.restore();
+    getLastVersion.restore();
+    formatFloatForExport.restore();
+  });
+
+  it('should return csv header', async () => {
+    const customers = [];
+    CustomerModel.expects('find')
+      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } } })
+      .chain('populate')
+      .once()
+      .returns(customers);
+
+    const result = await SubscriptionsHelper.exportSubscriptions();
+
+    expect(result).toBeDefined();
+    expect(result[0]).toMatchObject(['Bénéficiaire', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']);
+  });
+
+  it('should return subscriptions info', async () => {
+    const customers = [
+      {
+        identity: { lastname: 'Autonomie', title: 'M' },
+        subscriptions: [{
+          service: { versions: [{ name: 'Service' }] },
+          versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 4, sundays: 2, evenings: 9 }],
+        }],
+      }
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } } })
+      .chain('populate')
+      .once()
+      .returns(customers);
+
+    const result = await SubscriptionsHelper.exportSubscriptions();
+
+    sinon.assert.calledTwice(getLastVersion);
+    sinon.assert.calledTwice(formatFloatForExport);
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['M Autonomie', 'Service', 'F-12', 'F-4', 9, 2]);
   });
 });

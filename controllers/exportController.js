@@ -1,0 +1,106 @@
+const Boom = require('boom');
+const moment = require('moment');
+
+const {
+  SERVICE,
+  AUXILIARY,
+  HELPER,
+  CUSTOMER,
+  FUNDING,
+  SUBSCRIPTION,
+  WORKING_EVENT,
+  BILL,
+  PAYMENT,
+  ABSENCE,
+  PAY,
+  FINAL_PAY,
+} = require('../helpers/constants');
+const { exportServices } = require('../helpers/services');
+const { exportCustomers } = require('../helpers/customers');
+const { exportSubscriptions } = require('../helpers/subscriptions');
+const { exportFundings } = require('../helpers/fundings');
+const { exportAuxiliaries, exportHelpers } = require('../helpers/users');
+const { exportWorkingEventsHistory, exportAbsencesHistory } = require('../helpers/events');
+const { exportBillsHistory } = require('../helpers/bills');
+const { exportPaymentsHistory } = require('../helpers/payments');
+const { exportPayHistory } = require('../helpers/pay');
+const { exportFinalPayHistory } = require('../helpers/finalPay');
+const { exportToCsv } = require('../helpers/file');
+
+const exportData = async (req, h) => {
+  try {
+    const { type } = req.params;
+
+    let data;
+    switch (type) {
+      case AUXILIARY:
+        data = await exportAuxiliaries();
+        break;
+      case HELPER:
+        data = await exportHelpers();
+        break;
+      case FUNDING:
+        data = await exportFundings();
+        break;
+      case CUSTOMER:
+        data = await exportCustomers();
+        break;
+      case SUBSCRIPTION:
+        data = await exportSubscriptions();
+        break;
+      case SERVICE:
+        data = await exportServices();
+        break;
+    }
+
+    const csv = await exportToCsv(data);
+
+    return h.file(csv, { confine: false });
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
+
+const exportHistory = async (req, h) => {
+  try {
+    const { type } = req.params;
+
+    const startDate = moment(req.query.startDate).startOf('day').toDate();
+    const endDate = moment(req.query.endDate).endOf('day').toDate();
+
+    let exportArray;
+    switch (type) {
+      case WORKING_EVENT:
+        exportArray = await exportWorkingEventsHistory(startDate, endDate);
+        break;
+      case BILL:
+        exportArray = await exportBillsHistory(startDate, endDate);
+        break;
+      case PAYMENT:
+        exportArray = await exportPaymentsHistory(startDate, endDate);
+        break;
+      case ABSENCE:
+        exportArray = await exportAbsencesHistory(startDate, endDate);
+        break;
+      case PAY:
+        exportArray = await exportPayHistory(startDate, endDate);
+        break;
+      case FINAL_PAY:
+        exportArray = await exportFinalPayHistory(startDate, endDate);
+        break;
+    }
+
+    const csv = await exportToCsv(exportArray);
+
+    return h.file(csv, { confine: false });
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
+
+module.exports = {
+  exportData,
+  exportHistory,
+};

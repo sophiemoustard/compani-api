@@ -14,11 +14,11 @@ const create = async (req) => {
     const roles = await Role.find();
     if (roles.length > 0) {
       await Role.updateMany(
-        { name: { $not: /^Admin$/ } },
+        { name: { $not: /^admin$/ } },
         { $push: { rights: { right_id: right._id, hasAccess: false } } }
       );
       await Role.update(
-        { name: 'Admin' },
+        { name: 'admin' },
         { $push: { rights: { right_id: right._id, hasAccess: true } } }
       );
     }
@@ -34,7 +34,7 @@ const create = async (req) => {
     }
     console.error(e);
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -58,22 +58,27 @@ const update = async (req) => {
       return Boom.conflict(translate[language].rightExists);
     }
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
-const showAll = async (req) => {
+const list = async (req) => {
   try {
     const rights = await Right.find(req.query).lean();
-    if (rights.length === 0) return Boom.notFound(translate[language].rightsShowAllNotFound);
+    if (rights.length === 0) {
+      return {
+        message: translate[language].rightsNotFound,
+        data: { rights: [] }
+      };
+    }
 
     return {
-      message: translate[language].rightsShowAllFound,
+      message: translate[language].rightsFound,
       data: { rights }
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -89,7 +94,7 @@ const showById = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
@@ -110,14 +115,14 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation();
+    return Boom.badImplementation(e);
   }
 };
 
 module.exports = {
   create,
   update,
-  showAll,
+  list,
   showById,
   remove
 };

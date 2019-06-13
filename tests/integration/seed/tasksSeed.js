@@ -13,7 +13,7 @@ const tasksList = [
 ];
 
 const populateTasks = async () => {
-  await Task.remove({});
+  await Task.deleteMany({});
   await Task.insertMany(tasksList);
 };
 

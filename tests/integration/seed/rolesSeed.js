@@ -33,7 +33,7 @@ const rightsList = [
 const rolesList = [
   {
     _id: new ObjectID(),
-    name: 'Tech',
+    name: 'tech',
     rights: [
       {
         right_id: rightsList[0]._id,
@@ -51,7 +51,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'Admin',
+    name: 'admin',
     rights: [
       {
         right_id: rightsList[0]._id,
@@ -69,7 +69,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'Coach',
+    name: 'coach',
     rights: [
       {
         right_id: rightsList[0]._id,
@@ -87,7 +87,7 @@ const rolesList = [
   },
   {
     _id: new ObjectID(),
-    name: 'Auxiliaire',
+    name: 'auxiliary',
     rights: [
       {
         right_id: rightsList[0]._id,
@@ -147,8 +147,8 @@ const wrongRolePayload = {
 const rightPayload = { name: 'Test', description: 'test', permission: 'test:read' };
 
 const populateRoles = async () => {
-  await Role.remove({});
-  await Right.remove({});
+  await Role.deleteMany({});
+  await Right.deleteMany({});
 
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);

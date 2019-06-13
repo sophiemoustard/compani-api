@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 
 const CompanySchema = mongoose.Schema({
   name: {
@@ -15,28 +15,39 @@ const CompanySchema = mongoose.Schema({
   },
   rcs: String,
   ics: String,
+  iban: String,
+  bic: String,
   folderId: String,
   rhConfig: {
-    providerContracts: {
+    contractWithCompany: {
       grossHourlyRate: Number
     },
-    agentContracts: {
+    contractWithCustomer: {
       grossHourlyRate: Number
     },
-    phoneSubRefunding: Number,
+    feeAmount: Number,
+    amountPerKm: Number,
     transportSubs: [{
       department: String,
       price: Number
     }],
     templates: {
-      contract: {
+      contractWithCompany: {
+        driveId: String,
+        link: String,
+      },
+      contractWithCompanyVersion: {
         driveId: String,
         link: String
       },
-      amendment: {
+      contractWithCustomer: {
+        driveId: String,
+        link: String,
+      },
+      contractWithCustomerVersion: {
         driveId: String,
         link: String
-      },
+      }
     },
     internalHours: [{
       name: String,
@@ -44,18 +55,7 @@ const CompanySchema = mongoose.Schema({
     }]
   },
   customersConfig: {
-    services: [{
-      nature: String,
-      versions: [{
-        defaultUnitAmount: Number,
-        vat: Number,
-        holidaySurcharge: Number,
-        eveningSurcharge: Number,
-        startDate: { type: Date, default: Date.now },
-        name: String,
-        createdAt: { type: Date, default: Date.now }
-      }],
-    }],
+    billingPeriod: { type: String, enum: [MONTH, TWO_WEEKS], default: TWO_WEEKS },
     templates: {
       folderId: String,
       debitMandate: {
@@ -66,27 +66,8 @@ const CompanySchema = mongoose.Schema({
         driveId: String,
         link: String,
       },
-    },
-    thirdPartyPayers: [{
-      name: String,
-      address: {
-        street: String,
-        fullAddress: String,
-        zipCode: String,
-        city: String
-      },
-      email: String,
-      unitTTCRate: Number,
-      billingMode: {
-        type: String,
-        enum: [BILLING_DIRECT, BILLING_INDIRECT]
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now
-      }
-    }]
-  },
+    }
+  }
 }, {
   timestamps: true
 });
