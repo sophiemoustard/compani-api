@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const surchargedHoursSchema = {
+  hours: Number,
+  percentage: Number,
+};
+
+const surchargedDetailsSchema = [{
+  planName: String,
+  saturday: surchargedHoursSchema,
+  sunday: surchargedHoursSchema,
+  publicHoliday: surchargedHoursSchema,
+  twentyFifthOfDecember: surchargedHoursSchema,
+  firstOfMay: surchargedHoursSchema,
+  evening: surchargedHoursSchema,
+  custom: surchargedHoursSchema,
+}];
+
 const PaySchema = mongoose.Schema({
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   startDate: Date,
@@ -9,10 +25,10 @@ const PaySchema = mongoose.Schema({
   workedHours: Number,
   notSurchargedAndNotExempt: Number,
   surchargedAndNotExempt: Number,
-  surchargedAndNotExemptDetails: String,
+  surchargedAndNotExemptDetails: surchargedDetailsSchema,
   notSurchargedAndExempt: Number,
   surchargedAndExempt: Number,
-  surchargedAndExemptDetails: String,
+  surchargedAndExemptDetails: surchargedDetailsSchema,
   hoursBalance: Number,
   hoursCounter: Number,
   overtimeHours: Number,

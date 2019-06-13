@@ -176,24 +176,33 @@ describe('computeCustomSurcharge', () => {
 
 describe('getSurchargeDetails', () => {
   it('Case 1. surcharge plan and type included in details', () => {
-    const result = DraftPayHelper.getSurchargeDetails(2, 'Super Mario', 'Noel', { 'Super Mario': { Noel: 3 } });
+    const surcharge = { _id: new ObjectID('5d021ac76740b60f42af845b'), name: 'Super Mario', Noel: 35 };
+    const details = { '5d021ac76740b60f42af845b': { Noel: { hours: 3 } } };
+    const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ 'Super Mario': { Noel: 5 } });
+    expect(result).toEqual({ '5d021ac76740b60f42af845b': { planName: 'Super Mario', Noel: { hours: 5, percentage: 35 } } });
   });
 
   it('Case 2. surcharge plan included in details but not surcharge type', () => {
-    const result = DraftPayHelper.getSurchargeDetails(2, 'Super Mario', 'Noel', { 'Super Mario': { 10: 3 } });
+    const surcharge = { _id: new ObjectID('5d021ac76740b60f42af845b'), name: 'Super Mario', Noel: 35 };
+    const details = { '5d021ac76740b60f42af845b': { 10: { hours: 3 } } };
+    const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ 'Super Mario': { 10: 3, Noel: 2 } });
+    expect(result).toEqual({ '5d021ac76740b60f42af845b': { planName: 'Super Mario', 10: { hours: 3 }, Noel: { hours: 2, percentage: 35 } } });
   });
 
   it('Case 3. surcharge plan and type not included in details', () => {
-    const result = DraftPayHelper.getSurchargeDetails(2, 'Luigi', 'Noel', { 'Super Mario': { 10: 3 } });
+    const surcharge = { _id: new ObjectID('5d021ac76740b60f42af845b'), name: 'Luigi', Noel: 35 };
+    const details = { '5d021ac76385b60f22af644c': { 10: { hours: 3 } } };
+    const result = DraftPayHelper.getSurchargeDetails(2, surcharge, 'Noel', details);
 
     expect(result).toBeDefined();
-    expect(result).toEqual({ 'Super Mario': { 10: 3 }, Luigi: { Noel: 2 } });
+    expect(result).toEqual({
+      '5d021ac76385b60f22af644c': { 10: { hours: 3 } },
+      '5d021ac76740b60f42af845b': { planName: 'Luigi', Noel: { hours: 2, percentage: 35 } }
+    });
   });
 });
 

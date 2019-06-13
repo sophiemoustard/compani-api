@@ -26,6 +26,22 @@ exports.plugin = {
       handler: draftPayList,
     });
 
+    const validateSurchargedHours = Joi.object().keys({
+      hours: Joi.number().required(),
+      percentage: Joi.number().required().min(0).max(100),
+    });
+
+    const validateSurchargedDetails = Joi.object().required().pattern(Joi.string(), {
+      planName: Joi.string().required(),
+      saturday: validateSurchargedHours,
+      sunday: validateSurchargedHours,
+      publicHoliday: validateSurchargedHours,
+      twentyFifthOfDecember: validateSurchargedHours,
+      firstOfMay: validateSurchargedHours,
+      evening: validateSurchargedHours,
+      custom: validateSurchargedHours,
+    });
+
     server.route({
       method: 'POST',
       path: '/',
@@ -41,10 +57,10 @@ exports.plugin = {
             workedHours: Joi.number().required(),
             notSurchargedAndNotExempt: Joi.number().required(),
             surchargedAndNotExempt: Joi.number().required(),
-            surchargedAndNotExemptDetails: Joi.object().required(),
+            surchargedAndNotExemptDetails: validateSurchargedDetails,
             notSurchargedAndExempt: Joi.number().required(),
             surchargedAndExempt: Joi.number().required(),
-            surchargedAndExemptDetails: Joi.object().required(),
+            surchargedAndExemptDetails: validateSurchargedDetails,
             hoursBalance: Joi.number().required(),
             hoursCounter: Joi.number().required(),
             overtimeHours: Joi.number().required(),
