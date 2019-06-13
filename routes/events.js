@@ -39,7 +39,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(INTERNAL_HOUR, INTERVENTION, ABSENCE, UNAVAILABILITY),
             startDate: Joi.date().required(),
-            endDate: Joi.date().required(),
+            endDate: Joi.date().required().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId().required(),
             customer: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             location: Joi.object().keys({
