@@ -143,7 +143,6 @@ const UserSchema = mongoose.Schema({
   mobilePhone: String,
   emergencyPhone: String,
   mentor: String,
-  ogustInterlocId: String,
   contracts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Contract',
