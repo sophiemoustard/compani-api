@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 
 const { getFixedNumber, removeSpaces, getLastVersion } = require('./utils');
-const { addFile } = require('./gdriveStorage');
+const gdriveStorage = require('./gdriveStorage');
 
 const createDocument = () => ({
   Document: {
@@ -126,7 +126,7 @@ const generateSEPAXml = async (docObj, header, companyWithdrawalFolderId, ...pay
     file.write(finalDoc.end({ pretty: true }));
     file.end();
     file.on('finish', async () => {
-      await addFile({
+      await gdriveStorage.addFile({
         driveFolderId: companyWithdrawalFolderId,
         name: `prélèvements_${moment().format('YYYYMMDD_HHmm')}.xml`,
         type: 'text/xml',

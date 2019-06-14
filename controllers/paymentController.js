@@ -50,7 +50,7 @@ const createList = async (req, h) => {
     return h.file(payments, { confine: false });
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
