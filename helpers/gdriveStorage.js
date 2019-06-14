@@ -1,7 +1,7 @@
 const Boom = require('boom');
 const Gdrive = require('../models/Google/Drive');
 
-const addFile = async (params) => {
+exports.addFile = async (params) => {
   const parentFolderId = params.driveFolderId;
   const uploadedFile = await Gdrive.add({
     name: params.name,
@@ -13,7 +13,7 @@ const addFile = async (params) => {
   return uploadedFile;
 };
 
-const createFolder = async (identity, parentFolderId) => {
+exports.createFolder = async (identity, parentFolderId) => {
   const folder = await Gdrive.add({
     name: `${identity.lastname.toUpperCase()} ${identity.firstname || ''}`,
     parentFolderId,
@@ -32,7 +32,3 @@ const createFolder = async (identity, parentFolderId) => {
   return { folder, folderLink };
 };
 
-module.exports = {
-  addFile,
-  createFolder,
-};
