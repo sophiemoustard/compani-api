@@ -8,6 +8,7 @@ const canBeWithdrawn = (bill) => {
     !bill._id.tpp &&
     bill.customer.payment &&
     bill.customer.payment.bankAccountOwner &&
+    bill.customer.payment.mandates &&
     bill.customer.payment.mandates.length > 0 &&
     getLastVersion(bill.customer.payment.mandates, 'createdAt').signedAt
   );
