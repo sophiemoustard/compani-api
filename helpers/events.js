@@ -21,6 +21,7 @@ const {
   CANCELLATION_REASON_LIST,
   ABSENCE_TYPE_LIST,
   ABSENCE_NATURE_LIST,
+  HOURLY
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -475,7 +476,6 @@ exports.exportAbsencesHistory = async (startDate, endDate) => {
     'Nature',
     'Début',
     'Fin',
-    'Durée',
     'Secteur',
     'Auxiliaire',
     'Divers',
@@ -486,9 +486,8 @@ exports.exportAbsencesHistory = async (startDate, endDate) => {
     const cells = [
       ABSENCE_TYPE_LIST[event.absence],
       ABSENCE_NATURE_LIST[event.absenceNature],
-      moment(event.startDate).format('DD/MM/YYYY HH:mm'),
-      moment(event.endDate).format('DD/MM/YYYY HH:mm'),
-      UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
+      event.absenceNature === HOURLY ? moment(event.startDate).format('DD/MM/YYYY HH:mm') : moment(event.startDate).format('DD/MM/YYYY'),
+      event.absenceNature === HOURLY ? moment(event.endDate).format('DD/MM/YYYY HH:mm') : moment(event.endDate).format('DD/MM/YYYY'),
       _.get(event.sector, 'name') || '',
       UtilsHelper.getFullTitleFromIdentity(_.get(event.auxiliary, 'identity')),
       event.misc || '',
