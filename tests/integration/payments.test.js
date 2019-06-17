@@ -2,14 +2,16 @@ const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const cloneDeep = require('lodash/cloneDeep');
+const omit = require('lodash/omit');
 
 const app = require('../../server');
 const { getToken } = require('./seed/usersSeed');
 const { customersList, populateCustomers } = require('./seed/customersSeed');
 const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const { paymentsList, populatePayments } = require('./seed/paymentsSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
-const { populateUsers } = require('./seed/usersSeed');
+const { populateCompanies, companiesList } = require('./seed/companiesSeed');
+const { populateUsers, userList } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
 const { PAYMENT, REFUND, PAYMENT_TYPES } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
@@ -147,7 +149,7 @@ describe('PAYMENTS ROUTES', () => {
         },
       ];
 
-      const mock = sinon.stub(Drive, 'add');
+      const addStub = sinon.stub(Drive, 'add');
 
       const res = await app.inject({
         method: 'POST',
@@ -159,8 +161,44 @@ describe('PAYMENTS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       const payments = await Payment.find().lean();
       expect(payments.length).toBe(paymentsList.length + 2);
-      sinon.assert.called(mock);
-      mock.restore();
+      sinon.assert.called(addStub);
+      addStub.restore();
+    });
+    it('should create multiple payments', async () => {
+      const payload = [
+        {
+          date: moment().toDate(),
+          customer: customersList[0]._id,
+          customerInfo: customersList[0],
+          netInclTaxes: 900,
+          nature: PAYMENT,
+          type: PAYMENT_TYPES[0],
+          rum: 'R12345678000000345634567',
+        },
+        {
+          date: moment().toDate(),
+          customer: customersList[1]._id,
+          customerInfo: customersList[1],
+          netInclTaxes: 250,
+          nature: PAYMENT,
+          type: PAYMENT_TYPES[0],
+          rum: 'R12345678000000345634567',
+        },
+      ];
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload,
+        headers: { 'x-access-token': token },
+        credentials: {
+          _id: userList[0]._id,
+          identity: userList[0].identity,
+          company: cloneDeep(omit(companiesList[0], ['iban', 'bic'])),
+        },
+      });
+
+      expect(res.statusCode).toBe(400);
     });
   });
 

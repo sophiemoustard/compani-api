@@ -12,7 +12,7 @@ const {
   generateSEPAXml,
 } = require('../../../helpers/xml');
 const utils = require('../../../helpers/utils');
-const Drive = require('../../../models/Google/Drive');
+const gdriveStorage = require('../../../helpers/gdriveStorage');
 const { PAYMENT, PAYMENT_TYPES } = require('../../../helpers/constants');
 
 describe('XML helper', () => {
@@ -386,13 +386,14 @@ describe('XML helper', () => {
           }
         ]
       };
-      const addFileStub = sinon.stub(Drive, 'add').returns({ id: '1234567890' });
-      const result = await generateSEPAXml(docObj, header, paymentInfo);
-      addFileStub.restore();
+      const addFileStub = sinon.stub(gdriveStorage, 'addFile').returns({ id: '1234567890' });
+      const result = await generateSEPAXml(docObj, header, '1234567890', paymentInfo);
 
       expect(result).toBeDefined();
       const stat = await fs.lstat(result);
       expect(stat.isFile()).toBe(true);
+      sinon.assert.calledOnce(addFileStub);
+      addFileStub.restore();
     });
   });
 });
