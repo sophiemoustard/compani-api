@@ -123,7 +123,7 @@ exports.plugin = {
           params: { _id: Joi.objectId() },
           payload: Joi.object().keys({
             startDate: Joi.date(),
-            endDate: Joi.date(),
+            endDate: Joi.date().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
             sector: Joi.string(),
             location: Joi.object().keys({
@@ -158,7 +158,7 @@ exports.plugin = {
             isBilled: Joi.boolean(),
             status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
             bills: Joi.object(),
-          })
+          }).and('startDate', 'endDate')
         },
         auth: {
           strategy: 'jwt',

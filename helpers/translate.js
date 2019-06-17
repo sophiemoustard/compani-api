@@ -168,6 +168,7 @@ module.exports = {
     eventCreated: 'Event created',
     eventUpdated: 'Event updated',
     eventDeleted: 'Event deleted',
+    eventDatesNotOnSameDay: 'Start and end dates should be on the same day',
 
     /* Google Map */
     distanceMatrixFound: 'Distance Matrix found',
@@ -406,6 +407,7 @@ module.exports = {
     eventCreated: 'Evènement crée',
     eventUpdated: 'Evènement mis à jour',
     eventDeleted: 'Evènement supprimé',
+    eventDatesNotOnSameDay: 'Les dates de début et de fin devraient être le même jour',
 
     /* Google Map */
     distanceMatrixFound: 'Distance Matrix trouvée',
