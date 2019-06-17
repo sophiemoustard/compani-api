@@ -483,11 +483,12 @@ exports.exportAbsencesHistory = async (startDate, endDate) => {
 
   const rows = [header];
   for (const event of events) {
+    const datetimeFormat = event.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
     const cells = [
       ABSENCE_TYPE_LIST[event.absence],
       ABSENCE_NATURE_LIST[event.absenceNature],
-      event.absenceNature === HOURLY ? moment(event.startDate).format('DD/MM/YYYY HH:mm') : moment(event.startDate).format('DD/MM/YYYY'),
-      event.absenceNature === HOURLY ? moment(event.endDate).format('DD/MM/YYYY HH:mm') : moment(event.endDate).format('DD/MM/YYYY'),
+      moment(event.startDate).format(datetimeFormat),
+      moment(event.endDate).format(datetimeFormat),
       _.get(event.sector, 'name') || '',
       UtilsHelper.getFullTitleFromIdentity(_.get(event.auxiliary, 'identity')),
       event.misc || '',
