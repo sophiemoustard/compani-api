@@ -12,6 +12,7 @@ module.exports = {
   WEDDING: 'wedding',
   BIRTH: 'birth',
   DEATH: 'death',
+  WORK_ACCIDENT: 'work accident',
   get EVENT_TYPE_LIST() {
     return {
       [this.INTERNAL_HOUR]: 'Heure interne',
@@ -30,6 +31,7 @@ module.exports = {
       [this.WEDDING]: 'Mariage',
       [this.BIRTH]: 'Naissance',
       [this.DEATH]: 'Décès',
+      [this.WORK_ACCIDENT]: 'Accident du travail',
     };
   },
   get ABSENCE_NATURE_LIST() {
