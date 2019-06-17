@@ -2,6 +2,7 @@ const moment = require('moment');
 const get = require('lodash/get');
 const randomize = require('randomatic');
 const { ObjectID } = require('mongodb');
+const Boom = require('boom');
 
 const Payment = require('../models/Payment');
 const PaymentNumber = require('../models/PaymentNumber');
@@ -87,7 +88,7 @@ const generateXML = async (firstPayments, recurPayments, company) => {
     recurPaymentsInfo = addTransactionInfo(recurPaymentsInfo, recurPayments);
   }
 
-  const outputPath = await generateSEPAXml(doc, header, firstPaymentsInfo, recurPaymentsInfo);
+  const outputPath = await generateSEPAXml(doc, header, company.withdrawalFolderId, firstPaymentsInfo, recurPaymentsInfo);
   return outputPath;
 };
 
@@ -98,11 +99,12 @@ exports.formatPayment = async (payment) => {
   return payment;
 };
 
-exports.savePayments = async (req) => {
+exports.savePayments = async (payload, company) => {
+  if (!company || !company.name || !company.iban || !company.bic || !company.ics || !company.withdrawalFolderId) throw Boom.badRequest('Missing mandatory company info !');
   const promises = [];
   const firstPayments = [];
   const recurPayments = [];
-  for (let payment of req.payload) {
+  for (let payment of payload) {
     payment = await exports.formatPayment(payment);
     const countPayments = await Payment.countDocuments({ customer: payment.customer, type: WITHDRAWAL, rum: payment.rum });
     if (countPayments === 0) {
@@ -116,7 +118,7 @@ exports.savePayments = async (req) => {
   }
 
   await Promise.all(promises);
-  return generateXML(firstPayments, recurPayments, req.auth.credentials.company);
+  return generateXML(firstPayments, recurPayments, company);
 };
 
 exports.exportPaymentsHistory = async (startDate, endDate) => {

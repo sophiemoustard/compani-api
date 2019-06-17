@@ -883,7 +883,7 @@ describe('exportWorkingEventsHistory', () => {
 });
 
 describe('exportAbsencesHistory', () => {
-  const header = ['Type', 'Nature', 'Début', 'Fin', 'Durée', 'Secteur', 'Auxiliaire', 'Divers'];
+  const header = ['Type', 'Nature', 'Début', 'Fin', 'Secteur', 'Auxiliaire', 'Divers'];
   const events = [
     {
       type: 'absence',
@@ -951,8 +951,8 @@ describe('exportAbsencesHistory', () => {
     sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
     expect(exportArray).toEqual([
       header,
-      ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Girafes - 75', 'Jean-Claude VAN DAMME', ''],
-      ['Congé', 'Journalière', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Etoiles - 75', 'Princess CAROLYN', 'brbr']
+      ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', 'Girafes - 75', 'Jean-Claude VAN DAMME', ''],
+      ['Congé', 'Journalière', '20/05/2019', '20/05/2019', 'Etoiles - 75', 'Princess CAROLYN', 'brbr']
     ]);
 
     getFullTitleFromIdentityStub.restore();

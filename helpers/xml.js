@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 
 const { getFixedNumber, removeSpaces, getLastVersion } = require('./utils');
-const { addFile } = require('./gdriveStorage');
+const gdriveStorage = require('./gdriveStorage');
 
 const createDocument = () => ({
   Document: {
@@ -114,7 +114,7 @@ const addTransactionInfo = (paymentInfoObj, data) => {
   return paymentInfoObj;
 };
 
-const generateSEPAXml = async (docObj, header, ...paymentsInfo) =>
+const generateSEPAXml = async (docObj, header, companyWithdrawalFolderId, ...paymentsInfo) =>
   new Promise((resolve, reject) => {
     docObj.Document.CstmrDrctDbtInitn.GrpHdr = header;
     for (const info of paymentsInfo) {
@@ -126,8 +126,8 @@ const generateSEPAXml = async (docObj, header, ...paymentsInfo) =>
     file.write(finalDoc.end({ pretty: true }));
     file.end();
     file.on('finish', async () => {
-      await addFile({
-        driveFolderId: process.env.GOOGLE_DRIVE_WITHDRAWAL_FOLDER_ID,
+      await gdriveStorage.addFile({
+        driveFolderId: companyWithdrawalFolderId,
         name: `prélèvements_${moment().format('YYYYMMDD_HHmm')}.xml`,
         type: 'text/xml',
         body: fs.createReadStream(outputPath),

@@ -2,6 +2,7 @@ const expect = require('expect');
 const faker = require('faker');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const sinon = require('sinon');
 
 const app = require('../../server');
 const {
@@ -16,6 +17,7 @@ const { servicesList, populateServices } = require('./seed/servicesSeed');
 const { populateCompanies } = require('./seed/companiesSeed');
 const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const Customer = require('../../models/Customer');
+const ESign = require('../../models/ESign');
 const { MONTHLY, FIXED } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
@@ -502,6 +504,21 @@ describe('CUSTOMER MANDATES ROUTES', () => {
   });
 
   describe('POST customers/:id/mandates/:id/esign', () => {
+    const createDocumentStub = sinon.stub(ESign, 'createDocument');
+
+    beforeEach(() => {
+      createDocumentStub.returns({
+        data: {
+          document_hash: 'dOcUmEnThAsH',
+          signers: [{ embedded_signing_url: 'embeddedSigningUrl<->' }],
+        }
+      });
+    });
+
+    afterEach(() => {
+      createDocumentStub.restore();
+    });
+
     it('should create a mandate signature request', async () => {
       const payload = {
         fileId: process.env.ESIGN_TEST_DOC_DRIVEID,

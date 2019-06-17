@@ -40,17 +40,17 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const createList = async (req, h) => {
   try {
-    const payments = await savePayments(req);
+    const payments = await savePayments(req.payload, req.auth.credentials.company);
     return h.file(payments, { confine: false });
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

@@ -91,7 +91,7 @@ exports.downloadFileById = params => new Promise((resolve, reject) => {
 exports.list = params => new Promise((resolve, reject) => {
   drive.files.list({
     auth: jwtClient(),
-    ...(params.folderId && { q: `'${params.folderId}' in parents` }),
+    ...(params.folderId && { q: `'${params.folderId}' in parents and mimeType != 'application/vnd.google-apps.folder'` }),
     fields: 'nextPageToken, files(name, webViewLink, createdTime)',
     pageToken: params.nextPageToken || '',
   }, (err, response) => {

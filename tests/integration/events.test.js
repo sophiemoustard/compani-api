@@ -92,7 +92,7 @@ describe('EVENTS ROUTES', () => {
         },
         internalHour: {
           name: 'Formation',
-          _id: new ObjectID(),
+          _id: new ObjectID('5cf7defc3d14e9701967acf7'),
           default: false,
         }
       };
@@ -209,7 +209,7 @@ describe('EVENTS ROUTES', () => {
 
   describe('PUT /events/{_id}', () => {
     it('should update corresponding event', async () => {
-      const payload = { startDate: '2019-01-23T10:00:00.000Z' };
+      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-01-23T12:00:00.000Z' };
       const event = eventsList[0];
 
       const response = await app.inject({
@@ -223,6 +223,7 @@ describe('EVENTS ROUTES', () => {
       expect(response.result.data.event).toBeDefined();
       expect(response.result.data.event._id).toEqual(event._id);
       expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
+      expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
     });
 
     it('should return a 400 error as payload is invalid', async () => {
@@ -239,9 +240,23 @@ describe('EVENTS ROUTES', () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it('should return a 400 error as startDate and endDate are not on the same day', async () => {
+      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z' };
+      const event = eventsList[0];
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/events/${event._id.toHexString()}`,
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it('should return a 404 error as event is not found', async () => {
-      const payload = { startDate: '2019-01-23T10:00:00.000Z' };
-      const invalidId = new ObjectID();
+      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z' };
+      const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
 
       const response = await app.inject({
         method: 'PUT',
@@ -267,7 +282,7 @@ describe('EVENTS ROUTES', () => {
     });
 
     it('should return a 404 error as event is not found', async () => {
-      const invalidId = new ObjectID();
+      const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
 
       const response = await app.inject({
         method: 'DELETE',

@@ -1,5 +1,4 @@
 const Boom = require('boom');
-const flat = require('flat');
 const moment = require('moment');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/Google/Drive');
@@ -74,16 +73,22 @@ const listForCreditNotes = async (req) => {
 
 const create = async (req) => {
   try {
-    if (!(await isCreationAllowed(req.payload))) return Boom.badData();
+    const { payload } = req;
 
-    let event = new Event(req.payload);
+    if (payload.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {
+      throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
+    }
+
+    if (!(await isCreationAllowed(payload))) return Boom.badData();
+
+    let event = new Event(payload);
     await event.save();
     event = await Event.findOne({ _id: event._id })
       .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
       .populate({ path: 'customer', select: 'identity subscriptions contact' })
       .lean();
 
-    if (event.type !== ABSENCE && req.payload.repetition && req.payload.repetition.frequency !== NEVER) {
+    if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
       event = await createRepetitions(event);
     }
 
@@ -95,18 +100,24 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const update = async (req) => {
   try {
+    const { payload } = req;
+
     let event = await Event.findOne({ _id: req.params._id }).lean();
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    if (!(await isEditionAllowed(event, req.payload))) return Boom.badData();
+    if (event.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {
+      throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
+    }
 
-    event = await updateEvent(event, req.payload);
+    if (!(await isEditionAllowed(event, payload))) return Boom.badData();
+
+    event = await updateEvent(event, payload);
 
     return {
       message: translate[language].eventUpdated,
@@ -114,7 +125,7 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
