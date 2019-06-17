@@ -1,5 +1,5 @@
 const { generateDocx, fileToBase64 } = require('./file');
-const { createDocument } = require('../models/ESign');
+const ESign = require('../models/ESign');
 
 exports.generateSignatureRequest = async (params) => {
   const filePath = await generateDocx({
@@ -22,5 +22,5 @@ exports.generateSignatureRequest = async (params) => {
     redirect: params.redirect || '',
     redirect_decline: params.redirectDecline || ''
   };
-  return createDocument(payload);
+  return ESign.createDocument(payload);
 };
