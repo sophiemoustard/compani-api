@@ -104,6 +104,15 @@ module.exports = {
       [this.CESU]: 'Cesu',
     };
   },
+  SURCHARGES: {
+    saturday: 'Samedi',
+    sunday: 'Dimanche',
+    publicHoliday: 'Jours fériés',
+    twentyFifthOfDecember: '25 décembre',
+    firstOfMay: '1er mai',
+    evening: 'Soirée',
+    custom: 'Personnalisée',
+  },
   // CANCELLATION OPTIONS
   INVOICED_AND_PAYED: 'invoiced_and_payed',
   INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',

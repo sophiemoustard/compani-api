@@ -4,6 +4,7 @@ const _ = require('lodash');
 const FinalPay = require('../models/FinalPay');
 const utils = require('./utils');
 const { END_CONTRACT_REASONS } = require('./constants');
+const PayHelper = require('./pay');
 
 exports.exportFinalPayHistory = async (startDate, endDate) => {
   const query = {
@@ -26,8 +27,10 @@ exports.exportFinalPayHistory = async (startDate, endDate) => {
     'Heures travaillées',
     'Dont exo non majo',
     'Dont exo et majo',
+    'Détails des majo exo',
     'Dont non exo et non majo',
     'Dont non exo et majo',
+    'Détails des majo non exo',
     'Solde heures',
     'Compteur',
     'Heures sup à payer',
@@ -53,8 +56,10 @@ exports.exportFinalPayHistory = async (startDate, endDate) => {
       utils.formatFloatForExport(finalPay.workedHours),
       utils.formatFloatForExport(finalPay.notSurchargedAndExempt),
       utils.formatFloatForExport(finalPay.surchargedAndExempt),
+      PayHelper.formatSurchargedDetailsForExport(finalPay.surchargedAndExemptDetails),
       utils.formatFloatForExport(finalPay.notSurchargedAndNotExempt),
       utils.formatFloatForExport(finalPay.surchargedAndNotExempt),
+      PayHelper.formatSurchargedDetailsForExport(finalPay.surchargedAndNotExemptDetails),
       utils.formatFloatForExport(finalPay.hoursBalance),
       utils.formatFloatForExport(finalPay.hoursCounter),
       utils.formatFloatForExport(finalPay.overtimeHours),

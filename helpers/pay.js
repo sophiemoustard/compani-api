@@ -3,6 +3,27 @@ const _ = require('lodash');
 
 const Pay = require('../models/Pay');
 const utils = require('./utils');
+const { SURCHARGES } = require('./constants');
+
+exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
+  if (!surchargedDetails) return '';
+
+  const formattedPlans = [];
+
+  for (const surchargedPlanDetails of surchargedDetails) {
+    const surchages = Object.entries(_.pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
+    if (surchages.length === 0) continue;
+
+    const lines = [surchargedPlanDetails.planName];
+
+    for (const [surchageKey, surcharge] of surchages) {
+      lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, ${surcharge.hours}h`);
+    }
+    formattedPlans.push(lines.join('\r\n'));
+  }
+
+  return formattedPlans.join('\r\n\r\n');
+};
 
 exports.exportPayHistory = async (startDate, endDate) => {
   const query = {
@@ -23,8 +44,10 @@ exports.exportPayHistory = async (startDate, endDate) => {
     'Heures travaillées',
     'Dont exo non majo',
     'Dont exo et majo',
+    'Détails des majo exo',
     'Dont non exo et non majo',
     'Dont non exo et majo',
+    'Détails des majo non exo',
     'Solde heures',
     'Compteur',
     'Heures sup à payer',
@@ -47,8 +70,10 @@ exports.exportPayHistory = async (startDate, endDate) => {
       utils.formatFloatForExport(pay.workedHours),
       utils.formatFloatForExport(pay.notSurchargedAndExempt),
       utils.formatFloatForExport(pay.surchargedAndExempt),
+      exports.formatSurchargedDetailsForExport(pay.surchargedAndExemptDetails),
       utils.formatFloatForExport(pay.notSurchargedAndNotExempt),
       utils.formatFloatForExport(pay.surchargedAndNotExempt),
+      exports.formatSurchargedDetailsForExport(pay.surchargedAndNotExemptDetails),
       utils.formatFloatForExport(pay.hoursBalance),
       utils.formatFloatForExport(pay.hoursCounter),
       utils.formatFloatForExport(pay.overtimeHours),
