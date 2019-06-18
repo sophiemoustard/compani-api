@@ -98,7 +98,7 @@ module.exports = {
   },
   get PAYMENT_TYPES_LIST() {
     return {
-      [this.WITHDRAWAL]: 'Retrait',
+      [this.WITHDRAWAL]: 'Prélèvement',
       [this.BANK_TRANSFER]: 'Virement',
       [this.CHECK]: 'Chèque',
       [this.CESU]: 'Cesu',

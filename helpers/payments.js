@@ -150,7 +150,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
     const customerId = get(payment.customer, '_id');
     const clientId = get(payment.client, '_id');
     const cells = [
-      payment.paymentNumber || '',
+      payment.number || '',
       moment(payment.date).format('DD/MM/YYYY'),
       customerId ? customerId.toHexString() : '',
       UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity')),
