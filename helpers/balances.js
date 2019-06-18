@@ -1,7 +1,7 @@
 const { getLastVersion } = require('./utils');
 const { PAYMENT } = require('./constants');
 
-const canBeWithdrawn = (bill) => {
+const canBeDirectDebited = (bill) => {
   if (!bill) throw new Error('Bill must be provided');
   return !!(
     bill.balance < 0 &&
@@ -43,7 +43,7 @@ const getBalance = (bill, customerAggregation, tppAggregation, payments) => {
   bill.billed -= correspondingCreditNote ? correspondingCreditNote.refund : 0;
   bill.paid = correspondingPayment && correspondingPayment.payments ? computePayments(correspondingPayment.payments) : 0;
   bill.balance = bill.paid - bill.billed;
-  bill.toPay = canBeWithdrawn(bill) ? Math.abs(bill.balance) : 0;
+  bill.toPay = canBeDirectDebited(bill) ? Math.abs(bill.balance) : 0;
 
   return bill;
 };
@@ -108,7 +108,7 @@ const getBalances = (bills, customerCreditNotesAggregation, tppCreditNotesAggreg
 
 module.exports = {
   computeTotal,
-  canBeWithdrawn,
+  canBeDirectDebited,
   computePayments,
   getBalance,
   getBalances,

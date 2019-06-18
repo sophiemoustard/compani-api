@@ -4,13 +4,13 @@ const moment = require('moment');
 const _ = require('lodash');
 
 const {
-  canBeWithdrawn,
+  canBeDirectDebited,
   getBalance,
   computePayments,
   computeTotal
 } = require('../../../helpers/balances');
 
-describe('canBeWithdrawn', () => {
+describe('canBeDirectDebited', () => {
   const bill = {
     _id: {
       tpp: null,
@@ -43,8 +43,8 @@ describe('canBeWithdrawn', () => {
     balance: -100
   };
 
-  it('should check if bill can be withdrawn', () => {
-    expect(canBeWithdrawn(bill)).toBe(true);
+  it('should check if bill can be direct debited', () => {
+    expect(canBeDirectDebited(bill)).toBe(true);
   });
 
   const falsyTests = [
@@ -89,7 +89,7 @@ describe('canBeWithdrawn', () => {
   falsyTests.forEach((test) => {
     it(`should return false if ${test.assertion}`, () => {
       if (test.update) test.update();
-      expect(canBeWithdrawn(test.bill)).toBe(false);
+      expect(canBeDirectDebited(test.bill)).toBe(false);
     });
   });
 });

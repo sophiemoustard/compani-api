@@ -17,7 +17,7 @@ const companiesList = [
     iban: faker.finance.iban(),
     bic: faker.finance.bic(),
     ics: '12345678',
-    withdrawalFolderId: '1234567890',
+    directDebitsFolderId: '1234567890',
   },
 ];
 

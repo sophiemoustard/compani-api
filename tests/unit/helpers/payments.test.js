@@ -66,7 +66,7 @@ describe('exportPaymentsHistory', () => {
       netInclTaxes: 389276.023,
     }, {
       number: 'REG-1905342',
-      type: 'withdrawal',
+      type: 'direct_debit',
       date: '2019-05-22T06:00:00.000+00:00',
       customer: {
         _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
