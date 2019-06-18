@@ -110,8 +110,8 @@ describe('exportPaymentsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276,02'],
-      ['', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Retrait', '1002,40'],
+      ['REG-1905562', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276,02'],
+      ['REG-1905342', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Prélèvement', '1002,40'],
     ]);
   });
 });
