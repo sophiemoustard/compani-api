@@ -50,7 +50,7 @@ const exportToCsv = async (data) => {
   data.forEach((rowArray) => {
     const rowArrayQuoted = rowArray.map((cell) => {
       if (cell === '') return cell;
-      return `"${cell.replace(/"/g, '""')}"`;
+      return typeof cell === 'string' ? `"${cell.replace(/"/g, '""')}"` : cell;
     });
     const row = rowArrayQuoted.join(';');
     csvContent += `${row}\r\n`;
