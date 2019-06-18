@@ -33,7 +33,8 @@ exports.exportPayHistory = async (startDate, endDate) => {
 
   const pays = await Pay.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } });
+    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } })
+    .lean();
 
   const header = [
     'Auxiliaire',

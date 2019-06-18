@@ -27,7 +27,7 @@ describe('formatSurchargedDetailsForExport', () => {
     custom: { percentage: 8, hours: 13 },
   };
 
-  it('should returns an empty string if arg is provided', () => {
+  it('should returns an empty string if no arg is provided', () => {
     const result = PayHelper.formatSurchargedDetailsForExport();
     expect(result).toBe('');
   });
@@ -146,6 +146,7 @@ describe('exportPayHistory', () => {
     expectsFind = mockPay.expects('find')
       .chain('sort')
       .chain('populate')
+      .chain('lean')
       .once();
   });
 

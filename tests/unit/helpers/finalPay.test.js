@@ -105,6 +105,7 @@ describe('exportFinalPayHistory', () => {
     expectsFind = mockFinalPay.expects('find')
       .chain('sort')
       .chain('populate')
+      .chain('lean')
       .once();
   });
 

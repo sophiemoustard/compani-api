@@ -14,7 +14,8 @@ exports.exportFinalPayHistory = async (startDate, endDate) => {
 
   const finalPays = await FinalPay.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } });
+    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } })
+    .lean();
 
   const header = [
     'Auxiliaire',
