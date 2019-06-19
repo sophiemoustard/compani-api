@@ -376,7 +376,8 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
 
     const transport = await exports.getTransportInfo(distanceMatrix, origins, destinations, transportMode);
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
-    paidTransportDuration = breakDuration > (transport.duration + 15) ? transport.duration : breakDuration;
+    const pickTransportDuration = (breakDuration < transport.duration || breakDuration > (transport.duration + 15));
+    paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
     paidKm = transport.distance;
   }
 

@@ -491,6 +491,24 @@ describe('getPaidTransportInfo', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({ distance: 10, duration: 70 });
   });
+
+  it('should return transport duration', async () => {
+    const event = { startDate: '2019-01-18T16:16:00' };
+    const prevEvent = { endDate: '2019-01-18T15:00:00' };
+    getTransportInfo.resolves({ distance: 10, duration: 60 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toEqual({ distance: 10, duration: 60 });
+  });
+
+  it('should return transport duration if break is shorter than transport duration', async () => {
+    const event = { startDate: '2019-01-18T15:30:00' };
+    const prevEvent = { endDate: '2019-01-18T15:00:00' };
+    getTransportInfo.resolves({ distance: 8, duration: 60 });
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toEqual({ distance: 8, duration: 60 });
+  });
 });
 
 describe('getEventHours', () => {
