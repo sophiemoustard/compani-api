@@ -665,6 +665,16 @@ describe('exportBillsHistory', () => {
     expect(exportArray).toEqual([header]);
   });
 
+  it('should return an array with the header and a row of empty cells', async () => {
+    expectsFind.resolves([{}]);
+    const exportArray = await BillHelper.exportBillsHistory(null, null);
+
+    expect(exportArray).toEqual([
+      header,
+      ['', '', '', '', '', '', '', '', '']
+    ]);
+  });
+
   it('should return an array with the header and 2 rows', async () => {
     expectsFind.resolves(bills);
     const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
