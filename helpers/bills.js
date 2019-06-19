@@ -216,12 +216,14 @@ exports.formatPDF = (bill, company) => {
   };
 };
 
-function exportBillSubscribtions(bill) {
+const exportBillSubscribtions = (bill) => {
+  if (!bill.subscriptions) return '';
+
   const subscriptions = bill.subscriptions.map(sub =>
     `${sub.service} - ${sub.hours} heures - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
 
   return subscriptions.join('\r\n');
-}
+};
 
 exports.exportBillsHistory = async (startDate, endDate) => {
   const query = {
@@ -251,20 +253,24 @@ exports.exportBillsHistory = async (startDate, endDate) => {
   for (const bill of bills) {
     const customerId = get(bill.customer, '_id');
     const clientId = get(bill.client, '_id');
+    let totalExclTaxesFormatted = '';
 
-    let totalExclTaxes = 0;
-    for (const sub of bill.subscriptions) {
-      totalExclTaxes += sub.exclTaxes;
+    if (bill.subscriptions != null) {
+      let totalExclTaxes = 0;
+      for (const sub of bill.subscriptions) {
+        totalExclTaxes += sub.exclTaxes;
+      }
+      totalExclTaxesFormatted = UtilsHelper.formatFloatForExport(totalExclTaxes);
     }
 
     const cells = [
       bill.billNumber || '',
-      moment(bill.date).format('DD/MM/YYYY'),
+      bill.date ? moment(bill.date).format('DD/MM/YYYY') : '',
       customerId ? customerId.toHexString() : '',
       UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity')),
       clientId ? clientId.toHexString() : '',
       get(bill.client, 'name') || '',
-      UtilsHelper.formatFloatForExport(totalExclTaxes),
+      totalExclTaxesFormatted,
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       exportBillSubscribtions(bill),
     ];
