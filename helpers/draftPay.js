@@ -374,9 +374,11 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
       transportMode = event.auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT ? TRANSIT : DRIVING;
     }
 
+    if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, distance: paidKm };
+
     const transport = await exports.getTransportInfo(distanceMatrix, origins, destinations, transportMode);
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
-    const pickTransportDuration = (breakDuration < transport.duration || breakDuration > (transport.duration + 15));
+    const pickTransportDuration = (transport.duration > breakDuration) || breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
     paidKm = transport.distance;
   }
@@ -548,7 +550,7 @@ exports.getPreviousMonthPay = async (query, surcharges, distanceMatrix) => {
   const end = moment(query.endDate).toDate();
   const contractRules = {
     status: COMPANY_CONTRACT,
-    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }]
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
   const auxiliaries = await exports.getAuxiliariesFromContracts(contractRules);
   const auxIds = auxiliaries.map(aux => aux._id);
@@ -575,7 +577,7 @@ exports.getDraftPay = async (query) => {
   const end = moment(query.endDate).endOf('d').toDate();
   const contractRules = {
     status: COMPANY_CONTRACT,
-    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } }]
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } }],
   };
   const auxiliaries = await exports.getAuxiliariesFromContracts(contractRules);
   const existingPay = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });

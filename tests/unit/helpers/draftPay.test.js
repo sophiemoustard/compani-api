@@ -448,6 +448,66 @@ describe('getPaidTransportInfo', () => {
     expect(result).toEqual({ distance: 0, duration: 0 });
   });
 
+  it('should return 0 if no address in event', async () => {
+    const event = {
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+    };
+    const prevEvent = {
+      type: 'intervention',
+      startDate: '2019-01-18T15:46:30.636Z',
+      customer: {
+        contact: { address: { fullAddress: 'tamalou' } },
+      },
+    };
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 0 });
+  });
+
+  it('should return 0 if no address in prevEvent', async () => {
+    const event = {
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      customer: {
+        contact: { address: { fullAddress: 'jébobolà' } },
+      },
+    };
+    const prevEvent = {
+      type: 'intervention',
+      startDate: '2019-01-18T15:46:30.636Z',
+    };
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 0 });
+  });
+
+  it('should return 0 if no tranport mode', async () => {
+    const event = {
+      type: 'intervention',
+      customer: {
+        contact: { address: { fullAddress: 'jébobolà' } },
+      },
+    };
+    const prevEvent = {
+      type: 'intervention',
+      startDate: '2019-01-18T15:46:30.636Z',
+      customer: {
+        contact: { address: { fullAddress: 'tamalou' } },
+      },
+    };
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 0 });
+  });
+
   it('should compute driving transport', async () => {
     const event = {
       type: 'intervention',
@@ -473,8 +533,23 @@ describe('getPaidTransportInfo', () => {
   });
 
   it('should compute transit transport', async () => {
-    const event = { startDate: '2019-01-18T18:00:00' };
-    const prevEvent = { endDate: '2019-01-18T15:00:00' };
+    const event = {
+      startDate: '2019-01-18T18:00:00',
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      customer: {
+        contact: { address: { fullAddress: 'jébobolà' } },
+      },
+    };
+    const prevEvent = {
+      type: 'intervention',
+      endDate: '2019-01-18T15:00:00',
+      customer: {
+        contact: { address: { fullAddress: 'tamalou' } },
+      },
+    };
     getTransportInfo.resolves({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
@@ -483,8 +558,23 @@ describe('getPaidTransportInfo', () => {
   });
 
   it('should return break duration', async () => {
-    const event = { startDate: '2019-01-18T16:10:00' };
-    const prevEvent = { endDate: '2019-01-18T15:00:00' };
+    const event = {
+      startDate: '2019-01-18T16:10:00',
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      customer: {
+        contact: { address: { fullAddress: 'jébobolà' } },
+      },
+    };
+    const prevEvent = {
+      type: 'intervention',
+      endDate: '2019-01-18T15:00:00',
+      customer: {
+        contact: { address: { fullAddress: 'tamalou' } },
+      },
+    };
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
@@ -493,8 +583,23 @@ describe('getPaidTransportInfo', () => {
   });
 
   it('should return transport duration', async () => {
-    const event = { startDate: '2019-01-18T16:16:00' };
-    const prevEvent = { endDate: '2019-01-18T15:00:00' };
+    const event = {
+      startDate: '2019-01-18T18:00:00',
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      customer: {
+        contact: { address: { fullAddress: 'jébobolà' } },
+      },
+    };
+    const prevEvent = {
+      type: 'intervention',
+      endDate: '2019-01-18T15:00:00',
+      customer: {
+        contact: { address: { fullAddress: 'tamalou' } },
+      },
+    };
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
@@ -502,8 +607,23 @@ describe('getPaidTransportInfo', () => {
   });
 
   it('should return transport duration if break is shorter than transport duration', async () => {
-    const event = { startDate: '2019-01-18T15:30:00' };
-    const prevEvent = { endDate: '2019-01-18T15:00:00' };
+    const event = {
+      startDate: '2019-01-18T15:30:00',
+      type: 'intervention',
+      auxiliary: {
+        administrative: { transportInvoice: { transportType: 'private' } },
+      },
+      customer: {
+        contact: { address: { fullAddress: 'jébobolà' } },
+      },
+    };
+    const prevEvent = {
+      type: 'intervention',
+      endDate: '2019-01-18T15:00:00',
+      customer: {
+        contact: { address: { fullAddress: 'tamalou' } },
+      },
+    };
     getTransportInfo.resolves({ distance: 8, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
