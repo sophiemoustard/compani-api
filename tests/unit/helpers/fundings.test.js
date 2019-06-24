@@ -10,18 +10,22 @@ describe('exportFundings', () => {
   let CustomerModel;
   let getLastVersion;
   let formatFloatForExport;
+  let mergeLastVersionWithBaseObject;
 
   beforeEach(() => {
     CustomerModel = sinon.mock(Customer);
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
     formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
+    mergeLastVersionWithBaseObject = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject');
     formatFloatForExport.callsFake(float => (float != null ? `F-${float}` : ''));
+    mergeLastVersionWithBaseObject.returnsArg(0);
   });
 
   afterEach(() => {
     CustomerModel.restore();
     formatFloatForExport.restore();
     getLastVersion.restore();
+    mergeLastVersionWithBaseObject.restore();
   });
 
   it('should return csv header', async () => {
@@ -76,6 +80,7 @@ describe('exportFundings', () => {
 
     const result = await FundingsHelper.exportFundings();
 
+    sinon.assert.calledOnce(mergeLastVersionWithBaseObject);
     sinon.assert.calledOnce(getLastVersion);
     sinon.assert.callCount(formatFloatForExport, 4);
     expect(result).toBeDefined();
@@ -105,6 +110,7 @@ describe('exportFundings', () => {
 
     const result = await FundingsHelper.exportFundings();
 
+    sinon.assert.calledOnce(mergeLastVersionWithBaseObject);
     sinon.assert.notCalled(getLastVersion);
     sinon.assert.callCount(formatFloatForExport, 4);
     expect(result).toBeDefined();
