@@ -26,8 +26,10 @@ const generatePdf = async (data, templateUrl) => {
   const template = handlebars.compile(content);
   const html = template(data);
   await page.setContent(html);
+  const pdf = await page.pdf({ format: 'A4', printBackground: true });
+  await browser.close();
 
-  return page.pdf({ format: 'A4', printBackground: true });
+  return pdf;
 };
 
 module.exports = {
