@@ -226,6 +226,7 @@ module.exports = {
     creditNotesNotFound: 'Credit notes not found.',
     creditNoteNotFound: 'Credit note not found.',
     creditNoteUpdated: 'Credit note updated.',
+    creditNoteNotCompani: 'Credit note\'s origin must be \'Compani\'.',
 
     /* Balances */
     balancesFound: 'Balances found.',
@@ -465,6 +466,7 @@ module.exports = {
     creditNotesNotFound: 'Avoirs non trouvés.',
     creditNoteNotFound: 'Avoir non trouvé.',
     creditNoteUpdated: 'Avoir modifié.',
+    creditNoteNotCompani: 'L\'origine de l\'avoir doit être \'Compani\'.',
 
     /* Balances */
     balancesFound: 'Balances trouvées.',
