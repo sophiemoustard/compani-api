@@ -89,20 +89,29 @@ module.exports = {
   // PAYMENT
   PAYMENT: 'payment',
   REFUND: 'refund',
-  WITHDRAWAL: 'withdrawal',
+  DIRECT_DEBIT: 'direct_debit',
   BANK_TRANSFER: 'bank_transfer',
   CHECK: 'check',
   CESU: 'cesu',
   get PAYMENT_TYPES() {
-    return [this.WITHDRAWAL, this.BANK_TRANSFER, this.CHECK, this.CESU];
+    return [this.DIRECT_DEBIT, this.BANK_TRANSFER, this.CHECK, this.CESU];
   },
   get PAYMENT_TYPES_LIST() {
     return {
-      [this.WITHDRAWAL]: 'Retrait',
+      [this.DIRECT_DEBIT]: 'Prélèvement',
       [this.BANK_TRANSFER]: 'Virement',
       [this.CHECK]: 'Chèque',
       [this.CESU]: 'Cesu',
     };
+  },
+  SURCHARGES: {
+    saturday: 'Samedi',
+    sunday: 'Dimanche',
+    publicHoliday: 'Jours fériés',
+    twentyFifthOfDecember: '25 décembre',
+    firstOfMay: '1er mai',
+    evening: 'Soirée',
+    custom: 'Personnalisée',
   },
   // CANCELLATION OPTIONS
   INVOICED_AND_PAYED: 'invoiced_and_payed',

@@ -114,7 +114,7 @@ const addTransactionInfo = (paymentInfoObj, data) => {
   return paymentInfoObj;
 };
 
-const generateSEPAXml = async (docObj, header, companyWithdrawalFolderId, ...paymentsInfo) =>
+const generateSEPAXml = async (docObj, header, companyDirectDebitsFolderId, ...paymentsInfo) =>
   new Promise((resolve, reject) => {
     docObj.Document.CstmrDrctDbtInitn.GrpHdr = header;
     for (const info of paymentsInfo) {
@@ -127,7 +127,7 @@ const generateSEPAXml = async (docObj, header, companyWithdrawalFolderId, ...pay
     file.end();
     file.on('finish', async () => {
       await gdriveStorage.addFile({
-        driveFolderId: companyWithdrawalFolderId,
+        driveFolderId: companyDirectDebitsFolderId,
         name: `prélèvements_${moment().format('YYYYMMDD_HHmm')}.xml`,
         type: 'text/xml',
         body: fs.createReadStream(outputPath),

@@ -81,9 +81,11 @@ exports.exportFundings = async () => {
     if (cus.identity) fundInfo.push(`${cus.identity.title} ${cus.identity.lastname}`);
     else fundInfo.push('');
 
-    const { funding } = cus;
+    let { funding } = cus;
     if (!funding) fundInfo.push('', '', '', '', '', '', '', '', '', '', '', '');
     else {
+      funding = UtilsHelper.mergeLastVersionWithBaseObject(funding, 'createdAt');
+
       const nature = FUNDING_NATURES.find(nat => nat.value === funding.nature);
       const lastServiceVersion = funding.subscription && funding.subscription.service && funding.subscription.service.versions
         ? UtilsHelper.getLastVersion(funding.subscription.service.versions, 'startDate')

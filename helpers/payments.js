@@ -6,7 +6,7 @@ const Boom = require('boom');
 
 const Payment = require('../models/Payment');
 const PaymentNumber = require('../models/PaymentNumber');
-const { REFUND, PAYMENT, WITHDRAWAL, PAYMENT_TYPES_LIST } = require('./constants');
+const { REFUND, PAYMENT, DIRECT_DEBIT, PAYMENT_TYPES_LIST } = require('./constants');
 const {
   createDocument,
   generateSEPAHeader,
@@ -88,7 +88,7 @@ const generateXML = async (firstPayments, recurPayments, company) => {
     recurPaymentsInfo = addTransactionInfo(recurPaymentsInfo, recurPayments);
   }
 
-  const outputPath = await generateSEPAXml(doc, header, company.withdrawalFolderId, firstPaymentsInfo, recurPaymentsInfo);
+  const outputPath = await generateSEPAXml(doc, header, company.directDebitsFolderId, firstPaymentsInfo, recurPaymentsInfo);
   return outputPath;
 };
 
@@ -100,13 +100,13 @@ exports.formatPayment = async (payment) => {
 };
 
 exports.savePayments = async (payload, company) => {
-  if (!company || !company.name || !company.iban || !company.bic || !company.ics || !company.withdrawalFolderId) throw Boom.badRequest('Missing mandatory company info !');
+  if (!company || !company.name || !company.iban || !company.bic || !company.ics || !company.directDebitsFolderId) throw Boom.badRequest('Missing mandatory company info !');
   const promises = [];
   const firstPayments = [];
   const recurPayments = [];
   for (let payment of payload) {
     payment = await exports.formatPayment(payment);
-    const countPayments = await Payment.countDocuments({ customer: payment.customer, type: WITHDRAWAL, rum: payment.rum });
+    const countPayments = await Payment.countDocuments({ customer: payment.customer, type: DIRECT_DEBIT, rum: payment.rum });
     if (countPayments === 0) {
       firstPayments.push(payment);
     } else {
@@ -150,7 +150,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
     const customerId = get(payment.customer, '_id');
     const clientId = get(payment.client, '_id');
     const cells = [
-      payment.paymentNumber || '',
+      payment.number || '',
       moment(payment.date).format('DD/MM/YYYY'),
       customerId ? customerId.toHexString() : '',
       UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity')),

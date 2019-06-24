@@ -18,7 +18,7 @@ const CompanySchema = mongoose.Schema({
   iban: String,
   bic: String,
   folderId: String,
-  withdrawalFolderId: String,
+  directDebitsFolderId: String,
   rhConfig: {
     contractWithCompany: {
       grossHourlyRate: Number

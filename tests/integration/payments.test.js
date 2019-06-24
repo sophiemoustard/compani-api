@@ -206,7 +206,7 @@ describe('PAYMENTS ROUTES', () => {
     const origPayload = {
       netInclTaxes: 200,
       date: '2019-04-16T22:00:00',
-      type: 'withdrawal',
+      type: 'direct_debit',
     };
 
     it('should update payment', async () => {
@@ -228,7 +228,7 @@ describe('PAYMENTS ROUTES', () => {
       const payload = {
         netInclTaxes: 200,
         date: '2019-04-16T22:00:00',
-        type: 'withdrawal',
+        type: 'direct_debit',
       };
       const res = await app.inject({
         method: 'PUT',
