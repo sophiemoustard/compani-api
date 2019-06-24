@@ -17,7 +17,7 @@ exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
     const lines = [surchargedPlanDetails.planName];
 
     for (const [surchageKey, surcharge] of surchages) {
-      lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, ${surcharge.hours}h`);
+      lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, ${utils.formatFloatForExport(surcharge.hours)}h`);
     }
     formattedPlans.push(lines.join('\r\n'));
   }
