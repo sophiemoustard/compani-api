@@ -10,8 +10,8 @@ require('sinon-mongoose');
 describe('formatSurchargedDetailsForExport', () => {
   const fullPlan = {
     planName: 'Full plan',
-    saturday: { percentage: 20, hours: 1 },
-    sunday: { percentage: 30, hours: 2 },
+    saturday: { percentage: 20, hours: 1.12543 },
+    sunday: { percentage: 30, hours: 2.2 },
     publicHoliday: { percentage: 25, hours: 3 },
     twentyFifthOfDecember: { percentage: 35, hours: 4 },
     firstOfMay: { percentage: 32, hours: 5 },
@@ -27,8 +27,20 @@ describe('formatSurchargedDetailsForExport', () => {
     custom: { percentage: 8, hours: 13 },
   };
 
+  let formatFloatForExportStub;
+
+  beforeEach(() => {
+    formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
+    formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2));
+  });
+
+  afterEach(() => {
+    formatFloatForExportStub.restore();
+  });
+
   it('should returns an empty string if no arg is provided', () => {
     const result = PayHelper.formatSurchargedDetailsForExport();
+    sinon.assert.notCalled(formatFloatForExportStub);
     expect(result).toBe('');
   });
 
@@ -49,12 +61,14 @@ describe('formatSurchargedDetailsForExport', () => {
 
   it('should returns a plan\'s details if one is provided', () => {
     const result = PayHelper.formatSurchargedDetailsForExport([smallPlan]);
-    expect(result).toBe('Small plan\r\nDimanche, 28%, 11h\r\nSoirée, 17%, 12h\r\nPersonnalisée, 8%, 13h');
+    sinon.assert.callCount(formatFloatForExportStub, 3);
+    expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h');
   });
 
   it('should returns all the details if several plans are provided', () => {
     const result = PayHelper.formatSurchargedDetailsForExport([smallPlan, emptyPlan, fullPlan, unknownPlan]);
-    expect(result).toBe('Small plan\r\nDimanche, 28%, 11h\r\nSoirée, 17%, 12h\r\nPersonnalisée, 8%, 13h\r\n\r\nFull plan\r\nSamedi, 20%, 1h\r\nDimanche, 30%, 2h\r\nJours fériés, 25%, 3h\r\n25 décembre, 35%, 4h\r\n1er mai, 32%, 5h\r\nSoirée, 15%, 6h\r\nPersonnalisée, 5%, 7h');
+    sinon.assert.callCount(formatFloatForExportStub, 10);
+    expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h\r\n\r\nFull plan\r\nSamedi, 20%, 1.13h\r\nDimanche, 30%, 2.20h\r\nJours fériés, 25%, 3.00h\r\n25 décembre, 35%, 4.00h\r\n1er mai, 32%, 5.00h\r\nSoirée, 15%, 6.00h\r\nPersonnalisée, 5%, 7.00h');
   });
 });
 
