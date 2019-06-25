@@ -73,6 +73,7 @@ const update = async (req) => {
   try {
     let creditNote = await CreditNote.findOne({ _id: req.params._id }).lean();
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
+    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
 
     if (creditNote.events) await updateEventAndFundingHistory(creditNote.events, true);
 
@@ -103,7 +104,7 @@ const update = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -111,6 +112,7 @@ const remove = async (req) => {
   try {
     const creditNote = await CreditNote.findOne({ _id: req.params._id });
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
+    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
 
     await updateEventAndFundingHistory(creditNote.events, true);
     await CreditNote.findByIdAndRemove(req.params._id);
@@ -121,19 +123,20 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const generateCreditNotePdf = async (req, h) => {
   try {
-    const creditNote = await CreditNote.findOne({ _id: req.params._id, origin: COMPANI })
+    const creditNote = await CreditNote.findOne({ _id: req.params._id })
       .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service' } })
       .populate({ path: 'thirdPartyPayer', select: '_id name address' })
       .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
       .lean();
 
-    if (!creditNote) throw Boom.notFound('Credit note not found');
+    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
+    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
 
     const company = await Company.findOne();
     const data = formatPDF(creditNote, company);

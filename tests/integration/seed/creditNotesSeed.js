@@ -15,6 +15,7 @@ const creditNotesList = [
     exclTaxes: 100,
     inclTaxes: 112,
     events: [eventsList[2]._id],
+    origin: 'compani',
   },
 ];
 
