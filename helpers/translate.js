@@ -218,6 +218,7 @@ module.exports = {
     draftBillsCreated: 'Draft bills created',
     billsFound: 'Bills found',
     billsNotFound: 'Bills not found',
+    billNotCompani: 'Bill\'s origin must be \'Compani\'.',
 
     /* Credit Notes */
     creditNotesFound: 'Credit notes found.',
@@ -458,6 +459,7 @@ module.exports = {
     draftBillsCreated: 'Brouillons de facture générés',
     billsFound: 'Factures trouvés',
     billsNotFound: 'Factures non trouvés',
+    billNotCompani: 'L\'origine de la facture doit être \'Compani\'.',
 
     /* Credit Notes */
     creditNotesFound: 'Avoirs trouvés.',
