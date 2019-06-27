@@ -84,8 +84,8 @@ exports.plugin = {
       options: {
         validate: {
           query: {
-            startDate: Joi.string(),
-            endDate: Joi.string(),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
             auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
             customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
