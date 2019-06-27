@@ -108,32 +108,32 @@ exports.getListQuery = (req) => {
   if (req.query.customer) query.customer = { $in: req.query.customer };
   if (req.query.isBilled) query.customer = req.query.isBilled;
   if (req.query.startDate && req.query.endDate) {
-    const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
-    const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+    const startDate = moment(req.query.startDate).startOf('d').toDate();
+    const endDate = moment(req.query.endDate).endOf('d').toDate();
     query = {
       ...query,
       $or: [
-        { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
-        { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
-        { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+        { startDate: { $lte: endDate, $gte: startDate } },
+        { endDate: { $lte: endDate, $gte: startDate } },
+        { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
       ],
     };
   } else if (req.query.startDate && !req.query.endDate) {
-    const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+    const startDate = moment(req.query.startDate).startOf('d').toDate();
     query = {
       ...query,
       $or: [
-        { startDate: { $gte: searchStartDate } },
-        { endDate: { $gte: searchStartDate } },
+        { startDate: { $gte: startDate } },
+        { endDate: { $gte: startDate } },
       ],
     };
   } else if (req.query.endDate) {
-    const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+    const endDate = moment(req.query.endDate).endOf('d').toDate();
     query = {
       ...query,
       $or: [
-        { startDate: { $lte: searchEndDate } },
-        { endDate: { $lte: searchEndDate } },
+        { startDate: { $lte: endDate } },
+        { endDate: { $lte: endDate } },
       ],
     };
   }

@@ -153,8 +153,8 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             sector: Joi.array().items(Joi.string()),
-            startDate: Joi.string(),
-            endDate: Joi.string(),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
           })
         },
         auth: 'jwt'
