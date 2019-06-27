@@ -81,6 +81,9 @@ exports.plugin = {
                   unitInclTaxes: Joi.number().required(),
                   eventsList: Joi.array().items(Joi.object({
                     event: Joi.objectId().required(),
+                    startDate: Joi.date().required(),
+                    endDate: Joi.date().required(),
+                    auxiliary: Joi.objectId().required(),
                     inclTaxesCustomer: Joi.number().required(),
                     exclTaxesCustomer: Joi.number().required(),
                     inclTaxesTpp: Joi.number(),
