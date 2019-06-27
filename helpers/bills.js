@@ -1,5 +1,6 @@
 const moment = require('moment');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
@@ -10,13 +11,13 @@ const { HOURLY } = require('./constants');
 exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
 exports.formatSubscriptionData = (bill) => {
-  const events = bill.eventsList.map(ev => ev.event);
+  const events = bill.eventsList.map(ev => ({ event: ev.event, auxiliary: ev.auxiliary, startDate: ev.startDate, endDate: ev.endDate }));
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.startDate, bill.subscription.service, 'startDate');
 
   return {
     ...bill,
     subscription: bill.subscription._id,
-    service: matchingServiceVersion.name,
+    service: pick(matchingServiceVersion, ['_id', 'name', 'nature']),
     vat: matchingServiceVersion.vat,
     events,
   };
@@ -189,16 +190,16 @@ exports.formatPDF = (bill, company) => {
       unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
       inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
       vat: sub.vat.toString().replace(/\./g, ','),
-      service: sub.service,
-      hours: sub.hours
+      service: sub.service.name,
+      hours: sub.service.nature === HOURLY ? `${sub.hours} h` : sub.hours,
     });
-    for (const event of sub.events) {
+    for (const ev of sub.events) {
       computedData.formattedEvents.push({
-        identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
-        date: moment(event.startDate).format('DD/MM'),
-        startTime: moment(event.startDate).format('HH:mm'),
-        endTime: moment(event.endDate).format('HH:mm'),
-        service: sub.service,
+        identity: `${ev.auxiliary.identity.firstname.substring(0, 1)}. ${ev.auxiliary.identity.lastname}`,
+        date: moment(ev.startDate).format('DD/MM'),
+        startTime: moment(ev.startDate).format('HH:mm'),
+        endTime: moment(ev.endDate).format('HH:mm'),
+        service: sub.service.name,
       });
     }
   }
