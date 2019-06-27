@@ -2,6 +2,7 @@ const expect = require('expect');
 const moment = require('moment');
 const qs = require('qs');
 const omit = require('lodash/omit');
+const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
 const { populateUsers, getToken } = require('./seed/usersSeed');
@@ -148,6 +149,9 @@ describe('BILL ROUTES', () => {
               eventsList: [
                 {
                   event: '5ccbfcf3d6eaa746a3c34ceb',
+                  auxiliary: new ObjectID(),
+                  startDate: '2019-05-02T08:00:00.000Z',
+                  endDate: '2019-05-02T10:00:00.000Z',
                   inclTaxesCustomer: 24,
                   exclTaxesCustomer: 21.428571428571427
                 }
@@ -216,6 +220,9 @@ describe('BILL ROUTES', () => {
                 eventsList: [
                   {
                     event: '5ccbfcf3d6eaa746a3c34cea',
+                    auxiliary: new ObjectID(),
+                    startDate: '2019-05-02T08:00:00.000Z',
+                    endDate: '2019-05-02T10:00:00.000Z',
                     inclTaxesTpp: 24,
                     exclTaxesTpp: 21.428571428571427,
                     thirdPartyPayer: '5ccbfcf3d6eaa746a3c34cdc',
