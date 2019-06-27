@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
+const { COMPANI, THIRD_PARTY, OGUST, FIXED, HOURLY } = require('../helpers/constants');
 
 const BillSchema = mongoose.Schema({
   billNumber: String,
@@ -10,9 +10,18 @@ const BillSchema = mongoose.Schema({
     startDate: Date,
     endDate: Date,
     subscription: { type: mongoose.Schema.Types.ObjectId },
-    service: String,
+    service: {
+      _id: { type: mongoose.Schema.Types.ObjectId },
+      name: String,
+      nature: { type: String, enum: [FIXED, HOURLY] },
+    },
     vat: Number,
-    events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
+    events: [{
+      event: { type: mongoose.Schema.Types.ObjectId },
+      auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      startDate: Date,
+      endDate: Date,
+    }],
     hours: Number,
     unitInclTaxes: Number,
     exclTaxes: Number,
