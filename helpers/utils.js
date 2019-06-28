@@ -105,3 +105,5 @@ exports.formatFloatForExport = (number) => {
   if (number == null || Number.isNaN(number)) return '';
   return number.toFixed(2).replace('.', ',');
 };
+
+exports.formatToHours = val => (val ? `${val} h`.replace('.', ',') : '0 h');

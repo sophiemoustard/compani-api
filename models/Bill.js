@@ -11,13 +11,13 @@ const BillSchema = mongoose.Schema({
     endDate: Date,
     subscription: { type: mongoose.Schema.Types.ObjectId },
     service: {
-      _id: { type: mongoose.Schema.Types.ObjectId },
+      serviceId: { type: mongoose.Schema.Types.ObjectId },
       name: String,
       nature: { type: String, enum: [FIXED, HOURLY] },
     },
     vat: Number,
     events: [{
-      event: { type: mongoose.Schema.Types.ObjectId },
+      eventId: { type: mongoose.Schema.Types.ObjectId },
       auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       startDate: Date,
       endDate: Date,

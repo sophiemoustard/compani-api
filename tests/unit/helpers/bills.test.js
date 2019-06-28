@@ -53,7 +53,6 @@ describe('formatSubscriptionData', () => {
     });
 
     const result = BillHelper.formatSubscriptionData(bill);
-    expect(result).toBeDefined();
     expect(result).toEqual(expect.objectContaining({
       subscription: 'asd',
       service: { _id: '1234567890', nature: 'test', name: 'service' },
@@ -63,7 +62,20 @@ describe('formatSubscriptionData', () => {
       vat: 12,
       startDate: '2019-06-28T10:06:55.374Z',
       hours: 1.5,
-      events: bill.eventsList,
+      events: [
+        {
+          eventId: '123',
+          startDate: '2019-05-28T10:00:55.374Z',
+          endDate: '2019-05-28T13:00:55.374Z',
+          auxiliary: '34567890',
+        },
+        {
+          eventId: '456',
+          startDate: '2019-05-29T08:00:55.374Z',
+          endDate: '2019-05-29T10:00:55.374Z',
+          auxiliary: '34567890',
+        },
+      ],
     }));
     sinon.assert.calledWith(getMatchingVersionStub, bill.startDate, bill.subscription.service, 'startDate');
     getMatchingVersionStub.restore();
@@ -116,13 +128,13 @@ describe('formatCustomerBills', () => {
         hours: 1.5,
         events: [
           {
-            event: '123',
+            eventId: '123',
             startDate: '2019-05-28T10:00:55.374Z',
             endDate: '2019-05-28T13:00:55.374Z',
             auxiliary: '34567890',
           },
           {
-            event: '456',
+            eventId: '456',
             startDate: '2019-05-29T08:00:55.374Z',
             endDate: '2019-05-29T10:00:55.374Z',
             auxiliary: '34567890',
@@ -207,13 +219,13 @@ describe('formatCustomerBills', () => {
         hours: 1.5,
         events: [
           {
-            event: '123',
+            eventId: '123',
             startDate: '2019-05-28T10:00:55.374Z',
             endDate: '2019-05-28T13:00:55.374Z',
             auxiliary: '34567890',
           },
           {
-            event: '456',
+            eventId: '456',
             startDate: '2019-05-29T08:00:55.374Z',
             endDate: '2019-05-29T10:00:55.374Z',
             auxiliary: '34567890',
@@ -228,13 +240,13 @@ describe('formatCustomerBills', () => {
         hours: 5,
         events: [
           {
-            event: '890',
+            eventId: '890',
             startDate: '2019-05-29T10:00:55.374Z',
             endDate: '2019-05-29T13:00:55.374Z',
             auxiliary: '34567890',
           },
           {
-            event: '736',
+            eventId: '736',
             startDate: '2019-05-30T08:00:55.374Z',
             endDate: '2019-05-30T10:00:55.374Z',
             auxiliary: '34567890',
@@ -303,13 +315,13 @@ describe('formatThirdPartyPayerBills', () => {
         hours: 1.5,
         events: [
           {
-            event: '123',
+            eventId: '123',
             auxiliary: '34567890',
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
           },
           {
-            event: '456',
+            eventId: '456',
             auxiliary: '34567890',
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
@@ -381,13 +393,13 @@ describe('formatThirdPartyPayerBills', () => {
         hours: 1.5,
         events: [
           {
-            event: '123',
+            eventId: '123',
             auxiliary: '34567890',
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
           },
           {
-            event: '456',
+            eventId: '456',
             auxiliary: '34567890',
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
@@ -457,13 +469,13 @@ describe('formatThirdPartyPayerBills', () => {
         hours: 1.5,
         events: [
           {
-            event: '123',
+            eventId: '123',
             auxiliary: '34567890',
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
           },
           {
-            event: '456',
+            eventId: '456',
             auxiliary: '34567890',
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
@@ -558,13 +570,13 @@ describe('formatThirdPartyPayerBills', () => {
         hours: 1.5,
         events: [
           {
-            event: '123',
+            eventId: '123',
             auxiliary: '34567890',
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
           },
           {
-            event: '456',
+            eventId: '456',
             auxiliary: '34567890',
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
@@ -579,13 +591,13 @@ describe('formatThirdPartyPayerBills', () => {
         hours: 5,
         events: [
           {
-            event: '890',
+            eventId: '890',
             auxiliary: '34567890',
             startDate: '2019-02-17T08:00:55.374Z',
             endDate: '2019-02-17T10:00:55.374Z',
           },
           {
-            event: '736',
+            eventId: '736',
             auxiliary: '34567890',
             startDate: '2019-02-18T08:00:55.374Z',
             endDate: '2019-02-18T10:00:55.374Z',

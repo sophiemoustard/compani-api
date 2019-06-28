@@ -11,7 +11,7 @@ const { HOURLY } = require('./constants');
 exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
 exports.formatSubscriptionData = (bill) => {
-  const events = bill.eventsList.map(ev => ({ event: ev.event, auxiliary: ev.auxiliary, startDate: ev.startDate, endDate: ev.endDate }));
+  const events = bill.eventsList.map(ev => ({ eventId: ev.event, auxiliary: ev.auxiliary, startDate: ev.startDate, endDate: ev.endDate }));
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.startDate, bill.subscription.service, 'startDate');
 
   return {
@@ -191,7 +191,7 @@ exports.formatPDF = (bill, company) => {
       inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
       vat: sub.vat.toString().replace(/\./g, ','),
       service: sub.service.name,
-      hours: sub.service.nature === HOURLY ? `${sub.hours} h` : sub.hours,
+      hours: sub.service.nature === HOURLY ? UtilsHelper.formatToHours(sub.hours) : sub.hours,
     });
     for (const ev of sub.events) {
       computedData.formattedEvents.push({
