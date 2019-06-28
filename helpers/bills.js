@@ -221,7 +221,7 @@ const exportBillSubscribtions = (bill) => {
   if (!bill.subscriptions) return '';
 
   const subscriptions = bill.subscriptions.map(sub =>
-    `${sub.service} - ${sub.hours} heures - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
+    `${sub.service.name} - ${sub.hours} heures - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
 
   return subscriptions.join('\r\n');
 };
