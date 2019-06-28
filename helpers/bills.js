@@ -186,13 +186,19 @@ exports.formatPDF = (bill, company) => {
   for (const sub of bill.subscriptions) {
     computedData.totalExclTaxes += sub.exclTaxes;
     computedData.totalVAT += sub.inclTaxes - sub.exclTaxes;
-    computedData.formattedSubs.push({
+    const formattedSubs = {
       unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
       inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
       vat: sub.vat.toString().replace(/\./g, ','),
       service: sub.service.name,
-      hours: sub.service.nature === HOURLY ? UtilsHelper.formatToHours(sub.hours) : sub.hours,
-    });
+    };
+    if (sub.service.nature === HOURLY) {
+      const formattedHours = UtilsHelper.formatFloatForExport(sub.hours);
+      formattedSubs.hours = formattedHours === '' ? '' : `${formattedHours} h`;
+    } else {
+      formattedSubs.hours = sub.hours;
+    }
+    computedData.formattedSubs.push(formattedSubs);
     for (const ev of sub.events) {
       computedData.formattedEvents.push({
         identity: `${ev.auxiliary.identity.firstname.substring(0, 1)}. ${ev.auxiliary.identity.lastname}`,

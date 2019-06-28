@@ -242,12 +242,3 @@ describe('formatFloatForExport', () => {
     });
   });
 });
-
-describe('formatToHours', () => {
-  it('should format value to hour string', () => {
-    expect(UtilsHelper.formatToHours(45.2)).toBe('45,2 h');
-  });
-  it('should return zero hour string if value is missing', () => {
-    expect(UtilsHelper.formatToHours()).toBe('0 h');
-  });
-});
