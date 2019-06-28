@@ -3,7 +3,6 @@ const { ObjectID } = require('mongodb');
 const Bill = require('../../../models/Bill');
 const { customersList } = require('./customersSeed');
 const { thirdPartyPayersList } = require('./thirdPartyPayersSeed');
-const { eventsList } = require('./eventsSeed');
 
 const billsList = [
   {
@@ -17,7 +16,15 @@ const billsList = [
       endDate: '2019-11-29',
       subscription: customersList[0].subscriptions[0]._id,
       vat: 5.5,
-      events: [eventsList[2]._id],
+      service: { name: 'Temps de qualité - autonomie' },
+      events: [{
+        eventId: new ObjectID(),
+        startDate: '2019-01-16T09:30:19.543Z',
+        endDate: '2019-01-16T11:30:21.653Z',
+        auxiliary: new ObjectID(),
+        customer: customersList[0]._id,
+        createdAt: '2019-01-15T11:33:14.343Z',
+      }],
       hours: 8,
       unitExclTaxes: 9,
       exclTaxes: 72,
@@ -35,7 +42,15 @@ const billsList = [
       endDate: '2019-11-25',
       subscription: customersList[0].subscriptions[0]._id,
       vat: 5.5,
-      events: [eventsList[2]._id],
+      events: [{
+        eventId: new ObjectID(),
+        startDate: '2019-01-16T10:30:19.543Z',
+        endDate: '2019-01-16T12:30:21.653Z',
+        auxiliary: new ObjectID(),
+        customer: customersList[0]._id,
+        createdAt: '2019-01-15T11:33:14.343Z',
+      }],
+      service: { name: 'Temps de qualité - autonomie' },
       hours: 4,
       unitExclTaxes: 24,
       exclTaxes: 96,

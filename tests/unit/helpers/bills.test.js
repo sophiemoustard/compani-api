@@ -771,7 +771,7 @@ describe('formatPDF', () => {
         hours: 40,
         exclTaxes: 1018.009,
         inclTaxes: 1074,
-        service: 'Temps de qualité - autonomie'
+        service: { name: 'Temps de qualité - autonomie' },
       }],
       customer: {
         identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
@@ -886,7 +886,7 @@ describe('exportBillsHistory', () => {
       client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
       subscriptions: [{
-        service: 'Temps de qualité - autonomie',
+        service: { name: 'Temps de qualité - autonomie' },
         hours: 20,
         exclTaxes: 389276.0208,
         inclTaxes: 410686.201944,
@@ -905,12 +905,12 @@ describe('exportBillsHistory', () => {
       client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
       netInclTaxes: 1057.1319439,
       subscriptions: [{
-        service: 'Forfait nuit',
+        service: { name: 'Forfait nuit' },
         hours: 15,
         exclTaxes: 700.0208,
         inclTaxes: 738.521944,
       }, {
-        service: 'Forfait nuit',
+        service: { name: 'Forfait nuit' },
         hours: 7,
         inclTaxes: 302,
         exclTaxes: 318.6099999,

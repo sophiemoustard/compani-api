@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
-const { COMPANI, THIRD_PARTY, OGUST, FIXED, HOURLY } = require('../helpers/constants');
+
+const ServiceSchema = require('./Service').schema;
+const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
 
 const BillSchema = mongoose.Schema({
   billNumber: String,
@@ -13,7 +15,7 @@ const BillSchema = mongoose.Schema({
     service: {
       serviceId: { type: mongoose.Schema.Types.ObjectId },
       name: String,
-      nature: { type: String, enum: [FIXED, HOURLY] },
+      nature: ServiceSchema.path('nature'),
     },
     vat: Number,
     events: [{
