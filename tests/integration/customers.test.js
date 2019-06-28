@@ -15,6 +15,7 @@ const {
 } = require('./seed/usersSeed');
 const { servicesList, populateServices } = require('./seed/servicesSeed');
 const { populateCompanies } = require('./seed/companiesSeed');
+const { populateEvents } = require('./seed/eventsSeed');
 const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const Customer = require('../../models/Customer');
 const ESign = require('../../models/ESign');
@@ -132,6 +133,24 @@ describe('CUSTOMERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toHaveLength(customersList.length);
+    });
+  });
+
+  describe('GET /customers//billed-events', () => {
+    beforeEach(populateEvents);
+    beforeEach(populateThirdPartyPayers);
+    it('should get all customers with billes events', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/billed-events',
+        headers: { 'x-access-token': token }
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customers).toBeDefined();
+      expect(res.result.data.customers[0].subscriptions).toBeDefined();
+      expect(res.result.data.customers[0].subscriptions.length).toEqual(1);
+      expect(res.result.data.customers[0].thirdPartyPayers).toBeDefined();
+      expect(res.result.data.customers[0].thirdPartyPayers.length).toEqual(1);
     });
   });
 

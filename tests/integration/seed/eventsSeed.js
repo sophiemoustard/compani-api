@@ -3,6 +3,7 @@ const { ObjectID } = require('mongodb');
 const Event = require('../../../models/Event');
 const { userList } = require('./usersSeed');
 const { customersList } = require('./customersSeed');
+const { thirdPartyPayersList } = require('./thirdPartyPayersSeed');
 
 const auxiliary = userList[4];
 
@@ -49,7 +50,45 @@ const eventsList = [
     auxiliary: auxiliary._id,
     customer: customersList[0]._id,
     createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: customersList[0].subscriptions[1]._id,
+    subscription: customersList[0].subscriptions[0]._id,
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-01-16T09:30:19.543Z',
+    endDate: '2019-01-16T11:30:21.653Z',
+    auxiliary: auxiliary._id,
+    customer: customersList[0]._id,
+    createdAt: '2019-01-15T11:33:14.343Z',
+    subscription: customersList[0].subscriptions[0]._id,
+    isBilled: true,
+    bills: {
+      thirdPartyPayer: thirdPartyPayersList[0]._id,
+      inclTaxesCustomer: 20,
+      exclTaxesCustomer: 15,
+      inclTaxesTpp: 10,
+      exclTaxesTpp: 5,
+      fundingVersion: new ObjectID(),
+      nature: 'hourly',
+      careHours: 2,
+    },
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-01-17T14:30:19.543Z',
+    endDate: '2019-01-17T16:30:19.543Z',
+    auxiliary: auxiliary._id,
+    customer: customersList[0]._id,
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: customersList[0].subscriptions[0]._id,
+    isBilled: true,
+    bills: {
+      inclTaxesCustomer: 20,
+      exclTaxesCustomer: 15,
+    },
   },
   {
     _id: new ObjectID(),
