@@ -168,7 +168,7 @@ const listWithBilledEvents = async (req) => {
         }
       },
       { $unwind: { path: '$sub.service' } },
-      { $group: { _id: { CUS: '$customer' }, subscriptions: { $push: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
+      { $group: { _id: { CUS: '$customer' }, subscriptions: { $addToSet: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
       {
         $project: {
           _id: '$_id.CUS._id',
