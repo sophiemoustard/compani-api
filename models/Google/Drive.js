@@ -11,7 +11,7 @@ const jwtClient = () => new google.auth.JWT(
 
 const drive = google.drive('v3');
 
-exports.add = params => new Promise(async (resolve, reject) => {
+exports.add = async (params) => {
   const fileMetadata = {
     name: params.name,
     mimeType: params.folder ? 'application/vnd.google-apps.folder' : null,
@@ -21,44 +21,50 @@ exports.add = params => new Promise(async (resolve, reject) => {
 
   const auth = jwtClient();
   await auth.authorize();
-  drive.files.create(
-    { auth, resource: fileMetadata, media, fields: 'id' },
-    (err, item) => {
-      if (err) reject(new Error(`Google Drive API ${err}`));
-      else resolve(item.data);
-    }
-  );
-});
 
-exports.deleteFile = params => new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    drive.files.create(
+      { auth, resource: fileMetadata, media, fields: 'id' },
+      (err, item) => {
+        if (err) reject(new Error(`Google Drive API ${err}`));
+        else resolve(item.data);
+      }
+    );
+  });
+};
+
+exports.deleteFile = async (params) => {
   const auth = jwtClient();
   await auth.authorize();
-  drive.files.delete(
+
+  return new Promise((resolve, reject) => drive.files.delete(
     { auth, fileId: params.fileId },
     (err, file) => {
       if (err) reject(new Error(`Google Drive API ${err}`));
       else resolve(file.data);
     }
-  );
-});
+  ));
+};
 
-exports.getFileById = params => new Promise(async (resolve, reject) => {
+exports.getFileById = async (params) => {
   const auth = jwtClient();
   await auth.authorize();
-  drive.files.get(
+
+  return new Promise((resolve, reject) => drive.files.get(
     { auth, fileId: `${params.fileId}`, fields: ['name, webViewLink, thumbnailLink'] },
     (err, response) => {
       if (err) reject(new Error(`Google Drive API ${err}`));
       else resolve(response.data);
     }
-  );
-});
+  ));
+};
 
-exports.downloadFileById = params => new Promise(async (resolve, reject) => {
+exports.downloadFileById = async (params) => {
   const dest = fs.createWriteStream(params.tmpFilePath);
   const auth = jwtClient();
   await auth.authorize();
-  drive.files.get(
+
+  return new Promise(async (resolve, reject) => drive.files.get(
     { auth, fileId: `${params.fileId}`, alt: 'media' },
     { responseType: 'stream' },
     (err, res) => {
@@ -72,14 +78,14 @@ exports.downloadFileById = params => new Promise(async (resolve, reject) => {
         reject(new Error(`Error during Google drive doc download ${err}`));
       }).pipe(dest);
     }
-  );
-});
+  ));
+};
 
-exports.list = params => new Promise(async (resolve, reject) => {
+exports.list = async (params) => {
   const auth = jwtClient();
   await auth.authorize();
 
-  drive.files.list({
+  return new Promise(async (resolve, reject) => drive.files.list({
     auth,
     ...(params.folderId && { q: `'${params.folderId}' in parents and mimeType != 'application/vnd.google-apps.folder'` }),
     fields: 'nextPageToken, files(name, webViewLink, createdTime)',
@@ -87,5 +93,5 @@ exports.list = params => new Promise(async (resolve, reject) => {
   }, (err, response) => {
     if (err) reject(new Error(`Google Drive API ${err}`));
     else resolve(response.data);
-  });
-});
+  }));
+};
