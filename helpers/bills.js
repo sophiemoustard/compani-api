@@ -17,7 +17,7 @@ exports.formatSubscriptionData = (bill) => {
   return {
     ...bill,
     subscription: bill.subscription._id,
-    service: pick(matchingServiceVersion, ['_id', 'name', 'nature']),
+    service: { serviceId: matchingServiceVersion._id, ...pick(matchingServiceVersion, ['name', 'nature']) },
     vat: matchingServiceVersion.vat,
     events,
   };
