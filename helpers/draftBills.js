@@ -398,7 +398,6 @@ const getEventsToBill = async rules => Event.aggregate([
         startDate: 1,
         subscription: 1,
         endDate: 1,
-        date: 1,
         auxiliary: 1,
         _id: 1,
       },
