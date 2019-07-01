@@ -241,7 +241,14 @@ const getEventPrice = (event, unitTTCRate, service, funding) => {
 
 const formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
   const inclTaxesCustomer = getInclTaxes(eventPrice.customerPrice, service.vat);
-  const prices = { event: event._id, inclTaxesCustomer, exclTaxesCustomer: eventPrice.customerPrice };
+  const prices = {
+    event: event._id,
+    startDate: event.startDate,
+    endDate: event.endDate,
+    auxiliary: event.auxiliary,
+    inclTaxesCustomer,
+    exclTaxesCustomer: eventPrice.customerPrice
+  };
   if (eventPrice.thirdPartyPayerPrice && eventPrice.thirdPartyPayerPrice !== 0) {
     prices.inclTaxesTpp = getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
     prices.exclTaxesTpp = eventPrice.thirdPartyPayerPrice;
@@ -264,6 +271,9 @@ const formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) => {
   const inclTaxesTpp = getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
   const prices = {
     event: event._id,
+    startDate: event.startDate,
+    endDate: event.endDate,
+    auxiliary: event.auxiliary,
     inclTaxesTpp,
     exclTaxesTpp: eventPrice.thirdPartyPayerPrice,
     thirdPartyPayer: eventPrice.thirdPartyPayer,
@@ -384,7 +394,13 @@ const getEventsToBill = async rules => Event.aggregate([
     $project: {
       idCustomer: '$_id.CUSTOMER',
       subId: '$_id.SUBS',
-      events: { startDate: 1, subscription: 1, endDate: 1, _id: 1 },
+      events: {
+        startDate: 1,
+        subscription: 1,
+        endDate: 1,
+        auxiliary: 1,
+        _id: 1,
+      },
       customer: 1,
       sub: 1,
       fund: 1,

@@ -48,7 +48,7 @@ describe('EVENTS ROUTES', () => {
       const endDate = moment('2019-01-20');
       const response = await app.inject({
         method: 'GET',
-        url: `/events?startDate=${startDate.format('YYYYMMDD')}&endDate=${endDate.format('YYYYMMDD')}`,
+        url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
         headers: { 'x-access-token': authToken },
       });
 

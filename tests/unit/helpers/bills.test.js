@@ -16,6 +16,72 @@ describe('formatBillNumber', () => {
   });
 });
 
+describe('formatSubscriptionData', () => {
+  it('should return formatted subscription data', () => {
+    const bill = {
+      subscription: {
+        _id: 'asd',
+        service: { _id: '1234567890', nature: 'test', versions: [{ name: 'service', vat: 12, startDate: moment().toISOString() }] }
+      },
+      unitExclTaxes: 24.644549763033176,
+      exclTaxes: 13.649289099526067,
+      inclTaxes: 14.4,
+      startDate: '2019-06-28T10:06:55.374Z',
+      hours: 1.5,
+      eventsList: [
+        {
+          event: '123',
+          startDate: '2019-05-28T10:00:55.374Z',
+          endDate: '2019-05-28T13:00:55.374Z',
+          auxiliary: '34567890',
+        },
+        {
+          event: '456',
+          startDate: '2019-05-29T08:00:55.374Z',
+          endDate: '2019-05-29T10:00:55.374Z',
+          auxiliary: '34567890',
+        },
+      ]
+    };
+    const getMatchingVersionStub = sinon.stub(UtilsHelper, 'getMatchingVersion');
+    getMatchingVersionStub.returns({
+      _id: '1234567890',
+      nature: 'test',
+      name: 'service',
+      vat: 12,
+      startDate: '2019-06-27T10:06:55.374Z',
+    });
+
+    const result = BillHelper.formatSubscriptionData(bill);
+    expect(result).toEqual(expect.objectContaining({
+      subscription: 'asd',
+      service: { serviceId: '1234567890', nature: 'test', name: 'service' },
+      unitExclTaxes: 24.644549763033176,
+      exclTaxes: 13.649289099526067,
+      inclTaxes: 14.4,
+      vat: 12,
+      startDate: '2019-06-28T10:06:55.374Z',
+      hours: 1.5,
+      events: [
+        {
+          eventId: '123',
+          startDate: '2019-05-28T10:00:55.374Z',
+          endDate: '2019-05-28T13:00:55.374Z',
+          auxiliary: '34567890',
+        },
+        {
+          eventId: '456',
+          startDate: '2019-05-29T08:00:55.374Z',
+          endDate: '2019-05-29T10:00:55.374Z',
+          auxiliary: '34567890',
+        },
+      ],
+    }));
+    sinon.assert.calledWith(getMatchingVersionStub, bill.startDate, bill.subscription.service, 'startDate');
+    getMatchingVersionStub.restore();
+  });
+});
+
 describe('formatCustomerBills', () => {
   it('Case 1 : 1 bill', () => {
     const customer = { _id: 'lilalo' };
@@ -29,8 +95,20 @@ describe('formatCustomerBills', () => {
         startDate: moment().add(1, 'd').toISOString(),
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4 },
-          { event: '456', inclTaxesTpp: 12 },
+          {
+            event: '123',
+            startDate: '2019-05-28T10:00:55.374Z',
+            endDate: '2019-05-28T13:00:55.374Z',
+            auxiliary: '34567890',
+            inclTaxesTpp: 14.4,
+          },
+          {
+            event: '456',
+            startDate: '2019-05-29T08:00:55.374Z',
+            endDate: '2019-05-29T10:00:55.374Z',
+            auxiliary: '34567890',
+            inclTaxesTpp: 12,
+          },
         ],
       }],
       total: 14.4,
@@ -48,7 +126,20 @@ describe('formatCustomerBills', () => {
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
         hours: 1.5,
-        events: ['123', '456'],
+        events: [
+          {
+            eventId: '123',
+            startDate: '2019-05-28T10:00:55.374Z',
+            endDate: '2019-05-28T13:00:55.374Z',
+            auxiliary: '34567890',
+          },
+          {
+            eventId: '456',
+            startDate: '2019-05-29T08:00:55.374Z',
+            endDate: '2019-05-29T10:00:55.374Z',
+            auxiliary: '34567890',
+          },
+        ],
         vat: 12,
       }],
     });
@@ -73,8 +164,20 @@ describe('formatCustomerBills', () => {
         hours: 1.5,
         startDate: moment().add(1, 'd').toISOString(),
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4 },
-          { event: '456', inclTaxesTpp: 12 },
+          {
+            event: '123',
+            startDate: '2019-05-28T10:00:55.374Z',
+            endDate: '2019-05-28T13:00:55.374Z',
+            auxiliary: '34567890',
+            inclTaxesTpp: 14.4,
+          },
+          {
+            event: '456',
+            startDate: '2019-05-29T08:00:55.374Z',
+            endDate: '2019-05-29T10:00:55.374Z',
+            auxiliary: '34567890',
+            inclTaxesTpp: 12,
+          },
         ],
       }, {
         subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString(), }] } },
@@ -84,8 +187,20 @@ describe('formatCustomerBills', () => {
         hours: 5,
         startDate: moment().add(1, 'd').toISOString(),
         eventsList: [
-          { event: '890', inclTaxesTpp: 45 },
-          { event: '736', inclTaxesTpp: 23 },
+          {
+            event: '890',
+            startDate: '2019-05-29T10:00:55.374Z',
+            endDate: '2019-05-29T13:00:55.374Z',
+            auxiliary: '34567890',
+            inclTaxesTpp: 45,
+          },
+          {
+            event: '736',
+            startDate: '2019-05-30T08:00:55.374Z',
+            endDate: '2019-05-30T10:00:55.374Z',
+            auxiliary: '34567890',
+            inclTaxesTpp: 23,
+          },
         ],
       }],
     };
@@ -102,7 +217,20 @@ describe('formatCustomerBills', () => {
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
         hours: 1.5,
-        events: ['123', '456'],
+        events: [
+          {
+            eventId: '123',
+            startDate: '2019-05-28T10:00:55.374Z',
+            endDate: '2019-05-28T13:00:55.374Z',
+            auxiliary: '34567890',
+          },
+          {
+            eventId: '456',
+            startDate: '2019-05-29T08:00:55.374Z',
+            endDate: '2019-05-29T10:00:55.374Z',
+            auxiliary: '34567890',
+          },
+        ],
         vat: 12
       }, {
         subscription: 'fgh',
@@ -110,7 +238,20 @@ describe('formatCustomerBills', () => {
         exclTaxes: 15,
         inclTaxes: 11,
         hours: 5,
-        events: ['890', '736'],
+        events: [
+          {
+            eventId: '890',
+            startDate: '2019-05-29T10:00:55.374Z',
+            endDate: '2019-05-29T13:00:55.374Z',
+            auxiliary: '34567890',
+          },
+          {
+            eventId: '736',
+            startDate: '2019-05-30T08:00:55.374Z',
+            endDate: '2019-05-30T10:00:55.374Z',
+            auxiliary: '34567890',
+          },
+        ],
         vat: 34,
       }],
     });
@@ -139,8 +280,22 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 4, month: '02/2019', nature: 'hourly' } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'fund', careHours: 2, month: '03/2019', nature: 'hourly' } },
+          {
+            event: '123',
+            inclTaxesTpp: 14.4,
+            startDate: '2019-02-15T08:00:55.374Z',
+            endDate: '2019-02-15T10:00:55.374Z',
+            auxiliary: '34567890',
+            history: { fundingId: 'fund', careHours: 4, month: '02/2019', nature: 'hourly' }
+          },
+          {
+            event: '456',
+            inclTaxesTpp: 12,
+            startDate: '2019-02-16T08:00:55.374Z',
+            endDate: '2019-02-16T10:00:55.374Z',
+            auxiliary: '34567890',
+            history: { fundingId: 'fund', careHours: 2, month: '03/2019', nature: 'hourly' }
+          },
         ],
       }],
     }];
@@ -158,7 +313,20 @@ describe('formatThirdPartyPayerBills', () => {
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
         hours: 1.5,
-        events: ['123', '456'],
+        events: [
+          {
+            eventId: '123',
+            auxiliary: '34567890',
+            startDate: '2019-02-15T08:00:55.374Z',
+            endDate: '2019-02-15T10:00:55.374Z',
+          },
+          {
+            eventId: '456',
+            auxiliary: '34567890',
+            startDate: '2019-02-16T08:00:55.374Z',
+            endDate: '2019-02-16T10:00:55.374Z',
+          },
+        ],
         vat: 12,
       }],
     });
@@ -190,8 +358,22 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 4, nature: 'hourly' } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'fund', careHours: 2, nature: 'hourly' } },
+          {
+            event: '123',
+            inclTaxesTpp: 14.4,
+            startDate: '2019-02-15T08:00:55.374Z',
+            endDate: '2019-02-15T10:00:55.374Z',
+            auxiliary: '34567890',
+            history: { fundingId: 'fund', careHours: 4, nature: 'hourly' }
+          },
+          {
+            event: '456',
+            inclTaxesTpp: 12,
+            startDate: '2019-02-16T08:00:55.374Z',
+            endDate: '2019-02-16T10:00:55.374Z',
+            auxiliary: '34567890',
+            history: { fundingId: 'fund', careHours: 2, nature: 'hourly' }
+          },
         ],
       }],
     }];
@@ -209,7 +391,20 @@ describe('formatThirdPartyPayerBills', () => {
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
         hours: 1.5,
-        events: ['123', '456'],
+        events: [
+          {
+            eventId: '123',
+            auxiliary: '34567890',
+            startDate: '2019-02-15T08:00:55.374Z',
+            endDate: '2019-02-15T10:00:55.374Z',
+          },
+          {
+            eventId: '456',
+            auxiliary: '34567890',
+            startDate: '2019-02-16T08:00:55.374Z',
+            endDate: '2019-02-16T10:00:55.374Z',
+          },
+        ],
         vat: 12,
       }],
     });
@@ -239,8 +434,22 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', amountTTC: 40, nature: 'fixed' } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'fund', amountTTC: 20, nature: 'fixed' } },
+          {
+            event: '123',
+            inclTaxesTpp: 14.4,
+            auxiliary: '34567890',
+            startDate: '2019-02-15T08:00:55.374Z',
+            endDate: '2019-02-15T10:00:55.374Z',
+            history: { fundingId: 'fund', amountTTC: 40, nature: 'fixed' },
+          },
+          {
+            event: '456',
+            inclTaxesTpp: 12,
+            auxiliary: '34567890',
+            startDate: '2019-02-16T08:00:55.374Z',
+            endDate: '2019-02-16T10:00:55.374Z',
+            history: { fundingId: 'fund', amountTTC: 20, nature: 'fixed' },
+          },
         ],
       }],
     }];
@@ -258,7 +467,20 @@ describe('formatThirdPartyPayerBills', () => {
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
         hours: 1.5,
-        events: ['123', '456'],
+        events: [
+          {
+            eventId: '123',
+            auxiliary: '34567890',
+            startDate: '2019-02-15T08:00:55.374Z',
+            endDate: '2019-02-15T10:00:55.374Z',
+          },
+          {
+            eventId: '456',
+            auxiliary: '34567890',
+            startDate: '2019-02-16T08:00:55.374Z',
+            endDate: '2019-02-16T10:00:55.374Z',
+          },
+        ],
         vat: 12,
       }],
     });
@@ -287,8 +509,22 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 14.4,
         hours: 1.5,
         eventsList: [
-          { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 2, month: '02/2019', nature: 'hourly' } },
-          { event: '456', inclTaxesTpp: 12, history: { fundingId: 'lio', careHours: 4, month: '02/2019', nature: 'hourly' } },
+          {
+            event: '123',
+            auxiliary: '34567890',
+            startDate: '2019-02-15T08:00:55.374Z',
+            endDate: '2019-02-15T10:00:55.374Z',
+            inclTaxesTpp: 14.4,
+            history: { fundingId: 'fund', careHours: 2, month: '02/2019', nature: 'hourly' },
+          },
+          {
+            event: '456',
+            auxiliary: '34567890',
+            startDate: '2019-02-16T08:00:55.374Z',
+            endDate: '2019-02-16T10:00:55.374Z',
+            inclTaxesTpp: 12,
+            history: { fundingId: 'lio', careHours: 4, month: '02/2019', nature: 'hourly' },
+          },
         ],
       }, {
         thirdPartyPayer: 'Papa',
@@ -299,8 +535,22 @@ describe('formatThirdPartyPayerBills', () => {
         inclTaxes: 11,
         hours: 5,
         eventsList: [
-          { event: '890', inclTaxesTpp: 45, history: { fundingId: 'fund', careHours: 4.5, month: '02/2019', nature: 'hourly' } },
-          { event: '736', inclTaxesTpp: 23, history: { fundingId: 'fund', careHours: 1, month: '03/2019', nature: 'hourly' } },
+          {
+            event: '890',
+            auxiliary: '34567890',
+            startDate: '2019-02-17T08:00:55.374Z',
+            endDate: '2019-02-17T10:00:55.374Z',
+            inclTaxesTpp: 45,
+            history: { fundingId: 'fund', careHours: 4.5, month: '02/2019', nature: 'hourly' },
+          },
+          {
+            event: '736',
+            auxiliary: '34567890',
+            startDate: '2019-02-18T08:00:55.374Z',
+            endDate: '2019-02-18T10:00:55.374Z',
+            inclTaxesTpp: 23,
+            history: { fundingId: 'fund', careHours: 1, month: '03/2019', nature: 'hourly' },
+          },
         ],
       }],
     }];
@@ -318,7 +568,20 @@ describe('formatThirdPartyPayerBills', () => {
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
         hours: 1.5,
-        events: ['123', '456'],
+        events: [
+          {
+            eventId: '123',
+            auxiliary: '34567890',
+            startDate: '2019-02-15T08:00:55.374Z',
+            endDate: '2019-02-15T10:00:55.374Z',
+          },
+          {
+            eventId: '456',
+            auxiliary: '34567890',
+            startDate: '2019-02-16T08:00:55.374Z',
+            endDate: '2019-02-16T10:00:55.374Z',
+          },
+        ],
         vat: 12,
       }, {
         subscription: 'fgh',
@@ -326,7 +589,20 @@ describe('formatThirdPartyPayerBills', () => {
         exclTaxes: 15,
         inclTaxes: 11,
         hours: 5,
-        events: ['890', '736'],
+        events: [
+          {
+            eventId: '890',
+            auxiliary: '34567890',
+            startDate: '2019-02-17T08:00:55.374Z',
+            endDate: '2019-02-17T10:00:55.374Z',
+          },
+          {
+            eventId: '736',
+            auxiliary: '34567890',
+            startDate: '2019-02-18T08:00:55.374Z',
+            endDate: '2019-02-18T10:00:55.374Z',
+          },
+        ],
         vat: 5.5,
       }],
     });
@@ -420,7 +696,7 @@ describe('formatPDF', () => {
         hours: 40,
         exclTaxes: 1018.009,
         inclTaxes: 1074,
-        service: 'Temps de qualité - autonomie'
+        service: { name: 'Temps de qualité - autonomie' },
       }],
       customer: {
         identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
@@ -495,7 +771,7 @@ describe('formatPDF', () => {
         hours: 40,
         exclTaxes: 1018.009,
         inclTaxes: 1074,
-        service: 'Temps de qualité - autonomie'
+        service: { name: 'Temps de qualité - autonomie' },
       }],
       customer: {
         identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
@@ -610,7 +886,7 @@ describe('exportBillsHistory', () => {
       client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
       subscriptions: [{
-        service: 'Temps de qualité - autonomie',
+        service: { name: 'Temps de qualité - autonomie' },
         hours: 20,
         exclTaxes: 389276.0208,
         inclTaxes: 410686.201944,
@@ -629,12 +905,12 @@ describe('exportBillsHistory', () => {
       client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
       netInclTaxes: 1057.1319439,
       subscriptions: [{
-        service: 'Forfait nuit',
+        service: { name: 'Forfait nuit' },
         hours: 15,
         exclTaxes: 700.0208,
         inclTaxes: 738.521944,
       }, {
-        service: 'Forfait nuit',
+        service: { name: 'Forfait nuit' },
         hours: 7,
         inclTaxes: 302,
         exclTaxes: 318.6099999,

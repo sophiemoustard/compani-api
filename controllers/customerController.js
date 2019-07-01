@@ -64,32 +64,32 @@ const listBySector = async (req) => {
   try {
     let query = { type: INTERVENTION, sector: { $in: req.query.sector } };
     if (req.query.startDate && req.query.endDate) {
-      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
-      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+      const startDate = moment(req.query.startDate).startOf('d').toDate();
+      const endDate = moment(req.query.endDate).endOf('d').toDate();
       query = {
         ...query,
         $or: [
-          { startDate: { $lte: searchEndDate, $gte: searchStartDate } },
-          { endDate: { $lte: searchEndDate, $gte: searchStartDate } },
-          { endDate: { $gte: searchEndDate }, startDate: { $lte: searchStartDate } },
+          { startDate: { $lte: endDate, $gte: startDate } },
+          { endDate: { $lte: endDate, $gte: startDate } },
+          { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
         ],
       };
     } else if (req.query.startDate && !req.query.endDate) {
-      const searchStartDate = moment(req.query.startDate, 'YYYYMMDD hh:mm').toDate();
+      const startDate = moment(req.query.startDate).startOf('d').toDate();
       query = {
         ...query,
         $or: [
-          { startDate: { $gte: searchStartDate } },
-          { endDate: { $gte: searchStartDate } },
+          { startDate: { $gte: startDate } },
+          { endDate: { $gte: startDate } },
         ],
       };
     } else if (req.query.endDate) {
-      const searchEndDate = moment(req.query.endDate, 'YYYYMMDD hh:mm').toDate();
+      const endDate = moment(req.query.endDate).endOf('d').toDate();
       query = {
         ...query,
         $or: [
-          { startDate: { $lte: searchEndDate } },
-          { endDate: { $lte: searchEndDate } },
+          { startDate: { $lte: endDate } },
+          { endDate: { $lte: endDate } },
         ],
       };
     }
@@ -168,7 +168,7 @@ const listWithBilledEvents = async (req) => {
         }
       },
       { $unwind: { path: '$sub.service' } },
-      { $group: { _id: { CUS: '$customer' }, subscriptions: { $push: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
+      { $group: { _id: { CUS: '$customer' }, subscriptions: { $addToSet: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
       {
         $project: {
           _id: '$_id.CUS._id',

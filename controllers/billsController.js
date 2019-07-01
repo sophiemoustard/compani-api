@@ -84,7 +84,7 @@ const generateBillPdf = async (req, h) => {
     const bill = await Bill.findOne({ _id: req.params._id, origin: COMPANI })
       .populate({ path: 'client', select: '_id name address' })
       .populate({ path: 'customer', select: '_id identity contact fundings' })
-      .populate({ path: 'subscriptions.events', populate: { path: 'auxiliary', select: 'identity' } })
+      .populate({ path: 'subscriptions.events.auxiliary', select: 'identity' })
       .lean();
 
     if (!bill) throw Boom.notFound('Bill not found');
