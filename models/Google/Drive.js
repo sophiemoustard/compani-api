@@ -64,7 +64,7 @@ exports.downloadFileById = async (params) => {
   const auth = jwtClient();
   await auth.authorize();
 
-  return new Promise(async (resolve, reject) => drive.files.get(
+  return new Promise((resolve, reject) => drive.files.get(
     { auth, fileId: `${params.fileId}`, alt: 'media' },
     { responseType: 'stream' },
     (err, res) => {
@@ -85,7 +85,7 @@ exports.list = async (params) => {
   const auth = jwtClient();
   await auth.authorize();
 
-  return new Promise(async (resolve, reject) => drive.files.list({
+  return new Promise((resolve, reject) => drive.files.list({
     auth,
     ...(params.folderId && { q: `'${params.folderId}' in parents and mimeType != 'application/vnd.google-apps.folder'` }),
     fields: 'nextPageToken, files(name, webViewLink, createdTime)',
