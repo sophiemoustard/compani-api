@@ -55,7 +55,7 @@ describe('formatSubscriptionData', () => {
     const result = BillHelper.formatSubscriptionData(bill);
     expect(result).toEqual(expect.objectContaining({
       subscription: 'asd',
-      service: { _id: '1234567890', nature: 'test', name: 'service' },
+      service: { serviceId: '1234567890', nature: 'test', name: 'service' },
       unitExclTaxes: 24.644549763033176,
       exclTaxes: 13.649289099526067,
       inclTaxes: 14.4,
