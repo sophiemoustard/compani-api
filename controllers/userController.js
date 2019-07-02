@@ -57,11 +57,10 @@ const create = async (req) => {
   try {
     req.payload.refreshToken = uuidv4();
     const user = new User(req.payload);
-    await user.saveByParams(_.pick(req.payload, ['role', 'company']));
-    const leanUser = user;
+    await user.save();
     const tasks = await Task.find({});
     const taskIds = tasks.map(task => ({ task: task._id }));
-    const populatedUser = await User.findOneAndUpdate({ _id: leanUser._id }, { $push: { procedure: { $each: taskIds } } }, { new: true });
+    const populatedUser = await User.findOneAndUpdate({ _id: user._id }, { $push: { procedure: { $each: taskIds } } }, { new: true });
     populatedUser.role.rights = populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
     const payload = {
       _id: populatedUser._id.toHexString(),
@@ -82,7 +81,7 @@ const create = async (req) => {
       return Boom.notFound(translate[language].roleNotFound);
     }
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

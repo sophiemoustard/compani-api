@@ -54,7 +54,7 @@ exports.plugin = {
               email: Joi.string().email().required(),
               password: Joi.string().required()
             },
-            role: Joi.string().required(),
+            role: Joi.objectId().required(),
             picture: Joi.object().keys({
               link: Joi.string()
             }),
@@ -95,7 +95,7 @@ exports.plugin = {
               })
             }),
             customers: Joi.array(),
-            company: Joi.string().required(),
+            company: Joi.objectId().required(),
           }).required()
         },
         auth: false

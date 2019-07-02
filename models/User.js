@@ -3,9 +3,9 @@ const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const moment = require('moment');
+const Boom = require('boom');
 
 const Role = require('./Role');
-const Company = require('./Company');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -185,36 +185,12 @@ const UserSchema = mongoose.Schema({
   toJSON: { virtuals: true },
 });
 
-async function saveByParams(params) {
-  const user = this;
-  try {
-    // Replace Role name by role ID
-    if (params.role) {
-      const role = await Role.findOne({ name: params.role });
-      if (!role) {
-        const noRoleErr = new Error();
-        noRoleErr.name = 'NoRole';
-        throw noRoleErr;
-      }
-      user.role = role._id;
-    }
-
-    if (params.company) {
-      const company = await Company.findOne({ name: params.company });
-      if (company) {
-        user.company = company._id;
-      }
-    }
-    const userSaved = await user.save();
-    return userSaved.toObject();
-  } catch (e) {
-    return Promise.reject(e);
-  }
-}
-
 async function save(next) {
   try {
     const user = this;
+    // Check role existence
+    const roleCount = await Role.countDocuments({ _id: user.role });
+    if (roleCount === 0) throw Boom.badRequest('Role does not exist');
     // Check email validity
     if (user.isModified('local.email')) {
       if (!validator.isEmail(user.local.email)) {
@@ -262,7 +238,7 @@ function setIsActive() {
 }
 
 UserSchema.virtual('isActive').get(setIsActive);
-UserSchema.methods.saveByParams = saveByParams;
+
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 
