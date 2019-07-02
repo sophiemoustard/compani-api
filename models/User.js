@@ -139,7 +139,6 @@ const UserSchema = mongoose.Schema({
       }
     }
   ],
-  isConstrained: Boolean,
   mobilePhone: String,
   emergencyPhone: String,
   mentor: String,
