@@ -134,7 +134,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.array().items(Joi.objectId()),
+            sector: Joi.objectId(),
             customers: Joi.objectId()
           },
         },
