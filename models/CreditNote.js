@@ -35,7 +35,7 @@ const CreditNoteSchema = mongoose.Schema({
     service: {
       serviceId: { type: mongoose.Schema.Types.ObjectId },
       nature: ServiceSchema.path('nature'),
-      name: { type: String },
+      name: String,
     },
     vat: Number,
     unitInclTaxes: Number,

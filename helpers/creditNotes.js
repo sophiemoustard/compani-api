@@ -1,6 +1,5 @@
 const moment = require('moment');
 const get = require('lodash/get');
-const map = require('lodash/map');
 const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
@@ -10,7 +9,7 @@ const { HOURLY } = require('./constants');
 
 exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
   const promises = [];
-  const events = await Event.find({ _id: { $in: map(eventsToUpdate, 'eventId') } });
+  const events = await Event.find({ _id: { $in: eventsToUpdate.map(ev => ev.eventId) } });
   for (const event of events) {
     if (event.bills.thirdPartyPayer) {
       if (event.bills.nature !== HOURLY) {
