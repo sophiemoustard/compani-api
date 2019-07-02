@@ -18,26 +18,21 @@ describe('NODE ENV', () => {
 });
 
 describe('USERS ROUTES', () => {
-  let authToken = null;
   before(populateRoles);
   before(populateCompanies);
   beforeEach(populateUsers);
-  beforeEach(async () => {
-    authToken = await getToken();
-  });
 
   describe('POST /users', () => {
     let res = null;
     let user = null;
     it('should not create a user if missing parameters', async () => {
-      const tmpRole = userPayload.role;
-      delete userPayload.role;
+      const payload = { ...userPayload };
+      delete payload.role;
       const response = await app.inject({
         method: 'POST',
         url: '/users',
-        payload: userPayload
+        payload,
       });
-      userPayload.role = tmpRole;
       expect(response.statusCode).toBe(400);
     });
     it('should create a user', async () => {
@@ -49,7 +44,7 @@ describe('USERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user).toEqual(expect.objectContaining({
         _id: expect.any(String),
-        role: expect.objectContaining({ name: userPayload.role })
+        role: expect.objectContaining({ name: rolesList[3].name })
       }));
       user = await User.findById(res.result.data.user._id);
       expect(user.firstname).toBe(userPayload.firstname);
@@ -59,13 +54,13 @@ describe('USERS ROUTES', () => {
       expect(user).toHaveProperty('picture');
     });
     it('should not create a user if role provided does not exist', async () => {
-      userPayload.role = 'Toto';
+      const payload = { ...userPayload, role: new ObjectID() };
       const response = await app.inject({
         method: 'POST',
         url: '/users',
-        payload: userPayload
+        payload,
       });
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(400);
     });
     it('should not create a user if email provided already exists', () => {
       const userPayload2 = {
@@ -75,15 +70,15 @@ describe('USERS ROUTES', () => {
         },
         local: {
           email: 'test1@alenvi.io',
-          password: '123456'
+          password: '123456',
         },
-        role: 'auxiliary'
+        role: new ObjectID(),
       };
       expect(async () => {
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: userPayload2
+          payload: userPayload2,
         });
         expect(response).toThrow('NoRole');
         expect(response.statusCode).toBe(409);
@@ -95,12 +90,12 @@ describe('USERS ROUTES', () => {
     it('should authenticate a user', async () => {
       const credentials = {
         email: 'test4@alenvi.io',
-        password: '123456'
+        password: '123456',
       };
       const response = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: credentials
+        payload: credentials,
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data).toEqual(expect.objectContaining({
@@ -116,12 +111,12 @@ describe('USERS ROUTES', () => {
     it('should authenticate a user if email has capitals', async () => {
       const credentials = {
         email: 'Test4@alenvi.io',
-        password: '123456'
+        password: '123456',
       };
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: credentials
+        payload: credentials,
       });
       expect(res.statusCode).toBe(200);
     });
@@ -175,6 +170,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users', () => {
+    let authToken = null;
+    beforeEach(async () => {
+      authToken = await getToken();
+    });
     it('should get all users', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -207,6 +206,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users/active', () => {
+    let authToken = null;
+    beforeEach(async () => {
+      authToken = await getToken();
+    });
     it('should get all active users', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -232,6 +235,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users/:id', () => {
+    let authToken = null;
+    beforeEach(async () => {
+      authToken = await getToken();
+    });
     it('should return user', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -246,7 +253,7 @@ describe('USERS ROUTES', () => {
           lastname: userList[0].identity.lastname,
         }),
         local: expect.objectContaining({ email: userList[0].local.email }),
-        role: expect.objectContaining({ name: userList[0].role })
+        role: expect.objectContaining({ name: rolesList[2].name })
       }));
     });
     it('should return a 404 error if no user found', async () => {
@@ -261,6 +268,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('PUT /users/:id/', () => {
+    let authToken = null;
+    beforeEach(async () => {
+      authToken = await getToken();
+    });
     it('should update the user', async () => {
       const updatePayload = {
         identity: {
@@ -306,6 +317,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('DELETE /users/:id', () => {
+    let authToken = null;
+    beforeEach(async () => {
+      authToken = await getToken();
+    });
     it('should delete a user by id', async () => {
       const res = await app.inject({
         method: 'DELETE',
