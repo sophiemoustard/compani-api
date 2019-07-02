@@ -163,7 +163,6 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            isConstrained: Joi.boolean(),
             facebook: Joi.object().keys({
               address: Joi.object()
             }),
