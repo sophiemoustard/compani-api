@@ -75,6 +75,11 @@ exports.plugin = {
                 }
               },
             }),
+            administrative: Joi.object().keys({
+              transportInvoice: Joi.object().keys({
+                transportType: Joi.string(),
+              }),
+            }),
             customers: Joi.array(),
             company: Joi.objectId().required(),
           }).required()
