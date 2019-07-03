@@ -97,7 +97,7 @@ const list = async (req) => {
     }
     const params = _.pickBy(req.query);
     // We populate the user with role data and then we populate the role with rights data
-    let users = await User.find(params, { planningModification: 0 }).populate({
+    let users = await User.find(params).populate({
       path: 'role',
       select: '-__v -createdAt -updatedAt',
       populate: {

@@ -96,22 +96,6 @@ const UserSchema = mongoose.Schema({
       }
     }
   },
-  planningModification: [
-    {
-      content: String,
-      involved: String,
-      createdAt: { type: Date, default: Date.now },
-      modificationType: String,
-      check: {
-        isChecked: { type: Boolean, default: false },
-        checkBy: {
-          type: mongoose.Schema.Types.ObjectId,
-          default: null
-        },
-        checkedAt: { type: Date, default: null }
-      }
-    }
-  ],
   mobilePhone: String,
   emergencyPhone: String,
   mentor: String,

@@ -16,10 +16,6 @@ exports.routes = [
     routes: { prefix: '/activation' }
   },
   {
-    plugin: require('./planningUpdates'),
-    routes: { prefix: '/planningUpdates' }
-  },
-  {
     plugin: require('./email'),
     routes: { prefix: '/email' }
   },

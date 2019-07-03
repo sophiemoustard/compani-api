@@ -37,12 +37,6 @@ module.exports = {
     messageNotFound: 'Message not found.',
     storeMessage: 'Message successfully stored.',
     messageRecipientAdded: 'Message recipient added successfully.',
-    /* Planning modifications */
-    planningModificationsFound: 'Planning modifications found.',
-    planningModificationsNotFound: 'Planning moddifications not found.',
-    planningModificationStored: 'Planning modification stored successfully.',
-    planningModificationUpdated: 'Planning modification updated successfully.',
-    planningModificationDeleted: 'Planning modification deleted successfully.',
     /* SMS */
     smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
@@ -282,12 +276,6 @@ module.exports = {
     messageNotFound: 'Message non trouvé.',
     storeMessage: 'Message enregistré avec succès.',
     messageRecipientUpdated: 'Destinataire message ajouté avec succès.',
-    /* Planning modifications */
-    planningModificationsFound: 'Modifications planning trouvées.',
-    planningModificationsNotFound: 'Pas de modifications planning.',
-    planningModificationStored: 'Modification planning enregistré avec succès.',
-    planningModificationUpdated: 'Modification planning mise a jour avec succès.',
-    planningModificationDeleted: 'Modification planning supprimée avec succès.',
     /* SMS */
     smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
