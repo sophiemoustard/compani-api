@@ -28,28 +28,6 @@ const UserSchema = mongoose.Schema({
     },
     password: String
   },
-  facebook: {
-    facebookId: String,
-    access_token: String,
-    email: String,
-    address: {
-      id: String,
-      channelId: String,
-      user: {
-        id: String,
-        name: String
-      },
-      conversation: {
-        isGroup: Boolean,
-        id: String
-      },
-      bot: {
-        id: String,
-        name: String
-      },
-      serviceUrl: String
-    }
-  },
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',

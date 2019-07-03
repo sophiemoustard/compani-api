@@ -9,7 +9,6 @@ const moment = require('moment');
 const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/roles');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
-const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
 const { createFolder } = require('../helpers/gdriveStorage');

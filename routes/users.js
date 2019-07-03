@@ -26,7 +26,6 @@ const {
 exports.plugin = {
   name: 'routes-users',
   register: async (server) => {
-    // Authenticate a user
     server.route({
       method: 'POST',
       path: '/authenticate',
@@ -41,7 +40,7 @@ exports.plugin = {
       },
       handler: authenticate
     });
-    // Create a user
+
     server.route({
       method: 'POST',
       path: '/',
@@ -103,7 +102,7 @@ exports.plugin = {
       },
       handler: create
     });
-    // Get all users
+
     server.route({
       method: 'GET',
       path: '/',
@@ -121,7 +120,6 @@ exports.plugin = {
       handler: list,
     });
 
-    // Get all active users
     server.route({
       method: 'GET',
       path: '/active',
@@ -139,7 +137,6 @@ exports.plugin = {
       handler: activeList,
     });
 
-    // Get user by id
     server.route({
       method: 'GET',
       path: '/{_id}',
@@ -148,7 +145,7 @@ exports.plugin = {
       },
       handler: show
     });
-    // Update user by id
+
     server.route({
       method: 'PUT',
       path: '/{_id}',
@@ -159,9 +156,6 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            facebook: Joi.object().keys({
-              address: Joi.object()
-            }),
             'local.email': Joi.string().email(), // bot special case
             local: {
               email: Joi.string().email(),
@@ -284,7 +278,7 @@ exports.plugin = {
       },
       handler: update
     });
-    // Update user certificates
+
     server.route({
       method: 'PUT',
       path: '/{_id}/certificates',
@@ -304,6 +298,7 @@ exports.plugin = {
       },
       handler: updateCertificates
     });
+
     server.route({
       method: 'PUT',
       path: '/{user_id}/tasks/{task_id}',
@@ -323,6 +318,7 @@ exports.plugin = {
       },
       handler: updateTask
     });
+
     server.route({
       method: 'GET',
       path: '/{_id}/tasks',
@@ -336,7 +332,7 @@ exports.plugin = {
       },
       handler: getUserTasks
     });
-    // Delete user by id
+
     server.route({
       method: 'DELETE',
       path: '/{_id}',
@@ -350,7 +346,7 @@ exports.plugin = {
       },
       handler: remove
     });
-    // Get users presentation
+
     server.route({
       method: 'GET',
       path: '/presentation',
@@ -365,7 +361,7 @@ exports.plugin = {
       },
       handler: getPresentation
     });
-    // Post refresh token
+
     server.route({
       method: 'POST',
       path: '/refreshToken',
@@ -420,9 +416,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' },
       }
     });
 
@@ -439,9 +433,7 @@ exports.plugin = {
             _id: Joi.objectId()
           })
         },
-        auth: {
-          strategy: 'jwt'
-        }
+        auth: { strategy: 'jwt' },
       },
       handler: createDriveFolder
     });
@@ -457,9 +449,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' },
       }
     });
   }
