@@ -16,24 +16,12 @@ exports.routes = [
     routes: { prefix: '/activation' }
   },
   {
-    plugin: require('./planningUpdates'),
-    routes: { prefix: '/planningUpdates' }
-  },
-  {
     plugin: require('./email'),
     routes: { prefix: '/email' }
   },
   {
-    plugin: require('./bot'),
-    routes: { prefix: '/bot' }
-  },
-  {
     plugin: require('./blog'),
     routes: { prefix: '/blog' }
-  },
-  {
-    plugin: require('./messageToBot'),
-    routes: { prefix: '/messageToBot' }
   },
   {
     plugin: require('./Google/drive'),

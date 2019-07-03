@@ -37,12 +37,6 @@ module.exports = {
     messageNotFound: 'Message not found.',
     storeMessage: 'Message successfully stored.',
     messageRecipientAdded: 'Message recipient added successfully.',
-    /* Planning modifications */
-    planningModificationsFound: 'Planning modifications found.',
-    planningModificationsNotFound: 'Planning moddifications not found.',
-    planningModificationStored: 'Planning modification stored successfully.',
-    planningModificationUpdated: 'Planning modification updated successfully.',
-    planningModificationDeleted: 'Planning modification deleted successfully.',
     /* SMS */
     smsNotSent: 'SMS not sent.',
     smsSent: 'SMS well sent.',
@@ -113,11 +107,6 @@ module.exports = {
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',
     contractVersionUpdated: 'Contract amendment updated.',
-    /* User absences */
-    userAbsencesFound: 'Contracts found.',
-    userAbsenceUpdated: 'Contract updated.',
-    userAbsenceAdded: 'Contract added.',
-    userAbsenceRemoved: 'Contract removed.',
     /* User tasks */
     userTasksFound: 'User tasks found',
 
@@ -282,12 +271,6 @@ module.exports = {
     messageNotFound: 'Message non trouvé.',
     storeMessage: 'Message enregistré avec succès.',
     messageRecipientUpdated: 'Destinataire message ajouté avec succès.',
-    /* Planning modifications */
-    planningModificationsFound: 'Modifications planning trouvées.',
-    planningModificationsNotFound: 'Pas de modifications planning.',
-    planningModificationStored: 'Modification planning enregistré avec succès.',
-    planningModificationUpdated: 'Modification planning mise a jour avec succès.',
-    planningModificationDeleted: 'Modification planning supprimée avec succès.',
     /* SMS */
     smsNotSent: 'SMS non envoyé.',
     smsSent: 'SMS bien envoyé.',
@@ -355,11 +338,6 @@ module.exports = {
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',
     contractVersionUpdated: 'Avenant au contrat modifié.',
-    /* User absences */
-    userAbsencesFound: "Absences de l'utilisateur trouvées.",
-    userAbsenceUpdated: "Absence de l'utilisateur mise à jour.",
-    userAbsenceAdded: "Absence de l'utilisateur ajoutée.",
-    userAbsenceRemoved: "Absence de l'utilisateur supprimée.",
     /* User tasks */
     userTasksFound: "Tâches de l'utilisateur trouvés",
     /* Customers */

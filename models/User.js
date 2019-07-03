@@ -13,14 +13,8 @@ const SALT_WORK_FACTOR = 10;
 const UserSchema = mongoose.Schema({
   refreshToken: String,
   resetPassword: {
-    token: {
-      type: String,
-      default: null
-    },
-    expiresIn: {
-      type: Date,
-      default: null
-    },
+    token: { type: String, default: null },
+    expiresIn: { type: Date, default: null },
     from: String
   },
   local: {
@@ -34,32 +28,6 @@ const UserSchema = mongoose.Schema({
     },
     password: String
   },
-  facebook: {
-    facebookId: String,
-    access_token: String,
-    email: String,
-    address: {
-      id: String,
-      channelId: String,
-      user: {
-        id: String,
-        name: String
-      },
-      conversation: {
-        isGroup: Boolean,
-        id: String
-      },
-      bot: {
-        id: String,
-        name: String
-      },
-      serviceUrl: String
-    }
-  },
-  slack: {
-    slackId: String,
-    email: String
-  },
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
@@ -68,27 +36,15 @@ const UserSchema = mongoose.Schema({
       maxDepth: 3
     }
   },
-  employee_id: {
-    type: Number,
-    trim: true
-  },
+  employee_id: { type: Number, trim: true },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
-    link: {
-      type: String,
-      trim: true
-    },
-    location: {
-      type: [String],
-      trim: true
-    }
+    link: { type: String, trim: true },
+    location: { type: [String], trim: true },
   },
   picture: {
     publicId: String,
-    link: {
-      type: String,
-      trim: true
-    }
+    link: { type: String, trim: true }
   },
   identity: {
     title: String,
@@ -114,58 +70,17 @@ const UserSchema = mongoose.Schema({
       }
     }
   },
-  planningModification: [
-    {
-      content: String,
-      involved: String,
-      createdAt: {
-        type: Date,
-        default: Date.now
-      },
-      modificationType: String,
-      check: {
-        isChecked: {
-          type: Boolean,
-          default: false
-        },
-        checkBy: {
-          type: mongoose.Schema.Types.ObjectId,
-          default: null
-        },
-        checkedAt: {
-          type: Date,
-          default: null
-        }
-      }
-    }
-  ],
   mobilePhone: String,
   emergencyPhone: String,
   mentor: String,
-  contracts: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Contract',
-  }],
+  contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   administrative: {
-    driveFolder: {
-      id: String,
-      link: String
-    },
-    endorsement: {
-      type: Boolean,
-      default: false
-    },
+    driveFolder: { id: String, link: String },
     signup: {
       firstSmsDate: Date,
       secondSmsDate: Date,
-      step: {
-        type: String,
-        default: 'first'
-      },
-      complete: {
-        type: Boolean,
-        default: false
-      }
+      step: { type: String, default: 'first' },
+      complete: { type: Boolean, default: false }
     },
     payment: {
       rib: {
@@ -238,15 +153,6 @@ const UserSchema = mongoose.Schema({
       name: String,
       phoneNumber: String
     },
-    absences: [{
-      startDate: Date,
-      endDate: Date,
-      startDuration: String,
-      endDuration: String,
-      reason: String,
-      driveId: String,
-      link: String
-    }]
   },
   procedure: [{
     task: {
@@ -258,31 +164,11 @@ const UserSchema = mongoose.Schema({
       }
     },
     check: {
-      isDone: {
-        type: Boolean,
-        default: false
-      },
-      at: {
-        type: Date,
-        default: null
-      }
+      isDone: { type: Boolean, default: false },
+      at: { type: Date, default: null }
     }
   }],
-  isConfirmed: {
-    type: Boolean,
-    default: false
-  },
-  historyChanges: [{
-    updatedFields: [{
-      name: String,
-      value: String
-    }],
-    date: {
-      type: Date,
-      default: null
-    },
-    by: String
-  }],
+  isConfirmed: { type: Boolean, default: false },
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
@@ -298,22 +184,6 @@ const UserSchema = mongoose.Schema({
   toObject: { virtuals: true },
   toJSON: { virtuals: true },
 });
-// timestamps allows the db to automatically create 'created_at' and 'updated_at' fields
-
-async function findUserAddressByEmployeeId(id) {
-  try {
-    const user = this;
-    const filter = {
-      employee_id: id,
-      'facebook.address': {
-        $exists: true
-      }
-    };
-    return await user.findOne(filter, { 'facebook.address': 1 });
-  } catch (e) {
-    return Promise.reject(e);
-  }
-}
 
 async function saveByParams(params) {
   const user = this;
@@ -392,8 +262,6 @@ function setIsActive() {
 }
 
 UserSchema.virtual('isActive').get(setIsActive);
-
-UserSchema.statics.findUserAddressByEmployeeId = findUserAddressByEmployeeId;
 UserSchema.methods.saveByParams = saveByParams;
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);

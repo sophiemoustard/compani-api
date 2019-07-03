@@ -9,7 +9,6 @@ const moment = require('moment');
 const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/roles');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
-const { userUpdateTracking } = require('../helpers/userUpdateTracking');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
 const { createFolder } = require('../helpers/gdriveStorage');
@@ -184,9 +183,7 @@ const update = async (req) => {
 const updateCertificates = async (req) => {
   try {
     delete req.payload._id;
-    const trackingPayload = userUpdateTracking(req.auth.credentials._id, req.payload);
-    // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload, $push: { historyChanges: trackingPayload } }, { new: true });
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload }, { new: true });
     if (!userUpdated) return Boom.notFound(translate[language].userNotFound);
 
     if (userUpdated.role && userUpdated.role.rights.length > 0) {
@@ -381,7 +378,6 @@ const uploadFile = async (req) => {
       'mutualFund',
       'vitalCard',
       'medicalCertificate',
-      'absenceReason',
     ];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) {
@@ -459,102 +455,6 @@ const createDriveFolder = async (req) => {
   }
 };
 
-const getUserAbsences = async (req) => {
-  try {
-    const user = await User.findOne(
-      { _id: req.params._id, 'administrative.absences': { $exists: true } },
-      { identity: 1, 'administrative.absences': 1 },
-      { autopopulate: false }
-    ).lean();
-    if (!user) return Boom.notFound();
-
-    return {
-      message: translate[language].userAbsencesFound,
-      data: {
-        user: _.pick(user, ['_id', 'identity']),
-        absences: user.administrative.absences
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const updateUserAbsence = async (req) => {
-  try {
-    const payload = { 'administrative.absences.$': { ...req.payload } };
-    const absenceUpdated = await User.findOneAndUpdate(
-      { _id: req.params._id, 'administrative.absences._id': req.params.absenceId },
-      { $set: flat(payload) },
-      {
-        new: true,
-        select: {
-          identity: 1,
-          'administrative.absences': 1
-        }
-      }
-    ).lean();
-    if (!absenceUpdated) return Boom.notFound(translate[language].absenceNotFound);
-
-    return {
-      message: translate[language].userAbsenceUpdated,
-      data: {
-        user: _.pick(absenceUpdated, ['_id', 'identity']),
-        absences: absenceUpdated.administrative.absences.find(absence => absence._id.toHexString() === req.params.absenceId)
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const createUserAbsence = async (req) => {
-  try {
-    const newAbsence = await User.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { 'administrative.absences': req.payload } },
-      {
-        new: true,
-        select: { identity: 1, 'administrative.absences': 1 },
-        autopopulate: false
-      }
-    );
-
-    return {
-      message: translate[language].userAbsenceAdded,
-      data: {
-        user: _.pick(newAbsence, ['_id', 'identity']),
-        absence: newAbsence.administrative.absences.find(absence => absence.reason === req.payload.reason)
-      }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const removeUserAbsence = async (req) => {
-  try {
-    await User.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: { 'administrative.absences': { _id: req.params.absenceId } } },
-      {
-        select: { identity: 1, administrative: 1 },
-        autopopulate: false
-      }
-    );
-
-    return {
-      message: translate[language].userAbsenceRemoved
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
 module.exports = {
   authenticate,
   create,
@@ -573,8 +473,4 @@ module.exports = {
   uploadFile,
   uploadImage,
   createDriveFolder,
-  getUserAbsences,
-  updateUserAbsence,
-  createUserAbsence,
-  removeUserAbsence,
 };
