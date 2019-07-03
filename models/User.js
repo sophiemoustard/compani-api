@@ -98,7 +98,6 @@ const UserSchema = mongoose.Schema({
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   administrative: {
     driveFolder: { id: String, link: String },
-    endorsement: { type: Boolean, default: false },
     signup: {
       firstSmsDate: Date,
       secondSmsDate: Date,
