@@ -48,7 +48,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             mobilePhone: Joi.string(),
-            emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             local: {
               email: Joi.string().email().required(),
@@ -62,12 +61,6 @@ exports.plugin = {
               firstname: Joi.string(),
               lastname: Joi.string(),
               title: Joi.string(),
-              nationality: Joi.string(),
-              birthDate: Joi.date(),
-              birthContry: Joi.string(),
-              birthState: Joi.string(),
-              birthCity: Joi.string(),
-              socialSecurityNumber: Joi.number()
             }),
             contact: Joi.object().keys({
               address: {
@@ -81,18 +74,6 @@ exports.plugin = {
                   coordinates: Joi.array()
                 }
               },
-            }),
-            administrative: Joi.object().keys({
-              signup: Joi.object().keys({
-                firstSmsDate: Joi.string()
-              }),
-              emergencyContact: Joi.object().keys({
-                name: Joi.string(),
-                phoneNumber: Joi.string()
-              }),
-              transportInvoice: Joi.object().keys({
-                transportType: Joi.string()
-              })
             }),
             customers: Joi.array(),
             company: Joi.objectId().required(),
