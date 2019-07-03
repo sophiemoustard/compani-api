@@ -9,6 +9,7 @@ const { populateCreditNotes, creditNotesList } = require('./seed/creditNotesSeed
 const { populateEvents, eventsList } = require('./seed/eventsSeed');
 const { populateCustomers, customersList } = require('./seed/customersSeed');
 const { populateServices, servicesList } = require('./seed/servicesSeed');
+const { FIXED } = require('../../helpers/constants');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -34,10 +35,23 @@ describe('CREDIT NOTES ROUTES', () => {
       customer: customersList[0]._id,
       exclTaxesCustomer: 100,
       inclTaxesCustomer: 112,
-      events: [eventsList[0]._id],
+      events: [{
+        eventId: eventsList[0]._id,
+        auxiliary: eventsList[0].auxiliary,
+        startDate: eventsList[0].startDate,
+        endDate: eventsList[0].endDate,
+        bills: {
+          inclTaxesCustomer: 10,
+          exclTaxesCustomer: 8,
+        }
+      }],
       subscription: {
         _id: new ObjectID(),
-        service: servicesList[0].versions[0].name,
+        service: {
+          serviceId: new ObjectID(),
+          nature: FIXED,
+          name: servicesList[0].versions[0].name,
+        },
         vat: servicesList[0].versions[0].vat
       },
     };

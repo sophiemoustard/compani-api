@@ -14,7 +14,16 @@ const creditNotesList = [
     customer: customersList[0]._id,
     exclTaxes: 100,
     inclTaxes: 112,
-    events: [eventsList[2]._id],
+    events: [{
+      eventId: eventsList[2]._id,
+      auxiliary: eventsList[2].auxiliary,
+      startDate: eventsList[2].startDate,
+      endDate: eventsList[2].endDate,
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
+      },
+    }],
     origin: 'compani',
   },
 ];

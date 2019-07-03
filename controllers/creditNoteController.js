@@ -21,7 +21,6 @@ const list = async (req) => {
     const creditNotes = await CreditNote.find(query)
       .populate({ path: 'customer', select: '_id identity subscriptions', populate: { path: 'subscriptions.service' } })
       .populate({ path: 'thirdPartyPayer', select: '_id name' })
-      .populate('events')
       .lean();
 
     for (let i = 0, l = creditNotes.length; i < l; i++) {
@@ -132,7 +131,7 @@ const generateCreditNotePdf = async (req, h) => {
     const creditNote = await CreditNote.findOne({ _id: req.params._id })
       .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service' } })
       .populate({ path: 'thirdPartyPayer', select: '_id name address' })
-      .populate({ path: 'events', populate: { path: 'auxiliary', select: 'identity' } })
+      .populate({ path: 'events.auxiliary', select: 'identity' })
       .lean();
 
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);

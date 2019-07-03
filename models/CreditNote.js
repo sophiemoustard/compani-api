@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const { COMPANI, OGUST } = require('../helpers/constants');
 
+const ServiceSchema = require('./Service').schema;
+
 const CreditNoteSchema = mongoose.Schema({
   number: String,
   date: Date,
@@ -13,12 +15,28 @@ const CreditNoteSchema = mongoose.Schema({
   exclTaxesTpp: Number,
   inclTaxesTpp: Number,
   events: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Event',
+    eventId: { type: mongoose.Schema.Types.ObjectId },
+    auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    bills: {
+      inclTaxesCustomer: Number,
+      exclTaxesCustomer: Number,
+      thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
+      inclTaxesTpp: Number,
+      exclTaxesTpp: Number,
+      fundingVersion: { type: mongoose.Schema.Types.ObjectId },
+      nature: String,
+      careHours: Number,
+    },
   }],
   subscription: {
     _id: { type: mongoose.Schema.Types.ObjectId },
-    service: String,
+    service: {
+      serviceId: { type: mongoose.Schema.Types.ObjectId },
+      nature: ServiceSchema.path('nature'),
+      name: String,
+    },
     vat: Number,
     unitInclTaxes: Number,
   },

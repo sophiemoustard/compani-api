@@ -9,7 +9,7 @@ const { HOURLY } = require('./constants');
 
 exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
   const promises = [];
-  const events = await Event.find({ _id: { $in: eventsToUpdate } });
+  const events = await Event.find({ _id: { $in: eventsToUpdate.map(ev => ev.eventId) } });
   for (const event of events) {
     if (event.bills.thirdPartyPayer) {
       if (event.bills.nature !== HOURLY) {
