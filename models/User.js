@@ -13,14 +13,8 @@ const SALT_WORK_FACTOR = 10;
 const UserSchema = mongoose.Schema({
   refreshToken: String,
   resetPassword: {
-    token: {
-      type: String,
-      default: null
-    },
-    expiresIn: {
-      type: Date,
-      default: null
-    },
+    token: { type: String, default: null },
+    expiresIn: { type: Date, default: null },
     from: String
   },
   local: {
@@ -68,27 +62,15 @@ const UserSchema = mongoose.Schema({
       maxDepth: 3
     }
   },
-  employee_id: {
-    type: Number,
-    trim: true
-  },
+  employee_id: { type: Number, trim: true },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
-    link: {
-      type: String,
-      trim: true
-    },
-    location: {
-      type: [String],
-      trim: true
-    }
+    link: { type: String, trim: true },
+    location: { type: [String], trim: true },
   },
   picture: {
     publicId: String,
-    link: {
-      type: String,
-      trim: true
-    }
+    link: { type: String, trim: true }
   },
   identity: {
     title: String,
@@ -118,54 +100,30 @@ const UserSchema = mongoose.Schema({
     {
       content: String,
       involved: String,
-      createdAt: {
-        type: Date,
-        default: Date.now
-      },
+      createdAt: { type: Date, default: Date.now },
       modificationType: String,
       check: {
-        isChecked: {
-          type: Boolean,
-          default: false
-        },
+        isChecked: { type: Boolean, default: false },
         checkBy: {
           type: mongoose.Schema.Types.ObjectId,
           default: null
         },
-        checkedAt: {
-          type: Date,
-          default: null
-        }
+        checkedAt: { type: Date, default: null }
       }
     }
   ],
   mobilePhone: String,
   emergencyPhone: String,
   mentor: String,
-  contracts: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Contract',
-  }],
+  contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   administrative: {
-    driveFolder: {
-      id: String,
-      link: String
-    },
-    endorsement: {
-      type: Boolean,
-      default: false
-    },
+    driveFolder: { id: String, link: String },
+    endorsement: { type: Boolean, default: false },
     signup: {
       firstSmsDate: Date,
       secondSmsDate: Date,
-      step: {
-        type: String,
-        default: 'first'
-      },
-      complete: {
-        type: Boolean,
-        default: false
-      }
+      step: { type: String, default: 'first' },
+      complete: { type: Boolean, default: false }
     },
     payment: {
       rib: {
@@ -258,29 +216,17 @@ const UserSchema = mongoose.Schema({
       }
     },
     check: {
-      isDone: {
-        type: Boolean,
-        default: false
-      },
-      at: {
-        type: Date,
-        default: null
-      }
+      isDone: { type: Boolean, default: false },
+      at: { type: Date, default: null }
     }
   }],
-  isConfirmed: {
-    type: Boolean,
-    default: false
-  },
+  isConfirmed: { type: Boolean, default: false },
   historyChanges: [{
     updatedFields: [{
       name: String,
       value: String
     }],
-    date: {
-      type: Date,
-      default: null
-    },
+    date: { type: Date, default: null },
     by: String
   }],
   company: {
