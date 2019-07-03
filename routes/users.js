@@ -21,10 +21,6 @@ const {
   uploadFile,
   uploadImage,
   createDriveFolder,
-  getUserAbsences,
-  updateUserAbsence,
-  createUserAbsence,
-  removeUserAbsence
 } = require('../controllers/userController');
 
 exports.plugin = {
@@ -465,76 +461,6 @@ exports.plugin = {
           strategy: 'jwt',
         }
       }
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/absences',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId()
-          },
-        },
-        auth: { strategy: 'jwt' }
-      },
-      handler: getUserAbsences
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}/absences/{absenceId}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            absenceId: Joi.objectId().required()
-          },
-          payload: {
-            startDate: Joi.date(),
-            endDate: Joi.date(),
-            reason: Joi.string()
-          },
-        },
-        auth: { strategy: 'jwt' }
-      },
-      handler: updateUserAbsence
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/absences',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-          payload: Joi.object().keys({
-            startDate: Joi.date().required(),
-            startDuration: Joi.string().required(),
-            endDuration: Joi.string().allow('', null),
-            endDate: Joi.date().required(),
-            reason: Joi.string().required()
-          })
-        },
-        auth: { strategy: 'jwt' }
-      },
-      handler: createUserAbsence
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}/absences/{absenceId}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            absenceId: Joi.objectId().required()
-          },
-        },
-        auth: { strategy: 'jwt' }
-      },
-      handler: removeUserAbsence
     });
   }
 };

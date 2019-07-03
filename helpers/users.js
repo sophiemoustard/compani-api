@@ -52,16 +52,6 @@ const saveCertificateDriveId = async (userId, fileInfo) => {
   );
 };
 
-const saveAbscenceFile = async (userId, absenceId, fileInfo) => {
-  const payload = { 'administrative.absences.$': fileInfo };
-
-  await User.findOneAndUpdate(
-    { _id: userId, 'administrative.absences._id': absenceId },
-    { $set: flat(payload) },
-    { new: true }
-  );
-};
-
 const saveFile = async (userId, administrativeKeys, fileInfo) => {
   const payload = { administrative: { [administrativeKeys[0]]: fileInfo } };
 
@@ -80,8 +70,6 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
   const file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
   if (administrativeKeys[0] === 'certificates') {
     await saveCertificateDriveId(params._id, file);
-  } else if (administrativeKeys[0] === 'absenceReason') {
-    await saveAbscenceFile(params._id, payload.absenceId, file);
   } else {
     await saveFile(params._id, administrativeKeys, file);
   }

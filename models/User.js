@@ -176,15 +176,6 @@ const UserSchema = mongoose.Schema({
       name: String,
       phoneNumber: String
     },
-    absences: [{
-      startDate: Date,
-      endDate: Date,
-      startDuration: String,
-      endDuration: String,
-      reason: String,
-      driveId: String,
-      link: String
-    }]
   },
   procedure: [{
     task: {
