@@ -188,10 +188,10 @@ const UserSchema = mongoose.Schema({
 async function save(next) {
   try {
     const user = this;
-    // Check role existence
+
     const roleCount = await Role.countDocuments({ _id: user.role });
     if (roleCount === 0) throw Boom.badRequest('Role does not exist');
-    // Check email validity
+
     if (user.isModified('local.email')) {
       if (!validator.isEmail(user.local.email)) {
         const error = new Error();
@@ -199,14 +199,12 @@ async function save(next) {
         return next(error);
       }
     }
-    // Check if password is modified, then encrypt it thanks to bcrypt
+
     if (!user.isModified('local.password')) return next();
-    // Gen salt
     const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
-    // Hash password
     const hash = await bcrypt.hash(user.local.password, salt);
-    // Store password
     user.local.password = hash;
+
     return next();
   } catch (e) {
     return next(e);
@@ -215,16 +213,12 @@ async function save(next) {
 
 async function findOneAndUpdate(next) {
   try {
-    // Use mongoDB string dot notation to get update password
     const password = this.getUpdate().$set['local.password'];
     if (!password) {
       return next();
     }
-    // Gen salt
     const salt = await bcrypt.genSalt(SALT_WORK_FACTOR);
-    // Hash password
     const hash = await bcrypt.hash(password, salt);
-    // Store password using dot notation
     this.getUpdate().$set['local.password'] = hash;
 
     return next();
