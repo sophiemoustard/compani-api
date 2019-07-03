@@ -80,7 +80,6 @@ const getUserByParamId = async (req) => {
       sector: user.sector,
       administrative: user.administrative,
       createdAt: user.createdAt,
-      slack: user.slack,
       token: alenviToken
     };
     return { message: translate[language].userFound, data: { user: payload } };

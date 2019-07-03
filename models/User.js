@@ -50,10 +50,6 @@ const UserSchema = mongoose.Schema({
       serviceUrl: String
     }
   },
-  slack: {
-    slackId: String,
-    email: String
-  },
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
