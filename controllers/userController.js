@@ -184,9 +184,7 @@ const update = async (req) => {
 const updateCertificates = async (req) => {
   try {
     delete req.payload._id;
-    const trackingPayload = userUpdateTracking(req.auth.credentials._id, req.payload);
-    // Have to update using flat package because of mongoDB object dot notation, or it'll update the whole 'local' object (not partially, so erase "email" for example if we provide only "password")
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload, $push: { historyChanges: trackingPayload } }, { new: true });
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload }, { new: true });
     if (!userUpdated) return Boom.notFound(translate[language].userNotFound);
 
     if (userUpdated.role && userUpdated.role.rights.length > 0) {

@@ -192,14 +192,6 @@ const UserSchema = mongoose.Schema({
     }
   }],
   isConfirmed: { type: Boolean, default: false },
-  historyChanges: [{
-    updatedFields: [{
-      name: String,
-      value: String
-    }],
-    date: { type: Date, default: null },
-    by: String
-  }],
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',

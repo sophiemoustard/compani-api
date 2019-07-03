@@ -30,11 +30,7 @@ const getUsers = async (query) => {
 
   const params = _.pickBy(query);
   return User
-    .find(
-      params,
-      { historyChanges: 0 },
-      { autopopulate: false }
-    )
+    .find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'company', select: 'auxiliariesConfig' })
