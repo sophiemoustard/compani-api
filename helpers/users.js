@@ -9,7 +9,7 @@ const translate = require('./translate');
 const { addFile } = require('./gdriveStorage');
 const { nationalities } = require('../data/nationalities.js');
 const { countries } = require('../data/countries');
-const { HELPER, AUXILIARY } = require('./constants.js');
+const { HELPER, AUXILIARY, PLANNING_REFERENT } = require('./constants.js');
 
 const { language } = translate;
 
@@ -94,8 +94,9 @@ const exportHelpers = async () => {
 };
 
 const exportAuxiliaries = async () => {
-  const role = await Role.findOne({ name: AUXILIARY });
-  const auxiliaries = await User.find({ role: role._id }).populate('sector');
+  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
+  const roleIds = roles.map(role => role._id);
+  const auxiliaries = await User.find({ role: { $in: roleIds } }).populate('sector');
   const data = [['Email', 'Secteur', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance', 'Departement de naissance',
     'Ville de naissance', 'Nationalité', 'N° de sécurité socile', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Date d\'inactivité',
     'Date de création']];
