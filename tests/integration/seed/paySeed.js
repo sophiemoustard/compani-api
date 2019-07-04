@@ -33,7 +33,7 @@ const user = {
   _id: new ObjectID(),
   local: { email: 'test4@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: 'tech',
+  role: roles[0]._id,
   inactivityDate: '2018-11-01T12:52:27.461Z',
 };
 
@@ -43,7 +43,7 @@ const auxiliary1 = {
   local: { email: 'test7@alenvi.io', password: '123456' },
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: 'auxiliary',
+  role: roles[1]._id,
   contracts: contractId1,
   sector: sectorId,
 };
@@ -54,7 +54,7 @@ const auxiliary2 = {
   local: { email: 'test8@alenvi.io', password: '123456' },
   employee_id: 12345679,
   refreshToken: uuidv4(),
-  role: 'auxiliary',
+  role: roles[1]._id,
   contracts: contractId2,
   sector: sectorId,
 };
@@ -179,9 +179,9 @@ const populateDB = async () => {
   await Pay.deleteMany({});
 
   await Role.insertMany(roles);
-  await (new User(user)).saveByParams({ role: user.role });
-  await (new User(auxiliary1)).saveByParams({ role: auxiliary1.role });
-  await (new User(auxiliary2)).saveByParams({ role: auxiliary2.role });
+  await (new User(user)).save();
+  await (new User(auxiliary1)).save();
+  await (new User(auxiliary2)).save();
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();

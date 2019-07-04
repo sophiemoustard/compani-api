@@ -5,13 +5,14 @@ const User = require('../../../models/User');
 const app = require('../../../server');
 const { sectorsList } = require('./sectorsSeed');
 const { companiesList } = require('./companiesSeed');
+const { rolesList } = require('./rolesSeed');
 
 const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Test2', lastname: 'Test2' },
     local: { email: 'test2@alenvi.io', password: '123456' },
-    role: 'coach',
+    role: rolesList[2]._id,
     inactivityDate: null,
   },
   {
@@ -21,8 +22,8 @@ const userList = [
     employee_id: 12345678,
     sector: sectorsList[0]._id,
     refreshToken: uuidv4(),
-    company: companiesList[0].name,
-    role: 'tech',
+    company: companiesList[0]._id,
+    role: rolesList[0]._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -30,7 +31,7 @@ const userList = [
     identity: { firstname: 'Test5', lastname: 'Test5' },
     local: { email: 'test5@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: 'tech',
+    role: rolesList[0]._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -39,7 +40,7 @@ const userList = [
     local: { email: 'test6@alenvi.io', password: '123456' },
     employee_id: 12345678,
     refreshToken: uuidv4(),
-    role: 'auxiliary',
+    role: rolesList[3]._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -49,7 +50,7 @@ const userList = [
     inactivityDate: null,
     employee_id: 12345678,
     refreshToken: uuidv4(),
-    role: 'auxiliary',
+    role: rolesList[3]._id,
     contracts: [new ObjectID()],
   }
 ];
@@ -57,17 +58,17 @@ const userList = [
 const userPayload = {
   identity: { firstname: 'Test', lastname: 'Test' },
   local: { email: 'test1@alenvi.io', password: '123456' },
-  role: 'auxiliary',
-  company: companiesList[0].name,
+  role: rolesList[3]._id,
+  company: companiesList[0]._id,
 };
 
 const populateUsers = async () => {
   await User.deleteMany({});
-  await new User(userList[0]).saveByParams({ role: userList[0].role });
-  await new User(userList[1]).saveByParams({ role: userList[1].role, company: userList[1].company });
-  await new User(userList[2]).saveByParams({ role: userList[2].role });
-  await new User(userList[3]).saveByParams({ role: userList[3].role });
-  await new User(userList[4]).saveByParams({ role: userList[4].role });
+  await new User(userList[0]).save();
+  await new User(userList[1]).save();
+  await new User(userList[2]).save();
+  await new User(userList[3]).save();
+  await new User(userList[4]).save();
 };
 
 const getToken = async () => {
