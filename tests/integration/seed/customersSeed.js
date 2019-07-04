@@ -20,7 +20,6 @@ const customersList = [
       lastname: faker.name.lastName(),
       birthDate: faker.date.past()
     },
-    sectors: ['1e*'],
     contact: {
       address: {
         street: faker.address.streetAddress(),
@@ -126,7 +125,6 @@ const customersList = [
       lastname: faker.name.lastName(),
       birthDate: faker.date.past()
     },
-    sectors: ['1e*'],
     contact: {
       address: {
         street: faker.address.streetAddress(),
@@ -160,7 +158,6 @@ const customersList = [
       lastname: faker.name.lastName(),
       birthDate: faker.date.past()
     },
-    sectors: ['1e*'],
     contact: {
       address: {
         street: faker.address.streetAddress(),

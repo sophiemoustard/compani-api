@@ -25,17 +25,9 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const {
-      lastname,
-      firstname,
-      ...payload
-    } = req.query;
-    if (lastname) payload['identity.lastname'] = { $regex: lastname, $options: 'i' };
-    if (firstname) payload['identity.firstname'] = { $regex: firstname, $options: 'i' };
-    if (req.query.sectors && Array.isArray(req.query.sectors)) payload.sectors = { $in: req.query.sectors };
-    if (req.query.subscriptions) payload.subscriptions = { $exists: true, $not: { $size: 0 } };
+    if (req.query.subscriptions) req.query.subscriptions = { $exists: true, $not: { $size: 0 } };
 
-    const customers = await Customer.find(payload)
+    const customers = await Customer.find(req.query)
       .populate('subscriptions.service')
       .lean();
     if (customers.length === 0) {
