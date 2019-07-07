@@ -40,7 +40,7 @@ describe('CREDIT NOTES ROUTES', () => {
         auxiliary: eventsList[2].auxiliary,
         startDate: eventsList[2].startDate,
         endDate: eventsList[2].endDate,
-        subscription: eventsList[2].subscription,
+        serviceName: 'toto',
         bills: {
           inclTaxesCustomer: 10,
           exclTaxesCustomer: 8,
