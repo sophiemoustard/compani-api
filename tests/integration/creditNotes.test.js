@@ -36,10 +36,11 @@ describe('CREDIT NOTES ROUTES', () => {
       exclTaxesCustomer: 100,
       inclTaxesCustomer: 112,
       events: [{
-        eventId: eventsList[0]._id,
-        auxiliary: eventsList[0].auxiliary,
-        startDate: eventsList[0].startDate,
-        endDate: eventsList[0].endDate,
+        eventId: eventsList[2]._id,
+        auxiliary: eventsList[2].auxiliary,
+        startDate: eventsList[2].startDate,
+        endDate: eventsList[2].endDate,
+        subscription: eventsList[2].subscription,
         bills: {
           inclTaxesCustomer: 10,
           exclTaxesCustomer: 8,

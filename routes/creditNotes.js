@@ -37,6 +37,7 @@ exports.plugin = {
             events: Joi.array().items(Joi.object().keys({
               eventId: Joi.objectId().required(),
               auxiliary: Joi.objectId().required(),
+              serviceName: Joi.string().required(),
               startDate: Joi.date().required(),
               endDate: Joi.date().required(),
               bills: Joi.object().keys({
@@ -132,6 +133,7 @@ exports.plugin = {
             events: Joi.array().items(Joi.object().keys({
               eventId: Joi.objectId().required(),
               auxiliary: Joi.objectId().required(),
+              serviceName: Joi.string().required(),
               startDate: Joi.date().required(),
               endDate: Joi.date().required(),
               bills: Joi.object().keys({
