@@ -253,7 +253,9 @@ describe('formatPDF', () => {
     const creditNote = {
       number: 1,
       subscription: {
-        service: 'service',
+        service: {
+          name: 'service',
+        },
         unitInclTaxes: 12,
       },
       customer: {
