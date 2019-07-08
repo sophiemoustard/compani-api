@@ -7,6 +7,7 @@ const Boom = require('boom');
 
 const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
+const locationSchemaDefinition = require('./schemaDefinitions/location');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -62,10 +63,7 @@ const UserSchema = mongoose.Schema({
     address: {
       ...addressSchemaDefinition,
       additionalAddress: String,
-      location: {
-        type: { type: String },
-        coordinates: [Number]
-      }
+      location: locationSchemaDefinition,
     }
   },
   mobilePhone: String,

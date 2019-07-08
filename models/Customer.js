@@ -8,6 +8,7 @@ const {
 } = require('../helpers/constants');
 const Event = require('./Event');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
+const locationSchemaDefinition = require('./schemaDefinitions/location');
 
 
 const CustomerSchema = mongoose.Schema({
@@ -27,10 +28,7 @@ const CustomerSchema = mongoose.Schema({
     address: {
       ...addressSchemaDefinition,
       additionalAddress: String,
-      location: {
-        type: { type: String },
-        coordinates: [Number]
-      }
+      location: locationSchemaDefinition,
     },
     phone: String,
     doorCode: String,
