@@ -8,6 +8,7 @@ const Boom = require('boom');
 const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
+const identitySchemaDefinition = require('./schemaDefinitions/identity');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -49,11 +50,8 @@ const UserSchema = mongoose.Schema({
     link: { type: String, trim: true }
   },
   identity: {
-    title: String,
-    firstname: String,
-    lastname: String,
+    ...identitySchemaDefinition,
     nationality: String,
-    birthDate: Date,
     birthCountry: String,
     birthState: String,
     birthCity: String,

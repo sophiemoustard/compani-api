@@ -9,7 +9,7 @@ const {
 const Event = require('./Event');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
-
+const identitySchemaDefinition = require('./schemaDefinitions/identity');
 
 const CustomerSchema = mongoose.Schema({
   driveFolder: {
@@ -17,12 +17,7 @@ const CustomerSchema = mongoose.Schema({
     link: String
   },
   email: { type: String, lowercase: true, trim: true },
-  identity: {
-    title: String,
-    firstname: String,
-    lastname: String,
-    birthDate: Date
-  },
+  identity: identitySchemaDefinition,
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
     address: {
