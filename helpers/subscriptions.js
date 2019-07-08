@@ -38,7 +38,7 @@ exports.subscriptionsAccepted = (customer) => {
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
       const subscriptions = _.map(customer.subscriptions, (subscription) => {
         const { service } = subscription;
-        const lastVersion = [...subscription.versions].sort((a, b) => new Date(b.startDate) - new Date(a.startDate))[0];
+        const lastVersion = [...subscription.versions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
         const { createdAt, _id, ...version } = lastVersion;
         delete version.startDate;
 
