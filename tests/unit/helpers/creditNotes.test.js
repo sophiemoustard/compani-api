@@ -135,7 +135,7 @@ describe('formatPDF', () => {
         },
         startDate: '2019-04-29T06:00:00.000Z',
         endDate: '2019-04-29T15:00:00.000Z',
-        subscription: subId,
+        serviceName: 'Toto',
         bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221 },
       }],
       customer: {
@@ -196,7 +196,7 @@ describe('formatPDF', () => {
         },
         startDate: '2019-04-29T06:00:00.000Z',
         endDate: '2019-04-29T15:00:00.000Z',
-        subscription: subId,
+        serviceName: 'Toto',
         bills: { inclTaxesTpp: 234, exclTaxesTpp: 221 },
       }],
       customer: {
@@ -253,7 +253,9 @@ describe('formatPDF', () => {
     const creditNote = {
       number: 1,
       subscription: {
-        service: 'service',
+        service: {
+          name: 'service',
+        },
         unitInclTaxes: 12,
       },
       customer: {

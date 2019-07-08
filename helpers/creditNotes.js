@@ -104,19 +104,17 @@ exports.formatPDF = (creditNote, company) => {
         ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
         : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer;
 
-      const sub = creditNote.customer.subscriptions.find(sb => sb._id.toHexString() === event.subscription.toHexString());
-      const version = UtilsHelper.getMatchingVersion(event.startDate, sub.service);
       computedData.formattedEvents.push({
         identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
         date: moment(event.startDate).format('DD/MM'),
         startTime: moment(event.startDate).format('HH:mm'),
         endTime: moment(event.endDate).format('HH:mm'),
-        service: sub && version ? version.name : '',
+        service: event.serviceName,
       });
     }
   } else {
     computedData.subscription = {
-      service: creditNote.subscription.service,
+      service: creditNote.subscription.service.name,
       unitInclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitInclTaxes)
     };
   }

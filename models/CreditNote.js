@@ -17,6 +17,7 @@ const CreditNoteSchema = mongoose.Schema({
   events: [{
     eventId: { type: mongoose.Schema.Types.ObjectId },
     auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    serviceName: String,
     startDate: { type: Date },
     endDate: { type: Date },
     bills: {

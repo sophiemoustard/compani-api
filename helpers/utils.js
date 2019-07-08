@@ -53,7 +53,6 @@ exports.getMatchingVersion = (date, obj, dateKey) => {
   if (!Array.isArray(obj.versions)) throw new Error('versions must be an array !');
   if (obj.versions.length === 0) return null;
 
-
   const matchingVersion = [...obj.versions]
     .filter(ver => moment(ver.startDate).isSameOrBefore(date, 'd') && (!ver.endDate || moment(ver.endDate).isSameOrAfter(date, 'd')))
     .sort((a, b) => new Date(b[dateKey]) - new Date(a[dateKey]))[0];
