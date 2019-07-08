@@ -6,6 +6,7 @@ const moment = require('moment');
 const Boom = require('boom');
 
 const Role = require('./Role');
+const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -59,11 +60,8 @@ const UserSchema = mongoose.Schema({
   },
   contact: {
     address: {
-      street: String,
+      ...addressSchemaDefinition,
       additionalAddress: String,
-      zipCode: String,
-      city: String,
-      fullAddress: String,
       location: {
         type: { type: String },
         coordinates: [Number]

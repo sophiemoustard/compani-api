@@ -1,18 +1,14 @@
 const mongoose = require('mongoose');
 
 const { MONTH, TWO_WEEKS } = require('../helpers/constants');
+const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const CompanySchema = mongoose.Schema({
   name: {
     type: String,
     unique: true
   },
-  address: {
-    street: String,
-    fullAddress: String,
-    zipCode: String,
-    city: String
-  },
+  address: addressSchemaDefinition,
   rcs: String,
   ics: String,
   iban: String,
