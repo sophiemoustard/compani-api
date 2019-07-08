@@ -40,7 +40,7 @@ exports.plugin = {
             type: Joi.string().required().valid(INTERNAL_HOUR, INTERVENTION, ABSENCE, UNAVAILABILITY),
             startDate: Joi.date().required(),
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
-            auxiliary: Joi.objectId().required(),
+            auxiliary: Joi.objectId(), // Unassigned event
             customer: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             location: Joi.object().keys({
               street: Joi.string(),
@@ -87,6 +87,7 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date(),
             auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
+            sector: [Joi.array().items(Joi.string()), Joi.string()],
             customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
             isBilled: Joi.boolean(),
