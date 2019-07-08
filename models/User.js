@@ -9,6 +9,7 @@ const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
+const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -85,64 +86,35 @@ const UserSchema = mongoose.Schema({
       invoices: [String],
       fiscalAttests: [String]
     },
-    idCardRecto: {
-      driveId: String,
-      link: String,
-    },
-    idCardVerso: {
-      driveId: String,
-      link: String,
-    },
-    passport: {
-      driveId: String,
-      link: String
-    },
-    residencePermitRecto: {
-      driveId: String,
-      link: String
-    },
-    residencePermitVerso: {
-      driveId: String,
-      link: String
-    },
+    idCardRecto: driveFileSchemaDefinition,
+    idCardVerso: driveFileSchemaDefinition,
+    passport: driveFileSchemaDefinition,
+    residencePermitRecto: driveFileSchemaDefinition,
+    residencePermitVerso: driveFileSchemaDefinition,
     healthAttest: {
-      driveId: String,
-      link: String,
+      ...driveFileSchemaDefinition,
       has: Boolean,
     },
-    vitalCard: {
-      driveId: String,
-      link: String,
-    },
+    vitalCard: driveFileSchemaDefinition,
     identityDocs: String,
-    certificates: [{
-      driveId: String,
-      link: String
-    }],
+    certificates: [driveFileSchemaDefinition],
     phoneInvoice: {
-      driveId: String,
-      link: String,
+      ...driveFileSchemaDefinition,
       has: Boolean,
     },
     navigoInvoice: {
-      driveId: String,
-      link: String,
+      ...driveFileSchemaDefinition,
       has: Boolean,
     },
     transportInvoice: {
-      driveId: String,
-      link: String,
-      transportType: String
+      ...driveFileSchemaDefinition,
+      transportType: String,
     },
     mutualFund: {
-      driveId: String,
-      link: String,
+      ...driveFileSchemaDefinition,
       has: Boolean,
     },
-    medicalCertificate: {
-      driveId: String,
-      link: String
-    },
+    medicalCertificate: driveFileSchemaDefinition,
     emergencyContact: {
       name: String,
       phoneNumber: String

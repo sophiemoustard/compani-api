@@ -9,6 +9,7 @@ const {
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
 } = require('../helpers/constants');
+const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 
 const EventSchema = mongoose.Schema({
   type: {
@@ -34,10 +35,7 @@ const EventSchema = mongoose.Schema({
     city: String
   },
   misc: String,
-  attachment: {
-    link: String,
-    driveId: String,
-  },
+  attachment: driveFileSchemaDefinition,
   repetition: {
     frequency: String,
     parentId: { type: mongoose.Schema.Types.ObjectId },

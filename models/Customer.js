@@ -10,6 +10,7 @@ const Event = require('./Event');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
+const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 
 const CustomerSchema = mongoose.Schema({
   driveFolder: {
@@ -51,10 +52,7 @@ const CustomerSchema = mongoose.Schema({
       createdAt: { type: Date, default: Date.now },
     }],
   },
-  financialCertificates: [{
-    driveId: String,
-    link: String
-  }],
+  financialCertificates: [driveFileSchemaDefinition],
   isActive: Boolean,
   subscriptions: [{
     service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
