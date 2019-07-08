@@ -12,6 +12,8 @@ const {
   generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
 
+const { FIXED, HOURLY } = require('../helpers/constants');
+
 exports.plugin = {
   name: 'routes-credit-notes',
   register: async (server) => {
@@ -32,10 +34,30 @@ exports.plugin = {
             inclTaxesCustomer: Joi.number(),
             exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
             inclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
-            events: Joi.array().items(Joi.objectId()),
+            events: Joi.array().items(Joi.object().keys({
+              eventId: Joi.objectId().required(),
+              auxiliary: Joi.objectId().required(),
+              serviceName: Joi.string().required(),
+              startDate: Joi.date().required(),
+              endDate: Joi.date().required(),
+              bills: Joi.object().keys({
+                inclTaxesCustomer: Joi.number(),
+                exclTaxesCustomer: Joi.number(),
+                thirdPartyPayer: Joi.objectId(),
+                inclTaxesTpp: Joi.number(),
+                exclTaxesTpp: Joi.number(),
+                fundingVersion: Joi.objectId(),
+                nature: Joi.string(),
+                careHours: Joi.number(),
+              }).required(),
+            })),
             subscription: Joi.object().keys({
               _id: Joi.objectId(),
-              service: Joi.string(),
+              service: Joi.object().required().keys({
+                serviceId: Joi.objectId().required(),
+                name: Joi.string().required(),
+                nature: Joi.string().required().valid([FIXED, HOURLY])
+              }),
               vat: Joi.number(),
               unitInclTaxes: Joi.number(),
             }),
@@ -108,10 +130,30 @@ exports.plugin = {
             inclTaxesCustomer: Joi.number(),
             exclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
             inclTaxesTpp: Joi.number().when('thirdPartyPayer', { is: Joi.exist(), then: Joi.required() }),
-            events: Joi.array().items(Joi.objectId()),
+            events: Joi.array().items(Joi.object().keys({
+              eventId: Joi.objectId().required(),
+              auxiliary: Joi.objectId().required(),
+              serviceName: Joi.string().required(),
+              startDate: Joi.date().required(),
+              endDate: Joi.date().required(),
+              bills: Joi.object().keys({
+                inclTaxesCustomer: Joi.number(),
+                exclTaxesCustomer: Joi.number(),
+                thirdPartyPayer: Joi.objectId(),
+                inclTaxesTpp: Joi.number(),
+                exclTaxesTpp: Joi.number(),
+                fundingVersion: Joi.objectId(),
+                nature: Joi.string(),
+                careHours: Joi.number(),
+              }).required(),
+            })),
             subscription: Joi.object().keys({
               _id: Joi.objectId(),
-              service: Joi.string(),
+              service: Joi.object().keys({
+                serviceId: Joi.objectId().required(),
+                name: Joi.string().required(),
+                nature: Joi.string().required().valid([FIXED, HOURLY])
+              }),
               vat: Joi.number(),
               unitInclTaxes: Joi.number(),
             }),

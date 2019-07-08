@@ -60,7 +60,7 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
-            name: Joi.array().items(Joi.string())
+            name: [Joi.string(), Joi.array().items(Joi.string())],
           })
         },
         auth: 'jwt'

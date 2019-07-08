@@ -105,14 +105,14 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return csv header', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'auxiliary' })
-      .returns({ _id: roleId });
+    const roleIds = [new ObjectID(), new ObjectID()];
+    RoleModel.expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: { $in: roleIds } })
       .chain('populate')
       .once()
       .returns(auxiliaries);
@@ -126,10 +126,10 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary info', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'auxiliary' })
-      .returns({ _id: roleId });
+    const roleIds = [new ObjectID(), new ObjectID()];
+    RoleModel.expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
       {
@@ -140,7 +140,7 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: { $in: roleIds } })
       .chain('populate')
       .once()
       .returns(auxiliaries);
@@ -153,16 +153,16 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary sector', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'auxiliary' })
-      .returns({ _id: roleId });
+    const roleIds = [new ObjectID(), new ObjectID()];
+    RoleModel.expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
       { sector: { name: 'La ruche' }, },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: { $in: roleIds } })
       .chain('populate')
       .once()
       .returns(auxiliaries);
@@ -175,10 +175,10 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary identity', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'auxiliary' })
-      .returns({ _id: roleId });
+    const roleIds = [new ObjectID(), new ObjectID()];
+    RoleModel.expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
       {
@@ -196,7 +196,7 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: { $in: roleIds } })
       .chain('populate')
       .once()
       .returns(auxiliaries);
@@ -209,16 +209,16 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary contracts count', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'auxiliary' })
-      .returns({ _id: roleId });
+    const roleIds = [new ObjectID(), new ObjectID()];
+    RoleModel.expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
       { contracts: [{ _id: 1 }, { _id: 2 }] },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: { $in: roleIds } })
       .chain('populate')
       .once()
       .returns(auxiliaries);
@@ -231,16 +231,16 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary address', async () => {
-    const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'auxiliary' })
-      .returns({ _id: roleId });
+    const roleIds = [new ObjectID(), new ObjectID()];
+    RoleModel.expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
       { contact: { address: { fullAddress: 'La ruche' } }, },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: { $in: roleIds } })
       .chain('populate')
       .once()
       .returns(auxiliaries);

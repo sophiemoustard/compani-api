@@ -9,6 +9,7 @@ const Event = require('../../../models/Event');
 const Company = require('../../../models/Company');
 const Sector = require('../../../models/Sector');
 const FinalPay = require('../../../models/FinalPay');
+const Role = require('../../../models/Role');
 
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
@@ -18,11 +19,19 @@ const serviceId = new ObjectID();
 const companyId = new ObjectID();
 const sectorId = new ObjectID();
 
+const roles = [{
+  _id: new ObjectID(),
+  name: 'tech',
+}, {
+  _id: new ObjectID(),
+  name: 'auxiliary',
+}];
+
 const user = {
   _id: new ObjectID(),
   local: { email: 'test4@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
-  role: 'tech',
+  role: roles[0]._id,
   inactivityDate: '2018-11-01T12:52:27.461Z',
 };
 
@@ -33,7 +42,7 @@ const auxiliary = {
   inactivityDate: '2019-06-01T00:00:00',
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: 'auxiliary',
+  role: roles[1]._id,
   contracts: contractId,
   sector: sectorId,
 };
@@ -130,6 +139,7 @@ const company = {
 const sector = { name: 'Toto', _id: sectorId };
 
 const populateDB = async () => {
+  await Role.deleteMany({});
   await User.deleteMany({});
   await Customer.deleteMany({});
   await Service.deleteMany({});
@@ -139,8 +149,9 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await FinalPay.deleteMany({});
 
-  await (new User(user)).saveByParams({ role: user.role });
-  await (new User(auxiliary)).saveByParams({ role: user.role });
+  await Role.insertMany(roles);
+  await (new User(user)).save();
+  await (new User(auxiliary)).save();
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();

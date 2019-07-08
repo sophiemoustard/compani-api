@@ -14,11 +14,7 @@ const CustomerSchema = mongoose.Schema({
     id: String,
     link: String
   },
-  email: {
-    type: String,
-    lowercase: true,
-    trim: true,
-  },
+  email: { type: String, lowercase: true, trim: true },
   identity: {
     title: String,
     firstname: String,
@@ -26,7 +22,6 @@ const CustomerSchema = mongoose.Schema({
     birthDate: Date
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
-  sectors: [String],
   contact: {
     address: {
       street: String,
@@ -62,10 +57,7 @@ const CustomerSchema = mongoose.Schema({
         link: String
       },
       signedAt: Date,
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      },
+      createdAt: { type: Date, default: Date.now },
     }],
   },
   financialCertificates: [{
@@ -98,10 +90,7 @@ const CustomerSchema = mongoose.Schema({
       lastname: String,
       title: String
     },
-    approvalDate: {
-      type: Date,
-      default: Date.now
-    }
+    approvalDate: { type: Date, default: Date.now }
   }],
   quotes: [{
     quoteNumber: String,

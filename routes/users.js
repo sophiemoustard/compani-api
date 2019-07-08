@@ -21,16 +21,11 @@ const {
   uploadFile,
   uploadImage,
   createDriveFolder,
-  getUserAbsences,
-  updateUserAbsence,
-  createUserAbsence,
-  removeUserAbsence
 } = require('../controllers/userController');
 
 exports.plugin = {
   name: 'routes-users',
   register: async (server) => {
-    // Authenticate a user
     server.route({
       method: 'POST',
       path: '/authenticate',
@@ -45,7 +40,7 @@ exports.plugin = {
       },
       handler: authenticate
     });
-    // Create a user
+
     server.route({
       method: 'POST',
       path: '/',
@@ -53,13 +48,12 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             mobilePhone: Joi.string(),
-            emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             local: {
               email: Joi.string().email().required(),
               password: Joi.string().required()
             },
-            role: Joi.string().required(),
+            role: Joi.objectId().required(),
             picture: Joi.object().keys({
               link: Joi.string()
             }),
@@ -67,12 +61,6 @@ exports.plugin = {
               firstname: Joi.string(),
               lastname: Joi.string(),
               title: Joi.string(),
-              nationality: Joi.string(),
-              birthDate: Joi.date(),
-              birthContry: Joi.string(),
-              birthState: Joi.string(),
-              birthCity: Joi.string(),
-              socialSecurityNumber: Joi.number()
             }),
             contact: Joi.object().keys({
               address: {
@@ -88,26 +76,19 @@ exports.plugin = {
               },
             }),
             administrative: Joi.object().keys({
-              signup: Joi.object().keys({
-                firstSmsDate: Joi.string()
-              }),
-              emergencyContact: Joi.object().keys({
-                name: Joi.string(),
-                phoneNumber: Joi.string()
-              }),
               transportInvoice: Joi.object().keys({
-                transportType: Joi.string()
-              })
+                transportType: Joi.string(),
+              }),
             }),
             customers: Joi.array(),
-            company: Joi.string().required(),
+            company: Joi.objectId().required(),
           }).required()
         },
         auth: false
       },
       handler: create
     });
-    // Get all users
+
     server.route({
       method: 'GET',
       path: '/',
@@ -125,7 +106,6 @@ exports.plugin = {
       handler: list,
     });
 
-    // Get all active users
     server.route({
       method: 'GET',
       path: '/active',
@@ -134,7 +114,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.array().items(Joi.objectId()),
+            sector: Joi.objectId(),
             customers: Joi.objectId()
           },
         },
@@ -143,7 +123,6 @@ exports.plugin = {
       handler: activeList,
     });
 
-    // Get user by id
     server.route({
       method: 'GET',
       path: '/{_id}',
@@ -152,7 +131,7 @@ exports.plugin = {
       },
       handler: show
     });
-    // Update user by id
+
     server.route({
       method: 'PUT',
       path: '/{_id}',
@@ -163,10 +142,6 @@ exports.plugin = {
             mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
-            isConstrained: Joi.boolean(),
-            facebook: Joi.object().keys({
-              address: Joi.object()
-            }),
             'local.email': Joi.string().email(), // bot special case
             local: {
               email: Joi.string().email(),
@@ -289,7 +264,7 @@ exports.plugin = {
       },
       handler: update
     });
-    // Update user certificates
+
     server.route({
       method: 'PUT',
       path: '/{_id}/certificates',
@@ -309,6 +284,7 @@ exports.plugin = {
       },
       handler: updateCertificates
     });
+
     server.route({
       method: 'PUT',
       path: '/{user_id}/tasks/{task_id}',
@@ -328,6 +304,7 @@ exports.plugin = {
       },
       handler: updateTask
     });
+
     server.route({
       method: 'GET',
       path: '/{_id}/tasks',
@@ -341,7 +318,7 @@ exports.plugin = {
       },
       handler: getUserTasks
     });
-    // Delete user by id
+
     server.route({
       method: 'DELETE',
       path: '/{_id}',
@@ -355,7 +332,7 @@ exports.plugin = {
       },
       handler: remove
     });
-    // Get users presentation
+
     server.route({
       method: 'GET',
       path: '/presentation',
@@ -370,7 +347,7 @@ exports.plugin = {
       },
       handler: getPresentation
     });
-    // Post refresh token
+
     server.route({
       method: 'POST',
       path: '/refreshToken',
@@ -425,9 +402,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' },
       }
     });
 
@@ -444,9 +419,7 @@ exports.plugin = {
             _id: Joi.objectId()
           })
         },
-        auth: {
-          strategy: 'jwt'
-        }
+        auth: { strategy: 'jwt' },
       },
       handler: createDriveFolder
     });
@@ -462,80 +435,8 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880
         },
-        auth: {
-          strategy: 'jwt',
-        }
+        auth: { strategy: 'jwt' },
       }
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/absences',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId()
-          },
-        },
-        auth: { strategy: 'jwt' }
-      },
-      handler: getUserAbsences
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}/absences/{absenceId}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            absenceId: Joi.objectId().required()
-          },
-          payload: {
-            startDate: Joi.date(),
-            endDate: Joi.date(),
-            reason: Joi.string()
-          },
-        },
-        auth: { strategy: 'jwt' }
-      },
-      handler: updateUserAbsence
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/absences',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-          payload: Joi.object().keys({
-            startDate: Joi.date().required(),
-            startDuration: Joi.string().required(),
-            endDuration: Joi.string().allow('', null),
-            endDate: Joi.date().required(),
-            reason: Joi.string().required()
-          })
-        },
-        auth: { strategy: 'jwt' }
-      },
-      handler: createUserAbsence
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}/absences/{absenceId}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            absenceId: Joi.objectId().required()
-          },
-        },
-        auth: { strategy: 'jwt' }
-      },
-      handler: removeUserAbsence
     });
   }
 };

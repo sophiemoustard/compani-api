@@ -30,7 +30,7 @@ const {
   createFunding,
   updateFunding,
   getFundings,
-  removeFunding
+  removeFunding,
 } = require('../controllers/customerController');
 
 const {
@@ -52,7 +52,7 @@ exports.plugin = {
             identity: {
               title: Joi.string(),
               firstname: Joi.string().allow(null, ''),
-              lastname: Joi.string().required()
+              lastname: Joi.string().required(),
             },
             contact: Joi.object().keys({
               address: {
@@ -62,16 +62,16 @@ exports.plugin = {
                 fullAddress: Joi.string(),
                 location: {
                   type: Joi.string(),
-                  coordinates: Joi.array()
+                  coordinates: Joi.array(),
                 }
               }
             }).required(),
-            isActive: Joi.boolean().default(true)
+            isActive: Joi.boolean().default(true),
           })
         },
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
@@ -80,7 +80,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
             _id: Joi.objectId(),
@@ -88,7 +88,7 @@ exports.plugin = {
               title: Joi.string(),
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
-              birthDate: Joi.date()
+              birthDate: Joi.date(),
             },
             email: Joi.string().email(),
             contact: Joi.object().keys({
@@ -101,30 +101,30 @@ exports.plugin = {
                 fullAddress: Joi.string(),
                 location: {
                   type: Joi.string(),
-                  coordinates: Joi.array()
+                  coordinates: Joi.array(),
                 }
               },
               doorCode: Joi.string(),
-              intercomCode: Joi.string()
+              intercomCode: Joi.string(),
             }),
             followUp: Joi.object().keys({
               pathology: Joi.string(),
               comments: Joi.string(),
               details: Joi.string(),
               misc: Joi.string(),
-              referent: Joi.string()
+              referent: Joi.string(),
             }),
             payment: Joi.object().keys({
               bankAccountOwner: Joi.string(),
               iban: Joi.string(),
-              bic: Joi.string()
+              bic: Joi.string(),
             }),
-            isActive: Joi.boolean()
+            isActive: Joi.boolean(),
           })
         },
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
       },
-      handler: update
+      handler: update,
     });
 
     server.route({
@@ -133,15 +133,11 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
-            firstname: Joi.string(),
-            lastname: Joi.string(),
-            isActive: Joi.boolean(),
-            sectors: Joi.array().items(Joi.string()),
             subscriptions: Joi.boolean(),
             _id: [Joi.array().items(Joi.objectId()), Joi.objectId()],
           })
         },
-        auth: 'jwt'
+        auth: 'jwt',
       },
       handler: list,
     });
@@ -157,7 +153,7 @@ exports.plugin = {
             endDate: Joi.date(),
           })
         },
-        auth: 'jwt'
+        auth: 'jwt',
       },
       handler: listBySector,
     });
@@ -167,7 +163,7 @@ exports.plugin = {
       path: '/billed-events',
       options: {
         validate: {},
-        auth: 'jwt'
+        auth: 'jwt',
       },
       handler: listWithBilledEvents,
     });
@@ -176,7 +172,7 @@ exports.plugin = {
       method: 'GET',
       path: '/customer-contract-subscriptions',
       options: {
-        auth: 'jwt'
+        auth: 'jwt',
       },
       handler: listWithCustomerContractSubscriptions,
     });
@@ -190,7 +186,7 @@ exports.plugin = {
             _id: Joi.objectId().required()
           }
         },
-        auth: 'jwt'
+        auth: 'jwt',
       },
       handler: show
     });
@@ -204,7 +200,7 @@ exports.plugin = {
             _id: Joi.objectId().required()
           }
         },
-        auth: 'jwt'
+        auth: 'jwt',
       },
       handler: remove
     });
@@ -215,7 +211,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           }
         },
         auth: 'jwt',
@@ -251,7 +247,7 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            subscriptionId: Joi.objectId().required()
+            subscriptionId: Joi.objectId().required(),
           },
           payload: {
             unitTTCRate: Joi.number(),
@@ -272,7 +268,7 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            subscriptionId: Joi.objectId().required()
+            subscriptionId: Joi.objectId().required(),
           }
         },
         auth: 'jwt',
@@ -301,7 +297,7 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            mandateId: Joi.objectId().required()
+            mandateId: Joi.objectId().required(),
           }
         },
         auth: 'jwt',
@@ -316,22 +312,20 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            mandateId: Joi.objectId().required()
+            mandateId: Joi.objectId().required(),
           },
           payload: {
             fileId: Joi.string().required(),
             customer: Joi.object().keys({
               name: Joi.string().required(),
-              email: Joi.string().email().required()
+              email: Joi.string().email().required(),
             }).required(),
             fields: Joi.object().required(),
             redirect: Joi.string(),
-            redirectDecline: Joi.string()
-          }
+            redirectDecline: Joi.string(),
+          },
         },
-        auth: {
-          strategy: 'jwt'
-        }
+        auth: { strategy: 'jwt' },
       },
       handler: generateMandateSignatureRequest
     });
@@ -342,12 +336,12 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId()
-          }
+            _id: Joi.objectId(),
+          },
         },
         auth: { strategy: 'jwt' }
       },
-      handler: getCustomerQuotes
+      handler: getCustomerQuotes,
     });
 
     server.route({
@@ -364,13 +358,13 @@ exports.plugin = {
               unitTTCRate: Joi.number(),
               estimatedWeeklyVolume: Joi.number(),
               evenings: Joi.number(),
-              sundays: Joi.number()
-            })).required()
+              sundays: Joi.number(),
+            })).required(),
           })
         },
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
       },
-      handler: createCustomerQuote
+      handler: createCustomerQuote,
     });
 
     server.route({
@@ -380,12 +374,12 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            quoteId: Joi.objectId().required()
+            quoteId: Joi.objectId().required(),
           }
         },
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
       },
-      handler: removeCustomerQuote
+      handler: removeCustomerQuote,
     });
 
 
@@ -395,15 +389,15 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            parentFolderId: Joi.string()
+            parentFolderId: Joi.string(),
           })
         },
         auth: {
-          strategy: 'jwt'
-        }
+          strategy: 'jwt',
+        },
       },
       handler: createDriveFolder,
     });
@@ -417,7 +411,7 @@ exports.plugin = {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
         auth: {
           strategy: 'jwt',
@@ -449,12 +443,12 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            mandateId: Joi.objectId().required()
+            mandateId: Joi.objectId().required(),
           }
         },
         auth: 'jwt',
       },
-      handler: saveSignedMandate
+      handler: saveSignedMandate,
     });
 
     server.route({
@@ -478,12 +472,12 @@ exports.plugin = {
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string(),
               title: Joi.string().allow(null, ''),
-            }).required()
+            }).required(),
           })
         },
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
       },
-      handler: createHistorySubscription
+      handler: createHistorySubscription,
     });
 
     server.route({
@@ -508,12 +502,12 @@ exports.plugin = {
               careHours: Joi.number(),
               careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
               customerParticipationRate: Joi.number().default(0),
-            }))
-          })
+            })),
+          }),
         },
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
       },
-      handler: createFunding
+      handler: createFunding,
     });
 
     server.route({
@@ -523,7 +517,7 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            fundingId: Joi.objectId().required()
+            fundingId: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
             subscription: Joi.objectId().required(),
@@ -536,11 +530,11 @@ exports.plugin = {
             careHours: Joi.number(),
             careDays: Joi.array().items(Joi.number().min(0).max(7)).required(),
             customerParticipationRate: Joi.number().default(0),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' }
+        auth: { strategy: 'jwt' },
       },
-      handler: updateFunding
+      handler: updateFunding,
     });
 
     server.route({
@@ -549,8 +543,8 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
-          }
+            _id: Joi.objectId().required(),
+          },
         },
         auth: 'jwt',
       },
@@ -564,8 +558,8 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            fundingId: Joi.objectId().required()
-          }
+            fundingId: Joi.objectId().required(),
+          },
         },
         auth: 'jwt',
       },

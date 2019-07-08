@@ -9,7 +9,7 @@ const translate = require('./translate');
 const { addFile } = require('./gdriveStorage');
 const { nationalities } = require('../data/nationalities.js');
 const { countries } = require('../data/countries');
-const { HELPER, AUXILIARY } = require('./constants.js');
+const { HELPER, AUXILIARY, PLANNING_REFERENT } = require('./constants.js');
 
 const { language } = translate;
 
@@ -30,11 +30,7 @@ const getUsers = async (query) => {
 
   const params = _.pickBy(query);
   return User
-    .find(
-      params,
-      { planningModification: 0, historyChanges: 0 },
-      { autopopulate: false }
-    )
+    .find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'company', select: 'auxiliariesConfig' })
@@ -49,16 +45,6 @@ const saveCertificateDriveId = async (userId, fileInfo) => {
     { _id: userId },
     { $push: payload },
     { new: true, autopopulate: false }
-  );
-};
-
-const saveAbscenceFile = async (userId, absenceId, fileInfo) => {
-  const payload = { 'administrative.absences.$': fileInfo };
-
-  await User.findOneAndUpdate(
-    { _id: userId, 'administrative.absences._id': absenceId },
-    { $set: flat(payload) },
-    { new: true }
   );
 };
 
@@ -80,8 +66,6 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
   const file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
   if (administrativeKeys[0] === 'certificates') {
     await saveCertificateDriveId(params._id, file);
-  } else if (administrativeKeys[0] === 'absenceReason') {
-    await saveAbscenceFile(params._id, payload.absenceId, file);
   } else {
     await saveFile(params._id, administrativeKeys, file);
   }
@@ -110,8 +94,9 @@ const exportHelpers = async () => {
 };
 
 const exportAuxiliaries = async () => {
-  const role = await Role.findOne({ name: AUXILIARY });
-  const auxiliaries = await User.find({ role: role._id }).populate('sector');
+  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
+  const roleIds = roles.map(role => role._id);
+  const auxiliaries = await User.find({ role: { $in: roleIds } }).populate('sector');
   const data = [['Email', 'Secteur', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance', 'Departement de naissance',
     'Ville de naissance', 'Nationalité', 'N° de sécurité socile', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Date d\'inactivité',
     'Date de création']];
