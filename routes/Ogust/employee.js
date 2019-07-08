@@ -18,7 +18,7 @@ exports.plugin = {
           }).options({ allowUnknown: true }),
           params: { id: [Joi.number(), Joi.string()] },
           query: {
-            nbperpage: Joi.number().default(24),
+            nbperpage: Joi.number().default(100),
             pagenum: Joi.number().default(1)
           }
         },
