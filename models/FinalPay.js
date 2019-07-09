@@ -3,8 +3,6 @@ const paySchemaDefinition = require('./schemaDefinitions/pay');
 
 const FinalPaySchema = mongoose.Schema({
   ...paySchemaDefinition,
-  surchargedAndNotExemptDetails: String,
-  surchargedAndExemptDetails: String,
   endNotificationDate: Date,
   endReason: String,
   endDate: Date,
