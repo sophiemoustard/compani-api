@@ -8,8 +8,7 @@ const {
   populateUsers,
   getToken
 } = require('./seed/usersSeed');
-const { populateRoles, rolesList } = require('./seed/rolesSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
+const { rolesList } = require('./seed/rolesSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -18,8 +17,6 @@ describe('NODE ENV', () => {
 });
 
 describe('USERS ROUTES', () => {
-  before(populateRoles);
-  before(populateCompanies);
   beforeEach(populateUsers);
 
   describe('POST /users', () => {
