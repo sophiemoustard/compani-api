@@ -18,7 +18,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
@@ -44,7 +44,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
         validate: {
           query: {
             company: Joi.objectId(),
@@ -58,7 +58,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -72,7 +72,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
