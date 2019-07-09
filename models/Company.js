@@ -1,18 +1,15 @@
 const mongoose = require('mongoose');
 
 const { MONTH, TWO_WEEKS } = require('../helpers/constants');
+const addressSchemaDefinition = require('./schemaDefinitions/address');
+const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 
 const CompanySchema = mongoose.Schema({
   name: {
     type: String,
     unique: true
   },
-  address: {
-    street: String,
-    fullAddress: String,
-    zipCode: String,
-    city: String
-  },
+  address: addressSchemaDefinition,
   rcs: String,
   ics: String,
   iban: String,
@@ -33,22 +30,10 @@ const CompanySchema = mongoose.Schema({
       price: Number
     }],
     templates: {
-      contractWithCompany: {
-        driveId: String,
-        link: String,
-      },
-      contractWithCompanyVersion: {
-        driveId: String,
-        link: String
-      },
-      contractWithCustomer: {
-        driveId: String,
-        link: String,
-      },
-      contractWithCustomerVersion: {
-        driveId: String,
-        link: String
-      }
+      contractWithCompany: driveFileSchemaDefinition,
+      contractWithCompanyVersion: driveFileSchemaDefinition,
+      contractWithCustomer: driveFileSchemaDefinition,
+      contractWithCustomerVersion: driveFileSchemaDefinition,
     },
     internalHours: [{
       name: String,
@@ -59,14 +44,8 @@ const CompanySchema = mongoose.Schema({
     billingPeriod: { type: String, enum: [MONTH, TWO_WEEKS], default: TWO_WEEKS },
     templates: {
       folderId: String,
-      debitMandate: {
-        driveId: String,
-        link: String,
-      },
-      quote: {
-        driveId: String,
-        link: String,
-      },
+      debitMandate: driveFileSchemaDefinition,
+      quote: driveFileSchemaDefinition,
     }
   }
 }, {

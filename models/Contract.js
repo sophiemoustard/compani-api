@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
+const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 
 const ContractSchema = mongoose.Schema({
   startDate: Date,
@@ -25,14 +26,8 @@ const ContractSchema = mongoose.Schema({
     weeklyHours: Number,
     grossHourlyRate: Number,
     isActive: { type: Boolean, default: false },
-    customerDoc: {
-      link: String,
-      driveId: String
-    },
-    auxiliaryDoc: {
-      link: String,
-      driveId: String
-    }
+    customerDoc: driveFileSchemaDefinition,
+    auxiliaryDoc: driveFileSchemaDefinition,
   }]
 }, {
   timestamps: true,
