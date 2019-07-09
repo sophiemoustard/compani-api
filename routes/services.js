@@ -43,7 +43,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:read'] },
+        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
         validate: {
           query: { company: Joi.objectId() }
         }
