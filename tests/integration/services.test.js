@@ -101,7 +101,7 @@ describe('SERVICES ROUTES', () => {
         url: '/services',
         headers: { 'x-access-token': authToken },
         payload,
-        credentials: { scope: ['Test'] }
+        credentials: { scope: ['Test'] },
       });
 
       expect(response.statusCode).toBe(403);
