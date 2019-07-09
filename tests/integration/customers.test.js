@@ -15,6 +15,7 @@ const {
 } = require('./seed/usersSeed');
 const { servicesList, populateServices } = require('./seed/servicesSeed');
 const { populateCompanies } = require('./seed/companiesSeed');
+const { populateRoles } = require('./seed/rolesSeed');
 const { populateEvents } = require('./seed/eventsSeed');
 const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const Customer = require('../../models/Customer');
@@ -31,6 +32,7 @@ describe('CUSTOMERS ROUTES', () => {
   let token = null;
   before(populateServices);
   before(populateCompanies);
+  before(populateRoles);
   beforeEach(populateCustomers);
   beforeEach(populateUsers);
   beforeEach(async () => {
