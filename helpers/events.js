@@ -54,6 +54,7 @@ exports.hasConflicts = async (event) => {
 };
 
 exports.isCreationAllowed = async (event) => {
+  if (!event.auxiliary) return true;
   if (!event.isCancelled && await exports.hasConflicts(event)) return false;
 
   let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
@@ -103,42 +104,43 @@ exports.isEditionAllowed = async (eventFromDB, payload) => {
 };
 
 exports.getListQuery = (req) => {
-  let query = req.query.type ? { type: req.query.type } : {};
-  if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
-  if (req.query.customer) query.customer = { $in: req.query.customer };
-  if (req.query.isBilled) query.customer = req.query.isBilled;
+  const rules = [];
+
+  if (req.query.type) rules.push({ type: req.query.type });
+
+  const sectorOrAuxiliary = [];
+  if (req.query.auxiliary) sectorOrAuxiliary.push({ auxiliary: { $in: req.query.auxiliary } });
+  if (req.query.sector) sectorOrAuxiliary.push({ sector: { $in: req.query.sector } });
+  if (sectorOrAuxiliary.length > 0) rules.push({ $or: sectorOrAuxiliary });
+
+  if (req.query.customer) rules.push({ customer: { $in: req.query.customer } });
+  if (req.query.isBilled) rules.push({ customer: req.query.isBilled });
   if (req.query.startDate && req.query.endDate) {
     const startDate = moment(req.query.startDate).startOf('d').toDate();
     const endDate = moment(req.query.endDate).endOf('d').toDate();
-    query = {
-      ...query,
+    rules.push({
       $or: [
         { startDate: { $lte: endDate, $gte: startDate } },
         { endDate: { $lte: endDate, $gte: startDate } },
         { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
       ],
-    };
+    });
   } else if (req.query.startDate && !req.query.endDate) {
     const startDate = moment(req.query.startDate).startOf('d').toDate();
-    query = {
-      ...query,
-      $or: [
-        { startDate: { $gte: startDate } },
-        { endDate: { $gte: startDate } },
-      ],
-    };
+    rules.push({
+      $or: [{ startDate: { $gte: startDate } }, { endDate: { $gte: startDate } }],
+    });
   } else if (req.query.endDate) {
     const endDate = moment(req.query.endDate).endOf('d').toDate();
-    query = {
-      ...query,
+    rules.push({
       $or: [
         { startDate: { $lte: endDate } },
         { endDate: { $lte: endDate } },
       ],
-    };
+    });
   }
 
-  return query;
+  return rules.length > 0 ? { $and: rules } : {};
 };
 
 exports.populateEventSubscription = (event) => {
