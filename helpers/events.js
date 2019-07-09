@@ -107,18 +107,12 @@ exports.getListQuery = (req) => {
   const rules = [];
 
   if (req.query.type) rules.push({ type: req.query.type });
-  if (req.query.auxiliary && req.query.sector) {
-    rules.push({
-      $or: [
-        { auxiliary: { $in: req.query.auxiliary } },
-        { sector: { $in: req.query.sector } },
-      ],
-    });
-  } else if (req.query.auxiliary) {
-    rules.push({ auxiliary: { $in: req.query.auxiliary } });
-  } else if (req.query.auxiliary) {
-    rules.push({ sector: { $in: req.query.sector } });
-  }
+
+  const sectorOrAuxiliary = [];
+  if (req.query.auxiliary) sectorOrAuxiliary.push({ auxiliary: { $in: req.query.auxiliary } });
+  if (req.query.sector) sectorOrAuxiliary.push({ sector: { $in: req.query.sector } });
+  if (sectorOrAuxiliary.length > 0) rules.push({ $or: sectorOrAuxiliary });
+
   if (req.query.customer) rules.push({ customer: { $in: req.query.customer } });
   if (req.query.isBilled) rules.push({ customer: req.query.isBilled });
   if (req.query.startDate && req.query.endDate) {
