@@ -11,6 +11,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
 
 const CustomerSchema = mongoose.Schema({
   driveFolder: {
@@ -57,21 +58,15 @@ const CustomerSchema = mongoose.Schema({
   subscriptions: [{
     service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
     versions: [{
-      unitTTCRate: Number,
-      estimatedWeeklyVolume: Number,
-      evenings: Number,
-      sundays: Number,
+      ...subscriptionSchemaDefinition,
       createdAt: { type: Date, default: Date.now },
     }],
     createdAt: { type: Date, default: Date.now }
   }],
   subscriptionsHistory: [{
     subscriptions: [{
+      ...subscriptionSchemaDefinition,
       service: String,
-      unitTTCRate: Number,
-      estimatedWeeklyVolume: Number,
-      evenings: Number,
-      sundays: Number,
       startDate: Date,
     }],
     helper: {
@@ -84,11 +79,8 @@ const CustomerSchema = mongoose.Schema({
   quotes: [{
     quoteNumber: String,
     subscriptions: [{
+      ...subscriptionSchemaDefinition,
       serviceName: String,
-      unitTTCRate: Number,
-      estimatedWeeklyVolume: Number,
-      evenings: Number,
-      sundays: Number,
     }],
     drive: {
       id: String,
