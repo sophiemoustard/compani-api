@@ -10,6 +10,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -151,7 +152,7 @@ const UserSchema = mongoose.Schema({
   toJSON: { virtuals: true },
 });
 
-async function save(next) {
+const save = async (next) => {
   try {
     const user = this;
 
@@ -194,11 +195,14 @@ async function findOneAndUpdate(next) {
 }
 
 function setIsActive() {
-  return !(this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()));
+  if (this.role && [AUXILIARY, PLANNING_REFERENT].includes(this.role.name)) {
+
+    return !((this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()))
+      || ((!this.contracts || this.contracts.length === 0) && moment().diff(this.createdAt, 'd') > 45));
+  }
 }
 
 UserSchema.virtual('isActive').get(setIsActive);
-
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 

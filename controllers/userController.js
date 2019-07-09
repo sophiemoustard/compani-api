@@ -229,6 +229,7 @@ const getPresentation = async (req) => {
         _id: 0, identity: 1, role: 1, picture: 1, youtube: 1,
       }
     );
+
     if (users.length === 0) return Boom.notFound(translate[language].usersNotFound);
 
     return {
