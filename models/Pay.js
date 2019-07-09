@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const paySchemaDefinition = require('./schemaDefinitions/pay');
 
 const surchargedHoursSchema = {
   hours: Number,
@@ -17,26 +18,9 @@ const surchargedDetailsSchema = [{
 }];
 
 const PaySchema = mongoose.Schema({
-  auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  startDate: Date,
-  endDate: Date,
-  month: String,
-  contractHours: Number,
-  workedHours: Number,
-  notSurchargedAndNotExempt: Number,
-  surchargedAndNotExempt: Number,
+  ...paySchemaDefinition,
   surchargedAndNotExemptDetails: surchargedDetailsSchema,
-  notSurchargedAndExempt: Number,
-  surchargedAndExempt: Number,
   surchargedAndExemptDetails: surchargedDetailsSchema,
-  hoursBalance: Number,
-  hoursCounter: Number,
-  overtimeHours: Number,
-  additionalHours: Number,
-  mutual: Boolean,
-  transport: Number,
-  otherFees: Number,
-  bonus: Number,
 }, { timestamps: true });
 
 module.exports = mongoose.model('Pay', PaySchema);

@@ -1,28 +1,13 @@
 const mongoose = require('mongoose');
+const paySchemaDefinition = require('./schemaDefinitions/pay');
 
 const FinalPaySchema = mongoose.Schema({
-  auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  startDate: Date,
+  ...paySchemaDefinition,
+  surchargedAndNotExemptDetails: String,
+  surchargedAndExemptDetails: String,
   endNotificationDate: Date,
   endReason: String,
   endDate: Date,
-  month: String,
-  contractHours: Number,
-  workedHours: Number,
-  notSurchargedAndNotExempt: Number,
-  surchargedAndNotExempt: Number,
-  surchargedAndNotExemptDetails: String,
-  notSurchargedAndExempt: Number,
-  surchargedAndExempt: Number,
-  surchargedAndExemptDetails: String,
-  hoursBalance: Number,
-  hoursCounter: Number,
-  overtimeHours: Number,
-  additionalHours: Number,
-  mutual: Boolean,
-  transport: Number,
-  otherFees: Number,
-  bonus: Number,
   compensation: Number,
 }, { timestamps: true });
 
