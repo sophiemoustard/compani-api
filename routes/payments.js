@@ -18,7 +18,6 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -34,7 +33,6 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.object({
             date: Joi.date().required(),
@@ -46,14 +44,13 @@ exports.plugin = {
           })
         }
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
       method: 'POST',
       path: '/createlist',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.array().items(Joi.object().keys({
             date: Joi.date().required(),
@@ -74,7 +71,6 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: { _id: Joi.objectId() },
           payload: {

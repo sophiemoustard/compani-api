@@ -19,11 +19,8 @@ exports.plugin = {
             userEmail: Joi.string().email().required()
           })
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
-      handler: createActivationCode
+      handler: createActivationCode,
     });
 
     server.route({
@@ -35,9 +32,9 @@ exports.plugin = {
             code: Joi.string().length(4).required()
           })
         },
-        auth: false
+        auth: false,
       },
-      handler: checkActivationCode
+      handler: checkActivationCode,
     });
   }
 };

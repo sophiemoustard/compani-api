@@ -71,9 +71,6 @@ exports.plugin = {
               .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
       handler: create,
     });
@@ -93,7 +90,6 @@ exports.plugin = {
             isBilled: Joi.boolean(),
           },
         },
-        auth: { strategy: 'jwt' }
       },
       handler: list,
     });
@@ -111,7 +107,6 @@ exports.plugin = {
             isBilled: Joi.boolean()
           },
         },
-        auth: { strategy: 'jwt' }
       },
       handler: listForCreditNotes,
     });
@@ -161,9 +156,6 @@ exports.plugin = {
             bills: Joi.object(),
           }).and('startDate', 'endDate')
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
       handler: update,
     });
@@ -175,9 +167,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId() }
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
       handler: remove,
     });
@@ -189,9 +178,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId() }
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
       handler: removeRepetition,
     });
@@ -207,8 +193,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
-        auth: { strategy: 'jwt' },
-      }
+      },
     });
   },
 };

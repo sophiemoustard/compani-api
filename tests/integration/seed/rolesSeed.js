@@ -6,15 +6,15 @@ const Right = require('../../../models/Right');
 const rightsList = [
   {
     _id: new ObjectID(),
-    name: 'right1',
-    description: 'right1',
-    permission: 'right1:read'
+    name: 'edit-rh-config',
+    description: 'Edit rh config',
+    permission: 'rhConfig:edit',
   },
   {
     _id: new ObjectID(),
-    name: 'right2',
-    description: 'right2',
-    permission: 'right2:write'
+    name: 'read-rh-config',
+    description: 'Read rh config',
+    permission: 'rhConfig:read'
   },
   {
     _id: new ObjectID(),

@@ -11,7 +11,6 @@ exports.plugin = {
       method: 'GET',
       path: '/draft',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -26,7 +25,6 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.array().items(Joi.object({
             auxiliary: Joi.objectId().required(),

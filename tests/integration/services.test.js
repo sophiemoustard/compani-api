@@ -94,6 +94,18 @@ describe('SERVICES ROUTES', () => {
         expect(res.statusCode).toBe(400);
       });
     });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/services',
+        headers: { 'x-access-token': authToken },
+        payload,
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('GET /services', () => {
@@ -106,6 +118,17 @@ describe('SERVICES ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.services.length).toBe(servicesList.length);
+    });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/services',
+        headers: { 'x-access-token': authToken },
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -157,6 +180,24 @@ describe('SERVICES ROUTES', () => {
       });
       expect(response.statusCode).toBe(400);
     });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const payload = {
+        defaultUnitAmount: 15,
+        name: 'Service bis',
+        startDate: '2019-01-16 17:58:15.519',
+        vat: 12,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/services/${servicesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('DELETE /services/:id', () => {
@@ -170,6 +211,17 @@ describe('SERVICES ROUTES', () => {
       expect(response.statusCode).toBe(200);
       const services = await Service.find();
       expect(services.length).toBe(servicesList.length - 1);
+    });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/services/${servicesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

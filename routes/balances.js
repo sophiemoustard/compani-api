@@ -4,9 +4,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const {
-  list,
-} = require('../controllers/balanceController');
+const { list } = require('../controllers/balanceController');
 
 exports.plugin = {
   name: 'routes-balances',
@@ -15,7 +13,6 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             date: Joi.date(),
