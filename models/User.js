@@ -152,7 +152,7 @@ const UserSchema = mongoose.Schema({
   toJSON: { virtuals: true },
 });
 
-const save = async (next) => {
+async function save (next) {
   try {
     const user = this;
 
