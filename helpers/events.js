@@ -34,7 +34,7 @@ momentRange.extendMoment(moment);
 
 exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
   moment(contract.startDate).isSameOrBefore(day, 'd') &&
-  ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
+  ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isSameOrAfter(day, 'd')));
 
 exports.hasConflicts = async (event) => {
   const auxiliaryEvents = await Event.find({
