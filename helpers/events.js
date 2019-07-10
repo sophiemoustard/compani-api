@@ -34,7 +34,7 @@ momentRange.extendMoment(moment);
 
 exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
   moment(contract.startDate).isSameOrBefore(day, 'd') &&
-  ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
+  ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isSameOrAfter(day, 'd')));
 
 exports.hasConflicts = async (event) => {
   const auxiliaryEvents = await Event.find({
@@ -254,6 +254,8 @@ exports.updateRepetitions = async (event, payload) => {
   const parentEndtDate = moment(payload.endDate);
   const promises = [];
 
+  let unset;
+  if (!payload.auxiliary) unset = { auxiliary: '' };
   const events = await Event.find({ 'repetition.parentId': event.repetition.parentId, startDate: { $gt: new Date(event.startDate) } });
   events.forEach((ev) => {
     const startDate = moment(ev.startDate).hours(parentStartDate.hours());
@@ -262,7 +264,7 @@ exports.updateRepetitions = async (event, payload) => {
     endDate.minutes(parentEndtDate.minutes());
     promises.push(Event.findOneAndUpdate(
       { _id: ev._id },
-      { $set: flat({ ...payload, startDate: startDate.toISOString(), endDate: endDate.toISOString() }) }
+      { $set: flat({ ...payload, startDate: startDate.toISOString(), endDate: endDate.toISOString() }), ...(unset && { $unset: unset }) },
     ));
   });
 
@@ -286,37 +288,32 @@ exports.updateEvent = async (event, payload) => {
     ))) miscUpdatedOnly = true;
   }
 
+  let unset;
+  let set;
   if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
-    event = await Event
-      .findOneAndUpdate(
-        { _id: event._id },
-        {
-          ...(!payload.isCancelled && event.isCancelled
-            ? { $set: flat({ ...payload, isCancelled: false }), $unset: { cancel: '' } }
-            : { $set: flat(payload) })
-        },
-        { autopopulate: false, new: true }
-      )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
+    if (!payload.isCancelled && event.isCancelled) {
+      set = flat({ ...payload, isCancelled: false });
+      unset = { cancel: '' };
+    } else set = flat(payload);
 
-    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) await exports.updateRepetitions(event, payload);
+    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) {
+      await exports.updateRepetitions(event, payload);
+    }
+  } else if (!payload.isCancelled && event.isCancelled) {
+    set = flat({ ...payload, isCancelled: false, 'repetition.frequency': NEVER });
+    unset = { cancel: '', 'repetition.parentId': '' };
   } else {
-    event = await Event
-      .findOneAndUpdate(
-        { _id: event._id },
-        {
-          ...(!payload.isCancelled && event.isCancelled
-            ? { $set: flat({ ...payload, isCancelled: false, 'repetition.frequency': NEVER }), $unset: { cancel: '', 'repetition.parentId': '' } }
-            : { $set: flat({ ...payload, 'repetition.frequency': NEVER }), $unset: { 'repetition.parentId': '' } })
-        },
-        { autopopulate: false, new: true }
-      )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
+    set = flat({ ...payload, 'repetition.frequency': NEVER });
+    unset = { 'repetition.parentId': '' };
   }
+
+  if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
+
+  event = await Event
+    .findOneAndUpdate({ _id: event._id }, { $set: set, ...(unset && { $unset: unset }) }, { autopopulate: false, new: true })
+    .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
+    .populate({ path: 'customer', select: 'identity subscriptions contact' })
+    .lean();
 
   return exports.populateEventSubscription(event);
 };
