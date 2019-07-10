@@ -49,11 +49,11 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            identity: {
+            identity: Joi.object().keys({
               title: Joi.string(),
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string().required(),
-            },
+            }).min(1),
             contact: Joi.object().keys({
               address: {
                 street: Joi.string().required(),
@@ -83,12 +83,12 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             _id: Joi.objectId(),
-            identity: {
+            identity: Joi.object().keys({
               title: Joi.string(),
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               birthDate: Joi.date(),
-            },
+            }).min(1),
             email: Joi.string().email(),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),

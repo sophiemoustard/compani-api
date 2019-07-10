@@ -1,6 +1,6 @@
 module.exports = {
   title: String,
   firstname: String,
-  lastname: String,
+  lastname: { type: String, required: true },
   birthDate: Date,
 };
