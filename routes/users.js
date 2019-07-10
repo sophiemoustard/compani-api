@@ -333,6 +333,7 @@ exports.plugin = {
             location: [Joi.string(), Joi.array()],
           })
         },
+        auth: false,
       },
       handler: getPresentation,
     });
@@ -346,6 +347,7 @@ exports.plugin = {
             refreshToken: Joi.string().required(),
           },
         },
+        auth: false,
       },
       handler: refreshToken,
     });
