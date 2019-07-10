@@ -11,7 +11,7 @@ exports.plugin = {
       key: process.env.TOKEN_SECRET,
       headerKey: 'x-access-token',
       verifyOptions: { algorithms: ['HS256'] },
-      validate
+      validate,
     });
 
     server.auth.default('jwt');
