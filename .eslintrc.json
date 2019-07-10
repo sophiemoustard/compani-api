@@ -11,7 +11,13 @@
       "no-multi-assign": "off",
       "no-restricted-syntax": "off",
       "guard-for-in": "off",
-      "comma-dangle": "off",
+      "comma-dangle": ["error", {
+        "arrays": "always-multiline",
+        "objects": "always-multiline",
+        "imports": "always-multiline",
+        "exports": "always-multiline",
+        "functions": "never"
+      }],
       "eqeqeq": "off",
       "max-len": "off",
       "no-underscore-dangle": "off",
@@ -20,15 +26,15 @@
       "object-curly-newline": ["error", {
         "ObjectExpression": { "multiline": true, "minProperties": 5, "consistent": true },
         "ExportDeclaration": "always"
-      }]
+      }],
     },
     "extends": "airbnb-base",
     "plugins": [
         "import",
-        "mocha"
+        "mocha",
     ],
     "env": {
       "node": true,
-      "mocha": true
+      "mocha": true,
     }
 }

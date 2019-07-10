@@ -63,7 +63,7 @@ const create = async (req) => {
     }
     await contract.save();
 
-    await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id } });
+    await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } });
     if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $push: { contracts: contract._id } });
 
     return {
