@@ -14,18 +14,15 @@ exports.plugin = {
       handler: uploadFile,
       options: {
         validate: {
-          params: { _id: Joi.objectId().required() }
+          params: { _id: Joi.objectId().required() },
         },
         payload: {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
-        auth: {
-          strategy: 'jwt',
-        }
-      }
+      },
     });
 
     server.route({
@@ -34,18 +31,15 @@ exports.plugin = {
       handler: uploadImage,
       options: {
         validate: {
-          params: { _id: Joi.objectId().required() }
+          params: { _id: Joi.objectId().required() },
         },
         payload: {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
-        auth: {
-          strategy: 'jwt',
-        }
-      }
+      },
     });
   }
 };

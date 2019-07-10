@@ -20,7 +20,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
+        auth: { scope: ['rhConfig:edit'] },
         validate: {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
@@ -33,7 +33,7 @@ exports.plugin = {
               exemptFromCharges: Joi.boolean(),
             }),
             nature: Joi.string().required().valid(HOURLY, FIXED),
-          })
+          }),
         },
       },
     });
@@ -43,9 +43,9 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
+        auth: { scope: ['rhConfig:edit'] },
         validate: {
-          query: { company: Joi.objectId() }
+          query: { company: Joi.objectId() },
         }
       },
     });
@@ -55,11 +55,11 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
+        auth: { scope: ['rhConfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
       },
     });
@@ -69,7 +69,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
+        auth: { scope: ['rhConfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -81,7 +81,7 @@ exports.plugin = {
             vat: Joi.number(),
             surcharge: Joi.objectId(),
             exemptFromCharges: Joi.boolean(),
-          })
+          }),
         },
       },
     });

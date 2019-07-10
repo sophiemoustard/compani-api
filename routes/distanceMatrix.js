@@ -4,9 +4,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const {
-  list,
-} = require('../controllers/distanceMatrixController');
+const { list } = require('../controllers/distanceMatrixController');
 
 
 exports.plugin = {
@@ -15,10 +13,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/',
-      options: {
-        auth: 'jwt'
-      },
-      handler: list
+      handler: list,
     });
   }
 };

@@ -64,12 +64,11 @@ exports.plugin = {
                   type: Joi.string(),
                   coordinates: Joi.array(),
                 }
-              }
+              },
             }).required(),
             isActive: Joi.boolean().default(true),
           })
         },
-        auth: { strategy: 'jwt' },
       },
       handler: create,
     });
@@ -102,7 +101,7 @@ exports.plugin = {
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                }
+                },
               },
               doorCode: Joi.string(),
               intercomCode: Joi.string(),
@@ -122,7 +121,6 @@ exports.plugin = {
             isActive: Joi.boolean(),
           })
         },
-        auth: { strategy: 'jwt' },
       },
       handler: update,
     });
@@ -135,9 +133,8 @@ exports.plugin = {
           query: Joi.object().keys({
             subscriptions: Joi.boolean(),
             _id: [Joi.array().items(Joi.objectId()), Joi.objectId()],
-          })
+          }),
         },
-        auth: 'jwt',
       },
       handler: list,
     });
@@ -151,9 +148,8 @@ exports.plugin = {
             sector: Joi.array().items(Joi.string()),
             startDate: Joi.date(),
             endDate: Joi.date(),
-          })
+          }),
         },
-        auth: 'jwt',
       },
       handler: listBySector,
     });
@@ -161,19 +157,12 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/billed-events',
-      options: {
-        validate: {},
-        auth: 'jwt',
-      },
       handler: listWithBilledEvents,
     });
 
     server.route({
       method: 'GET',
       path: '/customer-contract-subscriptions',
-      options: {
-        auth: 'jwt',
-      },
       handler: listWithCustomerContractSubscriptions,
     });
 
@@ -184,11 +173,10 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          }
+          },
         },
-        auth: 'jwt',
       },
-      handler: show
+      handler: show,
     });
 
     server.route({
@@ -198,11 +186,10 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required()
-          }
+          },
         },
-        auth: 'jwt',
       },
-      handler: remove
+      handler: remove,
     });
 
     server.route({
@@ -212,9 +199,8 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: getSubscriptions,
     });
@@ -233,9 +219,8 @@ exports.plugin = {
               evenings: Joi.number(),
               sundays: Joi.number(),
             }),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: addSubscription,
     });
@@ -254,9 +239,8 @@ exports.plugin = {
             estimatedWeeklyVolume: Joi.number(),
             evenings: Joi.number(),
             sundays: Joi.number(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: updateSubscription,
     });
@@ -269,9 +253,8 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             subscriptionId: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: removeSubscription,
     });
@@ -283,9 +266,8 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: getMandates,
     });
@@ -298,9 +280,8 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             mandateId: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: updateMandate,
     });
@@ -325,7 +306,6 @@ exports.plugin = {
             redirectDecline: Joi.string(),
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: generateMandateSignatureRequest
     });
@@ -339,7 +319,6 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
         },
-        auth: { strategy: 'jwt' }
       },
       handler: getCustomerQuotes,
     });
@@ -360,9 +339,8 @@ exports.plugin = {
               evenings: Joi.number(),
               sundays: Joi.number(),
             })).required(),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: createCustomerQuote,
     });
@@ -375,9 +353,8 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             quoteId: Joi.objectId().required(),
-          }
+          },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: removeCustomerQuote,
     });
@@ -393,10 +370,7 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             parentFolderId: Joi.string(),
-          })
-        },
-        auth: {
-          strategy: 'jwt',
+          }),
         },
       },
       handler: createDriveFolder,
@@ -413,10 +387,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
-        auth: {
-          strategy: 'jwt',
-        }
-      }
+      },
     });
 
     server.route({
@@ -429,9 +400,8 @@ exports.plugin = {
             financialCertificates: Joi.object().keys({
               driveId: Joi.string().required(),
             }),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: updateCertificates,
     });
@@ -444,9 +414,8 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             mandateId: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: saveSignedMandate,
     });
@@ -475,7 +444,6 @@ exports.plugin = {
             }).required(),
           })
         },
-        auth: { strategy: 'jwt' },
       },
       handler: createHistorySubscription,
     });
@@ -505,7 +473,6 @@ exports.plugin = {
             })),
           }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: createFunding,
     });
@@ -532,7 +499,6 @@ exports.plugin = {
             customerParticipationRate: Joi.number().default(0),
           }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: updateFunding,
     });
@@ -546,7 +512,6 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
-        auth: 'jwt',
       },
       handler: getFundings,
     });
@@ -561,7 +526,6 @@ exports.plugin = {
             fundingId: Joi.objectId().required(),
           },
         },
-        auth: 'jwt',
       },
       handler: removeFunding,
     });

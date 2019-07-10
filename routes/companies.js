@@ -47,9 +47,8 @@ exports.plugin = {
             })
           })
         },
-        auth: { strategy: 'jwt' },
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
@@ -127,9 +126,8 @@ exports.plugin = {
             }),
           })
         },
-        auth: { strategy: 'jwt' },
       },
-      handler: update
+      handler: update,
     });
 
     server.route({
@@ -141,9 +139,8 @@ exports.plugin = {
             name: Joi.string(),
           })
         },
-        auth: 'jwt'
       },
-      handler: list
+      handler: list,
     });
 
     server.route({
@@ -155,9 +152,8 @@ exports.plugin = {
             _id: Joi.objectId().required()
           }
         },
-        auth: 'jwt'
       },
-      handler: show
+      handler: show,
     });
 
     server.route({
@@ -169,9 +165,8 @@ exports.plugin = {
             _id: Joi.objectId().required()
           }
         },
-        auth: 'jwt'
       },
-      handler: remove
+      handler: remove,
     });
 
     server.route({
@@ -185,10 +180,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880
         },
-        auth: {
-          strategy: 'jwt',
-        }
-      }
+      },
     });
 
     server.route({
@@ -196,7 +188,6 @@ exports.plugin = {
       path: '/{_id}/internalHours',
       handler: addInternalHour,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -206,7 +197,7 @@ exports.plugin = {
             default: Joi.boolean(),
           })
         },
-      }
+      },
     });
 
     server.route({
@@ -214,7 +205,6 @@ exports.plugin = {
       path: '/{_id}/internalHours/{internalHourId}',
       handler: updateInternalHour,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -225,7 +215,7 @@ exports.plugin = {
             default: Joi.boolean(),
           })
         },
-      }
+      },
     });
 
     server.route({
@@ -233,11 +223,10 @@ exports.plugin = {
       path: '/{_id}/internalHours',
       handler: getInternalHours,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: { _id: Joi.objectId().required() },
         }
-      }
+      },
     });
 
     server.route({
@@ -245,14 +234,13 @@ exports.plugin = {
       path: '/{_id}/internalHours/{internalHourId}',
       handler: removeInternalHour,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             _id: Joi.objectId().required(),
             internalHourId: Joi.objectId().required(),
           }
         },
-      }
+      },
     });
   }
 };

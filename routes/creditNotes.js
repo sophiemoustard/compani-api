@@ -22,7 +22,6 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.object().keys({
             date: Joi.date().required(),
@@ -71,7 +70,6 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             startDate: Joi.date(),
@@ -87,12 +85,11 @@ exports.plugin = {
       path: '/{_id}',
       handler: getById,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             _id: Joi.objectId().required()
-          }
-        }
+          },
+        },
       },
     });
 
@@ -101,11 +98,10 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
       },
     });
@@ -115,7 +111,6 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -169,7 +164,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId() },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: generateCreditNotePdf,
     });

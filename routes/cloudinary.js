@@ -16,10 +16,7 @@ exports.plugin = {
         validate: {
           params: { id: Joi.string() }
         },
-        auth: {
-          strategy: 'jwt'
-        }
-      }
+      },
     });
 
     server.route({
@@ -31,12 +28,9 @@ exports.plugin = {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
-        auth: {
-          strategy: 'jwt',
-        }
-      }
+      },
     });
   }
 };

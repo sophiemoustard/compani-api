@@ -18,7 +18,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
+        auth: { scope: ['rhConfig:edit'] },
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
@@ -33,8 +33,8 @@ exports.plugin = {
             custom: Joi.number().allow('', null),
             customStartTime: Joi.string().allow('', null).when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
             customEndTime: Joi.string().allow('', null).when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
-            company: Joi.required()
-          })
+            company: Joi.required(),
+          }),
         },
       },
     });
@@ -44,12 +44,12 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
+        auth: { scope: ['rhConfig:edit'] },
         validate: {
           query: {
             company: Joi.objectId(),
-          }
-        }
+          },
+        },
       },
     });
 
@@ -58,11 +58,11 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
+        auth: { scope: ['rhConfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
       },
     });
@@ -72,7 +72,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { strategy: 'jwt', scope: ['rhConfig:edit'] },
+        auth: { scope: ['rhConfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -90,7 +90,7 @@ exports.plugin = {
             custom: Joi.number().allow('', null).default(null),
             customStartTime: Joi.string().allow('', null).default('').when('custom', { is: Joi.number(), then: Joi.required() }),
             customEndTime: Joi.string().allow('', null).default('').when('custom', { is: Joi.number(), then: Joi.required() }),
-          })
+          }),
         },
       },
     });

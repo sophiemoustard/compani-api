@@ -18,7 +18,6 @@ exports.plugin = {
       method: 'GET',
       path: '/drafts',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             endDate: Joi.date().required(),
@@ -36,7 +35,6 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -55,7 +53,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId() },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: generateBillPdf,
     });
@@ -64,7 +61,6 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: {
             bills: Joi.array().items(Joi.object({

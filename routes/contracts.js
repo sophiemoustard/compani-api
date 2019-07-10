@@ -32,7 +32,6 @@ exports.plugin = {
             customer: Joi.objectId(),
           })
         },
-        auth: { strategy: 'jwt' },
       },
       handler: list,
     });
@@ -46,7 +45,6 @@ exports.plugin = {
             _id: Joi.objectId(),
           })
         },
-        auth: { strategy: 'jwt' },
       },
       handler: get,
     });
@@ -85,7 +83,6 @@ exports.plugin = {
             })
           }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: create,
     });
@@ -104,7 +101,6 @@ exports.plugin = {
             endNotificationDate: Joi.date(),
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: update,
     });
@@ -116,7 +112,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: remove,
     });
@@ -149,7 +144,6 @@ exports.plugin = {
             })
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: createContractVersion,
     });
@@ -168,7 +162,6 @@ exports.plugin = {
             endDate: Joi.date(),
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: updateContractVersion,
     });
@@ -183,7 +176,6 @@ exports.plugin = {
             versionId: Joi.objectId().required(),
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: removeContractVersion,
     });
@@ -199,10 +191,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880
         },
-        auth: {
-          strategy: 'jwt',
-        }
-      }
+      },
     });
 
     server.route({

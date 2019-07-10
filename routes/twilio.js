@@ -14,14 +14,11 @@ exports.plugin = {
       options: {
         validate: {
           query: {
-            limit: Joi.number()
-          }
+            limit: Joi.number(),
+          },
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
-      handler: list
+      handler: list,
     });
     // Send SMS
     server.route({
@@ -33,13 +30,10 @@ exports.plugin = {
             to: Joi.string().required(),
             from: Joi.string().default('Alenvi'),
             body: Joi.string().required()
-          }).required()
+          }).required(),
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
-      handler: send
+      handler: send,
     });
   }
 };

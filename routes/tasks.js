@@ -21,14 +21,11 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            isDone: Joi.boolean()
-          })
+            isDone: Joi.boolean(),
+          }),
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
@@ -37,15 +34,14 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            name: Joi.string().required()
-          })
+            name: Joi.string().required(),
+          }),
         },
-        auth: { strategy: 'jwt' }
       },
-      handler: update
+      handler: update,
     });
 
     server.route({
@@ -54,10 +50,9 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
-            name: Joi.string()
-          })
+            name: Joi.string(),
+          }),
         },
-        auth: 'jwt'
       },
       handler: list,
     });
@@ -68,12 +63,11 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
         },
-        auth: 'jwt'
       },
-      handler: showById
+      handler: showById,
     });
 
     server.route({
@@ -82,12 +76,12 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
         },
-        auth: 'jwt'
+        auth: 'jwt',
       },
-      handler: remove
+      handler: remove,
     });
   }
 };
