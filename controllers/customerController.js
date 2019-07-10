@@ -298,7 +298,7 @@ const update = async (req) => {
         customerUpdated = await Customer.findOneAndUpdate(
           { _id: req.params._id },
           { $set: flat(req.payload, { safe: true }), $push: { 'payment.mandates': mandate } },
-          { new: true }
+          { new: true, runValidators: true }
         );
       } else {
         customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });

@@ -19,7 +19,10 @@ const CustomerSchema = mongoose.Schema({
     link: String
   },
   email: { type: String, lowercase: true, trim: true },
-  identity: identitySchemaDefinition,
+  identity: {
+    type: mongoose.Schema({ ...identitySchemaDefinition }, { _id: false }),
+    required: true,
+  },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
     address: {

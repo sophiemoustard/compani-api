@@ -157,7 +157,7 @@ const show = async (req) => {
 const update = async (req) => {
   try {
     const newBody = flat(req.payload);
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true });
+    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true, runValidators: true });
     if (!userUpdated) return Boom.notFound(translate[language].userNotFound);
 
     if (userUpdated.role && userUpdated.role.rights.length > 0) {

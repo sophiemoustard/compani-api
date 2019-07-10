@@ -52,12 +52,15 @@ const UserSchema = mongoose.Schema({
     link: { type: String, trim: true }
   },
   identity: {
-    ...identitySchemaDefinition,
-    nationality: String,
-    birthCountry: String,
-    birthState: String,
-    birthCity: String,
-    socialSecurityNumber: Number
+     type: mongoose.Schema({
+      ...identitySchemaDefinition,
+      nationality: String,
+      birthCountry: String,
+      birthState: String,
+      birthCity: String,
+      socialSecurityNumber: Number,
+    }, { _id: false }),
+    required: true,
   },
   contact: {
     address: {
