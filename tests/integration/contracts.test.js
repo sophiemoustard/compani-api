@@ -102,6 +102,7 @@ describe('CONTRACTS ROUTES', () => {
       const user = await User.findOne({ _id: payload.user });
       expect(user).toBeDefined();
       expect(user.contracts).toContainEqual(new ObjectID(res.result.data.contract._id));
+      expect(user.inactivityDate).toBeNull();
     });
 
     it('should create contract (customer contract)', async () => {
