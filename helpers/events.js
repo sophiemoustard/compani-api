@@ -307,7 +307,7 @@ exports.updateEvent = async (event, payload) => {
     unset = { 'repetition.parentId': '' };
   }
 
-  if (!payload.auxiliary) unset = unset ? { ...unset, auxiliary: '' } : { auxiliary: '' };
+  if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
 
   event = await Event
     .findOneAndUpdate({ _id: event._id }, { $set: set, ...(unset && { $unset: unset }) }, { autopopulate: false, new: true })
