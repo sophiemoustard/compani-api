@@ -374,9 +374,7 @@ exports.deleteRepetition = async (event) => {
   });
 };
 
-exports.unnasignInterventions = async (contract) => {
-  if (!contract) throw Boom.badRequest();
-
+exports.unasignInterventions = async (contract) => {
   const customerSubscriptionsFromEvents = await Event.aggregate([
     {
       $match: {
@@ -441,10 +439,7 @@ exports.unnasignInterventions = async (contract) => {
   );
 };
 
-exports.removeNonInterventionEvents = (contract) => {
-  if (!contract) throw Boom.badRequest();
-  return Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
-};
+exports.removeNonInterventionEvents = async contract => Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
   const query = {
