@@ -41,7 +41,7 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
     driveFolderId: params.driveId,
     name: payload.fileName || payload[administrativeKeys[0]].hapi.filename,
     type: payload['Content-Type'],
-    body: payload[administrativeKeys[0]]
+    body: payload[administrativeKeys[0]],
   });
   const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
 
@@ -54,8 +54,8 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
       file = {
         'versions.$[version]': {
           customerDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
-          auxiliaryDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink }
-        }
+          auxiliaryDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
+        },
       };
     }
   } else {
@@ -67,7 +67,7 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
     {
       new: true,
       arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(payload.versionId) }],
-      autopopulate: false
+      autopopulate: false,
     }
   );
 
@@ -85,13 +85,13 @@ const saveCompletedContract = async (everSignDoc) => {
         driveFolderId: everSignDoc.data.meta.auxiliaryDriveId,
         name: everSignDoc.data.title,
         type: 'application/pdf',
-        body: file
+        body: file,
       }),
       addFile({
         driveFolderId: everSignDoc.data.meta.customerDriveId,
         name: everSignDoc.data.title,
         type: 'application/pdf',
-        body: file
+        body: file,
       }),
     ];
     const [auxiliaryDoc, customerDoc] = await Promise.all(addFilePromises);
@@ -101,20 +101,20 @@ const saveCompletedContract = async (everSignDoc) => {
       'versions.$': {
         auxiliaryDoc: { driveId: auxiliaryDoc.id, link: auxiliaryDocInfo.webViewLink },
         customerDoc: { driveId: customerDoc.id, link: customerDocInfo.webViewLink },
-      }
+      },
     };
   } else {
     const auxiliaryDoc = await addFile({
       driveFolderId: everSignDoc.data.meta.auxiliaryDriveId,
       name: everSignDoc.data.title,
       type: 'application/pdf',
-      body: file
+      body: file,
     });
     const auxiliaryDocInfo = await Drive.getFileById({ fileId: auxiliaryDoc.id });
     payload = {
       'versions.$': {
         auxiliaryDoc: { driveId: auxiliaryDoc.id, link: auxiliaryDocInfo.webViewLink },
-      }
+      },
     };
   }
   await Contract.findOneAndUpdate({ 'versions.signature.eversignId': everSignDoc.data.document_hash }, { $set: flat(payload) }, { new: true });
@@ -123,5 +123,5 @@ const saveCompletedContract = async (everSignDoc) => {
 module.exports = {
   endContract,
   createAndSaveFile,
-  saveCompletedContract
+  saveCompletedContract,
 };
