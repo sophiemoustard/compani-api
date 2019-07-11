@@ -20,7 +20,7 @@ const CustomerSchema = mongoose.Schema({
   },
   email: { type: String, lowercase: true, trim: true },
   identity: {
-    type: mongoose.Schema({ ...identitySchemaDefinition }, { _id: false }),
+    type: mongoose.Schema(identitySchemaDefinition, { _id: false }),
     required: true,
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
