@@ -9,7 +9,7 @@ const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
-const { removeEventsByContractStatus } = require('../helpers/events');
+const { unnasignInterventions, removeNonInterventionEvents } = require('../helpers/events');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
@@ -81,6 +81,8 @@ const update = async (req) => {
     let contract;
     if (req.payload.endDate) {
       contract = await endContract(req.params._id, req.payload);
+      await unnasignInterventions(contract);
+      await removeNonInterventionEvents(contract);
     } else {
       contract = await Contract
         .findByIdAndUpdate(req.params._id, req.paylaod)
@@ -91,7 +93,6 @@ const update = async (req) => {
 
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
-    await removeEventsByContractStatus(contract);
 
     return {
       message: translate[language].contractUpdated,
@@ -144,7 +145,7 @@ const updateContractVersion = async (req) => {
   try {
     const payload = { 'versions.$[version]': { ...req.payload } };
     const contract = await Contract.findOneAndUpdate(
-      { _id: req.params._id, },
+      { _id: req.params._id },
       { $set: flat(payload) },
       {
         // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
@@ -156,7 +157,7 @@ const updateContractVersion = async (req) => {
 
     return {
       message: translate[language].contractVersionUpdated,
-      data: { contract }
+      data: { contract },
     };
   } catch (e) {
     req.log('error', e);
@@ -169,7 +170,7 @@ const removeContractVersion = async (req) => {
     await Contract.findOneAndUpdate(
       { _id: req.params._id, 'versions._id': req.params.contractId },
       { $pull: { versions: { _id: req.params.versionId } } },
-      { autopopulate: false },
+      { autopopulate: false }
     );
 
     return {
@@ -233,5 +234,5 @@ module.exports = {
   updateContractVersion,
   removeContractVersion,
   uploadFile,
-  receiveSignatureEvents
+  receiveSignatureEvents,
 };
