@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const surchargedHours = {
+  hours: Number,
+  percentage: Number,
+};
+
+const surchargedDetails = [{
+  planName: String,
+  saturday: surchargedHours,
+  sunday: surchargedHours,
+  publicHoliday: surchargedHours,
+  twentyFifthOfDecember: surchargedHours,
+  firstOfMay: surchargedHours,
+  evening: surchargedHours,
+  custom: surchargedHours,
+}];
+
 module.exports = {
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   startDate: Date,
@@ -9,8 +25,10 @@ module.exports = {
   workedHours: Number,
   notSurchargedAndNotExempt: Number,
   surchargedAndNotExempt: Number,
+  surchargedAndNotExemptDetails: surchargedDetails,
   notSurchargedAndExempt: Number,
   surchargedAndExempt: Number,
+  surchargedAndExemptDetails: surchargedDetails,
   hoursBalance: Number,
   hoursCounter: Number,
   overtimeHours: Number,
