@@ -2,7 +2,6 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const Boom = require('boom');
 
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
@@ -233,7 +232,7 @@ describe('populateEvent', () => {
             unitTTCRate: 25,
             estimatedWeeklyVolume: 12,
             sundays: 2,
-          }
+          },
         ],
       },
       subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
@@ -278,7 +277,7 @@ describe('populateEvent', () => {
             unitTTCRate: 25,
             estimatedWeeklyVolume: 12,
             sundays: 2,
-          }
+          },
         ],
       },
       subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
@@ -314,7 +313,7 @@ describe('populateEvents', () => {
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
-            }
+            },
           ],
         },
         subscription: new ObjectID('5c3855fa12d1370abdda0b8f'),
@@ -338,11 +337,11 @@ describe('populateEvents', () => {
               unitTTCRate: 25,
               estimatedWeeklyVolume: 12,
               sundays: 2,
-            }
+            },
           ],
         },
         subscription: new ObjectID('5a3bc0315e421400147d5ecd'),
-      }
+      },
     ];
 
     const result = await EventHelper.populateEvents(events);
@@ -454,7 +453,7 @@ describe('isCreationAllowed', () => {
         _id: subscriptionId,
         service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
         versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
-      }]
+      }],
     };
     Customer.findOne = () => customer;
     customer.populate = () => customer;
@@ -499,7 +498,7 @@ describe('isCreationAllowed', () => {
         _id: subscriptionId,
         service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
         versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
-      }]
+      }],
     };
     Customer.findOne = () => customer;
     customer.populate = () => customer;
@@ -592,7 +591,7 @@ describe('isCreationAllowed', () => {
         _id: subscriptionId,
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
         versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
-      }]
+      }],
     };
     Customer.findOne = () => customer;
     customer.populate = () => customer;
@@ -638,7 +637,7 @@ describe('isCreationAllowed', () => {
         _id: new ObjectID(),
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
         versions: [{ startDate: moment(payload.startDate).add(1, 'd') }],
-      }]
+      }],
     };
     Customer.findOne = () => customer;
     customer.populate = () => customer;
@@ -680,8 +679,8 @@ describe('isCreationAllowed', () => {
       _id: payload.customer,
       subscriptions: [{
         _id: payload.subscription,
-        service: { type: '', versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] }
-      }]
+        service: { type: '', versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
+      }],
     };
     Customer.findOne = () => customer;
     customer.populate = () => customer;
@@ -744,9 +743,9 @@ describe('isEditionAllowed', () => {
   });
 });
 
-describe('removeEventsByContractStatus', () => {
+describe('unassignInterventions', () => {
   let EventAggregateStub = null;
-  let EventDeleteManyStub = null;
+  let EventUpdateManyStub = null;
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
@@ -754,49 +753,60 @@ describe('removeEventsByContractStatus', () => {
     customer: { _id: customerId },
     sub: {
       _id: 'qwerty',
-      service: { type: COMPANY_CONTRACT }
-    }
+      service: { type: COMPANY_CONTRACT },
+    },
   }, {
     customer: { _id: customerId },
     sub: {
       _id: 'asdfgh',
-      service: { type: CUSTOMER_CONTRACT }
-    }
+      service: { type: CUSTOMER_CONTRACT },
+    },
   }];
 
   beforeEach(() => {
     EventAggregateStub = sinon.stub(Event, 'aggregate');
-    EventDeleteManyStub = sinon.stub(Event, 'deleteMany');
+    EventUpdateManyStub = sinon.stub(Event, 'updateMany');
   });
   afterEach(() => {
     EventAggregateStub.restore();
-    EventDeleteManyStub.restore();
+    EventUpdateManyStub.restore();
   });
 
-  it('should remove future events linked to company contract', async () => {
+  it('should unassign future events linked to company contract', async () => {
     const contract = { status: COMPANY_CONTRACT, endDate: moment().toDate(), user: userId };
     EventAggregateStub.returns(aggregation);
 
-    await EventHelper.removeEventsByContractStatus(contract);
+    await EventHelper.unasignInterventions(contract);
     sinon.assert.called(EventAggregateStub);
-    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[0].sub._id] }, isBilled: false });
+    sinon.assert.calledWith(
+      EventUpdateManyStub,
+      { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[0].sub._id] }, isBilled: false },
+      { $unset: { auxiliary: '' } }
+    );
   });
 
-  it('should remove future events linked to corresponding customer contract', async () => {
+  it('should unasign future events linked to corresponding customer contract', async () => {
     const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
     EventAggregateStub.returns(aggregation);
 
-    await EventHelper.removeEventsByContractStatus(contract);
+    await EventHelper.unasignInterventions(contract);
     sinon.assert.called(EventAggregateStub);
-    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[1].sub._id] }, isBilled: false });
+    sinon.assert.calledWith(
+      EventUpdateManyStub,
+      { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[1].sub._id] }, isBilled: false },
+      { $unset: { auxiliary: '' } }
+    );
   });
+});
 
-  it('should return a 400 error if no contract provided', async () => {
-    try {
-      await EventHelper.removeEventsByContractStatus();
-    } catch (e) {
-      expect(e).toEqual(Boom.badRequest());
-    }
+describe('removeNonInterventionEvents', () => {
+  it('should remove future non-intervention events', async () => {
+    const contract = { endDate: moment().toDate() };
+    const EventDeleteManyStub = sinon.stub(Event, 'deleteMany');
+
+    await EventHelper.removeNonInterventionEvents(contract);
+    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
+    EventDeleteManyStub.restore();
   });
 });
 
@@ -852,8 +862,8 @@ describe('exportWorkingEventsHistory', () => {
       },
       startDate: '2019-05-20T06:00:00.000+00:00',
       endDate: '2019-05-20T08:00:00.000+00:00',
-      misc: 'brbr'
-    }
+      misc: 'brbr',
+    },
   ];
   let expectsFind;
   let mockEvent;
@@ -892,7 +902,7 @@ describe('exportWorkingEventsHistory', () => {
     expect(exportArray).toEqual([
       header,
       ['Intervention', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant']
+      ['Heure interne', 'Formation', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
     ]);
 
     getFullTitleFromIdentityStub.restore();
@@ -930,7 +940,7 @@ describe('exportAbsencesHistory', () => {
       startDate: '2019-05-20T06:00:00.000+00:00',
       endDate: '2019-05-20T08:00:00.000+00:00',
       misc: 'brbr',
-    }
+    },
   ];
   let expectsFind;
   let mockEvent;
@@ -969,7 +979,7 @@ describe('exportAbsencesHistory', () => {
     expect(exportArray).toEqual([
       header,
       ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', 'Girafes - 75', 'Jean-Claude VAN DAMME', ''],
-      ['Congé', 'Journalière', '20/05/2019', '20/05/2019', 'Etoiles - 75', 'Princess CAROLYN', 'brbr']
+      ['Congé', 'Journalière', '20/05/2019', '20/05/2019', 'Etoiles - 75', 'Princess CAROLYN', 'brbr'],
     ]);
 
     getFullTitleFromIdentityStub.restore();

@@ -82,7 +82,7 @@ describe('CONTRACTS ROUTES', () => {
       versions: [{
         weeklyHours: 24,
         grossHourlyRate: 10.43,
-        startDate: '2019-01-18T15:46:30.636Z'
+        startDate: '2019-01-18T15:46:30.636Z',
       }],
       user: userList[4]._id,
     };
@@ -114,7 +114,7 @@ describe('CONTRACTS ROUTES', () => {
           startDate: '2019-01-18T15:46:30.636Z',
           versions: [{
             grossHourlyRate: 10.43,
-            startDate: '2019-01-18T15:46:30.636Z'
+            startDate: '2019-01-18T15:46:30.636Z',
           }],
           user: userList[4]._id,
           status: CUSTOMER_CONTRACT,
@@ -137,50 +137,50 @@ describe('CONTRACTS ROUTES', () => {
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'status',
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'grossHourlyRate',
         payload: { ...payload },
         update() {
           delete this.payload.versions[0][this.paramName];
-        }
+        },
       },
       {
         paramName: 'weeklyHours',
         payload: { ...payload },
         update() {
           delete this.payload.versions[0][this.paramName];
-        }
+        },
       },
       {
         paramName: 'startDate',
         payload: { ...payload },
         update() {
           delete this.payload.versions[0][this.paramName];
-        }
+        },
       },
       {
         paramName: 'user',
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'customer',
         payload: { ...payload, status: CUSTOMER_CONTRACT },
         update() {
           delete this.payload[this.paramName];
-        }
-      }
+        },
+      },
     ];
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.paramName}' parameter`, async () => {
@@ -197,8 +197,8 @@ describe('CONTRACTS ROUTES', () => {
   });
 
   describe('PUT contract/:id', () => {
-    it('should end the contract and remove future events', async () => {
-      const endDate = moment().add(1, 'd').toDate();
+    it('should end the contract, unasign future interventions and remove other future events', async () => {
+      const endDate = new Date('2019-07-08T14:00:18.653Z');
       const payload = { endDate };
       const res = await app.inject({
         method: 'PUT',
@@ -215,7 +215,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(user.inactivityDate).not.toBeNull();
       expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment().add('1', 'months').startOf('M').format('YYYY-MM-DD'));
       const events = await Event.find().lean();
-      expect(events.length).toBe(eventsList.length - 2);
+      expect(events.length).toBe(eventsList.length - 1);
     });
 
     it('should return 404 error if no contract', async () => {
