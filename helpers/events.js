@@ -439,7 +439,7 @@ exports.unasignInterventions = async (contract) => {
   );
 };
 
-exports.removeNonInterventionEvents = async contract => Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
+exports.removeEventsExceptInterventions = async contract => Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
   const query = {
