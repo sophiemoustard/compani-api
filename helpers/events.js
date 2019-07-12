@@ -374,7 +374,7 @@ exports.deleteRepetition = async (event) => {
   });
 };
 
-exports.unasignInterventions = async (contract) => {
+exports.unassignInterventions = async (contract) => {
   const customerSubscriptionsFromEvents = await Event.aggregate([
     {
       $match: {

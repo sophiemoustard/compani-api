@@ -776,7 +776,7 @@ describe('unassignInterventions', () => {
     const contract = { status: COMPANY_CONTRACT, endDate: moment().toDate(), user: userId };
     EventAggregateStub.returns(aggregation);
 
-    await EventHelper.unasignInterventions(contract);
+    await EventHelper.unassignInterventions(contract);
     sinon.assert.called(EventAggregateStub);
     sinon.assert.calledWith(
       EventUpdateManyStub,
@@ -785,11 +785,11 @@ describe('unassignInterventions', () => {
     );
   });
 
-  it('should unasign future events linked to corresponding customer contract', async () => {
+  it('should unassign future events linked to corresponding customer contract', async () => {
     const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
     EventAggregateStub.returns(aggregation);
 
-    await EventHelper.unasignInterventions(contract);
+    await EventHelper.unassignInterventions(contract);
     sinon.assert.called(EventAggregateStub);
     sinon.assert.calledWith(
       EventUpdateManyStub,

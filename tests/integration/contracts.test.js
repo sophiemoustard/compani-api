@@ -197,7 +197,7 @@ describe('CONTRACTS ROUTES', () => {
   });
 
   describe('PUT contract/:id', () => {
-    it('should end the contract, unasign future interventions and remove other future events', async () => {
+    it('should end the contract, unassign future interventions and remove other future events', async () => {
       const endDate = new Date('2019-07-08T14:00:18.653Z');
       const payload = { endDate };
       const res = await app.inject({

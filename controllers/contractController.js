@@ -9,7 +9,7 @@ const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
-const { unasignInterventions, removeEventsExceptInterventions } = require('../helpers/events');
+const { unassignInterventions, removeEventsExceptInterventions } = require('../helpers/events');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
@@ -82,7 +82,7 @@ const update = async (req) => {
     if (req.payload.endDate) {
       contract = await endContract(req.params._id, req.payload);
       if (!contract) return Boom.notFound(translate[language].contractNotFound);
-      await unasignInterventions(contract);
+      await unassignInterventions(contract);
       await removeEventsExceptInterventions(contract);
     } else {
       contract = await Contract
