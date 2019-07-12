@@ -619,7 +619,7 @@ const createDriveFolder = async (req) => {
     if (customer.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID;
       const { folder, folderLink } = await createFolder(customer.identity, parentFolderId);
-      customer.driveFolder = { id: folder.id, link: folderLink.webViewLink };
+      customer.driveFolder = { driveId: folder.id, link: folderLink.webViewLink };
       await customer.save();
     }
 
@@ -698,14 +698,14 @@ const saveSignedMandate = async (req) => {
     const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
     const file = await createAndReadFile(finalPDF.data, tmpPath);
     const uploadedFile = await addFile({
-      driveFolderId: customer.driveFolder.id,
+      driveFolderId: customer.driveFolder.driveId,
       name: customer.payment.mandates[mandateIndex].rum,
       type: 'application/pdf',
       body: file
     });
     const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
     customer.payment.mandates[mandateIndex].drive = {
-      id: uploadedFile.id,
+      driveId: uploadedFile.id,
       link: driveFileInfo.webViewLink
     };
     customer.payment.mandates[mandateIndex].signedAt = moment.utc().toDate();

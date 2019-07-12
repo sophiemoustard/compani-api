@@ -67,11 +67,11 @@ exports.createAndSaveFile = async (docKeys, params, payload) => {
   let file;
   switch (docKeys[0]) {
     case 'signedQuote':
-      file = { id: uploadedFile.id, link: driveFileInfo.webViewLink };
+      file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
       await uploadQuote(params._id, payload.quoteId, file);
       break;
     case 'signedMandate':
-      file = { id: uploadedFile.id, link: driveFileInfo.webViewLink };
+      file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
       await uploadMandate(params._id, payload.mandateId, file);
       break;
     case 'financialCertificates':

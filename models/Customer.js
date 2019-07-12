@@ -17,10 +17,7 @@ const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
 
 const CustomerSchema = mongoose.Schema({
-  driveFolder: {
-    id: String,
-    link: String
-  },
+  driveFolder: driveResourceSchemaDefinition,
   email: { type: String, lowercase: true, trim: true },
   identity: {
     type: mongoose.Schema(identitySchemaDefinition, { _id: false }),
@@ -51,10 +48,7 @@ const CustomerSchema = mongoose.Schema({
     mandates: [{
       rum: String,
       everSignId: String,
-      drive: {
-        id: String,
-        link: String
-      },
+      drive: driveResourceSchemaDefinition,
       signedAt: Date,
       createdAt: { type: Date, default: Date.now },
     }],
@@ -88,10 +82,7 @@ const CustomerSchema = mongoose.Schema({
       ...subscriptionSchemaDefinition,
       serviceName: String,
     }],
-    drive: {
-      id: String,
-      link: String
-    },
+    drive: driveResourceSchemaDefinition,
     createdAt: { type: Date, default: Date.now },
   }],
   fundings: [{

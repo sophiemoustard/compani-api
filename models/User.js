@@ -74,7 +74,7 @@ const UserSchema = mongoose.Schema({
   mentor: String,
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   administrative: {
-    driveFolder: { id: String, link: String },
+    driveFolder: driveResourceSchemaDefinition,
     signup: {
       firstSmsDate: Date,
       secondSmsDate: Date,

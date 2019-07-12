@@ -430,7 +430,7 @@ const createDriveFolder = async (req) => {
       const folderPayload = {};
       folderPayload.administrative = user.administrative || { driveFolder: {} };
       folderPayload.administrative.driveFolder = {
-        id: folder.id,
+        driveId: folder.id,
         link: folderLink.webViewLink
       };
 
