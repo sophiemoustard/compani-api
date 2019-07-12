@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
 const COMPANY_BILLING_PERIODS = [MONTH, TWO_WEEKS];
 
@@ -25,10 +25,10 @@ const CompanySchema = mongoose.Schema({
       price: Number,
     }],
     templates: {
-      contractWithCompany: driveFileSchemaDefinition,
-      contractWithCompanyVersion: driveFileSchemaDefinition,
-      contractWithCustomer: driveFileSchemaDefinition,
-      contractWithCustomerVersion: driveFileSchemaDefinition,
+      contractWithCompany: driveResourceSchemaDefinition,
+      contractWithCompanyVersion: driveResourceSchemaDefinition,
+      contractWithCustomer: driveResourceSchemaDefinition,
+      contractWithCustomerVersion: driveResourceSchemaDefinition,
     },
     internalHours: [{
       name: String,
@@ -39,11 +39,13 @@ const CompanySchema = mongoose.Schema({
     billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS },
     templates: {
       folderId: String,
-      debitMandate: driveFileSchemaDefinition,
-      quote: driveFileSchemaDefinition,
+      debitMandate: driveResourceSchemaDefinition,
+      quote: driveResourceSchemaDefinition,
     },
   },
-}, { timestamps: true });
+}, {
+  timestamps: true,
+});
 
 module.exports = mongoose.model('Company', CompanySchema);
 module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;

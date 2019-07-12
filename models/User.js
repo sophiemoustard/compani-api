@@ -9,7 +9,7 @@ const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
-const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
 
 const SALT_WORK_FACTOR = 10;
@@ -90,35 +90,35 @@ const UserSchema = mongoose.Schema({
       invoices: [String],
       fiscalAttests: [String]
     },
-    idCardRecto: driveFileSchemaDefinition,
-    idCardVerso: driveFileSchemaDefinition,
-    passport: driveFileSchemaDefinition,
-    residencePermitRecto: driveFileSchemaDefinition,
-    residencePermitVerso: driveFileSchemaDefinition,
+    idCardRecto: driveResourceSchemaDefinition,
+    idCardVerso: driveResourceSchemaDefinition,
+    passport: driveResourceSchemaDefinition,
+    residencePermitRecto: driveResourceSchemaDefinition,
+    residencePermitVerso: driveResourceSchemaDefinition,
     healthAttest: {
-      ...driveFileSchemaDefinition,
+      ...driveResourceSchemaDefinition,
       has: Boolean,
     },
-    vitalCard: driveFileSchemaDefinition,
+    vitalCard: driveResourceSchemaDefinition,
     identityDocs: String,
-    certificates: [driveFileSchemaDefinition],
+    certificates: [driveResourceSchemaDefinition],
     phoneInvoice: {
-      ...driveFileSchemaDefinition,
+      ...driveResourceSchemaDefinition,
       has: Boolean,
     },
     navigoInvoice: {
-      ...driveFileSchemaDefinition,
+      ...driveResourceSchemaDefinition,
       has: Boolean,
     },
     transportInvoice: {
-      ...driveFileSchemaDefinition,
+      ...driveResourceSchemaDefinition,
       transportType: String,
     },
     mutualFund: {
-      ...driveFileSchemaDefinition,
+      ...driveResourceSchemaDefinition,
       has: Boolean,
     },
-    medicalCertificate: driveFileSchemaDefinition,
+    medicalCertificate: driveResourceSchemaDefinition,
     emergencyContact: {
       name: String,
       phoneNumber: String

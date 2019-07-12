@@ -10,7 +10,7 @@ const Event = require('./Event');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
-const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
 
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
@@ -59,7 +59,7 @@ const CustomerSchema = mongoose.Schema({
       createdAt: { type: Date, default: Date.now },
     }],
   },
-  financialCertificates: [driveFileSchemaDefinition],
+  financialCertificates: [driveResourceSchemaDefinition],
   isActive: Boolean,
   subscriptions: [{
     service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },

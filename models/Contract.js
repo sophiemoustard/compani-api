@@ -15,7 +15,7 @@ const {
   CDD_END,
   OTHER,
 } = require('../helpers/constants');
-const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
 const CONTRACT_STATUS = [CUSTOMER_CONTRACT, COMPANY_CONTRACT];
 const END_CONTRACT_REASONS = [
@@ -55,10 +55,12 @@ const ContractSchema = mongoose.Schema({
     weeklyHours: Number,
     grossHourlyRate: Number,
     isActive: { type: Boolean, default: false },
-    customerDoc: driveFileSchemaDefinition,
-    auxiliaryDoc: driveFileSchemaDefinition,
+    customerDoc: driveResourceSchemaDefinition,
+    auxiliaryDoc: driveResourceSchemaDefinition,
   }],
-}, { timestamps: true });
+}, {
+  timestamps: true,
+});
 
 module.exports = mongoose.model('Contract', ContractSchema);
 module.exports.CONTRACT_STATUS = CONTRACT_STATUS;
