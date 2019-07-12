@@ -68,6 +68,7 @@ module.exports = {
   EVERY_DAY: 'every_day',
   EVERY_WEEK_DAY: 'every_week_day',
   EVERY_WEEK: 'every_week',
+  EVERY_TWO_WEEKS: 'every_two_weeks',
   get REPETITION_FREQUENCY_TYPE_LIST() {
     return {
       [this.NEVER]: 'Jamais',

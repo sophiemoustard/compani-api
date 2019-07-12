@@ -11,6 +11,7 @@ const {
   EVERY_DAY,
   EVERY_WEEK_DAY,
   EVERY_WEEK,
+  EVERY_TWO_WEEKS,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
   ABSENCE,
@@ -176,15 +177,21 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
   );
 };
 
+exports.formatRepeatedEvent = (event, day) => {
+  const step = day.diff(event.startDate, 'd');
+
+  return new Event({
+    ..._.omit(event, '_id'),
+    startDate: moment(event.startDate).add(step, 'd'),
+    endDate: moment(event.startDate).add(step, 'd'),
+  })
+};
+
 exports.createRepetitionsEveryDay = async (event) => {
   const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
   const promises = [];
-  range.forEach((day, index) => {
-    const repeatedEvent = new Event({
-      ..._.omit(event, '_id'),
-      startDate: moment(event.startDate).add(index + 1, 'd'),
-      endDate: moment(event.endDate).add(index + 1, 'd'),
-    });
+  range.forEach((day) => {
+    const repeatedEvent = exports.formatRepeatedEvent(event, day);
 
     promises.push(repeatedEvent.save());
   });
@@ -195,13 +202,9 @@ exports.createRepetitionsEveryDay = async (event) => {
 exports.createRepetitionsEveryWeekDay = async (event) => {
   const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
   const promises = [];
-  range.forEach((day, index) => {
+  range.forEach((day) => {
     if (moment(day).day() !== 0 && moment(day).day() !== 6) {
-      const repeatedEvent = new Event({
-        ..._.omit(event, '_id'),
-        startDate: moment(event.startDate).add(index + 1, 'd'),
-        endDate: moment(event.endDate).add(index + 1, 'd'),
-      });
+      const repeatedEvent = exports.formatRepeatedEvent(event, day);
 
       promises.push(repeatedEvent.save());
     }
@@ -210,21 +213,20 @@ exports.createRepetitionsEveryWeekDay = async (event) => {
   return Promise.all(promises);
 };
 
-exports.createRepetitionsEveryWeek = async (event) => {
-  const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('weeks'));
+exports.createRepetitionsByWeek = async (event, step) => {
+  const start = moment(event.startDate).add(step, 'w');
+  const end = moment(event.startDate).add(1, 'Y');
+  const range = Array.from(moment().range(start, end).by('weeks', { step }));
+
   const promises = [];
-  range.forEach((day, index) => {
-    const repeatedEvent = new Event({
-      ..._.omit(event, '_id'),
-      startDate: moment(event.startDate).add(index + 1, 'w'),
-      endDate: moment(event.endDate).add(index + 1, 'w'),
-    });
+  range.forEach((day) => {
+    const repeatedEvent = exports.formatRepeatedEvent(event, day);
 
     promises.push(repeatedEvent.save());
   });
 
   return Promise.all(promises);
-};
+}
 
 exports.createRepetitions = async (event) => {
   if (event.repetition.frequency === NEVER) return event;
@@ -240,7 +242,10 @@ exports.createRepetitions = async (event) => {
       await exports.createRepetitionsEveryWeekDay(event);
       break;
     case EVERY_WEEK:
-      await exports.createRepetitionsEveryWeek(event);
+      await exports.createRepetitionsByWeek(event, 1);
+      break;
+    case EVERY_TWO_WEEKS:
+      await exports.createRepetitionsByWeek(event, 2);
       break;
     default:
       break;
