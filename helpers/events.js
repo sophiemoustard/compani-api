@@ -177,13 +177,13 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
   );
 };
 
-exports.formatRepeatedEvent = (event, day) => {
-  const step = day.diff(event.startDate, 'd');
+exports.formatRepeatedEvent = (event, momentDay) => {
+  const step = momentDay.diff(event.startDate, 'd');
 
   return new Event({
     ..._.omit(event, '_id'),
     startDate: moment(event.startDate).add(step, 'd'),
-    endDate: moment(event.startDate).add(step, 'd'),
+    endDate: moment(event.endDate).add(step, 'd'),
   })
 };
 

@@ -975,3 +975,19 @@ describe('exportAbsencesHistory', () => {
     getFullTitleFromIdentityStub.restore();
   });
 });
+
+describe('formatRepeatedEvent', () => {
+  it('should format event', () => {
+    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const event = {
+      startDate: moment('2019-07-14').startOf('d'),
+      endDate: moment('2019-07-15').startOf('d'),
+    };
+
+    const result = EventHelper.formatRepeatedEvent(event, day);
+
+    expect(result).toBeDefined();
+    expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
+    expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
+  });
+});
