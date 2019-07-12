@@ -8,7 +8,7 @@ const rightsList = [
     _id: new ObjectID(),
     name: 'edit-rh-config',
     description: 'Edit rh config',
-    permission: 'rhConfig:edit',
+    permission: 'rhconfig:edit',
   },
   {
     _id: new ObjectID(),
