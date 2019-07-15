@@ -4,7 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
-const { CONTRACT_STATUS, END_CONTRACT_REAONS } = require('../models/Contract');
+const { CONTRACT_STATUS, END_CONTRACT_REASONS } = require('../models/Contract');
 
 const {
   list,
@@ -97,7 +97,7 @@ exports.plugin = {
           payload: {
             startDate: Joi.date(),
             endDate: Joi.date(),
-            endReason: Joi.string().valid(END_CONTRACT_REAONS),
+            endReason: Joi.string().valid(END_CONTRACT_REASONS),
             otherMisc: Joi.string(),
             endNotificationDate: Joi.date(),
           },

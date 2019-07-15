@@ -4,7 +4,7 @@ const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 
-const COMPANY_BILLING_PERIOD = [MONTH, TWO_WEEKS];
+const COMPANY_BILLING_PERIODS = [MONTH, TWO_WEEKS];
 
 const CompanySchema = mongoose.Schema({
   name: { type: String, unique: true },
@@ -36,7 +36,7 @@ const CompanySchema = mongoose.Schema({
     }],
   },
   customersConfig: {
-    billingPeriod: { type: String, enum: COMPANY_BILLING_PERIOD, default: TWO_WEEKS },
+    billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS },
     templates: {
       folderId: String,
       debitMandate: driveFileSchemaDefinition,
@@ -46,4 +46,4 @@ const CompanySchema = mongoose.Schema({
 }, { timestamps: true });
 
 module.exports = mongoose.model('Company', CompanySchema);
-module.exports.COMPANY_BILLING_PERIOD = COMPANY_BILLING_PERIOD;
+module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;

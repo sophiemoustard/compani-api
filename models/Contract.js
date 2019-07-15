@@ -18,14 +18,24 @@ const {
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 
 const CONTRACT_STATUS = [CUSTOMER_CONTRACT, COMPANY_CONTRACT];
-const END_CONTRACT_REAONS = [EMPLOYER_TRIAL_PERIOD_TERMINATION, EMPLOYEE_TRIAL_PERIOD_TERMINATION, RESIGNATION,
-  SERIOUS_MISCONDUCT_LAYOFF, GROSS_FAULT_LAYOFF, OTHER_REASON_LAYOFF, MUTATION, CONTRACTUAL_TERMINATION,
-  INTERNSHIP_END, CDD_END, OTHER];
+const END_CONTRACT_REASONS = [
+  EMPLOYER_TRIAL_PERIOD_TERMINATION,
+  EMPLOYEE_TRIAL_PERIOD_TERMINATION,
+  RESIGNATION,
+  SERIOUS_MISCONDUCT_LAYOFF,
+  GROSS_FAULT_LAYOFF,
+  OTHER_REASON_LAYOFF,
+  MUTATION,
+  CONTRACTUAL_TERMINATION,
+  INTERNSHIP_END,
+  CDD_END,
+  OTHER,
+];
 
 const ContractSchema = mongoose.Schema({
   startDate: Date,
   endDate: Date,
-  endReason: { type: String, enum: END_CONTRACT_REAONS },
+  endReason: { type: String, enum: END_CONTRACT_REASONS },
   otherMisc: String,
   endNotificationDate: Date,
   status: { type: String, enum: CONTRACT_STATUS },
@@ -52,4 +62,4 @@ const ContractSchema = mongoose.Schema({
 
 module.exports = mongoose.model('Contract', ContractSchema);
 module.exports.CONTRACT_STATUS = CONTRACT_STATUS;
-module.exports.END_CONTRACT_REAONS = END_CONTRACT_REAONS;
+module.exports.END_CONTRACT_REASONS = END_CONTRACT_REASONS;

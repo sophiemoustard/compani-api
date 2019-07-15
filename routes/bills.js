@@ -9,7 +9,7 @@ const {
   list,
   generateBillPdf,
 } = require('../controllers/billsController');
-const { COMPANY_BILLING_PERIOD } = require('../models/Company');
+const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -23,7 +23,7 @@ exports.plugin = {
             endDate: Joi.date().required(),
             startDate: Joi.date(),
             billingStartDate: Joi.date().required(),
-            billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIOD).required(),
+            billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS).required(),
             customer: Joi.objectId(),
           },
         },

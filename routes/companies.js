@@ -16,7 +16,7 @@ const {
   getInternalHours,
   removeInternalHour,
 } = require('../controllers/companyController');
-const { COMPANY_BILLING_PERIOD } = require('../models/Company');
+const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
   name: 'routes-companies',
@@ -42,7 +42,7 @@ exports.plugin = {
               }),
             }),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIOD),
+              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
             }),
           }),
         },
@@ -111,7 +111,7 @@ exports.plugin = {
               },
             }),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIOD),
+              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
               templates: {
                 debitMandate: {
                   driveId: Joi.string().allow(null),
