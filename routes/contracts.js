@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { CONTRACT_STATUS } = require('../models/Contract');
 
 const {
   list,
@@ -15,7 +16,7 @@ const {
   updateContractVersion,
   removeContractVersion,
   uploadFile,
-  receiveSignatureEvents
+  receiveSignatureEvents,
 } = require('../controllers/contractController');
 
 exports.plugin = {
@@ -30,7 +31,7 @@ exports.plugin = {
             status: Joi.string(),
             user: Joi.objectId(),
             customer: Joi.objectId(),
-          })
+          }),
         },
       },
       handler: list,
@@ -43,7 +44,7 @@ exports.plugin = {
         validate: {
           params: Joi.object().keys({
             _id: Joi.objectId(),
-          })
+          }),
         },
       },
       handler: get,
@@ -56,7 +57,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
-            status: Joi.string().required().valid(COMPANY_CONTRACT, CUSTOMER_CONTRACT),
+            status: Joi.string().required().valid(CONTRACT_STATUS),
             versions: Joi.array().items(Joi.object({
               grossHourlyRate: Joi.number().required(),
               weeklyHours: Joi.number(),
@@ -75,12 +76,12 @@ exports.plugin = {
               signers: Joi.array().items(Joi.object().keys({
                 id: Joi.string(),
                 name: Joi.string(),
-                email: Joi.string()
+                email: Joi.string(),
               })).required(),
               meta: Joi.object(),
               redirect: Joi.string().uri(),
-              redirectDecline: Joi.string().uri()
-            })
+              redirectDecline: Joi.string().uri(),
+            }),
           }),
         },
       },
@@ -136,12 +137,12 @@ exports.plugin = {
               signers: Joi.array().items(Joi.object().keys({
                 id: Joi.string(),
                 name: Joi.string(),
-                email: Joi.string()
+                email: Joi.string(),
               })).required(),
               meta: Joi.object(),
               redirect: Joi.string().uri(),
-              redirectDecline: Joi.string().uri()
-            })
+              redirectDecline: Joi.string().uri(),
+            }),
           },
         },
       },
@@ -155,7 +156,7 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            versionId: Joi.objectId().required()
+            versionId: Joi.objectId().required(),
           },
           payload: {
             isActive: Joi.boolean(),
@@ -189,7 +190,7 @@ exports.plugin = {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
       },
     });
@@ -198,7 +199,7 @@ exports.plugin = {
       method: 'POST',
       path: '/esign-webhook-receiver',
       handler: receiveSignatureEvents,
-      options: { auth: false }
+      options: { auth: false },
     });
-  }
+  },
 };

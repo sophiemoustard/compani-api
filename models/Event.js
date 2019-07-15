@@ -6,10 +6,9 @@ const {
   INTERVENTION,
   DAILY,
   HOURLY,
-  CUSTOMER_CONTRACT,
-  COMPANY_CONTRACT,
 } = require('../helpers/constants');
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const { CONTRACT_STATUS } = require('./Contract');
 
 const EventSchema = mongoose.Schema({
   type: {
@@ -56,7 +55,7 @@ const EventSchema = mongoose.Schema({
     nature: String,
     careHours: Number,
   },
-  status: { type: String, enum: [COMPANY_CONTRACT, CUSTOMER_CONTRACT] }
+  status: { type: String, enum: CONTRACT_STATUS }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Event', EventSchema);

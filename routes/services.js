@@ -3,8 +3,8 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
 const { SERVICE_NATURES } = require('../models/Service');
+const { CONTRACT_STATUS } = require('../models/Contract');
 
 const {
   list,
@@ -24,7 +24,7 @@ exports.plugin = {
         auth: { scope: ['rhconfig:edit'] },
         validate: {
           payload: Joi.object().keys({
-            type: Joi.string().required().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
+            type: Joi.string().required().valid(CONTRACT_STATUS),
             company: Joi.objectId().required(),
             versions: Joi.array().items({
               defaultUnitAmount: Joi.number().required(),

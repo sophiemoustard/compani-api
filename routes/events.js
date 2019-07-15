@@ -24,9 +24,8 @@ const {
   INVOICED_AND_PAYED,
   CUSTOMER_INITIATIVE,
   AUXILIARY_INITIATIVE,
-  CUSTOMER_CONTRACT,
-  COMPANY_CONTRACT,
 } = require('../helpers/constants');
+const { CONTRACT_STATUS } = require('../models/Contract');
 
 exports.plugin = {
   name: 'routes-event',
@@ -67,7 +66,7 @@ exports.plugin = {
             repetition: Joi.object().keys({
               frequency: Joi.string().required(),
             }),
-            status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT)
+            status: Joi.string().valid(CONTRACT_STATUS)
               .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
@@ -104,7 +103,7 @@ exports.plugin = {
             endDate: Joi.string(),
             customer: Joi.objectId(),
             thirdPartyPayer: Joi.objectId(),
-            isBilled: Joi.boolean()
+            isBilled: Joi.boolean(),
           },
         },
       },
@@ -152,9 +151,9 @@ exports.plugin = {
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
             isBilled: Joi.boolean(),
-            status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
+            status: Joi.string().valid(CONTRACT_STATUS),
             bills: Joi.object(),
-          }).and('startDate', 'endDate')
+          }).and('startDate', 'endDate'),
         },
       },
       handler: update,
@@ -165,7 +164,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: { _id: Joi.objectId() }
+          params: { _id: Joi.objectId() },
         },
       },
       handler: remove,
@@ -176,7 +175,7 @@ exports.plugin = {
       path: '/{_id}/repetition',
       options: {
         validate: {
-          params: { _id: Joi.objectId() }
+          params: { _id: Joi.objectId() },
         },
       },
       handler: removeRepetition,
