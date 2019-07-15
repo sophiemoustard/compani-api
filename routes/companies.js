@@ -16,8 +16,7 @@ const {
   getInternalHours,
   removeInternalHour,
 } = require('../controllers/companyController');
-
-const { TWO_WEEKS, MONTH } = require('../helpers/constants');
+const { COMPANY_BILLING_PERIOD } = require('../models/Company');
 
 exports.plugin = {
   name: 'routes-companies',
@@ -31,21 +30,21 @@ exports.plugin = {
             name: Joi.string().required(),
             rhConfig: Joi.object().keys({
               contractWithCompany: {
-                grossHourlyRate: Joi.number()
+                grossHourlyRate: Joi.number(),
               },
               contractWithCustomer: {
-                grossHourlyRate: Joi.number()
+                grossHourlyRate: Joi.number(),
               },
               feeAmount: Joi.number(),
               transportSubs: Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
-              })
+              }),
             }),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(TWO_WEEKS, MONTH),
-            })
-          })
+              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIOD),
+            }),
+          }),
         },
       },
       handler: create,
@@ -70,7 +69,7 @@ exports.plugin = {
               location: {
                 type: Joi.string(),
                 coordinates: Joi.array(),
-              }
+              },
             }),
             ics: Joi.string(),
             rcs: Joi.string(),
@@ -108,11 +107,11 @@ exports.plugin = {
                 contractWithCustomerVersion: {
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                }
+                },
               },
             }),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(TWO_WEEKS, MONTH),
+              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIOD),
               templates: {
                 debitMandate: {
                   driveId: Joi.string().allow(null),
@@ -124,7 +123,7 @@ exports.plugin = {
                 },
               },
             }),
-          })
+          }),
         },
       },
       handler: update,
@@ -137,7 +136,7 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             name: Joi.string(),
-          })
+          }),
         },
       },
       handler: list,
@@ -149,8 +148,8 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
-          }
+            _id: Joi.objectId().required(),
+          },
         },
       },
       handler: show,
@@ -162,8 +161,8 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
-          }
+            _id: Joi.objectId().required(),
+          },
         },
       },
       handler: remove,
@@ -178,7 +177,7 @@ exports.plugin = {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
       },
     });
@@ -195,7 +194,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             default: Joi.boolean(),
-          })
+          }),
         },
       },
     });
@@ -213,7 +212,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string(),
             default: Joi.boolean(),
-          })
+          }),
         },
       },
     });
@@ -225,7 +224,7 @@ exports.plugin = {
       options: {
         validate: {
           params: { _id: Joi.objectId().required() },
-        }
+        },
       },
     });
 
@@ -238,9 +237,9 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             internalHourId: Joi.objectId().required(),
-          }
+          },
         },
       },
     });
-  }
+  },
 };
