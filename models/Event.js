@@ -6,12 +6,18 @@ const {
   INTERVENTION,
   DAILY,
   HOURLY,
+  AUXILIARY_INITIATIVE,
+  CUSTOMER_INITIATIVE,
+  INVOICED_AND_PAYED,
+  INVOICED_AND_NOT_PAYED,
 } = require('../helpers/constants');
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 const { CONTRACT_STATUS } = require('./Contract');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
 const ABSENCE_NATURES = [HOURLY, DAILY];
+const EVENT_CANCELLATION_CONDITIONS = [AUXILIARY_INITIATIVE, CUSTOMER_INITIATIVE];
+const EVENT_CANCELLATION_REASONS = [INVOICED_AND_PAYED, INVOICED_AND_NOT_PAYED];
 
 const EventSchema = mongoose.Schema({
   type: { type: String, enum: EVENT_TYPES },
@@ -41,8 +47,8 @@ const EventSchema = mongoose.Schema({
   },
   isCancelled: { type: Boolean, default: false },
   cancel: {
-    condition: String,
-    reason: String,
+    condition: { type: String, enum: EVENT_CANCELLATION_CONDITIONS },
+    reason: { type: String, enum: EVENT_CANCELLATION_REASONS },
   },
   isBilled: { type: Boolean, default: false },
   bills: {
@@ -61,3 +67,5 @@ const EventSchema = mongoose.Schema({
 module.exports = mongoose.model('Event', EventSchema);
 module.exports.EVENT_TYPES = EVENT_TYPES;
 module.exports.ABSENCE_NATURES = ABSENCE_NATURES;
+module.exports.EVENT_CANCELLATION_CONDITIONS = EVENT_CANCELLATION_CONDITIONS;
+module.exports.EVENT_CANCELLATION_REASONS = EVENT_CANCELLATION_REASONS;

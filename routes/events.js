@@ -18,13 +18,14 @@ const {
   HOURLY,
   UNJUSTIFIED,
   ILLNESS,
-  INVOICED_AND_NOT_PAYED,
-  INVOICED_AND_PAYED,
-  CUSTOMER_INITIATIVE,
-  AUXILIARY_INITIATIVE,
 } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('../models/Contract');
-const { EVENT_TYPES, ABSENCE_NATURES } = require('../models/Event');
+const {
+  EVENT_TYPES,
+  ABSENCE_NATURES,
+  EVENT_CANCELLATION_CONDITIONS,
+  EVENT_CANCELLATION_REASONS,
+} = require('../models/Event');
 
 exports.plugin = {
   name: 'routes-event',
@@ -143,10 +144,10 @@ exports.plugin = {
             shouldUpdateRepetition: Joi.boolean(),
             cancel: Joi.object().keys({
               condition: Joi.string()
-                .valid(INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED)
+                .valid(EVENT_CANCELLATION_CONDITIONS)
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
               reason: Joi.string()
-                .valid(CUSTOMER_INITIATIVE, AUXILIARY_INITIATIVE)
+                .valid(EVENT_CANCELLATION_REASONS)
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
             isBilled: Joi.boolean(),
