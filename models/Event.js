@@ -19,6 +19,10 @@ const {
   BIRTH,
   DEATH,
   WORK_ACCIDENT,
+  NEVER,
+  EVERY_DAY,
+  EVERY_WEEK_DAY,
+  EVERY_WEEK,
 } = require('../helpers/constants');
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 const { CONTRACT_STATUS } = require('./Contract');
@@ -28,6 +32,7 @@ const ABSENCE_NATURES = [HOURLY, DAILY];
 const ABSENCE_TYPES = [PAID_LEAVE, UNPAID_LEAVE, MATERNITY_LEAVE, ILLNESS, UNJUSTIFIED, WEDDING, BIRTH, DEATH, WORK_ACCIDENT];
 const EVENT_CANCELLATION_CONDITIONS = [AUXILIARY_INITIATIVE, CUSTOMER_INITIATIVE];
 const EVENT_CANCELLATION_REASONS = [INVOICED_AND_PAYED, INVOICED_AND_NOT_PAYED];
+const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK];
 
 const EventSchema = mongoose.Schema({
   type: { type: String, enum: EVENT_TYPES },
@@ -52,7 +57,7 @@ const EventSchema = mongoose.Schema({
   misc: String,
   attachment: driveFileSchemaDefinition,
   repetition: {
-    frequency: String,
+    frequency: { type: String, enum: REPETITION_FREQUENCIES },
     parentId: { type: mongoose.Schema.Types.ObjectId },
   },
   isCancelled: { type: Boolean, default: false },
@@ -80,3 +85,4 @@ module.exports.ABSENCE_NATURES = ABSENCE_NATURES;
 module.exports.EVENT_CANCELLATION_CONDITIONS = EVENT_CANCELLATION_CONDITIONS;
 module.exports.EVENT_CANCELLATION_REASONS = EVENT_CANCELLATION_REASONS;
 module.exports.ABSENCE_TYPES = ABSENCE_TYPES;
+module.exports.REPETITION_FREQUENCIES = REPETITION_FREQUENCIES;

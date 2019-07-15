@@ -26,6 +26,7 @@ const {
   EVENT_CANCELLATION_CONDITIONS,
   EVENT_CANCELLATION_REASONS,
   ABSENCE_TYPES,
+  REPETITION_FREQUENCIES,
 } = require('../models/Event');
 
 exports.plugin = {
@@ -65,7 +66,7 @@ exports.plugin = {
               link: Joi.string(),
             }),
             repetition: Joi.object().keys({
-              frequency: Joi.string().required(),
+              frequency: Joi.string().required().valid(REPETITION_FREQUENCIES),
             }),
             status: Joi.string().valid(CONTRACT_STATUS)
               .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
@@ -138,7 +139,7 @@ exports.plugin = {
             }),
             misc: Joi.string().allow(null, '').default(''),
             repetition: Joi.object().keys({
-              frequency: Joi.string(),
+              frequency: Joi.string().valid(REPETITION_FREQUENCIES),
               parentId: Joi.objectId(),
             }),
             isCancelled: Joi.boolean(),
