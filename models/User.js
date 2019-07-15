@@ -20,7 +20,7 @@ const UserSchema = mongoose.Schema({
   resetPassword: {
     token: { type: String, default: null },
     expiresIn: { type: Date, default: null },
-    from: String
+    from: String,
   },
   local: {
     email: {
@@ -29,17 +29,17 @@ const UserSchema = mongoose.Schema({
       trim: true,
       unique: true,
       required: true,
-      dropDups: true
+      dropDups: true,
     },
-    password: String
+    password: String,
   },
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
     autopopulate: {
       select: '-__v -createdAt -updatedAt',
-      maxDepth: 3
-    }
+      maxDepth: 3,
+    },
   },
   employee_id: { type: Number, trim: true },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
@@ -49,10 +49,10 @@ const UserSchema = mongoose.Schema({
   },
   picture: {
     publicId: String,
-    link: { type: String, trim: true }
+    link: { type: String, trim: true },
   },
   identity: {
-     type: mongoose.Schema({
+    type: mongoose.Schema({
       ...identitySchemaDefinition,
       nationality: String,
       birthCountry: String,
@@ -67,7 +67,7 @@ const UserSchema = mongoose.Schema({
       ...addressSchemaDefinition,
       additionalAddress: String,
       location: locationSchemaDefinition,
-    }
+    },
   },
   mobilePhone: String,
   emergencyPhone: String,
@@ -79,16 +79,16 @@ const UserSchema = mongoose.Schema({
       firstSmsDate: Date,
       secondSmsDate: Date,
       step: { type: String, default: 'first' },
-      complete: { type: Boolean, default: false }
+      complete: { type: Boolean, default: false },
     },
     payment: {
       rib: {
         iban: String,
-        bic: String
+        bic: String,
       },
       cesu: [String],
       invoices: [String],
-      fiscalAttests: [String]
+      fiscalAttests: [String],
     },
     idCardRecto: driveResourceSchemaDefinition,
     idCardVerso: driveResourceSchemaDefinition,
@@ -121,7 +121,7 @@ const UserSchema = mongoose.Schema({
     medicalCertificate: driveResourceSchemaDefinition,
     emergencyContact: {
       name: String,
-      phoneNumber: String
+      phoneNumber: String,
     },
   },
   procedure: [{
@@ -130,13 +130,13 @@ const UserSchema = mongoose.Schema({
       ref: 'Task',
       autopopulate: {
         select: '-__v -createdAt -updatedAt',
-        maxDepth: 2
-      }
+        maxDepth: 2,
+      },
     },
     check: {
       isDone: { type: Boolean, default: false },
-      at: { type: Date, default: null }
-    }
+      at: { type: Date, default: null },
+    },
   }],
   isConfirmed: { type: Boolean, default: false },
   company: {
@@ -144,8 +144,8 @@ const UserSchema = mongoose.Schema({
     ref: 'Company',
     autopopulate: {
       select: '-__v -createdAt -updatedAt',
-      maxDepth: 2
-    }
+      maxDepth: 2,
+    },
   },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
@@ -155,7 +155,7 @@ const UserSchema = mongoose.Schema({
   toJSON: { virtuals: true },
 });
 
-async function save (next) {
+async function save(next) {
   try {
     const user = this;
 
@@ -199,7 +199,6 @@ async function findOneAndUpdate(next) {
 
 function setIsActive() {
   if (this.role && [AUXILIARY, PLANNING_REFERENT].includes(this.role.name)) {
-
     return !((this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()))
       || ((!this.contracts || this.contracts.length === 0) && moment().diff(this.createdAt, 'd') > 45));
   }

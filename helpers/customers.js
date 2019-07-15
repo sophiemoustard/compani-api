@@ -19,7 +19,7 @@ const uploadQuote = async (customerId, quoteId, file) => {
   await Customer.findOneAndUpdate(
     { ...params },
     { $set: flat(payload) },
-    { new: true, autopopulate: false },
+    { new: true, autopopulate: false }
   );
 };
 
@@ -32,7 +32,7 @@ const uploadMandate = async (customerId, mandateId, file) => {
   await Customer.findOneAndUpdate(
     { ...params },
     { $set: flat(payload) },
-    { new: true, autopopulate: false },
+    { new: true, autopopulate: false }
   );
 };
 
@@ -45,7 +45,7 @@ const uploadFinancialCertificate = async (customerId, file) => {
   await Customer.findOneAndUpdate(
     { ...params },
     { $push: payload },
-    { new: true, autopopulate: false },
+    { new: true, autopopulate: false }
   );
 };
 
@@ -54,7 +54,7 @@ exports.createAndSaveFile = async (docKeys, params, payload) => {
     driveFolderId: params.driveId,
     name: payload.fileName || payload[docKeys[0]].hapi.filename,
     type: payload['Content-Type'],
-    body: payload[docKeys[0]]
+    body: payload[docKeys[0]],
   });
 
   let driveFileInfo = null;
@@ -117,7 +117,7 @@ exports.exportCustomers = async () => {
         cus.followUp.comments ? cus.followUp.comments : '',
         cus.followUp.details ? cus.followUp.details : '',
         cus.followUp.misc ? cus.followUp.misc : '',
-        cus.followUp.referent ? cus.followUp.referent : '',
+        cus.followUp.referent ? cus.followUp.referent : ''
       );
     } else customerData.push('', '', '', '', '');
 
