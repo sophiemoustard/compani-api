@@ -9,8 +9,7 @@ const {
   createList,
   update,
 } = require('../controllers/paymentController');
-const { PAYMENT_TYPES } = require('../helpers/constants');
-const { PAYMENT_NATURES } = require('../models/Payment');
+const { PAYMENT_NATURES, PAYMENT_TYPES } = require('../models/Payment');
 
 exports.plugin = {
   name: 'routes-payments',

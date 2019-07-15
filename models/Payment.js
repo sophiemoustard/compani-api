@@ -1,8 +1,16 @@
 const mongoose = require('mongoose');
 
-const { PAYMENT, REFUND, PAYMENT_TYPES } = require('../helpers/constants');
+const {
+  PAYMENT,
+  REFUND,
+  DIRECT_DEBIT,
+  BANK_TRANSFER,
+  CHECK,
+  CESU,
+} = require('../helpers/constants');
 
 const PAYMENT_NATURES = [REFUND, PAYMENT];
+const PAYMENT_TYPES = [DIRECT_DEBIT, BANK_TRANSFER, CHECK, CESU];
 
 const PaymentSchema = mongoose.Schema({
   number: String,
@@ -18,3 +26,4 @@ const PaymentSchema = mongoose.Schema({
 
 module.exports = mongoose.model('Payment', PaymentSchema);
 module.exports.PAYMENT_NATURES = PAYMENT_NATURES;
+module.exports.PAYMENT_TYPES = PAYMENT_TYPES;

@@ -94,9 +94,6 @@ module.exports = {
   BANK_TRANSFER: 'bank_transfer',
   CHECK: 'check',
   CESU: 'cesu',
-  get PAYMENT_TYPES() {
-    return [this.DIRECT_DEBIT, this.BANK_TRANSFER, this.CHECK, this.CESU];
-  },
   get PAYMENT_TYPES_LIST() {
     return {
       [this.DIRECT_DEBIT]: 'Prélèvement',
