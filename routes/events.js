@@ -25,6 +25,7 @@ const {
   ABSENCE_NATURES,
   EVENT_CANCELLATION_CONDITIONS,
   EVENT_CANCELLATION_REASONS,
+  ABSENCE_TYPES,
 } = require('../models/Event');
 
 exports.plugin = {
@@ -55,7 +56,7 @@ exports.plugin = {
               _id: Joi.objectId(),
               default: Joi.boolean(),
             }).when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
-            absence: Joi.string()
+            absence: Joi.string().valid(ABSENCE_TYPES)
               .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() })
               .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
             absenceNature: Joi.string().valid(ABSENCE_NATURES).when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
@@ -129,7 +130,7 @@ exports.plugin = {
             }),
             subscription: Joi.objectId(),
             internalHour: Joi.object(),
-            absence: Joi.string().when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
+            absence: Joi.string().valid(ABSENCE_TYPES).when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
             absenceNature: Joi.string().valid(ABSENCE_NATURES),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
