@@ -14,7 +14,6 @@ const {
 const {
   INTERNAL_HOUR,
   ABSENCE,
-  UNAVAILABILITY,
   INTERVENTION,
   DAILY,
   HOURLY,
@@ -26,6 +25,7 @@ const {
   AUXILIARY_INITIATIVE,
 } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('../models/Contract');
+const { EVENT_TYPES } = require('../models/Event');
 
 exports.plugin = {
   name: 'routes-event',
@@ -36,7 +36,7 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            type: Joi.string().required().valid(INTERNAL_HOUR, INTERVENTION, ABSENCE, UNAVAILABILITY),
+            type: Joi.string().required().valid(EVENT_TYPES),
             startDate: Joi.date().required(),
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(), // Unassigned event

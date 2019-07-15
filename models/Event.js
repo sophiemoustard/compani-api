@@ -10,11 +10,10 @@ const {
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 const { CONTRACT_STATUS } = require('./Contract');
 
+const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
+
 const EventSchema = mongoose.Schema({
-  type: {
-    type: String,
-    enum: [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY]
-  },
+  type: { type: String, enum: EVENT_TYPES },
   startDate: Date,
   endDate: Date,
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -31,7 +30,7 @@ const EventSchema = mongoose.Schema({
     street: String,
     fullAddress: String,
     zipCode: String,
-    city: String
+    city: String,
   },
   misc: String,
   attachment: driveFileSchemaDefinition,
@@ -55,7 +54,8 @@ const EventSchema = mongoose.Schema({
     nature: String,
     careHours: Number,
   },
-  status: { type: String, enum: CONTRACT_STATUS }
+  status: { type: String, enum: CONTRACT_STATUS },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Event', EventSchema);
+module.exports.EVENT_TYPES = EVENT_TYPES;
