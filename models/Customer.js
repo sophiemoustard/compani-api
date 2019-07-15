@@ -13,6 +13,8 @@ const identitySchemaDefinition = require('./schemaDefinitions/identity');
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
 
+const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
+
 const CustomerSchema = mongoose.Schema({
   driveFolder: {
     id: String,
@@ -32,14 +34,14 @@ const CustomerSchema = mongoose.Schema({
     },
     phone: String,
     doorCode: String,
-    intercomCode: String
+    intercomCode: String,
   },
   followUp: {
     pathology: String,
     comments: String,
     details: String,
     misc: String,
-    referent: String
+    referent: String,
   },
   payment: {
     bankAccountOwner: String,
@@ -64,7 +66,7 @@ const CustomerSchema = mongoose.Schema({
       ...subscriptionSchemaDefinition,
       createdAt: { type: Date, default: Date.now },
     }],
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
   }],
   subscriptionsHistory: [{
     subscriptions: [{
@@ -75,9 +77,9 @@ const CustomerSchema = mongoose.Schema({
     helper: {
       firstname: String,
       lastname: String,
-      title: String
+      title: String,
     },
-    approvalDate: { type: Date, default: Date.now }
+    approvalDate: { type: Date, default: Date.now },
   }],
   quotes: [{
     quoteNumber: String,
@@ -89,14 +91,14 @@ const CustomerSchema = mongoose.Schema({
       id: String,
       link: String
     },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
   }],
   fundings: [{
     nature: { type: String, enum: [HOURLY, FIXED] },
     subscription: { type: mongoose.Schema.Types.ObjectId },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     versions: [{
-      frequency: { type: String, enum: [MONTHLY, ONCE] },
+      frequency: { type: String, enum: FUNDING_FREQUENCIES },
       amountTTC: Number,
       unitTTCRate: Number,
       careHours: Number,
@@ -121,3 +123,4 @@ const countSubscriptionUsage = async (doc) => {
 CustomerSchema.post('findOne', countSubscriptionUsage);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
+module.exports.FUNDING_FREQUENCIES = FUNDING_FREQUENCIES;

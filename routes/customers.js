@@ -34,11 +34,10 @@ const {
 } = require('../controllers/customerController');
 
 const {
-  MONTHLY,
-  ONCE,
   HOURLY,
-  FIXED
+  FIXED,
 } = require('../helpers/constants');
+const { FUNDING_FREQUENCIES } = require('../models/Customer');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -63,11 +62,11 @@ exports.plugin = {
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                }
+                },
               },
             }).required(),
             isActive: Joi.boolean().default(true),
-          })
+          }),
         },
       },
       handler: create,
@@ -119,7 +118,7 @@ exports.plugin = {
               bic: Joi.string(),
             }),
             isActive: Joi.boolean(),
-          })
+          }),
         },
       },
       handler: update,
@@ -172,7 +171,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
         },
       },
@@ -185,7 +184,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
         },
       },
@@ -307,7 +306,7 @@ exports.plugin = {
           },
         },
       },
-      handler: generateMandateSignatureRequest
+      handler: generateMandateSignatureRequest,
     });
 
     server.route({
@@ -442,7 +441,7 @@ exports.plugin = {
               lastname: Joi.string(),
               title: Joi.string().allow(null, ''),
             }).required(),
-          })
+          }),
         },
       },
       handler: createHistorySubscription,
@@ -464,7 +463,7 @@ exports.plugin = {
               folderNumber: Joi.string(),
               startDate: Joi.date().required(),
               endDate: Joi.date(),
-              frequency: Joi.string().valid(MONTHLY, ONCE).required(),
+              frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
               amountTTC: Joi.number(),
               unitTTCRate: Joi.number(),
               careHours: Joi.number(),
@@ -491,7 +490,7 @@ exports.plugin = {
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),
-            frequency: Joi.string().valid(MONTHLY, ONCE).required(),
+            frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
             amountTTC: Joi.number(),
             unitTTCRate: Joi.number(),
             careHours: Joi.number(),
@@ -529,5 +528,5 @@ exports.plugin = {
       },
       handler: removeFunding,
     });
-  }
+  },
 };
