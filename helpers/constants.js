@@ -79,11 +79,11 @@ module.exports = {
   },
   CUSTOMER_CONTRACT: 'contract_with_customer',
   COMPANY_CONTRACT: 'contract_with_company',
-  get CONTRACT_TYPES() {
-    return [
-      { label: 'Prestataire', value: this.COMPANY_CONTRACT },
-      { label: 'Mandataire', value: this.CUSTOMER_CONTRACT },
-    ];
+  get CONTRACT_STATUS_LIST() {
+    return {
+      [this.COMPANY_CONTRACT]: 'Prestataire',
+      [this.CUSTOMER_CONTRACT]: 'Mandataire',
+    };
   },
   TWO_WEEKS: 'two_weeks',
   MONTH: 'month',
@@ -148,7 +148,7 @@ module.exports = {
     4: 'Vendredi',
     5: 'Samedi',
     6: 'Dimanche',
-    7: 'Jours fériés'
+    7: 'Jours fériés',
   },
   // EXPORTS HISTORY
   WORKING_EVENT: 'working_event', // intervention or internal hours
