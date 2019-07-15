@@ -6,7 +6,7 @@ const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const UtilsHelper = require('./utils');
-const { HOURLY } = require('./constants');
+const { HOURLY, THIRD_PARTY } = require('./constants');
 
 exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
@@ -59,6 +59,8 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) =>
     if (!tpp.bills[0].externalBilling) {
       tppBill.billNumber = exports.formatBillNumber(number.prefix, seq);
       seq += 1;
+    } else {
+      tppBill.origin = THIRD_PARTY;
     }
 
     for (const draftBill of tpp.bills) {

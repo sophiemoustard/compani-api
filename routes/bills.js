@@ -7,7 +7,7 @@ const {
   draftBillsList,
   createBills,
   list,
-  generateBillPdf
+  generateBillPdf,
 } = require('../controllers/billsController');
 const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 
