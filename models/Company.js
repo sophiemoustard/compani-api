@@ -4,11 +4,10 @@ const { MONTH, TWO_WEEKS } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 
+const COMPANY_BILLING_PERIODS = [MONTH, TWO_WEEKS];
+
 const CompanySchema = mongoose.Schema({
-  name: {
-    type: String,
-    unique: true
-  },
+  name: { type: String, unique: true },
   address: addressSchemaDefinition,
   rcs: String,
   ics: String,
@@ -17,17 +16,13 @@ const CompanySchema = mongoose.Schema({
   folderId: String,
   directDebitsFolderId: String,
   rhConfig: {
-    contractWithCompany: {
-      grossHourlyRate: Number
-    },
-    contractWithCustomer: {
-      grossHourlyRate: Number
-    },
+    contractWithCompany: { grossHourlyRate: Number },
+    contractWithCustomer: { grossHourlyRate: Number },
     feeAmount: Number,
     amountPerKm: Number,
     transportSubs: [{
       department: String,
-      price: Number
+      price: Number,
     }],
     templates: {
       contractWithCompany: driveFileSchemaDefinition,
@@ -38,18 +33,17 @@ const CompanySchema = mongoose.Schema({
     internalHours: [{
       name: String,
       default: { type: Boolean, default: false },
-    }]
+    }],
   },
   customersConfig: {
-    billingPeriod: { type: String, enum: [MONTH, TWO_WEEKS], default: TWO_WEEKS },
+    billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS },
     templates: {
       folderId: String,
       debitMandate: driveFileSchemaDefinition,
       quote: driveFileSchemaDefinition,
-    }
-  }
-}, {
-  timestamps: true
-});
+    },
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model('Company', CompanySchema);
+module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;

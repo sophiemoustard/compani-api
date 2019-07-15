@@ -3,6 +3,8 @@ const { COMPANI, OGUST } = require('../helpers/constants');
 
 const ServiceSchema = require('./Service').schema;
 
+const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
+
 const CreditNoteSchema = mongoose.Schema({
   number: String,
   date: Date,
@@ -42,7 +44,8 @@ const CreditNoteSchema = mongoose.Schema({
     unitInclTaxes: Number,
   },
   linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' },
-  origin: { type: String, enum: [COMPANI, OGUST], default: COMPANI },
+  origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI },
 }, { timestamps: true });
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);
+module.exports.CREDIT_NOTE_ORIGINS = CREDIT_NOTE_ORIGINS;

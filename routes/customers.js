@@ -32,13 +32,7 @@ const {
   getFundings,
   removeFunding,
 } = require('../controllers/customerController');
-
-const {
-  MONTHLY,
-  ONCE,
-  HOURLY,
-  FIXED
-} = require('../helpers/constants');
+const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -63,11 +57,11 @@ exports.plugin = {
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                }
+                },
               },
             }).required(),
             isActive: Joi.boolean().default(true),
-          })
+          }),
         },
       },
       handler: create,
@@ -119,7 +113,7 @@ exports.plugin = {
               bic: Joi.string(),
             }),
             isActive: Joi.boolean(),
-          })
+          }),
         },
       },
       handler: update,
@@ -172,7 +166,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
         },
       },
@@ -185,7 +179,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
         },
       },
@@ -307,7 +301,7 @@ exports.plugin = {
           },
         },
       },
-      handler: generateMandateSignatureRequest
+      handler: generateMandateSignatureRequest,
     });
 
     server.route({
@@ -442,7 +436,7 @@ exports.plugin = {
               lastname: Joi.string(),
               title: Joi.string().allow(null, ''),
             }).required(),
-          })
+          }),
         },
       },
       handler: createHistorySubscription,
@@ -457,14 +451,14 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            nature: Joi.string().valid(HOURLY, FIXED).required(),
+            nature: Joi.string().valid(FUNDING_NATURES).required(),
             thirdPartyPayer: Joi.objectId().required(),
             subscription: Joi.objectId().required(),
             versions: Joi.array().items(Joi.object().keys({
               folderNumber: Joi.string(),
               startDate: Joi.date().required(),
               endDate: Joi.date(),
-              frequency: Joi.string().valid(MONTHLY, ONCE).required(),
+              frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
               amountTTC: Joi.number(),
               unitTTCRate: Joi.number(),
               careHours: Joi.number(),
@@ -491,7 +485,7 @@ exports.plugin = {
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),
-            frequency: Joi.string().valid(MONTHLY, ONCE).required(),
+            frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
             amountTTC: Joi.number(),
             unitTTCRate: Joi.number(),
             careHours: Joi.number(),
@@ -529,5 +523,5 @@ exports.plugin = {
       },
       handler: removeFunding,
     });
-  }
+  },
 };

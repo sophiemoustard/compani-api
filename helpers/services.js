@@ -1,7 +1,7 @@
 const moment = require('moment');
 const Service = require('../models/Service');
 const UtilsHelper = require('./utils');
-const { CONTRACT_TYPES, SERVICE_NATURES } = require('./constants.js');
+const { CONTRACT_STATUS_LIST, SERVICE_NATURES } = require('./constants.js');
 
 exports.exportServices = async () => {
   const services = await Service.find().populate('company').populate('versions.surcharge');
@@ -11,7 +11,7 @@ exports.exportServices = async () => {
     const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
     data.push([
       SERVICE_NATURES.find(nat => nat.value === service.nature).label,
-      CONTRACT_TYPES.find(type => type.value === service.type).label,
+      CONTRACT_STATUS_LIST[service.type],
       service.company.name,
       lastVersion.name,
       UtilsHelper.formatFloatForExport(lastVersion.defaultUnitAmount),

@@ -17,7 +17,7 @@ exports.getIntervalInRange = (slotToSub, slotToAdd, intervalType) => {
   const finalInterval = {
     intervalBwd: dateNow.subtract(slotToSub, intervalType).format('YYYYMMDDHHmm'),
     // We have to (re)add slotToSub, because subtract() reallocates dateNow
-    intervalFwd: dateNow.add(slotToAdd + slotToSub, intervalType).format('YYYYMMDDHHmm')
+    intervalFwd: dateNow.add(slotToAdd + slotToSub, intervalType).format('YYYYMMDDHHmm'),
   };
   return finalInterval;
 };
@@ -62,7 +62,7 @@ exports.getMatchingVersion = (date, obj, dateKey) => {
 };
 
 exports.getDateQuery = (dates) => {
-  if (dates.startDate && dates.endDate) return { $lt: moment(dates.endDate).endOf('day').toISOString(), $gte: moment(dates.startDate).startOf('day').toISOString() };
+  if (dates.startDate && dates.endDate) return { $lte: moment(dates.endDate).endOf('day').toISOString(), $gte: moment(dates.startDate).startOf('day').toISOString() };
   if (dates.startDate) return { $gte: dates.startDate };
   return { $lt: dates.endDate };
 };

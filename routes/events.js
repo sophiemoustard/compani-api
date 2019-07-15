@@ -14,19 +14,20 @@ const {
 const {
   INTERNAL_HOUR,
   ABSENCE,
-  UNAVAILABILITY,
   INTERVENTION,
-  DAILY,
   HOURLY,
   UNJUSTIFIED,
   ILLNESS,
-  INVOICED_AND_NOT_PAYED,
-  INVOICED_AND_PAYED,
-  CUSTOMER_INITIATIVE,
-  AUXILIARY_INITIATIVE,
-  CUSTOMER_CONTRACT,
-  COMPANY_CONTRACT,
 } = require('../helpers/constants');
+const { CONTRACT_STATUS } = require('../models/Contract');
+const {
+  EVENT_TYPES,
+  ABSENCE_NATURES,
+  EVENT_CANCELLATION_CONDITIONS,
+  EVENT_CANCELLATION_REASONS,
+  ABSENCE_TYPES,
+  REPETITION_FREQUENCIES,
+} = require('../models/Event');
 
 exports.plugin = {
   name: 'routes-event',
@@ -37,7 +38,7 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            type: Joi.string().required().valid(INTERNAL_HOUR, INTERVENTION, ABSENCE, UNAVAILABILITY),
+            type: Joi.string().required().valid(EVENT_TYPES),
             startDate: Joi.date().required(),
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(), // Unassigned event
@@ -56,18 +57,18 @@ exports.plugin = {
               _id: Joi.objectId(),
               default: Joi.boolean(),
             }).when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
-            absence: Joi.string()
+            absence: Joi.string().valid(ABSENCE_TYPES)
               .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() })
               .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
-            absenceNature: Joi.string().valid(DAILY, HOURLY).when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
+            absenceNature: Joi.string().valid(ABSENCE_NATURES).when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
             }),
             repetition: Joi.object().keys({
-              frequency: Joi.string().required(),
+              frequency: Joi.string().required().valid(REPETITION_FREQUENCIES),
             }),
-            status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT)
+            status: Joi.string().valid(CONTRACT_STATUS)
               .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
@@ -104,7 +105,7 @@ exports.plugin = {
             endDate: Joi.string(),
             customer: Joi.objectId(),
             thirdPartyPayer: Joi.objectId(),
-            isBilled: Joi.boolean()
+            isBilled: Joi.boolean(),
           },
         },
       },
@@ -130,31 +131,31 @@ exports.plugin = {
             }),
             subscription: Joi.objectId(),
             internalHour: Joi.object(),
-            absence: Joi.string().when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
-            absenceNature: Joi.string().valid(DAILY, HOURLY),
+            absence: Joi.string().valid(ABSENCE_TYPES).when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
+            absenceNature: Joi.string().valid(ABSENCE_NATURES),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
             }),
             misc: Joi.string().allow(null, '').default(''),
             repetition: Joi.object().keys({
-              frequency: Joi.string(),
+              frequency: Joi.string().valid(REPETITION_FREQUENCIES),
               parentId: Joi.objectId(),
             }),
             isCancelled: Joi.boolean(),
             shouldUpdateRepetition: Joi.boolean(),
             cancel: Joi.object().keys({
               condition: Joi.string()
-                .valid(INVOICED_AND_NOT_PAYED, INVOICED_AND_PAYED)
+                .valid(EVENT_CANCELLATION_CONDITIONS)
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
               reason: Joi.string()
-                .valid(CUSTOMER_INITIATIVE, AUXILIARY_INITIATIVE)
+                .valid(EVENT_CANCELLATION_REASONS)
                 .when('isCancelled', { is: Joi.valid(true), then: Joi.required() }),
             }),
             isBilled: Joi.boolean(),
-            status: Joi.string().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
+            status: Joi.string().valid(CONTRACT_STATUS),
             bills: Joi.object(),
-          }).and('startDate', 'endDate')
+          }).and('startDate', 'endDate'),
         },
       },
       handler: update,
@@ -165,7 +166,7 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         validate: {
-          params: { _id: Joi.objectId() }
+          params: { _id: Joi.objectId() },
         },
       },
       handler: remove,
@@ -176,7 +177,7 @@ exports.plugin = {
       path: '/{_id}/repetition',
       options: {
         validate: {
-          params: { _id: Joi.objectId() }
+          params: { _id: Joi.objectId() },
         },
       },
       handler: removeRepetition,
