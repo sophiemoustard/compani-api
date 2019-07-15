@@ -15,7 +15,6 @@ const {
   INTERNAL_HOUR,
   ABSENCE,
   INTERVENTION,
-  DAILY,
   HOURLY,
   UNJUSTIFIED,
   ILLNESS,
@@ -25,7 +24,7 @@ const {
   AUXILIARY_INITIATIVE,
 } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('../models/Contract');
-const { EVENT_TYPES } = require('../models/Event');
+const { EVENT_TYPES, ABSENCE_NATURES } = require('../models/Event');
 
 exports.plugin = {
   name: 'routes-event',
@@ -58,7 +57,7 @@ exports.plugin = {
             absence: Joi.string()
               .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() })
               .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
-            absenceNature: Joi.string().valid(DAILY, HOURLY).when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
+            absenceNature: Joi.string().valid(ABSENCE_NATURES).when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
@@ -130,7 +129,7 @@ exports.plugin = {
             subscription: Joi.objectId(),
             internalHour: Joi.object(),
             absence: Joi.string().when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
-            absenceNature: Joi.string().valid(DAILY, HOURLY),
+            absenceNature: Joi.string().valid(ABSENCE_NATURES),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
