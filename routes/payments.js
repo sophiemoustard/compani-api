@@ -7,9 +7,10 @@ const {
   list,
   create,
   createList,
-  update
+  update,
 } = require('../controllers/paymentController');
-const { REFUND, PAYMENT, PAYMENT_TYPES } = require('../helpers/constants');
+const { PAYMENT_TYPES } = require('../helpers/constants');
+const { PAYMENT_NATURES } = require('../models/Payment');
 
 exports.plugin = {
   name: 'routes-payments',
@@ -39,10 +40,10 @@ exports.plugin = {
             customer: Joi.objectId().required(),
             client: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
-            nature: Joi.string().valid(REFUND, PAYMENT).required(),
+            nature: Joi.string().valid(PAYMENT_NATURES).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
-          })
-        }
+          }),
+        },
       },
       handler: create,
     });
@@ -58,7 +59,7 @@ exports.plugin = {
             customerInfo: Joi.object(),
             client: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
-            nature: Joi.string().valid(REFUND, PAYMENT).required(),
+            nature: Joi.string().valid(PAYMENT_NATURES).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
             rum: Joi.string().required(),
           })),
