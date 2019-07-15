@@ -14,6 +14,7 @@ const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
 
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
+const FUNDING_NATURES = [FIXED, HOURLY];
 
 const CustomerSchema = mongoose.Schema({
   driveFolder: {
@@ -94,7 +95,7 @@ const CustomerSchema = mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
   }],
   fundings: [{
-    nature: { type: String, enum: [HOURLY, FIXED] },
+    nature: { type: String, enum: FUNDING_NATURES },
     subscription: { type: mongoose.Schema.Types.ObjectId },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     versions: [{
@@ -124,3 +125,4 @@ CustomerSchema.post('findOne', countSubscriptionUsage);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
 module.exports.FUNDING_FREQUENCIES = FUNDING_FREQUENCIES;
+module.exports.FUNDING_NATURES = FUNDING_NATURES;

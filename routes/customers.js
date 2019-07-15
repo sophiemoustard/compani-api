@@ -32,12 +32,7 @@ const {
   getFundings,
   removeFunding,
 } = require('../controllers/customerController');
-
-const {
-  HOURLY,
-  FIXED,
-} = require('../helpers/constants');
-const { FUNDING_FREQUENCIES } = require('../models/Customer');
+const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -456,7 +451,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            nature: Joi.string().valid(HOURLY, FIXED).required(),
+            nature: Joi.string().valid(FUNDING_NATURES).required(),
             thirdPartyPayer: Joi.objectId().required(),
             subscription: Joi.objectId().required(),
             versions: Joi.array().items(Joi.object().keys({
