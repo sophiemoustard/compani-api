@@ -82,7 +82,7 @@ describe('RIGHTS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/rights',
-        payload: { permission: 'rhConfig:edit' },
+        payload: { permission: 'rhconfig:edit' },
         headers: { 'x-access-token': token },
       });
       expect(response.statusCode).toBe(409);
