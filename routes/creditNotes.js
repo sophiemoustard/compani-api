@@ -12,7 +12,7 @@ const {
   generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
 
-const { FIXED, HOURLY } = require('../helpers/constants');
+const { SERVICE_NATURES } = require('../models/Service');
 
 exports.plugin = {
   name: 'routes-credit-notes',
@@ -55,12 +55,12 @@ exports.plugin = {
               service: Joi.object().required().keys({
                 serviceId: Joi.objectId().required(),
                 name: Joi.string().required(),
-                nature: Joi.string().required().valid([FIXED, HOURLY])
+                nature: Joi.string().required().valid(SERVICE_NATURES),
               }),
               vat: Joi.number(),
               unitInclTaxes: Joi.number(),
             }),
-          })
+          }),
         },
       },
     });
@@ -87,7 +87,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
         },
       },
@@ -147,12 +147,12 @@ exports.plugin = {
               service: Joi.object().keys({
                 serviceId: Joi.objectId().required(),
                 name: Joi.string().required(),
-                nature: Joi.string().required().valid([FIXED, HOURLY])
+                nature: Joi.string().required().valid(SERVICE_NATURES),
               }),
               vat: Joi.number(),
               unitInclTaxes: Joi.number(),
             }),
-          })
+          }),
         },
       },
     });
@@ -167,5 +167,5 @@ exports.plugin = {
       },
       handler: generateCreditNotePdf,
     });
-  }
+  },
 };

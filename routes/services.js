@@ -3,13 +3,14 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../helpers/constants');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { SERVICE_NATURES } = require('../models/Service');
 
 const {
   list,
   create,
   update,
-  remove
+  remove,
 } = require('../controllers/serviceController');
 
 exports.plugin = {
@@ -32,7 +33,7 @@ exports.plugin = {
               surcharge: Joi.objectId(),
               exemptFromCharges: Joi.boolean(),
             }),
-            nature: Joi.string().required().valid(HOURLY, FIXED),
+            nature: Joi.string().required().valid(SERVICE_NATURES),
           }),
         },
       },
@@ -46,7 +47,7 @@ exports.plugin = {
         auth: { scope: ['rhconfig:edit'] },
         validate: {
           query: { company: Joi.objectId() },
-        }
+        },
       },
     });
 
@@ -85,5 +86,5 @@ exports.plugin = {
         },
       },
     });
-  }
+  },
 };
