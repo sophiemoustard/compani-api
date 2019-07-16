@@ -75,6 +75,7 @@ module.exports = {
       [this.EVERY_DAY]: 'Tous les jours',
       [this.EVERY_WEEK_DAY]: 'Du lundi au vendredi',
       [this.EVERY_WEEK]: 'Une fois par semaine',
+      [this.EVERY_TWO_WEEKS]: 'Toutes les deux semaines',
     };
   },
   CUSTOMER_CONTRACT: 'contract_with_customer',
