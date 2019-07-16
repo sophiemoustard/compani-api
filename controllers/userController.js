@@ -44,8 +44,8 @@ const authenticate = async (req) => {
     return {
       message: translate[language].userAuthentified,
       data: {
-        token, refreshToken, expiresIn: expireTime, user
-      }
+        token, refreshToken, expiresIn: expireTime, user,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -97,7 +97,7 @@ const list = async (req) => {
 
     return {
       message: translate[language].userFound,
-      data: { users }
+      data: { users },
     };
   } catch (e) {
     req.log('error', e);
@@ -112,7 +112,7 @@ const activeList = async (req) => {
     if (users.length === 0) {
       return {
         message: translate[language].usersNotFound,
-        data: { users: [] }
+        data: { users: [] },
       };
     }
 
@@ -120,7 +120,7 @@ const activeList = async (req) => {
 
     return {
       message: translate[language].userFound,
-      data: { users: activeUsers }
+      data: { users: activeUsers },
     };
   } catch (e) {
     req.log('error', e);
@@ -145,7 +145,7 @@ const show = async (req) => {
 
     return {
       message: translate[language].userFound,
-      data: { user }
+      data: { user },
     };
   } catch (e) {
     req.log('error', e);
@@ -166,7 +166,7 @@ const update = async (req) => {
 
     return {
       message: translate[language].userUpdated,
-      data: { userUpdated }
+      data: { userUpdated },
     };
   } catch (e) {
     // Error code when there is a duplicate key, in this case : the email (unique field)
@@ -190,7 +190,7 @@ const updateCertificates = async (req) => {
     }
     return {
       message: translate[language].userUpdated,
-      data: { userUpdated }
+      data: { userUpdated },
     };
   } catch (e) {
     req.log('error', e);
@@ -205,7 +205,7 @@ const remove = async (req) => {
 
     return {
       message: translate[language].userRemoved,
-      data: { userDeleted }
+      data: { userDeleted },
     };
   } catch (e) {
     req.log('error', e);
@@ -218,7 +218,7 @@ const getPresentation = async (req) => {
   try {
     const params = {
       'youtube.location': _.isArray(req.query.location) ? { $in: req.query.location } : req.query.location,
-      role: _.isArray(req.query.role) ? { $in: req.query.role } : req.query.role
+      role: _.isArray(req.query.role) ? { $in: req.query.role } : req.query.role,
     };
     const roleIds = await Role.find({ name: params.role }, { _id: 1 });
     params.role = { $in: roleIds };
@@ -234,7 +234,7 @@ const getPresentation = async (req) => {
 
     return {
       message: translate[language].usersFound,
-      data: { users }
+      data: { users },
     };
   } catch (e) {
     req.log('error', e);
@@ -253,7 +253,7 @@ const updateTask = async (req) => {
       )
       .select('procedure');
     return {
-      data: { tasks }
+      data: { tasks },
     };
   } catch (e) {
     req.log('error', e);
@@ -264,7 +264,7 @@ const updateTask = async (req) => {
 const getUserTasks = async (req) => {
   try {
     const tasks = await User.findOne(
-      { _id: req.params._id, procedure: { $exists: true }, },
+      { _id: req.params._id, procedure: { $exists: true } },
       { identity: 1, procedure: 1 }
     );
 
@@ -275,7 +275,7 @@ const getUserTasks = async (req) => {
       data: {
         user: _.pick(tasks, ['_id', 'identity']),
         tasks: tasks.procedure,
-      }
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -296,8 +296,8 @@ const refreshToken = async (req) => {
     return {
       message: translate[language].userAuthentified,
       data: {
-        token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload
-      }
+        token, refreshToken: user.refreshToken, expiresIn: expireTime, user: userPayload,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -311,8 +311,8 @@ const forgotPassword = async (req) => {
       resetPassword: {
         token: uuidv4(),
         expiresIn: Date.now() + 3600000, // 1 hour
-        from: req.payload.from
-      }
+        from: req.payload.from,
+      },
     };
     const user = await User.findOneAndUpdate({ 'local.email': req.payload.email }, { $set: payload }, { new: true });
     if (!user) return Boom.notFound(translate[language].userNotFound);
@@ -321,7 +321,7 @@ const forgotPassword = async (req) => {
       from: 'support@alenvi.io',
       to: req.payload.email,
       subject: 'Changement de mot de passe de votre compte Compani',
-      html: forgetPasswordEmail(payload.resetPassword)
+      html: forgetPasswordEmail(payload.resetPassword),
     };
     const mailInfo = process.env.NODE_ENV !== 'test'
       ? await sendGridTransporter.sendMail(mailOptions)
@@ -339,8 +339,8 @@ const checkResetPasswordToken = async (req) => {
     const filter = {
       resetPassword: {
         token: req.params.token,
-        expiresIn: { $gt: Date.now() }
-      }
+        expiresIn: { $gt: Date.now() },
+      },
     };
     const user = await User.findOne(flat(filter, { maxDepth: 2 }));
     if (!user) return Boom.notFound(translate[language].resetPasswordTokenNotFound);
@@ -349,7 +349,7 @@ const checkResetPasswordToken = async (req) => {
       _id: user._id,
       email: user.local.email,
       role: user.role.name,
-      from: user.resetPassword.from
+      from: user.resetPassword.from,
     };
     const userPayload = _.pickBy(payload);
     const expireTime = 86400;
@@ -398,19 +398,19 @@ const uploadImage = async (req) => {
     const pictureUploaded = await cloudinary.addImage({
       file: req.payload.picture,
       role: req.payload.role || AUXILIARY,
-      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
+      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
     });
     const payload = {
       picture: {
         publicId: pictureUploaded.public_id,
-        link: pictureUploaded.secure_url
-      }
+        link: pictureUploaded.secure_url,
+      },
     };
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
 
     return {
       message: translate[language].fileCreated,
-      data: { picture: payload.picture, userUpdated }
+      data: { picture: payload.picture, userUpdated },
     };
   } catch (e) {
     req.log('error', e);
@@ -430,8 +430,8 @@ const createDriveFolder = async (req) => {
       const folderPayload = {};
       folderPayload.administrative = user.administrative || { driveFolder: {} };
       folderPayload.administrative.driveFolder = {
-        id: folder.id,
-        link: folderLink.webViewLink
+        driveId: folder.id,
+        link: folderLink.webViewLink,
       };
 
       updatedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: folderPayload }, { new: true, autopopulate: false });
@@ -439,7 +439,7 @@ const createDriveFolder = async (req) => {
 
     return {
       message: translate[language].userUpdated,
-      data: { updatedUser }
+      data: { updatedUser },
     };
   } catch (e) {
     req.log('error', e);

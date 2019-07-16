@@ -10,17 +10,14 @@ const Event = require('./Event');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
-const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
 
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
 
 const CustomerSchema = mongoose.Schema({
-  driveFolder: {
-    id: String,
-    link: String
-  },
+  driveFolder: driveResourceSchemaDefinition,
   email: { type: String, lowercase: true, trim: true },
   identity: {
     type: mongoose.Schema(identitySchemaDefinition, { _id: false }),
@@ -51,15 +48,12 @@ const CustomerSchema = mongoose.Schema({
     mandates: [{
       rum: String,
       everSignId: String,
-      drive: {
-        id: String,
-        link: String
-      },
+      drive: driveResourceSchemaDefinition,
       signedAt: Date,
       createdAt: { type: Date, default: Date.now },
     }],
   },
-  financialCertificates: [driveFileSchemaDefinition],
+  financialCertificates: [driveResourceSchemaDefinition],
   isActive: Boolean,
   subscriptions: [{
     service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
@@ -88,10 +82,7 @@ const CustomerSchema = mongoose.Schema({
       ...subscriptionSchemaDefinition,
       serviceName: String,
     }],
-    drive: {
-      id: String,
-      link: String
-    },
+    drive: driveResourceSchemaDefinition,
     createdAt: { type: Date, default: Date.now },
   }],
   fundings: [{

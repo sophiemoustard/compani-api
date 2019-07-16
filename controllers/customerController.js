@@ -44,7 +44,7 @@ const list = async (req) => {
 
     return {
       message: translate[language].customersFound,
-      data: { customers }
+      data: { customers },
     };
   } catch (e) {
     req.log('error', e);
@@ -124,14 +124,14 @@ const listWithBilledEvents = async (req) => {
     ];
     const customers = await Event.aggregate([
       { $match: { $and: rules } },
-      { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' }, } },
+      { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' } } },
       {
         $lookup: {
           from: 'customers',
           localField: '_id.CUSTOMER',
           foreignField: '_id',
           as: 'customer',
-        }
+        },
       },
       { $unwind: { path: '$customer' } },
       {
@@ -140,15 +140,15 @@ const listWithBilledEvents = async (req) => {
           localField: '_id.TPP',
           foreignField: '_id',
           as: 'thirdPartyPayer',
-        }
+        },
       },
       { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
           sub: {
             $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-          }
-        }
+          },
+        },
       },
       { $unwind: { path: '$sub' } },
       {
@@ -157,7 +157,7 @@ const listWithBilledEvents = async (req) => {
           localField: 'sub.service',
           foreignField: '_id',
           as: 'sub.service',
-        }
+        },
       },
       { $unwind: { path: '$sub.service' } },
       { $group: { _id: { CUS: '$customer' }, subscriptions: { $addToSet: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
@@ -167,8 +167,8 @@ const listWithBilledEvents = async (req) => {
           subscriptions: 1,
           identity: '$_id.CUS.identity',
           thirdPartyPayers: 1,
-        }
-      }
+        },
+      },
     ]);
 
     for (let i = 0, l = customers.length; i < l; i++) {
@@ -259,8 +259,8 @@ const create = async (req) => {
     return {
       message: translate[language].customerCreated,
       data: {
-        customer: newCustomer
-      }
+        customer: newCustomer,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -277,8 +277,8 @@ const remove = async (req) => {
     return {
       message: translate[language].customerRemoved,
       data: {
-        customer: customerDeleted
-      }
+        customer: customerDeleted,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -313,8 +313,8 @@ const update = async (req) => {
     return {
       message: translate[language].customerUpdated,
       data: {
-        customer: customerUpdated
-      }
+        customer: customerUpdated,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -359,7 +359,7 @@ const updateSubscription = async (req) => {
         new: true,
         select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
         autopopulate: false,
-      },
+      }
     ).populate('subscriptions.service').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
@@ -399,7 +399,7 @@ const addSubscription = async (req) => {
         new: true,
         select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
         autopopulate: false,
-      },
+      }
     ).populate('subscriptions.service').lean();
 
     const { subscriptions } = await populateSubscriptionsServices(updatedCustomer);
@@ -427,7 +427,7 @@ const removeSubscription = async (req) => {
           'identity.firstname': 1,
           'identity.lastname': 1,
           subscriptions: 1,
-          customerId: 1
+          customerId: 1,
         },
         autopopulate: false,
       }
@@ -450,7 +450,7 @@ const getMandates = async (req) => {
         subscriptions: { $exists: true },
       },
       { 'identity.firstname': 1, 'identity.lastname': 1, 'payment.mandates': 1 },
-      { autopopulate: false },
+      { autopopulate: false }
     ).lean();
 
     if (!customer) {
@@ -480,7 +480,7 @@ const updateMandate = async (req) => {
         new: true,
         select: { 'identity.firstname': 1, 'identity.lastname': 1, 'payment.mandates': 1 },
         autopopulate: false,
-      },
+      }
     ).lean();
 
     if (!customer) {
@@ -492,7 +492,7 @@ const updateMandate = async (req) => {
       data: {
         customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         mandates: customer.payment.mandates,
-      }
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -513,17 +513,17 @@ const generateMandateSignatureRequest = async (req) => {
       signers: [{
         id: '1',
         name: req.payload.customer.name,
-        email: req.payload.customer.email
+        email: req.payload.customer.email,
       }],
       redirect: req.payload.redirect,
-      redirectDecline: req.payload.redirectDecline
+      redirectDecline: req.payload.redirectDecline,
     });
     if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
     customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
     await customer.save();
     return {
       message: translate[language].signatureRequestCreated,
-      data: { signatureRequest: { embeddedUrl: doc.data.signers[0].embedded_signing_url } }
+      data: { signatureRequest: { embeddedUrl: doc.data.signers[0].embedded_signing_url } },
     };
   } catch (e) {
     req.log('error', e);
@@ -538,7 +538,7 @@ const getCustomerQuotes = async (req) => {
       {
         'identity.firstname': 1,
         'identity.lastname': 1,
-        quotes: 1
+        quotes: 1,
       },
       { autopopulate: false }
     ).lean();
@@ -547,8 +547,8 @@ const getCustomerQuotes = async (req) => {
       message: translate[language].customerQuotesFound,
       data: {
         user: _.pick(quotes, ['_id', 'identity']),
-        quotes: quotes.quotes
-      }
+        quotes: quotes.quotes,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -568,16 +568,16 @@ const createCustomerQuote = async (req) => {
       select: {
         'identity.firstname': 1,
         'identity.lastname': 1,
-        quotes: 1
+        quotes: 1,
       },
-      autopopulate: false
+      autopopulate: false,
     });
     return {
       message: translate[language].customerQuoteAdded,
       data: {
         user: _.pick(newQuote, ['_id', 'identity']),
-        quote: newQuote.quotes.find(quote => quoteNumber === quote.quoteNumber)
-      }
+        quote: newQuote.quotes.find(quote => quoteNumber === quote.quoteNumber),
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -592,7 +592,7 @@ const removeCustomerQuote = async (req) => {
       { $pull: { quotes: { _id: req.params.quoteId } } },
       {
         select: { firstname: 1, lastname: 1, quotes: 1 },
-        autopopulate: false
+        autopopulate: false,
       }
     );
 
@@ -613,13 +613,13 @@ const createDriveFolder = async (req) => {
   try {
     const customer = await Customer.findOne(
       { _id: req.params._id },
-      { 'identity.firstname': 1, 'identity.lastname': 1 },
+      { 'identity.firstname': 1, 'identity.lastname': 1 }
     );
 
     if (customer.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID;
       const { folder, folderLink } = await createFolder(customer.identity, parentFolderId);
-      customer.driveFolder = { id: folder.id, link: folderLink.webViewLink };
+      customer.driveFolder = { driveId: folder.id, link: folderLink.webViewLink };
       await customer.save();
     }
 
@@ -666,7 +666,7 @@ const updateCertificates = async (req) => {
       { $pull: req.payload },
       {
         select: { firstname: 1, lastname: 1, financialCertificates: 1 },
-        autopopulate: false
+        autopopulate: false,
       }
     );
 
@@ -698,15 +698,15 @@ const saveSignedMandate = async (req) => {
     const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
     const file = await createAndReadFile(finalPDF.data, tmpPath);
     const uploadedFile = await addFile({
-      driveFolderId: customer.driveFolder.id,
+      driveFolderId: customer.driveFolder.driveId,
       name: customer.payment.mandates[mandateIndex].rum,
       type: 'application/pdf',
-      body: file
+      body: file,
     });
     const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
     customer.payment.mandates[mandateIndex].drive = {
-      id: uploadedFile.id,
-      link: driveFileInfo.webViewLink
+      driveId: uploadedFile.id,
+      link: driveFileInfo.webViewLink,
     };
     customer.payment.mandates[mandateIndex].signedAt = moment.utc().toDate();
 
@@ -716,8 +716,8 @@ const saveSignedMandate = async (req) => {
       message: translate[language].signedDocumentSaved,
       data: {
         user: _.pick(customer, ['_id', 'identity']),
-        mandate: customer.payment.mandates.find(mandate => req.params.mandateId === mandate._id.toHexString())
-      }
+        mandate: customer.payment.mandates.find(mandate => req.params.mandateId === mandate._id.toHexString()),
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -732,16 +732,16 @@ const createHistorySubscription = async (req) => {
       select: {
         'identity.firstname': 1,
         'identity.lastname': 1,
-        subscriptionsHistory: 1
+        subscriptionsHistory: 1,
       },
-      autopopulate: false
+      autopopulate: false,
     });
     return {
       message: translate[language].customerSubscriptionHistoryAdded,
       data: {
         user: _.pick(customer, ['_id', 'identity']),
-        subscriptionHistory: customer.subscriptionsHistory.find(sub => moment(sub.approvalDate).isSame(moment(), 'day'))
-      }
+        subscriptionHistory: customer.subscriptionsHistory.find(sub => moment(sub.approvalDate).isSame(moment(), 'day')),
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -760,7 +760,7 @@ const createFunding = async (req) => {
         new: true,
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
-      },
+      }
     ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
@@ -772,8 +772,8 @@ const createFunding = async (req) => {
       message: translate[language].customerFundingCreated,
       data: {
         customer: _.pick(customer, ['_id', 'identity']),
-        funding
-      }
+        funding,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -795,7 +795,7 @@ const updateFunding = async (req) => {
         new: true,
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
-      },
+      }
     ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
@@ -821,7 +821,7 @@ const getFundings = async (req) => {
     const customer = await Customer.findOne(
       { _id: req.params._id, fundings: { $exists: true } },
       { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
-      { autopopulate: false },
+      { autopopulate: false }
     ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);

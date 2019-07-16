@@ -24,7 +24,7 @@ const {
   EVERY_WEEK_DAY,
   EVERY_WEEK,
 } = require('../helpers/constants');
-const driveFileSchemaDefinition = require('./schemaDefinitions/driveFile');
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { CONTRACT_STATUS } = require('./Contract');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
@@ -65,7 +65,7 @@ const EventSchema = mongoose.Schema({
     city: String,
   },
   misc: String,
-  attachment: driveFileSchemaDefinition,
+  attachment: driveResourceSchemaDefinition,
   repetition: {
     frequency: { type: String, enum: REPETITION_FREQUENCIES },
     parentId: { type: mongoose.Schema.Types.ObjectId },
