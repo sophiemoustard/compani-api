@@ -120,10 +120,12 @@ exports.getListQuery = (req) => {
   if (req.query.type) rules.push({ type: req.query.type });
 
   const sectorOrAuxiliary = [];
-  if (req.query.auxiliary) sectorOrAuxiliary.push({ auxiliary: { $in: req.query.auxiliary } });
-  if (req.query.sector) sectorOrAuxiliary.push({ sector: { $in: req.query.sector } });
+  if (req.query.auxiliary) sectorOrAuxiliary.push({ auxiliary: { $in: req.query.auxiliary.map(id => new ObjectID(id)) } });
+  if (req.query.sector) {
+    const sectorCondition = Array.isArray(req.query.sector) ? req.query.sector.map(id => new ObjectID(id)) : [new ObjectID(req.query.sector)];
+    sectorOrAuxiliary.push({ sector: { $in: sectorCondition } });
+  }
   if (sectorOrAuxiliary.length > 0) rules.push({ $or: sectorOrAuxiliary });
-
   if (req.query.customer) rules.push({ customer: { $in: req.query.customer } });
   if (req.query.isBilled) rules.push({ customer: req.query.isBilled });
   if (req.query.startDate && req.query.endDate) {
