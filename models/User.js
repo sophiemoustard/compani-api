@@ -95,21 +95,12 @@ const UserSchema = mongoose.Schema({
     passport: driveResourceSchemaDefinition,
     residencePermitRecto: driveResourceSchemaDefinition,
     residencePermitVerso: driveResourceSchemaDefinition,
-    healthAttest: {
-      ...driveResourceSchemaDefinition,
-      has: Boolean,
-    },
+    healthAttest: driveResourceSchemaDefinition,
     vitalCard: driveResourceSchemaDefinition,
     identityDocs: String,
     certificates: [driveResourceSchemaDefinition],
-    phoneInvoice: {
-      ...driveResourceSchemaDefinition,
-      has: Boolean,
-    },
-    navigoInvoice: {
-      ...driveResourceSchemaDefinition,
-      has: Boolean,
-    },
+    phoneInvoice: driveResourceSchemaDefinition,
+    navigoInvoice: driveResourceSchemaDefinition,
     transportInvoice: {
       ...driveResourceSchemaDefinition,
       transportType: String,
