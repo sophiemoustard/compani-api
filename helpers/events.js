@@ -194,7 +194,7 @@ exports.formatRepeatedEvent = (event, momentDay) => {
     ..._.omit(event, '_id'),
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
-  })
+  });
 };
 
 exports.createRepetitionsEveryDay = async (event) => {
@@ -236,7 +236,7 @@ exports.createRepetitionsByWeek = async (event, step) => {
   });
 
   return Promise.all(promises);
-}
+};
 
 exports.createRepetitions = async (event) => {
   if (event.repetition.frequency === NEVER) return event;
@@ -303,22 +303,9 @@ exports.updateEvent = async (event, payload) => {
 
   let miscUpdatedOnly = false;
   if (payload.misc) {
-    if (
-      !event.misc ||
-      event.misc === '' ||
-      (payload.misc !== event.misc &&
+    if (!event.misc || event.misc === '' || (payload.misc !== event.misc &&
         _.isEqual(
-          _.omit(event, [
-            'misc',
-            'repetition',
-            'location',
-            'isBilled',
-            '_id',
-            'type',
-            'customer',
-            'createdAt',
-            'updatedAt',
-          ]),
+          _.omit(event, ['misc', 'repetition', 'location', 'isBilled', '_id', 'type', 'customer', 'createdAt', 'updatedAt']),
           _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc'])
         ))
     ) { miscUpdatedOnly = true; }
@@ -326,24 +313,15 @@ exports.updateEvent = async (event, payload) => {
 
   let unset;
   let set;
-  if (
-    event.type === ABSENCE ||
-    !event.repetition ||
-    event.repetition.frequency === NEVER ||
-    payload.shouldUpdateRepetition ||
-    miscUpdatedOnly
-  ) {
+  if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
     if (!payload.isCancelled && event.isCancelled) {
       set = flat({ ...payload, isCancelled: false });
       unset = { cancel: '' };
-    } else set = flat(payload);
+    } else {
+      set = payload;
+    }
 
-    if (
-      !miscUpdatedOnly &&
-      event.repetition &&
-      event.repetition.frequency !== NEVER &&
-      payload.shouldUpdateRepetition
-    ) {
+    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) {
       await exports.updateRepetitions(event, payload);
     }
   } else if (!payload.isCancelled && event.isCancelled) {
@@ -356,16 +334,15 @@ exports.updateEvent = async (event, payload) => {
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
 
-  event = await Event.findOneAndUpdate(
-    { _id: event._id },
-    { $set: set, ...(unset && { $unset: unset }) },
-    { autopopulate: false, new: true }
-  )
-    .populate({
+  event = await Event
+    .findOneAndUpdate(
+      { _id: event._id },
+      { $set: set, ...(unset && { $unset: unset }) },
+      { autopopulate: false, new: true }
+    ).populate({
       path: 'auxiliary',
       select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-    })
-    .populate({ path: 'customer', select: 'identity subscriptions contact' })
+    }).populate({ path: 'customer', select: 'identity subscriptions contact' })
     .lean();
 
   return exports.populateEventSubscription(event);
