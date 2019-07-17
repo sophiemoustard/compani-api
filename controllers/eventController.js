@@ -26,13 +26,13 @@ const list = async (req) => {
       .populate({
         path: 'customer',
         select: 'identity subscriptions contact',
-        populate: { path: 'subscriptions.service' }
+        populate: { path: 'subscriptions.service' },
       })
       .lean();
     if (events.length === 0) {
       return {
         message: translate[language].eventsNotFound,
-        data: { events: [] }
+        data: { events: [] },
       };
     }
 
@@ -40,7 +40,7 @@ const list = async (req) => {
 
     return {
       message: translate[language].eventsFound,
-      data: { events: populatedEvents }
+      data: { events: populatedEvents },
     };
   } catch (e) {
     req.log('error', e);
@@ -63,7 +63,7 @@ const listForCreditNotes = async (req) => {
 
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
-      data: { events }
+      data: { events },
     };
   } catch (e) {
     req.log('error', e);
@@ -134,7 +134,7 @@ const remove = async (req) => {
     const event = await Event.findByIdAndRemove({ _id: req.params._id });
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    return { message: translate[language].eventDeleted, };
+    return { message: translate[language].eventDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);
@@ -153,7 +153,7 @@ const removeRepetition = async (req) => {
 
     return {
       message: translate[language].eventDeleted,
-      data: { event }
+      data: { event },
     };
   } catch (e) {
     req.log('error', e);
