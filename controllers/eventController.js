@@ -15,7 +15,7 @@ const {
   isEditionAllowed,
 } = require('../helpers/events');
 const { ABSENCE, NEVER, INTERVENTION } = require('../helpers/constants');
-const { getEventsGroupedByAuxiliaries } = require('../repositories/EventRepository');
+const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers } = require('../repositories/EventRepository');
 
 const { language } = translate;
 
@@ -53,6 +53,21 @@ const listByAuxiliaries = async (req) => {
   try {
     const query = getListQuery(req);
     const events = await getEventsGroupedByAuxiliaries(query);
+
+    return {
+      message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
+      data: { events: events.length === 0 ? [] : events },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
+
+const listByCustomers = async (req) => {
+  try {
+    const query = getListQuery(req);
+    const events = await getEventsGroupedByCustomers(query);
 
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
@@ -211,4 +226,5 @@ module.exports = {
   removeRepetition,
   listForCreditNotes,
   listByAuxiliaries,
+  listByCustomers,
 };

@@ -1,6 +1,6 @@
 const Event = require('../models/Event');
 
-exports.getEventsGroupedByAuxiliaries = async rules => Event.aggregate([
+const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
   { $match: rules },
   {
     $lookup: {
@@ -69,8 +69,12 @@ exports.getEventsGroupedByAuxiliaries = async rules => Event.aggregate([
   },
   {
     $group: {
-      _id: { $ifNull: ['$auxiliary._id', '$sector'] },
+      _id: groupById,
       events: { $push: '$$ROOT' },
     },
   },
 ]);
+
+exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] });
+
+exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
