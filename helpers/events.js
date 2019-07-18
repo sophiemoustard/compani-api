@@ -446,6 +446,18 @@ exports.unassignInterventions = async (contract) => {
 
 exports.removeEventsExceptInterventions = async contract => Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
 
+exports.truncateAuxiliaryAbsencesEndDate = async (auxiliaryId, endDateMax) => {
+  endDateMax = moment(endDateMax).endOf('d');
+  await Event.updateMany({
+    type: ABSENCE,
+    auxiliary: auxiliaryId,
+    startDate: { $lte: endDateMax },
+    endDate: { $gt: endDateMax },
+  }, {
+    endDate: endDateMax,
+  });
+};
+
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
   const query = {
     type: { $in: [INTERVENTION, INTERNAL_HOUR] },
