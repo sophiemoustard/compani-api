@@ -23,6 +23,7 @@ const {
   EVERY_DAY,
   EVERY_WEEK_DAY,
   EVERY_WEEK,
+  EVERY_TWO_WEEKS,
 } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { CONTRACT_STATUS } = require('./Contract');
@@ -42,7 +43,7 @@ const ABSENCE_TYPES = [
 ];
 const EVENT_CANCELLATION_REASONS = [AUXILIARY_INITIATIVE, CUSTOMER_INITIATIVE];
 const EVENT_CANCELLATION_CONDITIONS = [INVOICED_AND_PAYED, INVOICED_AND_NOT_PAYED];
-const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK];
+const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK, EVERY_TWO_WEEKS];
 
 const EventSchema = mongoose.Schema({
   type: { type: String, enum: EVENT_TYPES },
