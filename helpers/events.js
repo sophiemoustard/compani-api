@@ -292,6 +292,18 @@ exports.updateRepetitions = async (event, payload) => {
   return Promise.all(promises);
 };
 
+const isMiscOnlyUpdated = (event, payload) => {
+  const mainEventInfo = {
+    ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status']),
+    auxiliary: event.auxiliary.toHexString(),
+    sector: event.sector.toHexString(),
+  };
+  if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
+  const mainPayloadInfo = _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc']);
+
+  return !event.misc || event.misc === '' || (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
+};
+
 exports.updateEvent = async (event, payload) => {
   /**
    * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the repetition
@@ -301,15 +313,7 @@ exports.updateEvent = async (event, payload) => {
    * i.e. delete the cancel object and set isCancelled to false.
    */
 
-  let miscUpdatedOnly = false;
-  if (payload.misc) {
-    if (!event.misc || event.misc === '' || (payload.misc !== event.misc &&
-        _.isEqual(
-          _.omit(event, ['misc', 'repetition', 'location', 'isBilled', '_id', 'type', 'customer', 'createdAt', 'updatedAt']),
-          _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc'])
-        ))
-    ) { miscUpdatedOnly = true; }
-  }
+  const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
 
   let unset;
   let set;
