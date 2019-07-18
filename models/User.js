@@ -6,6 +6,11 @@ const moment = require('moment');
 const Boom = require('boom');
 
 const Role = require('./Role');
+const addressSchemaDefinition = require('./schemaDefinitions/address');
+const locationSchemaDefinition = require('./schemaDefinitions/location');
+const identitySchemaDefinition = require('./schemaDefinitions/identity');
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
+const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -15,7 +20,7 @@ const UserSchema = mongoose.Schema({
   resetPassword: {
     token: { type: String, default: null },
     expiresIn: { type: Date, default: null },
-    from: String
+    from: String,
   },
   local: {
     email: {
@@ -24,17 +29,17 @@ const UserSchema = mongoose.Schema({
       trim: true,
       unique: true,
       required: true,
-      dropDups: true
+      dropDups: true,
     },
-    password: String
+    password: String,
   },
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
     autopopulate: {
       select: '-__v -createdAt -updatedAt',
-      maxDepth: 3
-    }
+      maxDepth: 3,
+    },
   },
   employee_id: { type: Number, trim: true },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
@@ -44,114 +49,79 @@ const UserSchema = mongoose.Schema({
   },
   picture: {
     publicId: String,
-    link: { type: String, trim: true }
+    link: { type: String, trim: true },
   },
   identity: {
-    title: String,
-    firstname: String,
-    lastname: String,
-    nationality: String,
-    birthDate: Date,
-    birthCountry: String,
-    birthState: String,
-    birthCity: String,
-    socialSecurityNumber: Number
+    type: mongoose.Schema({
+      ...identitySchemaDefinition,
+      nationality: String,
+      birthCountry: String,
+      birthState: String,
+      birthCity: String,
+      socialSecurityNumber: Number,
+    }, { _id: false }),
+    required: true,
   },
   contact: {
     address: {
-      street: String,
+      ...addressSchemaDefinition,
       additionalAddress: String,
-      zipCode: String,
-      city: String,
-      fullAddress: String,
-      location: {
-        type: { type: String },
-        coordinates: [Number]
-      }
-    }
+      location: locationSchemaDefinition,
+    },
   },
   mobilePhone: String,
   emergencyPhone: String,
   mentor: String,
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   administrative: {
-    driveFolder: { id: String, link: String },
+    driveFolder: driveResourceSchemaDefinition,
     signup: {
       firstSmsDate: Date,
       secondSmsDate: Date,
       step: { type: String, default: 'first' },
-      complete: { type: Boolean, default: false }
+      complete: { type: Boolean, default: false },
     },
     payment: {
       rib: {
         iban: String,
-        bic: String
+        bic: String,
       },
       cesu: [String],
       invoices: [String],
-      fiscalAttests: [String]
+      fiscalAttests: [String],
     },
-    idCardRecto: {
-      driveId: String,
-      link: String,
-    },
-    idCardVerso: {
-      driveId: String,
-      link: String,
-    },
-    passport: {
-      driveId: String,
-      link: String
-    },
-    residencePermitRecto: {
-      driveId: String,
-      link: String
-    },
-    residencePermitVerso: {
-      driveId: String,
-      link: String
-    },
+    idCardRecto: driveResourceSchemaDefinition,
+    idCardVerso: driveResourceSchemaDefinition,
+    passport: driveResourceSchemaDefinition,
+    residencePermitRecto: driveResourceSchemaDefinition,
+    residencePermitVerso: driveResourceSchemaDefinition,
     healthAttest: {
-      driveId: String,
-      link: String,
+      ...driveResourceSchemaDefinition,
       has: Boolean,
     },
-    vitalCard: {
-      driveId: String,
-      link: String,
-    },
+    vitalCard: driveResourceSchemaDefinition,
     identityDocs: String,
-    certificates: [{
-      driveId: String,
-      link: String
-    }],
+    certificates: [driveResourceSchemaDefinition],
     phoneInvoice: {
-      driveId: String,
-      link: String,
+      ...driveResourceSchemaDefinition,
       has: Boolean,
     },
     navigoInvoice: {
-      driveId: String,
-      link: String,
+      ...driveResourceSchemaDefinition,
       has: Boolean,
     },
     transportInvoice: {
-      driveId: String,
-      link: String,
-      transportType: String
+      ...driveResourceSchemaDefinition,
+      transportType: String,
     },
     mutualFund: {
-      driveId: String,
-      link: String,
+      ...driveResourceSchemaDefinition,
       has: Boolean,
     },
-    medicalCertificate: {
-      driveId: String,
-      link: String
-    },
+    medicalCertificate: driveResourceSchemaDefinition,
     emergencyContact: {
       name: String,
-      phoneNumber: String
+      phoneNumber: String,
     },
   },
   procedure: [{
@@ -160,13 +130,13 @@ const UserSchema = mongoose.Schema({
       ref: 'Task',
       autopopulate: {
         select: '-__v -createdAt -updatedAt',
-        maxDepth: 2
-      }
+        maxDepth: 2,
+      },
     },
     check: {
       isDone: { type: Boolean, default: false },
-      at: { type: Date, default: null }
-    }
+      at: { type: Date, default: null },
+    },
   }],
   isConfirmed: { type: Boolean, default: false },
   company: {
@@ -174,8 +144,8 @@ const UserSchema = mongoose.Schema({
     ref: 'Company',
     autopopulate: {
       select: '-__v -createdAt -updatedAt',
-      maxDepth: 2
-    }
+      maxDepth: 2,
+    },
   },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
@@ -228,11 +198,13 @@ async function findOneAndUpdate(next) {
 }
 
 function setIsActive() {
-  return !(this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()));
+  if (this.role && [AUXILIARY, PLANNING_REFERENT].includes(this.role.name)) {
+    return !((this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()))
+      || ((!this.contracts || this.contracts.length === 0) && moment().diff(this.createdAt, 'd') > 45));
+  }
 }
 
 UserSchema.virtual('isActive').get(setIsActive);
-
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 

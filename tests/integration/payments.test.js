@@ -13,7 +13,7 @@ const { paymentsList, populatePayments } = require('./seed/paymentsSeed');
 const { populateCompanies, companiesList } = require('./seed/companiesSeed');
 const { populateUsers, userList } = require('./seed/usersSeed');
 const { populateRoles } = require('./seed/rolesSeed');
-const { PAYMENT, REFUND, PAYMENT_TYPES } = require('../../helpers/constants');
+const { PAYMENT, REFUND } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Payment = require('../../models/Payment');
 const Drive = require('../../models/Google/Drive');
@@ -56,7 +56,7 @@ describe('PAYMENTS ROUTES', () => {
       customer: customersList[0]._id,
       netInclTaxes: 400,
       nature: PAYMENT,
-      type: PAYMENT_TYPES[0],
+      type: 'direct_debit',
     };
     const creationAssertions = [{ ...origPayload }, { ...origPayload, nature: REFUND }];
 
@@ -135,7 +135,7 @@ describe('PAYMENTS ROUTES', () => {
           customerInfo: customersList[0],
           netInclTaxes: 900,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0],
+          type: 'direct_debit',
           rum: 'R12345678000000345634567',
         },
         {
@@ -144,7 +144,7 @@ describe('PAYMENTS ROUTES', () => {
           customerInfo: customersList[1],
           netInclTaxes: 250,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0],
+          type: 'direct_debit',
           rum: 'R12345678000000345634567',
         },
       ];
@@ -172,7 +172,7 @@ describe('PAYMENTS ROUTES', () => {
           customerInfo: customersList[0],
           netInclTaxes: 900,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0],
+          type: 'direct_debit',
           rum: 'R12345678000000345634567',
         },
         {
@@ -181,7 +181,7 @@ describe('PAYMENTS ROUTES', () => {
           customerInfo: customersList[1],
           netInclTaxes: 250,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0],
+          type: 'direct_debit',
           rum: 'R12345678000000345634567',
         },
       ];

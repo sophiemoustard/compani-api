@@ -25,8 +25,8 @@ const createList = async (req) => {
     for (const finalPay of req.payload) {
       finalPayList.push((new FinalPay({
         ...finalPay,
-        ...(finalPay.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: JSON.stringify(finalPay.surchargedAndNotExemptDetails) }),
-        ...(finalPay.surchargedAndExemptDetails && { surchargedAndExemptDetails: JSON.stringify(finalPay.surchargedAndExemptDetails) }),
+        ...(finalPay.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: Object.values(finalPay.surchargedAndNotExemptDetails) }),
+        ...(finalPay.surchargedAndExemptDetails && { surchargedAndExemptDetails: Object.values(finalPay.surchargedAndExemptDetails) }),
       })));
     }
 

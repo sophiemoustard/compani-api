@@ -9,7 +9,6 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/token',
-      options: { auth: 'jwt' },
       handler: getOgustToken,
     });
   }

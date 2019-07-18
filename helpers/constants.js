@@ -68,21 +68,23 @@ module.exports = {
   EVERY_DAY: 'every_day',
   EVERY_WEEK_DAY: 'every_week_day',
   EVERY_WEEK: 'every_week',
+  EVERY_TWO_WEEKS: 'every_two_weeks',
   get REPETITION_FREQUENCY_TYPE_LIST() {
     return {
       [this.NEVER]: 'Jamais',
       [this.EVERY_DAY]: 'Tous les jours',
       [this.EVERY_WEEK_DAY]: 'Du lundi au vendredi',
-      [this.EVERY_WEEK]: 'Une fois par semaine'
+      [this.EVERY_WEEK]: 'Une fois par semaine',
+      [this.EVERY_TWO_WEEKS]: 'Toutes les deux semaines',
     };
   },
   CUSTOMER_CONTRACT: 'contract_with_customer',
   COMPANY_CONTRACT: 'contract_with_company',
-  get CONTRACT_TYPES() {
-    return [
-      { label: 'Prestataire', value: this.COMPANY_CONTRACT },
-      { label: 'Mandataire', value: this.CUSTOMER_CONTRACT },
-    ];
+  get CONTRACT_STATUS_LIST() {
+    return {
+      [this.COMPANY_CONTRACT]: 'Prestataire',
+      [this.CUSTOMER_CONTRACT]: 'Mandataire',
+    };
   },
   TWO_WEEKS: 'two_weeks',
   MONTH: 'month',
@@ -93,9 +95,6 @@ module.exports = {
   BANK_TRANSFER: 'bank_transfer',
   CHECK: 'check',
   CESU: 'cesu',
-  get PAYMENT_TYPES() {
-    return [this.DIRECT_DEBIT, this.BANK_TRANSFER, this.CHECK, this.CESU];
-  },
   get PAYMENT_TYPES_LIST() {
     return {
       [this.DIRECT_DEBIT]: 'Prélèvement',
@@ -150,7 +149,7 @@ module.exports = {
     4: 'Vendredi',
     5: 'Samedi',
     6: 'Dimanche',
-    7: 'Jours fériés'
+    7: 'Jours fériés',
   },
   // EXPORTS HISTORY
   WORKING_EVENT: 'working_event', // intervention or internal hours

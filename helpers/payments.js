@@ -12,7 +12,7 @@ const {
   generateSEPAHeader,
   generateSEPAXml,
   generatePaymentInfo,
-  addTransactionInfo
+  addTransactionInfo,
 } = require('../helpers/xml');
 const UtilsHelper = require('./utils');
 
@@ -65,7 +65,7 @@ const generateXML = async (firstPayments, recurPayments, company) => {
         iban: company.iban,
         bic: company.bic,
         ics: company.ics,
-      }
+      },
     });
     firstPaymentsInfo = addTransactionInfo(firstPaymentsInfo, firstPayments);
   }
@@ -83,7 +83,7 @@ const generateXML = async (firstPayments, recurPayments, company) => {
         iban: company.iban,
         bic: company.bic,
         ics: company.ics,
-      }
+      },
     });
     recurPaymentsInfo = addTransactionInfo(recurPaymentsInfo, recurPayments);
   }
@@ -124,7 +124,7 @@ exports.savePayments = async (payload, company) => {
 exports.exportPaymentsHistory = async (startDate, endDate) => {
   const query = {
     nature: PAYMENT,
-    date: { $lte: endDate, $gte: startDate }
+    date: { $lte: endDate, $gte: startDate },
   };
 
   const payments = await Payment.find(query)
@@ -141,7 +141,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
     'Id tiers payeur',
     'Tiers payeur',
     'Moyen de paiement',
-    'Montant TTC en €'
+    'Montant TTC en €',
   ];
 
   const rows = [header];

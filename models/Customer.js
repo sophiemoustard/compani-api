@@ -7,43 +7,39 @@ const {
   FIXED,
 } = require('../helpers/constants');
 const Event = require('./Event');
+const addressSchemaDefinition = require('./schemaDefinitions/address');
+const locationSchemaDefinition = require('./schemaDefinitions/location');
+const identitySchemaDefinition = require('./schemaDefinitions/identity');
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
+const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
 
+const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
+const FUNDING_NATURES = [FIXED, HOURLY];
 
 const CustomerSchema = mongoose.Schema({
-  driveFolder: {
-    id: String,
-    link: String
-  },
+  driveFolder: driveResourceSchemaDefinition,
   email: { type: String, lowercase: true, trim: true },
   identity: {
-    title: String,
-    firstname: String,
-    lastname: String,
-    birthDate: Date
+    type: mongoose.Schema(identitySchemaDefinition, { _id: false }),
+    required: true,
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
     address: {
-      street: String,
+      ...addressSchemaDefinition,
       additionalAddress: String,
-      zipCode: String,
-      city: String,
-      fullAddress: String,
-      location: {
-        type: { type: String },
-        coordinates: [Number]
-      }
+      location: locationSchemaDefinition,
     },
     phone: String,
     doorCode: String,
-    intercomCode: String
+    intercomCode: String,
   },
   followUp: {
     pathology: String,
     comments: String,
     details: String,
     misc: String,
-    referent: String
+    referent: String,
   },
   payment: {
     bankAccountOwner: String,
@@ -52,67 +48,49 @@ const CustomerSchema = mongoose.Schema({
     mandates: [{
       rum: String,
       everSignId: String,
-      drive: {
-        id: String,
-        link: String
-      },
+      drive: driveResourceSchemaDefinition,
       signedAt: Date,
       createdAt: { type: Date, default: Date.now },
     }],
   },
-  financialCertificates: [{
-    driveId: String,
-    link: String
-  }],
+  financialCertificates: [driveResourceSchemaDefinition],
   isActive: Boolean,
   subscriptions: [{
     service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
     versions: [{
-      unitTTCRate: Number,
-      estimatedWeeklyVolume: Number,
-      evenings: Number,
-      sundays: Number,
+      ...subscriptionSchemaDefinition,
       createdAt: { type: Date, default: Date.now },
     }],
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
   }],
   subscriptionsHistory: [{
     subscriptions: [{
+      ...subscriptionSchemaDefinition,
       service: String,
-      unitTTCRate: Number,
-      estimatedWeeklyVolume: Number,
-      evenings: Number,
-      sundays: Number,
       startDate: Date,
     }],
     helper: {
       firstname: String,
       lastname: String,
-      title: String
+      title: String,
     },
-    approvalDate: { type: Date, default: Date.now }
+    approvalDate: { type: Date, default: Date.now },
   }],
   quotes: [{
     quoteNumber: String,
     subscriptions: [{
+      ...subscriptionSchemaDefinition,
       serviceName: String,
-      unitTTCRate: Number,
-      estimatedWeeklyVolume: Number,
-      evenings: Number,
-      sundays: Number,
     }],
-    drive: {
-      id: String,
-      link: String
-    },
-    createdAt: { type: Date, default: Date.now }
+    drive: driveResourceSchemaDefinition,
+    createdAt: { type: Date, default: Date.now },
   }],
   fundings: [{
-    nature: { type: String, enum: [HOURLY, FIXED] },
+    nature: { type: String, enum: FUNDING_NATURES },
     subscription: { type: mongoose.Schema.Types.ObjectId },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     versions: [{
-      frequency: { type: String, enum: [MONTHLY, ONCE] },
+      frequency: { type: String, enum: FUNDING_FREQUENCIES },
       amountTTC: Number,
       unitTTCRate: Number,
       careHours: Number,
@@ -137,3 +115,5 @@ const countSubscriptionUsage = async (doc) => {
 CustomerSchema.post('findOne', countSubscriptionUsage);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
+module.exports.FUNDING_FREQUENCIES = FUNDING_FREQUENCIES;
+module.exports.FUNDING_NATURES = FUNDING_NATURES;

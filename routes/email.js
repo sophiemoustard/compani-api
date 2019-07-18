@@ -26,11 +26,8 @@ exports.plugin = {
             }).required(),
           })
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
-      handler: sendWelcome
+      handler: sendWelcome,
     });
 
     server.route({
@@ -42,11 +39,8 @@ exports.plugin = {
             email: Joi.string().email().required()
           })
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
-      handler: sendAuxiliaryWelcome
+      handler: sendAuxiliaryWelcome,
     });
   }
 };

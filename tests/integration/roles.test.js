@@ -2,8 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const { getToken, populateUsers } = require('./seed/usersSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
+const { getToken } = require('./seed/usersSeed');
 const {
   populateRoles,
   rolePayload,
@@ -21,8 +20,6 @@ describe('NODE ENV', () => {
 describe('ROLES ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);
-  beforeEach(populateCompanies);
-  beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();
   });

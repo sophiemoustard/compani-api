@@ -5,7 +5,6 @@ const Hapi = require('hapi');
 const Boom = require('boom');
 
 const { mongooseConnection } = require('./config/mongoose');
-const { validate } = require('./helpers/authentification');
 const { routes } = require('./routes/index');
 const { plugins } = require('./plugins/index');
 
@@ -33,19 +32,11 @@ const server = Hapi.server({
 
 const init = async () => {
   await server.register([...plugins]);
-
-  server.auth.strategy('jwt', 'jwt', {
-    key: process.env.TOKEN_SECRET,
-    headerKey: 'x-access-token',
-    verifyOptions: { algorithms: ['HS256'] },
-    validate
-  });
-  server.auth.default('jwt');
-
   await server.register([...routes]);
 
-  await server.start();
   mongooseConnection(server);
+
+  await server.start();
   server.log('info', `Server running at: ${server.info.uri}`);
 };
 

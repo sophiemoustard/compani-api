@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const ServiceSchema = require('./Service').schema;
 const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
 
+const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
+
 const BillSchema = mongoose.Schema({
   billNumber: String,
   date: Date,
@@ -30,8 +32,9 @@ const BillSchema = mongoose.Schema({
     inclTaxes: Number,
     discount: Number,
   }],
-  origin: { type: String, enum: [COMPANI, THIRD_PARTY, OGUST], default: COMPANI },
+  origin: { type: String, enum: BILL_ORIGINS, default: COMPANI },
   netInclTaxes: Number,
 }, { timestamps: true });
 
 module.exports = mongoose.model('Bill', BillSchema);
+module.exports.BILL_ORIGINS = BILL_ORIGINS;

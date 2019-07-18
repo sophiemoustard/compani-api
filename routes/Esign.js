@@ -16,9 +16,8 @@ exports.plugin = {
             id: Joi.string().required()
           }
         },
-        auth: 'jwt'
       },
-      handler: show
+      handler: show,
     });
   }
 };

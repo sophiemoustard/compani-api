@@ -1,9 +1,9 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const { getToken } = require('./seed/usersSeed');
 const { populateEvents, eventsList } = require('./seed/eventsSeed');
-const { populateUsers, userList } = require('./seed/usersSeed');
+const { populateRoles } = require('./seed/rolesSeed');
+const { populateUsers, userList, getToken } = require('./seed/usersSeed');
 const { populateCustomers, customersList } = require('./seed/customersSeed');
 const { populateContracts } = require('./seed/contractsSeed');
 const { populateServices } = require('./seed/servicesSeed');
@@ -23,6 +23,7 @@ describe('EVENTS ROUTES', () => {
   before(populateContracts);
   before(populateServices);
   before(populateCompanies);
+  before(populateRoles);
   before(populateUsers);
   before(populateCustomers);
   beforeEach(populateEvents);

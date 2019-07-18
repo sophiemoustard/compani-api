@@ -1,15 +1,11 @@
 const mongoose = require('mongoose');
 
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
+const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const ThirdPartyPayerSchema = mongoose.Schema({
   name: String,
-  address: {
-    street: String,
-    fullAddress: String,
-    zipCode: String,
-    city: String
-  },
+  address: addressSchemaDefinition,
   email: String,
   unitTTCRate: Number,
   billingMode: {

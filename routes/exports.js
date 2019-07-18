@@ -26,7 +26,6 @@ exports.plugin = {
       method: 'GET',
       path: '/{type}/data',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             type: Joi.string().required().valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION),
@@ -40,7 +39,6 @@ exports.plugin = {
       method: 'GET',
       path: '/{type}/history',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             type: Joi.string().required().valid(WORKING_EVENT, BILL, PAYMENT, ABSENCE, PAY, FINAL_PAY),

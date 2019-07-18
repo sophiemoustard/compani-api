@@ -12,7 +12,7 @@ const {
   generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
 
-const { FIXED, HOURLY } = require('../helpers/constants');
+const { SERVICE_NATURES } = require('../models/Service');
 
 exports.plugin = {
   name: 'routes-credit-notes',
@@ -22,7 +22,6 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.object().keys({
             date: Joi.date().required(),
@@ -56,12 +55,12 @@ exports.plugin = {
               service: Joi.object().required().keys({
                 serviceId: Joi.objectId().required(),
                 name: Joi.string().required(),
-                nature: Joi.string().required().valid([FIXED, HOURLY])
+                nature: Joi.string().required().valid(SERVICE_NATURES),
               }),
               vat: Joi.number(),
               unitInclTaxes: Joi.number(),
             }),
-          })
+          }),
         },
       },
     });
@@ -71,7 +70,6 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             startDate: Joi.date(),
@@ -87,12 +85,11 @@ exports.plugin = {
       path: '/{_id}',
       handler: getById,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
-            _id: Joi.objectId().required()
-          }
-        }
+            _id: Joi.objectId().required(),
+          },
+        },
       },
     });
 
@@ -101,11 +98,10 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
       },
     });
@@ -115,7 +111,6 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -152,12 +147,12 @@ exports.plugin = {
               service: Joi.object().keys({
                 serviceId: Joi.objectId().required(),
                 name: Joi.string().required(),
-                nature: Joi.string().required().valid([FIXED, HOURLY])
+                nature: Joi.string().required().valid(SERVICE_NATURES),
               }),
               vat: Joi.number(),
               unitInclTaxes: Joi.number(),
             }),
-          })
+          }),
         },
       },
     });
@@ -169,9 +164,8 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId() },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: generateCreditNotePdf,
     });
-  }
+  },
 };

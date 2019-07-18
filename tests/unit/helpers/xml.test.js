@@ -13,7 +13,7 @@ const {
 } = require('../../../helpers/xml');
 const utils = require('../../../helpers/utils');
 const gdriveStorage = require('../../../helpers/gdriveStorage');
-const { PAYMENT, PAYMENT_TYPES } = require('../../../helpers/constants');
+const { PAYMENT } = require('../../../helpers/constants');
 
 describe('XML helper', () => {
   let getFixedNbStub = null;
@@ -47,11 +47,11 @@ describe('XML helper', () => {
           Id: {
             OrgId: {
               Othr: {
-                Id: data.ics
-              }
-            }
-          }
-        }
+                Id: data.ics,
+              },
+            },
+          },
+        },
       }));
     });
   });
@@ -70,7 +70,7 @@ describe('XML helper', () => {
           iban: '098765432111234567890',
           bic: '12345678',
           ics: '1234567',
-        }
+        },
       };
       getFixedNbStub.returns(data.sum.toFixed(2));
       const result = generatePaymentInfo(data);
@@ -83,27 +83,27 @@ describe('XML helper', () => {
         CtrlSum: '350.00',
         PmtTpInf: {
           SvcLvl: {
-            Cd: 'SEPA'
+            Cd: 'SEPA',
           },
           LclInstrm: {
-            Cd: 'CORE'
+            Cd: 'CORE',
           },
-          SeqTp: data.sequenceType
+          SeqTp: data.sequenceType,
         },
         ReqdColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
         Cdtr: {
-          Nm: data.creditor.name
+          Nm: data.creditor.name,
         },
         CdtrAcct: {
           Id: {
-            IBAN: data.creditor.iban
+            IBAN: data.creditor.iban,
           },
-          Ccy: 'EUR'
+          Ccy: 'EUR',
         },
         CdtrAgt: {
           FinInstnId: {
-            BIC: data.creditor.bic
-          }
+            BIC: data.creditor.bic,
+          },
         },
         ChrgBr: 'SLEV',
         CdtrSchmeId: {
@@ -112,13 +112,13 @@ describe('XML helper', () => {
               Othr: {
                 Id: data.creditor.ics,
                 SchmeNm: {
-                  Prtry: 'SEPA'
-                }
-              }
-            }
-          }
+                  Prtry: 'SEPA',
+                },
+              },
+            },
+          },
         },
-        DrctDbtTxInf: []
+        DrctDbtTxInf: [],
       }));
     });
   });
@@ -133,16 +133,16 @@ describe('XML helper', () => {
         PmtTpInf: {
           SvcLvl: { Cd: 'SEPA' },
           LclInstrm: { Cd: 'CORE' },
-          SeqTp: 'RCUR'
+          SeqTp: 'RCUR',
         },
         ReqdColltnDt: moment().format('YYYY-MM-DD'),
         Cdtr: { Nm: 'TEST' },
         CdtrAcct: {
           Id: { IBAN: '12345678900987654321' },
-          Ccy: 'EUR'
+          Ccy: 'EUR',
         },
         CdtrAgt: {
-          FinInstnId: { BIC: '12345678', }
+          FinInstnId: { BIC: '12345678' },
         },
         ChrgBr: 'SLEV',
         CdtrSchmeId: {
@@ -151,13 +151,13 @@ describe('XML helper', () => {
               Othr: {
                 Id: '123456789',
                 SchmeNm: {
-                  Prtry: 'SEPA'
-                }
-              }
-            }
-          }
+                  Prtry: 'SEPA',
+                },
+              },
+            },
+          },
         },
-        DrctDbtTxInf: []
+        DrctDbtTxInf: [],
       };
       const payments = [
         {
@@ -168,7 +168,7 @@ describe('XML helper', () => {
           customerInfo: customersList[0],
           netInclTaxes: 900,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0]
+          type: 'direct_debit',
         },
         {
           _id: new ObjectID(),
@@ -178,7 +178,7 @@ describe('XML helper', () => {
           customerInfo: customersList[1],
           netInclTaxes: 250,
           nature: PAYMENT,
-          type: PAYMENT_TYPES[0]
+          type: 'direct_debit',
         },
       ];
       getFixedNbStub.onCall(0).returns(payments[0].netInclTaxes.toFixed(2));
@@ -194,16 +194,16 @@ describe('XML helper', () => {
         PmtTpInf: {
           SvcLvl: { Cd: 'SEPA' },
           LclInstrm: { Cd: 'CORE' },
-          SeqTp: 'RCUR'
+          SeqTp: 'RCUR',
         },
         ReqdColltnDt: moment().format('YYYY-MM-DD'),
         Cdtr: { Nm: 'TEST' },
         CdtrAcct: {
           Id: { IBAN: '12345678900987654321' },
-          Ccy: 'EUR'
+          Ccy: 'EUR',
         },
         CdtrAgt: {
-          FinInstnId: { BIC: '12345678', }
+          FinInstnId: { BIC: '12345678' },
         },
         ChrgBr: 'SLEV',
         CdtrSchmeId: {
@@ -212,64 +212,64 @@ describe('XML helper', () => {
               Othr: {
                 Id: '123456789',
                 SchmeNm: {
-                  Prtry: 'SEPA'
-                }
-              }
-            }
-          }
+                  Prtry: 'SEPA',
+                },
+              },
+            },
+          },
         },
         DrctDbtTxInf: [
           {
             PmtId: {
               InstrId: payments[0].number,
-              EndToEndId: payments[0]._id.toHexString()
+              EndToEndId: payments[0]._id.toHexString(),
             },
             InstdAmt: {
               '@Ccy': 'EUR',
-              '#text': payments[0].netInclTaxes.toFixed(2)
+              '#text': payments[0].netInclTaxes.toFixed(2),
             },
             DrctDbtTx: {
               MndtRltdInf: {
                 MndtId: payments[0].customerInfo.payment.mandates[payments[0].customerInfo.payment.mandates.length - 1].rum,
                 DtOfSgntr: moment(payments[0].customerInfo.payment.mandates[payments[0].customerInfo.payment.mandates.length - 1].signedAt).format('YYYY-MM-DD'),
-              }
+              },
             },
             DbtrAgt: {
               FinInstnId: {
-                BIC: payments[0].customerInfo.payment.bic
-              }
+                BIC: payments[0].customerInfo.payment.bic,
+              },
             },
             Dbtr: { Nm: payments[0].customerInfo.payment.bankAccountOwner },
             DbtrAcct: {
-              Id: { IBAN: payments[0].customerInfo.payment.iban }
-            }
+              Id: { IBAN: payments[0].customerInfo.payment.iban },
+            },
           },
           {
             PmtId: {
               InstrId: payments[1].number,
-              EndToEndId: payments[1]._id.toHexString()
+              EndToEndId: payments[1]._id.toHexString(),
             },
             InstdAmt: {
               '@Ccy': 'EUR',
-              '#text': payments[1].netInclTaxes.toFixed(2)
+              '#text': payments[1].netInclTaxes.toFixed(2),
             },
             DrctDbtTx: {
               MndtRltdInf: {
                 MndtId: payments[1].customerInfo.payment.mandates[payments[1].customerInfo.payment.mandates.length - 1].rum,
                 DtOfSgntr: moment(payments[1].customerInfo.payment.mandates[payments[1].customerInfo.payment.mandates.length - 1].signedAt).format('YYYY-MM-DD'),
-              }
+              },
             },
             DbtrAgt: {
               FinInstnId: {
-                BIC: payments[1].customerInfo.payment.bic
-              }
+                BIC: payments[1].customerInfo.payment.bic,
+              },
             },
             Dbtr: { Nm: payments[1].customerInfo.payment.bankAccountOwner },
             DbtrAcct: {
-              Id: { IBAN: payments[1].customerInfo.payment.iban }
-            }
-          }
-        ]
+              Id: { IBAN: payments[1].customerInfo.payment.iban },
+            },
+          },
+        ],
       }));
     });
   });
@@ -283,9 +283,9 @@ describe('XML helper', () => {
           '@xsi:schemaLocation': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02 pain.008.001.02.xsd',
           CstmrDrctDbtInitn: {
             GrpHdr: {},
-            PmtInf: []
-          }
-        }
+            PmtInf: [],
+          },
+        },
       };
       const header = {
         MsgId: '1234566',
@@ -297,11 +297,11 @@ describe('XML helper', () => {
           Id: {
             OrgId: {
               Othr: {
-                Id: '1234567890'
-              }
-            }
-          }
-        }
+                Id: '1234567890',
+              },
+            },
+          },
+        },
       };
       const paymentInfo = {
         PmtInfId: '1234566',
@@ -311,16 +311,16 @@ describe('XML helper', () => {
         PmtTpInf: {
           SvcLvl: { Cd: 'SEPA' },
           LclInstrm: { Cd: 'CORE' },
-          SeqTp: 'RCUR'
+          SeqTp: 'RCUR',
         },
         ReqdColltnDt: moment().format('YYYY-MM-DD'),
         Cdtr: { Nm: 'TEST' },
         CdtrAcct: {
           Id: { IBAN: '12345678900987654321' },
-          Ccy: 'EUR'
+          Ccy: 'EUR',
         },
         CdtrAgt: {
-          FinInstnId: { BIC: '12345678', }
+          FinInstnId: { BIC: '12345678' },
         },
         ChrgBr: 'SLEV',
         CdtrSchmeId: {
@@ -329,62 +329,62 @@ describe('XML helper', () => {
               Othr: {
                 Id: '123456789',
                 SchmeNm: {
-                  Prtry: 'SEPA'
-                }
-              }
-            }
-          }
+                  Prtry: 'SEPA',
+                },
+              },
+            },
+          },
         },
         DrctDbtTxInf: [
           {
             PmtId: {
               InstrId: '12345678',
-              EndToEndId: '12345635678990'
+              EndToEndId: '12345635678990',
             },
             InstdAmt: {
               '@Ccy': 'EUR',
-              '#text': '1000.00'
+              '#text': '1000.00',
             },
             DrctDbtTx: {
               MndtRltdInf: {
                 MndtId: 'R1234567890',
                 DtOfSgntr: moment().format('YYYY-MM-DD'),
-              }
+              },
             },
             DbtrAgt: {
-              FinInstnId: { BIC: '12345678' }
+              FinInstnId: { BIC: '12345678' },
             },
             Dbtr: { Nm: 'SuperTest' },
             DbtrAcct: {
-              Id: { IBAN: '12345678900987654321' }
-            }
+              Id: { IBAN: '12345678900987654321' },
+            },
           },
           {
             PmtId: {
               InstrId: '098765432',
-              EndToEndId: '0987654321'
+              EndToEndId: '0987654321',
             },
             InstdAmt: {
               '@Ccy': 'EUR',
-              '#text': '350.00'
+              '#text': '350.00',
             },
             DrctDbtTx: {
               MndtRltdInf: {
                 MndtId: 'R0987654321',
                 DtOfSgntr: moment().format('YYYY-MM-DD'),
-              }
+              },
             },
             DbtrAgt: {
               FinInstnId: {
-                BIC: '0987654321'
-              }
+                BIC: '0987654321',
+              },
             },
             Dbtr: { Nm: 'MegaTest' },
             DbtrAcct: {
-              Id: { IBAN: '09876543210987654321' }
-            }
-          }
-        ]
+              Id: { IBAN: '09876543210987654321' },
+            },
+          },
+        ],
       };
       const addFileStub = sinon.stub(gdriveStorage, 'addFile').returns({ id: '1234567890' });
       const result = await generateSEPAXml(docObj, header, '1234567890', paymentInfo);

@@ -22,11 +22,10 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().default('Invité'),
             rights: Joi.array(),
-          }).or('name', 'rights')
+          }).or('name', 'rights'),
         },
-        auth: { strategy: 'jwt' },
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
@@ -46,12 +45,11 @@ exports.plugin = {
                 role_id: Joi.objectId(),
                 name: Joi.string()
               }))
-            })).optional()
-          }).required()
+            })).optional(),
+          }).required(),
         },
-        auth: { strategy: 'jwt' }
       },
-      handler: update
+      handler: update,
     });
 
     server.route({
@@ -63,7 +61,6 @@ exports.plugin = {
             name: [Joi.string(), Joi.array().items(Joi.string())],
           })
         },
-        auth: 'jwt'
       },
       handler: list,
     });
@@ -77,9 +74,8 @@ exports.plugin = {
             _id: Joi.objectId().required()
           }
         },
-        auth: 'jwt'
       },
-      handler: showById
+      handler: showById,
     });
 
     server.route({
@@ -91,9 +87,8 @@ exports.plugin = {
             _id: Joi.objectId().required()
           }
         },
-        auth: 'jwt'
       },
-      handler: remove
+      handler: remove,
     });
   }
 };

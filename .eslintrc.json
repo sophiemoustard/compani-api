@@ -1,34 +1,50 @@
 {
-    "rules": {
-      "no-continue": "off",
-      "no-console": "off",
-      "consistent-return": "off",
-      "no-param-reassign": "off",
-      "no-plusplus": "off",
-      "default-case": "off",
-      "no-await-in-loop": "off",
-      "array-callback-return": "off",
-      "no-multi-assign": "off",
-      "no-restricted-syntax": "off",
-      "guard-for-in": "off",
-      "comma-dangle": "off",
-      "eqeqeq": "off",
-      "max-len": "off",
-      "no-underscore-dangle": "off",
-      "global-require": "off",
-      "strict": "off",
-      "object-curly-newline": ["error", {
-        "ObjectExpression": { "multiline": true, "minProperties": 5, "consistent": true },
-        "ExportDeclaration": "always"
-      }]
-    },
-    "extends": "airbnb-base",
-    "plugins": [
-        "import",
-        "mocha"
+  "rules": {
+    "no-continue": "off",
+    "no-console": "off",
+    "consistent-return": "off",
+    "no-param-reassign": "off",
+    "no-plusplus": "off",
+    "default-case": "off",
+    "no-await-in-loop": "off",
+    "array-callback-return": "off",
+    "no-multi-assign": "off",
+    "no-restricted-syntax": "off",
+    "guard-for-in": "off",
+    "comma-dangle": [
+      "error",
+      {
+        "arrays": "always-multiline",
+        "objects": "always-multiline",
+        "imports": "always-multiline",
+        "exports": "always-multiline",
+        "functions": "never"
+      }
     ],
-    "env": {
-      "node": true,
-      "mocha": true
-    }
+    "eqeqeq": "off",
+    "max-len": "off",
+    "no-underscore-dangle": "off",
+    "global-require": "off",
+    "strict": "off",
+    "object-curly-newline": [
+      "error",
+      {
+        "ObjectExpression": {
+          "multiline": true,
+          "minProperties": 5,
+          "consistent": true
+        },
+        "ExportDeclaration": "always"
+      }
+    ]
+  },
+  "extends": "airbnb-base",
+  "plugins": [
+    "import",
+    "mocha"
+  ],
+  "env": {
+    "node": true,
+    "mocha": true
+  }
 }

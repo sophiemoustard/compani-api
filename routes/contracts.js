@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { CONTRACT_STATUS, END_CONTRACT_REASONS } = require('../models/Contract');
 
 const {
   list,
@@ -15,7 +16,7 @@ const {
   updateContractVersion,
   removeContractVersion,
   uploadFile,
-  receiveSignatureEvents
+  receiveSignatureEvents,
 } = require('../controllers/contractController');
 
 exports.plugin = {
@@ -30,9 +31,8 @@ exports.plugin = {
             status: Joi.string(),
             user: Joi.objectId(),
             customer: Joi.objectId(),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: list,
     });
@@ -44,9 +44,8 @@ exports.plugin = {
         validate: {
           params: Joi.object().keys({
             _id: Joi.objectId(),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: get,
     });
@@ -58,7 +57,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
-            status: Joi.string().required().valid(COMPANY_CONTRACT, CUSTOMER_CONTRACT),
+            status: Joi.string().required().valid(CONTRACT_STATUS),
             versions: Joi.array().items(Joi.object({
               grossHourlyRate: Joi.number().required(),
               weeklyHours: Joi.number(),
@@ -77,15 +76,14 @@ exports.plugin = {
               signers: Joi.array().items(Joi.object().keys({
                 id: Joi.string(),
                 name: Joi.string(),
-                email: Joi.string()
+                email: Joi.string(),
               })).required(),
               meta: Joi.object(),
               redirect: Joi.string().uri(),
-              redirectDecline: Joi.string().uri()
-            })
+              redirectDecline: Joi.string().uri(),
+            }),
           }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: create,
     });
@@ -99,12 +97,11 @@ exports.plugin = {
           payload: {
             startDate: Joi.date(),
             endDate: Joi.date(),
-            endReason: Joi.string(),
+            endReason: Joi.string().valid(END_CONTRACT_REASONS),
             otherMisc: Joi.string(),
             endNotificationDate: Joi.date(),
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: update,
     });
@@ -116,7 +113,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: remove,
     });
@@ -141,15 +137,14 @@ exports.plugin = {
               signers: Joi.array().items(Joi.object().keys({
                 id: Joi.string(),
                 name: Joi.string(),
-                email: Joi.string()
+                email: Joi.string(),
               })).required(),
               meta: Joi.object(),
               redirect: Joi.string().uri(),
-              redirectDecline: Joi.string().uri()
-            })
+              redirectDecline: Joi.string().uri(),
+            }),
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: createContractVersion,
     });
@@ -161,14 +156,13 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-            versionId: Joi.objectId().required()
+            versionId: Joi.objectId().required(),
           },
           payload: {
             isActive: Joi.boolean(),
             endDate: Joi.date(),
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: updateContractVersion,
     });
@@ -183,7 +177,6 @@ exports.plugin = {
             versionId: Joi.objectId().required(),
           },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: removeContractVersion,
     });
@@ -197,19 +190,16 @@ exports.plugin = {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
-        auth: {
-          strategy: 'jwt',
-        }
-      }
+      },
     });
 
     server.route({
       method: 'POST',
       path: '/esign-webhook-receiver',
       handler: receiveSignatureEvents,
-      options: { auth: false }
+      options: { auth: false },
     });
-  }
+  },
 };

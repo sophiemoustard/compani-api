@@ -2,8 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const { getToken, populateUsers } = require('./seed/usersSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
+const { getToken } = require('./seed/usersSeed');
 const { populateRoles, rightPayload, rightsList } = require('./seed/rolesSeed');
 const Role = require('../../models/Role');
 const Right = require('../../models/Right');
@@ -17,8 +16,6 @@ describe('NODE ENV', () => {
 describe('RIGHTS ROUTES', () => {
   let token = null;
   beforeEach(populateRoles);
-  beforeEach(populateCompanies);
-  beforeEach(populateUsers);
   beforeEach(async () => {
     token = await getToken();
   });
@@ -30,7 +27,7 @@ describe('RIGHTS ROUTES', () => {
         method: 'POST',
         url: '/rights',
         payload: rightPayload,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
     });
     it('should create a right', async () => {
@@ -38,14 +35,14 @@ describe('RIGHTS ROUTES', () => {
       expect(res.result.data.right).toEqual(expect.objectContaining({
         name: rightPayload.name,
         permission: rightPayload.permission,
-        description: rightPayload.description
+        description: rightPayload.description,
       }));
 
       const right = await Right.findById(res.result.data.right._id);
       expect(right).toEqual(expect.objectContaining({
         name: rightPayload.name,
         permission: rightPayload.permission,
-        description: rightPayload.description
+        description: rightPayload.description,
       }));
     });
 
@@ -55,7 +52,7 @@ describe('RIGHTS ROUTES', () => {
         expect(role.rights).toEqual(expect.arrayContaining([
           expect.objectContaining({
             right_id: res.result.data.right._id,
-            hasAccess: false
+            hasAccess: false,
           })
         ]));
       });
@@ -66,7 +63,7 @@ describe('RIGHTS ROUTES', () => {
       expect(admin[0].rights).toEqual(expect.arrayContaining([
         expect.objectContaining({
           right_id: res.result.data.right._id,
-          hasAccess: true
+          hasAccess: true,
         })
       ]));
     });
@@ -76,7 +73,7 @@ describe('RIGHTS ROUTES', () => {
         method: 'POST',
         url: '/rights',
         payload: { name: 'Test Right' },
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(response.statusCode).toBe(400);
     });
@@ -85,8 +82,8 @@ describe('RIGHTS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/rights',
-        payload: { name: 'Test', permission: 'test:read' },
-        headers: { 'x-access-token': token }
+        payload: { permission: 'rhconfig:edit' },
+        headers: { 'x-access-token': token },
       });
       expect(response.statusCode).toBe(409);
     });
@@ -99,7 +96,7 @@ describe('RIGHTS ROUTES', () => {
         method: 'PUT',
         url: `/rights/${rightsList[0]._id}`,
         payload,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.right.name).toBe(payload.name);
@@ -113,18 +110,18 @@ describe('RIGHTS ROUTES', () => {
         method: 'PUT',
         url: `/rights/${rightsList[0]._id}`,
         payload: {},
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(400);
     });
 
     it('should return a 409 error if right name already exists', async () => {
-      const payload = { name: 'right2' };
+      const payload = { name: 'read-rh-config' };
       const res = await app.inject({
         method: 'PUT',
         url: `/rights/${rightsList[0]._id}`,
         payload,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(409);
     });
@@ -135,7 +132,7 @@ describe('RIGHTS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/rights',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.rights.length).toBe(4);
@@ -144,11 +141,11 @@ describe('RIGHTS ROUTES', () => {
     it('should return rights according to query param', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/rights?name=right1',
-        headers: { 'x-access-token': token }
+        url: '/rights?name=edit-rh-config',
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.rights[0].name).toBe('right1');
+      expect(res.result.data.rights[0].name).toBe('edit-rh-config');
     });
 
     it('should return an empty list if no rights are found', async () => {
@@ -156,7 +153,7 @@ describe('RIGHTS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/rights',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.rights).toEqual([]);
@@ -166,7 +163,7 @@ describe('RIGHTS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/rights?test=toto',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -177,13 +174,13 @@ describe('RIGHTS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/rights/${rightsList[0]._id}`,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.right).toEqual(expect.objectContaining({
         name: rightsList[0].name,
         permission: rightsList[0].permission,
-        description: rightsList[0].description
+        description: rightsList[0].description,
       }));
     });
 
@@ -191,7 +188,7 @@ describe('RIGHTS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/rights/123456',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -200,7 +197,7 @@ describe('RIGHTS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/rights/${new ObjectID()}`,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -212,7 +209,7 @@ describe('RIGHTS ROUTES', () => {
       res = await app.inject({
         method: 'DELETE',
         url: `/rights/${rightsList[0]._id}`,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
     });
     it('should delete a right', async () => {
@@ -234,7 +231,7 @@ describe('RIGHTS ROUTES', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: '/rights/123456',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(response.statusCode).toBe(400);
     });
@@ -243,7 +240,7 @@ describe('RIGHTS ROUTES', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/rights/${new ObjectID()}`,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(response.statusCode).toBe(404);
     });

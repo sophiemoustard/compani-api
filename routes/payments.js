@@ -7,9 +7,9 @@ const {
   list,
   create,
   createList,
-  update
+  update,
 } = require('../controllers/paymentController');
-const { REFUND, PAYMENT, PAYMENT_TYPES } = require('../helpers/constants');
+const { PAYMENT_NATURES, PAYMENT_TYPES } = require('../models/Payment');
 
 exports.plugin = {
   name: 'routes-payments',
@@ -18,7 +18,6 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -34,26 +33,24 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.object({
             date: Joi.date().required(),
             customer: Joi.objectId().required(),
             client: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
-            nature: Joi.string().valid(REFUND, PAYMENT).required(),
+            nature: Joi.string().valid(PAYMENT_NATURES).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
-          })
-        }
+          }),
+        },
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
       method: 'POST',
       path: '/createlist',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: Joi.array().items(Joi.object().keys({
             date: Joi.date().required(),
@@ -61,7 +58,7 @@ exports.plugin = {
             customerInfo: Joi.object(),
             client: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
-            nature: Joi.string().valid(REFUND, PAYMENT).required(),
+            nature: Joi.string().valid(PAYMENT_NATURES).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
             rum: Joi.string().required(),
           })),
@@ -74,7 +71,6 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           params: { _id: Joi.objectId() },
           payload: {

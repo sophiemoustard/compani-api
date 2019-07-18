@@ -19,7 +19,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { scope: ['rhconfig:edit'] },
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
@@ -27,15 +27,15 @@ exports.plugin = {
               street: Joi.string(),
               fullAddress: Joi.string(),
               zipCode: Joi.string(),
-              city: Joi.string()
+              city: Joi.string(),
             }),
             email: Joi.string().email(),
             unitTTCRate: Joi.number(),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
             company: Joi.objectId().required(),
-          })
-        }
-      }
+          }),
+        },
+      },
     });
 
     server.route({
@@ -43,13 +43,13 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { scope: ['rhconfig:edit'] },
         validate: {
           query: {
             company: Joi.objectId(),
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     server.route({
@@ -57,7 +57,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: updateById,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { scope: ['rhconfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -73,9 +73,9 @@ exports.plugin = {
             email: Joi.string().email().allow(null, ''),
             unitTTCRate: Joi.number().default(0),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
-          })
-        }
-      }
+          }),
+        },
+      },
     });
 
     server.route({
@@ -83,13 +83,13 @@ exports.plugin = {
       path: '/{_id}',
       handler: removeById,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { scope: ['rhconfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
-        }
-      }
+          },
+        },
+      },
     });
   }
 };

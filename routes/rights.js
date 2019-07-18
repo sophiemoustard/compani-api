@@ -23,13 +23,10 @@ exports.plugin = {
             name: Joi.string(),
             description: Joi.string(),
             permission: Joi.string().required()
-          })
+          }),
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
@@ -46,11 +43,8 @@ exports.plugin = {
             permission: Joi.string()
           }).or('name', 'description', 'permission')
         },
-        auth: {
-          strategy: 'jwt',
-        }
       },
-      handler: update
+      handler: update,
     });
 
     server.route({
@@ -61,11 +55,10 @@ exports.plugin = {
           query: Joi.object().keys({
             name: Joi.string(),
             permission: Joi.string()
-          })
+          }),
         },
-        auth: 'jwt'
       },
-      handler: list
+      handler: list,
     });
 
     server.route({
@@ -77,9 +70,8 @@ exports.plugin = {
             _id: Joi.objectId().required()
           },
         },
-        auth: 'jwt'
       },
-      handler: showById
+      handler: showById,
     });
 
     server.route({
@@ -91,9 +83,8 @@ exports.plugin = {
             _id: Joi.objectId().required()
           },
         },
-        auth: 'jwt'
       },
-      handler: remove
+      handler: remove,
     });
   }
 };

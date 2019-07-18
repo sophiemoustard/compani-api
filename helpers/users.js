@@ -34,6 +34,7 @@ const getUsers = async (query) => {
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'company', select: 'auxiliariesConfig' })
+    .populate({ path: 'role', select: 'name' })
     .populate('contracts')
     .populate('sector');
 };

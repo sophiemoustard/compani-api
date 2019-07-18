@@ -34,11 +34,11 @@ exports.plugin = {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
             password: Joi.string().required()
-          }).required()
+          }).required(),
         },
-        auth: false
+        auth: false,
       },
-      handler: authenticate
+      handler: authenticate,
     });
 
     server.route({
@@ -72,7 +72,7 @@ exports.plugin = {
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array()
-                }
+                },
               },
             }),
             administrative: Joi.object().keys({
@@ -82,11 +82,11 @@ exports.plugin = {
             }),
             customers: Joi.array(),
             company: Joi.objectId().required(),
-          }).required()
+          }).required(),
         },
-        auth: false
+        auth: false,
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
@@ -98,10 +98,9 @@ exports.plugin = {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
             sector: Joi.objectId(),
-            customers: Joi.objectId()
+            customers: Joi.objectId(),
           },
         },
-        auth: { strategy: 'jwt' }
       },
       handler: list,
     });
@@ -115,10 +114,9 @@ exports.plugin = {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
             sector: Joi.objectId(),
-            customers: Joi.objectId()
+            customers: Joi.objectId(),
           },
         },
-        auth: { strategy: 'jwt' }
       },
       handler: activeList,
     });
@@ -126,10 +124,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/{_id}',
-      options: {
-        auth: { strategy: 'jwt' },
-      },
-      handler: show
+      handler: show,
     });
 
     server.route({
@@ -150,7 +145,7 @@ exports.plugin = {
             role: Joi.objectId(),
             picture: Joi.object().keys({
               link: Joi.string().allow(null),
-              publicId: Joi.string().allow(null)
+              publicId: Joi.string().allow(null),
             }),
             resetPassword: Joi.object().keys({
               token: Joi.string().allow(null),
@@ -166,7 +161,7 @@ exports.plugin = {
               birthCountry: Joi.string(),
               birthState: Joi.string(),
               birthCity: Joi.string(),
-              socialSecurityNumber: Joi.number()
+              socialSecurityNumber: Joi.number(),
             }),
             contact: Joi.object().keys({
               address: {
@@ -177,35 +172,35 @@ exports.plugin = {
                 fullAddress: Joi.string(),
                 location: {
                   type: Joi.string(),
-                  coordinates: Joi.array()
-                }
+                  coordinates: Joi.array(),
+                },
               },
             }),
             administrative: {
               signup: {
                 step: Joi.string(),
-                complete: Joi.boolean()
+                complete: Joi.boolean(),
               },
               identityDocs: Joi.string().valid('pp', 'cni', 'ts'),
               mutualFund: {
                 has: Joi.boolean(),
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               navigoInvoice: {
                 has: Joi.string(),
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               transportInvoice: {
                 transportType: Joi.string(),
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               phoneInvoice: {
                 has: Joi.string(),
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               certificates: {
                 has: Joi.string()
@@ -213,56 +208,55 @@ exports.plugin = {
               healthAttest: {
                 has: Joi.string(),
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               idCardRecto: {
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               idCardVerso: {
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               passport: {
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               residencePermitRecto: {
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               residencePermitVerso: {
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               medicalCertificate: {
                 driveId: Joi.string().allow(null),
-                link: Joi.string().allow(null)
+                link: Joi.string().allow(null),
               },
               socialSecurityNumber: Joi.number(),
               payment: {
                 rib: {
                   iban: Joi.string(),
-                  bic: Joi.string()
-                }
+                  bic: Joi.string(),
+                },
               },
               emergencyContact: Joi.object().keys({
                 name: Joi.string(),
-                phoneNumber: Joi.string()
-              })
+                phoneNumber: Joi.string(),
+              }),
             },
             procedure: Joi.object().keys({
               _id: Joi.objectId(),
               name: Joi.string(),
-              isDone: Joi.boolean()
+              isDone: Joi.boolean(),
             }),
             isActive: Joi.boolean(),
-            isConfirmed: Joi.boolean()
-          }).required()
+            isConfirmed: Joi.boolean(),
+          }).required(),
         },
-        auth: { strategy: 'jwt' }
       },
-      handler: update
+      handler: update,
     });
 
     server.route({
@@ -271,18 +265,17 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId()
+            _id: Joi.objectId(),
           },
           payload: Joi.object().keys({
             _id: Joi.objectId(),
             'administrative.certificates': {
-              driveId: Joi.string()
-            }
-          })
+              driveId: Joi.string(),
+            },
+          }),
         },
-        auth: { strategy: 'jwt' }
       },
-      handler: updateCertificates
+      handler: updateCertificates,
     });
 
     server.route({
@@ -292,17 +285,16 @@ exports.plugin = {
         validate: {
           params: {
             user_id: Joi.objectId(),
-            task_id: Joi.objectId()
+            task_id: Joi.objectId(),
           },
           payload: Joi.object().keys({
             isDone: Joi.boolean(),
             user_id: Joi.objectId(),
-            task_id: Joi.objectId()
+            task_id: Joi.objectId(),
           })
         },
-        auth: { strategy: 'jwt' }
       },
-      handler: updateTask
+      handler: updateTask,
     });
 
     server.route({
@@ -314,9 +306,8 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
         },
-        auth: { strategy: 'jwt' }
       },
-      handler: getUserTasks
+      handler: getUserTasks,
     });
 
     server.route({
@@ -325,12 +316,11 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId()
+            _id: Joi.objectId(),
           },
         },
-        auth: { strategy: 'jwt' }
       },
-      handler: remove
+      handler: remove,
     });
 
     server.route({
@@ -340,12 +330,12 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             role: [Joi.string(), Joi.array()],
-            location: [Joi.string(), Joi.array()]
+            location: [Joi.string(), Joi.array()],
           })
         },
-        auth: false
+        auth: false,
       },
-      handler: getPresentation
+      handler: getPresentation,
     });
 
     server.route({
@@ -354,12 +344,12 @@ exports.plugin = {
       options: {
         validate: {
           payload: {
-            refreshToken: Joi.string().required()
+            refreshToken: Joi.string().required(),
           },
         },
-        auth: false
+        auth: false,
       },
-      handler: refreshToken
+      handler: refreshToken,
     });
 
     server.route({
@@ -369,12 +359,12 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
-            from: Joi.string().valid('p', 'w').default('w').required()
-          })
+            from: Joi.string().valid('p', 'w').default('w').required(),
+          }),
         },
-        auth: false
+        auth: false,
       },
-      handler: forgotPassword
+      handler: forgotPassword,
     });
 
     server.route({
@@ -383,12 +373,12 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object().keys({
-            token: Joi.string().required()
-          })
+            token: Joi.string().required(),
+          }),
         },
-        auth: false
+        auth: false,
       },
-      handler: checkResetPasswordToken
+      handler: checkResetPasswordToken,
     });
 
     server.route({
@@ -400,10 +390,9 @@ exports.plugin = {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
-        auth: { strategy: 'jwt' },
-      }
+      },
     });
 
     server.route({
@@ -412,16 +401,15 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId()
+            _id: Joi.objectId(),
           },
           payload: Joi.object().keys({
             parentFolderId: Joi.string(),
-            _id: Joi.objectId()
+            _id: Joi.objectId(),
           })
         },
-        auth: { strategy: 'jwt' },
       },
-      handler: createDriveFolder
+      handler: createDriveFolder,
     });
 
     server.route({
@@ -433,10 +421,9 @@ exports.plugin = {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
-          maxBytes: 5242880
+          maxBytes: 5242880,
         },
-        auth: { strategy: 'jwt' },
-      }
+      },
     });
   }
 };
