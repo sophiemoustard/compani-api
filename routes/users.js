@@ -33,7 +33,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             email: Joi.string().email().required(),
-            password: Joi.string().required()
+            password: Joi.string().required(),
           }).required(),
         },
         auth: false,
@@ -51,11 +51,11 @@ exports.plugin = {
             sector: Joi.objectId(),
             local: {
               email: Joi.string().email().required(),
-              password: Joi.string().required()
+              password: Joi.string().required(),
             },
             role: Joi.objectId().required(),
             picture: Joi.object().keys({
-              link: Joi.string()
+              link: Joi.string(),
             }),
             identity: Joi.object().keys({
               firstname: Joi.string(),
@@ -71,7 +71,7 @@ exports.plugin = {
                 fullAddress: Joi.string(),
                 location: {
                   type: Joi.string(),
-                  coordinates: Joi.array()
+                  coordinates: Joi.array(),
                 },
               },
             }),
@@ -140,7 +140,7 @@ exports.plugin = {
             'local.email': Joi.string().email(), // bot special case
             local: {
               email: Joi.string().email(),
-              password: Joi.string()
+              password: Joi.string(),
             },
             role: Joi.objectId(),
             picture: Joi.object().keys({
@@ -188,7 +188,6 @@ exports.plugin = {
                 link: Joi.string().allow(null),
               },
               navigoInvoice: {
-                has: Joi.string(),
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
               },
@@ -198,15 +197,10 @@ exports.plugin = {
                 link: Joi.string().allow(null),
               },
               phoneInvoice: {
-                has: Joi.string(),
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
               },
-              certificates: {
-                has: Joi.string()
-              },
               healthAttest: {
-                has: Joi.string(),
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
               },
@@ -291,7 +285,7 @@ exports.plugin = {
             isDone: Joi.boolean(),
             user_id: Joi.objectId(),
             task_id: Joi.objectId(),
-          })
+          }),
         },
       },
       handler: updateTask,
@@ -331,7 +325,7 @@ exports.plugin = {
           query: Joi.object().keys({
             role: [Joi.string(), Joi.array()],
             location: [Joi.string(), Joi.array()],
-          })
+          }),
         },
         auth: false,
       },
@@ -406,7 +400,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             parentFolderId: Joi.string(),
             _id: Joi.objectId(),
-          })
+          }),
         },
       },
       handler: createDriveFolder,
@@ -425,5 +419,5 @@ exports.plugin = {
         },
       },
     });
-  }
+  },
 };
