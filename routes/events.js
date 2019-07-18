@@ -10,8 +10,6 @@ const {
   uploadFile,
   removeRepetition,
   listForCreditNotes,
-  listByAuxiliaries,
-  listByCustomers,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -90,41 +88,11 @@ exports.plugin = {
             sector: [Joi.array().items(Joi.string()), Joi.string()],
             customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
+            groupBy: Joi.string(),
           },
         },
       },
       handler: list,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/auxiliaries',
-      options: {
-        validate: {
-          query: {
-            startDate: Joi.date(),
-            endDate: Joi.date(),
-            auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
-            sector: [Joi.array().items(Joi.string()), Joi.string()],
-          },
-        },
-      },
-      handler: listByAuxiliaries,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/customers',
-      options: {
-        validate: {
-          query: {
-            startDate: Joi.date(),
-            endDate: Joi.date(),
-            customer: [Joi.array().items(Joi.string()), Joi.string()],
-          },
-        },
-      },
-      handler: listByCustomers,
     });
 
     server.route({

@@ -78,3 +78,12 @@ const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
 exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] });
 
 exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
+
+exports.getEventList = rules => Event.find(rules)
+  .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
+  .populate({
+    path: 'customer',
+    select: 'identity subscriptions contact',
+    populate: { path: 'subscriptions.service' },
+  })
+  .lean();

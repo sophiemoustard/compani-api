@@ -14,64 +14,29 @@ const {
   deleteRepetition,
   isEditionAllowed,
 } = require('../helpers/events');
-const { ABSENCE, NEVER, INTERVENTION } = require('../helpers/constants');
-const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers } = require('../repositories/EventRepository');
+const { ABSENCE, NEVER, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
+const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
     const query = getListQuery(req);
-    const events = await Event.find(query)
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
-      .populate({
-        path: 'customer',
-        select: 'identity subscriptions contact',
-        populate: { path: 'subscriptions.service' },
-      })
-      .lean();
-    if (events.length === 0) {
-      return {
-        message: translate[language].eventsNotFound,
-        data: { events: [] },
-      };
+    const { groupBy } = req.query;
+
+    let events;
+    if (groupBy === CUSTOMER) {
+      events = await getEventsGroupedByCustomers(query);
+    } else if (groupBy === AUXILIARY) {
+      events = await getEventsGroupedByAuxiliaries(query);
+    } else {
+      events = await getEventList(query);
+      events = await populateEvents(events);
     }
 
-    const populatedEvents = await populateEvents(events);
-
-    return {
-      message: translate[language].eventsFound,
-      data: { events: populatedEvents },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const listByAuxiliaries = async (req) => {
-  try {
-    const query = getListQuery(req);
-    const events = await getEventsGroupedByAuxiliaries(query);
-
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
-      data: { events: events.length === 0 ? [] : events },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const listByCustomers = async (req) => {
-  try {
-    const query = getListQuery(req);
-    const events = await getEventsGroupedByCustomers(query);
-
-    return {
-      message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
-      data: { events: events.length === 0 ? [] : events },
+      data: { events },
     };
   } catch (e) {
     req.log('error', e);
@@ -225,6 +190,4 @@ module.exports = {
   uploadFile,
   removeRepetition,
   listForCreditNotes,
-  listByAuxiliaries,
-  listByCustomers,
 };
