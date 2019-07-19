@@ -44,8 +44,9 @@ describe('updateEvent', () => {
 
   it('1. should update absence without unset repetition property', async () => {
     const eventId = new ObjectID();
-    const event = { _id: eventId, type: ABSENCE };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: (new ObjectID()).toHexString() };
+    const auxiliary = new ObjectID();
+    const event = { _id: eventId, type: ABSENCE, auxiliary };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
       .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
@@ -62,8 +63,9 @@ describe('updateEvent', () => {
 
   it('2. should update event without repetition without unset repetition property', async () => {
     const eventId = new ObjectID();
-    const event = { _id: eventId };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: (new ObjectID()).toHexString() };
+    const auxiliary = new ObjectID();
+    const event = { _id: eventId, auxiliary };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
       .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
@@ -79,8 +81,9 @@ describe('updateEvent', () => {
 
   it('3. should update event with NEVER frequency without unset repetition property', async () => {
     const eventId = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: NEVER } };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: (new ObjectID()).toHexString() };
+    const auxiliary = new ObjectID();
+    const event = { _id: eventId, repetition: { frequency: NEVER }, auxiliary };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
       .once()
@@ -97,8 +100,9 @@ describe('updateEvent', () => {
 
   it('4. should update event and repeated events without unset repetition property', async () => {
     const eventId = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK } };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: true, auxiliary: (new ObjectID()).toHexString() };
+    const auxiliary = new ObjectID();
+    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: true, auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
       .once()
@@ -115,8 +119,10 @@ describe('updateEvent', () => {
 
   it('5. should update event when only misc is updated without unset repetition property', async () => {
     const eventId = new ObjectID();
-    const event = { _id: eventId, startDate: '2019-01-21T09:38:18.653Z', repetition: { frequency: NEVER } };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', misc: 'Zoro est là', auxiliary: (new ObjectID()).toHexString() };
+    const auxiliary = new ObjectID();
+    const sector = new ObjectID()
+    const event = { _id: eventId, startDate: '2019-01-21T09:38:18.653Z', repetition: { frequency: NEVER }, auxiliary, sector };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', misc: 'Zoro est là', auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
       .once()
@@ -133,8 +139,9 @@ describe('updateEvent', () => {
 
   it('6. should update event and unset repetition property if event in repetition and repetition not updated', async () => {
     const eventId = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK } };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: (new ObjectID()).toHexString() };
+    const auxiliary = new ObjectID();
+    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
       .once()
@@ -155,8 +162,15 @@ describe('updateEvent', () => {
 
   it('7. should update event and unset cancel property when cancellation cancelled', async () => {
     const eventId = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: NEVER }, isCancelled: true, cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE } };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: (new ObjectID()).toHexString() };
+    const auxiliary = new ObjectID();
+    const event = {
+      _id: eventId,
+      repetition: { frequency: NEVER },
+      isCancelled: true,
+      cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
+      auxiliary,
+    };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
       .once()
@@ -173,8 +187,15 @@ describe('updateEvent', () => {
 
   it('8. should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
     const eventId = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, isCancelled: true, cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE } };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: (new ObjectID()).toHexString() };
+    const auxiliary = new ObjectID();
+    const event = {
+      _id: eventId,
+      repetition: { frequency: EVERY_WEEK },
+      isCancelled: true,
+      cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
+      auxiliary,
+    };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
       .once()
