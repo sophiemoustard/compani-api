@@ -489,6 +489,7 @@ exports.getPayFromAbsences = (absences, contract, query) => {
       for (const day of range) {
         if (day.startOf('d').isBusinessDay()) { // startOf('day') is necessery to check fr holidays in business day
           const version = contract.versions.length === 1 ? contract.versions[0] : UtilsHelper.getMatchingVersion(day, contract, 'startDate');
+          if (!version) continue;
           hours += version.weeklyHours / 6;
         }
       }
