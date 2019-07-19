@@ -23,6 +23,7 @@ const {
   ABSENCE_TYPE_LIST,
   ABSENCE_NATURE_LIST,
   HOURLY,
+  PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -446,15 +447,15 @@ exports.unassignInterventions = async (contract) => {
 
 exports.removeEventsExceptInterventions = async contract => Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
 
-exports.truncateAuxiliaryAbsencesEndDate = async (auxiliaryId, endDateMax) => {
-  endDateMax = moment(endDateMax).endOf('d');
+exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate) => {
+  const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
   await Event.updateMany({
     type: ABSENCE,
     auxiliary: auxiliaryId,
-    startDate: { $lte: endDateMax },
-    endDate: { $gt: endDateMax },
+    startDate: { $lte: maxEndDate },
+    endDate: { $gt: maxEndDate },
   }, {
-    endDate: endDateMax,
+    endDate: maxEndDate,
   });
 };
 

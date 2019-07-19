@@ -12,7 +12,7 @@ const { endContract, createAndSaveFile, saveCompletedContract } = require('../he
 const {
   unassignInterventions,
   removeEventsExceptInterventions,
-  truncateAuxiliaryAbsencesEndDate,
+  updateAbsencesOnContractEnd,
 } = require('../helpers/events');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
@@ -88,7 +88,7 @@ const update = async (req) => {
       if (!contract) return Boom.notFound(translate[language].contractNotFound);
       await unassignInterventions(contract);
       await removeEventsExceptInterventions(contract);
-      await truncateAuxiliaryAbsencesEndDate(contract.user._id, contract.endDate);
+      await updateAbsencesOnContractEnd(contract.user._id, contract.endDate);
     } else {
       contract = await Contract
         .findByIdAndUpdate(req.params._id, req.paylaod)
