@@ -15,7 +15,7 @@ const draftFinalPayList = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    Boom.badImplementation(e);
+    return Boom.badImplementation(e);
   }
 };
 
@@ -35,7 +35,7 @@ const createList = async (req) => {
     return { message: translate[language].finalPayListCreated };
   } catch (e) {
     req.log('error', e);
-    Boom.badImplementation(e);
+    return Boom.badImplementation(e);
   }
 };
 
