@@ -24,7 +24,7 @@ const currentHolidays = [...holidays.getHolidays(currentYear), ...holidays.getHo
 moment.updateLocale('fr', {
   holidays: currentHolidays.map(holiday => holiday.date),
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
-  workingWeekdays: [1, 2, 3, 4, 5, 6]
+  workingWeekdays: [1, 2, 3, 4, 5, 6],
 });
 moment.tz.setDefault('Europe/Paris');
 
@@ -126,8 +126,8 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
     $addFields: {
       subscription: {
         $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$$ROOT.subscription'] } },
-      }
-    }
+      },
+    },
   },
   { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
   {
@@ -136,7 +136,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
       localField: 'subscription.service',
       foreignField: '_id',
       as: 'subscription.service',
-    }
+    },
   },
   { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
   {
@@ -148,7 +148,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
       subscription: { service: 1 },
       type: 1,
       location: 1,
-    }
+    },
   },
   {
     $group: {
@@ -157,7 +157,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
         year: { $year: '$startDate' },
         month: { $month: '$startDate' },
         week: { $week: '$startDate' },
-        day: { $dayOfWeek: '$startDate' }
+        day: { $dayOfWeek: '$startDate' },
       },
       eventsPerDay: { $push: '$$ROOT' },
       auxiliary: { $addToSet: '$auxiliary' },
@@ -181,7 +181,7 @@ exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
         { endDate: { $gt: start, $lte: end } },
         { endDate: { $gte: end }, startDate: { $lte: start } },
       ],
-    }
+    },
   },
   {
     $lookup: {
@@ -222,7 +222,7 @@ exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
       startDate: 1,
       endDate: 1,
       absenceNature: 1,
-    }
+    },
   },
   { $group: { _id: '$auxiliary._id', events: { $push: '$$ROOT' } } },
 ]);
@@ -309,7 +309,7 @@ exports.applySurcharge = (paidHours, surcharge, surchargeKey, details, paidDista
 exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) => {
   const {
     saturday, sunday, publicHoliday, firstOfMay, twentyFifthOfDecember, evening,
-    eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime
+    eveningEndTime, eveningStartTime, custom, customStartTime, customEndTime,
   } = surcharge;
 
   const paidHours = (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60;

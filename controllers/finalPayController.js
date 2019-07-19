@@ -41,5 +41,5 @@ const createList = async (req) => {
 
 module.exports = {
   draftFinalPayList,
-  createList
+  createList,
 };

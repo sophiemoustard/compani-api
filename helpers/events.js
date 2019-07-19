@@ -194,7 +194,7 @@ exports.formatRepeatedEvent = (event, momentDay) => {
     ..._.omit(event, '_id'),
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
-  })
+  });
 };
 
 exports.createRepetitionsEveryDay = async (event) => {
@@ -236,7 +236,7 @@ exports.createRepetitionsByWeek = async (event, step) => {
   });
 
   return Promise.all(promises);
-}
+};
 
 exports.createRepetitions = async (event) => {
   if (event.repetition.frequency === NEVER) return event;
