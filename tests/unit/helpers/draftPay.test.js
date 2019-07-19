@@ -76,7 +76,7 @@ describe('getContractMonthInfo', () => {
 
     expect(result).toBeDefined();
     expect(result.contractHours).toBeDefined();
-    expect(result.contractHours).toBe(25.98);
+    expect(result.contractHours).toBe(26);
     expect(result.workedDaysRatio).toBeDefined();
     expect(result.workedDaysRatio).toBe(1 / 4);
   });

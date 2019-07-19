@@ -12,7 +12,20 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const Pay = require('../models/Pay');
 const Contract = require('../models/Contract');
-const { FIXED, PUBLIC_TRANSPORT, TRANSIT, DRIVING, PRIVATE_TRANSPORT, INTERVENTION, INTERNAL_HOUR, ABSENCE, DAILY, COMPANY_CONTRACT, INVOICED_AND_PAYED } = require('./constants');
+const {
+  FIXED,
+  PUBLIC_TRANSPORT,
+  TRANSIT,
+  DRIVING,
+  PRIVATE_TRANSPORT,
+  INTERVENTION,
+  INTERNAL_HOUR,
+  ABSENCE,
+  DAILY,
+  COMPANY_CONTRACT,
+  INVOICED_AND_PAYED,
+  WEEKS_PER_MONTH,
+} = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 
@@ -257,7 +270,7 @@ exports.getContractMonthInfo = (contract, query) => {
       : moment(query.endDate);
     const businessDays = exports.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
     workedDays += businessDays;
-    contractHours += version.weeklyHours * (businessDays / monthBusinessDays) * 4.33;
+    contractHours += version.weeklyHours * (businessDays / monthBusinessDays) * WEEKS_PER_MONTH;
   }
 
   return { contractHours, workedDaysRatio: workedDays / monthBusinessDays };
