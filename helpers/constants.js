@@ -40,6 +40,7 @@ module.exports = {
       [this.DAILY]: 'Journalière',
     };
   },
+  PLANNING_VIEW_END_HOUR: 22,
   // COMPANY
   MAX_INTERNAL_HOURS_NUMBER: 9,
   // COMPANY THIRD PARTY PAYERS
