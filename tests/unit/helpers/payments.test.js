@@ -4,7 +4,7 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 
 const payments = require('../../../helpers/payments');
-const { PAYMENT, REFUND, PAYMENT_TYPES } = require('../../../helpers/constants');
+const { PAYMENT, REFUND } = require('../../../helpers/constants');
 const PaymentNumber = require('../../../models/PaymentNumber');
 const Payment = require('../../../models/Payment');
 
@@ -35,7 +35,7 @@ describe('formatPayment', () => {
       client: new ObjectID(),
       netInclTaxes: 190,
       nature: PAYMENT,
-      type: PAYMENT_TYPES[0],
+      type: 'direct_debit',
     };
     const generatePaymentNumberStub = sinon.stub(payments, 'generatePaymentNumber').returns('REG-1904001');
     const result = await payments.formatPayment(payment);
@@ -78,7 +78,7 @@ describe('exportPaymentsHistory', () => {
       },
       client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
       netInclTaxes: 1002.4,
-    }
+    },
   ];
   let expectsFind;
   let mockPayment;

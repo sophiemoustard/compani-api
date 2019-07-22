@@ -8,8 +8,7 @@ const {
   populateUsers,
   getToken
 } = require('./seed/usersSeed');
-const { populateRoles, rolesList } = require('./seed/rolesSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
+const { rolesList } = require('./seed/rolesSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -18,8 +17,6 @@ describe('NODE ENV', () => {
 });
 
 describe('USERS ROUTES', () => {
-  before(populateRoles);
-  before(populateCompanies);
   beforeEach(populateUsers);
 
   describe('POST /users', () => {
@@ -183,7 +180,7 @@ describe('USERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users.length).toBeGreaterThan(0);
       expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.toHexString()).toEqual(expect.any(String));
+      expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
     });
     it('should get all coachs users', async () => {
       const res = await app.inject({
@@ -193,7 +190,7 @@ describe('USERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.toHexString()).toEqual(rolesList[2]._id.toHexString());
+      expect(res.result.data.users[0].role._id.toHexString()).toEqual(rolesList[2]._id.toHexString());
     });
     it('should not get users if role given doesn\'t exist', async () => {
       const res = await app.inject({
@@ -220,15 +217,15 @@ describe('USERS ROUTES', () => {
       expect(res.result.data.users[0]).toHaveProperty('isActive');
       expect(res.result.data.users[0].isActive).toBeTruthy();
     });
-    it('should get all active coachs users', async () => {
+    it('should get all active auxiliary users', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/users/active?role=coach',
+        url: '/users/active?role=auxiliary',
         headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.toHexString()).toEqual(rolesList[2]._id.toHexString());
+      expect(res.result.data.users[0].role._id.toHexString()).toEqual(rolesList[3]._id.toHexString());
       expect(res.result.data.users[0]).toHaveProperty('isActive');
       expect(res.result.data.users[0].isActive).toBeTruthy();
     });

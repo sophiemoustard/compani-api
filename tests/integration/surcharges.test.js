@@ -20,22 +20,22 @@ describe('SURCHARGES ROUTES', () => {
   });
 
   describe('POST /surcharges', () => {
+    const payload = {
+      company: new ObjectID(),
+      name: 'Chasse aux monstres automnaux',
+      saturday: 35,
+      sunday: 30,
+      publicHoliday: 16,
+      twentyFifthOfDecember: 60,
+      firstOfMay: 40,
+      evening: 20,
+      eveningStartTime: '21:00',
+      eveningEndTime: '23:59',
+      custom: 55,
+      customStartTime: '12:00',
+      customEndTime: '14:00',
+    };
     it('should create a new surcharge', async () => {
-      const payload = {
-        company: new ObjectID(),
-        name: 'Chasse aux monstres automnaux',
-        saturday: 35,
-        sunday: 30,
-        publicHoliday: 16,
-        twentyFifthOfDecember: 60,
-        firstOfMay: 40,
-        evening: 20,
-        eveningStartTime: '21:00',
-        eveningEndTime: '23:59',
-        custom: 55,
-        customStartTime: '12:00',
-        customEndTime: '14:00',
-      };
       const response = await app.inject({
         method: 'POST',
         url: '/surcharges',
@@ -48,7 +48,7 @@ describe('SURCHARGES ROUTES', () => {
       expect(surcharges.length).toEqual(surchargesList.length + 1);
     });
     it('should not create a new surcharge if there is no name', async () => {
-      const payload = {
+      const falsyPayload = {
         company: new ObjectID(),
         saturday: 35,
         sunday: 30,
@@ -66,12 +66,24 @@ describe('SURCHARGES ROUTES', () => {
         method: 'POST',
         url: '/surcharges',
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: falsyPayload,
       });
 
       expect(response.statusCode).toBe(400);
       const surcharges = await Surcharge.find();
       expect(surcharges.length).toEqual(surchargesList.length);
+    });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/surcharges',
+        headers: { 'x-access-token': authToken },
+        payload,
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -86,24 +98,35 @@ describe('SURCHARGES ROUTES', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.surcharges.length).toBe(surchargesList.length);
     });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/surcharges',
+        headers: { 'x-access-token': authToken },
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('PUT /surcharges/:id', () => {
+    const payload = {
+      name: 'Chasse aux monstres printaniers',
+      saturday: 35,
+      sunday: 30,
+      publicHoliday: 16,
+      twentyFifthOfDecember: 60,
+      firstOfMay: 40,
+      evening: 20,
+      eveningStartTime: '21:00',
+      eveningEndTime: '23:59',
+      custom: 55,
+      customStartTime: '12:00',
+      customEndTime: '14:00',
+    };
     it('should update surcharge', async () => {
-      const payload = {
-        name: 'Chasse aux monstres printaniers',
-        saturday: 35,
-        sunday: 30,
-        publicHoliday: 16,
-        twentyFifthOfDecember: 60,
-        firstOfMay: 40,
-        evening: 20,
-        eveningStartTime: '21:00',
-        eveningEndTime: '23:59',
-        custom: 55,
-        customStartTime: '12:00',
-        customEndTime: '14:00',
-      };
       const response = await app.inject({
         method: 'PUT',
         url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
@@ -117,17 +140,29 @@ describe('SURCHARGES ROUTES', () => {
 
     it('should return 404 if no surcharge found', async () => {
       const invalidId = new ObjectID().toHexString();
-      const payload = {
+      const falsyPayload = {
         name: 'Chasser sans son chien',
       };
       const response = await app.inject({
         method: 'PUT',
         url: `/surcharges/${invalidId}`,
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: falsyPayload,
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -142,6 +177,17 @@ describe('SURCHARGES ROUTES', () => {
       expect(response.statusCode).toBe(200);
       const surcharges = await Surcharge.find();
       expect(surcharges.length).toBe(surchargesList.length - 1);
+    });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

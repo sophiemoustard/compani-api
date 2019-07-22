@@ -11,6 +11,7 @@ const {
   EVERY_DAY,
   EVERY_WEEK_DAY,
   EVERY_WEEK,
+  EVERY_TWO_WEEKS,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
   ABSENCE,
@@ -21,7 +22,8 @@ const {
   CANCELLATION_REASON_LIST,
   ABSENCE_TYPE_LIST,
   ABSENCE_NATURE_LIST,
-  HOURLY
+  HOURLY,
+  PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -32,9 +34,12 @@ const UtilsHelper = require('./utils');
 
 momentRange.extendMoment(moment);
 
-exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract => contract.status === COMPANY_CONTRACT &&
-  moment(contract.startDate).isSameOrBefore(day, 'd') &&
-  ((!contract.endDate && contract.versions.some(version => version.isActive)) || moment(contract.endDate).isAfter(day, 'd')));
+exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
+  contracts.some(contract =>
+    contract.status === COMPANY_CONTRACT &&
+      moment(contract.startDate).isSameOrBefore(day, 'd') &&
+      ((!contract.endDate && contract.versions.some(version => version.isActive)) ||
+        moment(contract.endDate).isSameOrAfter(day, 'd')));
 
 exports.hasConflicts = async (event) => {
   const auxiliaryEvents = await Event.find({
@@ -42,19 +47,22 @@ exports.hasConflicts = async (event) => {
     $or: [
       { startDate: { $gte: event.startDate, $lt: event.endDate } },
       { endDate: { $gt: event.startDate, $lte: event.endDate } },
-      { startDate: { $lte: event.startDate }, endDate: { $gte: event.endDate } }
+      { startDate: { $lte: event.startDate }, endDate: { $gte: event.endDate } },
     ],
   });
 
   return auxiliaryEvents.some((ev) => {
     if ((event._id && event._id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
-    return moment(event.startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[]') ||
-      moment(ev.startDate).isBetween(event.startDate, event.endDate, 'minutes', '[]');
+    return (
+      moment(event.startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[]') ||
+      moment(ev.startDate).isBetween(event.startDate, event.endDate, 'minutes', '[]')
+    );
   });
 };
 
 exports.isCreationAllowed = async (event) => {
-  if (!event.isCancelled && await exports.hasConflicts(event)) return false;
+  if (!event.auxiliary) return true;
+  if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
 
   let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
   user = user.toObject();
@@ -95,50 +103,61 @@ exports.isCreationAllowed = async (event) => {
 exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
 
-  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString()) {
+  if (
+    [ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) &&
+    payload.auxiliary &&
+    payload.auxiliary !== eventFromDB.auxiliary.toHexString()
+  ) {
     return false;
+  }
+
+  if (!payload.auxiliary) {
+    const { auxiliary, ...rest } = eventFromDB;
+    return exports.isCreationAllowed({ ...rest, ...payload });
   }
 
   return exports.isCreationAllowed({ ...eventFromDB, ...payload });
 };
 
 exports.getListQuery = (req) => {
-  let query = req.query.type ? { type: req.query.type } : {};
-  if (req.query.auxiliary) query.auxiliary = { $in: req.query.auxiliary };
-  if (req.query.customer) query.customer = { $in: req.query.customer };
-  if (req.query.isBilled) query.customer = req.query.isBilled;
+  const rules = [];
+
+  if (req.query.type) rules.push({ type: req.query.type });
+
+  const sectorOrAuxiliary = [];
+  if (req.query.auxiliary) sectorOrAuxiliary.push({ auxiliary: { $in: req.query.auxiliary } });
+  if (req.query.sector) sectorOrAuxiliary.push({ sector: { $in: req.query.sector } });
+  if (sectorOrAuxiliary.length > 0) rules.push({ $or: sectorOrAuxiliary });
+
+  if (req.query.customer) rules.push({ customer: { $in: req.query.customer } });
+  if (req.query.isBilled) rules.push({ customer: req.query.isBilled });
   if (req.query.startDate && req.query.endDate) {
-    const startDate = moment(req.query.startDate).startOf('d').toDate();
-    const endDate = moment(req.query.endDate).endOf('d').toDate();
-    query = {
-      ...query,
+    const startDate = moment(req.query.startDate)
+      .startOf('d')
+      .toDate();
+    const endDate = moment(req.query.endDate)
+      .endOf('d')
+      .toDate();
+    rules.push({
       $or: [
         { startDate: { $lte: endDate, $gte: startDate } },
         { endDate: { $lte: endDate, $gte: startDate } },
         { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
       ],
-    };
+    });
   } else if (req.query.startDate && !req.query.endDate) {
     const startDate = moment(req.query.startDate).startOf('d').toDate();
-    query = {
-      ...query,
-      $or: [
-        { startDate: { $gte: startDate } },
-        { endDate: { $gte: startDate } },
-      ],
-    };
+    rules.push({
+      $or: [{ startDate: { $gte: startDate } }, { endDate: { $gte: startDate } }],
+    });
   } else if (req.query.endDate) {
     const endDate = moment(req.query.endDate).endOf('d').toDate();
-    query = {
-      ...query,
-      $or: [
-        { startDate: { $lte: endDate } },
-        { endDate: { $lte: endDate } },
-      ],
-    };
+    rules.push({
+      $or: [{ startDate: { $lte: endDate } }, { endDate: { $lte: endDate } }],
+    });
   }
 
-  return query;
+  return rules.length > 0 ? { $and: rules } : {};
 };
 
 exports.populateEventSubscription = (event) => {
@@ -167,22 +186,28 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
     {
       type: INTERNAL_HOUR,
       'internalHour._id': oldInternalHourId,
-      startDate: { $gte: moment().toDate() }
+      startDate: { $gte: moment().toDate() },
     },
     { $set: payload },
-    { multi: true },
+    { multi: true }
   );
+};
+
+exports.formatRepeatedEvent = (event, momentDay) => {
+  const step = momentDay.diff(event.startDate, 'd');
+
+  return new Event({
+    ..._.omit(event, '_id'),
+    startDate: moment(event.startDate).add(step, 'd'),
+    endDate: moment(event.endDate).add(step, 'd'),
+  });
 };
 
 exports.createRepetitionsEveryDay = async (event) => {
   const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
   const promises = [];
-  range.forEach((day, index) => {
-    const repeatedEvent = new Event({
-      ..._.omit(event, '_id'),
-      startDate: moment(event.startDate).add(index + 1, 'd'),
-      endDate: moment(event.endDate).add(index + 1, 'd'),
-    });
+  range.forEach((day) => {
+    const repeatedEvent = exports.formatRepeatedEvent(event, day);
 
     promises.push(repeatedEvent.save());
   });
@@ -193,13 +218,9 @@ exports.createRepetitionsEveryDay = async (event) => {
 exports.createRepetitionsEveryWeekDay = async (event) => {
   const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
   const promises = [];
-  range.forEach((day, index) => {
+  range.forEach((day) => {
     if (moment(day).day() !== 0 && moment(day).day() !== 6) {
-      const repeatedEvent = new Event({
-        ..._.omit(event, '_id'),
-        startDate: moment(event.startDate).add(index + 1, 'd'),
-        endDate: moment(event.endDate).add(index + 1, 'd'),
-      });
+      const repeatedEvent = exports.formatRepeatedEvent(event, day);
 
       promises.push(repeatedEvent.save());
     }
@@ -208,15 +229,14 @@ exports.createRepetitionsEveryWeekDay = async (event) => {
   return Promise.all(promises);
 };
 
-exports.createRepetitionsEveryWeek = async (event) => {
-  const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('weeks'));
+exports.createRepetitionsByWeek = async (event, step) => {
+  const start = moment(event.startDate).add(step, 'w');
+  const end = moment(event.startDate).add(1, 'Y');
+  const range = Array.from(moment().range(start, end).by('weeks', { step }));
+
   const promises = [];
-  range.forEach((day, index) => {
-    const repeatedEvent = new Event({
-      ..._.omit(event, '_id'),
-      startDate: moment(event.startDate).add(index + 1, 'w'),
-      endDate: moment(event.endDate).add(index + 1, 'w'),
-    });
+  range.forEach((day) => {
+    const repeatedEvent = exports.formatRepeatedEvent(event, day);
 
     promises.push(repeatedEvent.save());
   });
@@ -238,7 +258,10 @@ exports.createRepetitions = async (event) => {
       await exports.createRepetitionsEveryWeekDay(event);
       break;
     case EVERY_WEEK:
-      await exports.createRepetitionsEveryWeek(event);
+      await exports.createRepetitionsByWeek(event, 1);
+      break;
+    case EVERY_TWO_WEEKS:
+      await exports.createRepetitionsByWeek(event, 2);
       break;
     default:
       break;
@@ -252,7 +275,12 @@ exports.updateRepetitions = async (event, payload) => {
   const parentEndtDate = moment(payload.endDate);
   const promises = [];
 
-  const events = await Event.find({ 'repetition.parentId': event.repetition.parentId, startDate: { $gt: new Date(event.startDate) } });
+  let unset;
+  if (!payload.auxiliary) unset = { auxiliary: '' };
+  const events = await Event.find({
+    'repetition.parentId': event.repetition.parentId,
+    startDate: { $gt: new Date(event.startDate) },
+  });
   events.forEach((ev) => {
     const startDate = moment(ev.startDate).hours(parentStartDate.hours());
     startDate.minutes(parentStartDate.minutes());
@@ -260,11 +288,26 @@ exports.updateRepetitions = async (event, payload) => {
     endDate.minutes(parentEndtDate.minutes());
     promises.push(Event.findOneAndUpdate(
       { _id: ev._id },
-      { $set: flat({ ...payload, startDate: startDate.toISOString(), endDate: endDate.toISOString() }) }
+      {
+        $set: flat({ ...payload, startDate: startDate.toISOString(), endDate: endDate.toISOString() }),
+        ...(unset && { $unset: unset }),
+      }
     ));
   });
 
   return Promise.all(promises);
+};
+
+const isMiscOnlyUpdated = (event, payload) => {
+  const mainEventInfo = {
+    ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status']),
+    auxiliary: event.auxiliary.toHexString(),
+    sector: event.sector.toHexString(),
+  };
+  if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
+  const mainPayloadInfo = _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc']);
+
+  return !event.misc || event.misc === '' || (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
 };
 
 exports.updateEvent = async (event, payload) => {
@@ -276,45 +319,41 @@ exports.updateEvent = async (event, payload) => {
    * i.e. delete the cancel object and set isCancelled to false.
    */
 
-  let miscUpdatedOnly = false;
-  if (payload.misc) {
-    if (!event.misc || event.misc === '' || (payload.misc !== event.misc && _.isEqual(
-      _.omit(event, ['misc', 'repetition', 'location', 'isBilled', '_id', 'type', 'customer', 'createdAt', 'updatedAt']),
-      _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc'])
-    ))) miscUpdatedOnly = true;
-  }
+  const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
 
+  let unset;
+  let set;
   if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
-    event = await Event
-      .findOneAndUpdate(
-        { _id: event._id },
-        {
-          ...(!payload.isCancelled && event.isCancelled
-            ? { $set: flat({ ...payload, isCancelled: false }), $unset: { cancel: '' } }
-            : { $set: flat(payload) })
-        },
-        { autopopulate: false, new: true }
-      )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
+    if (!payload.isCancelled && event.isCancelled) {
+      set = flat({ ...payload, isCancelled: false });
+      unset = { cancel: '' };
+    } else {
+      set = payload;
+    }
 
-    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) await exports.updateRepetitions(event, payload);
+    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) {
+      await exports.updateRepetitions(event, payload);
+    }
+  } else if (!payload.isCancelled && event.isCancelled) {
+    set = flat({ ...payload, isCancelled: false, 'repetition.frequency': NEVER });
+    unset = { cancel: '', 'repetition.parentId': '' };
   } else {
-    event = await Event
-      .findOneAndUpdate(
-        { _id: event._id },
-        {
-          ...(!payload.isCancelled && event.isCancelled
-            ? { $set: flat({ ...payload, isCancelled: false, 'repetition.frequency': NEVER }), $unset: { cancel: '', 'repetition.parentId': '' } }
-            : { $set: flat({ ...payload, 'repetition.frequency': NEVER }), $unset: { 'repetition.parentId': '' } })
-        },
-        { autopopulate: false, new: true }
-      )
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
+    set = flat({ ...payload, 'repetition.frequency': NEVER });
+    unset = { 'repetition.parentId': '' };
   }
+
+  if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
+
+  event = await Event
+    .findOneAndUpdate(
+      { _id: event._id },
+      { $set: set, ...(unset && { $unset: unset }) },
+      { autopopulate: false, new: true }
+    ).populate({
+      path: 'auxiliary',
+      select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+    }).populate({ path: 'customer', select: 'identity subscriptions contact' })
+    .lean();
 
   return exports.populateEventSubscription(event);
 };
@@ -323,13 +362,11 @@ exports.deleteRepetition = async (event) => {
   await Event.deleteMany({
     'repetition.parentId': event.repetition.parentId,
     startDate: { $gt: new Date(event.startDate) },
-    $or: [{ isBilled: false }, { isBilled: { $exists: false } }]
+    $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
   });
 };
 
-exports.removeEventsByContractStatus = async (contract) => {
-  if (!contract) throw Boom.badRequest();
-
+exports.unassignInterventions = async (contract) => {
   const customerSubscriptionsFromEvents = await Event.aggregate([
     {
       $match: {
@@ -337,29 +374,29 @@ exports.removeEventsByContractStatus = async (contract) => {
           { startDate: { $gt: new Date(contract.endDate) } },
           { auxiliary: new ObjectID(contract.user) },
           { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-        ]
+        ],
       },
     },
     {
       $group: {
         _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
-      }
+      },
     },
     {
       $lookup: {
         from: 'customers',
         localField: '_id.CUSTOMER',
         foreignField: '_id',
-        as: 'customer'
-      }
+        as: 'customer',
+      },
     },
     { $unwind: { path: '$customer' } },
     {
       $addFields: {
         sub: {
           $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-        }
-      }
+        },
+      },
     },
     { $unwind: { path: '$sub' } },
     {
@@ -368,18 +405,17 @@ exports.removeEventsByContractStatus = async (contract) => {
         localField: 'sub.service',
         foreignField: '_id',
         as: 'sub.service',
-      }
+      },
     },
     { $unwind: { path: '$sub.service' } },
     {
       $project: {
         _id: 0,
         customer: { _id: 1 },
-        sub: 1
-      }
+        sub: 1,
+      },
     },
   ]);
-
 
   if (customerSubscriptionsFromEvents.length === 0) return;
   let correspondingSubs;
@@ -389,7 +425,24 @@ exports.removeEventsByContractStatus = async (contract) => {
     correspondingSubs = customerSubscriptionsFromEvents.filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status);
   }
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
-  await Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false });
+  await Event.updateMany(
+    { startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false },
+    { $unset: { auxiliary: '' } }
+  );
+};
+
+exports.removeEventsExceptInterventions = async contract => Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
+
+exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate) => {
+  const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
+  await Event.updateMany({
+    type: ABSENCE,
+    auxiliary: auxiliaryId,
+    startDate: { $lte: maxEndDate },
+    endDate: { $gt: maxEndDate },
+  }, {
+    endDate: maxEndDate,
+  });
 };
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
@@ -422,15 +475,15 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
     'Divers',
     'Facturé',
     'Annulé',
-    'Statut de l\'annulation',
-    'Raison de l\'annulation',
+    "Statut de l'annulation",
+    "Raison de l'annulation",
   ];
 
   const rows = [header];
 
   for (const event of events) {
     let repetition = _.get(event.repetition, 'frequency');
-    repetition = (NEVER === repetition) ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
+    repetition = NEVER === repetition ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
 
     const cells = [
       EVENT_TYPE_LIST[event.type],
@@ -471,15 +524,7 @@ exports.exportAbsencesHistory = async (startDate, endDate) => {
     .populate({ path: 'sector' })
     .lean();
 
-  const header = [
-    'Type',
-    'Nature',
-    'Début',
-    'Fin',
-    'Secteur',
-    'Auxiliaire',
-    'Divers',
-  ];
+  const header = ['Type', 'Nature', 'Début', 'Fin', 'Secteur', 'Auxiliaire', 'Divers'];
 
   const rows = [header];
   for (const event of events) {

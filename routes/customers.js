@@ -32,13 +32,7 @@ const {
   getFundings,
   removeFunding,
 } = require('../controllers/customerController');
-
-const {
-  MONTHLY,
-  ONCE,
-  HOURLY,
-  FIXED
-} = require('../helpers/constants');
+const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -49,11 +43,11 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            identity: {
+            identity: Joi.object().keys({
               title: Joi.string(),
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string().required(),
-            },
+            }).min(1),
             contact: Joi.object().keys({
               address: {
                 street: Joi.string().required(),
@@ -63,13 +57,12 @@ exports.plugin = {
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                }
-              }
+                },
+              },
             }).required(),
             isActive: Joi.boolean().default(true),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: create,
     });
@@ -84,12 +77,12 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             _id: Joi.objectId(),
-            identity: {
+            identity: Joi.object().keys({
               title: Joi.string(),
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               birthDate: Joi.date(),
-            },
+            }).min(1),
             email: Joi.string().email(),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
@@ -102,7 +95,7 @@ exports.plugin = {
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                }
+                },
               },
               doorCode: Joi.string(),
               intercomCode: Joi.string(),
@@ -120,9 +113,8 @@ exports.plugin = {
               bic: Joi.string(),
             }),
             isActive: Joi.boolean(),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: update,
     });
@@ -135,9 +127,8 @@ exports.plugin = {
           query: Joi.object().keys({
             subscriptions: Joi.boolean(),
             _id: [Joi.array().items(Joi.objectId()), Joi.objectId()],
-          })
+          }),
         },
-        auth: 'jwt',
       },
       handler: list,
     });
@@ -151,9 +142,8 @@ exports.plugin = {
             sector: Joi.array().items(Joi.string()),
             startDate: Joi.date(),
             endDate: Joi.date(),
-          })
+          }),
         },
-        auth: 'jwt',
       },
       handler: listBySector,
     });
@@ -161,19 +151,12 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/billed-events',
-      options: {
-        validate: {},
-        auth: 'jwt',
-      },
       handler: listWithBilledEvents,
     });
 
     server.route({
       method: 'GET',
       path: '/customer-contract-subscriptions',
-      options: {
-        auth: 'jwt',
-      },
       handler: listWithCustomerContractSubscriptions,
     });
 
@@ -183,12 +166,11 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
-          }
+            _id: Joi.objectId().required(),
+          },
         },
-        auth: 'jwt',
       },
-      handler: show
+      handler: show,
     });
 
     server.route({
@@ -197,12 +179,11 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            _id: Joi.objectId().required()
-          }
+            _id: Joi.objectId().required(),
+          },
         },
-        auth: 'jwt',
       },
-      handler: remove
+      handler: remove,
     });
 
     server.route({
@@ -212,9 +193,8 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: getSubscriptions,
     });
@@ -233,9 +213,8 @@ exports.plugin = {
               evenings: Joi.number(),
               sundays: Joi.number(),
             }),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: addSubscription,
     });
@@ -254,9 +233,8 @@ exports.plugin = {
             estimatedWeeklyVolume: Joi.number(),
             evenings: Joi.number(),
             sundays: Joi.number(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: updateSubscription,
     });
@@ -269,9 +247,8 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             subscriptionId: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: removeSubscription,
     });
@@ -283,9 +260,8 @@ exports.plugin = {
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: getMandates,
     });
@@ -298,9 +274,8 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             mandateId: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: updateMandate,
     });
@@ -325,9 +300,8 @@ exports.plugin = {
             redirectDecline: Joi.string(),
           },
         },
-        auth: { strategy: 'jwt' },
       },
-      handler: generateMandateSignatureRequest
+      handler: generateMandateSignatureRequest,
     });
 
     server.route({
@@ -339,7 +313,6 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
         },
-        auth: { strategy: 'jwt' }
       },
       handler: getCustomerQuotes,
     });
@@ -360,9 +333,8 @@ exports.plugin = {
               evenings: Joi.number(),
               sundays: Joi.number(),
             })).required(),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: createCustomerQuote,
     });
@@ -375,9 +347,8 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             quoteId: Joi.objectId().required(),
-          }
+          },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: removeCustomerQuote,
     });
@@ -393,10 +364,7 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             parentFolderId: Joi.string(),
-          })
-        },
-        auth: {
-          strategy: 'jwt',
+          }),
         },
       },
       handler: createDriveFolder,
@@ -413,10 +381,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
-        auth: {
-          strategy: 'jwt',
-        }
-      }
+      },
     });
 
     server.route({
@@ -429,9 +394,8 @@ exports.plugin = {
             financialCertificates: Joi.object().keys({
               driveId: Joi.string().required(),
             }),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: updateCertificates,
     });
@@ -444,9 +408,8 @@ exports.plugin = {
           params: {
             _id: Joi.objectId().required(),
             mandateId: Joi.objectId().required(),
-          }
+          },
         },
-        auth: 'jwt',
       },
       handler: saveSignedMandate,
     });
@@ -473,9 +436,8 @@ exports.plugin = {
               lastname: Joi.string(),
               title: Joi.string().allow(null, ''),
             }).required(),
-          })
+          }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: createHistorySubscription,
     });
@@ -489,14 +451,14 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            nature: Joi.string().valid(HOURLY, FIXED).required(),
+            nature: Joi.string().valid(FUNDING_NATURES).required(),
             thirdPartyPayer: Joi.objectId().required(),
             subscription: Joi.objectId().required(),
             versions: Joi.array().items(Joi.object().keys({
               folderNumber: Joi.string(),
               startDate: Joi.date().required(),
               endDate: Joi.date(),
-              frequency: Joi.string().valid(MONTHLY, ONCE).required(),
+              frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
               amountTTC: Joi.number(),
               unitTTCRate: Joi.number(),
               careHours: Joi.number(),
@@ -505,7 +467,6 @@ exports.plugin = {
             })),
           }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: createFunding,
     });
@@ -524,7 +485,7 @@ exports.plugin = {
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),
-            frequency: Joi.string().valid(MONTHLY, ONCE).required(),
+            frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
             amountTTC: Joi.number(),
             unitTTCRate: Joi.number(),
             careHours: Joi.number(),
@@ -532,7 +493,6 @@ exports.plugin = {
             customerParticipationRate: Joi.number().default(0),
           }),
         },
-        auth: { strategy: 'jwt' },
       },
       handler: updateFunding,
     });
@@ -546,7 +506,6 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
-        auth: 'jwt',
       },
       handler: getFundings,
     });
@@ -561,9 +520,8 @@ exports.plugin = {
             fundingId: Joi.objectId().required(),
           },
         },
-        auth: 'jwt',
       },
       handler: removeFunding,
     });
-  }
+  },
 };

@@ -1,12 +1,13 @@
 const good = require('./good');
 const hapiSentry = require('./hapiSentry');
+const hapiAuthJwt2 = require('./hapiAuthJwt2');
 
 const plugins = [
   {
     plugin: require('good'),
     options: { reporters: good.reporters }
   },
-  { plugin: require('hapi-auth-jwt2') },
+  { plugin: hapiAuthJwt2 },
   { plugin: require('inert') }
 ];
 

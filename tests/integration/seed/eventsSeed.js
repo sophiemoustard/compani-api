@@ -20,7 +20,7 @@ const eventsList = [
       _id: new ObjectID(),
       name: 'Formation',
       default: false,
-    }
+    },
   },
   {
     _id: new ObjectID(),
@@ -111,6 +111,14 @@ const eventsList = [
     customer: customersList[0]._id,
     createdAt: '2019-05-16T14:30:19.543Z',
     subscription: customersList[0].subscriptions[2]._id,
+  },
+  {
+    _id: new ObjectID(),
+    type: 'absence',
+    startDate: '2019-07-19T14:00:18.653Z',
+    endDate: '2019-07-19T17:00:18.653Z',
+    auxiliary: auxiliary._id,
+    createdAt: '2019-07-11T08:38:18.653Z',
   },
 ];
 

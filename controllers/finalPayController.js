@@ -15,7 +15,7 @@ const draftFinalPayList = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    Boom.badImplementation(e);
+    return Boom.badImplementation(e);
   }
 };
 
@@ -25,8 +25,8 @@ const createList = async (req) => {
     for (const finalPay of req.payload) {
       finalPayList.push((new FinalPay({
         ...finalPay,
-        ...(finalPay.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: JSON.stringify(finalPay.surchargedAndNotExemptDetails) }),
-        ...(finalPay.surchargedAndExemptDetails && { surchargedAndExemptDetails: JSON.stringify(finalPay.surchargedAndExemptDetails) }),
+        ...(finalPay.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: Object.values(finalPay.surchargedAndNotExemptDetails) }),
+        ...(finalPay.surchargedAndExemptDetails && { surchargedAndExemptDetails: Object.values(finalPay.surchargedAndExemptDetails) }),
       })));
     }
 
@@ -35,11 +35,11 @@ const createList = async (req) => {
     return { message: translate[language].finalPayListCreated };
   } catch (e) {
     req.log('error', e);
-    Boom.badImplementation(e);
+    return Boom.badImplementation(e);
   }
 };
 
 module.exports = {
   draftFinalPayList,
-  createList
+  createList,
 };

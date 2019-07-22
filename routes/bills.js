@@ -7,9 +7,9 @@ const {
   draftBillsList,
   createBills,
   list,
-  generateBillPdf
+  generateBillPdf,
 } = require('../controllers/billsController');
-const { MONTH, TWO_WEEKS } = require('../helpers/constants');
+const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
   name: 'routes-bill',
@@ -18,13 +18,12 @@ exports.plugin = {
       method: 'GET',
       path: '/drafts',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             endDate: Joi.date().required(),
             startDate: Joi.date(),
             billingStartDate: Joi.date().required(),
-            billingPeriod: Joi.string().valid([MONTH, TWO_WEEKS]).required(),
+            billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS).required(),
             customer: Joi.objectId(),
           },
         },
@@ -36,7 +35,6 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -55,7 +53,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId() },
         },
-        auth: { strategy: 'jwt' },
       },
       handler: generateBillPdf,
     });
@@ -64,7 +61,6 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { strategy: 'jwt' },
         validate: {
           payload: {
             bills: Joi.array().items(Joi.object({

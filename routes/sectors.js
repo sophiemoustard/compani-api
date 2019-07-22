@@ -20,12 +20,11 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            company: Joi.objectId().required()
-          })
+            company: Joi.objectId().required(),
+          }),
         },
-        auth: 'jwt'
       },
-      handler: create
+      handler: create,
     });
 
     server.route({
@@ -38,11 +37,10 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string(),
-          })
+          }),
         },
-        auth: 'jwt'
       },
-      handler: update
+      handler: update,
     });
 
     server.route({
@@ -52,12 +50,11 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             name: Joi.string(),
-            company: Joi.objectId()
-          })
+            company: Joi.objectId(),
+          }),
         },
-        auth: 'jwt'
       },
-      handler: list
+      handler: list,
     });
 
     server.route({
@@ -69,9 +66,9 @@ exports.plugin = {
             _id: Joi.objectId().required()
           }
         },
-        auth: 'jwt'
+        auth: 'jwt',
       },
-      handler: remove
+      handler: remove,
     });
   }
 };

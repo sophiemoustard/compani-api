@@ -78,6 +78,18 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         expect(response.statusCode).toBe(400);
       });
     });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/thirdpartypayers',
+        headers: { 'x-access-token': authToken },
+        payload,
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('GET /thirdpartypayers', () => {
@@ -93,22 +105,33 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.thirdPartyPayers.length).toEqual(thirdPartyPayerNumber);
     });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/thirdpartypayers',
+        headers: { 'x-access-token': authToken },
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('PUT /thirdpartypayers/:id', () => {
+    const payload = {
+      name: 'SuperTest',
+      address: {
+        fullAddress: '4 rue du test 92160 Antony',
+        street: '4 rue du test',
+        zipCode: '92160',
+        city: 'Antony'
+      },
+      email: 't@t.com',
+      unitTTCRate: 89,
+      billingMode: 'indirect',
+    };
     it('should update a third party payer', async () => {
-      const payload = {
-        name: 'SuperTest',
-        address: {
-          fullAddress: '4 rue du test 92160 Antony',
-          street: '4 rue du test',
-          zipCode: '92160',
-          city: 'Antony'
-        },
-        email: 't@t.com',
-        unitTTCRate: 89,
-        billingMode: 'indirect',
-      };
       const response = await app.inject({
         method: 'PUT',
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
@@ -120,7 +143,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(response.result.data.thirdPartyPayer).toMatchObject(payload);
     });
     it('should return a 404 error if third party payer does not exist', async () => {
-      const payload = {
+      const falsyPayload = {
         name: 'SuperTest',
         address: {
           fullAddress: '4 rue du test 92160 Antony',
@@ -136,10 +159,22 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         method: 'PUT',
         url: `/thirdpartypayers/${new ObjectID().toHexString()}`,
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: falsyPayload,
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -154,6 +189,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       const thirdPartyPayers = await ThirdPartyPayer.find().lean();
       expect(thirdPartyPayers.length).toBe(thirdPartyPayersList.length - 1);
     });
+
     it('should return a 404 error if company does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
@@ -161,6 +197,17 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if user does not have right', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 });

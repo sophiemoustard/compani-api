@@ -1,11 +1,14 @@
 const mongoose = require('mongoose');
 
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, FIXED, HOURLY } = require('../helpers/constants');
+const { FIXED, HOURLY } = require('../helpers/constants');
+const { CONTRACT_STATUS } = require('./Contract');
 const Customer = require('./Customer');
 
+const SERVICE_NATURES = [FIXED, HOURLY];
+
 const ServiceSchema = mongoose.Schema({
-  nature: { type: String, enum: [FIXED, HOURLY] },
-  type: { type: String, enum: [CUSTOMER_CONTRACT, COMPANY_CONTRACT] },
+  nature: { type: String, enum: SERVICE_NATURES },
+  type: { type: String, enum: CONTRACT_STATUS },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
   versions: [{
     name: String,
@@ -15,7 +18,7 @@ const ServiceSchema = mongoose.Schema({
     startDate: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now },
     exemptFromCharges: { type: Boolean, default: false },
-  }]
+  }],
 }, { timestamps: true });
 
 const countServiceUsage = async (docs) => {
@@ -29,3 +32,4 @@ const countServiceUsage = async (docs) => {
 ServiceSchema.post('find', countServiceUsage);
 
 module.exports = mongoose.model('Service', ServiceSchema);
+module.exports.SERVICE_NATURES = SERVICE_NATURES;

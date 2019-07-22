@@ -3,13 +3,14 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../helpers/constants');
+const { SERVICE_NATURES } = require('../models/Service');
+const { CONTRACT_STATUS } = require('../models/Contract');
 
 const {
   list,
   create,
   update,
-  remove
+  remove,
 } = require('../controllers/serviceController');
 
 exports.plugin = {
@@ -20,10 +21,10 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { scope: ['rhconfig:edit'] },
         validate: {
           payload: Joi.object().keys({
-            type: Joi.string().required().valid(CUSTOMER_CONTRACT, COMPANY_CONTRACT),
+            type: Joi.string().required().valid(CONTRACT_STATUS),
             company: Joi.objectId().required(),
             versions: Joi.array().items({
               defaultUnitAmount: Joi.number().required(),
@@ -32,8 +33,8 @@ exports.plugin = {
               surcharge: Joi.objectId(),
               exemptFromCharges: Joi.boolean(),
             }),
-            nature: Joi.string().required().valid(HOURLY, FIXED),
-          })
+            nature: Joi.string().required().valid(SERVICE_NATURES),
+          }),
         },
       },
     });
@@ -43,10 +44,10 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { scope: ['rhconfig:edit'] },
         validate: {
-          query: { company: Joi.objectId() }
-        }
+          query: { company: Joi.objectId() },
+        },
       },
     });
 
@@ -55,11 +56,11 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { scope: ['rhconfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
-          }
+          },
         },
       },
     });
@@ -69,7 +70,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { strategy: 'jwt' },
+        auth: { scope: ['rhconfig:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -81,9 +82,9 @@ exports.plugin = {
             vat: Joi.number(),
             surcharge: Joi.objectId(),
             exemptFromCharges: Joi.boolean(),
-          })
+          }),
         },
       },
     });
-  }
+  },
 };

@@ -32,6 +32,7 @@ const roles = [{
 const user = {
   _id: new ObjectID(),
   local: { email: 'test4@alenvi.io', password: '123456' },
+  identity: { lastname: 'Toto'},
   refreshToken: uuidv4(),
   role: roles[0]._id,
   inactivityDate: '2018-11-01T12:52:27.461Z',

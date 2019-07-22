@@ -16,7 +16,7 @@ const currentHolidays = [...holidays.getHolidays(currentYear), ...holidays.getHo
 moment.updateLocale('fr', {
   holidays: currentHolidays.map(holiday => holiday.date),
   holidayFormat: 'YYYY-MM-DD HH:mm:ss',
-  workingWeekdays: [1, 2, 3, 4, 5, 6]
+  workingWeekdays: [1, 2, 3, 4, 5, 6],
 });
 moment.tz.setDefault('Europe/Paris');
 
@@ -114,7 +114,7 @@ const applySurcharge = (event, price, surcharge) => {
     eveningStartTime,
     custom,
     customStartTime,
-    customEndTime
+    customEndTime,
   } = surcharge;
 
   if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
@@ -247,7 +247,7 @@ const formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service)
     endDate: event.endDate,
     auxiliary: event.auxiliary,
     inclTaxesCustomer,
-    exclTaxesCustomer: eventPrice.customerPrice
+    exclTaxesCustomer: eventPrice.customerPrice,
   };
   if (eventPrice.thirdPartyPayerPrice && eventPrice.thirdPartyPayerPrice !== 0) {
     prices.inclTaxesTpp = getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
@@ -350,24 +350,24 @@ const getEventsToBill = async rules => Event.aggregate([
     $group: {
       _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
       count: { $sum: 1 },
-      events: { $push: '$$ROOT' }
-    }
+      events: { $push: '$$ROOT' },
+    },
   },
   {
     $lookup: {
       from: 'customers',
       localField: '_id.CUSTOMER',
       foreignField: '_id',
-      as: 'customer'
-    }
+      as: 'customer',
+    },
   },
   { $unwind: { path: '$customer' } },
   {
     $addFields: {
       sub: {
         $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-      }
-    }
+      },
+    },
   },
   { $unwind: { path: '$sub' } },
   {
@@ -376,7 +376,7 @@ const getEventsToBill = async rules => Event.aggregate([
       localField: 'sub.service',
       foreignField: '_id',
       as: 'sub.service',
-    }
+    },
   },
   { $unwind: { path: '$sub.service' } },
   {
@@ -385,10 +385,10 @@ const getEventsToBill = async rules => Event.aggregate([
         $filter: {
           input: '$customer.fundings',
           as: 'fund',
-          cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] }
+          cond: { $eq: ['$$fund.subscription', '$_id.SUBS'] },
         },
-      }
-    }
+      },
+    },
   },
   {
     $project: {
@@ -404,7 +404,7 @@ const getEventsToBill = async rules => Event.aggregate([
       customer: 1,
       sub: 1,
       fund: 1,
-    }
+    },
   },
   {
     $group: {
@@ -417,8 +417,8 @@ const getEventsToBill = async rules => Event.aggregate([
           events: '$events',
           fundings: '$fund',
         },
-      }
-    }
+      },
+    },
   },
   { $unwind: { path: '$customer' } },
   {
@@ -426,8 +426,8 @@ const getEventsToBill = async rules => Event.aggregate([
       _id: 0,
       customer: { _id: 1, identity: 1, driveFolder: 1 },
       eventsBySubscriptions: 1,
-    }
-  }
+    },
+  },
 ]);
 
 const getDraftBillsList = async (rules, query) => {
@@ -465,7 +465,7 @@ const getDraftBillsList = async (rules, query) => {
       for (const bills of Object.values(thirdPartyPayerBills)) {
         groupedByCustomerBills.thirdPartyPayerBills.push({
           bills,
-          total: bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0)
+          total: bills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0),
         });
       }
     }
