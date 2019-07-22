@@ -64,6 +64,38 @@ describe('EVENTS ROUTES', () => {
       });
     });
 
+    it('should return a list of events groupedBy customers', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/events?groupBy=customer&type=intervention',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.events).toBeDefined();
+      expect(response.result.data.events[0]._id).toBeDefined();
+      expect(response.result.data.events[0].events).toBeDefined();
+      response.result.data.events[0].events.forEach((event) => {
+        expect(event.customer._id).toEqual(response.result.data.events[0]._id);
+      });
+    });
+
+    it('should return a list of events groupedBy auxiliaries', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/events?groupBy=auxiliary',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.events).toBeDefined();
+      expect(response.result.data.events[0]._id).toBeDefined();
+      expect(response.result.data.events[0].events).toBeDefined();
+      response.result.data.events[0].events.forEach((event) => {
+        expect(event.auxiliary._id).toEqual(response.result.data.events[0]._id);
+      });
+    });
+
     it('should return an empty list as no event is matching the request', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -89,13 +121,13 @@ describe('EVENTS ROUTES', () => {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
           zipCode: '92160',
-          city: 'Antony'
+          city: 'Antony',
         },
         internalHour: {
           name: 'Formation',
           _id: new ObjectID('5cf7defc3d14e9701967acf7'),
           default: false,
-        }
+        },
       };
 
       const response = await app.inject({
@@ -147,7 +179,7 @@ describe('EVENTS ROUTES', () => {
         attachment: {
           driveId: 'qwertyuiop',
           link: 'asdfghjkl;',
-        }
+        },
       };
 
       const response = await app.inject({
@@ -194,7 +226,7 @@ describe('EVENTS ROUTES', () => {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
           zipCode: '92160',
-          city: 'Antony'
+          city: 'Antony',
         },
       };
 
