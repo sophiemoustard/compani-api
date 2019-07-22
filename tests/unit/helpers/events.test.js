@@ -120,8 +120,14 @@ describe('updateEvent', () => {
   it('5. should update event when only misc is updated without unset repetition property', async () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
-    const sector = new ObjectID()
-    const event = { _id: eventId, startDate: '2019-01-21T09:38:18.653Z', repetition: { frequency: NEVER }, auxiliary, sector };
+    const sector = new ObjectID();
+    const event = {
+      _id: eventId,
+      startDate: '2019-01-21T09:38:18.653Z',
+      repetition: { frequency: NEVER },
+      auxiliary,
+      sector,
+    };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', misc: 'Zoro est là', auxiliary: auxiliary.toHexString() };
 
     EventModel.expects('findOneAndUpdate')
@@ -733,7 +739,7 @@ describe('isCreationAllowed', () => {
 });
 
 describe('isEditionAllowed', () => {
-  it('should return false as eevnt is billed', async () => {
+  it('should return false as event is billed', async () => {
     const eventFromDb = {
       isBilled: true,
       type: INTERVENTION,
