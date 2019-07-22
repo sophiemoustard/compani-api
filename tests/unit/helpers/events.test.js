@@ -828,11 +828,13 @@ describe('unassignInterventions', () => {
 
 describe('removeEventsExceptInterventions', () => {
   it('should remove future non-intervention events', async () => {
-    const contract = { endDate: moment().toDate() };
+    const endDate = moment().toDate();
+    const auxiliary = new ObjectID();
+    const contract = { endDate, user: auxiliary };
     const EventDeleteManyStub = sinon.stub(Event, 'deleteMany');
 
     await EventHelper.removeEventsExceptInterventions(contract);
-    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
+    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: endDate }, subscription: { $exists: false }, auxiliary });
     EventDeleteManyStub.restore();
   });
 });
