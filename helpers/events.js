@@ -111,6 +111,11 @@ exports.isEditionAllowed = async (eventFromDB, payload) => {
     return false;
   }
 
+  if (!payload.auxiliary) {
+    const { auxiliary, ...rest } = eventFromDB;
+    return exports.isCreationAllowed({ ...rest, ...payload });
+  }
+
   return exports.isCreationAllowed({ ...eventFromDB, ...payload });
 };
 
