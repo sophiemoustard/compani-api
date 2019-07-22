@@ -5,14 +5,12 @@ const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const {
-  isCreationAllowed,
   getListQuery,
   populateEvents,
-  populateEventSubscription,
-  createRepetitions,
   updateEvent,
   deleteRepetition,
   isEditionAllowed,
+  createEvent,
 } = require('../helpers/events');
 const { ABSENCE, NEVER, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
 const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
@@ -69,30 +67,12 @@ const listForCreditNotes = async (req) => {
 
 const create = async (req) => {
   try {
-    const { payload } = req;
-
-    if (payload.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {
-      throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
-    }
-
-    if (!(await isCreationAllowed(payload))) return Boom.badData();
-
-    let event = new Event(payload);
-    await event.save();
-    event = await Event.findOne({ _id: event._id })
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
-
-    if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
-      event = await createRepetitions(event);
-    }
-
-    const populatedEvent = await populateEventSubscription(event);
+    const { payload, auth } = req;
+    const event = await createEvent(payload, auth.credentials);
 
     return {
       message: translate[language].eventCreated,
-      data: { event: populatedEvent },
+      data: { event },
     };
   } catch (e) {
     req.log('error', e);

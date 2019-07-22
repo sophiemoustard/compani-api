@@ -60,9 +60,28 @@ exports.hasConflicts = async (event) => {
   });
 };
 
+exports.createEvent = async (payload) => {
+  if (!(await exports.isCreationAllowed(payload))) return Boom.badData();
+
+  let event = new Event(payload);
+  await event.save();
+  event = await Event.findOne({ _id: event._id })
+    .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
+    .populate({ path: 'customer', select: 'identity subscriptions contact' })
+    .lean();
+
+  if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
+    event = await exports.createRepetitions(event);
+  }
+
+  return exports.populateEventSubscription(event);
+};
+
 exports.isCreationAllowed = async (event) => {
   if (!event.auxiliary) return true;
   if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
+
+  if (event.type !== ABSENCE && !moment(event.startDate).isSame(event.endDate, 'day')) return false;
 
   let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
   user = user.toObject();
