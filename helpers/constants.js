@@ -199,4 +199,5 @@ module.exports = {
   COMPANI: 'compani',
   THIRD_PARTY: 'third_party',
   OGUST: 'ogust',
+  WEEKS_PER_MONTH: (52 / 12),
 };
