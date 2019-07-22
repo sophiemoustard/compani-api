@@ -23,6 +23,7 @@ const {
   ABSENCE_TYPE_LIST,
   ABSENCE_NATURE_LIST,
   HOURLY,
+  PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
 const User = require('../models/User');
@@ -194,7 +195,7 @@ exports.formatRepeatedEvent = (event, momentDay) => {
     ..._.omit(event, '_id'),
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
-  })
+  });
 };
 
 exports.createRepetitionsEveryDay = async (event) => {
@@ -236,7 +237,7 @@ exports.createRepetitionsByWeek = async (event, step) => {
   });
 
   return Promise.all(promises);
-}
+};
 
 exports.createRepetitions = async (event) => {
   if (event.repetition.frequency === NEVER) return event;
@@ -292,6 +293,18 @@ exports.updateRepetitions = async (event, payload) => {
   return Promise.all(promises);
 };
 
+const isMiscOnlyUpdated = (event, payload) => {
+  const mainEventInfo = {
+    ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status']),
+    auxiliary: event.auxiliary.toHexString(),
+    sector: event.sector.toHexString(),
+  };
+  if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
+  const mainPayloadInfo = _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc']);
+
+  return !event.misc || event.misc === '' || (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
+};
+
 exports.updateEvent = async (event, payload) => {
   /**
    * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the repetition
@@ -301,49 +314,19 @@ exports.updateEvent = async (event, payload) => {
    * i.e. delete the cancel object and set isCancelled to false.
    */
 
-  let miscUpdatedOnly = false;
-  if (payload.misc) {
-    if (
-      !event.misc ||
-      event.misc === '' ||
-      (payload.misc !== event.misc &&
-        _.isEqual(
-          _.omit(event, [
-            'misc',
-            'repetition',
-            'location',
-            'isBilled',
-            '_id',
-            'type',
-            'customer',
-            'createdAt',
-            'updatedAt',
-          ]),
-          _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc'])
-        ))
-    ) { miscUpdatedOnly = true; }
-  }
+  const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
 
   let unset;
   let set;
-  if (
-    event.type === ABSENCE ||
-    !event.repetition ||
-    event.repetition.frequency === NEVER ||
-    payload.shouldUpdateRepetition ||
-    miscUpdatedOnly
-  ) {
+  if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
     if (!payload.isCancelled && event.isCancelled) {
       set = flat({ ...payload, isCancelled: false });
       unset = { cancel: '' };
-    } else set = flat(payload);
+    } else {
+      set = payload;
+    }
 
-    if (
-      !miscUpdatedOnly &&
-      event.repetition &&
-      event.repetition.frequency !== NEVER &&
-      payload.shouldUpdateRepetition
-    ) {
+    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) {
       await exports.updateRepetitions(event, payload);
     }
   } else if (!payload.isCancelled && event.isCancelled) {
@@ -356,16 +339,15 @@ exports.updateEvent = async (event, payload) => {
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
 
-  event = await Event.findOneAndUpdate(
-    { _id: event._id },
-    { $set: set, ...(unset && { $unset: unset }) },
-    { autopopulate: false, new: true }
-  )
-    .populate({
+  event = await Event
+    .findOneAndUpdate(
+      { _id: event._id },
+      { $set: set, ...(unset && { $unset: unset }) },
+      { autopopulate: false, new: true }
+    ).populate({
       path: 'auxiliary',
       select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-    })
-    .populate({ path: 'customer', select: 'identity subscriptions contact' })
+    }).populate({ path: 'customer', select: 'identity subscriptions contact' })
     .lean();
 
   return exports.populateEventSubscription(event);
@@ -445,6 +427,18 @@ exports.unassignInterventions = async (contract) => {
 };
 
 exports.removeEventsExceptInterventions = async contract => Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
+
+exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate) => {
+  const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
+  await Event.updateMany({
+    type: ABSENCE,
+    auxiliary: auxiliaryId,
+    startDate: { $lte: maxEndDate },
+    endDate: { $gt: maxEndDate },
+  }, {
+    endDate: maxEndDate,
+  });
+};
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
   const query = {

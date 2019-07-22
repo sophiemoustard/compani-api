@@ -28,7 +28,7 @@ const uploadFile = async (req) => {
       _id: req.params._id,
       name: req.payload.fileName || req.payload[administrativeKeys[0]].hapi.filename,
       type: req.payload['Content-Type'],
-      body: req.payload[administrativeKeys[0]]
+      body: req.payload[administrativeKeys[0]],
     });
     let driveFileInfo;
     try {
@@ -40,8 +40,8 @@ const uploadFile = async (req) => {
       const payload = {
         [`administrative.${administrativeKeys[0]}.docs`]: {
           driveId: uploadedFile.id,
-          link: driveFileInfo.webViewLink
-        }
+          link: driveFileInfo.webViewLink,
+        },
       };
       await User.findOneAndUpdate({ _id: req.params._id }, { $push: payload }, { new: true });
     } else {
@@ -49,9 +49,9 @@ const uploadFile = async (req) => {
         administrative: {
           [administrativeKeys[0]]: {
             driveId: uploadedFile.id,
-            link: driveFileInfo.webViewLink
-          }
-        }
+            link: driveFileInfo.webViewLink,
+          },
+        },
       };
       const user = await User.findById(req.params._id).lean();
       if (user.administrative && user.administrative[administrativeKeys[0]]) {
@@ -76,7 +76,7 @@ const uploadImage = async (req) => {
     const pictureUploaded = await cloudinary.addImage({
       file: req.payload.picture,
       role: req.payload.role,
-      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
+      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
     });
     const user = await User.findById(req.params._id).lean();
     if (user.picture && user.picture.publicId) {
@@ -86,8 +86,8 @@ const uploadImage = async (req) => {
     const payload = {
       picture: {
         publicId: pictureUploaded.public_id,
-        link: pictureUploaded.secure_url
-      }
+        link: pictureUploaded.secure_url,
+      },
     };
     const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
     return { message: translate[language].fileCreated, data: { picture: payload.picture, userUpdated } };
@@ -99,5 +99,5 @@ const uploadImage = async (req) => {
 
 module.exports = {
   uploadFile,
-  uploadImage
+  uploadImage,
 };

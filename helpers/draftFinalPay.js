@@ -1,7 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const differenceBy = require('lodash/differenceBy');
-const { COMPANY_CONTRACT } = require('./constants');
+const { COMPANY_CONTRACT, WEEKS_PER_MONTH } = require('./constants');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
 const DistanceMatrix = require('../models/DistanceMatrix');
@@ -28,7 +28,7 @@ exports.getContractMonthInfo = (contract, query) => {
       : moment(query.endDate);
     const businessDays = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
     workedDays += businessDays;
-    contractHours += version.weeklyHours * (businessDays / monthBusinessDays) * 4.33;
+    contractHours += version.weeklyHours * (businessDays / monthBusinessDays) * WEEKS_PER_MONTH;
   }
 
   return { contractHours, workedDaysRatio: workedDays / monthBusinessDays };
@@ -70,7 +70,7 @@ exports.getDraftFinalPay = async (query) => {
   const end = moment(query.endDate).endOf('d').toDate();
   const contractRules = {
     status: COMPANY_CONTRACT,
-    endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() }
+    endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
   };
   const auxiliaries = await DraftPayHelper.getAuxiliariesFromContracts(contractRules);
   const existingFinalPay = await FinalPay.find({ month: moment(query.startDate).format('MM-YYYY') });
