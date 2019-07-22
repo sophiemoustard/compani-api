@@ -431,7 +431,11 @@ exports.unassignInterventions = async (contract) => {
   );
 };
 
-exports.removeEventsExceptInterventions = async contract => Event.deleteMany({ startDate: { $gt: contract.endDate }, subscription: { $exists: false } });
+exports.removeEventsExceptInterventions = async contract => Event.deleteMany({
+  startDate: { $gt: contract.endDate },
+  auxiliary: contract.user,
+  subscription: { $exists: false },
+});
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate) => {
   const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
