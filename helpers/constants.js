@@ -200,4 +200,6 @@ module.exports = {
   THIRD_PARTY: 'third_party',
   OGUST: 'ogust',
   WEEKS_PER_MONTH: (52 / 12),
+  // EVENT HISTORY
+  EVENT_CREATION: 'event_creation',
 };
