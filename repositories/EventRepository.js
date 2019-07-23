@@ -1,4 +1,6 @@
+const { ObjectID } = require('mongodb');
 const Event = require('../models/Event');
+const { INTERNAL_HOUR, INTERVENTION, ABSENCE } = require('../helpers/constants');
 
 const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
   { $match: rules },
@@ -87,3 +89,133 @@ exports.getEventList = rules => Event.find(rules)
     populate: { path: 'subscriptions.service' },
   })
   .lean();
+
+exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate) => Event.find({
+  auxiliary,
+  $or: [
+    { startDate: { $gte: startDate, $lt: endDate } },
+    { endDate: { $gt: startDate, $lte: endDate } },
+    { startDate: { $lte: startDate }, endDate: { $gte: endDate } },
+  ],
+});
+
+exports.getEvent = async event => Event.findOne({ _id: event._id })
+  .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
+  .populate({ path: 'customer', select: 'identity subscriptions contact' })
+  .lean();
+
+exports.updateEvent = async (eventId, set, unset) => Event
+  .findOneAndUpdate(
+    { _id: eventId },
+    { $set: set, ...(unset && { $unset: unset }) },
+    { autopopulate: false, new: true }
+  ).populate({
+    path: 'auxiliary',
+    select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+  }).populate({ path: 'customer', select: 'identity subscriptions contact' })
+  .lean();
+
+exports.getWorkingEventsForExport = async (startDate, endDate) => {
+  const query = {
+    type: { $in: [INTERVENTION, INTERNAL_HOUR] },
+    $or: [
+      { startDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
+    ],
+  };
+
+  return Event.find(query)
+    .sort({ startDate: 'desc' })
+    .populate({ path: 'auxiliary', select: 'identity' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'sector' })
+    .lean();
+};
+
+exports.getAbsencesForExport = async (startDate, endDate) => {
+  const query = {
+    type: ABSENCE,
+    $or: [
+      { startDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $lte: endDate, $gte: startDate } },
+      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
+    ],
+  };
+
+  return Event.find(query)
+    .sort({ startDate: 'desc' })
+    .populate({ path: 'auxiliary', select: 'identity' })
+    .populate({ path: 'sector' })
+    .lean();
+};
+
+exports.getCustomerSubscriptions = contract => Event.aggregate([
+  {
+    $match: {
+      $and: [
+        { startDate: { $gt: new Date(contract.endDate) } },
+        { auxiliary: new ObjectID(contract.user) },
+        { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
+      ],
+    },
+  },
+  {
+    $group: {
+      _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
+    },
+  },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: '_id.CUSTOMER',
+      foreignField: '_id',
+      as: 'customer',
+    },
+  },
+  { $unwind: { path: '$customer' } },
+  {
+    $addFields: {
+      sub: {
+        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+      },
+    },
+  },
+  { $unwind: { path: '$sub' } },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'sub.service',
+      foreignField: '_id',
+      as: 'sub.service',
+    },
+  },
+  { $unwind: { path: '$sub.service' } },
+  {
+    $project: {
+      _id: 0,
+      customer: { _id: 1 },
+      sub: 1,
+    },
+  },
+]);
+
+exports.unassignInterventions = (maxDate, auxiliary, subIds) => Event.updateMany(
+  { startDate: { $gt: maxDate }, auxiliary, subscription: { $in: subIds }, isBilled: false },
+  { $unset: { auxiliary: '' } }
+);
+
+exports.removeEventsExceptInterventions = async contract => Event.deleteMany({
+  startDate: { $gt: contract.endDate },
+  auxiliary: contract.user,
+  subscription: { $exists: false },
+});
+
+exports.updateAbsenceEndDate = async (auxiliaryId, maxEndDate) => Event.updateMany({
+  type: ABSENCE,
+  auxiliary: auxiliaryId,
+  startDate: { $lte: maxEndDate },
+  endDate: { $gt: maxEndDate },
+}, {
+  endDate: maxEndDate,
+});

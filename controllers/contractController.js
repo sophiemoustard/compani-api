@@ -11,9 +11,9 @@ const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
 const {
   unassignInterventions,
-  removeEventsExceptInterventions,
   updateAbsencesOnContractEnd,
 } = require('../helpers/events');
+const { removeEventsExceptInterventions } = require('../repositories/EventRepository');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
