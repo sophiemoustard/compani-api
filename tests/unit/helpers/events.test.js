@@ -807,7 +807,7 @@ describe('unassignInterventions', () => {
     sinon.assert.called(EventAggregateStub);
     sinon.assert.calledWith(
       EventUpdateManyStub,
-      { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[0].sub._id] }, isBilled: false },
+      { startDate: { $gt: contract.endDate }, auxiliary: userId, subscription: { $in: [aggregation[0].sub._id] }, isBilled: false },
       { $unset: { auxiliary: '' } }
     );
   });
@@ -820,7 +820,7 @@ describe('unassignInterventions', () => {
     sinon.assert.called(EventAggregateStub);
     sinon.assert.calledWith(
       EventUpdateManyStub,
-      { startDate: { $gt: contract.endDate }, subscription: { $in: [aggregation[1].sub._id] }, isBilled: false },
+      { startDate: { $gt: contract.endDate }, auxiliary: userId, subscription: { $in: [aggregation[1].sub._id] }, isBilled: false },
       { $unset: { auxiliary: '' } }
     );
   });
