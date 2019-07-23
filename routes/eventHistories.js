@@ -13,8 +13,8 @@ exports.plugin = {
       options: {
         validate: {
           query: {
-            auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
-            sector: [Joi.array().items(Joi.string()), Joi.string()],
+            auxiliaries: [Joi.array().items(Joi.string()), Joi.string()],
+            sectors: [Joi.array().items(Joi.string()), Joi.string()],
           },
         },
       },

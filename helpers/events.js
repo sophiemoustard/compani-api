@@ -30,7 +30,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
-const EventHistoryHelper = require('./eventHistory');
+const { createEventHistory } = require('./eventHistories');
 const UtilsHelper = require('./utils');
 
 momentRange.extendMoment(moment);
@@ -64,7 +64,7 @@ exports.hasConflicts = async (event) => {
 exports.createEvent = async (payload, credentials) => {
   if (!(await exports.isCreationAllowed(payload))) return Boom.badData();
 
-  await EventHistoryHelper.createEventHistory(payload, credentials);
+  await createEventHistory(payload, credentials);
 
   let event = new Event(payload);
   await event.save();

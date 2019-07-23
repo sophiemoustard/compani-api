@@ -11,6 +11,7 @@ const EventHistorySchema = mongoose.Schema({
     type: { type: String, enum: EVENT_TYPES },
     startDate: Date,
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+    auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
