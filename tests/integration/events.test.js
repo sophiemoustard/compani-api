@@ -322,6 +322,7 @@ describe('EVENTS ROUTES', () => {
         url: `/events/${invalidId.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
+
       expect(response.statusCode).toBe(404);
     });
   });

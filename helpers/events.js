@@ -30,7 +30,9 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
+const EventHistoriesHelper = require('./eventHistories');
 const UtilsHelper = require('./utils');
+const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
 
@@ -42,30 +44,41 @@ exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
         moment(contract.endDate).isSameOrAfter(day, 'd')));
 
 exports.hasConflicts = async (event) => {
-  const auxiliaryEvents = await Event.find({
-    auxiliary: event.auxiliary,
-    $or: [
-      { startDate: { $gte: event.startDate, $lt: event.endDate } },
-      { endDate: { $gt: event.startDate, $lte: event.endDate } },
-      { startDate: { $lte: event.startDate }, endDate: { $gte: event.endDate } },
-    ],
-  });
+  const { _id, auxiliary, startDate, endDate } = event;
+  const auxiliaryEvents = await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate);
 
   return auxiliaryEvents.some((ev) => {
-    if ((event._id && event._id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
+    if ((_id && _id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
     return (
-      moment(event.startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[]') ||
-      moment(ev.startDate).isBetween(event.startDate, event.endDate, 'minutes', '[]')
+      moment(startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[]') ||
+      moment(ev.startDate).isBetween(startDate, endDate, 'minutes', '[]')
     );
   });
+};
+
+exports.createEvent = async (payload, credentials) => {
+  if (!(await exports.isCreationAllowed(payload))) throw Boom.badData();
+
+  await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
+
+  let event = new Event(payload);
+  await event.save();
+  event = await EventRepository.getEvent(event._id);
+
+  if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
+    event = await exports.createRepetitions(event);
+  }
+
+  return exports.populateEventSubscription(event);
 };
 
 exports.isCreationAllowed = async (event) => {
   if (!event.auxiliary) return true;
   if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
 
-  let user = await User.findOne({ _id: event.auxiliary }).populate('contracts');
-  user = user.toObject();
+  if (event.type !== ABSENCE && !moment(event.startDate).isSame(event.endDate, 'day')) return false;
+
+  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!user.contracts || user.contracts.length === 0) {
     return false;
   }
@@ -75,8 +88,8 @@ exports.isCreationAllowed = async (event) => {
   // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention and this customer
   //   should have an active subscription
   if (event.type === INTERVENTION) {
-    let customer = await Customer.findOne({ _id: event.customer }).populate('subscriptions.service');
-    customer = await populateSubscriptionsServices(customer.toObject());
+    let customer = await Customer.findOne({ _id: event.customer }).populate('subscriptions.service').lean();
+    customer = await populateSubscriptionsServices(customer);
 
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;
@@ -103,11 +116,8 @@ exports.isCreationAllowed = async (event) => {
 exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
 
-  if (
-    [ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) &&
-    payload.auxiliary &&
-    payload.auxiliary !== eventFromDB.auxiliary.toHexString()
-  ) {
+  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) &&
+    payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString()) {
     return false;
   }
 
@@ -317,15 +327,14 @@ const isMiscOnlyUpdated = (event, payload) => {
   return !event.misc || event.misc === '' || (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
 };
 
+/**
+ * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the repetition
+ * i.e. delete the repetition object. EXCEPT if we are only updating the misc field
+ *
+ * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the camcellation
+ * i.e. delete the cancel object and set isCancelled to false.
+ */
 exports.updateEvent = async (event, payload) => {
-  /**
-   * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the repetition
-   * i.e. delete the repetition object. EXCEPT if we are only updating the misc field
-   *
-   * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the camcellation
-   * i.e. delete the cancel object and set isCancelled to false.
-   */
-
   const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
 
   let unset;
@@ -351,16 +360,7 @@ exports.updateEvent = async (event, payload) => {
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
 
-  event = await Event
-    .findOneAndUpdate(
-      { _id: event._id },
-      { $set: set, ...(unset && { $unset: unset }) },
-      { autopopulate: false, new: true }
-    ).populate({
-      path: 'auxiliary',
-      select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-    }).populate({ path: 'customer', select: 'identity subscriptions contact' })
-    .lean();
+  event = await EventRepository.updateEvent(event._id, set, unset);
 
   return exports.populateEventSubscription(event);
 };
@@ -374,105 +374,37 @@ exports.deleteRepetition = async (event) => {
 };
 
 exports.unassignInterventions = async (contract) => {
-  const customerSubscriptionsFromEvents = await Event.aggregate([
-    {
-      $match: {
-        $and: [
-          { startDate: { $gt: new Date(contract.endDate) } },
-          { auxiliary: new ObjectID(contract.user) },
-          { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-        ],
-      },
-    },
-    {
-      $group: {
-        _id: { SUBS: '$subscription', CUSTOMER: '$customer' },
-      },
-    },
-    {
-      $lookup: {
-        from: 'customers',
-        localField: '_id.CUSTOMER',
-        foreignField: '_id',
-        as: 'customer',
-      },
-    },
-    { $unwind: { path: '$customer' } },
-    {
-      $addFields: {
-        sub: {
-          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-        },
-      },
-    },
-    { $unwind: { path: '$sub' } },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'sub.service',
-        foreignField: '_id',
-        as: 'sub.service',
-      },
-    },
-    { $unwind: { path: '$sub.service' } },
-    {
-      $project: {
-        _id: 0,
-        customer: { _id: 1 },
-        sub: 1,
-      },
-    },
-  ]);
+  const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract);
 
   if (customerSubscriptionsFromEvents.length === 0) return;
   let correspondingSubs;
-  if (contract.status === COMPANY_CONTRACT) {
-    correspondingSubs = customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status);
-  } else {
-    correspondingSubs = customerSubscriptionsFromEvents.filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status);
-  }
-  const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
-  await Event.updateMany(
-    { startDate: { $gt: contract.endDate }, auxiliary: contract.user, subscription: { $in: correspondingSubsIds }, isBilled: false },
-    { $unset: { auxiliary: '' } }
-  );
-};
+  correspondingSubs = contract.status === COMPANY_CONTRACT
+    ? customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status)
+    : correspondingSubs = customerSubscriptionsFromEvents
+      .filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status);
 
-exports.removeEventsExceptInterventions = async contract => Event.deleteMany({
-  startDate: { $gt: contract.endDate },
-  auxiliary: contract.user,
-  subscription: { $exists: false },
-});
+  const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
+
+  await EventRepository.unassignInterventions(contract.endDate, contract.user, correspondingSubsIds);
+};
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate) => {
   const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
-  await Event.updateMany({
-    type: ABSENCE,
-    auxiliary: auxiliaryId,
-    startDate: { $lte: maxEndDate },
-    endDate: { $gt: maxEndDate },
-  }, {
-    endDate: maxEndDate,
-  });
+  await EventRepository.updateAbsenceEndDate(auxiliaryId, maxEndDate);
+};
+
+exports.deleteEvent = async (params, credentials) => {
+  const event = await Event.findOne({ _id: params._id });
+  if (!event) return null;
+
+  await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
+  await Event.deleteOne({ _id: params._id });
+
+  return event;
 };
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
-  const query = {
-    type: { $in: [INTERVENTION, INTERNAL_HOUR] },
-    $or: [
-      { startDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-    ],
-  };
-
-  const events = await Event.find(query)
-    .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity' })
-    .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'sector' })
-    .lean();
-
+  const events = await EventRepository.getWorkingEventsForExport(startDate, endDate);
   const header = [
     'Type',
     'Heure interne',
@@ -491,7 +423,6 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
   ];
 
   const rows = [header];
-
   for (const event of events) {
     let repetition = _.get(event.repetition, 'frequency');
     repetition = NEVER === repetition ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
@@ -520,20 +451,7 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
 };
 
 exports.exportAbsencesHistory = async (startDate, endDate) => {
-  const query = {
-    type: ABSENCE,
-    $or: [
-      { startDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-    ],
-  };
-
-  const events = await Event.find(query)
-    .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity' })
-    .populate({ path: 'sector' })
-    .lean();
+  const events = await EventRepository.getAbsencesForExport(startDate, endDate);
 
   const header = ['Type', 'Nature', 'Début', 'Fin', 'Secteur', 'Auxiliaire', 'Divers'];
 
