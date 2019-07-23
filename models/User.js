@@ -116,14 +116,7 @@ const UserSchema = mongoose.Schema({
     },
   },
   procedure: [{
-    task: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Task',
-      autopopulate: {
-        select: '-__v -createdAt -updatedAt',
-        maxDepth: 2,
-      },
-    },
+    task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
     check: {
       isDone: { type: Boolean, default: false },
       at: { type: Date, default: null },
