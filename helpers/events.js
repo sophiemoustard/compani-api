@@ -433,7 +433,7 @@ exports.unassignInterventions = async (contract) => {
   }
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
   await Event.updateMany(
-    { startDate: { $gt: contract.endDate }, subscription: { $in: correspondingSubsIds }, isBilled: false },
+    { startDate: { $gt: contract.endDate }, auxiliary: contract.user, subscription: { $in: correspondingSubsIds }, isBilled: false },
     { $unset: { auxiliary: '' } }
   );
 };
