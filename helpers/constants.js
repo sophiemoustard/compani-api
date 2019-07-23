@@ -202,4 +202,5 @@ module.exports = {
   WEEKS_PER_MONTH: (52 / 12),
   // EVENT HISTORY
   EVENT_CREATION: 'event_creation',
+  EVENT_DELETION: 'event_deletion',
 };

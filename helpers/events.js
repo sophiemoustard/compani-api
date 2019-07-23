@@ -30,7 +30,10 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
-const { createEventHistory } = require('./eventHistories');
+const {
+  createEventHistoryOnCreate,
+  createEventHistoryOnDelete,
+} = require('./eventHistories');
 const UtilsHelper = require('./utils');
 
 momentRange.extendMoment(moment);
@@ -64,7 +67,7 @@ exports.hasConflicts = async (event) => {
 exports.createEvent = async (payload, credentials) => {
   if (!(await exports.isCreationAllowed(payload))) return Boom.badData();
 
-  await createEventHistory(payload, credentials);
+  await createEventHistoryOnCreate(payload, credentials);
 
   let event = new Event(payload);
   await event.save();
@@ -476,6 +479,14 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate) => {
   }, {
     endDate: maxEndDate,
   });
+};
+
+exports.deleteEvent = async (params, credentials) => {
+  const event = await Event.findOne({ _id: params._id });
+  await createEventHistoryOnDelete(event, credentials);
+  await Event.deleteOne({ _id: params._id });
+
+  return event;
 };
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {

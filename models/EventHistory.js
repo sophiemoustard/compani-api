@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const { EVENT_TYPES } = require('./Event');
-const { EVENT_CREATION } = require('../helpers/constants');
+const { EVENT_CREATION, EVENT_DELETION } = require('../helpers/constants');
 
-const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION];
+const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION];
 
 const EventHistorySchema = mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

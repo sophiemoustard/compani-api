@@ -11,6 +11,7 @@ const {
   deleteRepetition,
   isEditionAllowed,
   createEvent,
+  deleteEvent,
 } = require('../helpers/events');
 const { ABSENCE, NEVER, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
 const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
@@ -107,7 +108,8 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const event = await Event.findByIdAndRemove({ _id: req.params._id });
+    const { params, auth } = req;
+    const event = deleteEvent(params, auth.credentials);
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     return { message: translate[language].eventDeleted };
