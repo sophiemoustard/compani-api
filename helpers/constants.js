@@ -203,4 +203,5 @@ module.exports = {
   // EVENT HISTORY
   EVENT_CREATION: 'event_creation',
   EVENT_DELETION: 'event_deletion',
+  EVENT_UPDATE: 'event_update',
 };
