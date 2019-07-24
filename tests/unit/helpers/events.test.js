@@ -27,16 +27,18 @@ const {
 require('sinon-mongoose');
 
 describe('updateEvent', () => {
+  let createEventHistoryOnUpdate;
   let populateEventSubscription;
   let updateRepetitions;
   let updateEvent;
   beforeEach(() => {
+    createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     updateRepetitions = sinon.stub(EventHelper, 'updateRepetitions');
     updateEvent = sinon.stub(EventRepository, 'updateEvent');
   });
-
   afterEach(() => {
+    createEventHistoryOnUpdate.restore();
     populateEventSubscription.restore();
     updateRepetitions.restore();
     updateEvent.restore();

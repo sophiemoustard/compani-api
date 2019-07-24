@@ -122,7 +122,7 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
-            sector: Joi.string(),
+            sector: Joi.string().required(),
             location: Joi.object().keys({
               street: Joi.string(),
               zipCode: Joi.string(),
