@@ -6,16 +6,10 @@ exports.getListQuery = (query) => {
   const rules = [];
   const { sectors, auxiliaries } = query;
 
-  if (sectors) {
-    const sectorCondition = formatArrayOrStringQueryParam(sectors, 'sectors');
-    rules.push({ $or: sectorCondition });
-  }
-  if (auxiliaries) {
-    const auxiliaryCondition = formatArrayOrStringQueryParam(auxiliaries, 'auxiliaries');
-    rules.push({ $or: auxiliaryCondition });
-  }
+  if (sectors) rules.push(...formatArrayOrStringQueryParam(sectors, 'sectors'));
+  if (auxiliaries) rules.push(...formatArrayOrStringQueryParam(auxiliaries, 'auxiliaries'));
 
-  return rules.length > 0 ? { $and: rules } : {};
+  return rules.length > 0 ? { $or: rules } : {};
 };
 
 const createEventHistory = async (payload, credentials, action) => {
@@ -36,7 +30,7 @@ const createEventHistory = async (payload, credentials, action) => {
       location,
       misc,
     },
-    auxiliaries: [auxiliary],
+    ...(auxiliary && { auxiliaries: [auxiliary] }),
     sectors: [sector],
   });
 
