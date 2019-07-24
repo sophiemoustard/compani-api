@@ -20,12 +20,18 @@ exports.getListQuery = (query) => {
 
 const createEventHistory = async (payload, credentials, action) => {
   const { _id: createdBy } = credentials;
-  const { customer, startDate, type, auxiliary, sector } = payload;
+  const { customer, startDate, endDate, type, auxiliary, sector } = payload;
 
   const eventHistory = new EventHistory({
     createdBy,
     action,
-    event: { type, startDate, customer, auxiliary },
+    event: {
+      type,
+      startDate,
+      endDate,
+      customer,
+      auxiliary,
+    },
     auxiliaries: [auxiliary],
     sectors: [sector],
   });
