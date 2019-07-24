@@ -365,12 +365,22 @@ exports.updateEvent = async (event, payload) => {
   return exports.populateEventSubscription(event);
 };
 
-exports.deleteRepetition = async (event) => {
-  await Event.deleteMany({
-    'repetition.parentId': event.repetition.parentId,
-    startDate: { $gt: new Date(event.startDate) },
-    $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
-  });
+exports.deleteRepetition = async (params, credentials) => {
+  const event = await Event.findOne({ _id: params._id });
+  if (!event) return null;
+
+  await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
+
+  const { type, repetition } = event;
+  if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
+    await Event.deleteMany({
+      'repetition.parentId': event.repetition.parentId,
+      startDate: { $gte: new Date(event.startDate) },
+      $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+    });
+  }
+
+  return event;
 };
 
 exports.unassignInterventions = async (contract) => {
@@ -397,7 +407,8 @@ exports.deleteEvent = async (params, credentials) => {
   const event = await Event.findOne({ _id: params._id });
   if (!event) return null;
 
-  await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
+  const deletionInfo = _.omit(event, 'repetition');
+  await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
   await Event.deleteOne({ _id: params._id });
 
   return event;
