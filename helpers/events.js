@@ -334,7 +334,8 @@ const isMiscOnlyUpdated = (event, payload) => {
  * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the camcellation
  * i.e. delete the cancel object and set isCancelled to false.
  */
-exports.updateEvent = async (event, payload) => {
+exports.updateEvent = async (event, payload, credentials) => {
+  await EventHistoriesHelper.createEventHistoryOnUpdate(payload, event, credentials);
   const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
 
   let unset;

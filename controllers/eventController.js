@@ -83,7 +83,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const { payload } = req;
+    const { payload, auth } = req;
 
     let event = await Event.findOne({ _id: req.params._id }).lean();
     if (!event) return Boom.notFound(translate[language].eventNotFound);
@@ -94,7 +94,7 @@ const update = async (req) => {
 
     if (!(await isEditionAllowed(event, payload))) return Boom.badData();
 
-    event = await updateEvent(event, payload);
+    event = await updateEvent(event, payload, auth.credentials);
 
     return {
       message: translate[language].eventUpdated,
