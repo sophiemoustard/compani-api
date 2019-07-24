@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { EVENT_TYPES, ABSENCE_TYPES } = require('./Event');
-const { EVENT_CREATION, EVENT_DELETION } = require('../helpers/constants');
+const { EVENT_CREATION, EVENT_DELETION, REPETITION_FREQUENCIES } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION];
@@ -21,6 +21,9 @@ const EventHistorySchema = mongoose.Schema({
     },
     location: addressSchemaDefinition,
     misc: { type: String },
+    repetition: {
+      frequency: { type: String, enum: REPETITION_FREQUENCIES },
+    },
   },
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],

@@ -121,13 +121,8 @@ const remove = async (req) => {
 
 const removeRepetition = async (req) => {
   try {
-    const event = await Event.findByIdAndRemove({ _id: req.params._id });
-    if (!event) return Boom.notFound(translate[language].eventNotFound);
-
-    const { type, repetition } = event;
-    if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
-      await deleteRepetition(event);
-    }
+    const { params, auth } = req;
+    const event = await deleteRepetition(params, auth.credentials);
 
     return {
       message: translate[language].eventDeleted,

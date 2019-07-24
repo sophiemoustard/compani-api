@@ -1106,3 +1106,131 @@ describe('createEvent', () => {
     sinon.assert.called(populateEventSubscription);
   });
 });
+
+describe('deleteRepetition', () => {
+  let findOne;
+  let createEventHistoryOnDelete;
+  let deleteMany;
+  const params = { _id: new ObjectID() };
+  const credentials = { _id: new ObjectID() };
+  beforeEach(() => {
+    findOne = sinon.stub(Event, 'findOne');
+    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
+    deleteMany = sinon.stub(Event, 'deleteMany');
+  });
+  afterEach(() => {
+    findOne.restore();
+    createEventHistoryOnDelete.restore();
+    deleteMany.restore();
+  });
+
+  it('should return null if event not found', async () => {
+    findOne.returns(null);
+    const result = await EventHelper.deleteRepetition(params, {});
+
+    expect(result).toBeNull();
+  });
+
+  it('should delete repetition', async () => {
+    const parentId = new ObjectID();
+    const event = {
+      type: INTERVENTION,
+      repetition: {
+        frequency: EVERY_WEEK,
+        parentId,
+      },
+      startDate: '2019-01-21T09:38:18.653Z',
+    };
+    findOne.returns(event);
+    const result = await EventHelper.deleteRepetition(params, credentials);
+
+    expect(result).toEqual(event);
+    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.calledWith(
+      deleteMany,
+      {
+        'repetition.parentId': parentId,
+        startDate: { $gte: new Date(event.startDate) },
+        $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+      }
+    );
+  });
+
+  it('should not delete repetition as event is absence', async () => {
+    const event = {
+      type: ABSENCE,
+      repetition: { frequency: EVERY_WEEK },
+      startDate: '2019-01-21T09:38:18.653Z',
+    };
+    findOne.returns(event);
+    const result = await EventHelper.deleteRepetition(params, credentials);
+
+    expect(result).toEqual(event);
+    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.notCalled(deleteMany);
+  });
+
+  it('should not delete repetition as event is not a repetition', async () => {
+    const parentId = new ObjectID();
+    const event = {
+      type: INTERVENTION,
+      repetition: {
+        frequency: NEVER,
+        parentId,
+      },
+      startDate: '2019-01-21T09:38:18.653Z',
+    };
+    findOne.returns(event);
+    const result = await EventHelper.deleteRepetition(params, credentials);
+
+    expect(result).toEqual(event);
+    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.notCalled(deleteMany);
+  });
+});
+
+describe('deleteEvent', () => {
+  let findOne;
+  let createEventHistoryOnDelete;
+  let deleteOne;
+  const params = { _id: new ObjectID() };
+  const credentials = { _id: new ObjectID() };
+  beforeEach(() => {
+    findOne = sinon.stub(Event, 'findOne');
+    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
+    deleteOne = sinon.stub(Event, 'deleteOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+    createEventHistoryOnDelete.restore();
+    deleteOne.restore();
+  });
+
+  it('should return null if event not found', async () => {
+    findOne.returns(null);
+    const result = await EventHelper.deleteEvent(params, {});
+
+    expect(result).toBeNull();
+  });
+
+  it('should delete repetition', async () => {
+    const parentId = new ObjectID();
+    const deletionInfo = {
+      type: INTERVENTION,
+      startDate: '2019-01-21T09:38:18.653Z',
+    };
+    const event = {
+      ...deletionInfo,
+      repetition: {
+        frequency: EVERY_WEEK,
+        parentId,
+      },
+    };
+    findOne.returns(event);
+    const result = await EventHelper.deleteEvent(params, credentials);
+
+    expect(result).toEqual(event);
+    sinon.assert.calledWith(createEventHistoryOnDelete, deletionInfo, credentials);
+    sinon.assert.calledWith(deleteOne, { _id: params._id });
+  });
+});
