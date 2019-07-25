@@ -21,7 +21,7 @@ const create = async (req) => {
 
     return {
       message: translate[language].taskCreated,
-      data: { task }
+      data: { task },
     };
   } catch (e) {
     req.log('error', e);
@@ -40,7 +40,7 @@ const update = async (req) => {
 
     return {
       message: translate[language].taskUpdated,
-      data: { task: taskUpdated }
+      data: { task: taskUpdated },
     };
   } catch (e) {
     req.log('error', e);
@@ -54,13 +54,13 @@ const list = async (req) => {
     if (tasks.length === 0) {
       return {
         message: translate[language].tasksNotFound,
-        data: { tasks: [] }
+        data: { tasks: [] },
       };
     }
 
     return {
       message: translate[language].tasksFound,
-      data: { tasks }
+      data: { tasks },
     };
   } catch (e) {
     req.log('error', e);
@@ -76,7 +76,7 @@ const showById = async (req) => {
     return {
       success: true,
       message: translate[language].taskFound,
-      data: { task }
+      data: { task },
     };
   } catch (e) {
     req.log('error', e);
@@ -97,7 +97,7 @@ const remove = async (req) => {
 
     return {
       message: translate[language].taskRemoved,
-      data: { taskDeleted }
+      data: { taskDeleted },
     };
   } catch (e) {
     req.log('error', e);
@@ -110,5 +110,5 @@ module.exports = {
   update,
   list,
   showById,
-  remove
+  remove,
 };

@@ -9,6 +9,8 @@ const Company = require('../../../models/Company');
 const Surcharge = require('../../../models/Surcharge');
 const DistanceMatrix = require('../../../models/DistanceMatrix');
 const Pay = require('../../../models/Pay');
+const ContractRepository = require('../../../repositories/ContractRepository');
+const EventRepository = require('../../../repositories/EventRepository');
 
 require('sinon-mongoose');
 
@@ -201,7 +203,7 @@ describe('getSurchargeDetails', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({
       '5d021ac76385b60f22af644c': { 10: { hours: 3 } },
-      '5d021ac76740b60f42af845b': { planName: 'Luigi', Noel: { hours: 2, percentage: 35 } }
+      '5d021ac76740b60f42af845b': { planName: 'Luigi', Noel: { hours: 2, percentage: 35 } },
     });
   });
 });
@@ -412,7 +414,7 @@ describe('getTransportInfo', () => {
       destinations: 'paradis',
       mode: 'repos',
       duration: 120,
-      distance: 2000
+      distance: 2000,
     }];
     const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'paradis', 'repos');
 
@@ -717,7 +719,7 @@ describe('getTransportRefund', () => {
       contact: { address: { zipCode: '75' } },
     };
     const company = {
-      rhConfig: { transportSubs: [{ department: '92', price: 10 }] }
+      rhConfig: { transportSubs: [{ department: '92', price: 10 }] },
     };
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
 
@@ -731,7 +733,7 @@ describe('getTransportRefund', () => {
       contact: { address: { zipCode: '75' } },
     };
     const company = {
-      rhConfig: { transportSubs: [{ department: '75', price: 10 }] }
+      rhConfig: { transportSubs: [{ department: '75', price: 10 }] },
     };
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
 
@@ -744,7 +746,7 @@ describe('getTransportRefund', () => {
       administrative: { transportInvoice: { transportType: 'private' } },
     };
     const company = {
-      rhConfig: { amountPerKm: 0.35 }
+      rhConfig: { amountPerKm: 0.35 },
     };
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio, 15);
 
@@ -891,7 +893,7 @@ describe('getPayFromEvents', () => {
       false,
       { startDate: '2019-02-22T00:00:00', surcharge: { _id: surchargeId, sunday: 10 }, exemptFromCharges: true },
       {},
-      [],
+      []
     );
   });
 
@@ -937,7 +939,7 @@ describe('getPayFromEvents', () => {
       false,
       { startDate: '2019-02-22T00:00:00', surcharge: { _id: surchargeId, sunday: 10 }, exemptFromCharges: false },
       {},
-      [],
+      []
     );
   });
 
@@ -1159,9 +1161,9 @@ describe('getPreviousMonthPay', () => {
   let computePrevPayCounterDiff;
 
   beforeEach(() => {
-    getAuxiliariesFromContracts = sinon.stub(DraftPayHelper, 'getAuxiliariesFromContracts');
-    getEventsToPay = sinon.stub(DraftPayHelper, 'getEventsToPay');
-    getAbsencesToPay = sinon.stub(DraftPayHelper, 'getAbsencesToPay');
+    getAuxiliariesFromContracts = sinon.stub(ContractRepository, 'getAuxiliariesFromContracts');
+    getEventsToPay = sinon.stub(EventRepository, 'getEventsToPay');
+    getAbsencesToPay = sinon.stub(EventRepository, 'getAbsencesToPay');
     findPay = sinon.stub(Pay, 'find');
     computePrevPayCounterDiff = sinon.stub(DraftPayHelper, 'computePrevPayCounterDiff');
   });
@@ -1248,9 +1250,9 @@ describe('getDraftPay', () => {
   let getDraftPayByAuxiliary;
 
   beforeEach(() => {
-    getAuxiliariesFromContracts = sinon.stub(DraftPayHelper, 'getAuxiliariesFromContracts');
-    getEventsToPay = sinon.stub(DraftPayHelper, 'getEventsToPay');
-    getAbsencesToPay = sinon.stub(DraftPayHelper, 'getAbsencesToPay');
+    getAuxiliariesFromContracts = sinon.stub(ContractRepository, 'getAuxiliariesFromContracts');
+    getEventsToPay = sinon.stub(EventRepository, 'getEventsToPay');
+    getAbsencesToPay = sinon.stub(EventRepository, 'getAbsencesToPay');
     companyMock = sinon.mock(Company);
     findSurcharge = sinon.stub(Surcharge, 'find');
     findDistanceMatrix = sinon.stub(DistanceMatrix, 'find');
@@ -1324,7 +1326,7 @@ describe('getDraftPay', () => {
       {},
       { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' },
       [],
-      [],
+      []
     );
   });
 

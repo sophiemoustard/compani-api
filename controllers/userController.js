@@ -131,7 +131,10 @@ const activeList = async (req) => {
 
 const show = async (req) => {
   try {
-    let user = await User.findOne({ _id: req.params._id }).populate('customers').populate('contracts');
+    let user = await User.findOne({ _id: req.params._id })
+      .populate('customers')
+      .populate('contracts')
+      .populate({ path: 'procedure.task', select: 'name _id' });
     if (!user) return Boom.notFound(translate[language].userNotFound);
 
     user = user.toObject();
@@ -263,18 +266,18 @@ const updateTask = async (req) => {
 
 const getUserTasks = async (req) => {
   try {
-    const tasks = await User.findOne(
+    const user = await User.findOne(
       { _id: req.params._id, procedure: { $exists: true } },
       { identity: 1, procedure: 1 }
-    );
+    ).populate({ path: 'procedure.task', select: 'name _id' });
 
-    if (!tasks) return Boom.notFound();
+    if (!user) return Boom.notFound();
 
     return {
       message: translate[language].userTasksFound,
       data: {
-        user: _.pick(tasks, ['_id', 'identity']),
-        tasks: tasks.procedure,
+        user: _.pick(user, ['_id', 'identity']),
+        tasks: user.procedure,
       },
     };
   } catch (e) {

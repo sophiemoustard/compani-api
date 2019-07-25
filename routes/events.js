@@ -43,7 +43,7 @@ exports.plugin = {
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(), // Unassigned event
             customer: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
-            location: Joi.object().keys({
+            address: Joi.object().keys({
               street: Joi.string(),
               zipCode: Joi.string(),
               city: Joi.string(),
@@ -88,7 +88,7 @@ exports.plugin = {
             sector: [Joi.array().items(Joi.string()), Joi.string()],
             customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
-            isBilled: Joi.boolean(),
+            groupBy: Joi.string(),
           },
         },
       },
@@ -122,12 +122,12 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
-            sector: Joi.string(),
-            location: Joi.object().keys({
-              street: Joi.string(),
-              zipCode: Joi.string(),
-              city: Joi.string(),
-              fullAddress: Joi.string(),
+            sector: Joi.string().required(),
+            address: Joi.object().keys({
+              street: Joi.string().allow(null, '').default(''),
+              zipCode: Joi.string().allow(null, '').default(''),
+              city: Joi.string().allow(null, '').default(''),
+              fullAddress: Joi.string().allow(null, '').default(''),
             }),
             subscription: Joi.objectId(),
             internalHour: Joi.object(),
