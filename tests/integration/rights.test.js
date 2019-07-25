@@ -53,7 +53,7 @@ describe('RIGHTS ROUTES', () => {
           expect.objectContaining({
             right_id: res.result.data.right._id,
             hasAccess: false,
-          })
+          }),
         ]));
       });
     });
@@ -64,7 +64,7 @@ describe('RIGHTS ROUTES', () => {
         expect.objectContaining({
           right_id: res.result.data.right._id,
           hasAccess: true,
-        })
+        }),
       ]));
     });
 
@@ -82,7 +82,7 @@ describe('RIGHTS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/rights',
-        payload: { permission: 'rhconfig:edit' },
+        payload: { permission: 'config:edit' },
         headers: { 'x-access-token': token },
       });
       expect(response.statusCode).toBe(409);
@@ -222,7 +222,7 @@ describe('RIGHTS ROUTES', () => {
       const roles = await Role.find({}, {}, { autopopulate: false });
       roles.forEach((role) => {
         expect(role.rights).toEqual(expect.not.arrayContaining([
-          { right_id: rightsList[0]._id }
+          { right_id: rightsList[0]._id },
         ]));
       });
     });

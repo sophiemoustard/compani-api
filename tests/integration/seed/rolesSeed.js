@@ -8,26 +8,26 @@ const rightsList = [
     _id: new ObjectID(),
     name: 'edit-rh-config',
     description: 'Edit rh config',
-    permission: 'rhconfig:edit',
+    permission: 'config:edit',
   },
   {
     _id: new ObjectID(),
     name: 'read-rh-config',
     description: 'Read rh config',
-    permission: 'rhConfig:read'
+    permission: 'config:read',
   },
   {
     _id: new ObjectID(),
     name: 'right3',
     description: 'right3',
-    permission: 'right3:write'
+    permission: 'right3:write',
   },
   {
     _id: new ObjectID(),
     name: 'right4',
     description: 'right4',
-    permission: 'right4:read'
-  }
+    permission: 'right4:read',
+  },
 ];
 
 const rolesList = [
@@ -37,17 +37,17 @@ const rolesList = [
     rights: [
       {
         right_id: rightsList[0]._id,
-        hasAccess: true
+        hasAccess: true,
       },
       {
         right_id: rightsList[1]._id,
-        hasAccess: true
+        hasAccess: true,
       },
       {
         right_id: rightsList[2]._id,
-        hasAccess: true
-      }
-    ]
+        hasAccess: true,
+      },
+    ],
   },
   {
     _id: new ObjectID(),
@@ -55,17 +55,17 @@ const rolesList = [
     rights: [
       {
         right_id: rightsList[0]._id,
-        hasAccess: true
+        hasAccess: true,
       },
       {
         right_id: rightsList[1]._id,
-        hasAccess: true
+        hasAccess: true,
       },
       {
         right_id: rightsList[2]._id,
-        hasAccess: true
-      }
-    ]
+        hasAccess: true,
+      },
+    ],
   },
   {
     _id: new ObjectID(),
@@ -73,17 +73,17 @@ const rolesList = [
     rights: [
       {
         right_id: rightsList[0]._id,
-        hasAccess: true
+        hasAccess: true,
       },
       {
         right_id: rightsList[1]._id,
-        hasAccess: false
+        hasAccess: false,
       },
       {
         right_id: rightsList[2]._id,
-        hasAccess: true
-      }
-    ]
+        hasAccess: true,
+      },
+    ],
   },
   {
     _id: new ObjectID(),
@@ -91,17 +91,17 @@ const rolesList = [
     rights: [
       {
         right_id: rightsList[0]._id,
-        hasAccess: true
+        hasAccess: true,
       },
       {
         right_id: rightsList[1]._id,
-        hasAccess: false
+        hasAccess: false,
       },
       {
         right_id: rightsList[2]._id,
-        hasAccess: false
-      }
-    ]
+        hasAccess: false,
+      },
+    ],
   },
 ];
 
@@ -110,17 +110,17 @@ const rolePayload = {
   rights: [
     {
       right_id: rightsList[0]._id,
-      hasAccess: true
+      hasAccess: true,
     },
     {
       right_id: rightsList[1]._id,
-      hasAccess: true
+      hasAccess: true,
     },
     {
       right_id: rightsList[2]._id,
-      hasAccess: false
-    }
-  ]
+      hasAccess: false,
+    },
+  ],
 };
 
 const wrongRolePayload = {
@@ -134,14 +134,14 @@ const wrongRolePayload = {
     {
       _id: rightsList[1]._id,
       name: rightsList[1].name,
-      permission_level: 9
+      permission_level: 9,
     },
     {
       _id: rightsList[2]._id,
       name: rightsList[2].name,
-      permission_level: 1
-    }
-  ]
+      permission_level: 1,
+    },
+  ],
 };
 
 const rightPayload = { name: 'Test', description: 'test', permission: 'test:read' };
