@@ -6,12 +6,12 @@ const has = require('lodash/has');
 const setWith = require('lodash/setWith');
 const clone = require('lodash/clone');
 const differenceBy = require('lodash/differenceBy');
-const Event = require('../models/Event');
 const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const Pay = require('../models/Pay');
-const Contract = require('../models/Contract');
+const ContractRepository = require('../repositories/ContractRepository');
+const EventRepository = require('../repositories/EventRepository');
 const {
   FIXED,
   PUBLIC_TRANSPORT,
@@ -19,11 +19,8 @@ const {
   DRIVING,
   PRIVATE_TRANSPORT,
   INTERVENTION,
-  INTERNAL_HOUR,
-  ABSENCE,
   DAILY,
   COMPANY_CONTRACT,
-  INVOICED_AND_PAYED,
   WEEKS_PER_MONTH,
 } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
@@ -40,205 +37,6 @@ moment.updateLocale('fr', {
   workingWeekdays: [1, 2, 3, 4, 5, 6],
 });
 moment.tz.setDefault('Europe/Paris');
-
-exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate([
-  { $match: { ...contractRules } },
-  { $group: { _id: '$user' } },
-  {
-    $lookup: {
-      from: 'users',
-      localField: '_id',
-      foreignField: '_id',
-      as: 'auxiliary',
-    },
-  },
-  { $unwind: { path: '$auxiliary' } },
-  {
-    $lookup: {
-      from: 'sectors',
-      localField: 'auxiliary.sector',
-      foreignField: '_id',
-      as: 'auxiliary.sector',
-    },
-  },
-  { $unwind: { path: '$auxiliary.sector' } },
-  {
-    $lookup: {
-      from: 'contracts',
-      localField: 'auxiliary.contracts',
-      foreignField: '_id',
-      as: 'auxiliary.contracts',
-    },
-  },
-  {
-    $project: {
-      _id: 1,
-      identity: { firstname: '$auxiliary.identity.firstname', lastname: '$auxiliary.identity.lastname' },
-      sector: '$auxiliary.sector',
-      contracts: '$auxiliary.contracts',
-      contact: '$auxiliary.contact',
-      administrative: { mutualFund: '$auxiliary.administrative.mutualFund', transportInvoice: '$auxiliary.administrative.transportInvoice' },
-    },
-  },
-]);
-
-exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
-  {
-    $match: {
-      $or: [
-        {
-          status: COMPANY_CONTRACT,
-          type: INTERVENTION,
-          $and: [{
-            $or: [
-              { isCancelled: false },
-              { isCancelled: { $exists: false } },
-              { 'cancel.condition': INVOICED_AND_PAYED },
-            ],
-          },
-          {
-            $or: [
-              { startDate: { $gte: start, $lt: end } },
-              { endDate: { $gt: start, $lte: end } },
-              { endDate: { $gte: end }, startDate: { $lte: start } },
-            ],
-          }],
-          auxiliary: { $in: auxiliaries },
-        },
-        {
-          type: INTERNAL_HOUR,
-          auxiliary: { $in: auxiliaries },
-          $or: [
-            { startDate: { $gte: start, $lt: end } },
-            { endDate: { $gt: start, $lte: end } },
-            { endDate: { $gte: end }, startDate: { $lte: start } },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'auxiliary',
-      foreignField: '_id',
-      as: 'auxiliary',
-    },
-  },
-  { $unwind: { path: '$auxiliary' } },
-  {
-    $lookup: {
-      from: 'customers',
-      localField: 'customer',
-      foreignField: '_id',
-      as: 'customer',
-    },
-  },
-  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      subscription: {
-        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$$ROOT.subscription'] } },
-      },
-    },
-  },
-  { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'services',
-      localField: 'subscription.service',
-      foreignField: '_id',
-      as: 'subscription.service',
-    },
-  },
-  { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
-  {
-    $project: {
-      auxiliary: { _id: 1, administrative: { transportInvoice: 1 } },
-      customer: { contact: 1 },
-      startDate: 1,
-      endDate: 1,
-      subscription: { service: 1 },
-      type: 1,
-      location: 1,
-    },
-  },
-  {
-    $group: {
-      _id: {
-        aux: '$auxiliary._id',
-        year: { $year: '$startDate' },
-        month: { $month: '$startDate' },
-        week: { $week: '$startDate' },
-        day: { $dayOfWeek: '$startDate' },
-      },
-      eventsPerDay: { $push: '$$ROOT' },
-      auxiliary: { $addToSet: '$auxiliary' },
-    },
-  },
-  {
-    $group: {
-      _id: '$_id.aux',
-      events: { $push: '$eventsPerDay' },
-    },
-  },
-]);
-
-exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
-  {
-    $match: {
-      type: ABSENCE,
-      auxiliary: { $in: auxiliaries },
-      $or: [
-        { startDate: { $gte: start, $lt: end } },
-        { endDate: { $gt: start, $lte: end } },
-        { endDate: { $gte: end }, startDate: { $lte: start } },
-      ],
-    },
-  },
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'auxiliary',
-      foreignField: '_id',
-      as: 'auxiliary',
-    },
-  },
-  { $unwind: { path: '$auxiliary' } },
-  {
-    $lookup: {
-      from: 'sectors',
-      localField: 'auxiliary.sector',
-      foreignField: '_id',
-      as: 'auxiliary.sector',
-    },
-  },
-  { $unwind: { path: '$auxiliary.sector' } },
-  {
-    $lookup: {
-      from: 'contracts',
-      localField: 'auxiliary.contracts',
-      foreignField: '_id',
-      as: 'auxiliary.contracts',
-    },
-  },
-  {
-    $project: {
-      auxiliary: {
-        _id: 1,
-        identity: { firstname: 1, lastname: 1 },
-        sector: 1,
-        contracts: 1,
-        contact: 1,
-        administrative: { mutualFund: 1, transportInvoice: 1 },
-      },
-      startDate: 1,
-      endDate: 1,
-      absenceNature: 1,
-    },
-  },
-  { $group: { _id: '$auxiliary._id', events: { $push: '$$ROOT' } } },
-]);
 
 exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
   let count = 0;
@@ -566,10 +364,10 @@ exports.getPreviousMonthPay = async (query, surcharges, distanceMatrix) => {
     status: COMPANY_CONTRACT,
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
-  const auxiliaries = await exports.getAuxiliariesFromContracts(contractRules);
+  const auxiliaries = await ContractRepository.getAuxiliariesFromContracts(contractRules);
   const auxIds = auxiliaries.map(aux => aux._id);
-  const eventsByAuxiliary = await exports.getEventsToPay(start, end, auxIds);
-  const absencesByAuxiliary = await exports.getAbsencesToPay(start, end, auxIds);
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxIds);
+  const absencesByAuxiliary = await EventRepository.getAbsencesToPay(start, end, auxIds);
   const prevPayList = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });
 
   const prevPayDiff = [];
@@ -593,12 +391,12 @@ exports.getDraftPay = async (query) => {
     status: COMPANY_CONTRACT,
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } }],
   };
-  const auxiliaries = await exports.getAuxiliariesFromContracts(contractRules);
+  const auxiliaries = await ContractRepository.getAuxiliariesFromContracts(contractRules);
   const existingPay = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });
 
   const auxIds = differenceBy(auxiliaries.map(aux => aux._id), existingPay.map(pay => pay.auxiliary), x => x.toHexString());
-  const eventsByAuxiliary = await exports.getEventsToPay(start, end, auxIds);
-  const absencesByAuxiliary = await exports.getAbsencesToPay(start, end, auxIds);
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxIds);
+  const absencesByAuxiliary = await EventRepository.getAbsencesToPay(start, end, auxIds);
   const company = await Company.findOne({}).lean();
   const surcharges = await Surcharge.find({});
   const distanceMatrix = await DistanceMatrix.find();
