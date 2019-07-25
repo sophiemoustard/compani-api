@@ -117,7 +117,7 @@ describe('EVENTS ROUTES', () => {
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
         sector: sectorsList[0]._id,
-        location: {
+        address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
           zipCode: '92160',
@@ -222,7 +222,7 @@ describe('EVENTS ROUTES', () => {
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: '5c0002a5086ec30013f7f436',
         customer: '5c35b5eb1a6fb00997363eeb',
-        location: {
+        address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
           zipCode: '92160',

@@ -58,7 +58,7 @@ const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
       internalHour: 1,
       absence: 1,
       absenceNature: 1,
-      location: 1,
+      address: 1,
       misc: 1,
       attachment: 1,
       repetition: 1,
@@ -298,7 +298,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
       endDate: 1,
       subscription: { service: 1 },
       type: 1,
-      location: 1,
+      address: 1,
     },
   },
   {

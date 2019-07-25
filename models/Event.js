@@ -60,7 +60,7 @@ const EventSchema = mongoose.Schema({
   },
   absence: { type: String, enum: ABSENCE_TYPES },
   absenceNature: { type: String, enum: ABSENCE_NATURES },
-  location: addressSchemaDefinition,
+  address: addressSchemaDefinition,
   misc: String,
   attachment: driveResourceSchemaDefinition,
   repetition: {

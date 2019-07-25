@@ -43,7 +43,7 @@ exports.plugin = {
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(), // Unassigned event
             customer: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
-            location: Joi.object().keys({
+            address: Joi.object().keys({
               street: Joi.string(),
               zipCode: Joi.string(),
               city: Joi.string(),
@@ -123,7 +123,7 @@ exports.plugin = {
             endDate: Joi.date().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
             sector: Joi.string().required(),
-            location: Joi.object().keys({
+            address: Joi.object().keys({
               street: Joi.string().allow(null, '').default(''),
               zipCode: Joi.string().allow(null, '').default(''),
               city: Joi.string().allow(null, '').default(''),
