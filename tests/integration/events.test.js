@@ -242,8 +242,8 @@ describe('EVENTS ROUTES', () => {
 
   describe('PUT /events/{_id}', () => {
     it('should update corresponding event', async () => {
-      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-01-23T12:00:00.000Z', sector: new ObjectID() };
       const event = eventsList[0];
+      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-01-23T12:00:00.000Z', sector: new ObjectID(), auxiliary: event.auxiliary };
 
       const response = await app.inject({
         method: 'PUT',
