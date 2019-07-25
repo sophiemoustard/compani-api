@@ -52,7 +52,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList[3]._id,
     contracts: [new ObjectID()],
-  }
+  },
 ];
 
 const userPayload = {

@@ -68,7 +68,7 @@ exports.plugin = {
                 additionalAddress: Joi.string().allow('', null),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
-                fullAddress: Joi.string(),
+                fullAddress: Joi.string().required(),
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
