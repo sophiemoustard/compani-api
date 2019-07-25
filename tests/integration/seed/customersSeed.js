@@ -18,7 +18,7 @@ const customersList = [
       title: faker.name.title(),
       firstname: faker.name.firstName(),
       lastname: faker.name.lastName(),
-      birthDate: faker.date.past()
+      birthDate: faker.date.past(),
     },
     contact: {
       address: {
@@ -30,13 +30,13 @@ const customersList = [
           coordinates: [faker.address.latitude(), faker.address.longitude()],
         },
       },
-      phone: faker.phone.phoneNumber()
+      phone: faker.phone.phoneNumber(),
     },
     followUp: {
       pathology: faker.lorem.word(),
       comments: faker.lorem.sentences(4),
       details: faker.lorem.paragraph(4),
-      misc: faker.lorem.sentence()
+      misc: faker.lorem.sentence(),
     },
     payment: {
       bankAccountOwner: `${faker.name.firstName()} ${faker.name.lastName()}`,
@@ -100,7 +100,7 @@ const customersList = [
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [0, 1, 2, 3, 4, 5, 6],
-        }]
+        }],
       },
     ],
     quotes: [{
@@ -108,13 +108,13 @@ const customersList = [
       subscriptions: [{
         serviceName: 'Test',
         unitTTCRate: 23,
-        estimatedWeeklyVolume: 3
+        estimatedWeeklyVolume: 3,
       }, {
         serviceName: 'Test2',
         unitTTCRate: 30,
-        estimatedWeeklyVolume: 10
-      }]
-    }]
+        estimatedWeeklyVolume: 10,
+      }],
+    }],
   },
   {
     _id: new ObjectID(),
@@ -123,22 +123,22 @@ const customersList = [
       title: faker.name.title(),
       firstname: faker.name.firstName(),
       lastname: faker.name.lastName(),
-      birthDate: faker.date.past()
+      birthDate: faker.date.past(),
     },
     contact: {
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
         city: faker.address.city(),
-        location: [faker.address.latitude(), faker.address.longitude()]
+        location: [faker.address.latitude(), faker.address.longitude()],
       },
-      phone: faker.phone.phoneNumber()
+      phone: faker.phone.phoneNumber(),
     },
     followUp: {
       pathology: faker.lorem.word(),
       comments: faker.lorem.sentences(4),
       details: faker.lorem.paragraph(4),
-      misc: faker.lorem.sentence()
+      misc: faker.lorem.sentence(),
     },
     payment: {
       bankAccountOwner: `${faker.name.firstName()} ${faker.name.lastName()}`,
@@ -156,7 +156,7 @@ const customersList = [
       title: faker.name.title(),
       firstname: faker.name.firstName(),
       lastname: faker.name.lastName(),
-      birthDate: faker.date.past()
+      birthDate: faker.date.past(),
     },
     contact: {
       address: {
@@ -168,13 +168,13 @@ const customersList = [
           coordinates: [faker.address.latitude(), faker.address.longitude()],
         },
       },
-      phone: faker.phone.phoneNumber()
+      phone: faker.phone.phoneNumber(),
     },
     followUp: {
       pathology: faker.lorem.word(),
       comments: faker.lorem.sentences(4),
       details: faker.lorem.paragraph(4),
-      misc: faker.lorem.sentence()
+      misc: faker.lorem.sentence(),
     },
     payment: {
       bankAccountOwner: `${faker.name.firstName()} ${faker.name.lastName()}`,
@@ -183,8 +183,8 @@ const customersList = [
       mandates: [
         { rum: faker.helpers.randomize() },
       ],
-    }
-  }
+    },
+  },
 ];
 
 const populateCustomers = async () => {

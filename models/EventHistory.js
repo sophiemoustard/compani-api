@@ -33,7 +33,7 @@ const EventHistorySchema = mongoose.Schema({
       name: String,
       _id: { type: mongoose.Schema.Types.ObjectId },
     },
-    location: addressSchemaDefinition,
+    address: addressSchemaDefinition,
     misc: { type: String },
     repetition: {
       frequency: { type: String, enum: REPETITION_FREQUENCIES },

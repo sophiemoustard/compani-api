@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Event = require('../models/Event');
-const { INTERNAL_HOUR, INTERVENTION, ABSENCE } = require('../helpers/constants');
+const { INTERNAL_HOUR, INTERVENTION, ABSENCE, INVOICED_AND_PAYED, COMPANY_CONTRACT } = require('../helpers/constants');
 
 const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
   { $match: rules },
@@ -58,7 +58,7 @@ const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
       internalHour: 1,
       absence: 1,
       absenceNature: 1,
-      location: 1,
+      address: 1,
       misc: 1,
       attachment: 1,
       repetition: 1,
@@ -219,3 +219,161 @@ exports.updateAbsenceEndDate = async (auxiliaryId, maxEndDate) => Event.updateMa
 }, {
   endDate: maxEndDate,
 });
+
+exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
+  {
+    $match: {
+      $or: [
+        {
+          status: COMPANY_CONTRACT,
+          type: INTERVENTION,
+          $and: [{
+            $or: [
+              { isCancelled: false },
+              { isCancelled: { $exists: false } },
+              { 'cancel.condition': INVOICED_AND_PAYED },
+            ],
+          },
+          {
+            $or: [
+              { startDate: { $gte: start, $lt: end } },
+              { endDate: { $gt: start, $lte: end } },
+              { endDate: { $gte: end }, startDate: { $lte: start } },
+            ],
+          }],
+          auxiliary: { $in: auxiliaries },
+        },
+        {
+          type: INTERNAL_HOUR,
+          auxiliary: { $in: auxiliaries },
+          $or: [
+            { startDate: { $gte: start, $lt: end } },
+            { endDate: { $gt: start, $lte: end } },
+            { endDate: { $gte: end }, startDate: { $lte: start } },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'auxiliary',
+      foreignField: '_id',
+      as: 'auxiliary',
+    },
+  },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: 'customer',
+      foreignField: '_id',
+      as: 'customer',
+    },
+  },
+  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      subscription: {
+        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$$ROOT.subscription'] } },
+      },
+    },
+  },
+  { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'subscription.service',
+      foreignField: '_id',
+      as: 'subscription.service',
+    },
+  },
+  { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
+  {
+    $project: {
+      auxiliary: { _id: 1, administrative: { transportInvoice: 1 } },
+      customer: { contact: 1 },
+      startDate: 1,
+      endDate: 1,
+      subscription: { service: 1 },
+      type: 1,
+      address: 1,
+    },
+  },
+  {
+    $group: {
+      _id: {
+        aux: '$auxiliary._id',
+        year: { $year: '$startDate' },
+        month: { $month: '$startDate' },
+        week: { $week: '$startDate' },
+        day: { $dayOfWeek: '$startDate' },
+      },
+      eventsPerDay: { $push: '$$ROOT' },
+      auxiliary: { $addToSet: '$auxiliary' },
+    },
+  },
+  {
+    $group: {
+      _id: '$_id.aux',
+      events: { $push: '$eventsPerDay' },
+    },
+  },
+]);
+
+exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
+  {
+    $match: {
+      type: ABSENCE,
+      auxiliary: { $in: auxiliaries },
+      $or: [
+        { startDate: { $gte: start, $lt: end } },
+        { endDate: { $gt: start, $lte: end } },
+        { endDate: { $gte: end }, startDate: { $lte: start } },
+      ],
+    },
+  },
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'auxiliary',
+      foreignField: '_id',
+      as: 'auxiliary',
+    },
+  },
+  { $unwind: { path: '$auxiliary' } },
+  {
+    $lookup: {
+      from: 'sectors',
+      localField: 'auxiliary.sector',
+      foreignField: '_id',
+      as: 'auxiliary.sector',
+    },
+  },
+  { $unwind: { path: '$auxiliary.sector' } },
+  {
+    $lookup: {
+      from: 'contracts',
+      localField: 'auxiliary.contracts',
+      foreignField: '_id',
+      as: 'auxiliary.contracts',
+    },
+  },
+  {
+    $project: {
+      auxiliary: {
+        _id: 1,
+        identity: { firstname: 1, lastname: 1 },
+        sector: 1,
+        contracts: 1,
+        contact: 1,
+        administrative: { mutualFund: 1, transportInvoice: 1 },
+      },
+      startDate: 1,
+      endDate: 1,
+      absenceNature: 1,
+    },
+  },
+  { $group: { _id: '$auxiliary._id', events: { $push: '$$ROOT' } } },
+]);
