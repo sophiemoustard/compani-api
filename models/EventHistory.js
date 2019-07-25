@@ -13,6 +13,14 @@ const EventHistorySchema = mongoose.Schema({
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       to: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     },
+    startDate: {
+      from: Date,
+      to: Date,
+    },
+    endDate: {
+      from: Date,
+      to: Date,
+    },
   },
   event: {
     type: { type: String, enum: EVENT_TYPES },
