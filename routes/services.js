@@ -21,7 +21,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { scope: ['rhconfig:edit'] },
+        auth: { scope: ['config:read'] },
         validate: {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(CONTRACT_STATUS),
@@ -44,7 +44,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { scope: ['rhconfig:edit'] },
+        auth: { scope: ['config:edit'] },
         validate: {
           query: { company: Joi.objectId() },
         },
@@ -56,7 +56,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { scope: ['rhconfig:edit'] },
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -70,7 +70,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { scope: ['rhconfig:edit'] },
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
