@@ -1,5 +1,5 @@
 const EventHistory = require('../models/EventHistory');
-const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE } = require('./constants');
+const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR } = require('./constants');
 const UtilsHelper = require('./utils');
 
 exports.getListQuery = (query) => {
@@ -45,7 +45,7 @@ exports.createEventHistoryOnDelete = async (payload, credentials) => exports.cre
 exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
   const promises = [];
   const { _id: createdBy } = credentials;
-  const { customer, type } = event;
+  const { customer, type, repetition } = event;
   const { startDate, endDate, misc } = payload;
   const eventHistory = {
     createdBy,
@@ -56,9 +56,10 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
       endDate,
       customer,
       misc,
-      internalHour: payload.internalHour || event.internalHour,
     },
   };
+  if (payload.shouldUpdateRepetition) eventHistory.event.repetition = repetition;
+  if (event.type === INTERNAL_HOUR) eventHistory.event.repetition = payload.internalHour || event.internalHour;
 
   if (event.auxiliary.toHexString() !== payload.auxiliary) {
     const auxiliaryUpdateHistory = exports.formatEventHistoryForAuxiliaryUpdate(eventHistory, payload, event);
