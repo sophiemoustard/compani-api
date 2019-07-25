@@ -59,9 +59,9 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
     },
   };
   if (payload.shouldUpdateRepetition) eventHistory.event.repetition = repetition;
-  if (event.type === INTERNAL_HOUR) eventHistory.event.repetition = payload.internalHour || event.internalHour;
+  if (event.type === INTERNAL_HOUR) eventHistory.event.internalHour = payload.internalHour || event.internalHour;
 
-  if (event.auxiliary.toHexString() !== payload.auxiliary) {
+  if ((event.auxiliary && event.auxiliary.toHexString() !== payload.auxiliary) || (!event.auxiliary && payload.auxiliary)) {
     const auxiliaryUpdateHistory = exports.formatEventHistoryForAuxiliaryUpdate(eventHistory, payload, event);
     promises.push((new EventHistory(auxiliaryUpdateHistory)).save());
   }
@@ -70,13 +70,24 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
 };
 
 exports.formatEventHistoryForAuxiliaryUpdate = (mainInfo, payload, event) => {
-  const auxiliaryUpdateHistory = {
-    ...mainInfo,
-    auxiliaries: [event.auxiliary.toHexString(), payload.auxiliary],
-    update: {
+  const auxiliaryUpdateHistory = { ...mainInfo };
+  if (event.auxiliary && payload.auxiliary) {
+    auxiliaryUpdateHistory.auxiliaries = [event.auxiliary.toHexString(), payload.auxiliary];
+    auxiliaryUpdateHistory.update = {
       auxiliary: { from: event.auxiliary.toHexString(), to: payload.auxiliary },
-    },
-  };
+    };
+  } else if (event.auxiliary) {
+    auxiliaryUpdateHistory.auxiliaries = [event.auxiliary.toHexString()];
+    auxiliaryUpdateHistory.update = {
+      auxiliary: { from: event.auxiliary.toHexString() },
+    };
+  } else if (payload.auxiliary) {
+    auxiliaryUpdateHistory.auxiliaries = [payload.auxiliary];
+    auxiliaryUpdateHistory.update = {
+      auxiliary: { to: payload.auxiliary },
+    };
+  }
+
   if (!payload.sector || event.sector.toHexString() === payload.sector) auxiliaryUpdateHistory.sectors = [event.sector.toHexString()];
   else auxiliaryUpdateHistory.sectors = [event.sector.toHexString(), payload.sector];
 

@@ -73,7 +73,7 @@ exports.createEvent = async (payload, credentials) => {
 };
 
 exports.isCreationAllowed = async (event) => {
-  if (!event.auxiliary) return true;
+  if (!event.auxiliary) return event.type === INTERVENTION;
   if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
 
   if (event.type !== ABSENCE && !moment(event.startDate).isSame(event.endDate, 'day')) return false;
