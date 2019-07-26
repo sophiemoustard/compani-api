@@ -73,6 +73,11 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
     promises.push((new EventHistory(datesUpdateHistory)).save());
   }
 
+  if (payload.isCancelled && !event.isCancelled) {
+    const cancelUpdateHistory = exports.formatEventHistoryForCancelUpdate(eventHistory, payload, event);
+    promises.push((new EventHistory(cancelUpdateHistory)).save());
+  }
+
   await Promise.all(promises);
 };
 
@@ -112,6 +117,22 @@ exports.formatEventHistoryForDatesUpdate = (mainInfo, payload, event) => {
 
   const isOneDayEvent = moment(event.endDate).isSame(event.startDate, 'day') && moment(payload.endDate).isSame(payload.startDate, 'day');
   if (!isOneDayEvent) datesUpdateHistory.update.endDate = { from: event.endDate, to: payload.endDate };
+
+  if (payload.auxiliary) {
+    datesUpdateHistory.auxiliaries = [payload.auxiliary];
+    datesUpdateHistory.event.auxiliary = payload.auxiliary;
+  }
+
+  return datesUpdateHistory;
+};
+
+exports.formatEventHistoryForCancelUpdate = (mainInfo, payload) => {
+  const { cancel } = payload;
+  const datesUpdateHistory = {
+    ...mainInfo,
+    sectors: [payload.sector],
+    update: { cancel },
+  };
 
   if (payload.auxiliary) {
     datesUpdateHistory.auxiliaries = [payload.auxiliary];
