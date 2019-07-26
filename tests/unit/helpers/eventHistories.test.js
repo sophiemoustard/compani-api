@@ -106,17 +106,20 @@ describe('createEventHistoryOnUpdate', () => {
   let formatEventHistoryForAuxiliaryUpdate;
   let formatEventHistoryForDatesUpdate;
   let formatEventHistoryForCancelUpdate;
+  let formatEventHistoryForHoursUpdate;
   let save;
   beforeEach(() => {
     formatEventHistoryForAuxiliaryUpdate = sinon.stub(EventHistoryHelper, 'formatEventHistoryForAuxiliaryUpdate');
     formatEventHistoryForDatesUpdate = sinon.stub(EventHistoryHelper, 'formatEventHistoryForDatesUpdate');
     formatEventHistoryForCancelUpdate = sinon.stub(EventHistoryHelper, 'formatEventHistoryForCancelUpdate');
+    formatEventHistoryForHoursUpdate = sinon.stub(EventHistoryHelper, 'formatEventHistoryForHoursUpdate');
     save = sinon.stub(EventHistory.prototype, 'save');
   });
   afterEach(() => {
     formatEventHistoryForAuxiliaryUpdate.restore();
     formatEventHistoryForDatesUpdate.restore();
     formatEventHistoryForCancelUpdate.restore();
+    formatEventHistoryForHoursUpdate.restore();
     save.restore();
   });
 
@@ -156,6 +159,7 @@ describe('createEventHistoryOnUpdate', () => {
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
     sinon.assert.notCalled(formatEventHistoryForCancelUpdate);
+    sinon.assert.notCalled(formatEventHistoryForHoursUpdate);
   });
 
   it('should call formatEventHistoryForDatesUpdate', async () => {
@@ -193,6 +197,7 @@ describe('createEventHistoryOnUpdate', () => {
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
     sinon.assert.notCalled(formatEventHistoryForCancelUpdate);
+    sinon.assert.notCalled(formatEventHistoryForHoursUpdate);
   });
 
   it('should call formatEventHistoryForCancelUpdate', async () => {
@@ -232,6 +237,100 @@ describe('createEventHistoryOnUpdate', () => {
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
+    sinon.assert.notCalled(formatEventHistoryForHoursUpdate);
+  });
+
+  it('should call formatEventHistoryForHoursUpdate', async () => {
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T11:38:18',
+      misc: 'Toto',
+    };
+    const event = {
+      startDate: '2019-01-21T10:38:18',
+      endDate: '2019-01-21T11:38:18',
+      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      type: 'intervention',
+    };
+    const credentials = { _id: 'james bond' };
+
+    await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
+
+    sinon.assert.calledWith(
+      formatEventHistoryForHoursUpdate,
+      {
+        createdBy: 'james bond',
+        action: 'event_update',
+        event: {
+          type: 'intervention',
+          startDate: '2019-01-21T09:38:18',
+          endDate: '2019-01-21T11:38:18',
+          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          misc: 'Toto',
+        },
+      },
+      payload,
+      event
+    );
+    sinon.assert.called(save);
+    sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
+    sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
+    sinon.assert.notCalled(formatEventHistoryForCancelUpdate);
+  });
+
+  it('should call formatEventHistoryForDatesUpdate and formatEventHistoryForCancelUpdate', async () => {
+    const payload = {
+      startDate: '2019-01-20T09:38:18',
+      endDate: '2019-01-21T11:38:18',
+      misc: 'Toto',
+      isCancelled: true,
+      cancel: { reason: 'toto', condition: 'payé' },
+    };
+    const event = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T11:38:18',
+      customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+      type: 'intervention',
+    };
+    const credentials = { _id: 'james bond' };
+
+    await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
+
+    sinon.assert.calledWith(
+      formatEventHistoryForCancelUpdate,
+      {
+        createdBy: 'james bond',
+        action: 'event_update',
+        event: {
+          type: 'intervention',
+          startDate: '2019-01-20T09:38:18',
+          endDate: '2019-01-21T11:38:18',
+          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          misc: 'Toto',
+        },
+      },
+      payload,
+      event
+    );
+    sinon.assert.called(save);
+    sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
+    sinon.assert.calledWith(
+      formatEventHistoryForDatesUpdate,
+      {
+        createdBy: 'james bond',
+        action: 'event_update',
+        event: {
+          type: 'intervention',
+          startDate: '2019-01-20T09:38:18',
+          endDate: '2019-01-21T11:38:18',
+          customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
+          misc: 'Toto',
+        },
+      },
+      payload,
+      event
+    );
+    sinon.assert.notCalled(formatEventHistoryForHoursUpdate);
   });
 
   it('should add repetition when repetition is updated', async () => {
@@ -273,6 +372,7 @@ describe('createEventHistoryOnUpdate', () => {
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
     sinon.assert.notCalled(formatEventHistoryForCancelUpdate);
+    sinon.assert.notCalled(formatEventHistoryForHoursUpdate);
   });
 
   it('should add internal hour type for internal hour event', async () => {
@@ -313,6 +413,7 @@ describe('createEventHistoryOnUpdate', () => {
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
     sinon.assert.notCalled(formatEventHistoryForCancelUpdate);
+    sinon.assert.notCalled(formatEventHistoryForHoursUpdate);
   });
 
   it('should add absence type for absence event', async () => {
@@ -353,6 +454,7 @@ describe('createEventHistoryOnUpdate', () => {
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
     sinon.assert.notCalled(formatEventHistoryForCancelUpdate);
+    sinon.assert.notCalled(formatEventHistoryForHoursUpdate);
   });
 });
 
@@ -451,14 +553,12 @@ describe('formatEventHistoryForCancelUpdate', () => {
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
-      event: {
-        type: 'intervention',
-      },
+      event: { type: 'intervention' },
     };
     const payload = {
       cancel: { reason: 'toto', condition: 'tata' },
-      auxiliary: new ObjectID(),
-      sector: new ObjectID(),
+      auxiliary: '5d3aba5866ec0f0e97cd0320',
+      sector: '5d3aba5866ec0f0e97cd031f',
     };
 
     const result = EventHistoryHelper.formatEventHistoryForCancelUpdate(mainInfo, payload);
@@ -467,11 +567,11 @@ describe('formatEventHistoryForCancelUpdate', () => {
     expect(result).toEqual({
       createdBy: 'james bond',
       action: 'event_update',
-      sectors: [payload.sector],
-      auxiliaries: [payload.auxiliary],
+      sectors: ['5d3aba5866ec0f0e97cd031f'],
+      auxiliaries: ['5d3aba5866ec0f0e97cd0320'],
       event: {
         type: 'intervention',
-        auxiliary: payload.auxiliary,
+        auxiliary: '5d3aba5866ec0f0e97cd0320',
       },
       update: {
         cancel: { reason: 'toto', condition: 'tata' },
@@ -483,9 +583,7 @@ describe('formatEventHistoryForCancelUpdate', () => {
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
-      event: {
-        type: 'intervention',
-      },
+      event: { type: 'intervention' },
     };
     const payload = {
       cancel: { reason: 'toto', condition: 'tata' },
@@ -504,6 +602,173 @@ describe('formatEventHistoryForCancelUpdate', () => {
       },
       update: {
         cancel: { reason: 'toto', condition: 'tata' },
+      },
+    });
+  });
+});
+
+describe('formatEventHistoryForDatesUpdate', () => {
+  it('should format event history with one auxiliary', () => {
+    const mainInfo = {
+      createdBy: 'james bond',
+      action: 'event_update',
+      event: { type: 'intervention' },
+    };
+    const payload = {
+      startDate: '2019-01-20T09:38:18',
+      endDate: '2019-01-20T11:38:18',
+      auxiliary: '5d3aba5866ec0f0e97cd0320',
+      sector: '5d3aba5866ec0f0e97cd031f',
+    };
+    const event = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T10:38:18',
+    };
+
+    const result = EventHistoryHelper.formatEventHistoryForDatesUpdate(mainInfo, payload, event);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      createdBy: 'james bond',
+      action: 'event_update',
+      sectors: ['5d3aba5866ec0f0e97cd031f'],
+      auxiliaries: ['5d3aba5866ec0f0e97cd0320'],
+      event: {
+        type: 'intervention',
+        auxiliary: '5d3aba5866ec0f0e97cd0320',
+      },
+      update: {
+        startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
+      },
+    });
+  });
+
+  it('should format event history without auxiliary', () => {
+    const mainInfo = {
+      createdBy: 'james bond',
+      action: 'event_update',
+      event: { type: 'intervention' },
+    };
+    const payload = {
+      startDate: '2019-01-20T09:38:18',
+      endDate: '2019-01-20T11:38:18',
+      sector: '5d3aba5866ec0f0e97cd031f',
+    };
+    const event = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T10:38:18',
+    };
+
+    const result = EventHistoryHelper.formatEventHistoryForDatesUpdate(mainInfo, payload, event);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      createdBy: 'james bond',
+      action: 'event_update',
+      sectors: ['5d3aba5866ec0f0e97cd031f'],
+      event: { type: 'intervention' },
+      update: {
+        startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
+      },
+    });
+  });
+
+  it('should format event history with endDate and startDate', () => {
+    const mainInfo = {
+      createdBy: 'james bond',
+      action: 'event_update',
+      event: { type: 'intervention' },
+    };
+    const payload = {
+      startDate: '2019-01-20T09:38:18',
+      endDate: '2019-01-21T11:38:18',
+      sector: '5d3aba5866ec0f0e97cd031f',
+    };
+    const event = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-22T10:38:18',
+    };
+
+    const result = EventHistoryHelper.formatEventHistoryForDatesUpdate(mainInfo, payload, event);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      createdBy: 'james bond',
+      action: 'event_update',
+      sectors: ['5d3aba5866ec0f0e97cd031f'],
+      event: { type: 'intervention' },
+      update: {
+        startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
+        endDate: { from: '2019-01-22T10:38:18', to: '2019-01-21T11:38:18' },
+      },
+    });
+  });
+});
+
+describe('formatEventHistoryForHoursUpdate', () => {
+  it('should format event history with one auxiliary', () => {
+    const mainInfo = {
+      createdBy: 'james bond',
+      action: 'event_update',
+      event: { type: 'intervention' },
+    };
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T11:38:18',
+      auxiliary: '5d3aba5866ec0f0e97cd0320',
+      sector: '5d3aba5866ec0f0e97cd031f',
+    };
+    const event = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T10:38:18',
+    };
+
+    const result = EventHistoryHelper.formatEventHistoryForHoursUpdate(mainInfo, payload, event);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      createdBy: 'james bond',
+      action: 'event_update',
+      sectors: ['5d3aba5866ec0f0e97cd031f'],
+      auxiliaries: ['5d3aba5866ec0f0e97cd0320'],
+      event: {
+        type: 'intervention',
+        auxiliary: '5d3aba5866ec0f0e97cd0320',
+      },
+      update: {
+        startHour: { from: '2019-01-21T09:38:18', to: '2019-01-21T09:38:18' },
+        endHour: { from: '2019-01-21T10:38:18', to: '2019-01-21T11:38:18' },
+      },
+    });
+  });
+
+  it('should format event history without auxiliary', () => {
+    const mainInfo = {
+      createdBy: 'james bond',
+      action: 'event_update',
+      event: { type: 'intervention' },
+    };
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T11:38:18',
+      sector: '5d3aba5866ec0f0e97cd031f',
+    };
+    const event = {
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T10:38:18',
+    };
+
+    const result = EventHistoryHelper.formatEventHistoryForHoursUpdate(mainInfo, payload, event);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      createdBy: 'james bond',
+      action: 'event_update',
+      sectors: ['5d3aba5866ec0f0e97cd031f'],
+      event: { type: 'intervention' },
+      update: {
+        startHour: { from: '2019-01-21T09:38:18', to: '2019-01-21T09:38:18' },
+        endHour: { from: '2019-01-21T10:38:18', to: '2019-01-21T11:38:18' },
       },
     });
   });
