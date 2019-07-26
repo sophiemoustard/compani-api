@@ -8,13 +8,15 @@ const app = require('../../../server');
 const rightsList = [
   {
     _id: new ObjectID(),
-    description: 'Edit rh config',
+    description: 'Edit config',
     permission: 'config:edit',
+    name: 'edit-config',
   },
   {
     _id: new ObjectID(),
-    description: 'Read rh config',
+    description: 'Read config',
     permission: 'config:read',
+    name: 'read-config',
   },
 ];
 
@@ -89,17 +91,14 @@ const userList = [
 ];
 
 const populateDBForAuthentification = async () => {
+  await Role.deleteMany({});
+  await Right.deleteMany({});
+  await User.deleteMany({});
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
   for (let i = 0; i < userList.length; i++) {
     await (new User(userList[i]).save());
   }
-};
-
-const cleanDBForAuthentification = async () => {
-  await Role.deleteMany();
-  await Right.deleteMany();
-  await User.deleteMany();
 };
 
 const getToken = async (roleName) => {
@@ -118,6 +117,5 @@ module.exports = {
   rolesList,
   rightsList,
   populateDBForAuthentification,
-  cleanDBForAuthentification,
   getToken,
 };

@@ -4,12 +4,9 @@ const moment = require('moment');
 
 const app = require('../../server');
 const CreditNote = require('../../models/CreditNote');
-const { getToken } = require('./seed/usersSeed');
-const { populateCreditNotes, creditNotesList } = require('./seed/creditNotesSeed');
-const { populateEvents, eventsList } = require('./seed/eventsSeed');
-const { populateCustomers, customersList } = require('./seed/customersSeed');
-const { populateServices, servicesList } = require('./seed/servicesSeed');
+const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../helpers/constants');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -19,12 +16,9 @@ describe('NODE ENV', () => {
 
 describe('CREDIT NOTES ROUTES', () => {
   let authToken = null;
-  before(populateCustomers);
-  before(populateEvents);
-  before(populateServices);
-  beforeEach(populateCreditNotes);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('admin');
   });
 
   describe('POST /creditNotes', () => {
@@ -32,28 +26,28 @@ describe('CREDIT NOTES ROUTES', () => {
       date: moment().toDate(),
       startDate: moment().startOf('month').toDate(),
       endDate: moment().set('date', 15).toDate(),
-      customer: customersList[0]._id,
+      customer: creditNoteCustomer._id,
       exclTaxesCustomer: 100,
       inclTaxesCustomer: 112,
       events: [{
-        eventId: eventsList[2]._id,
-        auxiliary: eventsList[2].auxiliary,
-        startDate: eventsList[2].startDate,
-        endDate: eventsList[2].endDate,
+        eventId: creditNoteEvent._id,
+        auxiliary: creditNoteEvent.auxiliary,
+        startDate: creditNoteEvent.startDate,
+        endDate: creditNoteEvent.endDate,
         serviceName: 'toto',
         bills: {
           inclTaxesCustomer: 10,
           exclTaxesCustomer: 8,
-        }
+        },
       }],
       subscription: {
         _id: new ObjectID(),
         service: {
           serviceId: new ObjectID(),
           nature: FIXED,
-          name: servicesList[0].versions[0].name,
+          name: 'toto',
         },
-        vat: servicesList[0].versions[0].vat
+        vat: 5.5,
       },
     };
 
@@ -80,7 +74,7 @@ describe('CREDIT NOTES ROUTES', () => {
         method: 'POST',
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
-        payload: { ...payload, },
+        payload: { ...payload },
       });
 
       expect(response.statusCode).toBe(200);
@@ -95,28 +89,28 @@ describe('CREDIT NOTES ROUTES', () => {
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'exclTaxesCustomer',
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'inclTaxesCustomer',
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'date',
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
     ];
     missingParams.forEach((test) => {

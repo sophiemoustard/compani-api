@@ -6,14 +6,14 @@ const RightSchema = mongoose.Schema({
     dropDups: true,
     index: {
       unique: true,
-      partialFilterExpression: { name: { $type: 'string' } }
-    }
+      partialFilterExpression: { name: { $type: 'string' } },
+    },
   },
   description: String,
   permission: {
     type: String,
-    unique: true
-  }
+    unique: true,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Right', RightSchema);

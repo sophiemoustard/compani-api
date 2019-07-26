@@ -1,16 +1,13 @@
 const expect = require('expect');
-const { populateEvents } = require('./seed/eventsSeed');
-const { populateUsers } = require('./seed/usersSeed');
-const { populateCustomers } = require('./seed/customersSeed');
-const { populateSectors } = require('./seed/sectorsSeed');
-const { populateBills } = require('./seed/billsSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
-const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
-const { populatePayments } = require('./seed/paymentsSeed');
-const { getToken } = require('./seed/usersSeed');
-const { populateDB } = require('./seed/paySeed');
 const app = require('../../server');
+const { getToken } = require('./seed/authentificationSeed');
+const {
+  populateEvents,
+  populateBills,
+  populatePayment,
+  populatePay,
+  populateFinalPay,
+} = require('./seed/exportSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -20,21 +17,12 @@ describe('NODE ENV', () => {
 
 describe('EXPORTS ROUTES', () => {
   let authToken = null;
-  before(populateRoles);
-  before(populateCompanies);
-  before(populateEvents);
-  before(populateUsers);
-  before(populateCustomers);
-  before(populateSectors);
-  before(populateBills);
-  before(populateThirdPartyPayers);
-  before(populatePayments);
-
-  beforeEach(async () => {
-    authToken = await getToken();
-  });
 
   describe('GET /exports/working_event/history', () => {
+    beforeEach(populateEvents);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
     it('should get working events', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -44,11 +32,15 @@ describe('EXPORTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result).toBeDefined();
-      expect(response.result.split('\r\n').length).toBe(7);
+      expect(response.result.split('\r\n').length).toBe(4);
     });
   });
 
   describe('GET /exports/bill/history', () => {
+    beforeEach(populateBills);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
     it('should get bills', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -63,10 +55,14 @@ describe('EXPORTS ROUTES', () => {
   });
 
   describe('GET /exports/payment/history', () => {
+    beforeEach(populatePayment);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
     it('should get payments', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/exports/payment/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
+        url: '/exports/payment/history?startDate=2019-05-25T16%3A47%3A49.168%2B02%3A00&endDate=2019-05-31T16%3A47%3A49.169%2B02%3A00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -77,11 +73,14 @@ describe('EXPORTS ROUTES', () => {
   });
 
   describe('GET /exports/pay/history', () => {
-    before(populateDB);
+    beforeEach(populatePay);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
     it('should get pay', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: '/exports/pay/history?startDate=2019-05-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
+        url: '/exports/pay/history?startDate=2019-01-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
         headers: { 'x-access-token': authToken },
       });
 
@@ -92,7 +91,10 @@ describe('EXPORTS ROUTES', () => {
   });
 
   describe('GET /exports/finalPay/history', () => {
-    before(populateDB);
+    beforeEach(populateFinalPay);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
     it('should get payments', async () => {
       const response = await app.inject({
         method: 'GET',

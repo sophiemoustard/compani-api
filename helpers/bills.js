@@ -182,7 +182,7 @@ exports.formatPDF = (bill, company) => {
     recipient: {
       address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.address', {}),
       name: bill.client ? bill.client.name : formatCustomerName(bill.customer),
-    }
+    },
   };
 
   for (const sub of bill.subscriptions) {
@@ -236,7 +236,7 @@ const exportBillSubscribtions = (bill) => {
 
 exports.exportBillsHistory = async (startDate, endDate) => {
   const query = {
-    date: { $lte: endDate, $gte: startDate }
+    date: { $lte: endDate, $gte: startDate },
   };
 
   const bills = await Bill.find(query)

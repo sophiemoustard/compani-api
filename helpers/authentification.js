@@ -24,22 +24,22 @@ const validate = async (decoded, req) => {
       identity: user.identity || null,
       email: user.local && user.local.email ? user.local.email : null,
       company: user.company || null,
-      scope: [`user-${decoded._id}`, user.role.name, ...rights]
+      scope: [`user-${decoded._id}`, user.role.name, ...rights],
     };
 
     return {
       isValid: true,
-      credentials
+      credentials,
     };
   } catch (e) {
     console.error(e);
     return {
-      isValid: false
+      isValid: false,
     };
   }
 };
 
 module.exports = {
   encode,
-  validate
+  validate,
 };

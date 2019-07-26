@@ -1,10 +1,9 @@
 const { ObjectID } = require('mongodb');
-
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
 const Sector = require('../../../models/Sector');
 const EventHistory = require('../../../models/EventHistory');
-const { rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const user = {
   _id: new ObjectID(),
@@ -80,6 +79,13 @@ const eventHistoryList = [
 ];
 
 const populateDB = async () => {
+  await Customer.deleteMany({});
+  await User.deleteMany({});
+  await Sector.deleteMany({});
+  await EventHistory.deleteMany({});
+
+  await populateDBForAuthentification();
+
   await EventHistory.insertMany(eventHistoryList);
   await (new User(user)).save();
   await (new User(eventHistoryAuxiliary)).save();
@@ -87,16 +93,8 @@ const populateDB = async () => {
   await (new Sector(sector)).save();
 };
 
-const cleanDB = async () => {
-  await Customer.deleteMany({});
-  await User.deleteMany({});
-  await Sector.deleteMany({});
-  await EventHistory.deleteMany({});
-};
-
 module.exports = {
   populateDB,
-  cleanDB,
   eventHistoryList,
   eventHistoryAuxiliary,
 };

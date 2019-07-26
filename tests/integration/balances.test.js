@@ -1,11 +1,6 @@
 const expect = require('expect');
-const { customersList, populateCustomers } = require('./seed/customersSeed');
-const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
-const { billsList, populateBills } = require('./seed/billsSeed');
-const { populateEvents } = require('./seed/eventsSeed');
-const { populateUsers, getToken } = require('./seed/usersSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
+const { populateDB, balanceCustomerList, balanceThirdPartyPayer, balanceBillList } = require('./seed/balanceSeed');
+const { getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
@@ -16,15 +11,9 @@ describe('NODE ENV', () => {
 
 describe('BALANCES ROUTES', () => {
   let authToken = null;
-  before(populateRoles);
-  before(populateCompanies);
-  before(populateCustomers);
-  before(populateUsers);
-  before(populateThirdPartyPayers);
-  before(populateEvents);
-  before(populateBills);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('GET /balances', () => {
@@ -39,47 +28,47 @@ describe('BALANCES ROUTES', () => {
       expect(response.result.data.balances).toBeDefined();
       expect(response.result.data.balances).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          _id: { tpp: null, customer: customersList[1]._id },
+          _id: { tpp: balanceThirdPartyPayer._id, customer: balanceCustomerList[1]._id },
           customer: expect.objectContaining({
-            _id: customersList[1]._id,
-            identity: customersList[1].identity,
+            _id: balanceCustomerList[1]._id,
+            identity: balanceCustomerList[1].identity,
             payment: expect.objectContaining({
-              bankAccountOwner: customersList[1].payment.bankAccountOwner,
-              bic: customersList[1].payment.bic,
-              iban: customersList[1].payment.iban,
+              bankAccountOwner: balanceCustomerList[1].payment.bankAccountOwner,
+              bic: balanceCustomerList[1].payment.bic,
+              iban: balanceCustomerList[1].payment.iban,
               mandates: expect.arrayContaining([
                 expect.objectContaining({
-                  _id: customersList[1].payment.mandates[0]._id,
-                  rum: customersList[1].payment.mandates[0].rum,
+                  _id: balanceCustomerList[1].payment.mandates[0]._id,
+                  rum: balanceCustomerList[1].payment.mandates[0].rum,
                 }),
               ]),
             }),
           }),
+          thirdPartyPayer: { _id: balanceThirdPartyPayer._id, name: balanceThirdPartyPayer.name },
           paid: 0,
-          billed: billsList[1].netInclTaxes,
-          balance: -billsList[1].netInclTaxes,
+          billed: balanceBillList[1].netInclTaxes,
+          balance: -balanceBillList[1].netInclTaxes,
         }),
         expect.objectContaining({
-          _id: { tpp: thirdPartyPayersList[0]._id, customer: customersList[0]._id },
+          _id: { tpp: null, customer: balanceCustomerList[0]._id },
           customer: expect.objectContaining({
-            _id: customersList[0]._id,
-            identity: customersList[0].identity,
+            _id: balanceCustomerList[0]._id,
+            identity: balanceCustomerList[0].identity,
             payment: expect.objectContaining({
-              bankAccountOwner: customersList[0].payment.bankAccountOwner,
-              bic: customersList[0].payment.bic,
-              iban: customersList[0].payment.iban,
+              bankAccountOwner: balanceCustomerList[0].payment.bankAccountOwner,
+              bic: balanceCustomerList[0].payment.bic,
+              iban: balanceCustomerList[0].payment.iban,
               mandates: expect.arrayContaining([
                 expect.objectContaining({
-                  _id: customersList[0].payment.mandates[0]._id,
-                  rum: customersList[0].payment.mandates[0].rum,
+                  _id: balanceCustomerList[0].payment.mandates[0]._id,
+                  rum: balanceCustomerList[0].payment.mandates[0].rum,
                 }),
               ]),
             }),
           }),
-          thirdPartyPayer: { _id: thirdPartyPayersList[0]._id, name: thirdPartyPayersList[0].name },
           paid: 0,
-          billed: billsList[0].netInclTaxes,
-          balance: -billsList[0].netInclTaxes,
+          billed: balanceBillList[0].netInclTaxes,
+          balance: -balanceBillList[0].netInclTaxes,
         }),
       ]));
     });

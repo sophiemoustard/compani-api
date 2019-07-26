@@ -5,7 +5,8 @@ const Customer = require('../../../models/Customer');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const Contract = require('../../../models/Contract');
 const Service = require('../../../models/Service');
-const { rolesList } = require('./authentificationSeed');
+const EventHistory = require('../../../models/EventHistory');
+const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 
 const auxiliaryId = new ObjectID('5d3b239ce9e4352ef86e773c');
 
@@ -147,6 +148,15 @@ const eventsList = [
 ];
 
 const populateDB = async () => {
+  await Event.deleteMany({});
+  await User.deleteMany({});
+  await Customer.deleteMany({});
+  await ThirdPartyPayer.deleteMany({});
+  await Contract.deleteMany({});
+  await Service.deleteMany({});
+  await EventHistory.deleteMany({});
+
+  await populateDBForAuthentification();
   await Event.insertMany(eventsList);
   await (new User(eventAuxiliary)).save();
   await (new Customer(customerAuxiliary)).save();
@@ -155,17 +165,7 @@ const populateDB = async () => {
   await (new Service(service)).save();
 };
 
-const cleanDB = async () => {
-  await Event.deleteMany({});
-  await User.deleteMany({});
-  await Customer.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Contract.deleteMany({});
-  await Service.deleteMany({});
-};
-
 module.exports = {
-  cleanDB,
   eventsList,
   populateDB,
   eventAuxiliary,

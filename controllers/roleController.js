@@ -9,25 +9,24 @@ const { language } = translate;
 const create = async (req) => {
   try {
     const createPayload = { name: req.payload.name };
+
     if (!req.payload.rights) {
       const rights = await Right.find();
-      if (rights.length > 0) {
-        createPayload.rights = rights.map(right => ({ right_id: right._id }));
-      }
+      if (rights.length > 0) createPayload.rights = rights.map(right => ({ right_id: right._id }));
     } else {
       createPayload.rights = req.payload.rights;
     }
+
     const role = new Role(createPayload);
     await role.save();
     let createdRole = await Role.findById(role._id);
     createdRole = createdRole.toObject();
     createdRole.rights = populateRole(createdRole.rights);
+
     return {
       success: true,
       message: translate[language].roleCreated,
-      data: {
-        role: createdRole
-      }
+      data: { role: createdRole },
     };
   } catch (e) {
     if (e.code === 11000) {
@@ -51,7 +50,7 @@ const update = async (req) => {
 
     return {
       message: translate[language].roleUpdated,
-      data: { role }
+      data: { role },
     };
   } catch (e) {
     req.log('error', e);
@@ -74,7 +73,7 @@ const list = async (req) => {
 
     return {
       message: translate[language].rolesFound,
-      data: { roles }
+      data: { roles },
     };
   } catch (e) {
     req.log('error', e);
@@ -92,7 +91,7 @@ const showById = async (req) => {
 
     return {
       message: translate[language].roleFound,
-      data: { role }
+      data: { role },
     };
   } catch (e) {
     req.log('error', e);
@@ -107,7 +106,7 @@ const remove = async (req) => {
 
     return {
       message: translate[language].roleRemoved,
-      data: { role: roleDeleted }
+      data: { role: roleDeleted },
     };
   } catch (e) {
     req.log('error', e);
@@ -120,5 +119,5 @@ module.exports = {
   update,
   list,
   showById,
-  remove
+  remove,
 };

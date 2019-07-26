@@ -1,8 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const { populateDB, eventsList, cleanDB, eventAuxiliary, customerAuxiliary } = require('./seed/eventsSeed');
-const { populateDBForAuthentification, cleanDBForAuthentification, getToken } = require('./seed/authentificationSeed');
+const { populateDB, eventsList, eventAuxiliary, customerAuxiliary } = require('./seed/eventsSeed');
+const { getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
 
@@ -14,13 +14,10 @@ describe('NODE ENV', () => {
 
 describe('EVENTS ROUTES', () => {
   let authToken = null;
-  beforeEach(populateDBForAuthentification);
   beforeEach(populateDB);
   beforeEach(async () => {
     authToken = await getToken('coach');
   });
-  afterEach(cleanDB);
-  afterEach(cleanDBForAuthentification);
 
   describe('GET /events', () => {
     it('should return all events', async () => {
