@@ -13,7 +13,7 @@ const {
   createEvent,
   deleteEvent,
 } = require('../helpers/events');
-const { ABSENCE, NEVER, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
+const { ABSENCE, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
 const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
 
 const { language } = translate;
