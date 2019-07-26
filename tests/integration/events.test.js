@@ -1,14 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const { populateEvents, eventsList } = require('./seed/eventsSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateUsers, userList, getToken } = require('./seed/usersSeed');
-const { populateCustomers, customersList } = require('./seed/customersSeed');
-const { populateContracts } = require('./seed/contractsSeed');
-const { populateServices } = require('./seed/servicesSeed');
-const { sectorsList } = require('./seed/sectorsSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
+const { populateDB, eventsList, cleanDB, eventAuxiliary, customerAuxiliary } = require('./seed/eventsSeed');
+const { populateDBForAuthentification, cleanDBForAuthentification, getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
 
@@ -20,16 +14,13 @@ describe('NODE ENV', () => {
 
 describe('EVENTS ROUTES', () => {
   let authToken = null;
-  before(populateContracts);
-  before(populateServices);
-  before(populateCompanies);
-  before(populateRoles);
-  before(populateUsers);
-  before(populateCustomers);
-  beforeEach(populateEvents);
+  beforeEach(populateDBForAuthentification);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
+  afterEach(cleanDB);
+  afterEach(cleanDBForAuthentification);
 
   describe('GET /events', () => {
     it('should return all events', async () => {
@@ -110,13 +101,13 @@ describe('EVENTS ROUTES', () => {
 
   describe('POST /events', () => {
     it('should create an internal hour', async () => {
-      const auxiliary = userList[4];
+      const auxiliary = eventAuxiliary;
       const payload = {
         type: INTERNAL_HOUR,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        sector: sectorsList[0]._id,
+        sector: new ObjectID(),
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -142,14 +133,14 @@ describe('EVENTS ROUTES', () => {
     });
 
     it('should create an intervention', async () => {
-      const auxiliary = userList[4];
-      const customer = customersList[0];
+      const auxiliary = eventAuxiliary;
+      const customer = customerAuxiliary;
       const payload = {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        sector: sectorsList[0]._id,
+        sector: new ObjectID(),
         customer: customer._id,
         subscription: customer.subscriptions[0]._id,
         status: 'contract_with_company',
@@ -167,13 +158,13 @@ describe('EVENTS ROUTES', () => {
     });
 
     it('should create an absence', async () => {
-      const auxiliary = userList[4];
+      const auxiliary = eventAuxiliary;
       const payload = {
         type: ABSENCE,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        sector: sectorsList[0]._id,
+        sector: new ObjectID(),
         absence: ILLNESS,
         absenceNature: DAILY,
         attachment: {
@@ -195,13 +186,13 @@ describe('EVENTS ROUTES', () => {
 
 
     it('should create an unavailability', async () => {
-      const auxiliary = userList[4];
+      const auxiliary = eventAuxiliary;
       const payload = {
         type: UNAVAILABILITY,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        sector: sectorsList[0]._id,
+        sector: new ObjectID(),
       };
 
       const response = await app.inject({
