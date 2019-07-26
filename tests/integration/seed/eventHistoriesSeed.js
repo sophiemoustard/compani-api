@@ -4,20 +4,20 @@ const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
 const Sector = require('../../../models/Sector');
 const EventHistory = require('../../../models/EventHistory');
-const { rolesList } = require('./rolesSeed');
+const { rolesList } = require('./authentificationSeed');
 
 const user = {
   _id: new ObjectID(),
   identity: { firstname: 'Bob', lastname: 'Marley' },
   local: { email: 'lala@alenvi.io', password: '123456' },
-  role: rolesList[2]._id,
+  role: rolesList[1]._id,
 };
 
 const eventHistoryAuxiliary = {
   _id: new ObjectID(),
   identity: { firstname: 'Mimi', lastname: 'Mita' },
   local: { email: 'lili@alenvi.io', password: '123456' },
-  role: rolesList[3]._id,
+  role: rolesList[2]._id,
 };
 
 const sector = {
