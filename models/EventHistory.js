@@ -28,6 +28,14 @@ const EventHistorySchema = mongoose.Schema({
       from: Date,
       to: Date,
     },
+    startHour: {
+      from: Date,
+      to: Date,
+    },
+    endHour: {
+      from: Date,
+      to: Date,
+    },
     cancel: {
       condition: { type: String, enum: EVENT_CANCELLATION_CONDITIONS },
       reason: { type: String, enum: EVENT_CANCELLATION_REASONS },

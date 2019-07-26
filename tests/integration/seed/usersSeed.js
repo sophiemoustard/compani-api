@@ -88,5 +88,5 @@ module.exports = {
   userList,
   userPayload,
   populateUsers,
-  getToken
+  getToken,
 };
