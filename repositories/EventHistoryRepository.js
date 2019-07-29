@@ -8,4 +8,5 @@ exports.getEventHistoryList = rules => EventHistory
   .populate({ path: 'event.auxiliary', select: '_id identity' })
   .populate({ path: 'update.auxiliary.from', select: '_id identity' })
   .populate({ path: 'update.auxiliary.to', select: '_id identity' })
-  .sort({ createdAt: -1 });
+  .sort({ createdAt: -1 })
+  .limit(100);
