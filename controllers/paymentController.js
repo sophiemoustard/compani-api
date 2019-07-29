@@ -20,7 +20,7 @@ const list = async (req) => {
 
     return {
       message: payments.length === 0 ? translate[language].paymentsNotFound : translate[language].paymentsFound,
-      data: { payments }
+      data: { payments },
     };
   } catch (e) {
     req.log('error', e);
@@ -36,7 +36,7 @@ const create = async (req) => {
 
     return {
       message: translate[language].paymentCreated,
-      data: { payment }
+      data: { payment },
     };
   } catch (e) {
     req.log('error', e);
@@ -59,7 +59,7 @@ const update = async (req) => {
     const payment = await Payment.findOneAndUpdate(
       { _id: req.params._id },
       { $set: flat(req.payload) },
-      { new: true },
+      { new: true }
     );
 
     if (!payment) return Boom.notFound(translate[language].paymentNotFound);

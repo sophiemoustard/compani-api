@@ -25,7 +25,7 @@ const create = async (req) => {
 
     return {
       message: translate[language].rightCreated,
-      data: { right }
+      data: { right },
     };
   } catch (e) {
     if (e.code === 11000) {
@@ -50,7 +50,7 @@ const update = async (req) => {
 
     return {
       message: translate[language].rightUpdated,
-      data: { right: rightUpdated }
+      data: { right: rightUpdated },
     };
   } catch (e) {
     if (e.code === 11000) {
@@ -68,13 +68,13 @@ const list = async (req) => {
     if (rights.length === 0) {
       return {
         message: translate[language].rightsNotFound,
-        data: { rights: [] }
+        data: { rights: [] },
       };
     }
 
     return {
       message: translate[language].rightsFound,
-      data: { rights }
+      data: { rights },
     };
   } catch (e) {
     req.log('error', e);
@@ -90,7 +90,7 @@ const showById = async (req) => {
     return {
       success: true,
       message: translate[language].rightFound,
-      data: { right }
+      data: { right },
     };
   } catch (e) {
     req.log('error', e);
@@ -111,7 +111,7 @@ const remove = async (req) => {
 
     return {
       message: translate[language].rightRemoved,
-      data: { rightDeleted }
+      data: { rightDeleted },
     };
   } catch (e) {
     req.log('error', e);
@@ -124,5 +124,5 @@ module.exports = {
   update,
   list,
   showById,
-  remove
+  remove,
 };

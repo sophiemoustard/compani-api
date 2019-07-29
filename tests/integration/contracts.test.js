@@ -6,14 +6,9 @@ const Contract = require('../../models/Contract');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');
 const Event = require('../../models/Event');
-const { getToken, userList, populateUsers } = require('./seed/usersSeed');
-const { customersList, populateCustomers } = require('./seed/customersSeed');
-const { populateContracts, contractsList } = require('./seed/contractsSeed');
-const { populateEvents, eventsList } = require('./seed/eventsSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
-const { populateServices } = require('./seed/servicesSeed');
+const { populateDB, contractsList, contractUser, contractCustomer, contractEvents } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../helpers/constants');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -23,15 +18,9 @@ describe('NODE ENV', () => {
 
 describe('CONTRACTS ROUTES', () => {
   let authToken = null;
-  before(populateCompanies);
-  before(populateServices);
-  before(populateRoles);
-  before(populateCustomers);
-  before(populateUsers);
-  beforeEach(populateEvents);
-  beforeEach(populateContracts);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('GET /contracts/:contractId', () => {
@@ -84,7 +73,7 @@ describe('CONTRACTS ROUTES', () => {
         grossHourlyRate: 10.43,
         startDate: '2019-01-18T15:46:30.636Z',
       }],
-      user: userList[4]._id,
+      user: contractUser._id,
     };
 
     it('should create contract (company contract)', async () => {
@@ -116,9 +105,9 @@ describe('CONTRACTS ROUTES', () => {
             grossHourlyRate: 10.43,
             startDate: '2019-01-18T15:46:30.636Z',
           }],
-          user: userList[4]._id,
+          user: contractUser._id,
           status: CUSTOMER_CONTRACT,
-          customer: customersList[0]._id,
+          customer: contractCustomer._id,
         },
       });
 
@@ -126,7 +115,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(res.result.data.contract).toBeDefined();
       const contracts = await Contract.find({});
       expect(contracts.length).toEqual(contractsList.length + 1);
-      const customer = await Customer.findOne({ _id: customersList[0]._id });
+      const customer = await Customer.findOne({ _id: contractCustomer._id });
       expect(customer).toBeDefined();
       expect(customer.contracts).toContainEqual(res.result.data.contract._id);
     });
@@ -215,7 +204,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(user.inactivityDate).not.toBeNull();
       expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment().add('1', 'months').startOf('M').format('YYYY-MM-DD'));
       const events = await Event.find().lean();
-      expect(events.length).toBe(eventsList.length - 1);
+      expect(events.length).toBe(contractEvents.length - 1);
     });
 
     it('should return 404 error if no contract', async () => {

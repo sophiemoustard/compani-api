@@ -1,10 +1,10 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
-const { surchargesList, populateSurcharges } = require('./seed/surchargesSeed');
-const { getToken } = require('./seed/usersSeed');
+const { surchargesList, populateDB } = require('./seed/surchargesSeed');
 const Surcharge = require('../../models/Surcharge');
 const app = require('../../server');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -14,9 +14,9 @@ describe('NODE ENV', () => {
 
 describe('SURCHARGES ROUTES', () => {
   let authToken = null;
-  beforeEach(populateSurcharges);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('admin');
   });
 
   describe('POST /surcharges', () => {

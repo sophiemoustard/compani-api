@@ -5,7 +5,6 @@ const FinalPaySchema = mongoose.Schema({
   ...paySchemaDefinition,
   endNotificationDate: Date,
   endReason: String,
-  endDate: Date,
   compensation: Number,
 }, { timestamps: true });
 

@@ -1,11 +1,25 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
-
 const User = require('../../../models/User');
-const app = require('../../../server');
-const { sectorsList } = require('./sectorsSeed');
-const { companiesList } = require('./companiesSeed');
-const { rolesList } = require('./rolesSeed');
+const Company = require('../../../models/Company');
+const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+
+const company = {
+  _id: new ObjectID(),
+  name: 'Testtoto',
+  rhConfig: {
+    internalHours: [
+      { name: 'Formation', default: true, _id: new ObjectID() },
+      { name: 'Code', default: false, _id: new ObjectID() },
+      { name: 'Gouter', default: false, _id: new ObjectID() },
+    ],
+    feeAmount: 12,
+  },
+  iban: 'FR3514508000505917721779B12',
+  bic: 'RTYUIKJHBFRG',
+  ics: '12345678',
+  directDebitsFolderId: '1234567890',
+};
 
 const userList = [
   {
@@ -20,9 +34,8 @@ const userList = [
     identity: { firstname: 'Test4', lastname: 'Test4' },
     local: { email: 'test4@alenvi.io', password: '123456' },
     employee_id: 12345678,
-    sector: sectorsList[0]._id,
     refreshToken: uuidv4(),
-    company: companiesList[0]._id,
+    company: company._id,
     role: rolesList[0]._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
@@ -40,7 +53,7 @@ const userList = [
     local: { email: 'test6@alenvi.io', password: '123456' },
     employee_id: 12345678,
     refreshToken: uuidv4(),
-    role: rolesList[3]._id,
+    role: rolesList[0]._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
@@ -50,7 +63,7 @@ const userList = [
     inactivityDate: null,
     employee_id: 12345678,
     refreshToken: uuidv4(),
-    role: rolesList[3]._id,
+    role: rolesList[0]._id,
     contracts: [new ObjectID()],
   },
 ];
@@ -58,35 +71,25 @@ const userList = [
 const userPayload = {
   identity: { firstname: 'Test', lastname: 'Test' },
   local: { email: 'test1@alenvi.io', password: '123456' },
-  role: rolesList[3]._id,
-  company: companiesList[0]._id,
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  company: company._id,
 };
 
-const populateUsers = async () => {
+const populateDB = async () => {
   await User.deleteMany({});
+  await Company.deleteMany({});
+
+  await populateDBForAuthentification();
   await new User(userList[0]).save();
   await new User(userList[1]).save();
   await new User(userList[2]).save();
   await new User(userList[3]).save();
   await new User(userList[4]).save();
-};
-
-const getToken = async () => {
-  const credentials = {
-    email: 'test4@alenvi.io',
-    password: '123456',
-  };
-  const response = await app.inject({
-    method: 'POST',
-    url: '/users/authenticate',
-    payload: credentials,
-  });
-  return response.result.data.token;
+  await new Company(company).save();
 };
 
 module.exports = {
   userList,
   userPayload,
-  populateUsers,
-  getToken,
+  populateDB,
 };

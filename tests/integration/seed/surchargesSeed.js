@@ -1,12 +1,29 @@
 const { ObjectID } = require('mongodb');
-
 const Surcharge = require('../../../models/Surcharge');
-const { companiesList } = require('./companiesSeed');
+const Company = require('../../../models/Company');
+const { populateDBForAuthentification } = require('./authentificationSeed');
+
+const company = {
+  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
+  name: 'Test',
+  rhConfig: {
+    internalHours: [
+      { name: 'Formation', default: true, _id: new ObjectID() },
+      { name: 'Code', default: false, _id: new ObjectID() },
+      { name: 'Gouter', default: false, _id: new ObjectID() },
+    ],
+    feeAmount: 12,
+  },
+  iban: 'FR3514508000505917721779B12',
+  bic: 'RTYUIKJHBFRG',
+  ics: '12345678',
+  directDebitsFolderId: '1234567890',
+};
 
 const surchargesList = [
   {
     _id: new ObjectID(),
-    company: companiesList[0]._id,
+    company: company._id,
     name: 'Chasse aux monstres hivernaux',
     saturday: 25,
     sunday: 20,
@@ -22,7 +39,7 @@ const surchargesList = [
   },
   {
     _id: new ObjectID(),
-    company: companiesList[0]._id,
+    company: company._id,
     name: 'Chasse aux monstres estivaux',
     saturday: 30,
     sunday: 25,
@@ -38,9 +55,13 @@ const surchargesList = [
   },
 ];
 
-const populateSurcharges = async () => {
+const populateDB = async () => {
   await Surcharge.deleteMany({});
+  await Company.deleteMany({});
+
+  await populateDBForAuthentification();
   await Surcharge.insertMany(surchargesList);
+  await (new Company(company)).save();
 };
 
-module.exports = { surchargesList, populateSurcharges };
+module.exports = { surchargesList, populateDB };

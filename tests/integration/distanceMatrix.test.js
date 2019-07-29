@@ -1,7 +1,7 @@
 const expect = require('expect');
-const { populateDistanceMatrix, distanceMatrixList } = require('./seed/distanceMatrixSeed');
-const { getToken } = require('./seed/usersSeed');
+const { populateDB, distanceMatrixList } = require('./seed/distanceMatrixSeed');
 const app = require('../../server');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -10,10 +10,10 @@ describe('NODE ENV', () => {
 });
 
 describe('DISTANCE MATRIX ROUTES', () => {
-  let token = null;
-  before(populateDistanceMatrix);
+  let authToken = null;
+  before(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('GET /distancematrix', () => {
@@ -21,7 +21,7 @@ describe('DISTANCE MATRIX ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/distancematrix',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.distanceMatrix).toHaveLength(distanceMatrixList.length);

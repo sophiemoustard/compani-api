@@ -16,7 +16,7 @@ const processingRights = rights => rights.map((right) => {
       permission: right.right_id.permission,
       description: right.right_id.description,
       rolesConcerned: right.rolesConcerned,
-      hasAccess: right.hasAccess
+      hasAccess: right.hasAccess,
     };
   }
 });
@@ -40,7 +40,7 @@ const populateRoles = roles => roles.map((role) => {
 const formatRight = (roleRight, rightToUpdate = roleRight) => ({
   right_id: roleRight.right_id,
   hasAccess: rightToUpdate.hasAccess,
-  rolesConcerned: rightToUpdate.rolesConcerned && rightToUpdate.rolesConcerned.length > 0 ? rightToUpdate.rolesConcerned : []
+  rolesConcerned: rightToUpdate.rolesConcerned && rightToUpdate.rolesConcerned.length > 0 ? rightToUpdate.rolesConcerned : [],
 });
 
 const formatRoleRights = (rights, rightsUpdateData) => {
@@ -77,7 +77,7 @@ const updateRights = async (roleId, payload) => {
   roleUpdated = await roleUpdated.populate({
     path: 'rights.right_id',
     select: 'name description permission _id',
-    model: Right
+    model: Right,
   }).execPopulate();
   roleUpdated = roleUpdated.toObject();
   roleUpdated.rights = populateRole(roleUpdated.rights);

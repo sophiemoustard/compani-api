@@ -1,11 +1,10 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-
-const { servicesList, populateServices } = require('./seed/servicesSeed');
-const { getToken } = require('./seed/usersSeed');
+const { servicesList, populateDB } = require('./seed/servicesSeed');
 const Service = require('../../models/Service');
 const app = require('../../server');
 const { CUSTOMER_CONTRACT, HOURLY } = require('../../helpers/constants');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -15,9 +14,9 @@ describe('NODE ENV', () => {
 
 describe('SERVICES ROUTES', () => {
   let authToken = null;
-  beforeEach(populateServices);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('admin');
   });
 
   describe('POST /services', () => {
@@ -51,36 +50,36 @@ describe('SERVICES ROUTES', () => {
         payload: { ...payload },
         remove() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'company',
         payload: { ...payload },
         remove() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'defaultUnitAmount',
         payload: { ...payload },
         remove() {
           delete this.payload.versions[0][this.paramName];
-        }
+        },
       },
       {
         paramName: 'name',
         payload: { ...payload },
         remove() {
           delete this.payload.versions[0][this.paramName];
-        }
+        },
       },
       {
         paramName: 'nature',
         payload: { ...payload },
         remove() {
           delete this.payload[this.paramName];
-        }
-      }
+        },
+      },
     ];
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.paramName}' parameter`, async () => {

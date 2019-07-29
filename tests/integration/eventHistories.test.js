@@ -1,8 +1,7 @@
 const expect = require('expect');
 const app = require('../../server');
-const { populateDB, cleanDB, eventHistoryList, eventHistoryAuxiliary } = require('./seed/eventHistoriesSeed');
-const { populateUsers, getToken } = require('./seed/usersSeed');
-const { populateRoles } = require('./seed/rolesSeed');
+const { populateDB, eventHistoryList, eventHistoryAuxiliary } = require('./seed/eventHistoriesSeed');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -12,13 +11,10 @@ describe('NODE ENV', () => {
 
 describe('EVENT HISTORY ROUTES', () => {
   let authToken = null;
-  beforeEach(populateRoles);
-  beforeEach(populateUsers);
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
-  afterEach(cleanDB);
 
   describe('GET /eventhistories', () => {
     it('should return all event histories', async () => {

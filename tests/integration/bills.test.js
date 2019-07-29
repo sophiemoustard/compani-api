@@ -5,15 +5,9 @@ const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const { populateUsers, getToken } = require('./seed/usersSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateCustomers, customersList } = require('./seed/customersSeed');
-const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
-const { populateEvents } = require('./seed/eventsSeed');
-const { populateServices } = require('./seed/servicesSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
-const { populateBills, billsList } = require('./seed/billsSeed');
+const { populateDB, billsList, billCustomerList } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../helpers/constants');
+const { getToken } = require('./seed/authentificationSeed');
 const Bill = require('../../models/Bill');
 
 describe('NODE ENV', () => {
@@ -24,16 +18,9 @@ describe('NODE ENV', () => {
 
 describe('BILL ROUTES', () => {
   let authToken = null;
-  before(populateCompanies);
-  before(populateRoles);
-  before(populateUsers);
-  before(populateCustomers);
-  before(populateThirdPartyPayers);
-  before(populateEvents);
-  before(populateServices);
-  beforeEach(populateBills);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('GET /bills/drafts', () => {
@@ -52,10 +39,10 @@ describe('BILL ROUTES', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.draftBills).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          customerId: customersList[0]._id,
+          customerId: billCustomerList[0]._id,
           customer: expect.objectContaining({
-            _id: customersList[0]._id,
-            identity: customersList[0].identity,
+            _id: billCustomerList[0]._id,
+            identity: billCustomerList[0].identity,
           }),
           customerBills: expect.objectContaining({
             bills: expect.any(Array),
@@ -93,8 +80,8 @@ describe('BILL ROUTES', () => {
             title: 'a a Directeur',
             firstname: 'Marie',
             lastname: 'Renard',
-            birthDate: '2018-05-23T18:59:04.466Z'
-          }
+            birthDate: '2018-05-23T18:59:04.466Z',
+          },
         },
         customerBills: {
           bills: [
@@ -113,13 +100,13 @@ describe('BILL ROUTES', () => {
                       name: 'Service 1',
                       startDate: '2019-01-16T16:58:15.519Z',
                       vat: 12,
-                      createdAt: '2019-05-03T08:33:56.163Z'
-                    }
+                      createdAt: '2019-05-03T08:33:56.163Z',
+                    },
                   ],
                   nature: 'hourly',
                   __v: 0,
                   createdAt: '2019-05-03T08:33:56.163Z',
-                  updatedAt: '2019-05-03T08:33:56.163Z'
+                  updatedAt: '2019-05-03T08:33:56.163Z',
                 },
                 versions: [
                   {
@@ -129,16 +116,16 @@ describe('BILL ROUTES', () => {
                     evenings: 2,
                     sundays: 1,
                     startDate: '2019-04-03T08:33:55.370Z',
-                    createdAt: '2019-05-03T08:33:56.144Z'
-                  }
+                    createdAt: '2019-05-03T08:33:56.144Z',
+                  },
                 ],
-                createdAt: '2019-05-03T08:33:56.144Z'
+                createdAt: '2019-05-03T08:33:56.144Z',
               },
               identity: {
                 title: 'a a Directeur',
                 firstname: 'Marie',
                 lastname: 'Renard',
-                birthDate: '2018-05-23T18:59:04.466Z'
+                birthDate: '2018-05-23T18:59:04.466Z',
               },
               discount: 0,
               startDate: '2019-05-01T00:00:00.000Z',
@@ -153,15 +140,15 @@ describe('BILL ROUTES', () => {
                   startDate: '2019-05-02T08:00:00.000Z',
                   endDate: '2019-05-02T10:00:00.000Z',
                   inclTaxesCustomer: 24,
-                  exclTaxesCustomer: 21.428571428571427
-                }
+                  exclTaxesCustomer: 21.428571428571427,
+                },
               ],
               hours: 2,
               exclTaxes: 21.428571428571427,
-              inclTaxes: 24
-            }
+              inclTaxes: 24,
+            },
           ],
-          total: 24
+          total: 24,
         },
         thirdPartyPayerBills: [
           {
@@ -181,13 +168,13 @@ describe('BILL ROUTES', () => {
                         name: 'Service 1',
                         startDate: '2019-01-16T16:58:15.519Z',
                         vat: 12,
-                        createdAt: '2019-05-03T08:33:56.163Z'
-                      }
+                        createdAt: '2019-05-03T08:33:56.163Z',
+                      },
                     ],
                     nature: 'hourly',
                     __v: 0,
                     createdAt: '2019-05-03T08:33:56.163Z',
-                    updatedAt: '2019-05-03T08:33:56.163Z'
+                    updatedAt: '2019-05-03T08:33:56.163Z',
                   },
                   versions: [
                     {
@@ -197,16 +184,16 @@ describe('BILL ROUTES', () => {
                       evenings: 2,
                       sundays: 1,
                       startDate: '2019-04-03T08:33:55.370Z',
-                      createdAt: '2019-05-03T08:33:56.144Z'
-                    }
+                      createdAt: '2019-05-03T08:33:56.144Z',
+                    },
                   ],
-                  createdAt: '2019-05-03T08:33:56.144Z'
+                  createdAt: '2019-05-03T08:33:56.144Z',
                 },
                 identity: {
                   title: 'a a Directeur',
                   firstname: 'Marie',
                   lastname: 'Renard',
-                  birthDate: '2018-05-23T18:59:04.466Z'
+                  birthDate: '2018-05-23T18:59:04.466Z',
                 },
                 discount: 0,
                 startDate: '2019-05-01T00:00:00.000Z',
@@ -231,11 +218,11 @@ describe('BILL ROUTES', () => {
                     history: {
                       amountTTC: 24,
                       fundingId: '5ccbfcf4bffe7646a387b45a',
-                      nature: 'fixed'
+                      nature: 'fixed',
                     },
                     fundingId: '5ccbfcf4bffe7646a387b45a',
-                    nature: 'fixed'
-                  }
+                    nature: 'fixed',
+                  },
                 ],
                 externalBilling: false,
                 thirdPartyPayer: {
@@ -243,21 +230,21 @@ describe('BILL ROUTES', () => {
                   name: 'Toto',
                   __v: 0,
                   createdAt: '2019-05-03T08:33:56.156Z',
-                  updatedAt: '2019-05-03T08:33:56.156Z'
-                }
-              }
+                  updatedAt: '2019-05-03T08:33:56.156Z',
+                },
+              },
             ],
-            total: 24
-          }
-        ]
-      }
+            total: 24,
+          },
+        ],
+      },
     ];
     it('should create new bills', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/bills',
         payload: { bills: payload },
-        headers: { 'x-access-token': authToken }
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
@@ -272,7 +259,7 @@ describe('BILL ROUTES', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/bills',
-        headers: { 'x-access-token': authToken }
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);

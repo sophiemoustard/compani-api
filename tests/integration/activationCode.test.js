@@ -1,15 +1,9 @@
 const expect = require('expect');
 
 const app = require('../../server');
-const {
-  populateUsers,
-  getToken,
-  userList
-} = require('./seed/usersSeed');
-const { populateActivationCode, activationCode } = require('./seed/activationCodeSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
+const { populateDB, activationCode, activationCodeUser } = require('./seed/activationCodeSeed');
 const ActivationCode = require('../../models/ActivationCode');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -19,26 +13,24 @@ describe('NODE ENV', () => {
 
 describe('ACTIVATION CODE ROUTES', () => {
   let token = null;
-  before(populateActivationCode);
-  before(populateCompanies);
-  before(populateRoles);
-  before(populateUsers);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
+
   describe('POST /activation', () => {
     it('should create an activation code', async () => {
       const payload = {
         userEmail: 'toto@test.com',
-        newUserId: userList[3]._id
+        newUserId: activationCodeUser._id,
       };
       const res = await app.inject({
         method: 'POST',
         url: '/activation',
         payload,
         headers: {
-          'x-access-token': token
-        }
+          'x-access-token': token,
+        },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.activationData).toEqual(expect.objectContaining({
@@ -51,19 +43,19 @@ describe('ACTIVATION CODE ROUTES', () => {
       expect(codeData).toEqual(expect.objectContaining({
         firstSMS: expect.any(Date),
         newUserId: payload.newUserId,
-        userEmail: payload.userEmail
+        userEmail: payload.userEmail,
       }));
     });
 
     it("should return a 400 error if 'userEmail' parameter is missing", async () => {
-      const payload = { newUserId: userList[3]._id };
+      const payload = { newUserId: activationCodeUser._id };
       const res = await app.inject({
         method: 'POST',
         url: '/activation',
         payload,
         headers: {
-          'x-access-token': token
-        }
+          'x-access-token': token,
+        },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -75,8 +67,8 @@ describe('ACTIVATION CODE ROUTES', () => {
         url: '/activation',
         payload,
         headers: {
-          'x-access-token': token
-        }
+          'x-access-token': token,
+        },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -88,8 +80,8 @@ describe('ACTIVATION CODE ROUTES', () => {
         method: 'GET',
         url: `/activation/${activationCode.code}`,
         headers: {
-          'x-access-token': token
-        }
+          'x-access-token': token,
+        },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data).toEqual(expect.objectContaining({
@@ -99,7 +91,7 @@ describe('ACTIVATION CODE ROUTES', () => {
           firstSMS: expect.any(Date),
           userEmail: activationCode.userEmail,
           newUserId: activationCode.newUserId,
-        })
+        }),
       }));
     });
 
@@ -108,8 +100,8 @@ describe('ACTIVATION CODE ROUTES', () => {
         method: 'GET',
         url: '/activation/987',
         headers: {
-          'x-access-token': token
-        }
+          'x-access-token': token,
+        },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -119,8 +111,8 @@ describe('ACTIVATION CODE ROUTES', () => {
         method: 'GET',
         url: '/activation/0987',
         headers: {
-          'x-access-token': token
-        }
+          'x-access-token': token,
+        },
       });
       expect(res.statusCode).toBe(404);
     });

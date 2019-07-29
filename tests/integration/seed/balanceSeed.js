@@ -1,16 +1,14 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const { COMPANY_CONTRACT, HOURLY } = require('../../../helpers/constants');
-const Bill = require('../../../models/Bill');
-const Service = require('../../../models/Service');
+const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY } = require('../../../helpers/constants');
 const Customer = require('../../../models/Customer');
 const Company = require('../../../models/Company');
+const Service = require('../../../models/Service');
+const Bill = require('../../../models/Bill');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
-const BillNumber = require('../../../models/BillNumber');
-const Event = require('../../../models/Event');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 
-const billThirdPartyPayer = {
+const balanceThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
 };
@@ -32,20 +30,34 @@ const company = {
   directDebitsFolderId: '1234567890',
 };
 
-const billService = {
-  _id: new ObjectID(),
-  type: COMPANY_CONTRACT,
-  company: company._id,
-  versions: [{
-    defaultUnitAmount: 12,
-    name: 'Service 1',
-    startDate: '2019-01-16 17:58:15.519',
-    vat: 12,
-  }],
-  nature: HOURLY,
-};
+const customerServiceList = [
+  {
+    _id: new ObjectID(),
+    type: COMPANY_CONTRACT,
+    company: company._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      name: 'Service 1',
+      startDate: '2019-01-16 17:58:15.519',
+      vat: 12,
+    }],
+    nature: HOURLY,
+  },
+  {
+    _id: new ObjectID(),
+    type: CUSTOMER_CONTRACT,
+    company: company._id,
+    versions: [{
+      defaultUnitAmount: 24,
+      name: 'Service 2',
+      startDate: '2019-01-18 19:58:15.519',
+      vat: 12,
+    }],
+    nature: HOURLY,
+  },
+];
 
-const billCustomerList = [
+const balanceCustomerList = [
   {
     _id: new ObjectID(),
     email: 'tito@ty.com',
@@ -73,13 +85,24 @@ const billCustomerList = [
     subscriptions: [
       {
         _id: new ObjectID(),
-        service: billService._id,
+        service: customerServiceList[0]._id,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
           evenings: 2,
           sundays: 1,
           startDate: '2018-01-01T10:00:00.000+01:00',
+        }],
+      },
+      {
+        _id: new ObjectID(),
+        service: customerServiceList[1]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+          startDate: moment().subtract(1, 'month').toDate(),
         }],
       },
     ],
@@ -95,7 +118,7 @@ const billCustomerList = [
     subscriptions: [
       {
         _id: new ObjectID(),
-        service: billService._id,
+        service: customerServiceList[0]._id,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -116,41 +139,16 @@ const billCustomerList = [
   },
 ];
 
-const billsList = [
-  {
-    _id: new ObjectID(),
-    date: '2019-05-29',
-    customer: billCustomerList[0]._id,
-    client: billThirdPartyPayer._id,
-    netInclTaxes: 75.96,
-    subscriptions: [{
-      startDate: '2019-05-29',
-      endDate: '2019-11-29',
-      subscription: billCustomerList[0].subscriptions[0]._id,
-      vat: 5.5,
-      service: { name: 'Temps de qualité - autonomie' },
-      events: [{
-        eventId: new ObjectID(),
-        startDate: '2019-01-16T09:30:19.543Z',
-        endDate: '2019-01-16T11:30:21.653Z',
-        auxiliary: new ObjectID(),
-      }],
-      hours: 8,
-      unitExclTaxes: 9,
-      exclTaxes: 72,
-      inclTaxes: 75.96,
-      discount: 0,
-    }],
-  },
+const balanceBillList = [
   {
     _id: new ObjectID(),
     date: '2019-05-25',
-    customer: billCustomerList[1]._id,
+    customer: balanceCustomerList[0]._id,
     netInclTaxes: 101.28,
     subscriptions: [{
       startDate: '2019-05-25',
       endDate: '2019-11-25',
-      subscription: billCustomerList[1].subscriptions[0]._id,
+      subscription: balanceCustomerList[0].subscriptions[0]._id,
       vat: 5.5,
       events: [{
         eventId: new ObjectID(),
@@ -166,55 +164,30 @@ const billsList = [
       discount: 0,
     }],
   },
-];
-
-const eventList = [
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
-    type: 'internalHour',
-    startDate: '2019-01-17T10:30:18.653Z',
-    endDate: '2019-01-17T12:00:18.653Z',
-    auxiliary: new ObjectID(),
-    customer: billCustomerList[0]._id,
-    createdAt: '2019-01-05T15:24:18.653Z',
-    internalHour: {
-      _id: new ObjectID(),
-      name: 'Formation',
-    },
-  },
-  {
-    _id: new ObjectID(),
-    sector: new ObjectID(),
-    type: 'absence',
-    startDate: '2019-01-19T14:00:18.653Z',
-    endDate: '2019-01-19T17:00:18.653Z',
-    auxiliary: new ObjectID(),
-    createdAt: '2019-01-11T08:38:18.653Z',
-  },
-  {
-    _id: new ObjectID(),
-    sector: new ObjectID(),
-    type: 'intervention',
-    status: 'contract_with_company',
-    startDate: '2019-01-16T09:30:19.543Z',
-    endDate: '2019-01-16T11:30:21.653Z',
-    auxiliary: new ObjectID(),
-    customer: billCustomerList[0]._id,
-    createdAt: '2019-01-15T11:33:14.343Z',
-    subscription: billCustomerList[0].subscriptions[0]._id,
-  },
-  {
-    _id: new ObjectID(),
-    sector: new ObjectID(),
-    type: 'intervention',
-    status: 'contract_with_company',
-    startDate: '2019-01-17T14:30:19.543Z',
-    endDate: '2019-01-17T16:30:19.543Z',
-    auxiliary: new ObjectID(),
-    customer: billCustomerList[0]._id,
-    createdAt: '2019-01-16T14:30:19.543Z',
-    subscription: billCustomerList[0].subscriptions[0]._id,
+    date: '2019-05-29',
+    customer: balanceCustomerList[1]._id,
+    client: balanceThirdPartyPayer._id,
+    netInclTaxes: 75.96,
+    subscriptions: [{
+      startDate: '2019-05-29',
+      endDate: '2019-11-29',
+      subscription: balanceCustomerList[1].subscriptions[0]._id,
+      vat: 5.5,
+      service: { name: 'Temps de qualité - autonomie' },
+      events: [{
+        eventId: new ObjectID(),
+        startDate: '2019-01-16T09:30:19.543Z',
+        endDate: '2019-01-16T11:30:21.653Z',
+        auxiliary: new ObjectID(),
+      }],
+      hours: 8,
+      unitExclTaxes: 9,
+      exclTaxes: 72,
+      inclTaxes: 75.96,
+      discount: 0,
+    }],
   },
 ];
 
@@ -224,20 +197,19 @@ const populateDB = async () => {
   await Customer.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Bill.deleteMany({});
-  await Event.deleteMany({});
-  await BillNumber.deleteMany({});
 
   await populateDBForAuthentification();
+
   await (new Company(company)).save();
-  await (new ThirdPartyPayer(billThirdPartyPayer)).save();
-  await new Service(billService).save();
-  await Customer.insertMany(billCustomerList);
-  await Bill.insertMany(billsList);
-  await Event.insertMany(eventList);
+  await (new ThirdPartyPayer(balanceThirdPartyPayer)).save();
+  await Service.insertMany(customerServiceList);
+  await Customer.insertMany(balanceCustomerList);
+  await Bill.insertMany(balanceBillList);
 };
 
 module.exports = {
-  billsList,
   populateDB,
-  billCustomerList,
+  balanceCustomerList,
+  balanceBillList,
+  balanceThirdPartyPayer,
 };

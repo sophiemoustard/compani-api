@@ -1,9 +1,9 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { getToken } = require('./seed/usersSeed');
 const { populateDB } = require('./seed/paySeed');
 const app = require('../../server');
 const Pay = require('../../models/Pay');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -15,7 +15,7 @@ describe('Pay ROUTES', () => {
   let authToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('GET /pay/draft', () => {
@@ -61,7 +61,7 @@ describe('Pay ROUTES', () => {
         method: 'POST',
         url: '/pay',
         headers: { 'x-access-token': authToken },
-        payload
+        payload,
       });
 
       expect(response.statusCode).toBe(200);
