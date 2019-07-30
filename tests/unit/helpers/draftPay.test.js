@@ -1108,13 +1108,33 @@ describe('getDraftPayByAuxiliary', () => {
     getTransportRefund.restore();
   });
 
+  it('should not return draft pay as auxiliary do not have active contracts', async () => {
+    const auxiliary = {
+      _id: '1234567890',
+      identity: { firstname: 'Hugo', lastname: 'Lloris' },
+      sector: { name: 'La ruche' },
+      contracts: [
+        { status: 'contract_with_company', versions: [{ isActive: false }] },
+      ],
+      administrative: { mutualFund: { has: true } },
+    };
+    const events = [[]];
+    const absences = [];
+    const company = { rhConfig: { feeAmount: 37 } };
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const prevPay = {};
+
+    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, absences, prevPay, company, query, [], []);
+    expect(result).not.toBeDefined();
+  });
+
   it('should return draft pay for one auxiliary', async () => {
     const auxiliary = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [
-        { status: 'contract_with_company' },
+        { status: 'contract_with_company', versions: [{ isActive: true }] },
       ],
       administrative: { mutualFund: { has: true } },
     };
