@@ -991,8 +991,8 @@ describe('getDraftBillsList', () => {
         ],
       },
     ]);
-    populateSurcharge.callsFake(sub => sub);
-    populateFundings.callsFake(sub => sub);
+    populateSurcharge.returnsArg(0);
+    populateFundings.returnsArg(0);
     getDraftBillsPerSubscription.onCall(0).returns({
       customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 },
       thirdPartyPayer: {
@@ -1067,7 +1067,7 @@ describe('getDraftBillsList', () => {
         ],
       },
     ]);
-    populateSurcharge.callsFake(sub => sub);
+    populateSurcharge.returnsArg(0);
     getDraftBillsPerSubscription.onCall(0).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 } });
     getDraftBillsPerSubscription.onCall(1).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 } });
     getDraftBillsPerSubscription.onCall(2).returns({ customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 } });
