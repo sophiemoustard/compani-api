@@ -111,6 +111,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['users:list'] },
         validate: {
           query: {
             role: [Joi.array(), Joi.string()],
@@ -127,6 +128,7 @@ exports.plugin = {
       method: 'GET',
       path: '/active',
       options: {
+        auth: { scope: ['users:list'] },
         validate: {
           query: {
             role: [Joi.array(), Joi.string()],
@@ -142,6 +144,9 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/{_id}',
+      options: {
+        auth: { scope: ['users:list', 'user-{params._id}'] },
+      },
       handler: show,
     });
 
@@ -149,6 +154,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['users:edit', 'user-{params._id}'] },
         validate: {
           payload: Joi.object().keys({
             _id: Joi.objectId(),
@@ -275,6 +281,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/certificates',
       options: {
+        auth: { scope: ['users:edit', 'user-{params._id}'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -294,6 +301,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{user_id}/tasks/{task_id}',
       options: {
+        auth: { scope: ['users:edit', 'user-{params.user_id}'] },
         validate: {
           params: {
             user_id: Joi.objectId(),
@@ -313,6 +321,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/tasks',
       options: {
+        auth: { scope: ['users:list', 'user-{params._id}'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -326,6 +335,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        auth: { scope: ['users:delete'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -398,6 +408,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
+        auth: { scope: ['users:edit', 'user-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -424,6 +435,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/drivefolder',
       options: {
+        auth: { scope: ['users:edit', 'user-{params._id}'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -442,6 +454,7 @@ exports.plugin = {
       path: '/{_id}/cloudinary/upload',
       handler: uploadImage,
       options: {
+        auth: { scope: ['users:edit', 'user-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,

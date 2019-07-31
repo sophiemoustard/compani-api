@@ -56,6 +56,24 @@ const rightsList = [
     description: 'Exporter des données',
     permission: 'exports:read',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Créer utilisateurs',
+    permission: 'users:create',
+    name: 'users-create',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Lister les utilisateurs',
+    permission: 'users:list',
+    name: 'users-list',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Supprimer son compte',
+    permission: 'users:delete',
+    name: 'users-delete',
+  },
 ];
 
 const coachRights = [
