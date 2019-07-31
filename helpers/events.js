@@ -83,6 +83,8 @@ exports.isCreationAllowed = async (event) => {
     return false;
   }
 
+  if (event.auxiliary && event.sector !== user.sector.toHexString()) return false;
+
   // If the event is an intervention :
   // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention
   // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention and this customer
