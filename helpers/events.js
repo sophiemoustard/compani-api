@@ -74,14 +74,14 @@ exports.createEvent = async (payload, credentials) => {
 
 exports.isCreationAllowed = async (event) => {
   if (!event.auxiliary) return event.type === INTERVENTION;
+
   if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
 
   if (event.type !== ABSENCE && !moment(event.startDate).isSame(event.endDate, 'day')) return false;
 
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
-  if (!user.contracts || user.contracts.length === 0) {
-    return false;
-  }
+  if (!user.contracts || user.contracts.length === 0) return false;
+  if (event.auxiliary && event.sector !== user.sector.toHexString()) return false;
 
   // If the event is an intervention :
   // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention

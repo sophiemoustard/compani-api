@@ -9,6 +9,7 @@ const EventHistory = require('../../../models/EventHistory');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 
 const auxiliaryId = new ObjectID('5d3b239ce9e4352ef86e773c');
+const sectorId = new ObjectID('5d3b239ce9e4352ef86e773c');
 
 const contract = {
   _id: new ObjectID('c435f90089caff4ddc4bbd68'),
@@ -27,6 +28,7 @@ const eventAuxiliary = {
   local: { email: 't@p.com', password: 'tourdefrance' },
   role: rolesList[1]._id,
   contracts: [contract._id],
+  sector: sectorId,
 };
 
 const thirdPartyPayer = {
@@ -51,7 +53,7 @@ const customerAuxiliary = {
 const eventsList = [
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector: sectorId,
     type: 'internalHour',
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
@@ -65,7 +67,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector: sectorId,
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
@@ -74,7 +76,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector: sectorId,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -86,7 +88,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector: sectorId,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
@@ -98,7 +100,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector: sectorId,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -121,7 +123,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector: sectorId,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
@@ -138,7 +140,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector: sectorId,
     type: 'absence',
     startDate: '2019-07-19T14:00:18.653Z',
     endDate: '2019-07-19T17:00:18.653Z',
@@ -170,4 +172,5 @@ module.exports = {
   populateDB,
   eventAuxiliary,
   customerAuxiliary,
+  sectorId,
 };
