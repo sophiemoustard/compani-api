@@ -21,7 +21,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { scope: ['config:read'] },
+        auth: { scope: ['config:edit'] },
         validate: {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(CONTRACT_STATUS),
@@ -44,7 +44,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { scope: ['config:edit'] },
+        auth: { scope: ['config:read'] },
         validate: {
           query: { company: Joi.objectId() },
         },
