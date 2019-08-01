@@ -26,10 +26,20 @@ const rightsList = [
     description: 'Read billing info',
     permission: 'billing:read',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Edit pay info',
+    permission: 'pay:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Read pay info',
+    permission: 'pay:read',
+  },
 ];
 
-const coachRights = ['config:read', 'billing:read'];
-const auxiliaryRights = [];
+const coachRights = ['config:read', 'billing:read', 'pay:read'];
+const auxiliaryRights = ['pay:read'];
 const helperRights = ['billing:read'];
 
 const rolesList = [

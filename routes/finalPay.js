@@ -11,6 +11,7 @@ exports.plugin = {
       method: 'GET',
       path: '/draft',
       options: {
+        auth: { scope: ['pay:edit'] },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -25,6 +26,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['pay:edit'] },
         validate: {
           payload: Joi.array().items(Joi.object({
             auxiliary: Joi.objectId().required(),

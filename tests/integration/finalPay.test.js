@@ -11,14 +11,15 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('FINAL PAY ROUTES', () => {
+describe('FINAL PAY ROUTES - GET /finalpay/draft', () => {
   let authToken = null;
   beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('coach');
-  });
 
-  describe('GET /finalpay/draft', () => {
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
     it('should compute draft final pay', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -32,32 +33,61 @@ describe('FINAL PAY ROUTES', () => {
     });
   });
 
-  describe('POST /finalpay', () => {
-    const payload = [{
-      auxiliary: new ObjectID(),
-      startDate: '2019-04-30T22:00:00.000Z',
-      endDate: '2019-05-28T14:34:04.000Z',
-      endReason: 'resignation',
-      endNotificationDate: '2019-03-28T14:34:04.000Z',
-      month: 'mai',
-      contractHours: 38.97,
-      workedHours: 2,
-      surchargedAndNotExemptDetails: {},
-      surchargedAndExemptDetails: {},
-      notSurchargedAndNotExempt: 2,
-      surchargedAndNotExempt: 0,
-      notSurchargedAndExempt: 0,
-      surchargedAndExempt: 0,
-      hoursBalance: -36.97,
-      hoursCounter: -36.97,
-      overtimeHours: 0,
-      additionalHours: 0,
-      mutual: true,
-      transport: 0,
-      otherFees: 0,
-      bonus: 0,
-      compensation: 0,
-    }];
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/finalpay/draft?startDate=2019-04-30T22:00:00.000Z&endDate=2019-05-31T21:59:59.999Z',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('FINAL PAY ROUTES - POST /finalpay', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const payload = [{
+    auxiliary: new ObjectID(),
+    startDate: '2019-04-30T22:00:00.000Z',
+    endDate: '2019-05-28T14:34:04.000Z',
+    endReason: 'resignation',
+    endNotificationDate: '2019-03-28T14:34:04.000Z',
+    month: 'mai',
+    contractHours: 38.97,
+    workedHours: 2,
+    surchargedAndNotExemptDetails: {},
+    surchargedAndExemptDetails: {},
+    notSurchargedAndNotExempt: 2,
+    surchargedAndNotExempt: 0,
+    notSurchargedAndExempt: 0,
+    surchargedAndExempt: 0,
+    hoursBalance: -36.97,
+    hoursCounter: -36.97,
+    overtimeHours: 0,
+    additionalHours: 0,
+    mutual: true,
+    transport: 0,
+    otherFees: 0,
+    bonus: 0,
+    compensation: 0,
+  }];
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
 
     it('should create a new final pay', async () => {
       const response = await app.inject({
@@ -85,6 +115,28 @@ describe('FINAL PAY ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(400);
+      });
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/finalpay',
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });
