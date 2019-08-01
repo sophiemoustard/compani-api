@@ -9,14 +9,15 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('BALANCES ROUTES', () => {
+describe('BALANCES ROUTES - GET /balances', () => {
   let authToken = null;
   beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('coach');
-  });
 
-  describe('GET /balances', () => {
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
     it('should get all clients balances', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -71,6 +72,27 @@ describe('BALANCES ROUTES', () => {
           balance: -balanceBillList[0].netInclTaxes,
         }),
       ]));
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/balances',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });

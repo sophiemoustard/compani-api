@@ -8,7 +8,6 @@ const {
   list,
   update,
   remove,
-  getById,
   generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
 
@@ -22,6 +21,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
+        auth: { scope: ['billing:edit'] },
         validate: {
           payload: Joi.object().keys({
             date: Joi.date().required(),
@@ -70,6 +70,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
+        auth: { scope: ['billing:read'] },
         validate: {
           query: {
             startDate: Joi.date(),
@@ -81,23 +82,11 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'GET',
-      path: '/{_id}',
-      handler: getById,
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-        },
-      },
-    });
-
-    server.route({
       method: 'DELETE',
       path: '/{_id}',
       handler: remove,
       options: {
+        auth: { scope: ['billing:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -111,6 +100,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
+        auth: { scope: ['billing:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -161,6 +151,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/pdfs',
       options: {
+        auth: { scope: ['billing:read'] },
         validate: {
           params: { _id: Joi.objectId() },
         },

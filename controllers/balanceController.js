@@ -21,15 +21,15 @@ const list = async (req) => {
         $group: {
           _id: { tpp: { $ifNull: ['$client', null] }, customer: '$customer' },
           billed: { $sum: '$netInclTaxes' },
-        }
+        },
       },
       {
         $lookup: {
           from: 'customers',
           localField: '_id.customer',
           foreignField: '_id',
-          as: 'customer'
-        }
+          as: 'customer',
+        },
       },
       { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
       {
@@ -37,8 +37,8 @@ const list = async (req) => {
           from: 'thirdpartypayers',
           localField: '_id.tpp',
           foreignField: '_id',
-          as: 'thirdPartyPayer'
-        }
+          as: 'thirdPartyPayer',
+        },
       },
       { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
       {
@@ -47,22 +47,22 @@ const list = async (req) => {
           customer: { _id: 1, identity: 1, payment: 1 },
           thirdPartyPayer: { name: 1, _id: 1 },
           billed: 1,
-        }
-      }
+        },
+      },
     ]);
 
     const customerCreditNotesAggregation = await CreditNote.aggregate([
       { $match: rules.length === 0 ? {} : { $and: rules } },
       {
-        $group: { _id: '$customer', refund: { $sum: '$inclTaxesCustomer' } }
+        $group: { _id: '$customer', refund: { $sum: '$inclTaxesCustomer' } },
       },
       {
         $lookup: {
           from: 'customers',
           localField: '_id',
           foreignField: '_id',
-          as: 'customer'
-        }
+          as: 'customer',
+        },
       },
       { $unwind: { path: '$customer' } },
       {
@@ -70,8 +70,8 @@ const list = async (req) => {
           _id: { customer: '$_id', tpp: null },
           customer: { _id: 1, identity: 1 },
           refund: 1,
-        }
-      }
+        },
+      },
     ]);
 
     const tppCreditNotesAggregation = await CreditNote.aggregate([
@@ -80,15 +80,15 @@ const list = async (req) => {
         $group: {
           _id: { tpp: '$thirdPartyPayer', customer: '$customer' },
           refund: { $sum: '$inclTaxesTpp' },
-        }
+        },
       },
       {
         $lookup: {
           from: 'thirdpartypayers',
           localField: '_id.tpp',
           foreignField: '_id',
-          as: 'thirdPartyPayer'
-        }
+          as: 'thirdPartyPayer',
+        },
       },
       { $unwind: { path: '$thirdPartyPayer' } },
       {
@@ -96,8 +96,8 @@ const list = async (req) => {
           from: 'customers',
           localField: '_id.customer',
           foreignField: '_id',
-          as: 'customer'
-        }
+          as: 'customer',
+        },
       },
       { $unwind: { path: '$customer' } },
       {
@@ -107,7 +107,7 @@ const list = async (req) => {
           customer: { _id: 1, identity: 1 },
           refund: 1,
         },
-      }
+      },
     ]);
 
     const payments = await Payment.aggregate([
@@ -116,15 +116,15 @@ const list = async (req) => {
         $group: {
           _id: { customer: '$customer', tpp: { $ifNull: ['$client', null] } },
           payments: { $push: '$$ROOT' },
-        }
+        },
       },
       {
         $lookup: {
           from: 'thirdpartypayers',
           localField: '_id.tpp',
           foreignField: '_id',
-          as: 'thirdPartyPayer'
-        }
+          as: 'thirdPartyPayer',
+        },
       },
       { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
       {
@@ -132,8 +132,8 @@ const list = async (req) => {
           from: 'customers',
           localField: '_id.customer',
           foreignField: '_id',
-          as: 'customer'
-        }
+          as: 'customer',
+        },
       },
       { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
       {
@@ -143,7 +143,7 @@ const list = async (req) => {
           customer: { _id: 1, identity: 1 },
           payments: 1,
         },
-      }
+      },
     ]);
 
     const balances = getBalances(billsAggregation, customerCreditNotesAggregation, tppCreditNotesAggregation, payments);
