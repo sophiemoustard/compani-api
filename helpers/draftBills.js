@@ -73,9 +73,10 @@ const populateFundings = async (fundings, endDate) => {
 };
 
 const getMatchingFunding = (date, fundings) => {
-  if (moment(date).startOf('d').isHoliday()) return fundings.find(funding => funding.careDays.includes(7)) || null;
+  const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(date));
+  if (moment(date).startOf('d').isHoliday()) return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
 
-  return fundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
+  return filteredByDateFundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
 
 const computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
