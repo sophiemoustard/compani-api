@@ -1,10 +1,9 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
-const { companiesList } = require('./seed/companiesSeed');
-const { getToken } = require('./seed/usersSeed');
+const { thirdPartyPayersList, populateDB, tppCompany } = require('./seed/thirdPartyPayersSeed');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const app = require('../../server');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -14,9 +13,9 @@ describe('NODE ENV', () => {
 
 describe('THIRD PARTY PAYERS ROUTES', () => {
   let authToken = null;
-  beforeEach(populateThirdPartyPayers);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('admin');
   });
 
   describe('POST /thirdpartypayers', () => {
@@ -26,12 +25,12 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         fullAddress: '37 rue de Ponthieu 75008 Paris',
         street: '37 rue de Ponthieu',
         zipCode: '75008',
-        city: 'Paris'
+        city: 'Paris',
       },
       email: 'test@test.com',
       unitTTCRate: 75,
       billingMode: 'direct',
-      company: companiesList[0]._id,
+      company: tppCompany._id,
     };
 
     it('should create a new third party payer', async () => {
@@ -55,14 +54,14 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
       {
         paramName: 'company',
         payload: { ...payload },
         update() {
           delete this.payload[this.paramName];
-        }
+        },
       },
     ];
     missingParams.forEach((test) => {
@@ -125,7 +124,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         fullAddress: '4 rue du test 92160 Antony',
         street: '4 rue du test',
         zipCode: '92160',
-        city: 'Antony'
+        city: 'Antony',
       },
       email: 't@t.com',
       unitTTCRate: 89,
@@ -149,7 +148,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
           zipCode: '92160',
-          city: 'Antony'
+          city: 'Antony',
         },
         email: 't@t.com',
         unitTTCRate: 89,

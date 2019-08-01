@@ -71,6 +71,21 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
   if (!moment(event.startDate).isSame(payload.startDate, 'day') || !moment(event.endDate).isSame(payload.endDate, 'day')) {
     const datesUpdateHistory = exports.formatEventHistoryForDatesUpdate(eventHistory, payload, event);
     promises.push((new EventHistory(datesUpdateHistory)).save());
+  } else {
+    const eventStartHour = moment(event.startDate).format('HH:mm');
+    const eventEndHour = moment(event.endDate).format('HH:mm');
+    const payloadStartHour = moment(payload.startDate).format('HH:mm');
+    const payloadEndHour = moment(payload.endDate).format('HH:mm');
+
+    if (eventStartHour !== payloadStartHour || eventEndHour !== payloadEndHour) {
+      const hoursUpdateHistory = exports.formatEventHistoryForHoursUpdate(eventHistory, payload, event);
+      promises.push((new EventHistory(hoursUpdateHistory)).save());
+    }
+  }
+
+  if (payload.isCancelled && !event.isCancelled) {
+    const cancelUpdateHistory = exports.formatEventHistoryForCancelUpdate(eventHistory, payload, event);
+    promises.push((new EventHistory(cancelUpdateHistory)).save());
   }
 
   await Promise.all(promises);
@@ -112,6 +127,40 @@ exports.formatEventHistoryForDatesUpdate = (mainInfo, payload, event) => {
 
   const isOneDayEvent = moment(event.endDate).isSame(event.startDate, 'day') && moment(payload.endDate).isSame(payload.startDate, 'day');
   if (!isOneDayEvent) datesUpdateHistory.update.endDate = { from: event.endDate, to: payload.endDate };
+
+  if (payload.auxiliary) {
+    datesUpdateHistory.auxiliaries = [payload.auxiliary];
+    datesUpdateHistory.event.auxiliary = payload.auxiliary;
+  }
+
+  return datesUpdateHistory;
+};
+
+exports.formatEventHistoryForHoursUpdate = (mainInfo, payload, event) => {
+  const hoursUpdateHistory = {
+    ...mainInfo,
+    sectors: [payload.sector],
+    update: {
+      startHour: { from: event.startDate, to: payload.startDate },
+      endHour: { from: event.endDate, to: payload.endDate },
+    },
+  };
+
+  if (payload.auxiliary) {
+    hoursUpdateHistory.auxiliaries = [payload.auxiliary];
+    hoursUpdateHistory.event.auxiliary = payload.auxiliary;
+  }
+
+  return hoursUpdateHistory;
+};
+
+exports.formatEventHistoryForCancelUpdate = (mainInfo, payload) => {
+  const { cancel } = payload;
+  const datesUpdateHistory = {
+    ...mainInfo,
+    sectors: [payload.sector],
+    update: { cancel },
+  };
 
   if (payload.auxiliary) {
     datesUpdateHistory.auxiliaries = [payload.auxiliary];

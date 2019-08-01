@@ -3,9 +3,8 @@ const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
 const Sector = require('../../models/Sector');
-const { getToken } = require('./seed/usersSeed');
-const { populateSectors, sectorsList } = require('./seed/sectorsSeed');
-const { companiesList } = require('./seed/companiesSeed');
+const { populateDB, sectorsList, sectorCompany } = require('./seed/sectorsSeed');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -15,16 +14,16 @@ describe('NODE ENV', () => {
 
 describe('SECTORS ROUTES', () => {
   let authToken = null;
-  beforeEach(populateSectors);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('POST /sectors', () => {
     it('should create a new company sector', async () => {
       const initialSectorNumber = sectorsList.length;
 
-      const payload = { name: 'Test3', company: companiesList[0]._id };
+      const payload = { name: 'Test3', company: sectorCompany._id };
       const response = await app.inject({
         method: 'POST',
         url: '/sectors',
@@ -37,7 +36,7 @@ describe('SECTORS ROUTES', () => {
       expect(sectors.length).toEqual(initialSectorNumber + 1);
     });
     it("should return a 400 error if 'name' params is missing", async () => {
-      const payload = { company: companiesList[0]._id };
+      const payload = { company: sectorCompany._id };
       const response = await app.inject({
         method: 'POST',
         url: '/sectors',

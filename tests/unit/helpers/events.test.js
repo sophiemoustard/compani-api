@@ -455,8 +455,33 @@ describe('isCreationAllowed', () => {
     expect(result).toBeFalsy();
   });
 
+  it('should return false if auxiliary sector is not event sector', async () => {
+    const payload = { auxiliary: new ObjectID(), sector: new ObjectID().toHexString() };
+    const contract = new Contract({
+      user: payload.auxiliary,
+      customer: payload.customer,
+      versions: [{}],
+      startDate: moment(payload.startDate).add(1, 'd'),
+    });
+    findOneContract.returns(contract);
+
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: new ObjectID() };
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+
+    hasConflicts.returns(false);
+    const result = await EventHelper.isCreationAllowed(payload);
+
+    expect(result).toBeFalsy();
+  });
+
   it('should return false if service event is customer contract and auxiliary does not have contract with customer', async () => {
     const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
@@ -464,6 +489,7 @@ describe('isCreationAllowed', () => {
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-02T08:00:00.000Z',
       endDate: '2019-10-02T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
     const customer = {
       _id: payload.customer,
@@ -487,7 +513,7 @@ describe('isCreationAllowed', () => {
     });
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
     UserModel.expects('findOne')
       .withExactArgs({ _id: payload.auxiliary })
       .chain('populate')
@@ -502,6 +528,7 @@ describe('isCreationAllowed', () => {
 
   it('should return true if service event is customer contract and auxiliary has contract with customer', async () => {
     const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
@@ -509,6 +536,7 @@ describe('isCreationAllowed', () => {
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -533,7 +561,7 @@ describe('isCreationAllowed', () => {
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
     UserModel.expects('findOne')
       .withExactArgs({ _id: payload.auxiliary })
       .chain('populate')
@@ -549,6 +577,7 @@ describe('isCreationAllowed', () => {
 
   it('should return false if company contract and no active contract on day', async () => {
     const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
@@ -556,6 +585,7 @@ describe('isCreationAllowed', () => {
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -581,7 +611,7 @@ describe('isCreationAllowed', () => {
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
     UserModel.expects('findOne')
       .withExactArgs({ _id: payload.auxiliary })
       .chain('populate')
@@ -597,6 +627,7 @@ describe('isCreationAllowed', () => {
 
   it('should return true if company contract and active contract on day', async () => {
     const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
@@ -604,6 +635,7 @@ describe('isCreationAllowed', () => {
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -629,7 +661,7 @@ describe('isCreationAllowed', () => {
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
     UserModel.expects('findOne')
       .withExactArgs({ _id: payload.auxiliary })
       .chain('populate')
@@ -644,6 +676,7 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false if company contract and customer has no subscription', async () => {
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
@@ -651,6 +684,7 @@ describe('isCreationAllowed', () => {
       subscription: (new ObjectID()).toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
       endDate: '2019-10-03T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -676,7 +710,7 @@ describe('isCreationAllowed', () => {
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
     UserModel.expects('findOne')
       .withExactArgs({ _id: payload.auxiliary })
       .chain('populate')
@@ -691,10 +725,12 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       type: INTERNAL_HOUR,
       startDate: '2019-10-03T00:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -718,7 +754,7 @@ describe('isCreationAllowed', () => {
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
     UserModel.expects('findOne')
       .withExactArgs({ _id: payload.auxiliary })
       .chain('populate')

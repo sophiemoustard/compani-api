@@ -16,7 +16,7 @@ const list = async (req) => {
 
     return {
       message: translate[language].companiesFound,
-      data: companies
+      data: companies,
     };
   } catch (e) {
     req.log('error', e);
@@ -31,7 +31,7 @@ const show = async (req) => {
 
     return {
       message: translate[language].companyFound,
-      data: { company }
+      data: { company },
     };
   } catch (e) {
     req.log('error', e);
@@ -46,7 +46,7 @@ const create = async (req) => {
 
     return {
       message: translate[language].companyCreated,
-      data: { company: newCompany }
+      data: { company: newCompany },
     };
   } catch (e) {
     req.log('error', e);
@@ -68,19 +68,20 @@ const update = async (req) => {
       delete req.payload._id;
       companyUpdated = await Company.findOneAndUpdate({
         _id: req.params._id,
-        'rhConfig.transportSubs._id': subId
+        'rhConfig.transportSubs._id': subId,
       }, { $set: flat(req.payload) }, { new: true });
     } else {
       companyUpdated = await Company.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
     }
+
     if (!companyUpdated) {
       return Boom.notFound(translate[language].companyNotFound);
     }
     return {
       message: translate[language].companyUpdated,
       data: {
-        company: companyUpdated
-      }
+        company: companyUpdated,
+      },
     };
   } catch (e) {
     req.log('error', e);
@@ -121,7 +122,7 @@ const uploadFile = async (req) => {
       driveFolderId: req.params.driveId,
       name: req.payload.fileName || req.payload[keys[0]].hapi.filename,
       type: req.payload['Content-Type'],
-      body: req.payload[keys[0]]
+      body: req.payload[keys[0]],
     });
     const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
     const configKey = (keys[0].match(/contract/i)) ? 'rhConfig' : 'customersConfig';
@@ -156,7 +157,7 @@ const addInternalHour = async (req) => {
       {
         new: true,
         select: { name: 1, 'rhConfig.internalHours': 1 },
-      },
+      }
     );
 
     return {
@@ -182,7 +183,7 @@ const updateInternalHour = async (req) => {
       {
         new: true,
         select: { name: 1, 'rhConfig.internalHours': 1 },
-      },
+      }
     );
 
     if (!company) return Boom.notFound(translate[language].companyInternalHourNotFound);
@@ -209,7 +210,7 @@ const getInternalHours = async (req) => {
         _id: req.params._id,
         'rhConfig.internalHours': { $exists: true },
       },
-      { name: 1, 'rhConfig.internalHours': 1 },
+      { name: 1, 'rhConfig.internalHours': 1 }
     );
 
     if (!company) return Boom.notFound(translate[language].companyInternalHoursNotFound);
@@ -242,7 +243,7 @@ const removeInternalHour = async (req) => {
 
     await Company.findOneAndUpdate(
       { _id: companyId },
-      { $pull: { 'rhConfig.internalHours': { _id: internalHourId } } },
+      { $pull: { 'rhConfig.internalHours': { _id: internalHourId } } }
     );
 
     return {

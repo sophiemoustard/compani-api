@@ -1,14 +1,32 @@
 const { ObjectID } = require('mongodb');
 
 const Service = require('../../../models/Service');
-const { companiesList } = require('./companiesSeed');
+const Company = require('../../../models/Company');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../../../helpers/constants');
+const { populateDBForAuthentification } = require('./authentificationSeed');
+
+const company = {
+  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
+  name: 'Test',
+  rhConfig: {
+    internalHours: [
+      { name: 'Formation', default: true, _id: new ObjectID() },
+      { name: 'Code', default: false, _id: new ObjectID() },
+      { name: 'Gouter', default: false, _id: new ObjectID() },
+    ],
+    feeAmount: 12,
+  },
+  iban: 'FR3514508000505917721779B12',
+  bic: 'RTYUIKJHBFRG',
+  ics: '12345678',
+  directDebitsFolderId: '1234567890',
+};
 
 const servicesList = [
   {
     _id: new ObjectID(),
     type: COMPANY_CONTRACT,
-    company: companiesList[0]._id,
+    company: company._id,
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
@@ -20,7 +38,7 @@ const servicesList = [
   {
     _id: new ObjectID(),
     type: CUSTOMER_CONTRACT,
-    company: companiesList[0]._id,
+    company: company._id,
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
@@ -32,7 +50,7 @@ const servicesList = [
   {
     _id: new ObjectID(),
     type: COMPANY_CONTRACT,
-    company: companiesList[0]._id,
+    company: company._id,
     versions: [{
       defaultUnitAmount: 150,
       name: 'Service 3',
@@ -43,9 +61,13 @@ const servicesList = [
   },
 ];
 
-const populateServices = async () => {
+const populateDB = async () => {
   await Service.deleteMany({});
+  await Company.deleteMany({});
+
+  await populateDBForAuthentification();
+  await (new Company(company)).save();
   await Service.insertMany(servicesList);
 };
 
-module.exports = { servicesList, populateServices };
+module.exports = { servicesList, populateDB };

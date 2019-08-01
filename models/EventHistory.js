@@ -1,6 +1,13 @@
 const mongoose = require('mongoose');
 const { EVENT_TYPES, ABSENCE_TYPES } = require('./Event');
-const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, REPETITION_FREQUENCIES } = require('../helpers/constants');
+const {
+  EVENT_CREATION,
+  EVENT_DELETION,
+  EVENT_UPDATE,
+  REPETITION_FREQUENCIES,
+  EVENT_CANCELLATION_CONDITIONS,
+  EVENT_CANCELLATION_REASONS,
+} = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
 const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE];
@@ -20,6 +27,18 @@ const EventHistorySchema = mongoose.Schema({
     endDate: {
       from: Date,
       to: Date,
+    },
+    startHour: {
+      from: Date,
+      to: Date,
+    },
+    endHour: {
+      from: Date,
+      to: Date,
+    },
+    cancel: {
+      condition: { type: String, enum: EVENT_CANCELLATION_CONDITIONS },
+      reason: { type: String, enum: EVENT_CANCELLATION_REASONS },
     },
   },
   event: {

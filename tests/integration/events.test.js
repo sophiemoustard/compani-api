@@ -1,14 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const { populateEvents, eventsList } = require('./seed/eventsSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateUsers, userList, getToken } = require('./seed/usersSeed');
-const { populateCustomers, customersList } = require('./seed/customersSeed');
-const { populateContracts } = require('./seed/contractsSeed');
-const { populateServices } = require('./seed/servicesSeed');
-const { sectorsList } = require('./seed/sectorsSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
+const { populateDB, eventsList, eventAuxiliary, customerAuxiliary, sectorId } = require('./seed/eventsSeed');
+const { getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
 
@@ -20,15 +14,9 @@ describe('NODE ENV', () => {
 
 describe('EVENTS ROUTES', () => {
   let authToken = null;
-  before(populateContracts);
-  before(populateServices);
-  before(populateCompanies);
-  before(populateRoles);
-  before(populateUsers);
-  before(populateCustomers);
-  beforeEach(populateEvents);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('GET /events', () => {
@@ -110,13 +98,13 @@ describe('EVENTS ROUTES', () => {
 
   describe('POST /events', () => {
     it('should create an internal hour', async () => {
-      const auxiliary = userList[4];
+      const auxiliary = eventAuxiliary;
       const payload = {
         type: INTERNAL_HOUR,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        sector: sectorsList[0]._id,
+        sector: sectorId,
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -142,14 +130,14 @@ describe('EVENTS ROUTES', () => {
     });
 
     it('should create an intervention', async () => {
-      const auxiliary = userList[4];
-      const customer = customersList[0];
+      const auxiliary = eventAuxiliary;
+      const customer = customerAuxiliary;
       const payload = {
         type: INTERVENTION,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        sector: sectorsList[0]._id,
+        sector: sectorId,
         customer: customer._id,
         subscription: customer.subscriptions[0]._id,
         status: 'contract_with_company',
@@ -167,13 +155,13 @@ describe('EVENTS ROUTES', () => {
     });
 
     it('should create an absence', async () => {
-      const auxiliary = userList[4];
+      const auxiliary = eventAuxiliary;
       const payload = {
         type: ABSENCE,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        sector: sectorsList[0]._id,
+        sector: sectorId,
         absence: ILLNESS,
         absenceNature: DAILY,
         attachment: {
@@ -195,13 +183,13 @@ describe('EVENTS ROUTES', () => {
 
 
     it('should create an unavailability', async () => {
-      const auxiliary = userList[4];
+      const auxiliary = eventAuxiliary;
       const payload = {
         type: UNAVAILABILITY,
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: auxiliary._id,
-        sector: sectorsList[0]._id,
+        sector: sectorId,
       };
 
       const response = await app.inject({
@@ -222,6 +210,7 @@ describe('EVENTS ROUTES', () => {
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: '5c0002a5086ec30013f7f436',
         customer: '5c35b5eb1a6fb00997363eeb',
+        sector: sectorId,
         address: {
           fullAddress: '4 rue du test 92160 Antony',
           street: '4 rue du test',
@@ -243,7 +232,7 @@ describe('EVENTS ROUTES', () => {
   describe('PUT /events/{_id}', () => {
     it('should update corresponding event', async () => {
       const event = eventsList[0];
-      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-01-23T12:00:00.000Z', sector: new ObjectID(), auxiliary: event.auxiliary };
+      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-01-23T12:00:00.000Z', sector: sectorId, auxiliary: event.auxiliary };
 
       const response = await app.inject({
         method: 'PUT',
@@ -274,7 +263,7 @@ describe('EVENTS ROUTES', () => {
     });
 
     it('should return a 400 error as startDate and endDate are not on the same day', async () => {
-      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: new ObjectID() };
+      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectorId };
       const event = eventsList[0];
 
       const response = await app.inject({
@@ -288,7 +277,7 @@ describe('EVENTS ROUTES', () => {
     });
 
     it('should return a 404 error as event is not found', async () => {
-      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: new ObjectID() };
+      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectorId };
       const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
 
       const response = await app.inject({
