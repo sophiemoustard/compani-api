@@ -4,7 +4,7 @@ const Contract = require('../../../models/Contract');
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
 const Event = require('../../../models/Event');
-const { rolesList } = require('./authentificationSeed');
+const { rolesList, getUser } = require('./authentificationSeed');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 
 const contractCustomer = {
@@ -73,6 +73,25 @@ const contractsList = [
         isActive: true,
         startDate: '2018-12-03T23:00:00.000Z',
         weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2018-08-02T17:12:55.144Z',
+    endDate: null,
+    user: getUser('auxiliary')._id,
+    startDate: '2018-08-02T17:12:55.144Z',
+    status: 'contract_with_company',
+    _id: new ObjectID(),
+    versions: [
+      {
+        createdAt: '2018-08-02T17:12:55.144Z',
+        endDate: null,
+        grossHourlyRate: 10.12,
+        isActive: true,
+        startDate: '2018-08-02T17:12:55.144Z',
+        weeklyHours: 15,
         _id: new ObjectID(),
       },
     ],

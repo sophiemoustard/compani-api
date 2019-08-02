@@ -36,10 +36,32 @@ const rightsList = [
     description: 'Read pay info',
     permission: 'pay:read',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter sa liste de contrats',
+    permission: 'contracts:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter la liste de contrats des autres utilisateurs',
+    permission: 'contracts:read:user',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer la liste de contrats des autres utilisateurs',
+    permission: 'contracts:edit:user',
+  },
 ];
 
-const coachRights = ['config:read', 'billing:read', 'pay:read'];
-const auxiliaryRights = ['pay:read'];
+const coachRights = [
+  'config:read',
+  'billing:read',
+  'pay:read',
+  'contracts:read',
+  'contracts:read:user',
+  'contracts:edit:user',
+];
+const auxiliaryRights = ['pay:read', 'contracts:read'];
 const helperRights = ['billing:read'];
 
 const rolesList = [
@@ -119,9 +141,13 @@ const populateDBForAuthentification = async () => {
   }
 };
 
-const getToken = async (roleName) => {
+const getUser = (roleName) => {
   const role = rolesList.find(r => r.name === roleName);
-  const user = userList.find(u => u.role.toHexString() === role._id.toHexString());
+  return userList.find(u => u.role.toHexString() === role._id.toHexString());
+};
+
+const getToken = async (roleName) => {
+  const user = getUser(roleName);
   const response = await app.inject({
     method: 'POST',
     url: '/users/authenticate',
@@ -136,5 +162,6 @@ module.exports = {
   rightsList,
   userList,
   populateDBForAuthentification,
+  getUser,
   getToken,
 };
