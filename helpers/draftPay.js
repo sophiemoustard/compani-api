@@ -314,7 +314,16 @@ exports.getPayFromAbsences = (absences, contract, query) => {
 
 exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, company, query, distanceMatrix, surcharges) => {
   const { _id, identity, sector, contracts } = auxiliary;
-  const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
+  const contract = contracts.find((cont) => {
+    const isCompanyContract = cont.status === COMPANY_CONTRACT;
+    if (!isCompanyContract) return false;
+
+    const contractStarted = moment(cont.startDate).isSameOrBefore(query.endDate);
+    if (!contractStarted) return false;
+
+    return (!cont.endDate) ? cont.versions.some(v => v.isActive) : moment(cont.endDate).isAfter(query.endDate);
+  });
+  if (!contract) return;
   const contractInfo = exports.getContractMonthInfo(contract, query);
 
   const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
@@ -362,6 +371,7 @@ exports.getPreviousMonthPay = async (query, surcharges, distanceMatrix) => {
   const end = moment(query.endDate).toDate();
   const contractRules = {
     status: COMPANY_CONTRACT,
+    startDate: { $lte: end },
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
   const auxiliaries = await ContractRepository.getAuxiliariesFromContracts(contractRules);
@@ -389,7 +399,8 @@ exports.getDraftPay = async (query) => {
   const end = moment(query.endDate).endOf('d').toDate();
   const contractRules = {
     status: COMPANY_CONTRACT,
-    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } }],
+    startDate: { $lte: end },
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
   const auxiliaries = await ContractRepository.getAuxiliariesFromContracts(contractRules);
   const existingPay = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });
@@ -410,7 +421,8 @@ exports.getDraftPay = async (query) => {
     const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === id.toHexString()) || { events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === id.toHexString());
     const auxiliary = auxiliaries.find(aux => aux._id.toHexString() === id.toHexString());
-    draftPay.push(await exports.getDraftPayByAuxiliary(auxiliary, auxEvents.events, auxAbsences.events, prevPay, company, query, distanceMatrix, surcharges));
+    const auxiliaryDraftPay = await exports.getDraftPayByAuxiliary(auxiliary, auxEvents.events, auxAbsences.events, prevPay, company, query, distanceMatrix, surcharges);
+    if (auxiliaryDraftPay) draftPay.push(auxiliaryDraftPay);
   }
 
   return draftPay;
