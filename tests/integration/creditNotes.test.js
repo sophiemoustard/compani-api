@@ -1,7 +1,5 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
-const moment = require('moment');
-
 const app = require('../../server');
 const CreditNote = require('../../models/CreditNote');
 const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent } = require('./seed/creditNotesSeed');
@@ -19,9 +17,9 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
   beforeEach(populateDB);
 
   const payload = {
-    date: moment().toDate(),
-    startDate: moment().startOf('month').toDate(),
-    endDate: moment().set('date', 15).toDate(),
+    date: '2019-07-19T14:00:18',
+    startDate: '2019-07-01T00:00:00',
+    endDate: '2019-07-15T00:00:00',
     customer: creditNoteCustomer._id,
     exclTaxesCustomer: 100,
     inclTaxesCustomer: 112,
@@ -236,9 +234,9 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
   beforeEach(populateDB);
 
   const payload = {
-    date: moment().add(1, 'd').toDate(),
-    startDate: moment().startOf('month').toDate(),
-    endDate: moment().endOf('month').toDate(),
+    date: '2019-07-19T14:00:18',
+    startDate: '2019-07-01T00:00:00',
+    endDate: '2019-07-31T23:59:59',
     exclTaxesCustomer: 200,
     inclTaxesCustomer: 224,
   };
@@ -257,7 +255,8 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.creditNote).toMatchObject(payload);
+      expect(response.result.data.creditNote.inclTaxesCustomer).toEqual(payload.inclTaxesCustomer);
+      expect(response.result.data.creditNote.exclTaxesCustomer).toEqual(payload.exclTaxesCustomer);
     });
 
     it('should return a 404 error if credit note does not exist', async () => {

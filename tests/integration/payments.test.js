@@ -193,7 +193,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
     },
   ];
 
-  describe('Admin with companu', () => {
+  describe('Admin with company', () => {
     beforeEach(populateDBWithCompany);
     beforeEach(async () => {
       authToken = await getToken('admin');
