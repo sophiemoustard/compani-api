@@ -1134,7 +1134,7 @@ describe('getDraftPayByAuxiliary', () => {
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [
-        { status: 'contract_with_company', versions: [{ isActive: true }] },
+        { startDate: '2019-05-13T00:00:00', status: 'contract_with_company', versions: [{ isActive: true }] },
       ],
       administrative: { mutualFund: { has: true } },
     };

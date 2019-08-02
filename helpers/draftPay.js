@@ -314,8 +314,13 @@ exports.getPayFromAbsences = (absences, contract, query) => {
 
 exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, company, query, distanceMatrix, surcharges) => {
   const { _id, identity, sector, contracts } = auxiliary;
-  const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT &&
-    ((!cont.endDate && cont.versions.some(v => v.isActive)) || (cont.endDate && moment(cont.endDate).isAfter(query.endDate))));
+  const contract = contracts.find((cont) => {
+    const isCompanyContract = cont.status === COMPANY_CONTRACT;
+    const isContractActiveOnPeriod = moment(cont.startDate).isSameOrBefore(query.endDate) &&
+      ((!cont.endDate && cont.versions.some(v => v.isActive)) || (cont.endDate && moment(cont.endDate).isAfter(query.endDate)));
+
+    return isCompanyContract && isContractActiveOnPeriod;
+  });
   if (!contract) return;
   const contractInfo = exports.getContractMonthInfo(contract, query);
 
@@ -364,6 +369,7 @@ exports.getPreviousMonthPay = async (query, surcharges, distanceMatrix) => {
   const end = moment(query.endDate).toDate();
   const contractRules = {
     status: COMPANY_CONTRACT,
+    startDate: { $lte: end },
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
   const auxiliaries = await ContractRepository.getAuxiliariesFromContracts(contractRules);
@@ -391,7 +397,8 @@ exports.getDraftPay = async (query) => {
   const end = moment(query.endDate).endOf('d').toDate();
   const contractRules = {
     status: COMPANY_CONTRACT,
-    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: moment(query.endDate).endOf('d').toDate() } }],
+    startDate: { $lte: end },
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
   const auxiliaries = await ContractRepository.getAuxiliariesFromContracts(contractRules);
   const existingPay = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });
