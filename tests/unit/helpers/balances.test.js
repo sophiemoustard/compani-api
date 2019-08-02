@@ -1,20 +1,16 @@
 const expect = require('expect');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const _ = require('lodash');
 
-const {
-  canBeDirectDebited,
-  getBalance,
-  computePayments,
-  computeTotal
-} = require('../../../helpers/balances');
+const BalanceHelper = require('../../../helpers/balances');
 
 describe('canBeDirectDebited', () => {
   const bill = {
     _id: {
       tpp: null,
-      customer: '5c75019d4448ad001428dbed'
+      customer: '5c75019d4448ad001428dbed',
     },
     billed: 100,
     customer: {
@@ -23,7 +19,7 @@ describe('canBeDirectDebited', () => {
         title: 'M.',
         lastname: 'Boetie',
         firstname: 'Jean-Marc',
-        birthDate: '1931-02-02T00:00:00.000Z'
+        birthDate: '1931-02-02T00:00:00.000Z',
       },
       payment: {
         mandates: [
@@ -31,20 +27,20 @@ describe('canBeDirectDebited', () => {
             _id: '5c75019d4448ad001428dbee',
             rum: 'R190200020290F6610BF307CEA7F6D',
             createdAt: '2019-02-26T09:06:37.366Z',
-            signedAt: '2019-03-07T13:23:56.792Z'
-          }
+            signedAt: '2019-03-07T13:23:56.792Z',
+          },
         ],
         iban: 'FR7630066899101763227534345',
         bankAccountOwner: 'Test',
-        bic: 'AGFBFRCC'
-      }
+        bic: 'AGFBFRCC',
+      },
     },
     paid: 0,
-    balance: -100
+    balance: -100,
   };
 
   it('should check if bill can be direct debited', () => {
-    expect(canBeDirectDebited(bill)).toBe(true);
+    expect(BalanceHelper.canBeDirectDebited(bill)).toBe(true);
   });
 
   const falsyTests = [
@@ -61,6 +57,20 @@ describe('canBeDirectDebited', () => {
       bill: _.cloneDeep(bill),
       update() {
         delete this.bill.customer.payment;
+      },
+    },
+    {
+      assertion: 'client has no iban',
+      bill: _.cloneDeep(bill),
+      update() {
+        delete this.bill.customer.payment.iban;
+      },
+    },
+    {
+      assertion: 'client has no bic',
+      bill: _.cloneDeep(bill),
+      update() {
+        delete this.bill.customer.payment.bic;
       },
     },
     {
@@ -83,18 +93,73 @@ describe('canBeDirectDebited', () => {
       update() {
         delete this.bill.customer.payment.bankAccountOwner;
       },
-    }
+    },
   ];
 
   falsyTests.forEach((test) => {
     it(`should return false if ${test.assertion}`, () => {
       if (test.update) test.update();
-      expect(canBeDirectDebited(test.bill)).toBe(false);
+      expect(BalanceHelper.canBeDirectDebited(test.bill)).toBe(false);
     });
   });
 });
 
+describe('computeTotal', () => {
+  it('should compute total with payment', () => {
+    expect(BalanceHelper.computeTotal('payment', 100, 50)).toEqual(150);
+  });
+
+  it('should compute total without payment', () => {
+    expect(BalanceHelper.computeTotal('toto', 100, 50)).toEqual(50);
+  });
+});
+
+describe('computePayments', () => {
+  let computeTotal;
+  beforeEach(() => {
+    computeTotal = sinon.stub(BalanceHelper, 'computeTotal');
+  });
+  afterEach(() => {
+    computeTotal.restore();
+  });
+
+  it('should return 0 as payment is undefined', () => {
+    expect(BalanceHelper.computePayments()).toEqual(0);
+  });
+
+  it('should return 0 as payment is not an array', () => {
+    expect(BalanceHelper.computePayments({})).toEqual(0);
+  });
+
+  it('should return 0 as payment is empty', () => {
+    expect(BalanceHelper.computePayments([])).toEqual(0);
+  });
+
+  it('should compute payments for customer', () => {
+    const customerId = new ObjectID();
+    const ids = { customer: customerId };
+    const payments = [{ netInclTaxes: 14, nature: 'payment' }, { netInclTaxes: 12, nature: 'refund' }, { netInclTaxes: 23, nature: 'payment' }];
+
+    computeTotal.onCall(0).returns(14);
+    computeTotal.onCall(1).returns(2);
+    computeTotal.onCall(2).returns(25);
+
+    expect(BalanceHelper.computePayments(payments, ids)).toEqual(25);
+  });
+});
+
 describe('getBalance', () => {
+  let computePayments;
+  let canBeDirectDebited;
+  beforeEach(() => {
+    computePayments = sinon.stub(BalanceHelper, 'computePayments');
+    canBeDirectDebited = sinon.stub(BalanceHelper, 'canBeDirectDebited');
+  });
+  afterEach(() => {
+    computePayments.restore();
+    canBeDirectDebited.restore();
+  });
+
   it('should format balance for customer without credit notes and payment', () => {
     const customerId = new ObjectID();
     const bill = {
@@ -103,17 +168,21 @@ describe('getBalance', () => {
       customer: {
         payment: {
           bankAccountOwner: 'Test',
+          bid: 'QWERTYUIOP',
+          iban: 'FR2345672344523455432234',
           mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
         },
-      }
+      },
     };
+    canBeDirectDebited.returns(true);
 
-    const result = getBalance(bill, [], [], []);
+    const result = BalanceHelper.getBalance(bill, [], [], []);
     expect(result).toBeDefined();
     expect(result.billed).toEqual(70);
     expect(result.paid).toEqual(0);
     expect(result.balance).toEqual(-70);
     expect(result.toPay).toEqual(70);
+    sinon.assert.notCalled(computePayments);
   });
 
   it('should format balance for customer with credit notes and without payment', () => {
@@ -124,34 +193,40 @@ describe('getBalance', () => {
       customer: {
         payment: {
           bankAccountOwner: 'Test',
+          bid: 'QWERTYUIOP',
+          iban: 'FR2345672344523455432234',
           mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
         },
-      }
+      },
     };
     const customerCreditNotes = [
       { _id: { customer: customerId }, customer: { _id: customerId }, refund: 50 },
       { _id: { customer: new ObjectID() }, refund: 90 },
     ];
+    canBeDirectDebited.returns(true);
 
-    const result = getBalance(bill, customerCreditNotes, [], []);
+    const result = BalanceHelper.getBalance(bill, customerCreditNotes, [], []);
     expect(result).toBeDefined();
     expect(result.billed).toEqual(20);
     expect(result.paid).toEqual(0);
     expect(result.balance).toEqual(-20);
     expect(result.toPay).toEqual(20);
+    sinon.assert.notCalled(computePayments);
   });
 
   it('should format balance for customer with credit notes and payments', () => {
     const customerId = new ObjectID();
     const bill = {
       _id: { customer: customerId },
-      billed: 70,
+      billed: 170,
       customer: {
         payment: {
           bankAccountOwner: 'Test',
-          mandates: [{ _id: new ObjectID(), createdAt: moment().toISOString(), signedAt: moment().toISOString() }],
+          bid: 'QWERTYUIOP',
+          iban: 'FR2345672344523455432234',
+          mandates: [{ _id: new ObjectID(), createdAt: '2019-05-24T09:00:00', signedAt: '2019-05-24T09:00:00' }],
         },
-      }
+      },
     };
     const customerCreditNotes = [
       { _id: { customer: customerId }, customer: { _id: customerId }, refund: 50 },
@@ -161,13 +236,15 @@ describe('getBalance', () => {
       { _id: { customer: customerId }, payments: [{ nature: 'payment', netInclTaxes: 80 }, { nature: 'payment', netInclTaxes: 30 }] },
       { _id: { customer: new ObjectID() }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
     ];
+    canBeDirectDebited.returns(true);
+    computePayments.returns(110);
 
-    const result = getBalance(bill, customerCreditNotes, [], payments);
+    const result = BalanceHelper.getBalance(bill, customerCreditNotes, [], payments);
     expect(result).toBeDefined();
-    expect(result.billed).toEqual(20);
+    expect(result.billed).toEqual(120);
     expect(result.paid).toEqual(110);
-    expect(result.balance).toEqual(90);
-    expect(result.toPay).toEqual(0);
+    expect(result.balance).toEqual(-10);
+    expect(result.toPay).toEqual(10);
   });
 
   it('should format balance for tpp with credit notes and without payment', () => {
@@ -182,13 +259,15 @@ describe('getBalance', () => {
       { _id: { customer: new ObjectID(), tpp: tppId }, refund: 40 },
       { _id: { customer: customerId, tpp: new ObjectID() }, refund: 50 },
     ];
+    canBeDirectDebited.returns(false);
 
-    const result = getBalance(bill, [], tppCreditNotes, []);
+    const result = BalanceHelper.getBalance(bill, [], tppCreditNotes, []);
     expect(result).toBeDefined();
     expect(result.billed).toEqual(30);
     expect(result.paid).toEqual(0);
     expect(result.balance).toEqual(-30);
     expect(result.toPay).toEqual(0);
+    sinon.assert.notCalled(computePayments);
   });
 
   it('should format balance for tpp with credit notes and payments', () => {
@@ -200,51 +279,21 @@ describe('getBalance', () => {
     };
     const tppCreditNotes = [
       { _id: { customer: customerId, tpp: tppId }, refund: 40 },
-      { _id: { customer: customerId, tpp: new ObjectID() }, refund: 50, },
+      { _id: { customer: customerId, tpp: new ObjectID() }, refund: 50 },
       { _id: { customer: new ObjectID(), tpp: tppId }, refund: 50 },
     ];
     const payments = [
       { _id: { customer: customerId, tpp: tppId }, payments: [{ nature: 'refund', netInclTaxes: 80 }, { nature: 'payment', netInclTaxes: 30 }] },
       { _id: { customer: customerId, tpp: tppId }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
     ];
+    canBeDirectDebited.returns(false);
+    computePayments.returns(-50);
 
-    const result = getBalance(bill, [], tppCreditNotes, payments);
+    const result = BalanceHelper.getBalance(bill, [], tppCreditNotes, payments);
     expect(result).toBeDefined();
     expect(result.billed).toEqual(30);
     expect(result.paid).toEqual(-50);
     expect(result.balance).toEqual(-80);
     expect(result.toPay).toEqual(0);
-  });
-});
-
-describe('computePayments', () => {
-  it('should return 0 as payment is undefined', () => {
-    expect(computePayments()).toEqual(0);
-  });
-
-  it('should return 0 as payment is not an array', () => {
-    expect(computePayments({})).toEqual(0);
-  });
-
-  it('should return 0 as payment is empty', () => {
-    expect(computePayments([])).toEqual(0);
-  });
-
-  it('should compute payments for customer', () => {
-    const customerId = new ObjectID();
-    const ids = { customer: customerId };
-    const payments = [{ netInclTaxes: 14, nature: 'payment' }, { netInclTaxes: 12, nature: 'refund' }, { netInclTaxes: 23, nature: 'payment' }];
-
-    expect(computePayments(payments, ids)).toEqual(25);
-  });
-});
-
-describe('computeTotal', () => {
-  it('should compute total with payment', () => {
-    expect(computeTotal('payment', 100, 50)).toEqual(150);
-  });
-
-  it('should compute total without payment', () => {
-    expect(computeTotal('toto', 100, 50)).toEqual(50);
   });
 });
