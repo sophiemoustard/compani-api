@@ -1,7 +1,7 @@
 'use-strict';
 
 const Joi = require('joi');
-
+const { payValidation } = require('../validations/pay');
 const { draftFinalPayList, createList } = require('../controllers/finalPayController');
 
 exports.plugin = {
@@ -11,6 +11,7 @@ exports.plugin = {
       method: 'GET',
       path: '/draft',
       options: {
+        auth: { scope: ['pay:edit'] },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -25,30 +26,12 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['pay:edit'] },
         validate: {
           payload: Joi.array().items(Joi.object({
-            auxiliary: Joi.objectId().required(),
-            startDate: Joi.date().required(),
-            endReason: Joi.string().required(),
+            ...payValidation,
             endNotificationDate: Joi.date().required(),
-            endDate: Joi.date().required(),
-            month: Joi.string().required(),
-            contractHours: Joi.number().required(),
-            workedHours: Joi.number().required(),
-            notSurchargedAndNotExempt: Joi.number().required(),
-            surchargedAndNotExempt: Joi.number().required(),
-            surchargedAndNotExemptDetails: Joi.object().required(),
-            notSurchargedAndExempt: Joi.number().required(),
-            surchargedAndExempt: Joi.number().required(),
-            surchargedAndExemptDetails: Joi.object().required(),
-            hoursBalance: Joi.number().required(),
-            hoursCounter: Joi.number().required(),
-            overtimeHours: Joi.number().required(),
-            additionalHours: Joi.number().required(),
-            mutual: Joi.boolean().required(),
-            transport: Joi.number().required(),
-            otherFees: Joi.number().required(),
-            bonus: Joi.number().required(),
+            endReason: Joi.string().required(),
             compensation: Joi.number().required(),
           })),
         },

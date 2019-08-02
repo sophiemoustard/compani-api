@@ -1,7 +1,5 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
-const moment = require('moment');
-
 const app = require('../../server');
 const CreditNote = require('../../models/CreditNote');
 const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent } = require('./seed/creditNotesSeed');
@@ -14,42 +12,43 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('CREDIT NOTES ROUTES', () => {
+describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
   let authToken = null;
   beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('admin');
-  });
 
-  describe('POST /creditNotes', () => {
-    const payload = {
-      date: moment().toDate(),
-      startDate: moment().startOf('month').toDate(),
-      endDate: moment().set('date', 15).toDate(),
-      customer: creditNoteCustomer._id,
-      exclTaxesCustomer: 100,
-      inclTaxesCustomer: 112,
-      events: [{
-        eventId: creditNoteEvent._id,
-        auxiliary: creditNoteEvent.auxiliary,
-        startDate: creditNoteEvent.startDate,
-        endDate: creditNoteEvent.endDate,
-        serviceName: 'toto',
-        bills: {
-          inclTaxesCustomer: 10,
-          exclTaxesCustomer: 8,
-        },
-      }],
-      subscription: {
-        _id: new ObjectID(),
-        service: {
-          serviceId: new ObjectID(),
-          nature: FIXED,
-          name: 'toto',
-        },
-        vat: 5.5,
+  const payload = {
+    date: '2019-07-19T14:00:18',
+    startDate: '2019-07-01T00:00:00',
+    endDate: '2019-07-15T00:00:00',
+    customer: creditNoteCustomer._id,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    events: [{
+      eventId: creditNoteEvent._id,
+      auxiliary: creditNoteEvent.auxiliary,
+      startDate: creditNoteEvent.startDate,
+      endDate: creditNoteEvent.endDate,
+      serviceName: 'toto',
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
       },
-    };
+    }],
+    subscription: {
+      _id: new ObjectID(),
+      service: {
+        serviceId: new ObjectID(),
+        nature: FIXED,
+        name: 'toto',
+      },
+      vat: 5.5,
+    },
+  };
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
 
     it('should create two new credit note', async () => {
       const initialCreditNotesNumber = creditNotesList.length;
@@ -85,6 +84,13 @@ describe('CREDIT NOTES ROUTES', () => {
 
     const missingParams = [
       {
+        paramName: 'date',
+        payload: { ...payload },
+        update() {
+          delete this.payload[this.paramName];
+        },
+      },
+      {
         paramName: 'customer',
         payload: { ...payload },
         update() {
@@ -92,24 +98,52 @@ describe('CREDIT NOTES ROUTES', () => {
         },
       },
       {
-        paramName: 'exclTaxesCustomer',
+        paramName: 'events.eventId',
         payload: { ...payload },
         update() {
-          delete this.payload[this.paramName];
+          delete this.payload.events[0].eventId;
         },
       },
       {
-        paramName: 'inclTaxesCustomer',
+        paramName: 'events.auxiliary',
         payload: { ...payload },
         update() {
-          delete this.payload[this.paramName];
+          delete this.payload.events[0].auxiliary;
         },
       },
       {
-        paramName: 'date',
+        paramName: 'events.serviceName',
         payload: { ...payload },
         update() {
-          delete this.payload[this.paramName];
+          delete this.payload.events[0].serviceName;
+        },
+      },
+      {
+        paramName: 'events.startDate',
+        payload: { ...payload },
+        update() {
+          delete this.payload.events[0].startDate;
+        },
+      },
+      {
+        paramName: 'events.endDate',
+        payload: { ...payload },
+        update() {
+          delete this.payload.events[0].endDate;
+        },
+      },
+      {
+        paramName: 'events.bills',
+        payload: { ...payload },
+        update() {
+          delete this.payload.events[0].bills;
+        },
+      },
+      {
+        paramName: 'subscription.service',
+        payload: { ...payload },
+        update() {
+          delete this.payload.subscription.service;
         },
       },
     ];
@@ -118,7 +152,7 @@ describe('CREDIT NOTES ROUTES', () => {
         test.update();
         const response = await app.inject({
           method: 'POST',
-          url: '/thirdpartypayers',
+          url: '/creditNotes',
           headers: { 'x-access-token': authToken },
           payload: test.payload,
         });
@@ -128,10 +162,40 @@ describe('CREDIT NOTES ROUTES', () => {
     });
   });
 
-  describe('GET /creditNotes', () => {
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/creditNotes',
+          headers: { 'x-access-token': authToken },
+          payload: { ...payload },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
     it('should get all credit notes', async () => {
       const creditNotesNumber = creditNotesList.length;
-
       const response = await app.inject({
         method: 'GET',
         url: '/creditNotes',
@@ -143,14 +207,44 @@ describe('CREDIT NOTES ROUTES', () => {
     });
   });
 
-  describe('PUT /creditNotes/:id', () => {
-    const payload = {
-      date: moment().add(1, 'd').toDate(),
-      startDate: moment().startOf('month').toDate(),
-      endDate: moment().endOf('month').toDate(),
-      exclTaxesCustomer: 200,
-      inclTaxesCustomer: 224,
-    };
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/creditNotes',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  const payload = {
+    date: '2019-07-19T14:00:18',
+    startDate: '2019-07-01T00:00:00',
+    endDate: '2019-07-31T23:59:59',
+    exclTaxesCustomer: 200,
+    inclTaxesCustomer: 224,
+  };
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
 
     it('should update a credit note', async () => {
       const response = await app.inject({
@@ -161,7 +255,8 @@ describe('CREDIT NOTES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.creditNote).toMatchObject(payload);
+      expect(response.result.data.creditNote.inclTaxesCustomer).toEqual(payload.inclTaxesCustomer);
+      expect(response.result.data.creditNote.exclTaxesCustomer).toEqual(payload.exclTaxesCustomer);
     });
 
     it('should return a 404 error if credit note does not exist', async () => {
@@ -176,7 +271,38 @@ describe('CREDIT NOTES ROUTES', () => {
     });
   });
 
-  describe('DELETE /creditNotes/:id', () => {
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
     it('should delete a credit note', async () => {
       const response = await app.inject({
         method: 'DELETE',
@@ -192,6 +318,27 @@ describe('CREDIT NOTES ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });

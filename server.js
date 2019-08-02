@@ -12,11 +12,11 @@ const server = Hapi.server({
   port: process.env.PORT || 3000,
   routes: {
     log: {
-      collect: true
+      collect: true,
     },
     cors: {
       origin: ['*'],
-      additionalHeaders: ['accept-language', 'accept-encoding', 'access-control-request-headers', 'x-access-token', 'x-ogust-token']
+      additionalHeaders: ['accept-language', 'accept-encoding', 'access-control-request-headers', 'x-access-token', 'x-ogust-token'],
     },
     validate: {
       async failAction(request, h, err) {
@@ -25,9 +25,9 @@ const server = Hapi.server({
           throw Boom.badRequest('Invalid request payload input');
         }
         throw err;
-      }
-    }
-  }
+      },
+    },
+  },
 });
 
 const init = async () => {

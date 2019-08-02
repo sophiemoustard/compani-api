@@ -33,14 +33,12 @@ describe('RIGHTS ROUTES', () => {
     it('should create a right', async () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.right).toEqual(expect.objectContaining({
-        name: rightPayload.name,
         permission: rightPayload.permission,
         description: rightPayload.description,
       }));
 
       const right = await Right.findById(res.result.data.right._id);
       expect(right).toEqual(expect.objectContaining({
-        name: rightPayload.name,
         permission: rightPayload.permission,
         description: rightPayload.description,
       }));
@@ -72,7 +70,7 @@ describe('RIGHTS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/rights',
-        payload: { name: 'Test Right' },
+        payload: { description: 'Test Right' },
         headers: { 'x-access-token': token },
       });
       expect(response.statusCode).toBe(400);
@@ -91,7 +89,7 @@ describe('RIGHTS ROUTES', () => {
 
   describe('PUT /rights/{_id}', () => {
     it('should update a right', async () => {
-      const payload = { name: 'Kokonut' };
+      const payload = { permission: 'Kokonut' };
       const res = await app.inject({
         method: 'PUT',
         url: `/rights/${rightsList[0]._id}`,
@@ -99,10 +97,10 @@ describe('RIGHTS ROUTES', () => {
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.right.name).toBe(payload.name);
+      expect(res.result.data.right.permission).toBe(payload.permission);
 
       const right = await Right.findById(res.result.data.right._id);
-      expect(right.name).toBe(payload.name);
+      expect(right.permission).toBe(payload.permission);
     });
 
     it('should return a 400 error if no payload', async () => {
@@ -115,8 +113,8 @@ describe('RIGHTS ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 409 error if right name already exists', async () => {
-      const payload = { name: 'read-config' };
+    it('should return a 409 error if right permission already exists', async () => {
+      const payload = { permission: 'config:edit' };
       const res = await app.inject({
         method: 'PUT',
         url: `/rights/${rightsList[0]._id}`,
@@ -135,17 +133,16 @@ describe('RIGHTS ROUTES', () => {
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.rights.length).toBe(4);
     });
 
     it('should return rights according to query param', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/rights?name=right3',
+        url: '/rights?permission=right3:write',
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.rights[0].name).toBe('right3');
+      expect(res.result.data.rights[0].permission).toBe('right3:write');
     });
 
     it('should return an empty list if no rights are found', async () => {
@@ -178,7 +175,6 @@ describe('RIGHTS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.right).toEqual(expect.objectContaining({
-        name: rightsList[0].name,
         permission: rightsList[0].permission,
         description: rightsList[0].description,
       }));

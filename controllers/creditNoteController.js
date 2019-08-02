@@ -37,23 +37,6 @@ const list = async (req) => {
   }
 };
 
-const getById = async (req) => {
-  try {
-    const creditNote = await CreditNote.findById(req.params._id)
-      .populate({ path: 'customer', select: '_id identity subscriptions', populate: { path: 'subscriptions.service' } })
-      .populate('events');
-    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-
-    return {
-      message: translate[language].creditNoteFound,
-      data: { creditNote }
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
 const create = async (req) => {
   try {
     const creditNotes = await createCreditNotes(req.payload);
@@ -153,6 +136,5 @@ module.exports = {
   create,
   update,
   remove,
-  getById,
   generateCreditNotePdf,
 };

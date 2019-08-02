@@ -10,19 +10,37 @@ const rightsList = [
     _id: new ObjectID(),
     description: 'Edit config',
     permission: 'config:edit',
-    name: 'edit-config',
   },
   {
     _id: new ObjectID(),
     description: 'Read config',
     permission: 'config:read',
-    name: 'read-config',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Edit billing info',
+    permission: 'billing:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Read billing info',
+    permission: 'billing:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Edit pay info',
+    permission: 'pay:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Read pay info',
+    permission: 'pay:read',
   },
 ];
 
-const coachRights = ['config:read'];
-const auxiliaryRights = [];
-const helperRights = [];
+const coachRights = ['config:read', 'billing:read', 'pay:read'];
+const auxiliaryRights = ['pay:read'];
+const helperRights = ['billing:read'];
 
 const rolesList = [
   {
@@ -116,6 +134,7 @@ const getToken = async (roleName) => {
 module.exports = {
   rolesList,
   rightsList,
+  userList,
   populateDBForAuthentification,
   getToken,
 };
