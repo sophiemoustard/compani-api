@@ -316,10 +316,12 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, co
   const { _id, identity, sector, contracts } = auxiliary;
   const contract = contracts.find((cont) => {
     const isCompanyContract = cont.status === COMPANY_CONTRACT;
-    const isContractActiveOnPeriod = moment(cont.startDate).isSameOrBefore(query.endDate) &&
-      ((!cont.endDate && cont.versions.some(v => v.isActive)) || (cont.endDate && moment(cont.endDate).isAfter(query.endDate)));
+    if (!isCompanyContract) return false;
 
-    return isCompanyContract && isContractActiveOnPeriod;
+    const contractStarted = moment(cont.startDate).isSameOrBefore(query.endDate);
+    if (!contractStarted) return false;
+
+    return (!cont.endDate) ? cont.versions.some(v => v.isActive) : moment(cont.endDate).isAfter(query.endDate);
   });
   if (!contract) return;
   const contractInfo = exports.getContractMonthInfo(contract, query);
