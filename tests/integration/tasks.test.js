@@ -1,8 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { getToken } = require('./seed/usersSeed');
-const { populateTasks, tasksList } = require('./seed/tasksSeed');
+const { populateDB, tasksList } = require('./seed/tasksSeed');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -12,10 +12,11 @@ describe('NODE ENV', () => {
 
 describe('TASK ROUTES', () => {
   let token = null;
-  beforeEach(populateTasks);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
+
   describe('POST /tasks', () => {
     it('should create a task', async () => {
       const payload = {

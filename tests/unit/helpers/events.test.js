@@ -2,14 +2,15 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-
 const User = require('../../../models/User');
+const Event = require('../../../models/Event');
 const Customer = require('../../../models/Customer');
 const Contract = require('../../../models/Contract');
 const Surcharge = require('../../../models/Surcharge');
-const Event = require('../../../models/Event');
 const EventHelper = require('../../../helpers/events');
+const EventHistoriesHelper = require('../../../helpers/eventHistories');
 const UtilsHelper = require('../../../helpers/utils');
+const EventRepository = require('../../../repositories/EventRepository');
 const {
   INTERVENTION,
   CUSTOMER_CONTRACT,
@@ -25,21 +26,22 @@ const {
 
 require('sinon-mongoose');
 
-
 describe('updateEvent', () => {
+  let createEventHistoryOnUpdate;
   let populateEventSubscription;
   let updateRepetitions;
-  let EventModel;
+  let updateEvent;
   beforeEach(() => {
+    createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     updateRepetitions = sinon.stub(EventHelper, 'updateRepetitions');
-    EventModel = sinon.mock(Event);
+    updateEvent = sinon.stub(EventRepository, 'updateEvent');
   });
-
   afterEach(() => {
+    createEventHistoryOnUpdate.restore();
     populateEventSubscription.restore();
     updateRepetitions.restore();
-    EventModel.restore();
+    updateEvent.restore();
   });
 
   it('1. should update absence without unset repetition property', async () => {
@@ -48,16 +50,10 @@ describe('updateEvent', () => {
     const event = { _id: eventId, type: ABSENCE, auxiliary };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
 
-    EventModel.expects('findOneAndUpdate')
-      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .resolves(event);
-
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+
+    sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -67,15 +63,10 @@ describe('updateEvent', () => {
     const event = { _id: eventId, auxiliary };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
 
-    EventModel.expects('findOneAndUpdate')
-      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(event);
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+
+    sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -85,16 +76,10 @@ describe('updateEvent', () => {
     const event = { _id: eventId, repetition: { frequency: NEVER }, auxiliary };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
 
-    EventModel.expects('findOneAndUpdate')
-      .once()
-      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(event);
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+
+    sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -104,16 +89,10 @@ describe('updateEvent', () => {
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: true, auxiliary: auxiliary.toHexString() };
 
-    EventModel.expects('findOneAndUpdate')
-      .once()
-      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(event);
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+
+    sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.callCount(updateRepetitions, 1);
   });
 
@@ -130,16 +109,10 @@ describe('updateEvent', () => {
     };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', misc: 'Zoro est là', auxiliary: auxiliary.toHexString() };
 
-    EventModel.expects('findOneAndUpdate')
-      .once()
-      .withExactArgs({ _id: eventId }, { $set: payload }, { autopopulate: false, new: true })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(event);
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+
+    sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -149,20 +122,16 @@ describe('updateEvent', () => {
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
-    EventModel.expects('findOneAndUpdate')
-      .once()
-      .withExactArgs(
-        { _id: eventId },
-        { $set: { ...payload, 'repetition.frequency': NEVER }, $unset: { 'repetition.parentId': '' } },
-        { autopopulate: false, new: true }
-      )
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(event);
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+
+    sinon.assert.calledWith(
+      updateEvent,
+      eventId,
+      { ...payload, 'repetition.frequency': NEVER },
+      { 'repetition.parentId': '' }
+    );
+
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -178,16 +147,15 @@ describe('updateEvent', () => {
     };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
-    EventModel.expects('findOneAndUpdate')
-      .once()
-      .withExactArgs({ _id: eventId }, { $set: { ...payload, isCancelled: false }, $unset: { cancel: '' } }, { autopopulate: false, new: true })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(event);
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+
+    sinon.assert.calledWith(
+      updateEvent,
+      eventId,
+      { ...payload, isCancelled: false },
+      { cancel: '' }
+    );
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -203,20 +171,14 @@ describe('updateEvent', () => {
     };
     const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
-    EventModel.expects('findOneAndUpdate')
-      .once()
-      .withExactArgs(
-        { _id: eventId },
-        { $set: { ...payload, isCancelled: false, 'repetition.frequency': NEVER }, $unset: { cancel: '', 'repetition.parentId': '' } },
-        { autopopulate: false, new: true }
-      )
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(event);
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+    sinon.assert.calledWith(
+      updateEvent,
+      eventId,
+      { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
+      { cancel: '', 'repetition.parentId': '' }
+    );
     sinon.assert.notCalled(updateRepetitions);
   });
 
@@ -225,20 +187,20 @@ describe('updateEvent', () => {
     const event = { _id: eventId };
     const payload = { startDate: '2019-01-21T09:38:18.653Z' };
 
-    EventModel.expects('findOneAndUpdate')
-      .withExactArgs({ _id: eventId }, { $set: payload, $unset: { auxiliary: '' } }, { autopopulate: false, new: true })
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(event);
+    updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
-    EventModel.verify();
+
     sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.calledWith(
+      updateEvent,
+      eventId,
+      payload,
+      { auxiliary: '' }
+    );
   });
 });
 
-describe('populateEvent', () => {
+describe('populateEventSubscription', () => {
   it('should populate subscription as event is an intervention', async () => {
     const event = {
       type: 'intervention',
@@ -319,6 +281,14 @@ describe('populateEvent', () => {
 });
 
 describe('populateEvents', () => {
+  let populateEventSubscription;
+  beforeEach(() => {
+    populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
+  });
+  afterEach(() => {
+    populateEventSubscription.restore();
+  });
+
   it('should populate subscription as event is an intervention', async () => {
     const events = [
       {
@@ -371,15 +341,20 @@ describe('populateEvents', () => {
       },
     ];
 
-    const result = await EventHelper.populateEvents(events);
-    expect(result[0].subscription).toBeDefined();
-    expect(result[1].subscription).toBeDefined();
-    expect(result[0].subscription._id).toEqual(events[0].subscription);
-    expect(result[1].subscription._id).toEqual(events[1].subscription);
+    await EventHelper.populateEvents(events);
+    sinon.assert.callCount(populateEventSubscription, events.length);
   });
 });
 
 describe('hasConflicts', () => {
+  let getAuxiliaryEventsBetweenDates;
+  beforeEach(() => {
+    getAuxiliaryEventsBetweenDates = sinon.stub(EventRepository, 'getAuxiliaryEventsBetweenDates');
+  });
+  afterEach(() => {
+    getAuxiliaryEventsBetweenDates.restore();
+  });
+
   it('should return true if event has conflicts', async () => {
     const event = {
       _id: new ObjectID(),
@@ -388,11 +363,10 @@ describe('hasConflicts', () => {
       auxiliary: new ObjectID(),
     };
 
-    const findEvents = sinon.stub(Event, 'find').returns([
+    getAuxiliaryEventsBetweenDates.returns([
       { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
     ]);
     const result = await EventHelper.hasConflicts(event);
-    findEvents.restore();
 
     expect(result).toBeTruthy();
   });
@@ -405,11 +379,10 @@ describe('hasConflicts', () => {
       auxiliary: new ObjectID(),
     };
 
-    const findEvents = sinon.stub(Event, 'find').returns([
+    getAuxiliaryEventsBetweenDates.returns([
       { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
     ]);
     const result = await EventHelper.hasConflicts(event);
-    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
@@ -422,17 +395,36 @@ describe('hasConflicts', () => {
       auxiliary: new ObjectID(),
     };
 
-    const findEvents = sinon.stub(Event, 'find').returns([
+    getAuxiliaryEventsBetweenDates.returns([
       { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z', isCancelled: true },
     ]);
     const result = await EventHelper.hasConflicts(event);
-    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
 });
 
 describe('isCreationAllowed', () => {
+  let hasConflicts;
+  let UserModel;
+  let CustomerModel;
+  let findOneContract;
+  let findOneSurcharge;
+  beforeEach(() => {
+    hasConflicts = sinon.stub(EventHelper, 'hasConflicts');
+    UserModel = sinon.mock(User);
+    CustomerModel = sinon.mock(Customer);
+    findOneContract = sinon.stub(Contract, 'findOne');
+    findOneSurcharge = sinon.stub(Surcharge, 'findOne');
+  });
+  afterEach(() => {
+    hasConflicts.restore();
+    UserModel.restore();
+    CustomerModel.restore();
+    findOneContract.restore();
+    findOneSurcharge.restore();
+  });
+
   it('should return false as event has conflicts', async () => {
     const payload = {
       auxiliary: new ObjectID(),
@@ -440,11 +432,8 @@ describe('isCreationAllowed', () => {
       endDate: '2019-10-02T10:00:00.000Z',
     };
 
-    const findEvents = sinon.stub(Event, 'find').returns([
-      { startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T10:00:00.000Z' },
-    ]);
+    hasConflicts.returns(true);
     const result = await EventHelper.isCreationAllowed(payload);
-    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
@@ -453,19 +442,46 @@ describe('isCreationAllowed', () => {
     const payload = { auxiliary: new ObjectID() };
 
     const user = { _id: payload.auxiliary };
-    User.findOne = () => user;
-    user.populate = () => user;
-    user.toObject = () => user;
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
 
-    const findEvents = sinon.stub(Event, 'find').returns([]);
+    hasConflicts.returns(false);
     const result = await EventHelper.isCreationAllowed(payload);
-    findEvents.restore();
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false if auxiliary sector is not event sector', async () => {
+    const payload = { auxiliary: new ObjectID(), sector: new ObjectID().toHexString() };
+    const contract = new Contract({
+      user: payload.auxiliary,
+      customer: payload.customer,
+      versions: [{}],
+      startDate: moment(payload.startDate).add(1, 'd'),
+    });
+    findOneContract.returns(contract);
+
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: new ObjectID() };
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+
+    hasConflicts.returns(false);
+    const result = await EventHelper.isCreationAllowed(payload);
 
     expect(result).toBeFalsy();
   });
 
   it('should return false if service event is customer contract and auxiliary does not have contract with customer', async () => {
     const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
@@ -473,6 +489,7 @@ describe('isCreationAllowed', () => {
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-02T08:00:00.000Z',
       endDate: '2019-10-02T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
     const customer = {
       _id: payload.customer,
@@ -482,9 +499,11 @@ describe('isCreationAllowed', () => {
         versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
       }],
     };
-    Customer.findOne = () => customer;
-    customer.populate = () => customer;
-    customer.toObject = () => customer;
+    CustomerModel.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customer);
 
     const contract = new Contract({
       user: payload.auxiliary,
@@ -492,31 +511,32 @@ describe('isCreationAllowed', () => {
       versions: [{}],
       startDate: moment(payload.startDate).add(1, 'd'),
     });
-    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
+    findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
-    User.findOne = () => user;
-    user.populate = () => user;
-    user.toObject = () => user;
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
 
-    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
-    const findEvents = sinon.stub(Event, 'find').returns([]);
-
+    hasConflicts.returns(false);
     const result = await EventHelper.isCreationAllowed(payload);
-    findOneSurcharge.restore();
-    findOneContract.restore();
-    findEvents.restore();
     expect(result).toBeFalsy();
   });
 
   it('should return true if service event is customer contract and auxiliary has contract with customer', async () => {
     const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
-      startDate: '2019-10-03T00:00:00.000Z',
+      startDate: '2019-10-03T08:00:00.000Z',
+      endDate: '2019-10-03T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -527,9 +547,11 @@ describe('isCreationAllowed', () => {
         versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
       }],
     };
-    Customer.findOne = () => customer;
-    customer.populate = () => customer;
-    customer.toObject = () => customer;
+    CustomerModel.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customer);
 
     const contract = {
       user: payload.auxiliary,
@@ -537,32 +559,33 @@ describe('isCreationAllowed', () => {
       versions: [{ isActive: true }],
       startDate: moment(payload.startDate).subtract(1, 'd'),
     };
-    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
+    findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
-    User.findOne = () => user;
-    user.populate = () => user;
-    user.toObject = () => user;
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
 
-    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
-    const findEvents = sinon.stub(Event, 'find').returns([]);
-
+    hasConflicts.returns(false);
     const result = await EventHelper.isCreationAllowed(payload);
-    findOneSurcharge.restore();
-    findOneContract.restore();
-    findEvents.restore();
 
     expect(result).toBeTruthy();
   });
 
   it('should return false if company contract and no active contract on day', async () => {
     const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
-      startDate: '2019-10-03T00:00:00.000Z',
+      startDate: '2019-10-03T08:00:00.000Z',
+      endDate: '2019-10-03T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -573,9 +596,11 @@ describe('isCreationAllowed', () => {
         versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
       }],
     };
-    Customer.findOne = () => customer;
-    customer.populate = () => customer;
-    customer.toObject = () => customer;
+    CustomerModel.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customer);
 
     const contract = {
       user: payload.auxiliary,
@@ -584,32 +609,33 @@ describe('isCreationAllowed', () => {
       status: COMPANY_CONTRACT,
       startDate: moment(payload.startDate).add(1, 'd'),
     };
-    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
+    findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
-    User.findOne = () => user;
-    user.populate = () => user;
-    user.toObject = () => user;
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
 
-    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
-    const findEvents = sinon.stub(Event, 'find').returns([]);
-
+    hasConflicts.returns(false);
     const result = await EventHelper.isCreationAllowed(payload);
-    findOneSurcharge.restore();
-    findOneContract.restore();
-    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
 
   it('should return true if company contract and active contract on day', async () => {
     const subscriptionId = new ObjectID();
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
-      startDate: '2019-10-03T00:00:00.000Z',
+      startDate: '2019-10-03T08:00:00.000Z',
+      endDate: '2019-10-03T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -620,9 +646,11 @@ describe('isCreationAllowed', () => {
         versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
       }],
     };
-    Customer.findOne = () => customer;
-    customer.populate = () => customer;
-    customer.toObject = () => customer;
+    CustomerModel.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customer);
 
     const contract = {
       user: payload.auxiliary,
@@ -631,31 +659,32 @@ describe('isCreationAllowed', () => {
       status: COMPANY_CONTRACT,
       startDate: moment(payload.startDate).subtract(1, 'd'),
     };
-    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
+    findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
-    User.findOne = () => user;
-    user.populate = () => user;
-    user.toObject = () => user;
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
 
-    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
-    const findEvents = sinon.stub(Event, 'find').returns([]);
-
+    hasConflicts.returns(false);
     const result = await EventHelper.isCreationAllowed(payload);
-    findOneSurcharge.restore();
-    findOneContract.restore();
-    findEvents.restore();
 
     expect(result).toBeTruthy();
   });
 
   it('should return false if company contract and customer has no subscription', async () => {
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
       subscription: (new ObjectID()).toHexString(),
-      startDate: '2019-10-03T00:00:00.000Z',
+      startDate: '2019-10-03T08:00:00.000Z',
+      endDate: '2019-10-03T10:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -666,9 +695,11 @@ describe('isCreationAllowed', () => {
         versions: [{ startDate: moment(payload.startDate).add(1, 'd') }],
       }],
     };
-    Customer.findOne = () => customer;
-    customer.populate = () => customer;
-    customer.toObject = () => customer;
+    CustomerModel.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customer);
 
     const contract = {
       user: payload.auxiliary,
@@ -677,29 +708,29 @@ describe('isCreationAllowed', () => {
       status: COMPANY_CONTRACT,
       startDate: moment(payload.startDate).subtract(1, 'd'),
     };
-    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
+    findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
-    User.findOne = () => user;
-    user.populate = () => user;
-    user.toObject = () => user;
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
 
-    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
-    const findEvents = sinon.stub(Event, 'find').returns([]);
-
+    hasConflicts.returns(false);
     const result = await EventHelper.isCreationAllowed(payload);
-    findOneSurcharge.restore();
-    findOneContract.restore();
-    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
 
   it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
+    const sectorId = new ObjectID();
     const payload = {
       auxiliary: new ObjectID(),
       type: INTERNAL_HOUR,
       startDate: '2019-10-03T00:00:00.000Z',
+      sector: sectorId.toHexString(),
     };
 
     const customer = {
@@ -709,9 +740,11 @@ describe('isCreationAllowed', () => {
         service: { type: '', versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
       }],
     };
-    Customer.findOne = () => customer;
-    customer.populate = () => customer;
-    customer.toObject = () => customer;
+    CustomerModel.expects('findOne')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customer);
 
     const contract = {
       user: payload.auxiliary,
@@ -719,26 +752,32 @@ describe('isCreationAllowed', () => {
       versions: [{}],
       status: CUSTOMER_CONTRACT,
     };
-    const findOneContract = sinon.stub(Contract, 'findOne').returns(contract);
+    findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract] };
-    User.findOne = () => user;
-    user.populate = () => user;
-    user.toObject = () => user;
+    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
 
-    const findOneSurcharge = sinon.stub(Surcharge, 'findOne');
-    const findEvents = sinon.stub(Event, 'find').returns([]);
-
+    hasConflicts.returns(false);
     const result = await EventHelper.isCreationAllowed(payload);
-    findOneSurcharge.restore();
-    findOneContract.restore();
-    findEvents.restore();
 
     expect(result).toBeFalsy();
   });
 });
 
 describe('isEditionAllowed', () => {
+  let isCreationAllowed;
+  beforeEach(() => {
+    isCreationAllowed = sinon.stub(EventHelper, 'isCreationAllowed');
+  });
+  afterEach(() => {
+    isCreationAllowed.restore();
+  });
+
   it('should return false as event is billed', async () => {
     const eventFromDb = {
       isBilled: true,
@@ -746,7 +785,9 @@ describe('isEditionAllowed', () => {
     };
     const payload = {};
 
-    expect(await EventHelper.isEditionAllowed(eventFromDb, payload)).toBeFalsy();
+    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(isCreationAllowed);
   });
 
   it('should return false as event is absence and auxiliary is updated', async () => {
@@ -756,7 +797,9 @@ describe('isEditionAllowed', () => {
     };
     const payload = { auxiliary: '1234567890' };
 
-    expect(await EventHelper.isEditionAllowed(eventFromDb, payload)).toBeFalsy();
+    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(isCreationAllowed);
   });
 
   it('should return false as event is unavailability and auxiliary is updated', async () => {
@@ -766,13 +809,44 @@ describe('isEditionAllowed', () => {
     };
     const payload = { auxiliary: '1234567890' };
 
-    expect(await EventHelper.isEditionAllowed(eventFromDb, payload)).toBeFalsy();
+    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(isCreationAllowed);
+  });
+
+  it('should call isCreationAllowed for unassigned event', async () => {
+    const eventFromDb = {
+      type: INTERVENTION,
+      auxiliary: new ObjectID(),
+    };
+    const payload = { isCancelled: false };
+
+    isCreationAllowed.returns(false);
+
+    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+    expect(result).toBeFalsy();
+    sinon.assert.calledWith(isCreationAllowed, { isCancelled: false, type: INTERVENTION });
+  });
+
+  it('should call isCreationAllowed for event with auxiliary', async () => {
+    const auxiliary = new ObjectID();
+    const eventFromDb = {
+      type: INTERVENTION,
+      auxiliary,
+    };
+    const payload = { isCancelled: false, auxiliary, type: INTERVENTION };
+
+    isCreationAllowed.returns(true);
+
+    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+    expect(result).toBeTruthy();
+    sinon.assert.calledWith(isCreationAllowed, { isCancelled: false, type: INTERVENTION, auxiliary });
   });
 });
 
 describe('unassignInterventions', () => {
-  let EventAggregateStub = null;
-  let EventUpdateManyStub = null;
+  let getCustomerSubscriptions = null;
+  let unassignInterventions = null;
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
@@ -791,51 +865,40 @@ describe('unassignInterventions', () => {
   }];
 
   beforeEach(() => {
-    EventAggregateStub = sinon.stub(Event, 'aggregate');
-    EventUpdateManyStub = sinon.stub(Event, 'updateMany');
+    getCustomerSubscriptions = sinon.stub(EventRepository, 'getCustomerSubscriptions');
+    unassignInterventions = sinon.stub(EventRepository, 'unassignInterventions');
   });
   afterEach(() => {
-    EventAggregateStub.restore();
-    EventUpdateManyStub.restore();
+    getCustomerSubscriptions.restore();
+    unassignInterventions.restore();
   });
 
   it('should unassign future events linked to company contract', async () => {
     const contract = { status: COMPANY_CONTRACT, endDate: moment().toDate(), user: userId };
-    EventAggregateStub.returns(aggregation);
+    getCustomerSubscriptions.returns(aggregation);
 
     await EventHelper.unassignInterventions(contract);
-    sinon.assert.called(EventAggregateStub);
+    sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWith(
-      EventUpdateManyStub,
-      { startDate: { $gt: contract.endDate }, auxiliary: userId, subscription: { $in: [aggregation[0].sub._id] }, isBilled: false },
-      { $unset: { auxiliary: '' } }
+      unassignInterventions,
+      contract.endDate,
+      contract.user,
+      [aggregation[0].sub._id]
     );
   });
 
   it('should unassign future events linked to corresponding customer contract', async () => {
     const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
-    EventAggregateStub.returns(aggregation);
+    getCustomerSubscriptions.returns(aggregation);
 
     await EventHelper.unassignInterventions(contract);
-    sinon.assert.called(EventAggregateStub);
+    sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWith(
-      EventUpdateManyStub,
-      { startDate: { $gt: contract.endDate }, auxiliary: userId, subscription: { $in: [aggregation[1].sub._id] }, isBilled: false },
-      { $unset: { auxiliary: '' } }
+      unassignInterventions,
+      contract.endDate,
+      contract.user,
+      [aggregation[1].sub._id]
     );
-  });
-});
-
-describe('removeEventsExceptInterventions', () => {
-  it('should remove future non-intervention events', async () => {
-    const endDate = moment().toDate();
-    const auxiliary = new ObjectID();
-    const contract = { endDate, user: auxiliary };
-    const EventDeleteManyStub = sinon.stub(Event, 'deleteMany');
-
-    await EventHelper.removeEventsExceptInterventions(contract);
-    sinon.assert.calledWith(EventDeleteManyStub, { startDate: { $gt: endDate }, subscription: { $exists: false }, auxiliary });
-    EventDeleteManyStub.restore();
   });
 });
 
@@ -894,33 +957,23 @@ describe('exportWorkingEventsHistory', () => {
       misc: 'brbr',
     },
   ];
-  let expectsFind;
-  let mockEvent;
-
+  let getWorkingEventsForExport;
   beforeEach(() => {
-    mockEvent = sinon.mock(Event);
-    expectsFind = mockEvent.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once();
+    getWorkingEventsForExport = sinon.stub(EventRepository, 'getWorkingEventsForExport');
   });
-
   afterEach(() => {
-    mockEvent.restore();
+    getWorkingEventsForExport.restore();
   });
 
   it('should return an array containing just the header', async () => {
-    expectsFind.resolves([]);
+    getWorkingEventsForExport.returns([]);
     const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    expectsFind.resolves(events);
+    getWorkingEventsForExport.returns(events);
     const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
     const names = ['Jean-Claude VAN DAMME', 'Mme Mimi MATHY', 'Princess CAROLYN', 'M Bojack HORSEMAN'];
     for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
@@ -971,33 +1024,25 @@ describe('exportAbsencesHistory', () => {
       misc: 'brbr',
     },
   ];
-  let expectsFind;
-  let mockEvent;
+  let getAbsencesForExport;
 
   beforeEach(() => {
-    mockEvent = sinon.mock(Event);
-    expectsFind = mockEvent.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once();
+    getAbsencesForExport = sinon.stub(EventRepository, 'getAbsencesForExport');
   });
 
   afterEach(() => {
-    mockEvent.verify();
-    mockEvent.restore();
+    getAbsencesForExport.restore();
   });
 
   it('should return an array containing just the header', async () => {
-    expectsFind.resolves([]);
+    getAbsencesForExport.returns([]);
     const exportArray = await EventHelper.exportAbsencesHistory(null, null);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    expectsFind.resolves(events);
+    getAbsencesForExport.returns(events);
     const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
     const names = ['Jean-Claude VAN DAMME', 'Princess CAROLYN'];
     for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
@@ -1028,5 +1073,202 @@ describe('formatRepeatedEvent', () => {
     expect(result).toBeDefined();
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
     expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
+  });
+});
+
+describe('createEvent', () => {
+  let save;
+  let isCreationAllowed;
+  let createEventHistoryOnCreate;
+  let populateEventSubscription;
+  let createRepetitions;
+  let getEvent;
+  beforeEach(() => {
+    save = sinon.stub(Event.prototype, 'save');
+    isCreationAllowed = sinon.stub(EventHelper, 'isCreationAllowed');
+    createEventHistoryOnCreate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnCreate');
+    populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
+    createRepetitions = sinon.stub(EventHelper, 'createRepetitions');
+    getEvent = sinon.stub(EventRepository, 'getEvent');
+  });
+  afterEach(() => {
+    save.restore();
+    isCreationAllowed.restore();
+    createEventHistoryOnCreate.restore();
+    populateEventSubscription.restore();
+    createRepetitions.restore();
+    getEvent.restore();
+  });
+
+  it('should not create as creation is not allowed', async () => {
+    isCreationAllowed.returns(false);
+    try {
+      await EventHelper.createEvent({}, {});
+    } catch (e) {
+      expect(e.output.payload.statusCode).toEqual(422);
+    }
+  });
+
+  it('should create as creation is allowed', async () => {
+    const newEvent = new Event({
+      type: ABSENCE,
+    });
+
+    isCreationAllowed.returns(true);
+    getEvent.returns(newEvent);
+
+    await EventHelper.createEvent({}, {});
+
+    sinon.assert.called(createEventHistoryOnCreate);
+    sinon.assert.called(save);
+    sinon.assert.calledWith(getEvent);
+    sinon.assert.notCalled(createRepetitions);
+    sinon.assert.called(populateEventSubscription);
+  });
+
+  it('should create repetitions as creation is a repetition', async () => {
+    const payload = { repetition: { frequency: EVERY_WEEK } };
+    const newEvent = new Event({
+      type: INTERVENTION,
+    });
+
+    isCreationAllowed.returns(true);
+    getEvent.returns(newEvent);
+
+    await EventHelper.createEvent(payload, {});
+
+    sinon.assert.called(createEventHistoryOnCreate);
+    sinon.assert.called(save);
+    sinon.assert.called(getEvent);
+    sinon.assert.called(createRepetitions);
+    sinon.assert.called(populateEventSubscription);
+  });
+});
+
+describe('deleteRepetition', () => {
+  let findOne;
+  let createEventHistoryOnDelete;
+  let deleteMany;
+  const params = { _id: new ObjectID() };
+  const credentials = { _id: new ObjectID() };
+  beforeEach(() => {
+    findOne = sinon.stub(Event, 'findOne');
+    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
+    deleteMany = sinon.stub(Event, 'deleteMany');
+  });
+  afterEach(() => {
+    findOne.restore();
+    createEventHistoryOnDelete.restore();
+    deleteMany.restore();
+  });
+
+  it('should return null if event not found', async () => {
+    findOne.returns(null);
+    const result = await EventHelper.deleteRepetition(params, {});
+
+    expect(result).toBeNull();
+  });
+
+  it('should delete repetition', async () => {
+    const parentId = new ObjectID();
+    const event = {
+      type: INTERVENTION,
+      repetition: {
+        frequency: EVERY_WEEK,
+        parentId,
+      },
+      startDate: '2019-01-21T09:38:18.653Z',
+    };
+    findOne.returns(event);
+    const result = await EventHelper.deleteRepetition(params, credentials);
+
+    expect(result).toEqual(event);
+    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.calledWith(
+      deleteMany,
+      {
+        'repetition.parentId': parentId,
+        startDate: { $gte: new Date(event.startDate) },
+        $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+      }
+    );
+  });
+
+  it('should not delete repetition as event is absence', async () => {
+    const event = {
+      type: ABSENCE,
+      repetition: { frequency: EVERY_WEEK },
+      startDate: '2019-01-21T09:38:18.653Z',
+    };
+    findOne.returns(event);
+    const result = await EventHelper.deleteRepetition(params, credentials);
+
+    expect(result).toEqual(event);
+    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.notCalled(deleteMany);
+  });
+
+  it('should not delete repetition as event is not a repetition', async () => {
+    const parentId = new ObjectID();
+    const event = {
+      type: INTERVENTION,
+      repetition: {
+        frequency: NEVER,
+        parentId,
+      },
+      startDate: '2019-01-21T09:38:18.653Z',
+    };
+    findOne.returns(event);
+    const result = await EventHelper.deleteRepetition(params, credentials);
+
+    expect(result).toEqual(event);
+    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.notCalled(deleteMany);
+  });
+});
+
+describe('deleteEvent', () => {
+  let findOne;
+  let createEventHistoryOnDelete;
+  let deleteOne;
+  const params = { _id: new ObjectID() };
+  const credentials = { _id: new ObjectID() };
+  beforeEach(() => {
+    findOne = sinon.stub(Event, 'findOne');
+    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
+    deleteOne = sinon.stub(Event, 'deleteOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+    createEventHistoryOnDelete.restore();
+    deleteOne.restore();
+  });
+
+  it('should return null if event not found', async () => {
+    findOne.returns(null);
+    const result = await EventHelper.deleteEvent(params, {});
+
+    expect(result).toBeNull();
+  });
+
+  it('should delete repetition', async () => {
+    const parentId = new ObjectID();
+    const deletionInfo = {
+      type: INTERVENTION,
+      startDate: '2019-01-21T09:38:18.653Z',
+    };
+    const event = {
+      ...deletionInfo,
+      repetition: {
+        frequency: EVERY_WEEK,
+        parentId,
+      },
+    };
+    findOne.returns(event);
+    const result = await EventHelper.deleteEvent(params, credentials);
+
+    expect(result).toEqual(event);
+    sinon.assert.calledWith(createEventHistoryOnDelete, deletionInfo, credentials);
+    sinon.assert.calledWith(deleteOne, { _id: params._id });
   });
 });

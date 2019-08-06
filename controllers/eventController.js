@@ -5,42 +5,37 @@ const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const {
-  isCreationAllowed,
   getListQuery,
   populateEvents,
-  populateEventSubscription,
-  createRepetitions,
   updateEvent,
   deleteRepetition,
   isEditionAllowed,
+  createEvent,
+  deleteEvent,
 } = require('../helpers/events');
-const { ABSENCE, NEVER, INTERVENTION } = require('../helpers/constants');
+const { ABSENCE, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
+const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
     const query = getListQuery(req);
-    const events = await Event.find(query)
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
-      .populate({
-        path: 'customer',
-        select: 'identity subscriptions contact',
-        populate: { path: 'subscriptions.service' }
-      })
-      .lean();
-    if (events.length === 0) {
-      return {
-        message: translate[language].eventsNotFound,
-        data: { events: [] }
-      };
+    const { groupBy } = req.query;
+
+    let events;
+    if (groupBy === CUSTOMER) {
+      events = await getEventsGroupedByCustomers(query);
+    } else if (groupBy === AUXILIARY) {
+      events = await getEventsGroupedByAuxiliaries(query);
+    } else {
+      events = await getEventList(query);
+      events = await populateEvents(events);
     }
 
-    const populatedEvents = await populateEvents(events);
-
     return {
-      message: translate[language].eventsFound,
-      data: { events: populatedEvents }
+      message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
+      data: { events },
     };
   } catch (e) {
     req.log('error', e);
@@ -63,7 +58,7 @@ const listForCreditNotes = async (req) => {
 
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
-      data: { events }
+      data: { events },
     };
   } catch (e) {
     req.log('error', e);
@@ -73,30 +68,12 @@ const listForCreditNotes = async (req) => {
 
 const create = async (req) => {
   try {
-    const { payload } = req;
-
-    if (payload.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {
-      throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
-    }
-
-    if (!(await isCreationAllowed(payload))) return Boom.badData();
-
-    let event = new Event(payload);
-    await event.save();
-    event = await Event.findOne({ _id: event._id })
-      .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
-      .populate({ path: 'customer', select: 'identity subscriptions contact' })
-      .lean();
-
-    if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
-      event = await createRepetitions(event);
-    }
-
-    const populatedEvent = await populateEventSubscription(event);
+    const { payload, auth } = req;
+    const event = await createEvent(payload, auth.credentials);
 
     return {
       message: translate[language].eventCreated,
-      data: { event: populatedEvent },
+      data: { event },
     };
   } catch (e) {
     req.log('error', e);
@@ -106,7 +83,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const { payload } = req;
+    const { payload, auth } = req;
 
     let event = await Event.findOne({ _id: req.params._id }).lean();
     if (!event) return Boom.notFound(translate[language].eventNotFound);
@@ -117,7 +94,7 @@ const update = async (req) => {
 
     if (!(await isEditionAllowed(event, payload))) return Boom.badData();
 
-    event = await updateEvent(event, payload);
+    event = await updateEvent(event, payload, auth.credentials);
 
     return {
       message: translate[language].eventUpdated,
@@ -131,10 +108,11 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const event = await Event.findByIdAndRemove({ _id: req.params._id });
+    const { params, auth } = req;
+    const event = await deleteEvent(params, auth.credentials);
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
-    return { message: translate[language].eventDeleted, };
+    return { message: translate[language].eventDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);
@@ -143,17 +121,12 @@ const remove = async (req) => {
 
 const removeRepetition = async (req) => {
   try {
-    const event = await Event.findByIdAndRemove({ _id: req.params._id });
-    if (!event) return Boom.notFound(translate[language].eventNotFound);
-
-    const { type, repetition } = event;
-    if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
-      await deleteRepetition(event);
-    }
+    const { params, auth } = req;
+    const event = await deleteRepetition(params, auth.credentials);
 
     return {
       message: translate[language].eventDeleted,
-      data: { event }
+      data: { event },
     };
   } catch (e) {
     req.log('error', e);

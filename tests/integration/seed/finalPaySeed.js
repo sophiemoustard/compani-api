@@ -9,7 +9,7 @@ const Event = require('../../../models/Event');
 const Company = require('../../../models/Company');
 const Sector = require('../../../models/Sector');
 const FinalPay = require('../../../models/FinalPay');
-const Role = require('../../../models/Role');
+const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
@@ -19,31 +19,23 @@ const serviceId = new ObjectID();
 const companyId = new ObjectID();
 const sectorId = new ObjectID();
 
-const roles = [{
-  _id: new ObjectID(),
-  name: 'tech',
-}, {
-  _id: new ObjectID(),
-  name: 'auxiliary',
-}];
-
 const user = {
   _id: new ObjectID(),
   local: { email: 'test4@alenvi.io', password: '123456' },
   identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
-  role: roles[0]._id,
+  role: rolesList.find(role => role.name === 'coach')._id,
   inactivityDate: '2018-11-01T12:52:27.461Z',
 };
 
 const auxiliary = {
   _id: auxiliaryId,
-  identity: { firstname: 'Test7', lastname: 'Test7', },
+  identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test7@alenvi.io', password: '123456' },
   inactivityDate: '2019-06-01T00:00:00',
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: roles[1]._id,
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId,
   sector: sectorId,
 };
@@ -140,7 +132,6 @@ const company = {
 const sector = { name: 'Toto', _id: sectorId };
 
 const populateDB = async () => {
-  await Role.deleteMany({});
   await User.deleteMany({});
   await Customer.deleteMany({});
   await Service.deleteMany({});
@@ -150,7 +141,7 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await FinalPay.deleteMany({});
 
-  await Role.insertMany(roles);
+  await populateDBForAuthentification();
   await (new User(user)).save();
   await (new User(auxiliary)).save();
   await (new Customer(customer)).save();
@@ -161,6 +152,4 @@ const populateDB = async () => {
   await (new Sector(sector)).save();
 };
 
-module.exports = {
-  populateDB,
-};
+module.exports = { populateDB };

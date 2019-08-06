@@ -232,6 +232,9 @@ module.exports = {
 
     /* Final pay */
     finalPayListCreated: 'Final pay list created',
+
+    /* Event history */
+    eventHistoriesFound: 'Event histories found',
   },
   'fr-FR': {
     /* Global errors */
@@ -461,5 +464,8 @@ module.exports = {
 
     /* Final pay */
     finalPayListCreated: 'Liste des stc créée',
-  }
+
+    /* Event history */
+    eventHistoriesFound: 'Historique des évènements trouvés',
+  },
 };

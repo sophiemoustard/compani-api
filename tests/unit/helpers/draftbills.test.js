@@ -8,26 +8,19 @@ require('sinon-mongoose');
 const Surcharge = require('../../../models/Surcharge');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const FundingHistory = require('../../../models/FundingHistory');
-const {
-  populateSurcharge,
-  populateFundings,
-  getMatchingFunding,
-  computeCustomSurcharge,
-  applySurcharge,
-  getExclTaxes,
-  getInclTaxes,
-  getThirdPartyPayerPrice,
-  getMatchingHistory,
-  getHourlyFundingSplit,
-  getFixedFundingSplit,
-  getEventPrice,
-  formatDraftBillsForCustomer,
-  formatDraftBillsForTPP,
-  getDraftBillsPerSubscription,
-} = require('../../../helpers/draftBills');
+const DraftBillsHelper = require('../../../helpers/draftBills');
 const UtilsHelper = require('../../../helpers/utils');
+const EventRepository = require('../../../repositories/EventRepository');
 
 describe('populateSurcharge', () => {
+  let findOne;
+  beforeEach(() => {
+    findOne = sinon.stub(Surcharge, 'findOne');
+  });
+  afterEach(() => {
+    findOne.restore();
+  });
+
   it('should populate surcharge and order versions', async () => {
     const surchargeId = new ObjectID();
     const returnedSurcharge = { _id: surchargeId, sundaySurcharge: 10 };
@@ -35,7 +28,7 @@ describe('populateSurcharge', () => {
       _id: 'abc',
       versions: [
         { unitTTCRate: 13, startDate: new Date('2019-01-20'), _id: 5 },
-        { unitTTCRate: 15, startDate: new Date('2019-02-24'), _id: 4 }
+        { unitTTCRate: 15, startDate: new Date('2019-02-24'), _id: 4 },
       ],
       service: {
         versions: [
@@ -45,10 +38,9 @@ describe('populateSurcharge', () => {
         ],
       },
     };
-    const findOne = sinon.stub(Surcharge, 'findOne').returns(returnedSurcharge);
+    findOne.returns(returnedSurcharge);
 
-    const result = await populateSurcharge(subscription);
-    findOne.restore();
+    const result = await DraftBillsHelper.populateSurcharge(subscription);
 
     expect(result).toBeDefined();
     expect(result._id).toEqual('abc');
@@ -73,7 +65,7 @@ describe('populateFundings', () => {
   });
 
   it('should return empty array if input empty', async () => {
-    const result = await populateFundings([], new Date());
+    const result = await DraftBillsHelper.populateFundings([], new Date());
     expect(result).toEqual([]);
   });
 
@@ -96,7 +88,7 @@ describe('populateFundings', () => {
       .chain('lean')
       .resolves(null);
 
-    const result = await populateFundings(fundings, new Date());
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date());
 
     expect(result).toBeDefined();
     expect(result[0].thirdPartyPayer).toBeDefined();
@@ -112,7 +104,7 @@ describe('populateFundings', () => {
     const fundings = [{
       _id: new ObjectID(),
       thirdPartyPayer: new ObjectID(),
-      versions: [{ frequency: 'once', _id: fundingId }]
+      versions: [{ frequency: 'once', _id: fundingId }],
     }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     const returnedHistory = { careHours: 4, fundingId };
@@ -130,7 +122,7 @@ describe('populateFundings', () => {
       .chain('lean')
       .resolves(returnedHistory);
 
-    const result = await populateFundings(fundings, new Date());
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date());
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
@@ -146,7 +138,7 @@ describe('populateFundings', () => {
     const fundings = [{
       _id: fundingId,
       thirdPartyPayer: new ObjectID(),
-      versions: [{ frequency: 'once', _id: fundingId }]
+      versions: [{ frequency: 'once', _id: fundingId }],
     }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
@@ -163,7 +155,7 @@ describe('populateFundings', () => {
       .chain('lean')
       .resolves(null);
 
-    const result = await populateFundings(fundings, new Date());
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date());
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
@@ -179,7 +171,7 @@ describe('populateFundings', () => {
     const fundings = [{
       _id: fundingId,
       thirdPartyPayer: new ObjectID(),
-      versions: [{ frequency: 'monthly', _id: fundingId }]
+      versions: [{ frequency: 'monthly', _id: fundingId }],
     }];
     const returnedHistories = [
       { careHours: 3, fundingId, month: '01/2019' },
@@ -199,7 +191,7 @@ describe('populateFundings', () => {
       .withArgs({ fundingId: fundings[0]._id })
       .resolves(returnedHistories);
 
-    const result = await populateFundings(fundings, new Date('2019/03/10'));
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date('2019/03/10'));
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
@@ -216,7 +208,7 @@ describe('populateFundings', () => {
 
 describe('getMatchingFunding', () => {
   it('should return null if fundings is empty', () => {
-    expect(getMatchingFunding(new Date(), [])).toBeNull();
+    expect(DraftBillsHelper.getMatchingFunding(new Date(), [])).toBeNull();
   });
 
   it('should return matching version with random day', () => {
@@ -225,7 +217,7 @@ describe('getMatchingFunding', () => {
       { _id: 3, careDays: [0, 3], startDate: '2019-02-23T09:00:00', createdAt: '2019-02-23T09:00:00' },
       { _id: 2, careDays: [1, 5, 6], startDate: '2019-04-23T09:00:00', createdAt: '2019-04-23T09:00:00' },
     ];
-    const result = getMatchingFunding('2019-04-23T09:00:00', fundings);
+    const result = DraftBillsHelper.getMatchingFunding('2019-04-23T09:00:00', fundings);
     expect(result).toBeDefined();
     expect(result._id).toEqual(2);
   });
@@ -235,7 +227,7 @@ describe('getMatchingFunding', () => {
       { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
       { _id: 3, careDays: [4, 7], startDate: '2019-04-23T09:00:00' },
     ];
-    const result = getMatchingFunding('2019-05-01T09:00:00', fundings);
+    const result = DraftBillsHelper.getMatchingFunding('2019-05-01T09:00:00', fundings);
     expect(result).toBeDefined();
     expect(result._id).toEqual(3);
   });
@@ -245,7 +237,7 @@ describe('getMatchingFunding', () => {
       { _id: 1, careDays: [0, 2, 3], startDate: '2019-03-23T09:00:00' },
       { _id: 2, careDays: [5, 6], startDate: '2019-04-23T09:00:00' },
     ];
-    const result = getMatchingFunding('2019-04-23T09:00:00', fundings);
+    const result = DraftBillsHelper.getMatchingFunding('2019-04-23T09:00:00', fundings);
     expect(result).toBeNull();
   });
 });
@@ -261,7 +253,7 @@ describe('computeCustomSurcharge', () => {
       startDate: '2019-03-12T09:00:00',
       endDate: '2019-03-12T11:00:00',
     };
-    const result = computeCustomSurcharge(event, start, end, surcharge, price);
+    const result = DraftBillsHelper.computeCustomSurcharge(event, start, end, surcharge, price);
     expect(Number.parseFloat(result.toFixed(1))).toEqual(14.4);
   });
 
@@ -270,7 +262,7 @@ describe('computeCustomSurcharge', () => {
       startDate: '2019-03-12T08:00:00',
       endDate: '2019-03-12T10:00:00',
     };
-    const result = computeCustomSurcharge(event, start, end, surcharge, price);
+    const result = DraftBillsHelper.computeCustomSurcharge(event, start, end, surcharge, price);
     expect(Number.parseFloat(result.toFixed(1))).toEqual(13.2);
   });
 
@@ -279,7 +271,7 @@ describe('computeCustomSurcharge', () => {
       startDate: '2019-03-12T10:00:00',
       endDate: '2019-03-12T13:00:00',
     };
-    const result = computeCustomSurcharge(event, start, end, surcharge, price);
+    const result = DraftBillsHelper.computeCustomSurcharge(event, start, end, surcharge, price);
     expect(Number.parseFloat(result.toFixed(1))).toEqual(13.6);
   });
 
@@ -288,7 +280,7 @@ describe('computeCustomSurcharge', () => {
       startDate: '2019-03-12T07:00:00',
       endDate: '2019-03-12T13:00:00',
     };
-    const result = computeCustomSurcharge(event, start, end, surcharge, price);
+    const result = DraftBillsHelper.computeCustomSurcharge(event, start, end, surcharge, price);
     expect(Number.parseFloat(result.toFixed(1))).toEqual(13.2);
   });
 });
@@ -297,94 +289,142 @@ describe('applySurcharge', () => {
   const price = 20;
   let event;
   let surcharge = {};
+  let computeCustomSurcharge;
+  beforeEach(() => {
+    computeCustomSurcharge = sinon.stub(DraftBillsHelper, 'computeCustomSurcharge');
+  });
+  afterEach(() => {
+    computeCustomSurcharge.restore();
+  });
+
   it('should apply 25th of december surcharge', () => {
     event = { startDate: '2019-12-25T07:00:00' };
     surcharge = { twentyFifthOfDecember: 20 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(24);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(24);
   });
 
   it('should not apply 25th of december surcharge', () => {
     event = { startDate: '2019-12-25T07:00:00' };
     surcharge = { saturday: 20 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply 1st of May surcharge', () => {
     event = { startDate: '2019-05-01T07:00:00' };
     surcharge = { firstOfMay: 10 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(22);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(22);
   });
 
   it('should not apply 1st of May surcharge', () => {
     event = { startDate: '2019-05-01T07:00:00' };
     surcharge = { saturday: 10 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply holiday surcharge', () => {
     event = { startDate: '2019-01-01T07:00:00' };
     surcharge = { publicHoliday: 15 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(23);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(23);
   });
 
   it('should not apply holiday surcharge', () => {
     event = { startDate: '2019-01-01T07:00:00' };
     surcharge = { saturday: 10 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply saturday surcharge', () => {
     event = { startDate: '2019-04-27T07:00:00' };
     surcharge = { saturday: 5 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(21);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(21);
   });
 
   it('should not apply saturday surcharge', () => {
     event = { startDate: '2019-04-27T07:00:00' };
     surcharge = { sunday: 10 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply sunday surcharge', () => {
     event = { startDate: '2019-04-28T07:00:00' };
     surcharge = { sunday: 5 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(21);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(21);
   });
 
   it('should not apply sunday surcharge', () => {
     event = { startDate: '2019-04-28T07:00:00' };
     surcharge = { saturday: 10 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(20);
   });
 
   it('should apply holiday and not sunday surcharge', () => {
     event = { startDate: '2019-07-14T07:00:00' };
     surcharge = { sunday: 10, publicHoliday: 20 };
-    expect(applySurcharge(event, price, surcharge)).toEqual(24);
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(24);
   });
 
   it('should apply evening surcharge', () => {
     event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
-    expect(applySurcharge(event, price, surcharge)).toEqual(22);
+    computeCustomSurcharge.returns(22);
+
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(22);
+    sinon.assert.calledWith(
+      computeCustomSurcharge,
+      event,
+      '18:00',
+      '20:00',
+      10,
+      price
+    );
   });
 
   it('should not apply evening surcharge', () => {
     event = { startDate: '2019-04-23T15:00:00', endDate: '2019-04-23T17:00:00' };
     surcharge = { evening: 10, eveningEndTime: '20:00', eveningStartTime: '18:00' };
-    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+    computeCustomSurcharge.returns(20);
+
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(20);
+    sinon.assert.calledWith(
+      computeCustomSurcharge,
+      event,
+      '18:00',
+      '20:00',
+      10,
+      price
+    );
   });
 
   it('should apply custom surcharge', () => {
     event = { startDate: '2019-04-23T18:00:00', endDate: '2019-04-23T20:00:00' };
     surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
-    expect(applySurcharge(event, price, surcharge)).toEqual(22);
+    computeCustomSurcharge.returns(22);
+
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(22);
+    sinon.assert.calledWith(
+      computeCustomSurcharge,
+      event,
+      '18:00',
+      '20:00',
+      10,
+      price
+    );
   });
 
   it('should not apply custom surcharge', () => {
     event = { startDate: '2019-04-23T15:00:00', endDate: '2019-04-23T17:00:00' };
     surcharge = { custom: 10, customEndTime: '20:00', customStartTime: '18:00' };
-    expect(applySurcharge(event, price, surcharge)).toEqual(20);
+    computeCustomSurcharge.returns(20);
+
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(20);
+    sinon.assert.calledWith(
+      computeCustomSurcharge,
+      event,
+      '18:00',
+      '20:00',
+      10,
+      price
+    );
   });
 
   it('should apply custom surcharge ', () => {
@@ -397,25 +437,28 @@ describe('applySurcharge', () => {
       eveningEndTime: '12:00',
       eveningStartTime: '14:00',
     };
-    expect(applySurcharge(event, price, surcharge)).toEqual(22);
+    computeCustomSurcharge.returns(22);
+
+    expect(DraftBillsHelper.applySurcharge(event, price, surcharge)).toEqual(22);
+    sinon.assert.calledTwice(computeCustomSurcharge);
   });
 });
 
 describe('getExclTaxes', () => {
   it('should return excluded taxes price', () => {
-    expect(Number.parseFloat(getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
+    expect(Number.parseFloat(DraftBillsHelper.getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
   });
 });
 
 describe('getInclTaxes', () => {
   it('should return excluded taxes price', () => {
-    expect(getInclTaxes(20, 2)).toEqual(20.4);
+    expect(DraftBillsHelper.getInclTaxes(20, 2)).toEqual(20.4);
   });
 });
 
 describe('getThirdPartyPayerPrice', () => {
   it('should compute tpp price', () => {
-    expect(getThirdPartyPayerPrice(180, 10, 20)).toEqual(24);
+    expect(DraftBillsHelper.getThirdPartyPayerPrice(180, 10, 20)).toEqual(24);
   });
 });
 
@@ -423,7 +466,7 @@ describe('getMatchingHistory', () => {
   it('should return history for once frequency', () => {
     const fundingId = new ObjectID();
     const funding = { _id: fundingId, frequency: 'once', history: { fundingId, careHours: 2 } };
-    const result = getMatchingHistory({}, funding);
+    const result = DraftBillsHelper.getMatchingHistory({}, funding);
     expect(result).toBeDefined();
     expect(result.fundingId).toEqual(fundingId);
   });
@@ -433,10 +476,10 @@ describe('getMatchingHistory', () => {
     const funding = {
       _id: fundingId,
       frequency: 'monthly',
-      history: [{ fundingId, careHours: 2, month: '03/2019' }, { fundingId, careHours: 4, month: '02/2019' }]
+      history: [{ fundingId, careHours: 2, month: '03/2019' }, { fundingId, careHours: 4, month: '02/2019' }],
     };
     const event = { startDate: new Date('2019/03/12') };
-    const result = getMatchingHistory(event, funding);
+    const result = DraftBillsHelper.getMatchingHistory(event, funding);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ fundingId, careHours: 2, month: '03/2019' });
   });
@@ -446,10 +489,10 @@ describe('getMatchingHistory', () => {
     const funding = {
       _id: fundingId,
       frequency: 'monthly',
-      history: [{ fundingId, careHours: 2, month: '01/2019' }, { fundingId, careHours: 4, month: '02/2019' }]
+      history: [{ fundingId, careHours: 2, month: '01/2019' }, { fundingId, careHours: 4, month: '02/2019' }],
     };
     const event = { startDate: new Date('2019/03/12') };
-    const result = getMatchingHistory(event, funding);
+    const result = DraftBillsHelper.getMatchingHistory(event, funding);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
   });
@@ -462,6 +505,19 @@ describe('getHourlyFundingSplit', () => {
     endDate: (new Date('2019/03/12')).setHours(10),
   };
   const service = { vat: 20 };
+  let getExclTaxes;
+  let getMatchingHistory;
+  let getThirdPartyPayerPrice;
+  beforeEach(() => {
+    getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+    getMatchingHistory = sinon.stub(DraftBillsHelper, 'getMatchingHistory');
+    getThirdPartyPayerPrice = sinon.stub(DraftBillsHelper, 'getThirdPartyPayerPrice');
+  });
+  afterEach(() => {
+    getExclTaxes.restore();
+    getMatchingHistory.restore();
+    getThirdPartyPayerPrice.restore();
+  });
 
   it('case 1. Event fully invoiced to TPP', () => {
     const funding = {
@@ -473,12 +529,22 @@ describe('getHourlyFundingSplit', () => {
       thirdPartyPayer: { _id: new ObjectID() },
     };
 
-    const result = getHourlyFundingSplit(event, funding, service, price);
+    getExclTaxes.returns(17.5);
+    getMatchingHistory.returns({ careHours: 1 });
+    getThirdPartyPayerPrice.returns(28);
+
+    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, service, price);
     expect(result).toBeDefined();
     expect(result.customerPrice).toEqual(22);
     expect(result.thirdPartyPayerPrice).toEqual(28);
     expect(result.history).toBeDefined();
     expect(result.history.careHours).toEqual(2);
+    sinon.assert.calledWith(
+      getThirdPartyPayerPrice,
+      120,
+      17.5,
+      20
+    );
   });
 
   it('case 2. Event partially invoiced to TPP', () => {
@@ -491,12 +557,22 @@ describe('getHourlyFundingSplit', () => {
       thirdPartyPayer: { _id: new ObjectID() },
     };
 
-    const result = getHourlyFundingSplit(event, funding, service, price);
+    getExclTaxes.returns(17.5);
+    getMatchingHistory.returns({ careHours: 3 });
+    getThirdPartyPayerPrice.returns(14);
+
+    const result = DraftBillsHelper.getHourlyFundingSplit(event, funding, service, price);
     expect(result).toBeDefined();
     expect(result.customerPrice).toEqual(36);
     expect(result.thirdPartyPayerPrice).toEqual(14);
     expect(result.history).toBeDefined();
     expect(result.history.careHours).toEqual(1);
+    sinon.assert.calledWith(
+      getThirdPartyPayerPrice,
+      60,
+      17.5,
+      20
+    );
   });
 });
 
@@ -507,6 +583,13 @@ describe('getFixedFundingSplit', () => {
     endDate: (new Date('2019/03/12')).setHours(10),
   };
   const service = { vat: 20 };
+  let getExclTaxes;
+  beforeEach(() => {
+    getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+  });
+  afterEach(() => {
+    getExclTaxes.restore();
+  });
 
   it('Case 1. Event fully invoiced to TPP', () => {
     const funding = {
@@ -514,13 +597,15 @@ describe('getFixedFundingSplit', () => {
       amountTTC: 100,
       thirdPartyPayer: { _id: new ObjectID() },
     };
+    getExclTaxes.returns(50);
 
-    const result = getFixedFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, service, price);
     expect(result).toBeDefined();
     expect(result.customerPrice).toEqual(0);
     expect(result.thirdPartyPayerPrice).toEqual(50);
     expect(result.history).toBeDefined();
     expect(result.history.amountTTC).toEqual(60);
+    sinon.assert.notCalled(getExclTaxes);
   });
 
   it('Case 2. Event partially invoiced to TPP', () => {
@@ -529,13 +614,15 @@ describe('getFixedFundingSplit', () => {
       amountTTC: 100,
       thirdPartyPayer: { _id: new ObjectID() },
     };
+    getExclTaxes.returns(17.5);
 
-    const result = getFixedFundingSplit(event, funding, service, price);
+    const result = DraftBillsHelper.getFixedFundingSplit(event, funding, service, price);
     expect(result).toBeDefined();
     expect(result.customerPrice).toEqual(32.5);
     expect(result.thirdPartyPayerPrice).toEqual(17.5);
     expect(result.history).toBeDefined();
     expect(result.history.amountTTC).toEqual(21);
+    sinon.assert.calledWith(getExclTaxes, 21, 20);
   });
 });
 
@@ -545,19 +632,46 @@ describe('getEventPrice', () => {
     startDate: (new Date('2019/05/08')).setHours(8),
     endDate: (new Date('2019/05/08')).setHours(10),
   };
+  let getExclTaxes;
+  let applySurcharge;
+  let getHourlyFundingSplit;
+  let getFixedFundingSplit;
+  beforeEach(() => {
+    getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+    applySurcharge = sinon.stub(DraftBillsHelper, 'applySurcharge');
+    getHourlyFundingSplit = sinon.stub(DraftBillsHelper, 'getHourlyFundingSplit');
+    getFixedFundingSplit = sinon.stub(DraftBillsHelper, 'getFixedFundingSplit');
+  });
+  afterEach(() => {
+    getExclTaxes.restore();
+    applySurcharge.restore();
+    getHourlyFundingSplit.restore();
+    getFixedFundingSplit.restore();
+  });
 
   it('should return event prices wihtout funding and without surcharge', () => {
     const service = { vat: 20 };
-    const result = getEventPrice(event, unitTTCRate, service);
+    getExclTaxes.returns(17.5);
+
+    const result = DraftBillsHelper.getEventPrice(event, unitTTCRate, service);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 35, thirdPartyPayerPrice: 0 });
+    sinon.assert.notCalled(getHourlyFundingSplit);
+    sinon.assert.notCalled(getFixedFundingSplit);
+    sinon.assert.notCalled(applySurcharge);
   });
 
   it('should return event prices with surcharge', () => {
     const service = { vat: 20, nature: 'hourly', surcharge: { publicHoliday: 10 } };
-    const result = getEventPrice(event, unitTTCRate, service);
+    getExclTaxes.returns(17.5);
+    applySurcharge.returns(38.5);
+
+    const result = DraftBillsHelper.getEventPrice(event, unitTTCRate, service);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 38.5, thirdPartyPayerPrice: 0 });
+    sinon.assert.calledWith(applySurcharge, event, 35, { publicHoliday: 10 });
+    sinon.assert.notCalled(getHourlyFundingSplit);
+    sinon.assert.notCalled(getFixedFundingSplit);
   });
 
   it('should return event prices with hourly funding', () => {
@@ -571,9 +685,15 @@ describe('getEventPrice', () => {
       history: { careHours: 1 },
       thirdPartyPayer: { _id: new ObjectID() },
     };
-    const result = getEventPrice(event, unitTTCRate, service, funding);
+    getExclTaxes.returns(17.5);
+    getHourlyFundingSplit.returns({ customerPrice: 10, thirdPartyPayerPrice: 25 });
+
+    const result = DraftBillsHelper.getEventPrice(event, unitTTCRate, service, funding);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 10, thirdPartyPayerPrice: 25 });
+    sinon.assert.calledWith(getHourlyFundingSplit, event, funding, service, 35);
+    sinon.assert.notCalled(getFixedFundingSplit);
+    sinon.assert.notCalled(applySurcharge);
   });
 
   it('should return event prices with fixed funding', () => {
@@ -584,17 +704,28 @@ describe('getEventPrice', () => {
       amountTTC: 100,
       thirdPartyPayer: { _id: new ObjectID() },
     };
-    const result = getEventPrice(event, unitTTCRate, service, funding);
+    getExclTaxes.returns(17.5);
+    getFixedFundingSplit.returns({ customerPrice: 0, thirdPartyPayerPrice: 35 });
+
+    const result = DraftBillsHelper.getEventPrice(event, unitTTCRate, service, funding);
     expect(result).toBeDefined();
     expect(result).toMatchObject({ customerPrice: 0, thirdPartyPayerPrice: 35 });
+    sinon.assert.calledWith(getFixedFundingSplit, event, funding, service, 35);
+    sinon.assert.notCalled(getHourlyFundingSplit);
+    sinon.assert.notCalled(applySurcharge);
   });
 
   it('should return event prices with fixed service', () => {
-    const service = { vat: 5.5, nature: 'fixed' };
-    const result = getEventPrice(event, unitTTCRate, service);
+    const service = { vat: 20, nature: 'fixed' };
+    getExclTaxes.returns(17.5);
+
+    const result = DraftBillsHelper.getEventPrice(event, unitTTCRate, service);
     expect(result).toBeDefined();
     result.customerPrice = Number.parseFloat(result.customerPrice.toFixed(2));
-    expect(result).toMatchObject({ customerPrice: 19.91, thirdPartyPayerPrice: 0 });
+    expect(result).toMatchObject({ customerPrice: 17.5, thirdPartyPayerPrice: 0 });
+    sinon.assert.notCalled(getHourlyFundingSplit);
+    sinon.assert.notCalled(getFixedFundingSplit);
+    sinon.assert.notCalled(applySurcharge);
   });
 });
 
@@ -606,15 +737,24 @@ describe('formatDraftBillsForCustomer', () => {
     endDate: (new Date('2019/05/08')).setHours(10),
   };
   const service = { vat: 20 };
+  let getInclTaxes;
+  beforeEach(() => {
+    getInclTaxes = sinon.stub(DraftBillsHelper, 'getInclTaxes');
+  });
+  afterEach(() => {
+    getInclTaxes.restore();
+  });
 
   it('should format bill for customer without tpp info', () => {
     const eventPrice = { customerPrice: 17.5 };
-    const result = formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
+    getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
+
+    const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
     expect(result).toBeDefined();
     expect(result).toMatchObject({
       eventsList: [
         { event: '123456' },
-        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: 17.5 }
+        { event: 'abc', inclTaxesCustomer: 21, exclTaxesCustomer: 17.5 },
       ],
       hours: 5,
       exclTaxes: 37.5,
@@ -624,7 +764,9 @@ describe('formatDraftBillsForCustomer', () => {
 
   it('should format bill for customer with tpp info', () => {
     const eventPrice = { customerPrice: 17.5, thirdPartyPayerPrice: 12.5, thirdPartyPayer: 'tpp' };
-    const result = formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
+    getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
+
+    const result = DraftBillsHelper.formatDraftBillsForCustomer(customerPrices, event, eventPrice, service);
     expect(result).toBeDefined();
     expect(result).toMatchObject({
       eventsList: [
@@ -646,6 +788,14 @@ describe('formatDraftBillsForCustomer', () => {
 });
 
 describe('formatDraftBillsForTPP', () => {
+  let getInclTaxes;
+  beforeEach(() => {
+    getInclTaxes = sinon.stub(DraftBillsHelper, 'getInclTaxes');
+  });
+  afterEach(() => {
+    getInclTaxes.restore();
+  });
+
   it('should format bill for tpp', () => {
     const tppId = new ObjectID();
     const tpp = { _id: tppId };
@@ -665,8 +815,9 @@ describe('formatDraftBillsForTPP', () => {
       chargedTime: 120,
     };
     const service = { vat: 20 };
+    getInclTaxes.callsFake((exclTaxes, vat) => exclTaxes * (1 + (vat / 100)));
 
-    const result = formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
+    const result = DraftBillsHelper.formatDraftBillsForTPP(tppPrices, tpp, event, eventPrice, service);
     expect(result).toBeDefined();
     expect(result[tppId]).toBeDefined();
     expect(result[tppId].exclTaxes).toEqual(32.5);
@@ -681,7 +832,7 @@ describe('formatDraftBillsForTPP', () => {
         thirdPartyPayer: tppId,
         inclTaxesCustomer: 21,
         exclTaxesCustomer: 17.5,
-      }
+      },
     ]);
   });
 });
@@ -701,15 +852,49 @@ describe('getDraftBillsPerSubscription', () => {
   const query = {
     billingStartDate: new Date('2019/02/01'),
   };
+  let getLastVersion;
+  let getMatchingVersion;
+  let getMatchingFunding;
+  let getEventPrice;
+  let formatDraftBillsForCustomer;
+  let formatDraftBillsForTPP;
+  let getExclTaxes;
+  beforeEach(() => {
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion');
+    getMatchingVersion = sinon.stub(UtilsHelper, 'getMatchingVersion');
+    getMatchingFunding = sinon.stub(DraftBillsHelper, 'getMatchingFunding');
+    getEventPrice = sinon.stub(DraftBillsHelper, 'getEventPrice');
+    formatDraftBillsForCustomer = sinon.stub(DraftBillsHelper, 'formatDraftBillsForCustomer');
+    formatDraftBillsForTPP = sinon.stub(DraftBillsHelper, 'formatDraftBillsForTPP');
+    getExclTaxes = sinon.stub(DraftBillsHelper, 'getExclTaxes');
+  });
+  afterEach(() => {
+    getLastVersion.restore();
+    getMatchingVersion.restore();
+    getMatchingFunding.restore();
+    getEventPrice.restore();
+    formatDraftBillsForCustomer.restore();
+    formatDraftBillsForTPP.restore();
+    getExclTaxes.restore();
+  });
 
   it('should return draft bill without tpp', () => {
     const fundings = [];
-    const result = getDraftBillsPerSubscription(events, customer, subscription, fundings, query);
+    getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
+    getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
+    getEventPrice.returns({ customerPrice: 12 });
+    formatDraftBillsForCustomer.returns({ exclTaxes: 70, inclTaxes: 84 });
+    getExclTaxes.returns(70);
+
+    const result = DraftBillsHelper.getDraftBillsPerSubscription(events, customer, subscription, fundings, query);
     expect(result).toBeDefined();
     expect(result.customer).toBeDefined();
     expect(moment(result.customer.startDate).format('DD/MM/YYYY')).toEqual('15/01/2019');
     expect(result.customer.exclTaxes).toEqual(70);
     expect(result.customer.inclTaxes).toEqual(84);
+    sinon.assert.notCalled(getMatchingFunding);
+    sinon.assert.notCalled(formatDraftBillsForTPP);
+    sinon.assert.calledWith(getLastVersion, [{ startDate: new Date('2019/01/01'), unitTTCRate: 21 }], 'createdAt');
   });
 
   it('should return draft bill with tpp', () => {
@@ -736,14 +921,210 @@ describe('getDraftBillsPerSubscription', () => {
         history: { amountTTC: 185 },
       },
     ];
-    const result = getDraftBillsPerSubscription(events, customer, subscription, fundings, query);
+    getLastVersion.returns({ startDate: new Date('2019/01/01'), unitTTCRate: 21 });
+    getMatchingVersion.returns({ startDate: new Date('2019/01/01'), vat: 20 });
+    getMatchingFunding.returns(fundings[0]);
+    getEventPrice.returns({ customerPrice: 12, thirdPartyPayerPrice: 15 });
+    formatDraftBillsForCustomer.returns({ exclTaxes: 57.5, inclTaxes: 69 });
+    formatDraftBillsForTPP.returns({ [tppId]: { exclTaxes: 12.5, inclTaxes: 15 } });
+    getExclTaxes.returns(17.5);
+
+    const result = DraftBillsHelper.getDraftBillsPerSubscription(events, customer, subscription, fundings, query);
     expect(result).toBeDefined();
     expect(result.customer).toBeDefined();
     expect(moment(result.customer.startDate).format('DD/MM/YYYY')).toEqual('15/01/2019');
     expect(result.customer.exclTaxes).toEqual(57.5);
     expect(result.customer.inclTaxes).toEqual(69);
+    expect(result.customer.unitExclTaxes).toEqual(17.5);
     expect(result.thirdPartyPayer).toBeDefined();
     expect(result.thirdPartyPayer[tppId].exclTaxes).toEqual(12.5);
     expect(result.thirdPartyPayer[tppId].inclTaxes).toEqual(15);
+  });
+});
+
+describe('getDraftBillsList', () => {
+  const query = { endDate: '2019-12-25T07:00:00' };
+  const rules = [{ type: 'intervention' }];
+  let getEventsToBill;
+  let populateSurcharge;
+  let populateFundings;
+  let getDraftBillsPerSubscription;
+  beforeEach(() => {
+    getEventsToBill = sinon.stub(EventRepository, 'getEventsToBill');
+    populateSurcharge = sinon.stub(DraftBillsHelper, 'populateSurcharge');
+    populateFundings = sinon.stub(DraftBillsHelper, 'populateFundings');
+    getDraftBillsPerSubscription = sinon.stub(DraftBillsHelper, 'getDraftBillsPerSubscription');
+  });
+  afterEach(() => {
+    getEventsToBill.restore();
+    populateSurcharge.restore();
+    populateFundings.restore();
+    getDraftBillsPerSubscription.restore();
+  });
+
+  it('should return empty array if not event to bill', async () => {
+    getEventsToBill.returns([]);
+    const result = await DraftBillsHelper.getDraftBillsList(rules, query);
+
+    expect(result).toEqual([]);
+    sinon.assert.calledWith(getEventsToBill, rules);
+    sinon.assert.notCalled(populateSurcharge);
+    sinon.assert.notCalled(populateFundings);
+    sinon.assert.notCalled(getDraftBillsPerSubscription);
+  });
+
+  it('should return customer and tpp draft bills', async () => {
+    getEventsToBill.returns([
+      {
+        customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
+        eventsBySubscriptions: [
+          {
+            subscription: { _id: '1234567890' },
+            events: [{ type: 'intervention', _id: '1234' }],
+            fundings: [{ nature: 'hourly' }],
+          },
+          {
+            subscription: { _id: '0987654321' },
+            events: [{ type: 'intervention', _id: '5678' }],
+            fundings: [{ nature: 'fixed' }],
+          },
+        ],
+      },
+    ]);
+    populateSurcharge.returnsArg(0);
+    populateFundings.returnsArg(0);
+    getDraftBillsPerSubscription.onCall(0).returns({
+      customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 },
+      thirdPartyPayer: {
+        tpp: { inclTaxes: 13 },
+      },
+    });
+    getDraftBillsPerSubscription.onCall(1).returns({
+      customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 },
+      thirdPartyPayer: {
+        tpp: { inclTaxes: 24 },
+      },
+    });
+
+    const result = await DraftBillsHelper.getDraftBillsList(rules, query);
+
+    expect(result).toEqual([
+      {
+        customerId: 'ghjk',
+        customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
+        customerBills: {
+          bills: [
+            { identity: { firstname: 'Toto' }, inclTaxes: 20 },
+            { identity: { firstname: 'Toto' }, inclTaxes: 21 },
+          ],
+          total: 41,
+        },
+        thirdPartyPayerBills: [{
+          bills: [
+            { inclTaxes: 13 },
+            { inclTaxes: 24 },
+          ],
+          total: 37,
+        }],
+      },
+    ]);
+    sinon.assert.calledWith(getEventsToBill, rules);
+    sinon.assert.calledWith(populateSurcharge.firstCall, { _id: '1234567890' });
+    sinon.assert.calledWith(populateSurcharge.secondCall, { _id: '0987654321' });
+    sinon.assert.calledWith(populateFundings.firstCall, [{ nature: 'hourly' }], '2019-12-25T07:00:00');
+    sinon.assert.calledWith(populateFundings.secondCall, [{ nature: 'fixed' }], '2019-12-25T07:00:00');
+    sinon.assert.calledWith(
+      getDraftBillsPerSubscription.firstCall,
+      [{ type: 'intervention', _id: '1234' }],
+      { _id: 'ghjk', identity: { firstname: 'Toto' } },
+      { _id: '1234567890' },
+      [{ nature: 'hourly' }],
+      { endDate: '2019-12-25T07:00:00' }
+    );
+    sinon.assert.calledWith(
+      getDraftBillsPerSubscription.secondCall,
+      [{ type: 'intervention', _id: '5678' }],
+      { _id: 'ghjk', identity: { firstname: 'Toto' } },
+      { _id: '0987654321' },
+      [{ nature: 'fixed' }],
+      { endDate: '2019-12-25T07:00:00' }
+    );
+  });
+
+  it('should return customer draft bills', async () => {
+    getEventsToBill.returns([
+      {
+        customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
+        eventsBySubscriptions: [
+          { subscription: { _id: '1234567890' }, events: [{ type: 'intervention', _id: '1234' }] },
+          { subscription: { _id: '0987654321' }, events: [{ type: 'intervention', _id: '5678' }] },
+        ],
+      },
+      {
+        customer: { _id: 'asdf', identity: { firstname: 'Tata' } },
+        eventsBySubscriptions: [
+          { subscription: { _id: 'qwertyuiop' }, events: [{ type: 'intervention', _id: '9876' }] },
+        ],
+      },
+    ]);
+    populateSurcharge.returnsArg(0);
+    getDraftBillsPerSubscription.onCall(0).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 20 } });
+    getDraftBillsPerSubscription.onCall(1).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 } });
+    getDraftBillsPerSubscription.onCall(2).returns({ customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 } });
+
+    const result = await DraftBillsHelper.getDraftBillsList(rules, query);
+
+    expect(result).toEqual([
+      {
+        customerId: 'ghjk',
+        customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
+        customerBills: {
+          bills: [
+            { identity: { firstname: 'Toto' }, inclTaxes: 20 },
+            { identity: { firstname: 'Toto' }, inclTaxes: 21 },
+          ],
+          total: 41,
+        },
+      },
+      {
+        customerId: 'asdf',
+        customer: { _id: 'asdf', identity: { firstname: 'Tata' } },
+        customerBills: {
+          bills: [
+            { identity: { firstname: 'Tata' }, inclTaxes: 23 },
+          ],
+          total: 23,
+        },
+      },
+    ]);
+    sinon.assert.calledWith(getEventsToBill, rules);
+    sinon.assert.calledWith(populateSurcharge.firstCall, { _id: '1234567890' });
+    sinon.assert.calledWith(populateSurcharge.secondCall, { _id: '0987654321' });
+    sinon.assert.calledWith(populateSurcharge.thirdCall, { _id: 'qwertyuiop' });
+    sinon.assert.notCalled(populateFundings);
+    sinon.assert.calledWith(
+      getDraftBillsPerSubscription.firstCall,
+      [{ type: 'intervention', _id: '1234' }],
+      { _id: 'ghjk', identity: { firstname: 'Toto' } },
+      { _id: '1234567890' },
+      null,
+      { endDate: '2019-12-25T07:00:00' }
+    );
+    sinon.assert.calledWith(
+      getDraftBillsPerSubscription.secondCall,
+      [{ type: 'intervention', _id: '5678' }],
+      { _id: 'ghjk', identity: { firstname: 'Toto' } },
+      { _id: '0987654321' },
+      null,
+      { endDate: '2019-12-25T07:00:00' }
+    );
+    sinon.assert.calledWith(
+      getDraftBillsPerSubscription.thirdCall,
+      [{ type: 'intervention', _id: '9876' }],
+      { _id: 'asdf', identity: { firstname: 'Tata' } },
+      { _id: 'qwertyuiop' },
+      null,
+      { endDate: '2019-12-25T07:00:00' }
+    );
   });
 });

@@ -6,21 +6,15 @@ const sinon = require('sinon');
 
 const app = require('../../server');
 const {
-  populateCustomers,
-  customersList
+  populateDB,
+  customersList,
+  customerServiceList,
+  customerThirdPartyPayer,
 } = require('./seed/customersSeed');
-const {
-  populateUsers,
-  getToken
-} = require('./seed/usersSeed');
-const { servicesList, populateServices } = require('./seed/servicesSeed');
-const { populateCompanies } = require('./seed/companiesSeed');
-const { populateRoles } = require('./seed/rolesSeed');
-const { populateEvents } = require('./seed/eventsSeed');
-const { thirdPartyPayersList, populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
 const Customer = require('../../models/Customer');
 const ESign = require('../../models/ESign');
 const { MONTHLY, FIXED } = require('../../helpers/constants');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -30,15 +24,10 @@ describe('NODE ENV', () => {
 
 describe('CUSTOMERS ROUTES', () => {
   let token = null;
-  before(populateServices);
-  before(populateCompanies);
-  before(populateRoles);
-  beforeEach(populateCustomers);
-  beforeEach(populateUsers);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
-
 
   const payload = {
     identity: { lastname: faker.name.lastName() },
@@ -46,9 +35,9 @@ describe('CUSTOMERS ROUTES', () => {
       address: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
-        city: faker.address.city()
-      }
-    }
+        city: faker.address.city(),
+      },
+    },
   };
 
   describe('POST /customers', () => {
@@ -58,8 +47,8 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers',
         payload,
         headers: {
-          'x-access-token': token
-        }
+          'x-access-token': token,
+        },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toEqual(expect.objectContaining({
@@ -69,9 +58,9 @@ describe('CUSTOMERS ROUTES', () => {
           address: expect.objectContaining({
             street: payload.contact.address.street,
             zipCode: payload.contact.address.zipCode,
-            city: payload.contact.address.city
-          })
-        })
+            city: payload.contact.address.city,
+          }),
+        }),
       }));
       expect(res.result.data.customer.payment.mandates).toBeDefined();
       expect(res.result.data.customer.payment.mandates.length).toEqual(1);
@@ -86,29 +75,29 @@ describe('CUSTOMERS ROUTES', () => {
         payload: { ...payload },
         remove() {
           delete payload.identity[this.paramName];
-        }
+        },
       },
       {
         paramName: 'street',
         payload: { ...payload },
         remove() {
           delete payload.contact.address[this.paramName];
-        }
+        },
       },
       {
         paramName: 'zipCode',
         payload: { ...payload },
         remove() {
           delete payload.contact.address[this.paramName];
-        }
+        },
       },
       {
         paramName: 'city',
         payload: { ...payload },
         remove() {
           delete payload.contact.address[this.paramName];
-        }
-      }
+        },
+      },
     ];
     missingParams.forEach((test) => {
       it(`should return a 400 error if missing '${test.paramName}' parameter`, async () => {
@@ -118,8 +107,8 @@ describe('CUSTOMERS ROUTES', () => {
           url: '/customers',
           payload: test.payload,
           headers: {
-            'x-access-token': token
-          }
+            'x-access-token': token,
+          },
         });
         expect(res.statusCode).toBe(400);
       });
@@ -131,7 +120,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toHaveLength(customersList.length);
@@ -139,14 +128,13 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('GET /customers//billed-events', () => {
-    beforeEach(populateEvents);
-    beforeEach(populateThirdPartyPayers);
     it('should get all customers with billes events', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/billed-events',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
       expect(res.result.data.customers[0].subscriptions).toBeDefined();
@@ -161,35 +149,38 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toEqual(expect.objectContaining({
         _id: expect.any(Object),
         identity: expect.objectContaining({
-          lastname: customersList[0].identity.lastname
+          lastname: customersList[0].identity.lastname,
+          firstname: customersList[0].identity.firstname,
+          title: customersList[0].identity.title,
         }),
         contact: expect.objectContaining({
           address: expect.objectContaining({
-            street: customersList[0].contact.address.street,
+            fullAddress: customersList[0].contact.address.fullAddress,
             zipCode: customersList[0].contact.address.zipCode,
-            city: customersList[0].contact.address.city
-          })
+            city: customersList[0].contact.address.city,
+          }),
         }),
         followUp: expect.objectContaining({
           pathology: customersList[0].followUp.pathology,
           comments: customersList[0].followUp.comments,
           details: customersList[0].followUp.details,
           misc: customersList[0].followUp.misc,
-        })
+        }),
       }));
     });
+
     it('should return a 404 error if customer is not found', async () => {
       const id = new ObjectID().toHexString();
       const res = await app.inject({
         method: 'GET',
         url: `/users/${id}`,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -199,31 +190,33 @@ describe('CUSTOMERS ROUTES', () => {
     const updatePayload = {
       identity: {
         firstname: faker.name.firstName(),
-        lastname: faker.name.lastName()
-      }
+        lastname: faker.name.lastName(),
+      },
     };
+
     it('should update a customer', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/customers/${customersList[0]._id.toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toEqual(expect.objectContaining({
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
-          lastname: updatePayload.identity.lastname
-        })
+          lastname: updatePayload.identity.lastname,
+        }),
       }));
       const updatedCustomer = await Customer.findById(customersList[0]._id);
       expect(updatedCustomer).toEqual(expect.objectContaining({
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
-          lastname: updatePayload.identity.lastname
-        })
+          lastname: updatePayload.identity.lastname,
+        }),
       }));
     });
+
     it('should not create new rum if iban is set for the first time', async () => {
       const customer = customersList[2];
       const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
@@ -238,6 +231,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(result.result.data.customer.payment.mandates).toBeDefined();
       expect(result.result.data.customer.payment.mandates.length).toEqual(1);
     });
+
     it('should create new rum if iban updated', async () => {
       const customer = customersList[1];
       const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
@@ -253,12 +247,13 @@ describe('CUSTOMERS ROUTES', () => {
       expect(result.result.data.customer.payment.mandates.length).toEqual(2);
       expect(result.result.data.customer.payment.mandates[1].rum).toBeDefined();
     });
+
     it('should return a 404 error if no customer found', async () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/customers/${new ObjectID().toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -269,7 +264,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -277,7 +272,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -286,17 +281,16 @@ describe('CUSTOMERS ROUTES', () => {
 
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
   let token = null;
-  before(populateServices);
-  beforeEach(populateCustomers);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
 
   describe('POST /customers/{id}/subscriptions', () => {
     it('should add subscription to customer', async () => {
       const customer = customersList[1];
       const payload = {
-        service: servicesList[1]._id,
+        service: customerServiceList[1]._id,
         versions: [{
           unitTTCRate: 12,
           estimatedWeeklyVolume: 12,
@@ -438,14 +432,14 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 
 describe('CUSTOMER MANDATES ROUTES', () => {
   let token = null;
-  beforeEach(populateCustomers);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
 
   describe('GET /customers/{_id}/mandates', () => {
     it('should return customer mandates', async () => {
-      const customer = customersList[0];
+      const customer = customersList[1];
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${customer._id}/mandates`,
@@ -471,7 +465,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
   describe('PUT /customers/{_id}/mandates/{mandateId}', () => {
     it('should update customer mandate', async () => {
-      const customer = customersList[0];
+      const customer = customersList[1];
       const mandate = customer.payment.mandates[0];
       const payload = {
         signedAt: faker.date.past(1),
@@ -491,7 +485,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     it('should return 404 if customer not found', async () => {
       const invalidId = new ObjectID().toHexString();
-      const mandate = customersList[0].payment.mandates[0];
+      const mandate = customersList[1].payment.mandates[0];
       const payload = {
         signedAt: faker.date.past(1),
       };
@@ -508,7 +502,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
     it('should return 404 if mandate not found', async () => {
       const invalidId = new ObjectID().toHexString();
-      const customer = customersList[0];
+      const customer = customersList[1];
       const payload = {
         signedAt: faker.date.past(1),
       };
@@ -532,7 +526,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         data: {
           document_hash: 'dOcUmEnThAsH',
           signers: [{ embedded_signing_url: 'embeddedSigningUrl<->' }],
-        }
+        },
       });
     });
 
@@ -545,7 +539,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         fileId: process.env.ESIGN_TEST_DOC_DRIVEID,
         customer: {
           name: 'Test',
-          email: 'test@test.com'
+          email: 'test@test.com',
         },
         fields: {
           title: 'Mme',
@@ -566,21 +560,21 @@ describe('CUSTOMER MANDATES ROUTES', () => {
           weeklyHours: 35,
           yearlyHours: 1200,
           uploadDate: '18/12/2018',
-          initialContractStartDate: '16/12/2018'
-        }
+          initialContractStartDate: '16/12/2018',
+        },
       };
-      const customerId = customersList[0]._id.toHexString();
-      const mandateId = customersList[0].payment.mandates[0]._id.toHexString();
+      const customerId = customersList[1]._id.toHexString();
+      const mandateId = customersList[1].payment.mandates[0]._id.toHexString();
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${customerId}/mandates/${mandateId}/esign`,
         payload,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
-        embeddedUrl: expect.any(String)
+        embeddedUrl: expect.any(String),
       }));
       const customer = await Customer.findById(customerId);
       expect(customer.payment.mandates[0].everSignId).toBeDefined();
@@ -590,9 +584,9 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 
 describe('CUSTOMERS QUOTES ROUTES', () => {
   let token = null;
-  beforeEach(populateCustomers);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
 
   describe('GET customers/:id/quotes', () => {
@@ -628,12 +622,12 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         subscriptions: [{
           serviceName: 'TestTest',
           unitTTCRate: 23,
-          estimatedWeeklyVolume: 3
+          estimatedWeeklyVolume: 3,
         }, {
           serviceName: 'TestTest2',
           unitTTCRate: 30,
-          estimatedWeeklyVolume: 10
-        }]
+          estimatedWeeklyVolume: 10,
+        }],
       };
       const res = await app.inject({
         method: 'POST',
@@ -648,7 +642,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       expect(res.result.data.quote.quoteNumber).toEqual(expect.any(String));
       expect(res.result.data.quote.subscriptions).toEqual(expect.arrayContaining([
         expect.objectContaining(payload.subscriptions[0]),
-        expect.objectContaining(payload.subscriptions[1])
+        expect.objectContaining(payload.subscriptions[1]),
       ]));
     });
     it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
@@ -698,9 +692,9 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
   let token = null;
-  beforeEach(populateCustomers);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
 
   describe('POST customers/:id/subscriptionshistory', () => {
@@ -709,35 +703,38 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         subscriptions: [{
           service: 'TestTest',
           unitTTCRate: 23,
-          estimatedWeeklyVolume: 3
+          estimatedWeeklyVolume: 3,
         }, {
           service: 'TestTest2',
           unitTTCRate: 30,
-          estimatedWeeklyVolume: 10
+          estimatedWeeklyVolume: 10,
         }],
         helper: {
           firstname: faker.name.firstName(),
           lastname: faker.name.lastName(),
-          title: 'Mme'
-        }
+          title: 'Mme',
+        },
       };
+
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
         headers: { 'x-access-token': token },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user).toBeDefined();
       expect(res.result.data.subscriptionHistory).toBeDefined();
       expect(res.result.data.user._id).toEqual(customersList[0]._id);
       expect(res.result.data.subscriptionHistory.subscriptions).toEqual(expect.arrayContaining([
         expect.objectContaining(payload.subscriptions[0]),
-        expect.objectContaining(payload.subscriptions[1])
+        expect.objectContaining(payload.subscriptions[1]),
       ]));
       expect(res.result.data.subscriptionHistory.helper).toEqual(expect.objectContaining(payload.helper));
       expect(res.result.data.subscriptionHistory.approvalDate).toEqual(expect.any(Date));
     });
+
     it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
       const res = await app.inject({
         method: 'POST',
@@ -746,13 +743,15 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
           helper: {
             firstname: faker.name.firstName(),
             lastname: faker.name.lastName(),
-            title: 'Mme'
-          }
+            title: 'Mme',
+          },
         },
         headers: { 'x-access-token': token },
       });
+
       expect(res.statusCode).toBe(400);
     });
+
     it("should return a 400 error if 'helper' object is missing from payload", async () => {
       const res = await app.inject({
         method: 'POST',
@@ -761,41 +760,44 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
           subscriptions: [{
             service: 'TestTest',
             unitTTCRate: 23,
-            estimatedWeeklyVolume: 3
+            estimatedWeeklyVolume: 3,
           }, {
             service: 'TestTest2',
             unitTTCRate: 30,
-            estimatedWeeklyVolume: 10
-          }]
+            estimatedWeeklyVolume: 10,
+          }],
         },
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(400);
     });
+
     it('should return a 404 error if user does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const payload = {
         subscriptions: [{
           service: 'TestTest',
           unitTTCRate: 23,
-          estimatedWeeklyVolume: 3
+          estimatedWeeklyVolume: 3,
         }, {
           service: 'TestTest2',
           unitTTCRate: 30,
-          estimatedWeeklyVolume: 10
+          estimatedWeeklyVolume: 10,
         }],
         helper: {
           firstname: faker.name.firstName(),
           lastname: faker.name.lastName(),
-          title: 'Mme'
-        }
+          title: 'Mme',
+        },
       };
+
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${invalidId}/subscriptionshistory`,
         payload,
         headers: { 'x-access-token': token },
       });
+
       expect(res.statusCode).toBe(404);
     });
   });
@@ -803,11 +805,9 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
   let token = null;
-  before(populateServices);
-  before(populateThirdPartyPayers);
-  beforeEach(populateCustomers);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
 
   describe('POST customers/:id/fundings', () => {
@@ -815,7 +815,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: thirdPartyPayersList[0]._id,
+        thirdPartyPayer: customerThirdPartyPayer._id,
         subscription: customer.subscriptions[1]._id,
         versions: [{
           folderNumber: 'D123456',
@@ -825,7 +825,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-        }]
+        }],
       };
       const res = await app.inject({
         method: 'POST',
@@ -837,7 +837,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.funding).toBeDefined();
       expect(res.result.data.customer._id).toEqual(customer._id);
-      expect(res.result.data.funding.thirdPartyPayer.name).toEqual(thirdPartyPayersList[0].name);
+      expect(res.result.data.funding.thirdPartyPayer.name).toEqual(customerThirdPartyPayer.name);
       expect(res.result.data.funding.nature).toEqual(payload.nature);
       expect(res.result.data.funding.subscription._id).toEqual(payload.subscription);
       expect(res.result.data.funding.versions[0]).toMatchObject(payload.versions[0]);
@@ -847,7 +847,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: thirdPartyPayersList[0]._id,
+        thirdPartyPayer: customerThirdPartyPayer._id,
         subscription: customer.subscriptions[0]._id,
         versions: [{
           folderNumber: 'D123456',
@@ -857,7 +857,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-        }]
+        }],
       };
       const res = await app.inject({
         method: 'POST',
@@ -871,7 +871,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
     it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
       const payload = {
         nature: FIXED,
-        thirdPartyPayer: thirdPartyPayersList[0]._id,
+        thirdPartyPayer: customerThirdPartyPayer._id,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -879,8 +879,8 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           endDate: moment.utc().add(6, 'months').toDate(),
           amountTTC: 120,
           customerParticipationRate: 10,
-          careDays: [2, 5]
-        }]
+          careDays: [2, 5],
+        }],
       };
       const res = await app.inject({
         method: 'POST',
@@ -903,7 +903,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-        }]
+        }],
       };
       const res = await app.inject({
         method: 'POST',
@@ -919,7 +919,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const payload = {
         subscription: customersList[0].subscriptions[0]._id,
         nature: FIXED,
-        thirdPartyPayer: thirdPartyPayersList[0]._id,
+        thirdPartyPayer: customerThirdPartyPayer._id,
         versions: [{
           folderNumber: 'D123456',
           startDate: moment.utc().toDate(),
@@ -928,7 +928,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           amountTTC: 120,
           customerParticipationRate: 10,
           careDays: [2, 5],
-        }]
+        }],
       };
 
       const res = await app.inject({

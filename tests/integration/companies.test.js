@@ -1,8 +1,8 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { companiesList, populateCompanies } = require('./seed/companiesSeed');
-const { getToken } = require('./seed/usersSeed');
+const { company, populateDB } = require('./seed/companiesSeed');
 const app = require('../../server');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -12,14 +12,13 @@ describe('NODE ENV', () => {
 
 describe('COMPANIES ROUTES', () => {
   let authToken = null;
-  before(populateCompanies);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('GET /companies/:id', () => {
     it('should return company', async () => {
-      const company = companiesList[0];
       const response = await app.inject({
         method: 'GET',
         url: `/companies/${company._id.toHexString()}`,
@@ -61,7 +60,6 @@ describe('COMPANIES ROUTES', () => {
 
   describe('PUT /companies/:id', () => {
     it('should update company service', async () => {
-      const company = companiesList[0];
       const payload = {
         name: 'Alenvi Alenvi',
         rhConfig: { feeAmount: 70 },
@@ -95,8 +93,6 @@ describe('COMPANIES ROUTES', () => {
 
   describe('DELETE /companies/:id', () => {
     it('should delete company service', async () => {
-      const company = companiesList[0];
-
       const response = await app.inject({
         method: 'DELETE',
         url: `/companies/${company._id.toHexString()}`,
@@ -110,14 +106,13 @@ describe('COMPANIES ROUTES', () => {
 
 describe('COMPANIES INTERNAL HOURS ROUTES', () => {
   let authToken = null;
-  before(populateCompanies);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    authToken = await getToken();
+    authToken = await getToken('coach');
   });
 
   describe('GET /companies/{_id}/internalHours', () => {
     it('should return company internal hours', async () => {
-      const company = companiesList[0];
       const response = await app.inject({
         method: 'GET',
         url: `/companies/${company._id.toHexString()}/internalHours`,
@@ -143,7 +138,6 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
 
   describe('POST /companies/{_id}/internalHours', () => {
     it('should create new internal hour', async () => {
-      const company = companiesList[0];
       const payload = { name: 'Gros run' };
       const response = await app.inject({
         method: 'POST',
@@ -171,7 +165,6 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
     });
 
     it('should return 400 if invalid payload', async () => {
-      const company = companiesList[0];
       const payload = { type: 'Gros run' };
       const response = await app.inject({
         method: 'POST',
@@ -184,7 +177,6 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
     });
 
     it('shold return a 403 error as companyhas already 9 internal hours', async () => {
-      const company = companiesList[0];
       await app.inject({
         method: 'POST',
         url: `/companies/${company._id.toHexString()}/internalHours`,
@@ -241,7 +233,6 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
   describe('PUT /comapnies/{_id}/internalHours/{internalHoursId}', () => {
     it('should update internal hour', async () => {
       const payload = { default: true };
-      const company = companiesList[0];
       const internalHour = company.rhConfig.internalHours[0];
       const response = await app.inject({
         method: 'PUT',
@@ -257,7 +248,6 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
 
     it('should return 400 if invalid payload', async () => {
       const payload = { type: true };
-      const company = companiesList[0];
       const internalHour = company.rhConfig.internalHours[0];
       const response = await app.inject({
         method: 'PUT',
@@ -271,7 +261,6 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
 
     it('should return 404 if no company found', async () => {
       const invalidId = new ObjectID().toHexString();
-      const company = companiesList[0];
       const internalHour = company.rhConfig.internalHours[0];
       const payload = { name: 'Gros run' };
       const response = await app.inject({
@@ -287,7 +276,6 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
 
   describe('DELETE /companies/{_id}/internalHours/{internalHourId}', () => {
     it('should delete internalHour', async () => {
-      const company = companiesList[0];
       const internalHour = company.rhConfig.internalHours.find(hour => !hour.default);
       const response = await app.inject({
         method: 'DELETE',
@@ -299,7 +287,6 @@ describe('COMPANIES INTERNAL HOURS ROUTES', () => {
     });
 
     it('should return a 403 error if delete default internal hour', async () => {
-      const company = companiesList[0];
       const internalHour = company.rhConfig.internalHours.find(hour => hour.default);
       const response = await app.inject({
         method: 'DELETE',

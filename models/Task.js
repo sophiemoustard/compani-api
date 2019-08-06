@@ -6,8 +6,8 @@ const TaskSchema = mongoose.Schema({
     type: String,
     unique: true,
     required: true,
-    dropDups: true
-  }
+    dropDups: true,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Task', TaskSchema);

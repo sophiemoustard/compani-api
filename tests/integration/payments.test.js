@@ -2,21 +2,13 @@ const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const cloneDeep = require('lodash/cloneDeep');
-const omit = require('lodash/omit');
-
 const app = require('../../server');
-const { getToken } = require('./seed/usersSeed');
-const { customersList, populateCustomers } = require('./seed/customersSeed');
-const { populateThirdPartyPayers } = require('./seed/thirdPartyPayersSeed');
-const { paymentsList, populatePayments } = require('./seed/paymentsSeed');
-const { populateCompanies, companiesList } = require('./seed/companiesSeed');
-const { populateUsers, userList } = require('./seed/usersSeed');
-const { populateRoles } = require('./seed/rolesSeed');
+const { paymentsList, populateDB, paymentCustomerList } = require('./seed/paymentsSeed');
 const { PAYMENT, REFUND } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Payment = require('../../models/Payment');
 const Drive = require('../../models/Google/Drive');
+const { getToken } = require('./seed/authentificationSeed');
 
 const { language } = translate;
 
@@ -28,14 +20,9 @@ describe('NODE ENV', () => {
 
 describe('PAYMENTS ROUTES', () => {
   let token = null;
-  before(populateRoles);
-  before(populateCompanies);
-  before(populateUsers);
-  before(populateCustomers);
-  before(populateThirdPartyPayers);
-  beforeEach(populatePayments);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
 
   describe('GET /payments', () => {
@@ -43,7 +30,7 @@ describe('PAYMENTS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/payments',
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.payments.length).toBe(paymentsList.length);
@@ -53,7 +40,7 @@ describe('PAYMENTS ROUTES', () => {
   describe('POST /payments', () => {
     const origPayload = {
       date: moment().toDate(),
-      customer: customersList[0]._id,
+      customer: paymentCustomerList[0]._id,
       netInclTaxes: 400,
       nature: PAYMENT,
       type: 'direct_debit',
@@ -66,7 +53,7 @@ describe('PAYMENTS ROUTES', () => {
           method: 'POST',
           url: '/payments',
           payload,
-          headers: { 'x-access-token': token }
+          headers: { 'x-access-token': token },
         });
         expect(res.statusCode).toBe(200);
         expect(res.result.message).toBe(translate[language].paymentCreated);
@@ -122,17 +109,18 @@ describe('PAYMENTS ROUTES', () => {
           method: 'POST',
           url: '/payments',
           payload: test.payload,
-          headers: { 'x-access-token': token }
+          headers: { 'x-access-token': token },
         });
         expect(res.statusCode).toBe(400);
       });
     });
+
     it('should create multiple payments', async () => {
       const payload = [
         {
           date: moment().toDate(),
-          customer: customersList[0]._id,
-          customerInfo: customersList[0],
+          customer: paymentCustomerList[0]._id,
+          customerInfo: paymentCustomerList[0],
           netInclTaxes: 900,
           nature: PAYMENT,
           type: 'direct_debit',
@@ -140,8 +128,8 @@ describe('PAYMENTS ROUTES', () => {
         },
         {
           date: moment().toDate(),
-          customer: customersList[1]._id,
-          customerInfo: customersList[1],
+          customer: paymentCustomerList[1]._id,
+          customerInfo: paymentCustomerList[1],
           netInclTaxes: 250,
           nature: PAYMENT,
           type: 'direct_debit',
@@ -155,7 +143,17 @@ describe('PAYMENTS ROUTES', () => {
         method: 'POST',
         url: '/payments/createlist',
         payload,
-        headers: { 'x-access-token': token }
+        headers: { 'x-access-token': token },
+        credentials: {
+          company: {
+            _id: new ObjectID(),
+            name: 'Test',
+            iban: 'FR3514508000505917721779B12',
+            bic: 'RTYUIKJHBFRG',
+            ics: '12345678',
+            directDebitsFolderId: '123456789',
+          },
+        },
       });
 
       expect(res.statusCode).toBe(200);
@@ -164,12 +162,13 @@ describe('PAYMENTS ROUTES', () => {
       sinon.assert.called(addStub);
       addStub.restore();
     });
+
     it('should create multiple payments', async () => {
       const payload = [
         {
           date: moment().toDate(),
-          customer: customersList[0]._id,
-          customerInfo: customersList[0],
+          customer: paymentCustomerList[0]._id,
+          customerInfo: paymentCustomerList[0],
           netInclTaxes: 900,
           nature: PAYMENT,
           type: 'direct_debit',
@@ -177,8 +176,8 @@ describe('PAYMENTS ROUTES', () => {
         },
         {
           date: moment().toDate(),
-          customer: customersList[1]._id,
-          customerInfo: customersList[1],
+          customer: paymentCustomerList[1]._id,
+          customerInfo: paymentCustomerList[1],
           netInclTaxes: 250,
           nature: PAYMENT,
           type: 'direct_debit',
@@ -191,11 +190,6 @@ describe('PAYMENTS ROUTES', () => {
         url: '/payments/createlist',
         payload,
         headers: { 'x-access-token': token },
-        credentials: {
-          _id: userList[0]._id,
-          identity: userList[0].identity,
-          company: cloneDeep(omit(companiesList[0], ['iban', 'bic'])),
-        },
       });
 
       expect(res.statusCode).toBe(400);
@@ -260,7 +254,7 @@ describe('PAYMENTS ROUTES', () => {
         update() {
           delete this.payload[this.param];
         },
-      }
+      },
     ];
 
     falsyAssertions.forEach((test) => {

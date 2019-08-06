@@ -104,3 +104,6 @@ exports.formatFloatForExport = (number) => {
   if (number == null || Number.isNaN(number)) return '';
   return number.toFixed(2).replace('.', ',');
 };
+
+exports.formatArrayOrStringQueryParam = (param, keyName) =>
+  (Array.isArray(param) ? param.map(id => ({ [keyName]: id })) : [{ [keyName]: param }]);

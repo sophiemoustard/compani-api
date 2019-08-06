@@ -1,7 +1,6 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
 
-const Role = require('../../../models/Role');
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
 const Contract = require('../../../models/Contract');
@@ -10,6 +9,7 @@ const Event = require('../../../models/Event');
 const Company = require('../../../models/Company');
 const Sector = require('../../../models/Sector');
 const Pay = require('../../../models/Pay');
+const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 
 const contractId1 = new ObjectID();
 const contractId2 = new ObjectID();
@@ -21,41 +21,33 @@ const serviceId = new ObjectID();
 const companyId = new ObjectID();
 const sectorId = new ObjectID();
 
-const roles = [{
-  _id: new ObjectID(),
-  name: 'tech',
-}, {
-  _id: new ObjectID(),
-  name: 'auxiliary',
-}];
-
 const user = {
   _id: new ObjectID(),
   local: { email: 'test4@alenvi.io', password: '123456' },
-  identity: { lastname: 'Toto'},
+  identity: { lastname: 'Toto' },
   refreshToken: uuidv4(),
-  role: roles[0]._id,
+  role: rolesList.find(role => role.name === 'coach')._id,
   inactivityDate: '2018-11-01T12:52:27.461Z',
 };
 
 const auxiliary1 = {
   _id: auxiliaryId1,
-  identity: { firstname: 'Test7', lastname: 'Test7', },
+  identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test7@alenvi.io', password: '123456' },
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: roles[1]._id,
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId1,
   sector: sectorId,
 };
 
 const auxiliary2 = {
   _id: auxiliaryId2,
-  identity: { firstname: 'Test8', lastname: 'Test8', },
+  identity: { firstname: 'Test8', lastname: 'Test8' },
   local: { email: 'test8@alenvi.io', password: '123456' },
   employee_id: 12345679,
   refreshToken: uuidv4(),
-  role: roles[1]._id,
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId2,
   sector: sectorId,
 };
@@ -169,7 +161,6 @@ const company = {
 const sector = { name: 'Toto', _id: sectorId };
 
 const populateDB = async () => {
-  await Role.deleteMany({});
   await User.deleteMany({});
   await Customer.deleteMany({});
   await Service.deleteMany({});
@@ -179,7 +170,7 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await Pay.deleteMany({});
 
-  await Role.insertMany(roles);
+  await populateDBForAuthentification();
   await (new User(user)).save();
   await (new User(auxiliary1)).save();
   await (new User(auxiliary2)).save();
@@ -191,6 +182,4 @@ const populateDB = async () => {
   await (new Sector(sector)).save();
 };
 
-module.exports = {
-  populateDB,
-};
+module.exports = { populateDB };

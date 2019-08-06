@@ -7,7 +7,7 @@ const {
   create,
   list,
   update,
-  remove
+  remove,
 } = require('../controllers/surchargeController');
 
 exports.plugin = {
@@ -18,7 +18,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { scope: ['rhconfig:edit'] },
+        auth: { scope: ['config:edit'] },
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
@@ -44,7 +44,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { scope: ['rhconfig:edit'] },
+        auth: { scope: ['config:edit'] },
         validate: {
           query: {
             company: Joi.objectId(),
@@ -58,7 +58,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { scope: ['rhconfig:edit'] },
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -72,7 +72,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { scope: ['rhconfig:edit'] },
+        auth: { scope: ['config:read'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -94,5 +94,5 @@ exports.plugin = {
         },
       },
     });
-  }
+  },
 };

@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const Task = require('../../../models/Task');
+const { populateDBForAuthentification } = require('./authentificationSeed');
 
 const tasksList = [
   {
@@ -12,12 +13,14 @@ const tasksList = [
   },
 ];
 
-const populateTasks = async () => {
+const populateDB = async () => {
   await Task.deleteMany({});
+
+  await populateDBForAuthentification();
   await Task.insertMany(tasksList);
 };
 
 module.exports = {
-  populateTasks,
   tasksList,
+  populateDB,
 };

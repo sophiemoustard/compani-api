@@ -2,10 +2,10 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const { getToken } = require('./seed/usersSeed');
-const { populateRoles, rightPayload, rightsList } = require('./seed/rolesSeed');
+const { populateDB, rightPayload, rightsList } = require('./seed/rightSeed');
 const Role = require('../../models/Role');
 const Right = require('../../models/Right');
+const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -15,9 +15,9 @@ describe('NODE ENV', () => {
 
 describe('RIGHTS ROUTES', () => {
   let token = null;
-  beforeEach(populateRoles);
+  beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken();
+    token = await getToken('coach');
   });
 
   describe('POST /rights', () => {
@@ -53,7 +53,7 @@ describe('RIGHTS ROUTES', () => {
           expect.objectContaining({
             right_id: res.result.data.right._id,
             hasAccess: false,
-          })
+          }),
         ]));
       });
     });
@@ -64,7 +64,7 @@ describe('RIGHTS ROUTES', () => {
         expect.objectContaining({
           right_id: res.result.data.right._id,
           hasAccess: true,
-        })
+        }),
       ]));
     });
 
@@ -82,7 +82,7 @@ describe('RIGHTS ROUTES', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/rights',
-        payload: { permission: 'rhconfig:edit' },
+        payload: { permission: 'config:edit' },
         headers: { 'x-access-token': token },
       });
       expect(response.statusCode).toBe(409);
@@ -116,7 +116,7 @@ describe('RIGHTS ROUTES', () => {
     });
 
     it('should return a 409 error if right name already exists', async () => {
-      const payload = { name: 'read-rh-config' };
+      const payload = { name: 'read-config' };
       const res = await app.inject({
         method: 'PUT',
         url: `/rights/${rightsList[0]._id}`,
@@ -141,11 +141,11 @@ describe('RIGHTS ROUTES', () => {
     it('should return rights according to query param', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: '/rights?name=edit-rh-config',
+        url: '/rights?name=right3',
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.rights[0].name).toBe('edit-rh-config');
+      expect(res.result.data.rights[0].name).toBe('right3');
     });
 
     it('should return an empty list if no rights are found', async () => {
@@ -222,7 +222,7 @@ describe('RIGHTS ROUTES', () => {
       const roles = await Role.find({}, {}, { autopopulate: false });
       roles.forEach((role) => {
         expect(role.rights).toEqual(expect.not.arrayContaining([
-          { right_id: rightsList[0]._id }
+          { right_id: rightsList[0]._id },
         ]));
       });
     });
