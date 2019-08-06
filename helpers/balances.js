@@ -1,5 +1,8 @@
 const { getLastVersion } = require('./utils');
 const { PAYMENT } = require('./constants');
+const BillRepository = require('../repositories/BillRepository');
+const CreditNoteRepository = require('../repositories/CreditNoteRepository');
+const PaymentRepository = require('../repositories/PaymentRepository');
 
 exports.canBeDirectDebited = (bill) => {
   if (!bill) throw new Error('Bill must be provided');
@@ -61,7 +64,7 @@ exports.getBalancesFromCreditNotes = (creditNote, payments) => {
     billed: -creditNote.refund,
     paid: correspondingPayment && correspondingPayment.payments ? exports.computePayments(correspondingPayment.payments) : 0,
     toPay: 0,
-    ...(creditNote.thirdPartyPayer && { thirdPartyPayer: { ...creditNote.thirdPartyPayer } })
+    ...(creditNote.thirdPartyPayer && { thirdPartyPayer: { ...creditNote.thirdPartyPayer } }),
   };
   bill.balance = bill.paid - bill.billed;
 
@@ -74,14 +77,19 @@ exports.getBalancesFromPayments = (payment) => {
     billed: 0,
     paid: payment.payments ? exports.computePayments(payment.payments) : 0,
     toPay: 0,
-    ...(payment.thirdPartyPayer && { thirdPartyPayer: { ...payment.thirdPartyPayer } })
+    ...(payment.thirdPartyPayer && { thirdPartyPayer: { ...payment.thirdPartyPayer } }),
   };
   bill.balance = bill.paid - bill.billed;
 
   return bill;
 };
 
-exports.getBalances = (bills, customerCreditNotesAggregation, tppCreditNotesAggregation, payments) => {
+exports.getBalances = async (customerId, maxDate) => {
+  const bills = await BillRepository.findAmountsGroupedByClient(customerId, maxDate);
+  const customerCreditNotesAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(customerId, maxDate);
+  const tppCreditNotesAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(customerId, maxDate);
+  const payments = await PaymentRepository.findAmountsGroupedByClient(customerId, maxDate);
+
   const balances = [];
   const clients = [];
   for (const bill of bills) {
