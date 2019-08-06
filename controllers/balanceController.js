@@ -9,7 +9,7 @@ const list = async (req) => {
   try {
     const balances = await getBalances(req.query.customer, req.query.date);
 
-    const filteredBalances = balances.filter(client => client.balance !== 0);
+    const filteredBalances = balances.filter(client => client.balance < -1 || client.balance > 1);
 
     return {
       message: translate[language].balancesFound,
