@@ -903,7 +903,7 @@ describe('unassignInterventions', () => {
 });
 
 describe('exportWorkingEventsHistory', () => {
-  const header = ['Type', 'Heure interne', 'Début', 'Fin', 'Durée', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
+  const header = ['Type', 'Heure interne', 'Début', 'Fin', 'Durée', 'Répétition', 'Secteur', 'Auxiliaire', 'A affecter', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
   const events = [
     {
       isCancelled: false,
@@ -946,12 +946,6 @@ describe('exportWorkingEventsHistory', () => {
           lastname: 'Horseman',
         },
       },
-      auxiliary: {
-        identity: {
-          firstname: 'Princess',
-          lastname: 'Carolyn',
-        },
-      },
       startDate: '2019-05-20T06:00:00.000+00:00',
       endDate: '2019-05-20T08:00:00.000+00:00',
       misc: 'brbr',
@@ -972,22 +966,25 @@ describe('exportWorkingEventsHistory', () => {
     expect(exportArray).toEqual([header]);
   });
 
-  it('should return an array with the header and 2 rows', async () => {
-    getWorkingEventsForExport.returns(events);
-    const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
-    const names = ['Jean-Claude VAN DAMME', 'Mme Mimi MATHY', 'Princess CAROLYN', 'M Bojack HORSEMAN'];
-    for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
+  describe('', () => {
+    let getFullTitleFromIdentityStub;
+    beforeEach(() => { getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity'); });
+    afterEach(() => getFullTitleFromIdentityStub.restore());
 
-    const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
+    it('should return an array with the header and 2 rows', async () => {
+      getWorkingEventsForExport.returns(events);
+      const names = ['Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'M Bojack HORSEMAN'];
+      for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
 
-    sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
-    expect(exportArray).toEqual([
-      header,
-      ['Intervention', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
-    ]);
+      const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
 
-    getFullTitleFromIdentityStub.restore();
+      sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
+      expect(exportArray).toEqual([
+        header,
+        ['Intervention', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Non', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
+        ['Heure interne', 'Formation', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '', 'Oui', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
+      ]);
+    });
   });
 });
 
