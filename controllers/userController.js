@@ -11,7 +11,7 @@ const { populateRole } = require('../helpers/roles');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
-const { createFolder } = require('../helpers/gdriveStorage');
+const { createFolder, deleteFile } = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
@@ -381,13 +381,14 @@ const uploadFile = async (req) => {
       'mutualFund',
       'vitalCard',
       'medicalCertificate',
+      'payDocuments',
     ];
-    const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
-    if (administrativeKeys.length === 0) {
+    const administrativeKey = Object.keys(req.payload).find(key => allowedFields.includes(key));
+    if (!administrativeKey) {
       return Boom.forbidden(translate[language].uploadNotAllowed);
     }
 
-    const uploadedFile = await createAndSaveFile(administrativeKeys, req.params, req.payload);
+    const uploadedFile = await createAndSaveFile(administrativeKey, req.params, req.payload);
 
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
@@ -458,6 +459,35 @@ const createDriveFolder = async (req) => {
   }
 };
 
+const deletePayDocument = async (req) => {
+  try {
+    const { _id, payDocumentId } = req.params;
+
+    const user = await User.findOne({ _id });
+    if (!user) return Boom.notFound(translate[language].userNotFound);
+
+    const payDocument = user.administrative.payDocuments.id(payDocumentId);
+    if (!payDocument) return Boom.notFound(translate[language].userPayDocumentNotFound);
+
+    user.administrative.payDocuments.pull(req.params.payDocumentId);
+    await user.save();
+
+    try {
+      await deleteFile(payDocument.file.driveId);
+    } catch (e) {
+      req.log('warning', e);
+    }
+
+    return {
+      message: translate[language].userPayDocumentDeleted,
+      data: null,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   authenticate,
   create,
@@ -476,4 +506,5 @@ module.exports = {
   uploadFile,
   uploadImage,
   createDriveFolder,
+  deletePayDocument,
 };

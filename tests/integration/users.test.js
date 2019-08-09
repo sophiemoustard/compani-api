@@ -402,4 +402,38 @@ describe('USERS ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
   });
+
+  describe('DELETE /users/:_id/payDocuments/:payDocumentId', () => {
+    it("should delete a user's pay document", async () => {
+      const user = userList[4];
+      const payDocument = user.administrative.payDocuments[0];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${user._id}/payDocuments/${payDocument._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("should error if the document doesn't belong to the user", async () => {
+      const user = userList[4];
+      const payDocument = user.administrative.payDocuments[0];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${userList[3]._id}/payDocuments/${payDocument._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+
+    it("should error if the document doesn't exist", async () => {
+      const user = userList[4];
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/${user._id}/payDocuments/5d4d474417a73213b77fe22d`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 });

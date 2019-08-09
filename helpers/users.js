@@ -10,6 +10,7 @@ const { addFile } = require('./gdriveStorage');
 const { nationalities } = require('../data/nationalities.js');
 const { countries } = require('../data/countries');
 const { HELPER, AUXILIARY, PLANNING_REFERENT } = require('./constants.js');
+const UserRepository = require('../repositories/UserRepository');
 
 const { language } = translate;
 
@@ -49,26 +50,36 @@ const saveCertificateDriveId = async (userId, fileInfo) => {
   );
 };
 
-const saveFile = async (userId, administrativeKeys, fileInfo) => {
-  const payload = { administrative: { [administrativeKeys[0]]: fileInfo } };
+const saveFile = async (userId, administrativeKey, fileInfo) => {
+  const payload = { administrative: { [administrativeKey]: fileInfo } };
 
   await User.findOneAndUpdate({ _id: userId }, { $set: flat(payload) }, { new: true, autopopulate: false });
 };
 
-const createAndSaveFile = async (administrativeKeys, params, payload) => {
+const createAndSaveFile = async (administrativeKey, params, payload) => {
   const uploadedFile = await addFile({
     driveFolderId: params.driveId,
-    name: payload.fileName || payload[administrativeKeys[0]].hapi.filename,
+    name: payload.fileName || payload[administrativeKey].hapi.filename,
     type: payload['Content-Type'],
-    body: payload[administrativeKeys[0]]
+    body: payload[administrativeKey],
   });
   const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
 
   const file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
-  if (administrativeKeys[0] === 'certificates') {
-    await saveCertificateDriveId(params._id, file);
-  } else {
-    await saveFile(params._id, administrativeKeys, file);
+  switch (administrativeKey) {
+    case 'certificates':
+      await saveCertificateDriveId(params._id, file);
+      break;
+    case 'payDocuments':
+      await UserRepository.addPayDocument(params._id, {
+        nature: payload.nature,
+        date: payload.date,
+        file,
+      });
+      break;
+    default:
+      await saveFile(params._id, administrativeKey, file);
+      break;
   }
 
   return uploadedFile;

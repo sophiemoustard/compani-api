@@ -204,4 +204,7 @@ module.exports = {
   EVENT_CREATION: 'event_creation',
   EVENT_DELETION: 'event_deletion',
   EVENT_UPDATE: 'event_update',
+  // PAY DOCUMENT NATURE
+  PAYSLIP: 'payslip',
+  CERTIFICATE: 'certificate',
 };

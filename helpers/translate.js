@@ -24,6 +24,8 @@ module.exports = {
     userAuthFailed: 'The email address or password you entered is not valid.',
     forbidden: 'Forbidden.',
     userAuthentified: 'User authenticated successfully.',
+    userPayDocumentDeleted: 'User pay document deleted successfully.',
+    userPayDocumentNotFound: 'User pay document not found.',
     /* Ogust */
     OgustGetTokenOk: 'Ogust Token well retrieved.',
     OgustGetTokenFailed: 'Ogust Token retrieving failed.',
@@ -260,6 +262,8 @@ module.exports = {
     userAuthFailed: "L'adresse email ou le mot de passe est invalide.",
     forbidden: 'Accès non autorisé.',
     userAuthentified: 'Utilisateur authentifié avec succès.',
+    userPayDocumentDeleted: "Document de paye d'utilisateur supprimé avec succès.",
+    userPayDocumentNotFound: "Document de paye d'utilisateur non trouvé.",
     /* Ogust */
     OgustGetTokenOk: 'Token Ogust reçu avec succès.',
     OgustGetTokenFailed: 'Problème lors de la récupération du Token Ogust.',
