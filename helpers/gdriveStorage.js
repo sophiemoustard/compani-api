@@ -8,7 +8,7 @@ exports.addFile = async (params) => {
     parentFolderId,
     folder: false,
     type: params.type,
-    body: params.body
+    body: params.body,
   });
   return uploadedFile;
 };
@@ -17,7 +17,7 @@ exports.createFolder = async (identity, parentFolderId) => {
   const folder = await Gdrive.add({
     name: `${identity.lastname.toUpperCase()} ${identity.firstname || ''}`,
     parentFolderId,
-    folder: true
+    folder: true,
   });
 
   if (!folder) {
@@ -32,3 +32,4 @@ exports.createFolder = async (identity, parentFolderId) => {
   return { folder, folderLink };
 };
 
+exports.deleteFile = driveFileId => Gdrive.deleteFile({ fileId: driveFileId });

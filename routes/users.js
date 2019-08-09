@@ -21,7 +21,27 @@ const {
   uploadFile,
   uploadImage,
   createDriveFolder,
+  deletePayDocument,
 } = require('../controllers/userController');
+
+const { EVENT_PAY_DOCUMENT_NATURES } = require('../models/User');
+
+const driveUploadKeys = [
+  'idCardRecto',
+  'idCardVerso',
+  'passport',
+  'residencePermitRecto',
+  'residencePermitVerso',
+  'healthAttest',
+  'certificates',
+  'phoneInvoice',
+  'navigoInvoice',
+  'transportInvoice',
+  'mutualFund',
+  'vitalCard',
+  'medicalCertificate',
+  'payDocuments',
+];
 
 exports.plugin = {
   name: 'routes-users',
@@ -386,6 +406,21 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
+        validate: {
+          payload: Joi.object({
+            ...driveUploadKeys.reduce((obj, key) => Object.assign(obj, { [key]: Joi.any() }), {}),
+            nature: Joi.string().valid(EVENT_PAY_DOCUMENT_NATURES),
+            date: Joi.date(),
+            fileName: Joi.string().required(),
+            'Content-Type': Joi.string().required(),
+          })
+            .or([driveUploadKeys])
+            .and(['payDocuments', 'nature', 'date']),
+          params: {
+            _id: Joi.objectId().required(),
+            driveId: Joi.string().required(),
+          },
+        },
       },
     });
 
@@ -416,6 +451,20 @@ exports.plugin = {
           parse: true,
           allow: 'multipart/form-data',
           maxBytes: 5242880,
+        },
+      },
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}/payDocuments/{payDocumentId}',
+      handler: deletePayDocument,
+      options: {
+        validate: {
+          params: {
+            _id: Joi.objectId(),
+            payDocumentId: Joi.objectId(),
+          },
         },
       },
     });
