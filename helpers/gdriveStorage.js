@@ -32,4 +32,7 @@ exports.createFolder = async (identity, parentFolderId) => {
   return { folder, folderLink };
 };
 
-exports.deleteFile = driveFileId => Gdrive.deleteFile({ fileId: driveFileId });
+exports.deleteFile = (driveFileId) => {
+  if (process.env.NODE_ENV === 'test') return;
+  return Gdrive.deleteFile({ fileId: driveFileId });
+};

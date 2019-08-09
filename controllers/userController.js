@@ -462,8 +462,12 @@ const createDriveFolder = async (req) => {
 const deletePayDocument = async (req) => {
   try {
     const { _id, payDocumentId } = req.params;
+
     const user = await User.findOne({ _id });
+    if (!user) return Boom.notFound(translate[language].userNotFound);
+
     const payDocument = user.administrative.payDocuments.id(payDocumentId);
+    if (!payDocument) return Boom.notFound(translate[language].userPayDocumentNotFound);
 
     user.administrative.payDocuments.pull(req.params.payDocumentId);
     await user.save();
@@ -475,7 +479,7 @@ const deletePayDocument = async (req) => {
     }
 
     return {
-      message: translate[language].userUpdated,
+      message: translate[language].userPayDocumentDeleted,
       data: null,
     };
   } catch (e) {
