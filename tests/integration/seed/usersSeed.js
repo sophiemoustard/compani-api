@@ -65,6 +65,17 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList[0]._id,
     contracts: [new ObjectID()],
+    administrative: {
+      payDocuments: [{
+        _id: new ObjectID('5d4d474417a73213b77ff62d'),
+        nature: 'payslip',
+        date: '2019-08-09T09:04:56.230Z',
+        file: {
+          driveId: '1H-nc20PtnYiGcKujEr1mTKUiUjT1dwa',
+          link: 'https://drive.google.com/file/d/1H-nc20PtnYiGcKvfyas1mTKUJPyq1dwa/view?usp=drivesdk',
+        },
+      }],
+    },
   },
 ];
 
