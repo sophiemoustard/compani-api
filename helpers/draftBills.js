@@ -1,5 +1,4 @@
-const moment = require('moment-business-days');
-const Holidays = require('date-holidays');
+const moment = require('../extendedLibs/moment');
 const mongoose = require('mongoose');
 const EventRepository = require('../repositories/EventRepository');
 const Surcharge = require('../models/Surcharge');
@@ -7,17 +6,6 @@ const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE, FIXED } = require('./constants');
 const utils = require('../helpers/utils');
-
-const holidays = new Holidays('FR');
-const now = new Date();
-const currentYear = now.getFullYear();
-const currentHolidays = [...holidays.getHolidays(currentYear), ...holidays.getHolidays(currentYear - 1)];
-moment.updateLocale('fr', {
-  holidays: currentHolidays.map(holiday => holiday.date),
-  holidayFormat: 'YYYY-MM-DD HH:mm:ss',
-  workingWeekdays: [1, 2, 3, 4, 5, 6],
-});
-moment.tz.setDefault('Europe/Paris');
 
 exports.populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
@@ -223,7 +211,7 @@ exports.getFixedFundingSplit = (event, funding, service, price) => {
 /**
  * Returns customer and tpp excluded taxes prices of the given event.
  */
-exports.getEventPrice = (event, unitTTCRate, service, funding) => {
+exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   const unitExclTaxes = exports.getExclTaxes(unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;
 
@@ -303,7 +291,7 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
   for (const event of events) {
     const matchingService = utils.getMatchingVersion(event.startDate, subscription.service, 'startDate');
     const matchingFunding = fundings && fundings.length > 0 ? exports.getMatchingFunding(event.startDate, fundings) : null;
-    const eventPrice = exports.getEventPrice(event, unitTTCRate, matchingService, matchingFunding);
+    const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
     if (eventPrice.customerPrice) customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
     if (matchingFunding && eventPrice.thirdPartyPayerPrice) {

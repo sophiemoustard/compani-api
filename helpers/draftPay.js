@@ -1,6 +1,4 @@
-const moment = require('moment-business-days');
-const momentRange = require('moment-range');
-const Holidays = require('date-holidays');
+const moment = require('../extendedLibs/moment');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const setWith = require('lodash/setWith');
@@ -25,18 +23,6 @@ const {
 } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
-
-momentRange.extendMoment(moment);
-const holidays = new Holidays('FR');
-const now = new Date();
-const currentYear = now.getFullYear();
-const currentHolidays = [...holidays.getHolidays(currentYear), ...holidays.getHolidays(currentYear - 1)];
-moment.updateLocale('fr', {
-  holidays: currentHolidays.map(holiday => holiday.date),
-  holidayFormat: 'YYYY-MM-DD HH:mm:ss',
-  workingWeekdays: [1, 2, 3, 4, 5, 6],
-});
-moment.tz.setDefault('Europe/Paris');
 
 exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
   let count = 0;
