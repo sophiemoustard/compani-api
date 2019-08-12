@@ -51,6 +51,11 @@ const rightsList = [
     description: 'Editer la liste de contrats des autres utilisateurs',
     permission: 'contracts:edit:user',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les données exportées',
+    permission: 'exports:read',
+  },
 ];
 
 const coachRights = [
@@ -60,6 +65,7 @@ const coachRights = [
   'contracts:read',
   'contracts:read:user',
   'contracts:edit:user',
+  'exports:read',
 ];
 const auxiliaryRights = ['pay:read', 'contracts:read'];
 const helperRights = ['billing:read'];
