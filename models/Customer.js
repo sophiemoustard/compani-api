@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 
 const {
   MONTHLY,
@@ -102,7 +103,11 @@ const CustomerSchema = mongoose.Schema({
       createdAt: { type: Date, default: Date.now },
     }],
   }],
-}, { timestamps: true });
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
 
 const countSubscriptionUsage = async (doc) => {
   if (doc && doc.subscriptions && doc.subscriptions.length > 0) {
@@ -112,7 +117,20 @@ const countSubscriptionUsage = async (doc) => {
   }
 };
 
+function getFullName() {
+  return this.identity.firstname ? `${this.identity.firstname} ${this.identity.lastname}` : this.identity.lastname;
+}
+
+CustomerSchema.virtual('firstIntervention', {
+  ref: 'Event',
+  localField: '_id',
+  foreignField: 'customer',
+  justOne: true,
+  options: { sort: { startDate: 1 } },
+});
+CustomerSchema.virtual('identity.fullName').get(getFullName);
 CustomerSchema.post('findOne', countSubscriptionUsage);
+CustomerSchema.plugin(mongooseLeanVirtuals);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
 module.exports.FUNDING_FREQUENCIES = FUNDING_FREQUENCIES;

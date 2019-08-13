@@ -29,7 +29,8 @@ const list = async (req) => {
 
     const customers = await Customer.find(req.query)
       .populate('subscriptions.service')
-      .lean();
+      .populate({ path: 'firstIntervention', select: 'startDate' })
+      .lean({ virtuals: true });
     if (customers.length === 0) {
       return {
         message: translate[language].customersNotFound,
@@ -221,6 +222,7 @@ const show = async (req) => {
     let customer = await Customer.findOne({ _id: req.params._id })
       .populate('subscriptions.service')
       .populate('fundings.thirdPartyPayer')
+      .populate({ path: 'firstIntervention', select: 'startDate' })
       .lean();
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
