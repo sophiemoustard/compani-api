@@ -55,7 +55,6 @@ const CustomerSchema = mongoose.Schema({
     }],
   },
   financialCertificates: [driveResourceSchemaDefinition],
-  isActive: Boolean,
   subscriptions: [{
     service: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
     versions: [{
@@ -129,7 +128,9 @@ CustomerSchema.virtual('firstIntervention', {
   options: { sort: { startDate: 1 } },
 });
 CustomerSchema.virtual('identity.fullName').get(getFullName);
+
 CustomerSchema.post('findOne', countSubscriptionUsage);
+
 CustomerSchema.plugin(mongooseLeanVirtuals);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
