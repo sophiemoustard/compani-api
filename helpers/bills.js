@@ -11,7 +11,13 @@ const { HOURLY, THIRD_PARTY } = require('./constants');
 exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
 exports.formatSubscriptionData = (bill) => {
-  const events = bill.eventsList.map(ev => ({ eventId: ev.event, auxiliary: ev.auxiliary, startDate: ev.startDate, endDate: ev.endDate }));
+  const events = bill.eventsList.map(ev => ({
+    eventId: ev.event,
+    auxiliary: ev.auxiliary,
+    startDate: ev.startDate,
+    endDate: ev.endDate,
+    ...pick(ev, 'surcharges'),
+  }));
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.startDate, bill.subscription.service, 'startDate');
 
   return {

@@ -5,7 +5,8 @@ const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE, FIXED } = require('./constants');
-const utils = require('../helpers/utils');
+const utils = require('./utils');
+const SurchargesHelper = require('./surcharges');
 
 exports.populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
@@ -90,36 +91,20 @@ exports.computeCustomSurcharge = (event, startHour, endHour, surchargeValue, pri
   return (price / time) * (notInflatedTime + (inflatedTime * (1 + (surchargeValue / 100))));
 };
 
-exports.applySurcharge = (event, price, surcharge) => {
-  const {
-    saturday,
-    sunday,
-    publicHoliday,
-    firstOfMay,
-    twentyFifthOfDecember,
-    evening,
-    eveningEndTime,
-    eveningStartTime,
-    custom,
-    customStartTime,
-    customEndTime,
-  } = surcharge;
+exports.getSurchargedPrice = (event, eventSurcharges, price) => {
+  let coef = 1;
+  const eventDuration = moment(event.endDate).diff(event.startDate, 'm');
 
-  if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
-    return price * (1 + (twentyFifthOfDecember / 100));
+  for (const surcharge of eventSurcharges) {
+    if (surcharge.startHour) {
+      const surchargedDuration = moment(surcharge.endHour).diff(surcharge.startHour, 'm');
+      coef += (surchargedDuration / eventDuration) * (surcharge.percentage / 100);
+    } else {
+      coef += surcharge.percentage / 100;
+    }
   }
-  if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') return price * (1 + (firstOfMay / 100));
-  if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
-    return price * (1 + (publicHoliday / 100));
-  }
-  if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) return price * (1 + (saturday / 100));
-  if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) return price * (1 + (sunday / 100));
 
-  let surchargedPrice = price;
-  if (evening) surchargedPrice = exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, evening, surchargedPrice);
-  if (custom) surchargedPrice = exports.computeCustomSurcharge(event, customStartTime, customEndTime, custom, surchargedPrice);
-
-  return surchargedPrice;
+  return coef * price;
 };
 
 exports.getExclTaxes = (inclTaxes, vat) => inclTaxes / (1 + (vat / 100));
@@ -214,9 +199,16 @@ exports.getFixedFundingSplit = (event, funding, service, price) => {
 exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   const unitExclTaxes = exports.getExclTaxes(unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;
+  const billing = {};
 
   if (service.nature === FIXED) price = unitExclTaxes;
-  if (service.surcharge && service.nature === HOURLY) price = exports.applySurcharge(event, price, service.surcharge);
+  if (service.surcharge && service.nature === HOURLY) {
+    const surcharges = SurchargesHelper.getEventSurcharges(event, service.surcharge);
+    if (surcharges.length > 0) {
+      billing.surcharges = surcharges;
+      price = exports.getSurchargedPrice(event, surcharges, price);
+    }
+  }
 
   if (funding) {
     if (funding.nature === HOURLY) return exports.getHourlyFundingSplit(event, funding, service, price);
@@ -224,7 +216,7 @@ exports.getEventBilling = (event, unitTTCRate, service, funding) => {
     return exports.getFixedFundingSplit(event, funding, service, price);
   }
 
-  return { customerPrice: price, thirdPartyPayerPrice: 0 };
+  return { ...billing, customerPrice: price, thirdPartyPayerPrice: 0 };
 };
 
 exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
@@ -237,6 +229,8 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
     inclTaxesCustomer,
     exclTaxesCustomer: eventPrice.customerPrice,
   };
+  if (eventPrice.surcharges) prices.surcharges = eventPrice.surcharges;
+
   if (eventPrice.thirdPartyPayerPrice && eventPrice.thirdPartyPayerPrice !== 0) {
     prices.inclTaxesTpp = exports.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
     prices.exclTaxesTpp = eventPrice.thirdPartyPayerPrice;
