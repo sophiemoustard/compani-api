@@ -60,20 +60,43 @@ describe('EXPORTS ROUTES', () => {
   });
 
   describe('GET /exports/bill/history', () => {
-    beforeEach(populateBills);
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-    it('should get bills', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/exports/bill/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateBills);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
+      it('should get bills', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/exports/bill/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
+          headers: { 'x-access-token': authToken },
+        });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result).toBeDefined();
-      expect(response.result.split('\r\n').length).toBe(3);
+        expect(response.statusCode).toBe(200);
+        expect(response.result).toBeDefined();
+        expect(response.result.split('\r\n').length).toBe(3);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/exports/bill/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -122,7 +145,7 @@ describe('EXPORTS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populatePay);
       beforeEach(async () => {
-        authToken = await getToken('coach');
+        authToken = await getToken('admin');
       });
       it('should get pay', async () => {
         const response = await app.inject({

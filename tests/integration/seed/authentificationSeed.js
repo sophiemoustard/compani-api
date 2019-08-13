@@ -53,7 +53,7 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Consulter les données exportées',
+    description: 'Exporter des données',
     permission: 'exports:read',
   },
 ];
