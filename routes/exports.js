@@ -31,6 +31,7 @@ exports.plugin = {
             type: Joi.string().required().valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION),
           },
         },
+        auth: { scope: ['exports:read'] },
       },
       handler: exportData,
     });
@@ -48,8 +49,9 @@ exports.plugin = {
             endDate: Joi.date().required(),
           },
         },
+        auth: { scope: ['exports:read'] },
       },
       handler: exportHistory,
     });
-  }
+  },
 };
