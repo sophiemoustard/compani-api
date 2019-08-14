@@ -23,6 +23,7 @@ const draftBillsList = async (req) => {
     const rules = [
       { endDate: { $lt: req.query.endDate } },
       { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
+      { auxiliary: { $exists: true, $ne: '' } },
       { type: INTERVENTION },
       { status: COMPANY_CONTRACT },
     ];
@@ -71,7 +72,7 @@ const list = async (req) => {
 
     return {
       message: translate[language].billsFound,
-      data: { bills }
+      data: { bills },
     };
   } catch (e) {
     req.log('error', e);
