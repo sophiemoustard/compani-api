@@ -176,6 +176,26 @@ exports.getUnitInclTaxes = (bill, subscription) => {
     : version.amountTTC;
 };
 
+exports.formatSurchargeHourForPdf = (date) => {
+  date = moment(date);
+  let formatted = date.format('HH[h]');
+  if (date.minutes() > 0) formatted += date.format('mm');
+  return formatted;
+};
+
+exports.formatEventSurchargesForPdf = (formattedEvent, eventSurcharges) => {
+  if (eventSurcharges) {
+    formattedEvent.surcharges = eventSurcharges.map((surcharge) => {
+      const sur = { ...surcharge };
+      if (sur.startHour) {
+        sur.startHour = exports.formatSurchargeHourForPdf(sur.startHour);
+        sur.endHour = exports.formatSurchargeHourForPdf(sur.endHour);
+      }
+      return sur;
+    });
+  }
+};
+
 exports.formatPDF = (bill, company) => {
   const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
   const computedData = {
@@ -189,6 +209,7 @@ exports.formatPDF = (bill, company) => {
       address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.address', {}),
       name: bill.client ? bill.client.name : formatCustomerName(bill.customer),
     },
+    forTpp: !!bill.client,
   };
 
   for (const sub of bill.subscriptions) {
@@ -207,14 +228,19 @@ exports.formatPDF = (bill, company) => {
       formattedSubs.hours = sub.hours;
     }
     computedData.formattedSubs.push(formattedSubs);
-    for (const ev of sub.events) {
-      computedData.formattedEvents.push({
+    const sortedEvent = sub.events
+      .map(ev => ({ ...ev, startDate: moment(ev.startDate).toDate() }))
+      .sort((ev1, ev2) => ev1.startDate - ev2.startDate);
+    for (const ev of sortedEvent) {
+      const formattedEvent = {
         identity: `${ev.auxiliary.identity.firstname.substring(0, 1)}. ${ev.auxiliary.identity.lastname}`,
         date: moment(ev.startDate).format('DD/MM'),
         startTime: moment(ev.startDate).format('HH:mm'),
         endTime: moment(ev.endDate).format('HH:mm'),
         service: sub.service.name,
-      });
+      };
+      exports.formatEventSurchargesForPdf(formattedEvent, ev.surcharges);
+      computedData.formattedEvents.push(formattedEvent);
     }
   }
   computedData.totalExclTaxes = UtilsHelper.formatPrice(computedData.totalExclTaxes);
