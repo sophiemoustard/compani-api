@@ -21,7 +21,7 @@ describe('formatSubscriptionData', () => {
     const bill = {
       subscription: {
         _id: 'asd',
-        service: { _id: '1234567890', nature: 'test', versions: [{ name: 'service', vat: 12, startDate: moment().toISOString() }] }
+        service: { _id: '1234567890', nature: 'test', versions: [{ name: 'service', vat: 12, startDate: moment().toISOString() }] },
       },
       unitExclTaxes: 24.644549763033176,
       exclTaxes: 13.649289099526067,
@@ -41,7 +41,7 @@ describe('formatSubscriptionData', () => {
           endDate: '2019-05-29T10:00:55.374Z',
           auxiliary: '34567890',
         },
-      ]
+      ],
     };
     const getMatchingVersionStub = sinon.stub(UtilsHelper, 'getMatchingVersion');
     getMatchingVersionStub.returns({
@@ -88,7 +88,7 @@ describe('formatCustomerBills', () => {
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
       bills: [{
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
@@ -157,7 +157,7 @@ describe('formatCustomerBills', () => {
     const customerBills = {
       total: 14.4,
       bills: [{
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         inclTaxes: 14.4,
@@ -180,7 +180,7 @@ describe('formatCustomerBills', () => {
           },
         ],
       }, {
-        subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString() }] } },
         unitExclTaxes: 34,
         exclTaxes: 15,
         inclTaxes: 11,
@@ -231,7 +231,7 @@ describe('formatCustomerBills', () => {
             auxiliary: '34567890',
           },
         ],
-        vat: 12
+        vat: 12,
       }, {
         subscription: 'fgh',
         unitExclTaxes: 34,
@@ -260,7 +260,7 @@ describe('formatCustomerBills', () => {
       123: { event: '123', inclTaxesTpp: 14.4 },
       456: { event: '456', inclTaxesTpp: 12 },
       890: { event: '890', inclTaxesTpp: 45 },
-      736: { event: '736', inclTaxesTpp: 23 }
+      736: { event: '736', inclTaxesTpp: 23 },
     });
   });
 });
@@ -273,7 +273,7 @@ describe('formatThirdPartyPayerBills', () => {
       total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         startDate: moment().add(1, 'd').toISOString(),
         exclTaxes: 13.649289099526067,
@@ -286,7 +286,7 @@ describe('formatThirdPartyPayerBills', () => {
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
             auxiliary: '34567890',
-            history: { fundingId: 'fund', careHours: 4, month: '02/2019', nature: 'hourly' }
+            history: { fundingId: 'fund', careHours: 4, month: '02/2019', nature: 'hourly' },
           },
           {
             event: '456',
@@ -294,7 +294,7 @@ describe('formatThirdPartyPayerBills', () => {
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
             auxiliary: '34567890',
-            history: { fundingId: 'fund', careHours: 2, month: '03/2019', nature: 'hourly' }
+            history: { fundingId: 'fund', careHours: 2, month: '03/2019', nature: 'hourly' },
           },
         ],
       }],
@@ -340,7 +340,7 @@ describe('formatThirdPartyPayerBills', () => {
       fund: {
         '02/2019': { careHours: 4, fundingId: 'fund', month: '02/2019', nature: 'hourly' },
         '03/2019': { careHours: 2, fundingId: 'fund', month: '03/2019', nature: 'hourly' },
-      }
+      },
     });
   });
 
@@ -351,7 +351,7 @@ describe('formatThirdPartyPayerBills', () => {
       total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         startDate: moment().add(1, 'd').toISOString(),
         exclTaxes: 13.649289099526067,
@@ -364,7 +364,7 @@ describe('formatThirdPartyPayerBills', () => {
             startDate: '2019-02-15T08:00:55.374Z',
             endDate: '2019-02-15T10:00:55.374Z',
             auxiliary: '34567890',
-            history: { fundingId: 'fund', careHours: 4, nature: 'hourly' }
+            history: { fundingId: 'fund', careHours: 4, nature: 'hourly' },
           },
           {
             event: '456',
@@ -372,7 +372,7 @@ describe('formatThirdPartyPayerBills', () => {
             startDate: '2019-02-16T08:00:55.374Z',
             endDate: '2019-02-16T10:00:55.374Z',
             auxiliary: '34567890',
-            history: { fundingId: 'fund', careHours: 2, nature: 'hourly' }
+            history: { fundingId: 'fund', careHours: 2, nature: 'hourly' },
           },
         ],
       }],
@@ -427,7 +427,7 @@ describe('formatThirdPartyPayerBills', () => {
       total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         startDate: moment().add(1, 'd').toISOString(),
         exclTaxes: 13.649289099526067,
@@ -502,7 +502,7 @@ describe('formatThirdPartyPayerBills', () => {
       total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         startDate: moment().add(1, 'd').toISOString(),
@@ -528,7 +528,7 @@ describe('formatThirdPartyPayerBills', () => {
         ],
       }, {
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'fgh', service: { versions: [{ vat: 5.5, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'fgh', service: { versions: [{ vat: 5.5, startDate: moment().toISOString() }] } },
         unitExclTaxes: 34,
         exclTaxes: 15,
         startDate: moment().add(1, 'd').toISOString(),
@@ -630,7 +630,7 @@ describe('formatThirdPartyPayerBills', () => {
       total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
         startDate: moment().add(1, 'd').toISOString(),
@@ -640,12 +640,12 @@ describe('formatThirdPartyPayerBills', () => {
           { event: '123', inclTaxesTpp: 14.4, history: { fundingId: 'fund', careHours: 2 } },
           { event: '456', inclTaxesTpp: 12, history: { fundingId: 'lio', careHours: 4 } },
         ],
-      }]
+      }],
     }, {
       total: 14.4,
       bills: [{
         thirdPartyPayer: 'Papa',
-        subscription: { _id: 'fgh', service: { versions: [{ vat: 12, startDate: moment().toISOString(), }] } },
+        subscription: { _id: 'fgh', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 34,
         startDate: moment().add(1, 'd').toISOString(),
         exclTaxes: 15,
@@ -785,7 +785,7 @@ describe('formatPDF', () => {
           hours: 40,
           inclTaxes: '1 074,00 €',
           service: 'Temps de qualité - autonomie',
-          unitInclTaxes: '24,64 €'
+          unitInclTaxes: '24,64 €',
         }],
         recipient: {
           name: 'M Donald Duck',
@@ -800,12 +800,12 @@ describe('formatPDF', () => {
           date: '10/04',
           startTime: moment('2019-04-10T06:00:00.000Z').format('HH:mm'),
           endTime: moment('2019-04-10T08:00:00.000Z').format('HH:mm'),
-          service: 'Temps de qualité - autonomie'
+          service: 'Temps de qualité - autonomie',
         }],
         company: {},
         logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
         forTpp: false,
-      }
+      },
     };
 
     getUnitInclTaxes.returns('24.63');
@@ -890,7 +890,7 @@ describe('getUnitInclTaxes', () => {
   it('should return 0 if no matching funding found', () => {
     const bill = {
       client: { _id: new ObjectID() },
-      customer: { fundings: [{ thirdPartyPayer: new ObjectID() }] }
+      customer: { fundings: [{ thirdPartyPayer: new ObjectID() }] },
     };
     const subscription = { unitInclTaxes: 20 };
     const result = BillHelper.getUnitInclTaxes(bill, subscription);
@@ -904,7 +904,7 @@ describe('getUnitInclTaxes', () => {
     const tppId = new ObjectID();
     const bill = {
       client: { _id: tppId },
-      customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] }
+      customer: { fundings: [{ thirdPartyPayer: tppId, nature: 'fixed', versions: [{ amountTTC: 14.4 }] }] },
     };
     const subscription = { vat: 20 };
 
@@ -927,7 +927,7 @@ describe('getUnitInclTaxes', () => {
             thirdPartyPayer: tppId,
             nature: 'hourly',
             versions: [{ unitTTCRate: 18, customerParticipationRate: 20 }],
-          }
+          },
         ],
       },
     };
@@ -964,7 +964,7 @@ describe('exportBillsHistory', () => {
         hours: 20,
         exclTaxes: 389276.0208,
         inclTaxes: 410686.201944,
-      }]
+      }],
     }, {
       billNumber: 'FACT-0419457',
       date: '2019-05-22T06:00:00.000+00:00',
@@ -988,8 +988,8 @@ describe('exportBillsHistory', () => {
         hours: 7,
         inclTaxes: 302,
         exclTaxes: 318.6099999,
-      }]
-    }
+      }],
+    },
   ];
   let expectsFind;
   let mockBill;
@@ -1021,7 +1021,7 @@ describe('exportBillsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['', '', '', '', '', '', '', '', '']
+      ['', '', '', '', '', '', '', '', ''],
     ]);
   });
 
