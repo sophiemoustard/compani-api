@@ -3,6 +3,8 @@ const faker = require('faker');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const sinon = require('sinon');
+const omit = require('lodash/omit');
+const cloneDeep = require('lodash/cloneDeep');
 
 const app = require('../../server');
 const {
@@ -51,17 +53,19 @@ describe('CUSTOMERS ROUTES', () => {
         },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customer).toEqual(expect.objectContaining({
-        _id: expect.any(Object),
-        identity: expect.objectContaining({ lastname: payload.identity.lastname }),
-        contact: expect.objectContaining({
-          address: expect.objectContaining({
+      expect(res.result.data.customer).toMatchObject({
+        identity: {
+          lastname: payload.identity.lastname,
+          fullName: payload.identity.lastname,
+        },
+        contact: {
+          address: {
             street: payload.contact.address.street,
             zipCode: payload.contact.address.zipCode,
             city: payload.contact.address.city,
-          }),
-        }),
-      }));
+          },
+        },
+      });
       expect(res.result.data.customer.payment.mandates).toBeDefined();
       expect(res.result.data.customer.payment.mandates.length).toEqual(1);
       expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
@@ -69,43 +73,13 @@ describe('CUSTOMERS ROUTES', () => {
       expect(customers).toHaveLength(customersList.length + 1);
     });
 
-    const missingParams = [
-      {
-        paramName: 'lastname',
-        payload: { ...payload },
-        remove() {
-          delete payload.identity[this.paramName];
-        },
-      },
-      {
-        paramName: 'street',
-        payload: { ...payload },
-        remove() {
-          delete payload.contact.address[this.paramName];
-        },
-      },
-      {
-        paramName: 'zipCode',
-        payload: { ...payload },
-        remove() {
-          delete payload.contact.address[this.paramName];
-        },
-      },
-      {
-        paramName: 'city',
-        payload: { ...payload },
-        remove() {
-          delete payload.contact.address[this.paramName];
-        },
-      },
-    ];
-    missingParams.forEach((test) => {
-      it(`should return a 400 error if missing '${test.paramName}' parameter`, async () => {
-        test.remove();
+    const missingParams = ['identity.lastname', 'contact.address.street', 'contact.address.zipCode', 'contact.address.city'];
+    missingParams.forEach((path) => {
+      it(`should return a 400 error if missing '${path}' parameter`, async () => {
         const res = await app.inject({
           method: 'POST',
           url: '/customers',
-          payload: test.payload,
+          payload: omit(cloneDeep(payload), path),
           headers: {
             'x-access-token': token,
           },
@@ -158,6 +132,9 @@ describe('CUSTOMERS ROUTES', () => {
           lastname: customersList[0].identity.lastname,
           firstname: customersList[0].identity.firstname,
           title: customersList[0].identity.title,
+          fullName: customersList[0].identity.firstname
+            ? `${customersList[0].identity.firstname} ${customersList[0].identity.lastname}`
+            : customersList[0].identity.lastname,
         }),
         contact: expect.objectContaining({
           address: expect.objectContaining({
@@ -206,6 +183,7 @@ describe('CUSTOMERS ROUTES', () => {
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
           lastname: updatePayload.identity.lastname,
+          fullName: `${updatePayload.identity.firstname} ${updatePayload.identity.lastname}`,
         }),
       }));
       const updatedCustomer = await Customer.findById(customersList[0]._id);
@@ -213,6 +191,7 @@ describe('CUSTOMERS ROUTES', () => {
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
           lastname: updatePayload.identity.lastname,
+          fullName: `${updatePayload.identity.firstname} ${updatePayload.identity.lastname}`,
         }),
       }));
     });
