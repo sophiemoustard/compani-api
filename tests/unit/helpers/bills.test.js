@@ -665,19 +665,85 @@ describe('formatThirdPartyPayerBills', () => {
   });
 });
 
+describe('formatSurchargeHourForPdf', () => {
+  it('should return just the hours', () => {
+    const date = moment().hour(18).minutes(0).toISOString();
+    expect(BillHelper.formatSurchargeHourForPdf(date)).toBe('18h');
+  });
+
+  it('should return the hours and the minutes', () => {
+    const date = moment().hour(17).minutes(15).toISOString();
+    expect(BillHelper.formatSurchargeHourForPdf(date)).toBe('17h15');
+  });
+});
+
+describe('formatEventSurchargesForPdf', () => {
+  let formatSurchargeHourForPdf;
+
+  beforeEach(() => {
+    formatSurchargeHourForPdf = sinon.stub(BillHelper, 'formatSurchargeHourForPdf');
+    formatSurchargeHourForPdf.callsFake(date => `${date}d`);
+  });
+
+  afterEach(() => {
+    formatSurchargeHourForPdf.restore();
+  });
+
+  it('should not do anything if no surcharges are provided', () => {
+    const event = {};
+    BillHelper.formatEventSurchargesForPdf(event);
+    expect(event).toEqual({});
+    sinon.assert.notCalled(formatSurchargeHourForPdf);
+  });
+
+  it('should set an empty array if the array of surcharges is empty', () => {
+    const event = {};
+    BillHelper.formatEventSurchargesForPdf(event, []);
+    expect(event).toEqual({ surcharges: [] });
+    sinon.assert.notCalled(formatSurchargeHourForPdf);
+  });
+
+  it('should set the surcharges', () => {
+    const event = {};
+    const surcharges = [{
+      percentage: 25,
+    }, {
+      percentage: 15,
+      startHour: '18',
+      endHour: '20',
+    }];
+
+    BillHelper.formatEventSurchargesForPdf(event, surcharges);
+
+    expect(event).toEqual({
+      surcharges: [{
+        percentage: 25,
+      }, {
+        percentage: 15,
+        startHour: '18d',
+        endHour: '20d',
+      }],
+    });
+    sinon.assert.calledTwice(formatSurchargeHourForPdf);
+  });
+});
+
 describe('formatPDF', () => {
   let formatPrice;
   let getUnitInclTaxes;
+  let formatEventSurchargesForPdf;
   beforeEach(() => {
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
     getUnitInclTaxes = sinon.stub(BillHelper, 'getUnitInclTaxes');
+    formatEventSurchargesForPdf = sinon.stub(BillHelper, 'formatEventSurchargesForPdf');
   });
   afterEach(() => {
     formatPrice.restore();
     getUnitInclTaxes.restore();
+    formatEventSurchargesForPdf.restore();
   });
 
-  it('should format correct bill PDF for customer', () => {
+  it.only('should format correct bill PDF for customer', () => {
     const bill = {
       billNumber: '12345',
       subscriptions: [{
@@ -688,6 +754,7 @@ describe('formatPDF', () => {
           startDate: '2019-04-10T06:00:00.000Z',
           endDate: '2019-04-10T08:00:00.000Z',
           bills: { inclTaxesCustomer: 52, exclTaxesCustomer: 49.28909952606635 },
+          surcharges: [],
         }],
         startDate: '2019-03-31T22:00:00.000Z',
         endDate: '2019-04-30T21:59:59.999Z',
@@ -736,7 +803,8 @@ describe('formatPDF', () => {
           service: 'Temps de qualité - autonomie'
         }],
         company: {},
-        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+        forTpp: false,
       }
     };
 
@@ -751,6 +819,12 @@ describe('formatPDF', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
+    sinon.assert.calledOnce(formatEventSurchargesForPdf);
+    sinon.assert.calledWith(
+      formatEventSurchargesForPdf,
+      sinon.match({}),
+      bill.subscriptions[0].events[0].surcharges
+    );
   });
 
   it('should format correct bill PDF for third party payer', () => {
