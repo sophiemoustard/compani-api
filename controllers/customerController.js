@@ -223,7 +223,7 @@ const show = async (req) => {
       .populate('subscriptions.service')
       .populate('fundings.thirdPartyPayer')
       .populate({ path: 'firstIntervention', select: 'startDate' })
-      .lean();
+      .lean({ virtuals: true });
     if (!customer) {
       return Boom.notFound(translate[language].customerNotFound);
     }
