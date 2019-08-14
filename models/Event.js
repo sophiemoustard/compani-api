@@ -28,6 +28,7 @@ const {
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { CONTRACT_STATUS } = require('./Contract');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
+const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
 const ABSENCE_NATURES = [HOURLY, DAILY];
@@ -82,6 +83,7 @@ const EventSchema = mongoose.Schema({
     fundingVersion: { type: mongoose.Schema.Types.ObjectId },
     nature: String,
     careHours: Number,
+    surcharges: billEventSurchargesSchemaDefinition,
   },
   status: { type: String, enum: CONTRACT_STATUS },
 }, { timestamps: true });
