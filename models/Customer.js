@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 
 const {
   MONTHLY,
@@ -17,18 +16,11 @@ const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription')
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
 
-function getFullName() {
-  return this.firstname ? `${this.firstname} ${this.lastname}` : this.lastname;
-}
-
-const identitySchema = mongoose.Schema(identitySchemaDefinition, { _id: false });
-identitySchema.virtual('fullName').get(getFullName);
-
 const CustomerSchema = mongoose.Schema({
   driveFolder: driveResourceSchemaDefinition,
   email: { type: String, lowercase: true, trim: true },
   identity: {
-    type: identitySchema,
+    type: identitySchemaDefinition,
     required: true,
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
@@ -123,10 +115,6 @@ const countSubscriptionUsage = async (doc) => {
   }
 };
 
-// function getFullName() {
-//   return this.identity.firstname ? `${this.identity.firstname} ${this.identity.lastname}` : this.identity.lastname;
-// }
-
 CustomerSchema.virtual('firstIntervention', {
   ref: 'Event',
   localField: '_id',
@@ -134,11 +122,8 @@ CustomerSchema.virtual('firstIntervention', {
   justOne: true,
   options: { sort: { startDate: 1 } },
 });
-// CustomerSchema.virtual('fullName').get(getFullName);
 
 CustomerSchema.post('findOne', countSubscriptionUsage);
-
-CustomerSchema.plugin(mongooseLeanVirtuals);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
 module.exports.FUNDING_FREQUENCIES = FUNDING_FREQUENCIES;
