@@ -1,5 +1,4 @@
 const Boom = require('boom');
-const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
@@ -10,27 +9,13 @@ const { formatAndCreateBills } = require('../helpers/bills');
 const { getDateQuery } = require('../helpers/utils');
 const { formatPDF } = require('../helpers/bills');
 const { generatePdf } = require('../helpers/pdf');
-const {
-  INTERVENTION,
-  COMPANY_CONTRACT,
-  COMPANI,
-} = require('../helpers/constants');
+const { COMPANI } = require('../helpers/constants');
 
 const { language } = translate;
 
 const draftBillsList = async (req) => {
   try {
-    const rules = [
-      { endDate: { $lt: req.query.endDate } },
-      { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
-      { auxiliary: { $exists: true, $ne: '' } },
-      { type: INTERVENTION },
-      { status: COMPANY_CONTRACT },
-    ];
-    if (req.query.startDate) rules.push({ startDate: { $gte: req.query.startDate } });
-    if (req.query.customer) rules.push({ customer: new ObjectID(req.query.customer) });
-
-    const draftBills = await getDraftBillsList(rules, req.query);
+    const draftBills = await getDraftBillsList(req.query);
 
     return {
       message: translate[language].draftBills,

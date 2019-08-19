@@ -344,8 +344,8 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
   return result;
 };
 
-exports.getDraftBillsList = async (rules, query) => {
-  const eventsToBill = await EventRepository.getEventsToBill(rules);
+exports.getDraftBillsList = async (query) => {
+  const eventsToBill = await EventRepository.getEventsToBill(query);
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const customerDraftBills = [];
