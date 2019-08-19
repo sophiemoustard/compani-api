@@ -41,7 +41,7 @@ exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
     contract.status === COMPANY_CONTRACT &&
       moment(contract.startDate).isSameOrBefore(day, 'd') &&
       ((!contract.endDate && contract.versions.some(version => version.isActive)) ||
-        moment(contract.endDate).isSameOrAfter(day, 'd')));
+        (contract.endDate && moment(contract.endDate).isSameOrAfter(day, 'd'))));
 
 exports.hasConflicts = async (event) => {
   const { _id, auxiliary, startDate, endDate } = event;
