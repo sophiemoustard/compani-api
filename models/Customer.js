@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 
 const {
   MONTHLY,
@@ -124,6 +125,8 @@ CustomerSchema.virtual('firstIntervention', {
 });
 
 CustomerSchema.post('findOne', countSubscriptionUsage);
+
+CustomerSchema.plugin(mongooseLeanVirtuals);
 
 module.exports = mongoose.model('Customer', CustomerSchema);
 module.exports.FUNDING_FREQUENCIES = FUNDING_FREQUENCIES;
