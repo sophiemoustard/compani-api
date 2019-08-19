@@ -378,16 +378,16 @@ exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
   { $group: { _id: '$auxiliary._id', events: { $push: '$$ROOT' } } },
 ]);
 
-exports.getEventsToBill = async (query) => {
+exports.getEventsToBill = async (dates, customerId) => {
   const rules = [
-    { endDate: { $lt: query.endDate } },
+    { endDate: { $lt: dates.endDate } },
     { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
     { auxiliary: { $exists: true, $ne: '' } },
     { type: INTERVENTION },
     { status: COMPANY_CONTRACT },
   ];
-  if (query.startDate) rules.push({ startDate: { $gte: query.startDate } });
-  if (query.customer) rules.push({ customer: new ObjectID(query.customer) });
+  if (dates.startDate) rules.push({ startDate: { $gte: dates.startDate } });
+  if (customerId) rules.push({ customer: new ObjectID(customerId) });
 
   return Event.aggregate([
     { $match: { $and: rules } },

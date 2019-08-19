@@ -953,7 +953,8 @@ describe('getDraftBillsPerSubscription', () => {
 });
 
 describe('getDraftBillsList', () => {
-  const query = { endDate: '2019-12-25T07:00:00' };
+  const dates = { endDate: '2019-12-25T07:00:00' };
+  const billingStartDate = '2019-12-31T07:00:00';
   let getEventsToBill;
   let populateSurcharge;
   let populateFundings;
@@ -973,10 +974,10 @@ describe('getDraftBillsList', () => {
 
   it('should return empty array if not event to bill', async () => {
     getEventsToBill.returns([]);
-    const result = await DraftBillsHelper.getDraftBillsList(query);
+    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWith(getEventsToBill, query);
+    sinon.assert.calledWith(getEventsToBill, dates);
     sinon.assert.notCalled(populateSurcharge);
     sinon.assert.notCalled(populateFundings);
     sinon.assert.notCalled(getDraftBillsPerSubscription);
@@ -1015,7 +1016,7 @@ describe('getDraftBillsList', () => {
       },
     });
 
-    const result = await DraftBillsHelper.getDraftBillsList(query);
+    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate);
 
     expect(result).toEqual([
       {
@@ -1037,7 +1038,7 @@ describe('getDraftBillsList', () => {
         }],
       },
     ]);
-    sinon.assert.calledWith(getEventsToBill, query);
+    sinon.assert.calledWith(getEventsToBill, dates);
     sinon.assert.calledWith(populateSurcharge.firstCall, { _id: '1234567890' });
     sinon.assert.calledWith(populateSurcharge.secondCall, { _id: '0987654321' });
     sinon.assert.calledWith(populateFundings.firstCall, [{ nature: 'hourly' }], '2019-12-25T07:00:00');
@@ -1048,7 +1049,8 @@ describe('getDraftBillsList', () => {
       { _id: 'ghjk', identity: { firstname: 'Toto' } },
       { _id: '1234567890' },
       [{ nature: 'hourly' }],
-      { endDate: '2019-12-25T07:00:00' }
+      billingStartDate,
+      '2019-12-25T07:00:00'
     );
     sinon.assert.calledWith(
       getDraftBillsPerSubscription.secondCall,
@@ -1056,7 +1058,8 @@ describe('getDraftBillsList', () => {
       { _id: 'ghjk', identity: { firstname: 'Toto' } },
       { _id: '0987654321' },
       [{ nature: 'fixed' }],
-      { endDate: '2019-12-25T07:00:00' }
+      billingStartDate,
+      '2019-12-25T07:00:00'
     );
   });
 
@@ -1081,7 +1084,7 @@ describe('getDraftBillsList', () => {
     getDraftBillsPerSubscription.onCall(1).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 } });
     getDraftBillsPerSubscription.onCall(2).returns({ customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 } });
 
-    const result = await DraftBillsHelper.getDraftBillsList(query);
+    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate);
 
     expect(result).toEqual([
       {
@@ -1117,7 +1120,8 @@ describe('getDraftBillsList', () => {
       { _id: 'ghjk', identity: { firstname: 'Toto' } },
       { _id: '1234567890' },
       null,
-      { endDate: '2019-12-25T07:00:00' }
+      billingStartDate,
+      '2019-12-25T07:00:00'
     );
     sinon.assert.calledWith(
       getDraftBillsPerSubscription.secondCall,
@@ -1125,7 +1129,8 @@ describe('getDraftBillsList', () => {
       { _id: 'ghjk', identity: { firstname: 'Toto' } },
       { _id: '0987654321' },
       null,
-      { endDate: '2019-12-25T07:00:00' }
+      billingStartDate,
+      '2019-12-25T07:00:00'
     );
     sinon.assert.calledWith(
       getDraftBillsPerSubscription.thirdCall,
@@ -1133,7 +1138,8 @@ describe('getDraftBillsList', () => {
       { _id: 'asdf', identity: { firstname: 'Tata' } },
       { _id: 'qwertyuiop' },
       null,
-      { endDate: '2019-12-25T07:00:00' }
+      billingStartDate,
+      '2019-12-25T07:00:00'
     );
   });
 });

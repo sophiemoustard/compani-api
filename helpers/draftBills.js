@@ -295,10 +295,10 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
   };
 };
 
-exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings, query) => {
+exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings, billingStartDate, endDate) => {
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
-  let startDate = moment(query.billingStartDate);
+  let startDate = moment(billingStartDate);
   const { unitTTCRate } = utils.getLastVersion(subscription.versions, 'createdAt');
   for (const event of events) {
     const matchingService = utils.getMatchingVersion(event.startDate, subscription.service, 'startDate');
@@ -312,7 +312,7 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
 
-  const serviceMatchingVersion = utils.getMatchingVersion(query.endDate, subscription.service, 'startDate');
+  const serviceMatchingVersion = utils.getMatchingVersion(endDate, subscription.service, 'startDate');
 
   const draftBillInfo = {
     _id: mongoose.Types.ObjectId(),
@@ -320,7 +320,7 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
     identity: customer.identity,
     discount: 0,
     startDate: startDate.toDate(),
-    endDate: moment(query.endDate, 'YYYYMMDD').toDate(),
+    endDate: moment(endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: exports.getExclTaxes(unitTTCRate, serviceMatchingVersion.vat),
     unitInclTaxes: unitTTCRate,
     vat: serviceMatchingVersion.vat,
@@ -344,8 +344,8 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
   return result;
 };
 
-exports.getDraftBillsList = async (query) => {
-  const eventsToBill = await EventRepository.getEventsToBill(query);
+exports.getDraftBillsList = async (dates, billingStartDate, customerId = null) => {
+  const eventsToBill = await EventRepository.getEventsToBill(dates, customerId);
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const customerDraftBills = [];
@@ -354,9 +354,9 @@ exports.getDraftBillsList = async (query) => {
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await exports.populateSurcharge(eventsBySubscriptions[k].subscription);
       let { fundings } = eventsBySubscriptions[k];
-      fundings = fundings ? await exports.populateFundings(fundings, query.endDate) : null;
+      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate) : null;
 
-      const draftBills = exports.getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, query);
+      const draftBills = exports.getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, billingStartDate, dates.endDate);
       if (draftBills.customer) customerDraftBills.push(draftBills.customer);
       if (draftBills.thirdPartyPayer) {
         for (const tpp of Object.keys(draftBills.thirdPartyPayer)) {

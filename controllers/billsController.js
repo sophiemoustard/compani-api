@@ -15,7 +15,12 @@ const { language } = translate;
 
 const draftBillsList = async (req) => {
   try {
-    const draftBills = await getDraftBillsList(req.query);
+    const { startDate, endDate, billingStartDate, customer } = req.query;
+    const dates = {
+      endDate,
+      ...(startDate && { startDate }),
+    };
+    const draftBills = await getDraftBillsList(dates, billingStartDate, customer);
 
     return {
       message: translate[language].draftBills,
