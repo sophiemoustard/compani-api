@@ -810,7 +810,7 @@ describe('formatDraftBillsForTPP', () => {
     const tppId = new ObjectID();
     const tpp = { _id: tppId };
     const tppPrices = {
-      [tppId]: { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] }
+      [tppId]: { exclTaxes: 20, inclTaxes: 25, hours: 3, eventsList: [{ event: '123456' }] },
     };
     const event = {
       _id: 'abc',
@@ -954,7 +954,6 @@ describe('getDraftBillsPerSubscription', () => {
 
 describe('getDraftBillsList', () => {
   const query = { endDate: '2019-12-25T07:00:00' };
-  const rules = [{ type: 'intervention' }];
   let getEventsToBill;
   let populateSurcharge;
   let populateFundings;
@@ -974,10 +973,10 @@ describe('getDraftBillsList', () => {
 
   it('should return empty array if not event to bill', async () => {
     getEventsToBill.returns([]);
-    const result = await DraftBillsHelper.getDraftBillsList(rules, query);
+    const result = await DraftBillsHelper.getDraftBillsList(query);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWith(getEventsToBill, rules);
+    sinon.assert.calledWith(getEventsToBill, query);
     sinon.assert.notCalled(populateSurcharge);
     sinon.assert.notCalled(populateFundings);
     sinon.assert.notCalled(getDraftBillsPerSubscription);
@@ -1016,7 +1015,7 @@ describe('getDraftBillsList', () => {
       },
     });
 
-    const result = await DraftBillsHelper.getDraftBillsList(rules, query);
+    const result = await DraftBillsHelper.getDraftBillsList(query);
 
     expect(result).toEqual([
       {
@@ -1038,7 +1037,7 @@ describe('getDraftBillsList', () => {
         }],
       },
     ]);
-    sinon.assert.calledWith(getEventsToBill, rules);
+    sinon.assert.calledWith(getEventsToBill, query);
     sinon.assert.calledWith(populateSurcharge.firstCall, { _id: '1234567890' });
     sinon.assert.calledWith(populateSurcharge.secondCall, { _id: '0987654321' });
     sinon.assert.calledWith(populateFundings.firstCall, [{ nature: 'hourly' }], '2019-12-25T07:00:00');
@@ -1082,7 +1081,7 @@ describe('getDraftBillsList', () => {
     getDraftBillsPerSubscription.onCall(1).returns({ customer: { identity: { firstname: 'Toto' }, inclTaxes: 21 } });
     getDraftBillsPerSubscription.onCall(2).returns({ customer: { identity: { firstname: 'Tata' }, inclTaxes: 23 } });
 
-    const result = await DraftBillsHelper.getDraftBillsList(rules, query);
+    const result = await DraftBillsHelper.getDraftBillsList(query);
 
     expect(result).toEqual([
       {
@@ -1107,7 +1106,7 @@ describe('getDraftBillsList', () => {
         },
       },
     ]);
-    sinon.assert.calledWith(getEventsToBill, rules);
+    sinon.assert.calledWith(getEventsToBill);
     sinon.assert.calledWith(populateSurcharge.firstCall, { _id: '1234567890' });
     sinon.assert.calledWith(populateSurcharge.secondCall, { _id: '0987654321' });
     sinon.assert.calledWith(populateSurcharge.thirdCall, { _id: 'qwertyuiop' });
