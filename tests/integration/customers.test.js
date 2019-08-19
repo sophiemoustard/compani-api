@@ -54,10 +54,7 @@ describe('CUSTOMERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
-        identity: {
-          lastname: payload.identity.lastname,
-          fullName: payload.identity.lastname,
-        },
+        identity: { lastname: payload.identity.lastname },
         contact: {
           address: {
             street: payload.contact.address.street,
@@ -132,9 +129,6 @@ describe('CUSTOMERS ROUTES', () => {
           lastname: customersList[0].identity.lastname,
           firstname: customersList[0].identity.firstname,
           title: customersList[0].identity.title,
-          fullName: customersList[0].identity.firstname
-            ? `${customersList[0].identity.firstname} ${customersList[0].identity.lastname}`
-            : customersList[0].identity.lastname,
         }),
         contact: expect.objectContaining({
           address: expect.objectContaining({
@@ -183,7 +177,6 @@ describe('CUSTOMERS ROUTES', () => {
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
           lastname: updatePayload.identity.lastname,
-          fullName: `${updatePayload.identity.firstname} ${updatePayload.identity.lastname}`,
         }),
       }));
       const updatedCustomer = await Customer.findById(customersList[0]._id);
@@ -191,7 +184,6 @@ describe('CUSTOMERS ROUTES', () => {
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
           lastname: updatePayload.identity.lastname,
-          fullName: `${updatePayload.identity.firstname} ${updatePayload.identity.lastname}`,
         }),
       }));
     });
