@@ -5,6 +5,9 @@ const moment = require('moment');
 const _ = require('lodash');
 
 const BalanceHelper = require('../../../helpers/balances');
+const BillRepository = require('../../../repositories/BillRepository');
+const CreditNoteRepository = require('../../../repositories/CreditNoteRepository');
+const PaymentRepository = require('../../../repositories/PaymentRepository');
 
 describe('canBeDirectDebited', () => {
   const bill = {
@@ -295,5 +298,152 @@ describe('getBalance', () => {
     expect(result.paid).toEqual(-50);
     expect(result.balance).toEqual(-80);
     expect(result.toPay).toEqual(0);
+  });
+});
+
+describe('getBalances', () => {
+  let findBillsAmountsGroupedByClient;
+  let findCNAmountsGroupedByCustomer;
+  let findCNAmountsGroupedByTpp;
+  let findPaymentsAmountsGroupedByClient;
+  let getBalance;
+  let getBalancesFromCreditNotes;
+  let getBalancesFromPayments;
+
+  let customersAmounts;
+  let tppsAmounts;
+  let clientsAmounts;
+
+  const customers = [new ObjectID(), new ObjectID(), new ObjectID()];
+  const tpps = [new ObjectID(), new ObjectID()];
+
+  beforeEach(() => {
+    findBillsAmountsGroupedByClient = sinon.stub(BillRepository, 'findAmountsGroupedByClient');
+    findCNAmountsGroupedByCustomer = sinon.stub(CreditNoteRepository, 'findAmountsGroupedByCustomer');
+    findCNAmountsGroupedByTpp = sinon.stub(CreditNoteRepository, 'findAmountsGroupedByTpp');
+    findPaymentsAmountsGroupedByClient = sinon.stub(PaymentRepository, 'findAmountsGroupedByClient');
+    getBalance = sinon.stub(BalanceHelper, 'getBalance');
+    getBalancesFromCreditNotes = sinon.stub(BalanceHelper, 'getBalancesFromCreditNotes');
+    getBalancesFromPayments = sinon.stub(BalanceHelper, 'getBalancesFromPayments');
+
+    getBalance.returnsArg(0);
+    getBalancesFromCreditNotes.returnsArg(0);
+    getBalancesFromPayments.returnsArg(0);
+
+    customersAmounts = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+    ];
+    tppsAmounts = [
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
+    clientsAmounts = [...customersAmounts, ...tppsAmounts];
+  });
+
+  afterEach(() => {
+    findBillsAmountsGroupedByClient.restore();
+    findCNAmountsGroupedByCustomer.restore();
+    findCNAmountsGroupedByTpp.restore();
+    findPaymentsAmountsGroupedByClient.restore();
+    getBalance.restore();
+    getBalancesFromCreditNotes.restore();
+    getBalancesFromPayments.restore();
+  });
+
+  it('should return no balances', async () => {
+    findBillsAmountsGroupedByClient.returns([]);
+    findCNAmountsGroupedByCustomer.returns([]);
+    findCNAmountsGroupedByTpp.returns([]);
+    findPaymentsAmountsGroupedByClient.returns([]);
+
+    const balances = await BalanceHelper.getBalances();
+
+    expect(balances).toEqual([]);
+
+    sinon.assert.notCalled(getBalance);
+    sinon.assert.notCalled(getBalancesFromCreditNotes);
+    sinon.assert.notCalled(getBalancesFromPayments);
+  });
+
+  it('should return balances from bills', async () => {
+    findBillsAmountsGroupedByClient.returns(clientsAmounts);
+    findCNAmountsGroupedByCustomer.returns([]);
+    findCNAmountsGroupedByTpp.returns([]);
+    findPaymentsAmountsGroupedByClient.returns([]);
+
+    const balances = await BalanceHelper.getBalances();
+
+    expect(balances).toEqual(clientsAmounts);
+
+    sinon.assert.callCount(getBalance, clientsAmounts.length);
+    sinon.assert.notCalled(getBalancesFromCreditNotes);
+    sinon.assert.notCalled(getBalancesFromPayments);
+  });
+
+  it('should return balances from customer credit notes', async () => {
+    findBillsAmountsGroupedByClient.returns([]);
+    findCNAmountsGroupedByCustomer.returns(customersAmounts);
+    findCNAmountsGroupedByTpp.returns([]);
+    findPaymentsAmountsGroupedByClient.returns([]);
+
+    const balances = await BalanceHelper.getBalances();
+
+    expect(balances).toEqual(customersAmounts);
+
+    sinon.assert.notCalled(getBalance);
+    sinon.assert.callCount(getBalancesFromCreditNotes, customersAmounts.length);
+    sinon.assert.notCalled(getBalancesFromPayments);
+  });
+
+  it('should return balances from TPP credit notes', async () => {
+    findBillsAmountsGroupedByClient.returns([]);
+    findCNAmountsGroupedByCustomer.returns(tppsAmounts);
+    findCNAmountsGroupedByTpp.returns([]);
+    findPaymentsAmountsGroupedByClient.returns([]);
+
+    const balances = await BalanceHelper.getBalances();
+
+    expect(balances).toEqual(tppsAmounts);
+
+    sinon.assert.notCalled(getBalance);
+    sinon.assert.callCount(getBalancesFromCreditNotes, tppsAmounts.length);
+    sinon.assert.notCalled(getBalancesFromPayments);
+  });
+
+  it('should return balances from payments', async () => {
+    findBillsAmountsGroupedByClient.returns([]);
+    findCNAmountsGroupedByCustomer.returns([]);
+    findCNAmountsGroupedByTpp.returns([]);
+    findPaymentsAmountsGroupedByClient.returns(clientsAmounts);
+
+    const balances = await BalanceHelper.getBalances();
+
+    expect(balances).toEqual(clientsAmounts);
+
+    sinon.assert.notCalled(getBalance);
+    sinon.assert.notCalled(getBalancesFromCreditNotes);
+    sinon.assert.callCount(getBalancesFromPayments, clientsAmounts.length);
+  });
+
+  it('should return balances from bills, credit notes and payments', async () => {
+    const billsClients = _.without(clientsAmounts, customersAmounts[0], tppsAmounts[0]);
+    findBillsAmountsGroupedByClient.returns(billsClients);
+    const cnCustomers = _.without(customersAmounts, customersAmounts[1]);
+    findCNAmountsGroupedByCustomer.returns(cnCustomers);
+    const cnTpps = _.without(tppsAmounts, tppsAmounts[0]);
+    findCNAmountsGroupedByTpp.returns(cnTpps);
+    const paymentsClients = _.without(clientsAmounts, tppsAmounts[1]);
+    findPaymentsAmountsGroupedByClient.returns(paymentsClients);
+
+    const balances = await BalanceHelper.getBalances();
+
+    expect(balances).toEqual(expect.arrayContaining(clientsAmounts));
+    expect(balances.length).toEqual(clientsAmounts.length);
+
+    sinon.assert.callCount(getBalance, 3);
+    sinon.assert.callCount(getBalancesFromCreditNotes, 1);
+    sinon.assert.callCount(getBalancesFromPayments, 1);
   });
 });
