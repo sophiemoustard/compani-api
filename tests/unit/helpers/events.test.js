@@ -1296,7 +1296,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   it('should return false as no company contract on day (end date before day)', () => {
     const contracts = [
       { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', versions: [{ isActive: false }], endDate: '2019-01-10T08:38:18' },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' },
     ];
     const date = '2019-01-11T08:38:18';
     const result = EventHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
@@ -1307,7 +1307,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
   it('should return false as no company contract on day (no active version)', () => {
     const contracts = [
       { status: CUSTOMER_CONTRACT },
-      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', versions: [{ isActive: false }], endDate: '2019-01-10T08:38:18' },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', versions: [{ isActive: false }] },
     ];
     const date = '2019-01-11T08:38:18';
     const result = EventHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
@@ -1315,7 +1315,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
     expect(result).toBeFalsy();
   });
 
-  it('should return true as no company contract on day (end date after day)', () => {
+  it('should return true as company contract on day (end date after day)', () => {
     const contracts = [
       { status: CUSTOMER_CONTRACT },
       { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', versions: [{ isActive: false }], endDate: '2019-01-31T08:38:18' },
@@ -1326,7 +1326,7 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
     expect(result).toBeTruthy();
   });
 
-  it('should return true as no company contract on day (active version)', () => {
+  it('should return true as company contract on day (active version)', () => {
     const contracts = [
       { status: CUSTOMER_CONTRACT },
       { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', versions: [{ isActive: true }] },
@@ -1351,7 +1351,7 @@ describe('createRepetitionsEveryDay', () => {
   });
 
   it('should create repetition every day', async () => {
-    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-01T11:00:00' };
+    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
     formatRepeatedEvent.returns(new Event());
     await EventHelper.createRepetitionsEveryDay(event);
 
@@ -1373,7 +1373,7 @@ describe('createRepetitionsEveryWeekDay', () => {
   });
 
   it('should create repetition every day', async () => {
-    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-01T11:00:00' };
+    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
     formatRepeatedEvent.returns(new Event());
     await EventHelper.createRepetitionsEveryWeekDay(event);
 
@@ -1395,7 +1395,7 @@ describe('createRepetitionsByWeek', () => {
   });
 
   it('should create repetition every day', async () => {
-    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-01T11:00:00' };
+    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
     formatRepeatedEvent.returns(new Event());
     await EventHelper.createRepetitionsByWeek(event);
 
