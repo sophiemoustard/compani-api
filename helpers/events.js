@@ -41,7 +41,7 @@ exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
     contract.status === COMPANY_CONTRACT &&
       moment(contract.startDate).isSameOrBefore(day, 'd') &&
       ((!contract.endDate && contract.versions.some(version => version.isActive)) ||
-        moment(contract.endDate).isSameOrAfter(day, 'd')));
+        (contract.endDate && moment(contract.endDate).isSameOrAfter(day, 'd'))));
 
 exports.hasConflicts = async (event) => {
   const { _id, auxiliary, startDate, endDate } = event;
@@ -221,7 +221,9 @@ exports.formatRepeatedEvent = (event, momentDay) => {
 };
 
 exports.createRepetitionsEveryDay = async (event) => {
-  const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
+  const start = moment(event.startDate).add(1, 'd');
+  const end = moment(event.startDate).add(3, 'M').endOf('M');
+  const range = Array.from(moment().range(start, end).by('days'));
   const promises = [];
   range.forEach((day) => {
     const repeatedEvent = exports.formatRepeatedEvent(event, day);
@@ -233,7 +235,9 @@ exports.createRepetitionsEveryDay = async (event) => {
 };
 
 exports.createRepetitionsEveryWeekDay = async (event) => {
-  const range = Array.from(moment().range(moment(event.startDate).add(1, 'd'), moment(event.startDate).add(1, 'Y')).by('days'));
+  const start = moment(event.startDate).add(1, 'd');
+  const end = moment(event.startDate).add(3, 'M').endOf('M');
+  const range = Array.from(moment().range(start, end).by('days'));
   const promises = [];
   range.forEach((day) => {
     if (moment(day).day() !== 0 && moment(day).day() !== 6) {
@@ -248,7 +252,7 @@ exports.createRepetitionsEveryWeekDay = async (event) => {
 
 exports.createRepetitionsByWeek = async (event, step) => {
   const start = moment(event.startDate).add(step, 'w');
-  const end = moment(event.startDate).add(1, 'Y');
+  const end = moment(event.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
 
   const promises = [];
