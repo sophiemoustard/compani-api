@@ -310,10 +310,6 @@ describe('getBalances', () => {
   let getBalancesFromCreditNotes;
   let getBalancesFromPayments;
 
-  let customersAmounts;
-  let tppsAmounts;
-  let clientsAmounts;
-
   const customers = [new ObjectID(), new ObjectID(), new ObjectID()];
   const tpps = [new ObjectID(), new ObjectID()];
 
@@ -329,17 +325,6 @@ describe('getBalances', () => {
     getBalance.returnsArg(0);
     getBalancesFromCreditNotes.returnsArg(0);
     getBalancesFromPayments.returnsArg(0);
-
-    customersAmounts = [
-      { _id: { customer: customers[0] } },
-      { _id: { customer: customers[1] } },
-      { _id: { customer: customers[2] } },
-    ];
-    tppsAmounts = [
-      { _id: { customer: customers[0], tpp: tpps[0] } },
-      { _id: { customer: customers[1], tpp: tpps[1] } },
-    ];
-    clientsAmounts = [...customersAmounts, ...tppsAmounts];
   });
 
   afterEach(() => {
@@ -368,79 +353,122 @@ describe('getBalances', () => {
   });
 
   it('should return balances from bills', async () => {
-    findBillsAmountsGroupedByClient.returns(clientsAmounts);
+    const billsAmountsGroupedByClient = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+    ];
+    findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
 
     const balances = await BalanceHelper.getBalances();
 
-    expect(balances).toEqual(clientsAmounts);
+    expect(balances).toEqual(billsAmountsGroupedByClient);
 
-    sinon.assert.callCount(getBalance, clientsAmounts.length);
+    sinon.assert.callCount(getBalance, billsAmountsGroupedByClient.length);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
   });
 
   it('should return balances from customer credit notes', async () => {
+    const cnAmountsGroupedByCustomer = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+    ];
     findBillsAmountsGroupedByClient.returns([]);
-    findCNAmountsGroupedByCustomer.returns(customersAmounts);
+    findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
 
     const balances = await BalanceHelper.getBalances();
 
-    expect(balances).toEqual(customersAmounts);
+    expect(balances).toEqual(cnAmountsGroupedByCustomer);
 
     sinon.assert.notCalled(getBalance);
-    sinon.assert.callCount(getBalancesFromCreditNotes, customersAmounts.length);
+    sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByCustomer.length);
     sinon.assert.notCalled(getBalancesFromPayments);
   });
 
   it('should return balances from TPP credit notes', async () => {
+    const cnAmountsGroupedByTpp = [
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
-    findCNAmountsGroupedByTpp.returns(tppsAmounts);
+    findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns([]);
 
     const balances = await BalanceHelper.getBalances();
 
-    expect(balances).toEqual(tppsAmounts);
+    expect(balances).toEqual(cnAmountsGroupedByTpp);
 
     sinon.assert.notCalled(getBalance);
-    sinon.assert.callCount(getBalancesFromCreditNotes, tppsAmounts.length);
+    sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByTpp.length);
     sinon.assert.notCalled(getBalancesFromPayments);
   });
 
   it('should return balances from payments', async () => {
+    const paymentsAmountsGroupedByClient = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
-    findPaymentsAmountsGroupedByClient.returns(clientsAmounts);
+    findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
 
     const balances = await BalanceHelper.getBalances();
 
-    expect(balances).toEqual(clientsAmounts);
+    expect(balances).toEqual(paymentsAmountsGroupedByClient);
 
     sinon.assert.notCalled(getBalance);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
-    sinon.assert.callCount(getBalancesFromPayments, clientsAmounts.length);
+    sinon.assert.callCount(getBalancesFromPayments, paymentsAmountsGroupedByClient.length);
   });
 
   it('should return balances from bills, credit notes and payments', async () => {
-    const billsClients = _.without(clientsAmounts, customersAmounts[0], tppsAmounts[0]);
-    findBillsAmountsGroupedByClient.returns(billsClients);
-    const cnCustomers = _.without(customersAmounts, customersAmounts[1]);
-    findCNAmountsGroupedByCustomer.returns(cnCustomers);
-    const cnTpps = _.without(tppsAmounts, tppsAmounts[0]);
-    findCNAmountsGroupedByTpp.returns(cnTpps);
-    const paymentsClients = _.without(clientsAmounts, tppsAmounts[1]);
-    findPaymentsAmountsGroupedByClient.returns(paymentsClients);
+    const billsAmountsGroupedByClient = [
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
+    const cnAmountsGroupedByCustomer = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[2] } },
+    ];
+    const cnAmountsGroupedByTpp = [
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
+    const paymentsAmountsGroupedByClient = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+    ];
+    findBillsAmountsGroupedByClient.returns(billsAmountsGroupedByClient);
+    findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
+    findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
+    findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
+
+    const allAmounts = [
+      { _id: { customer: customers[0] } },
+      { _id: { customer: customers[1] } },
+      { _id: { customer: customers[2] } },
+      { _id: { customer: customers[0], tpp: tpps[0] } },
+      { _id: { customer: customers[1], tpp: tpps[1] } },
+    ];
 
     const balances = await BalanceHelper.getBalances();
 
-    expect(balances).toEqual(expect.arrayContaining(clientsAmounts));
-    expect(balances.length).toEqual(clientsAmounts.length);
+    expect(balances).toEqual(expect.arrayContaining(allAmounts));
+    expect(balances.length).toEqual(allAmounts.length);
 
     sinon.assert.callCount(getBalance, 3);
     sinon.assert.callCount(getBalancesFromCreditNotes, 1);
