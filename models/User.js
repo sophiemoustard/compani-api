@@ -20,7 +20,7 @@ const {
 
 const SALT_WORK_FACTOR = 10;
 
-const EVENT_PAY_DOCUMENT_NATURES = [PAYSLIP, CERTIFICATE, OTHER];
+const PAY_DOCUMENT_NATURES = [PAYSLIP, CERTIFICATE, OTHER];
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -123,7 +123,7 @@ const UserSchema = mongoose.Schema({
       phoneNumber: String,
     },
     payDocuments: [{
-      nature: { type: String, enum: EVENT_PAY_DOCUMENT_NATURES, default: OTHER },
+      nature: { type: String, enum: PAY_DOCUMENT_NATURES, default: OTHER },
       date: { type: Date },
       file: driveResourceSchemaDefinition,
     }],
@@ -209,4 +209,4 @@ UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
 
-module.exports.EVENT_PAY_DOCUMENT_NATURES = EVENT_PAY_DOCUMENT_NATURES;
+module.exports.PAY_DOCUMENT_NATURES = PAY_DOCUMENT_NATURES;
