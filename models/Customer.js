@@ -21,7 +21,7 @@ const CustomerSchema = mongoose.Schema({
   driveFolder: driveResourceSchemaDefinition,
   email: { type: String, lowercase: true, trim: true },
   identity: {
-    type: identitySchemaDefinition,
+    type: mongoose.Schema(identitySchemaDefinition, { _id: false }),
     required: true,
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
