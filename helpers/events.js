@@ -65,6 +65,13 @@ exports.createEvent = async (payload, credentials) => {
   await event.save();
   event = await EventRepository.getEvent(event._id);
 
+  if (payload.type === ABSENCE) {
+    const { startDate, endDate, auxiliary, _id } = event;
+    const dates = { startDate, endDate };
+    await exports.deleteConflictEventsExceptInterventions(dates, auxiliary, _id.toHexString(), credentials);
+    await exports.unassignConflictInterventions(dates, auxiliary, credentials);
+  }
+
   if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
     event = await exports.createRepetitions(event);
   }
@@ -72,11 +79,48 @@ exports.createEvent = async (payload, credentials) => {
   return exports.populateEventSubscription(event);
 };
 
+exports.deleteConflictEventsExceptInterventions = async (dates, auxiliaryId, absenceId, credentials) => {
+  const events = await Event.deleteMany({
+    $or: [
+      { startDate: { $gte: dates.startDate }, endDate: { $lte: dates.endDate } },
+      { startDate: { $lte: dates.startDate }, endDate: { $gt: dates.startDate } },
+      { startDate: { $lt: dates.endDate }, endDate: { $gte: dates.endDate } },
+    ],
+    auxiliary: auxiliaryId,
+    type: { $in: [INTERNAL_HOUR, UNAVAILABILITY, ABSENCE] },
+    _id: { $ne: absenceId },
+  }).lean();
+
+  for (let i = 0, l = events.length; i < l; i++) {
+    await exports.deleteEvent({ _id: events[i]._id }, credentials);
+  }
+};
+
+exports.unassignConflictInterventions = async (dates, auxiliaryId, credentials) => {
+  const interventions = await Event.find({
+    $or: [
+      { startDate: { $gte: dates.startDate }, endDate: { $lte: dates.endDate } },
+      { startDate: { $lte: dates.startDate }, endDate: { $gt: dates.startDate } },
+      { startDate: { $lt: dates.endDate }, endDate: { $gte: dates.endDate } },
+    ],
+    auxiliary: auxiliaryId,
+    type: INTERVENTION,
+  }).lean();
+
+  for (let i = 0, l = interventions.length; i < l; i++) {
+    const payload = _.omit(interventions[i], ['_id', 'auxiliary']);
+    await exports.updateEvent(interventions[i], payload, credentials);
+  }
+};
+
 exports.isCreationAllowed = async (event) => {
+  if (event.type === ABSENCE) return true;
+  return exports.isActionAllowed(event);
+};
+
+exports.isActionAllowed = async (event) => {
   if (!event.auxiliary) return event.type === INTERVENTION;
-
   if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
-
   if (event.type !== ABSENCE && !moment(event.startDate).isSame(event.endDate, 'day')) return false;
 
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
@@ -123,10 +167,10 @@ exports.isEditionAllowed = async (eventFromDB, payload) => {
 
   if (!payload.auxiliary) {
     const { auxiliary, ...rest } = eventFromDB;
-    return exports.isCreationAllowed({ ...rest, ...payload });
+    return exports.isActionAllowed({ ...rest, ...payload });
   }
 
-  return exports.isCreationAllowed({ ...eventFromDB, ...payload });
+  return exports.isActionAllowed({ ...eventFromDB, ...payload });
 };
 
 exports.getListQuery = (req) => {
@@ -346,7 +390,7 @@ exports.updateEvent = async (event, payload, credentials) => {
   let set;
   if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
     if (!payload.isCancelled && event.isCancelled) {
-      set = flat({ ...payload, isCancelled: false });
+      set = { ...payload, isCancelled: false };
       unset = { cancel: '' };
     } else {
       set = payload;
@@ -356,11 +400,10 @@ exports.updateEvent = async (event, payload, credentials) => {
       await exports.updateRepetitions(event, payload);
     }
   } else if (!payload.isCancelled && event.isCancelled) {
-    set = flat({ ...payload, isCancelled: false, 'repetition.frequency': NEVER });
-    unset = { cancel: '', 'repetition.parentId': '' };
+    set = { ...payload, isCancelled: false, repetition: { frequency: NEVER, parentId: undefined } };
+    unset = { cancel: '' };
   } else {
-    set = flat({ ...payload, 'repetition.frequency': NEVER });
-    unset = { 'repetition.parentId': '' };
+    set = { ...payload, repetition: { frequency: NEVER, parentId: undefined } };
   }
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
