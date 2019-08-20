@@ -352,7 +352,7 @@ describe('getBalances', () => {
     getBalancesFromPayments.restore();
   });
 
-  it('should return no balances', async () => {
+  it('should return no balance', async () => {
     findBillsAmountsGroupedByClient.returns([]);
     findCNAmountsGroupedByCustomer.returns([]);
     findCNAmountsGroupedByTpp.returns([]);
@@ -399,8 +399,8 @@ describe('getBalances', () => {
 
   it('should return balances from TPP credit notes', async () => {
     findBillsAmountsGroupedByClient.returns([]);
-    findCNAmountsGroupedByCustomer.returns(tppsAmounts);
-    findCNAmountsGroupedByTpp.returns([]);
+    findCNAmountsGroupedByCustomer.returns([]);
+    findCNAmountsGroupedByTpp.returns(tppsAmounts);
     findPaymentsAmountsGroupedByClient.returns([]);
 
     const balances = await BalanceHelper.getBalances();
