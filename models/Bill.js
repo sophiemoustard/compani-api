@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const ServiceSchema = require('./Service').schema;
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
 
 const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
@@ -34,6 +35,7 @@ const BillSchema = mongoose.Schema({
   }],
   origin: { type: String, enum: BILL_ORIGINS, default: COMPANI },
   netInclTaxes: Number,
+  drive: driveResourceSchemaDefinition,
 }, { timestamps: true });
 
 module.exports = mongoose.model('Bill', BillSchema);
