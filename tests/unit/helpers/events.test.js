@@ -952,11 +952,14 @@ describe('exportWorkingEventsHistory', () => {
     },
   ];
   let getWorkingEventsForExport;
+  let getFullTitleFromIdentityStub;
   beforeEach(() => {
     getWorkingEventsForExport = sinon.stub(EventRepository, 'getWorkingEventsForExport');
+    getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
   });
   afterEach(() => {
     getWorkingEventsForExport.restore();
+    getFullTitleFromIdentityStub.restore();
   });
 
   it('should return an array containing just the header', async () => {
@@ -966,25 +969,19 @@ describe('exportWorkingEventsHistory', () => {
     expect(exportArray).toEqual([header]);
   });
 
-  describe('', () => {
-    let getFullTitleFromIdentityStub;
-    beforeEach(() => { getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity'); });
-    afterEach(() => getFullTitleFromIdentityStub.restore());
+  it('should return an array with the header and 2 rows', async () => {
+    getWorkingEventsForExport.returns(events);
+    const names = ['Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'M Bojack HORSEMAN'];
+    for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
 
-    it('should return an array with the header and 2 rows', async () => {
-      getWorkingEventsForExport.returns(events);
-      const names = ['Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'M Bojack HORSEMAN'];
-      for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
+    const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
 
-      const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
-
-      sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
-      expect(exportArray).toEqual([
-        header,
-        ['Intervention', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Non', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
-        ['Heure interne', 'Formation', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '', 'Oui', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
-      ]);
-    });
+    sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
+    expect(exportArray).toEqual([
+      header,
+      ['Intervention', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Non', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
+      ['Heure interne', 'Formation', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '', 'Oui', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
+    ]);
   });
 });
 
@@ -1022,13 +1019,16 @@ describe('exportAbsencesHistory', () => {
     },
   ];
   let getAbsencesForExport;
+  let getFullTitleFromIdentityStub;
 
   beforeEach(() => {
     getAbsencesForExport = sinon.stub(EventRepository, 'getAbsencesForExport');
+    getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
   });
 
   afterEach(() => {
     getAbsencesForExport.restore();
+    getFullTitleFromIdentityStub.restore();
   });
 
   it('should return an array containing just the header', async () => {
@@ -1038,25 +1038,19 @@ describe('exportAbsencesHistory', () => {
     expect(exportArray).toEqual([header]);
   });
 
-  describe('', () => {
-    let getFullTitleFromIdentityStub;
-    beforeEach(() => { getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity'); });
-    afterEach(() => getFullTitleFromIdentityStub.restore());
+  it('should return an array with the header and 2 rows', async () => {
+    getAbsencesForExport.returns(events);
+    const names = ['Jean-Claude VAN DAMME', 'Princess CAROLYN'];
+    for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
 
-    it('should return an array with the header and 2 rows', async () => {
-      getAbsencesForExport.returns(events);
-      const names = ['Jean-Claude VAN DAMME', 'Princess CAROLYN'];
-      for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
+    const exportArray = await EventHelper.exportAbsencesHistory(null, null);
 
-      const exportArray = await EventHelper.exportAbsencesHistory(null, null);
-
-      sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
-      expect(exportArray).toEqual([
-        header,
-        ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', 'Girafes - 75', 'Jean-Claude VAN DAMME', ''],
-        ['Congé', 'Journalière', '20/05/2019', '20/05/2019', 'Etoiles - 75', 'Princess CAROLYN', 'brbr'],
-      ]);
-    });
+    sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
+    expect(exportArray).toEqual([
+      header,
+      ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', 'Girafes - 75', 'Jean-Claude VAN DAMME', ''],
+      ['Congé', 'Journalière', '20/05/2019', '20/05/2019', 'Etoiles - 75', 'Princess CAROLYN', 'brbr'],
+    ]);
   });
 });
 
