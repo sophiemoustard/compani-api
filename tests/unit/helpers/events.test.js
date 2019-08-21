@@ -127,7 +127,8 @@ describe('updateEvent', () => {
     sinon.assert.calledWith(
       updateEvent,
       eventId,
-      { ...payload, repetition: { frequency: NEVER, parentId: undefined } }
+      { ...payload, repetition: { frequency: NEVER } },
+      { 'repetition.parentId': '' }
     );
 
     sinon.assert.notCalled(updateRepetitions);
@@ -174,7 +175,8 @@ describe('updateEvent', () => {
     sinon.assert.calledWith(
       updateEvent,
       eventId,
-      { ...payload, isCancelled: false, repetition: { frequency: NEVER, parentId: undefined } }
+      { ...payload, isCancelled: false, repetition: { frequency: NEVER } },
+      { 'repetition.parentId': '', cancel: '' }
     );
     sinon.assert.notCalled(updateRepetitions);
   });
@@ -423,7 +425,7 @@ describe('checkContracts', () => {
   });
 
   it('should return false as user has no contract', async () => {
-    const event = { auxiliary: new ObjectID() };
+    const event = { auxiliary: (new ObjectID()).toHexString() };
     const user = { _id: event.auxiliary };
 
     hasConflicts.returns(false);
@@ -436,8 +438,8 @@ describe('checkContracts', () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-02T08:00:00.000Z',
@@ -476,8 +478,8 @@ describe('checkContracts', () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
@@ -518,8 +520,8 @@ describe('checkContracts', () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
@@ -561,8 +563,8 @@ describe('checkContracts', () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
@@ -603,8 +605,8 @@ describe('checkContracts', () => {
   it('should return false if company contract and customer has no subscription', async () => {
     const sectorId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: (new ObjectID()).toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
@@ -645,7 +647,7 @@ describe('checkContracts', () => {
   it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
     const sectorId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
+      auxiliary: (new ObjectID()).toHexString(),
       type: INTERNAL_HOUR,
       startDate: '2019-10-03T00:00:00.000Z',
       sector: sectorId.toHexString(),
@@ -695,10 +697,10 @@ describe('isCreationAllowed', () => {
     hasConflicts.restore();
   });
 
-  it('should return false as event is not absence and no on one day', async () => {
+  it('should return false as event is not absence and not on one day', async () => {
     const event = {
-      auxiliary: new ObjectID(),
-      sector: new ObjectID().toHexString(),
+      auxiliary: (new ObjectID()).toHexString(),
+      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
@@ -713,7 +715,7 @@ describe('isCreationAllowed', () => {
 
   it('should return false as event has no auxiliary and is not intervention', async () => {
     const event = {
-      sector: new ObjectID().toHexString(),
+      sector: (new ObjectID()).toHexString(),
       type: ABSENCE,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -728,7 +730,7 @@ describe('isCreationAllowed', () => {
 
   it('should return true as event has no auxiliary and is intervention', async () => {
     const event = {
-      sector: new ObjectID().toHexString(),
+      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -742,17 +744,18 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false as auxiliary does not have contracts', async () => {
+    const auxiliaryId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
-      sector: new ObjectID().toHexString(),
+      auxiliary: auxiliaryId.toHexString(),
+      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const user = { _id: event.auxiliary, sector: new ObjectID() };
+    const user = { _id: auxiliaryId, sector: new ObjectID() };
 
     UserModel.expects('findOne')
-      .withExactArgs({ _id: event.auxiliary })
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
       .chain('lean')
       .once()
@@ -767,9 +770,10 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false as event is not absence and has conflicts', async () => {
+    const auxiliaryId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
-      sector: new ObjectID().toHexString(),
+      auxiliary: auxiliaryId.toHexString(),
+      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -777,7 +781,7 @@ describe('isCreationAllowed', () => {
     const user = { _id: event.auxiliary, sector: new ObjectID() };
 
     UserModel.expects('findOne')
-      .withExactArgs({ _id: event.auxiliary })
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
       .chain('lean')
       .once()
@@ -793,19 +797,20 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return false if auxiliary sector is not event sector', async () => {
+    const auxiliaryId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
+      auxiliary: auxiliaryId.toHexString(),
       sector: new ObjectID().toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const user = { _id: event.auxiliary, sector: new ObjectID() };
+    const user = { _id: auxiliaryId, sector: new ObjectID() };
 
     checkContracts.returns(true);
     hasConflicts.returns(false);
     UserModel.expects('findOne')
-      .withExactArgs({ _id: event.auxiliary })
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
       .chain('lean')
       .once()
@@ -819,20 +824,21 @@ describe('isCreationAllowed', () => {
   });
 
   it('should return true', async () => {
+    const auxiliaryId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
-      auxiliary: new ObjectID(),
+      auxiliary: auxiliaryId.toHexString(),
       sector: sectorId.toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const user = { _id: event.auxiliary, sector: sectorId };
+    const user = { _id: auxiliaryId, sector: sectorId };
 
     checkContracts.returns(true);
     hasConflicts.returns(false);
     UserModel.expects('findOne')
-      .withExactArgs({ _id: event.auxiliary })
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
       .chain('lean')
       .once()
@@ -865,7 +871,7 @@ describe('isEditionAllowed', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
-      auxiliary: auxiliaryId,
+      auxiliary: auxiliaryId.toHexString(),
       sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -886,7 +892,7 @@ describe('isEditionAllowed', () => {
   it('should return false as event is absence or availability and auxiliary is updated', async () => {
     const sectorId = new ObjectID();
     const payload = {
-      auxiliary: new ObjectID(),
+      auxiliary: (new ObjectID()).toHexString(),
       sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -907,7 +913,7 @@ describe('isEditionAllowed', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
-      auxiliary: auxiliaryId,
+      auxiliary: auxiliaryId.toHexString(),
       sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
@@ -969,7 +975,7 @@ describe('isEditionAllowed', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
-      auxiliary: auxiliaryId,
+      auxiliary: auxiliaryId.toHexString(),
       sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -981,7 +987,7 @@ describe('isEditionAllowed', () => {
     const user = { _id: auxiliaryId, sector: sectorId };
 
     UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
       .chain('lean')
       .once()
@@ -999,7 +1005,7 @@ describe('isEditionAllowed', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
-      auxiliary: auxiliaryId,
+      auxiliary: auxiliaryId.toHexString(),
       sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -1011,7 +1017,7 @@ describe('isEditionAllowed', () => {
     const user = { _id: auxiliaryId, sector: sectorId };
 
     UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
       .chain('lean')
       .once()
@@ -1029,7 +1035,7 @@ describe('isEditionAllowed', () => {
   it('should return false if auxiliary sector is not event sector', async () => {
     const auxiliaryId = new ObjectID();
     const payload = {
-      auxiliary: auxiliaryId,
+      auxiliary: auxiliaryId.toHexString(),
       sector: (new ObjectID()).toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -1043,7 +1049,7 @@ describe('isEditionAllowed', () => {
     checkContracts.returns(true);
     hasConflicts.returns(false);
     UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
       .chain('lean')
       .once()
@@ -1060,7 +1066,7 @@ describe('isEditionAllowed', () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
-      auxiliary: auxiliaryId,
+      auxiliary: auxiliaryId.toHexString(),
       sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -1074,7 +1080,7 @@ describe('isEditionAllowed', () => {
     checkContracts.returns(true);
     hasConflicts.returns(false);
     UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId })
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
       .chain('populate')
       .chain('lean')
       .once()
@@ -1369,8 +1375,8 @@ describe('createEvent', () => {
   });
 
   it('should create repetitions as creation is a repetition', async () => {
-    const payload = { repetition: { frequency: EVERY_WEEK } };
-    const newEvent = new Event({ type: INTERVENTION });
+    const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK } };
+    const newEvent = new Event(payload);
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
@@ -1392,8 +1398,8 @@ describe('createEvent', () => {
       type: ABSENCE,
       startDate: '2019-03-20T10:00:00',
       endDate: '2019-03-20T12:00:00',
-      auxiliary: auxiliaryId,
-      _id: eventId,
+      auxiliary: auxiliaryId.toHexString(),
+      _id: eventId.toHexString(),
     };
     const newEvent = new Event(payload);
 
@@ -1424,23 +1430,23 @@ describe('deleteConflictEventsExceptInterventions', () => {
   const absenceId = new ObjectID();
   const credentials = { _id: new ObjectID() };
   let EventMock;
-  let deleteEvent;
+  let deleteEvents;
   beforeEach(() => {
     EventMock = sinon.mock(Event);
-    deleteEvent = sinon.stub(EventHelper, 'deleteEvent');
+    deleteEvents = sinon.stub(EventHelper, 'deleteEvents');
   });
   afterEach(() => {
     EventMock.restore();
-    deleteEvent.restore();
+    deleteEvents.restore();
   });
 
   it('should delete conflict events except interventions', async () => {
-    const events = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
     EventMock.expects('find').chain('lean').once().returns(events);
     await EventHelper.deleteConflictEventsExceptInterventions(dates, auxiliaryId, absenceId, credentials);
 
     EventMock.verify();
-    sinon.assert.callCount(deleteEvent, events.length);
+    sinon.assert.calledWith(deleteEvents, events, credentials);
   });
 });
 
@@ -1460,7 +1466,7 @@ describe('unassignConflictInterventions', () => {
   });
 
   it('should delete conflict events except interventions', async () => {
-    const events = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
     EventMock.expects('find').chain('lean').once().returns(events);
     await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
 
@@ -1473,8 +1479,8 @@ describe('deleteRepetition', () => {
   let findOne;
   let createEventHistoryOnDelete;
   let deleteMany;
-  const params = { _id: new ObjectID() };
-  const credentials = { _id: new ObjectID() };
+  const params = { _id: (new ObjectID()).toHexString() };
+  const credentials = { _id: (new ObjectID()).toHexString() };
   beforeEach(() => {
     findOne = sinon.stub(Event, 'findOne');
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
@@ -1555,8 +1561,8 @@ describe('deleteEvent', () => {
   let findOne;
   let createEventHistoryOnDelete;
   let deleteOne;
-  const params = { _id: new ObjectID() };
-  const credentials = { _id: new ObjectID() };
+  const params = { _id: (new ObjectID()).toHexString() };
+  const credentials = { _id: (new ObjectID()).toHexString() };
   beforeEach(() => {
     findOne = sinon.stub(Event, 'findOne');
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
@@ -1594,6 +1600,32 @@ describe('deleteEvent', () => {
     expect(result).toEqual(event);
     sinon.assert.calledWith(createEventHistoryOnDelete, deletionInfo, credentials);
     sinon.assert.calledWith(deleteOne, { _id: params._id });
+  });
+});
+
+describe('deleteEvents', () => {
+  let createEventHistoryOnDelete;
+  let deleteMany;
+  const credentials = { _id: (new ObjectID()).toHexString() };
+  beforeEach(() => {
+    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
+    deleteMany = sinon.stub(Event, 'deleteMany');
+  });
+  afterEach(() => {
+    createEventHistoryOnDelete.restore();
+    deleteMany.restore();
+  });
+
+  it('should delete events', async () => {
+    const events = [
+      { _id: '1234567890' },
+      { _id: 'qwertyuiop' },
+      { _id: 'asdfghjkl' },
+    ];
+    await EventHelper.deleteEvents(events, credentials);
+
+    sinon.assert.callCount(createEventHistoryOnDelete, events.length);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
   });
 });
 

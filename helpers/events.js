@@ -81,28 +81,20 @@ exports.createEvent = async (payload, credentials) => {
 
 exports.deleteConflictEventsExceptInterventions = async (dates, auxiliaryId, absenceId, credentials) => {
   const events = await Event.find({
-    $or: [
-      { startDate: { $gte: dates.startDate }, endDate: { $lte: dates.endDate } },
-      { startDate: { $lte: dates.startDate }, endDate: { $gt: dates.startDate } },
-      { startDate: { $lt: dates.endDate }, endDate: { $gte: dates.endDate } },
-    ],
+    startDate: { $lte: dates.endDate },
+    endDate: { $gte: dates.startDate },
     auxiliary: auxiliaryId,
     type: { $in: [INTERNAL_HOUR, UNAVAILABILITY, ABSENCE] },
     _id: { $ne: absenceId },
   }).lean();
 
-  for (let i = 0, l = events.length; i < l; i++) {
-    await exports.deleteEvent({ _id: events[i]._id }, credentials);
-  }
+  await exports.deleteEvents(events, credentials);
 };
 
 exports.unassignConflictInterventions = async (dates, auxiliaryId, credentials) => {
   const interventions = await Event.find({
-    $or: [
-      { startDate: { $gte: dates.startDate }, endDate: { $lte: dates.endDate } },
-      { startDate: { $lte: dates.startDate }, endDate: { $gt: dates.startDate } },
-      { startDate: { $lt: dates.endDate }, endDate: { $gte: dates.endDate } },
-    ],
+    startDate: { $lte: dates.endDate },
+    endDate: { $gte: dates.startDate },
     auxiliary: auxiliaryId,
     type: INTERVENTION,
   }).lean();
@@ -413,10 +405,11 @@ exports.updateEvent = async (event, payload, credentials) => {
       await exports.updateRepetitions(event, payload);
     }
   } else if (!payload.isCancelled && event.isCancelled) {
-    set = { ...payload, isCancelled: false, repetition: { frequency: NEVER, parentId: undefined } };
-    unset = { cancel: '' };
+    set = { ...payload, isCancelled: false, repetition: { frequency: NEVER } };
+    unset = { cancel: '', 'repetition.parentId': '' };
   } else {
-    set = { ...payload, repetition: { frequency: NEVER, parentId: undefined } };
+    set = { ...payload, repetition: { frequency: NEVER } };
+    unset = { 'repetition.parentId': '' };
   }
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
@@ -473,6 +466,17 @@ exports.deleteEvent = async (params, credentials) => {
   await Event.deleteOne({ _id: params._id });
 
   return event;
+};
+
+exports.deleteEvents = async (events, credentials) => {
+  const promises = [];
+  for (const event of events) {
+    const deletionInfo = _.omit(event, 'repetition');
+    promises.push(EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials));
+  }
+
+  await Promise.all(promises);
+  await Event.deleteMany({ _id: { $in: events.map(ev => ev._id) } });
 };
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
