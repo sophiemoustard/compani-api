@@ -50,13 +50,13 @@ exports.hasConflicts = async (event) => {
   return auxiliaryEvents.some((ev) => {
     if ((_id && _id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
     return (
-      moment(startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[]') ||
-      moment(ev.startDate).isBetween(startDate, endDate, 'minutes', '[]')
+      moment(startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[)') ||
+      moment(ev.startDate).isBetween(startDate, endDate, 'minutes', '[)')
     );
   });
 };
 
-const isRepetition = event => event.repetition && event.repetition.frequency !== NEVER;
+const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.createEvent = async (payload, credentials) => {
   if (!(await exports.isCreationAllowed(payload))) throw Boom.badData();
@@ -64,9 +64,10 @@ exports.createEvent = async (payload, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
   let event = { ...payload };
-  if (event.type === INTERVENTION && isRepetition(event) && exports.hasConflicts(event)) delete event.auxiliary;
+  if (event.type === INTERVENTION && isRepetition(event) && await exports.hasConflicts(event)) delete event.auxiliary;
 
-  event = await (new Event(event)).save();
+  event = new Event(event);
+  await event.save();
   event = await EventRepository.getEvent(event._id);
 
   if (payload.type === ABSENCE) {

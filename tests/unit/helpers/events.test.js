@@ -1306,24 +1306,55 @@ describe('exportAbsencesHistory', () => {
 });
 
 describe('formatRepeatedEvent', () => {
-  it('should format event', () => {
+  let hasConflicts;
+  beforeEach(() => {
+    hasConflicts = sinon.stub(EventHelper, 'hasConflicts');
+  });
+  afterEach(() => {
+    hasConflicts.restore();
+  });
+
+  it('should format event with auxiliary', async () => {
     const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const auxiliaryId = new ObjectID();
     const event = {
       startDate: moment('2019-07-14').startOf('d'),
       endDate: moment('2019-07-15').startOf('d'),
+      auxiliary: auxiliaryId,
     };
 
-    const result = EventHelper.formatRepeatedEvent(event, day);
+    hasConflicts.returns(false);
+    const result = await EventHelper.formatRepeatedEvent(event, day);
 
     expect(result).toBeDefined();
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
     expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
+    expect(result.auxiliary).toEqual(auxiliaryId);
+  });
+
+  it('should format event without auxiliary', async () => {
+    const auxiliaryId = new ObjectID();
+    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const event = {
+      startDate: moment('2019-07-14').startOf('d'),
+      endDate: moment('2019-07-15').startOf('d'),
+      auxiliary: auxiliaryId,
+    };
+
+    hasConflicts.returns(true);
+    const result = await EventHelper.formatRepeatedEvent(event, day);
+
+    expect(result).toBeDefined();
+    expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
+    expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
+    expect(result.auxiliary).not.toBeDefined();
   });
 });
 
 describe('createEvent', () => {
   let save;
   let isCreationAllowed;
+  let hasConflicts;
   let createEventHistoryOnCreate;
   let populateEventSubscription;
   let createRepetitions;
@@ -1333,6 +1364,7 @@ describe('createEvent', () => {
   beforeEach(() => {
     save = sinon.stub(Event.prototype, 'save');
     isCreationAllowed = sinon.stub(EventHelper, 'isCreationAllowed');
+    hasConflicts = sinon.stub(EventHelper, 'hasConflicts');
     createEventHistoryOnCreate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnCreate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     createRepetitions = sinon.stub(EventHelper, 'createRepetitions');
@@ -1343,6 +1375,7 @@ describe('createEvent', () => {
   afterEach(() => {
     save.restore();
     isCreationAllowed.restore();
+    hasConflicts.restore();
     createEventHistoryOnCreate.restore();
     populateEventSubscription.restore();
     createRepetitions.restore();
@@ -1375,11 +1408,12 @@ describe('createEvent', () => {
     sinon.assert.called(populateEventSubscription);
   });
 
-  it('should create repetitions as creation is a repetition', async () => {
+  it('should create repetitions as event is a repetition', async () => {
     const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK } };
     const newEvent = new Event(payload);
 
     isCreationAllowed.returns(true);
+    hasConflicts.returns(false);
     getEvent.returns(newEvent);
 
     await EventHelper.createEvent(payload, {});
