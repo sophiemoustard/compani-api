@@ -1088,7 +1088,7 @@ describe('isEditionAllowed', () => {
   });
 });
 
-describe('unassignInterventions', () => {
+describe('unassignInterventionsOnContractEnd', () => {
   let getCustomerSubscriptions = null;
   let unassignInterventions = null;
 
@@ -1121,7 +1121,7 @@ describe('unassignInterventions', () => {
     const contract = { status: COMPANY_CONTRACT, endDate: moment().toDate(), user: userId };
     getCustomerSubscriptions.returns(aggregation);
 
-    await EventHelper.unassignInterventions(contract);
+    await EventHelper.unassignInterventionsOnContractEnd(contract);
     sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWith(
       unassignInterventions,
@@ -1135,7 +1135,7 @@ describe('unassignInterventions', () => {
     const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
     getCustomerSubscriptions.returns(aggregation);
 
-    await EventHelper.unassignInterventions(contract);
+    await EventHelper.unassignInterventionsOnContractEnd(contract);
     sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWith(
       unassignInterventions,

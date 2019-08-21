@@ -444,7 +444,7 @@ exports.deleteRepetition = async (params, credentials) => {
   return event;
 };
 
-exports.unassignInterventions = async (contract) => {
+exports.unassignInterventionsOnContractEnd = async (contract) => {
   const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract);
 
   if (customerSubscriptionsFromEvents.length === 0) return;
