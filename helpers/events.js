@@ -56,13 +56,17 @@ exports.hasConflicts = async (event) => {
   });
 };
 
+const isRepetition = event => event.repetition && event.repetition.frequency !== NEVER;
+
 exports.createEvent = async (payload, credentials) => {
   if (!(await exports.isCreationAllowed(payload))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  let event = new Event(payload);
-  await event.save();
+  let event = { ...payload };
+  if (event.type === INTERVENTION && isRepetition(event) && exports.hasConflicts(event)) delete event.auxiliary;
+
+  event = await (new Event(event)).save();
   event = await EventRepository.getEvent(event._id);
 
   if (payload.type === ABSENCE) {
@@ -72,9 +76,7 @@ exports.createEvent = async (payload, credentials) => {
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
-  if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
-    event = await exports.createRepetitions(event);
-  }
+  if (isRepetition(event)) await exports.createRepetitions({ _id: event._id, ...payload });
 
   return exports.populateEventSubscription(event);
 };
@@ -139,7 +141,7 @@ exports.isCreationAllowed = async (event) => {
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!await exports.checkContracts(event, user)) return false;
 
-  if (event.type !== ABSENCE && await exports.hasConflicts(event)) return false;
+  if (event.type !== ABSENCE && !(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event)) return false;
 
   if (!eventHasAuxiliarySector(event, user)) return false;
 
@@ -249,14 +251,17 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
   );
 };
 
-exports.formatRepeatedEvent = (event, momentDay) => {
+exports.formatRepeatedEvent = async (event, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
-
-  return new Event({
+  const payload = {
     ..._.omit(event, '_id'),
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
-  });
+  };
+
+  if (await exports.hasConflicts(payload)) delete payload.auxiliary;
+
+  return new Event(payload);
 };
 
 exports.createRepetitionsEveryDay = async (event) => {
@@ -264,11 +269,11 @@ exports.createRepetitionsEveryDay = async (event) => {
   const end = moment(event.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('days'));
   const promises = [];
-  range.forEach((day) => {
-    const repeatedEvent = exports.formatRepeatedEvent(event, day);
+  for (let i = 0, l = range.length; i < l; i++) {
+    const repeatedEvent = await exports.formatRepeatedEvent(event, range[i]);
 
     promises.push(repeatedEvent.save());
-  });
+  }
 
   return Promise.all(promises);
 };
@@ -278,13 +283,13 @@ exports.createRepetitionsEveryWeekDay = async (event) => {
   const end = moment(event.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('days'));
   const promises = [];
-  range.forEach((day) => {
-    if (moment(day).day() !== 0 && moment(day).day() !== 6) {
-      const repeatedEvent = exports.formatRepeatedEvent(event, day);
+  for (let i = 0, l = range.length; i < l; i++) {
+    if (moment(range[i]).day() !== 0 && moment(range[i]).day() !== 6) {
+      const repeatedEvent = await exports.formatRepeatedEvent(event, range[i]);
 
       promises.push(repeatedEvent.save());
     }
-  });
+  }
 
   return Promise.all(promises);
 };
@@ -295,11 +300,11 @@ exports.createRepetitionsByWeek = async (event, step) => {
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
 
   const promises = [];
-  range.forEach((day) => {
-    const repeatedEvent = exports.formatRepeatedEvent(event, day);
+  for (let i = 0, l = range.length; i < l; i++) {
+    const repeatedEvent = await exports.formatRepeatedEvent(event, range[i]);
 
     promises.push(repeatedEvent.save());
-  });
+  }
 
   return Promise.all(promises);
 };
