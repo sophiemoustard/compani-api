@@ -17,7 +17,6 @@ const {
   COMPANY_CONTRACT,
   INTERNAL_HOUR,
   ABSENCE,
-  UNAVAILABILITY,
   NEVER,
   EVERY_WEEK,
   INVOICED_AND_NOT_PAYED,
@@ -402,7 +401,7 @@ describe('hasConflicts', () => {
   });
 });
 
-describe('isActionAllowed', () => {
+describe('checkContracts', () => {
   let hasConflicts;
   let UserModel;
   let CustomerModel;
@@ -423,56 +422,12 @@ describe('isActionAllowed', () => {
     findOneSurcharge.restore();
   });
 
-  it('should return false as event has conflicts', async () => {
-    const payload = {
-      auxiliary: new ObjectID(),
-      startDate: '2019-10-02T08:00:00.000Z',
-      endDate: '2019-10-02T10:00:00.000Z',
-    };
-
-    hasConflicts.returns(true);
-    const result = await EventHelper.isActionAllowed(payload);
-
-    expect(result).toBeFalsy();
-  });
-
   it('should return false as user has no contract', async () => {
-    const payload = { auxiliary: new ObjectID() };
-
-    const user = { _id: payload.auxiliary };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const event = { auxiliary: new ObjectID() };
+    const user = { _id: event.auxiliary };
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isActionAllowed(payload);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false if auxiliary sector is not event sector', async () => {
-    const payload = { auxiliary: new ObjectID(), sector: new ObjectID().toHexString() };
-    const contract = new Contract({
-      user: payload.auxiliary,
-      customer: payload.customer,
-      versions: [{}],
-      startDate: moment(payload.startDate).add(1, 'd'),
-    });
-    findOneContract.returns(contract);
-
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: new ObjectID() };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
-
-    hasConflicts.returns(false);
-    const result = await EventHelper.isActionAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeFalsy();
   });
@@ -480,7 +435,7 @@ describe('isActionAllowed', () => {
   it('should return false if service event is customer contract and auxiliary does not have contract with customer', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
-    const payload = {
+    const event = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
@@ -490,11 +445,11 @@ describe('isActionAllowed', () => {
       sector: sectorId.toHexString(),
     };
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
         service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -504,30 +459,23 @@ describe('isActionAllowed', () => {
       .returns(customer);
 
     const contract = new Contract({
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{}],
-      startDate: moment(payload.startDate).add(1, 'd'),
+      startDate: moment(event.startDate).add(1, 'd'),
     });
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isActionAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
     expect(result).toBeFalsy();
   });
 
   it('should return true if service event is customer contract and auxiliary has contract with customer', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
-    const payload = {
+    const event = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
@@ -538,11 +486,11 @@ describe('isActionAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
         service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -552,23 +500,16 @@ describe('isActionAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{ isActive: true }],
-      startDate: moment(payload.startDate).subtract(1, 'd'),
+      startDate: moment(event.startDate).subtract(1, 'd'),
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isActionAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeTruthy();
   });
@@ -576,7 +517,7 @@ describe('isActionAllowed', () => {
   it('should return false if company contract and no active contract on day', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
-    const payload = {
+    const event = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
@@ -587,11 +528,11 @@ describe('isActionAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -601,24 +542,17 @@ describe('isActionAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{}],
       status: COMPANY_CONTRACT,
-      startDate: moment(payload.startDate).add(1, 'd'),
+      startDate: moment(event.startDate).add(1, 'd'),
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isActionAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeFalsy();
   });
@@ -626,7 +560,7 @@ describe('isActionAllowed', () => {
   it('should return true if company contract and active contract on day', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
-    const payload = {
+    const event = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
@@ -637,11 +571,11 @@ describe('isActionAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -651,31 +585,24 @@ describe('isActionAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{ isActive: true }],
       status: COMPANY_CONTRACT,
-      startDate: moment(payload.startDate).subtract(1, 'd'),
+      startDate: moment(event.startDate).subtract(1, 'd'),
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isActionAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeTruthy();
   });
 
   it('should return false if company contract and customer has no subscription', async () => {
     const sectorId = new ObjectID();
-    const payload = {
+    const event = {
       auxiliary: new ObjectID(),
       customer: new ObjectID(),
       type: INTERVENTION,
@@ -686,11 +613,11 @@ describe('isActionAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: new ObjectID(),
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).add(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).add(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -700,31 +627,24 @@ describe('isActionAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{ isActive: true }],
       status: COMPANY_CONTRACT,
-      startDate: moment(payload.startDate).subtract(1, 'd'),
+      startDate: moment(event.startDate).subtract(1, 'd'),
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isActionAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeFalsy();
   });
 
   it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
     const sectorId = new ObjectID();
-    const payload = {
+    const event = {
       auxiliary: new ObjectID(),
       type: INTERNAL_HOUR,
       startDate: '2019-10-03T00:00:00.000Z',
@@ -732,9 +652,9 @@ describe('isActionAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
-        _id: payload.subscription,
+        _id: event.subscription,
         service: { type: '', versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
       }],
     };
@@ -745,100 +665,426 @@ describe('isActionAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{}],
       status: CUSTOMER_CONTRACT,
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isActionAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeFalsy();
   });
 });
 
-describe('isEditionAllowed', () => {
-  let isActionAllowed;
+describe('isCreationAllowed', () => {
+  let UserModel;
+  let checkContracts;
+  let hasConflicts;
   beforeEach(() => {
-    isActionAllowed = sinon.stub(EventHelper, 'isActionAllowed');
+    UserModel = sinon.mock(User);
+    checkContracts = sinon.stub(EventHelper, 'checkContracts');
+    hasConflicts = sinon.stub(EventHelper, 'hasConflicts');
   });
   afterEach(() => {
-    isActionAllowed.restore();
+    UserModel.restore();
+    checkContracts.restore();
+    hasConflicts.restore();
+  });
+
+  it('should return false as event is not absence and no on one day', async () => {
+    const event = {
+      auxiliary: new ObjectID(),
+      sector: new ObjectID().toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-14T11:00:00',
+    };
+    const result = await EventHelper.isCreationAllowed(event);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(checkContracts);
+    sinon.assert.notCalled(hasConflicts);
+  });
+
+  it('should return false as event has no auxiliary and is not intervention', async () => {
+    const event = {
+      sector: new ObjectID().toHexString(),
+      type: ABSENCE,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const result = await EventHelper.isCreationAllowed(event);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(checkContracts);
+  });
+
+  it('should return true as event has no auxiliary and is intervention', async () => {
+    const event = {
+      sector: new ObjectID().toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const result = await EventHelper.isCreationAllowed(event);
+
+    UserModel.verify();
+    expect(result).toBeTruthy();
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(checkContracts);
+  });
+
+  it('should return false as auxiliary does not have contracts', async () => {
+    const event = {
+      auxiliary: new ObjectID(),
+      sector: new ObjectID().toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const user = { _id: event.auxiliary, sector: new ObjectID() };
+
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: event.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    checkContracts.returns(false);
+    const result = await EventHelper.isCreationAllowed(event);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.calledWith(checkContracts, event, user);
+  });
+
+  it('should return false as event is not absence and has conflicts', async () => {
+    const event = {
+      auxiliary: new ObjectID(),
+      sector: new ObjectID().toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const user = { _id: event.auxiliary, sector: new ObjectID() };
+
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: event.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    checkContracts.returns(true);
+    hasConflicts.returns(true);
+    const result = await EventHelper.isCreationAllowed(event);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.calledWith(hasConflicts, event);
+    sinon.assert.calledWith(checkContracts, event, user);
+  });
+
+  it('should return false if auxiliary sector is not event sector', async () => {
+    const event = {
+      auxiliary: new ObjectID(),
+      sector: new ObjectID().toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const user = { _id: event.auxiliary, sector: new ObjectID() };
+
+    checkContracts.returns(true);
+    hasConflicts.returns(false);
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: event.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    const result = await EventHelper.isCreationAllowed(event);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.calledWith(hasConflicts, event);
+    sinon.assert.calledWith(checkContracts, event, user);
+  });
+
+  it('should return true', async () => {
+    const sectorId = new ObjectID();
+    const event = {
+      auxiliary: new ObjectID(),
+      sector: sectorId.toHexString(),
+      type: INTERVENTION,
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const user = { _id: event.auxiliary, sector: sectorId };
+
+    checkContracts.returns(true);
+    hasConflicts.returns(false);
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: event.auxiliary })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    const result = await EventHelper.isCreationAllowed(event);
+
+    UserModel.verify();
+    expect(result).toBeTruthy();
+    sinon.assert.calledWith(hasConflicts, event);
+    sinon.assert.calledWith(checkContracts, event, user);
+  });
+});
+
+describe('isEditionAllowed', () => {
+  let UserModel;
+  let checkContracts;
+  let hasConflicts;
+  beforeEach(() => {
+    UserModel = sinon.mock(User);
+    checkContracts = sinon.stub(EventHelper, 'checkContracts');
+    hasConflicts = sinon.stub(EventHelper, 'hasConflicts');
+  });
+  afterEach(() => {
+    UserModel.restore();
+    checkContracts.restore();
+    hasConflicts.restore();
   });
 
   it('should return false as event is billed', async () => {
-    const eventFromDb = {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
       isBilled: true,
-      type: INTERVENTION,
     };
-    const payload = {};
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
 
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+    UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(isActionAllowed);
+    sinon.assert.notCalled(checkContracts);
+    sinon.assert.notCalled(hasConflicts);
   });
 
-  it('should return false as event is absence and auxiliary is updated', async () => {
-    const eventFromDb = {
+  it('should return false as event is absence or availability and auxiliary is updated', async () => {
+    const sectorId = new ObjectID();
+    const payload = {
+      auxiliary: new ObjectID(),
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: new ObjectID(),
       type: ABSENCE,
-      auxiliary: new ObjectID(),
     };
-    const payload = { auxiliary: '1234567890' };
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
 
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+    UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(isActionAllowed);
+    sinon.assert.notCalled(checkContracts);
+    sinon.assert.notCalled(hasConflicts);
   });
 
-  it('should return false as event is unavailability and auxiliary is updated', async () => {
-    const eventFromDb = {
-      type: UNAVAILABILITY,
-      auxiliary: new ObjectID(),
+  it('should return false as event is not absence and no on one day', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-14T11:00:00',
     };
-    const payload = { auxiliary: '1234567890' };
-
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
-    expect(result).toBeFalsy();
-    sinon.assert.notCalled(isActionAllowed);
-  });
-
-  it('should call isActionAllowed for unassigned event', async () => {
-    const eventFromDb = {
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
       type: INTERVENTION,
-      auxiliary: new ObjectID(),
+      isBilled: true,
     };
-    const payload = { isCancelled: false };
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
 
-    isActionAllowed.returns(false);
-
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+    UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.calledWith(isActionAllowed, { isCancelled: false, type: INTERVENTION });
+    sinon.assert.notCalled(checkContracts);
+    sinon.assert.notCalled(hasConflicts);
   });
 
-  it('should call isActionAllowed for event with auxiliary', async () => {
-    const auxiliary = new ObjectID();
-    const eventFromDb = {
-      type: INTERVENTION,
-      auxiliary,
+  it('should return false as event has no auxiliary and is not intervention', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
     };
-    const payload = { isCancelled: false, auxiliary, type: INTERVENTION };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: ABSENCE,
+    };
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
 
-    isActionAllowed.returns(true);
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(checkContracts);
+  });
 
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
+  it('should return true as event has no auxiliary and is intervention', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+    };
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
+
+    UserModel.verify();
     expect(result).toBeTruthy();
-    sinon.assert.calledWith(isActionAllowed, { isCancelled: false, type: INTERVENTION, auxiliary });
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.notCalled(checkContracts);
+  });
+
+  it('should return false as auxiliary does not have contracts', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+    };
+    const user = { _id: auxiliaryId, sector: sectorId };
+
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    checkContracts.returns(false);
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+  });
+
+  it('should return false as event is not absence and has conflicts', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+    };
+    const user = { _id: auxiliaryId, sector: sectorId };
+
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    checkContracts.returns(true);
+    hasConflicts.returns(true);
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.calledWith(hasConflicts, { ...eventFromDB, ...payload });
+    sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+  });
+
+  it('should return false if auxiliary sector is not event sector', async () => {
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      sector: (new ObjectID()).toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+    };
+    const user = { _id: auxiliaryId, sector: new ObjectID() };
+
+    checkContracts.returns(true);
+    hasConflicts.returns(false);
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
+    sinon.assert.calledWith(hasConflicts, { ...eventFromDB, ...payload });
+    sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+  });
+
+  it('should return true', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId,
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+    };
+    const user = { _id: auxiliaryId, sector: sectorId };
+
+    checkContracts.returns(true);
+    hasConflicts.returns(false);
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    const result = await EventHelper.isEditionAllowed(eventFromDB, payload);
+
+    UserModel.verify();
+    expect(result).toBeTruthy();
+    sinon.assert.calledWith(hasConflicts, { ...eventFromDB, ...payload });
+    sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
   });
 });
 

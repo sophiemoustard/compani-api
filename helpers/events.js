@@ -113,19 +113,8 @@ exports.unassignConflictInterventions = async (dates, auxiliaryId, credentials) 
   }
 };
 
-exports.isCreationAllowed = async (event) => {
-  if (event.type === ABSENCE) return true;
-  return exports.isActionAllowed(event);
-};
-
-exports.isActionAllowed = async (event) => {
-  if (!event.auxiliary) return event.type === INTERVENTION;
-  if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
-  if (event.type !== ABSENCE && !moment(event.startDate).isSame(event.endDate, 'day')) return false;
-
-  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
+exports.checkContracts = async (event, user) => {
   if (!user.contracts || user.contracts.length === 0) return false;
-  if (event.auxiliary && event.sector !== user.sector.toHexString()) return false;
 
   // If the event is an intervention :
   // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention
@@ -157,20 +146,44 @@ exports.isActionAllowed = async (event) => {
   return true;
 };
 
+const isOneDayEvent = event => moment(event.startDate).isSame(event.endDate, 'day');
+const eventHasAuxiliarySector = (event, user) => event.sector === user.sector.toHexString();
+const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString();
+
+exports.isCreationAllowed = async (event) => {
+  if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
+  if (!event.auxiliary) return event.type === INTERVENTION;
+
+  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
+  if (!await exports.checkContracts(event, user)) return false;
+
+  if (event.type !== ABSENCE && await exports.hasConflicts(event)) return false;
+
+  if (!eventHasAuxiliarySector(event, user)) return false;
+
+  return true;
+};
+
 exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
 
-  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) &&
-    payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString()) {
-    return false;
-  }
+  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
-  if (!payload.auxiliary) {
-    const { auxiliary, ...rest } = eventFromDB;
-    return exports.isActionAllowed({ ...rest, ...payload });
-  }
+  const event = !payload.auxiliary
+    ? { ..._.omit(eventFromDB, 'auxiliary'), ...payload }
+    : { ...eventFromDB, ...payload };
 
-  return exports.isActionAllowed({ ...eventFromDB, ...payload });
+  if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
+  if (!event.auxiliary) return event.type === INTERVENTION;
+
+  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
+  if (!await exports.checkContracts(event, user)) return false;
+
+  if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
+
+  if (!eventHasAuxiliarySector(event, user)) return false;
+
+  return true;
 };
 
 exports.getListQuery = (req) => {
