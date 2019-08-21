@@ -128,8 +128,7 @@ describe('updateEvent', () => {
     sinon.assert.calledWith(
       updateEvent,
       eventId,
-      { ...payload, 'repetition.frequency': NEVER },
-      { 'repetition.parentId': '' }
+      { ...payload, repetition: { frequency: NEVER, parentId: undefined } }
     );
 
     sinon.assert.notCalled(updateRepetitions);
@@ -176,8 +175,7 @@ describe('updateEvent', () => {
     sinon.assert.calledWith(
       updateEvent,
       eventId,
-      { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
-      { cancel: '', 'repetition.parentId': '' }
+      { ...payload, isCancelled: false, repetition: { frequency: NEVER, parentId: undefined } }
     );
     sinon.assert.notCalled(updateRepetitions);
   });
@@ -404,7 +402,7 @@ describe('hasConflicts', () => {
   });
 });
 
-describe('isCreationAllowed', () => {
+describe('isActionAllowed', () => {
   let hasConflicts;
   let UserModel;
   let CustomerModel;
@@ -433,7 +431,7 @@ describe('isCreationAllowed', () => {
     };
 
     hasConflicts.returns(true);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
 
     expect(result).toBeFalsy();
   });
@@ -450,7 +448,7 @@ describe('isCreationAllowed', () => {
       .returns(user);
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
 
     expect(result).toBeFalsy();
   });
@@ -474,7 +472,7 @@ describe('isCreationAllowed', () => {
       .returns(user);
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
 
     expect(result).toBeFalsy();
   });
@@ -522,7 +520,7 @@ describe('isCreationAllowed', () => {
       .returns(user);
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
     expect(result).toBeFalsy();
   });
 
@@ -570,7 +568,7 @@ describe('isCreationAllowed', () => {
       .returns(user);
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
 
     expect(result).toBeTruthy();
   });
@@ -620,7 +618,7 @@ describe('isCreationAllowed', () => {
       .returns(user);
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
 
     expect(result).toBeFalsy();
   });
@@ -670,7 +668,7 @@ describe('isCreationAllowed', () => {
       .returns(user);
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
 
     expect(result).toBeTruthy();
   });
@@ -719,7 +717,7 @@ describe('isCreationAllowed', () => {
       .returns(user);
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
 
     expect(result).toBeFalsy();
   });
@@ -763,19 +761,19 @@ describe('isCreationAllowed', () => {
       .returns(user);
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.isActionAllowed(payload);
 
     expect(result).toBeFalsy();
   });
 });
 
 describe('isEditionAllowed', () => {
-  let isCreationAllowed;
+  let isActionAllowed;
   beforeEach(() => {
-    isCreationAllowed = sinon.stub(EventHelper, 'isCreationAllowed');
+    isActionAllowed = sinon.stub(EventHelper, 'isActionAllowed');
   });
   afterEach(() => {
-    isCreationAllowed.restore();
+    isActionAllowed.restore();
   });
 
   it('should return false as event is billed', async () => {
@@ -787,7 +785,7 @@ describe('isEditionAllowed', () => {
 
     const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(isCreationAllowed);
+    sinon.assert.notCalled(isActionAllowed);
   });
 
   it('should return false as event is absence and auxiliary is updated', async () => {
@@ -799,7 +797,7 @@ describe('isEditionAllowed', () => {
 
     const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(isCreationAllowed);
+    sinon.assert.notCalled(isActionAllowed);
   });
 
   it('should return false as event is unavailability and auxiliary is updated', async () => {
@@ -811,24 +809,24 @@ describe('isEditionAllowed', () => {
 
     const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
     expect(result).toBeFalsy();
-    sinon.assert.notCalled(isCreationAllowed);
+    sinon.assert.notCalled(isActionAllowed);
   });
 
-  it('should call isCreationAllowed for unassigned event', async () => {
+  it('should call isActionAllowed for unassigned event', async () => {
     const eventFromDb = {
       type: INTERVENTION,
       auxiliary: new ObjectID(),
     };
     const payload = { isCancelled: false };
 
-    isCreationAllowed.returns(false);
+    isActionAllowed.returns(false);
 
     const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
     expect(result).toBeFalsy();
-    sinon.assert.calledWith(isCreationAllowed, { isCancelled: false, type: INTERVENTION });
+    sinon.assert.calledWith(isActionAllowed, { isCancelled: false, type: INTERVENTION });
   });
 
-  it('should call isCreationAllowed for event with auxiliary', async () => {
+  it('should call isActionAllowed for event with auxiliary', async () => {
     const auxiliary = new ObjectID();
     const eventFromDb = {
       type: INTERVENTION,
@@ -836,11 +834,11 @@ describe('isEditionAllowed', () => {
     };
     const payload = { isCancelled: false, auxiliary, type: INTERVENTION };
 
-    isCreationAllowed.returns(true);
+    isActionAllowed.returns(true);
 
     const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
     expect(result).toBeTruthy();
-    sinon.assert.calledWith(isCreationAllowed, { isCancelled: false, type: INTERVENTION, auxiliary });
+    sinon.assert.calledWith(isActionAllowed, { isCancelled: false, type: INTERVENTION, auxiliary });
   });
 });
 
@@ -1077,6 +1075,8 @@ describe('createEvent', () => {
   let populateEventSubscription;
   let createRepetitions;
   let getEvent;
+  let deleteConflictEventsExceptInterventions;
+  let unassignConflictInterventions;
   beforeEach(() => {
     save = sinon.stub(Event.prototype, 'save');
     isCreationAllowed = sinon.stub(EventHelper, 'isCreationAllowed');
@@ -1084,6 +1084,8 @@ describe('createEvent', () => {
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     createRepetitions = sinon.stub(EventHelper, 'createRepetitions');
     getEvent = sinon.stub(EventRepository, 'getEvent');
+    deleteConflictEventsExceptInterventions = sinon.stub(EventHelper, 'deleteConflictEventsExceptInterventions');
+    unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
     save.restore();
@@ -1092,6 +1094,8 @@ describe('createEvent', () => {
     populateEventSubscription.restore();
     createRepetitions.restore();
     getEvent.restore();
+    deleteConflictEventsExceptInterventions.restore();
+    unassignConflictInterventions.restore();
   });
 
   it('should not create as creation is not allowed', async () => {
@@ -1104,9 +1108,7 @@ describe('createEvent', () => {
   });
 
   it('should create as creation is allowed', async () => {
-    const newEvent = new Event({
-      type: ABSENCE,
-    });
+    const newEvent = new Event({ type: INTERNAL_HOUR });
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
@@ -1122,9 +1124,7 @@ describe('createEvent', () => {
 
   it('should create repetitions as creation is a repetition', async () => {
     const payload = { repetition: { frequency: EVERY_WEEK } };
-    const newEvent = new Event({
-      type: INTERVENTION,
-    });
+    const newEvent = new Event({ type: INTERVENTION });
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
@@ -1136,6 +1136,90 @@ describe('createEvent', () => {
     sinon.assert.called(getEvent);
     sinon.assert.called(createRepetitions);
     sinon.assert.called(populateEventSubscription);
+  });
+
+  it('should unassign intervention and delete other event in conflict on absence creation', async () => {
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const credentials = { _id: 'asdfghjkl' };
+    const payload = {
+      type: ABSENCE,
+      startDate: '2019-03-20T10:00:00',
+      endDate: '2019-03-20T12:00:00',
+      auxiliary: auxiliaryId,
+      _id: eventId,
+    };
+    const newEvent = new Event(payload);
+
+    isCreationAllowed.returns(true);
+    getEvent.returns(newEvent);
+
+    await EventHelper.createEvent(payload, credentials);
+
+    sinon.assert.calledWith(
+      deleteConflictEventsExceptInterventions,
+      { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
+      auxiliaryId,
+      eventId.toHexString(),
+      { _id: 'asdfghjkl' }
+    );
+    sinon.assert.calledWith(
+      unassignConflictInterventions,
+      { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
+      auxiliaryId,
+      { _id: 'asdfghjkl' }
+    );
+  });
+});
+
+describe('deleteConflictEventsExceptInterventions', () => {
+  const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
+  const auxiliaryId = new ObjectID();
+  const absenceId = new ObjectID();
+  const credentials = { _id: new ObjectID() };
+  let EventMock;
+  let deleteEvent;
+  beforeEach(() => {
+    EventMock = sinon.mock(Event);
+    deleteEvent = sinon.stub(EventHelper, 'deleteEvent');
+  });
+  afterEach(() => {
+    EventMock.restore();
+    deleteEvent.restore();
+  });
+
+  it('should delete conflict events except interventions', async () => {
+    const events = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    EventMock.expects('find').chain('lean').once().returns(events);
+    await EventHelper.deleteConflictEventsExceptInterventions(dates, auxiliaryId, absenceId, credentials);
+
+    EventMock.verify();
+    sinon.assert.callCount(deleteEvent, events.length);
+  });
+});
+
+describe('unassignConflictInterventions', () => {
+  const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
+  const auxiliaryId = new ObjectID();
+  const credentials = { _id: new ObjectID() };
+  let EventMock;
+  let updateEvent;
+  beforeEach(() => {
+    EventMock = sinon.mock(Event);
+    updateEvent = sinon.stub(EventHelper, 'updateEvent');
+  });
+  afterEach(() => {
+    EventMock.restore();
+    updateEvent.restore();
+  });
+
+  it('should delete conflict events except interventions', async () => {
+    const events = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    EventMock.expects('find').chain('lean').once().returns(events);
+    await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
+
+    EventMock.verify();
+    sinon.assert.callCount(updateEvent, events.length);
   });
 });
 

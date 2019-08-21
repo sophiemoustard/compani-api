@@ -80,7 +80,7 @@ exports.createEvent = async (payload, credentials) => {
 };
 
 exports.deleteConflictEventsExceptInterventions = async (dates, auxiliaryId, absenceId, credentials) => {
-  const events = await Event.deleteMany({
+  const events = await Event.find({
     $or: [
       { startDate: { $gte: dates.startDate }, endDate: { $lte: dates.endDate } },
       { startDate: { $lte: dates.startDate }, endDate: { $gt: dates.startDate } },
