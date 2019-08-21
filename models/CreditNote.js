@@ -46,7 +46,7 @@ const CreditNoteSchema = mongoose.Schema({
   },
   linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' },
   origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI },
-  drive: driveResourceSchemaDefinition,
+  driveFile: driveResourceSchemaDefinition,
 }, { timestamps: true });
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);
