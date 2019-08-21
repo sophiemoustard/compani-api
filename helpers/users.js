@@ -10,7 +10,6 @@ const { addFile } = require('./gdriveStorage');
 const { nationalities } = require('../data/nationalities.js');
 const { countries } = require('../data/countries');
 const { HELPER, AUXILIARY, PLANNING_REFERENT } = require('./constants.js');
-const UserRepository = require('../repositories/UserRepository');
 
 const { language } = translate;
 
@@ -69,13 +68,6 @@ const createAndSaveFile = async (administrativeKey, params, payload) => {
   switch (administrativeKey) {
     case 'certificates':
       await saveCertificateDriveId(params._id, file);
-      break;
-    case 'payDocuments':
-      await UserRepository.addPayDocument(params._id, {
-        nature: payload.nature,
-        date: payload.date,
-        file,
-      });
       break;
     default:
       await saveFile(params._id, administrativeKey, file);
