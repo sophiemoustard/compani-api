@@ -13,10 +13,7 @@ exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(
 exports.formatSubscriptionData = (bill) => {
   const events = bill.eventsList.map(ev => ({
     eventId: ev.event,
-    auxiliary: ev.auxiliary,
-    startDate: ev.startDate,
-    endDate: ev.endDate,
-    ...pick(ev, 'surcharges'),
+    ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
   }));
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.startDate, bill.subscription.service, 'startDate');
 

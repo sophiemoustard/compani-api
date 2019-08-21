@@ -1,4 +1,4 @@
-const moment = require('../extendedLibs/moment');
+const moment = require('../extensions/moment');
 const get = require('lodash/get');
 const has = require('lodash/has');
 const setWith = require('lodash/setWith');

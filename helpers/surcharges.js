@@ -1,4 +1,4 @@
-const moment = require('../extendedLibs/moment');
+const moment = require('../extensions/moment');
 
 exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage) => {
   if (!percentage || percentage <= 0) return;

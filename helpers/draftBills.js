@@ -1,4 +1,4 @@
-const moment = require('../extendedLibs/moment');
+const moment = require('../extensions/moment');
 const mongoose = require('mongoose');
 const EventRepository = require('../repositories/EventRepository');
 const Surcharge = require('../models/Surcharge');

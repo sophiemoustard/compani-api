@@ -672,8 +672,8 @@ describe('formatSurchargeHourForPdf', () => {
   });
 
   it('should return the hours and the minutes', () => {
-    const date = moment().hour(17).minutes(15).toISOString();
-    expect(BillHelper.formatSurchargeHourForPdf(date)).toBe('17h15');
+    const date = moment().hour(17).minutes(5).toISOString();
+    expect(BillHelper.formatSurchargeHourForPdf(date)).toBe('17h05');
   });
 });
 
@@ -743,7 +743,7 @@ describe('formatPDF', () => {
     formatEventSurchargesForPdf.restore();
   });
 
-  it.only('should format correct bill PDF for customer', () => {
+  it('should format correct bill PDF for customer', () => {
     const bill = {
       billNumber: '12345',
       subscriptions: [{
