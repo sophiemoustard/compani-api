@@ -388,29 +388,22 @@ exports.updateEvent = async (event, payload, credentials) => {
   const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
 
   let unset;
-  let set;
-  if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
-    if (!payload.isCancelled && event.isCancelled) {
-      set = { ...payload, isCancelled: false };
-      unset = { cancel: '' };
-    } else {
-      set = payload;
-    }
-
-    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) {
-      await exports.updateRepetitions(event, payload);
-    }
-  } else if (!payload.isCancelled && event.isCancelled) {
-    set = { ...payload, isCancelled: false, 'repetition.frequency': NEVER };
-    unset = { cancel: '', 'repetition.parentId': '' };
-  } else {
-    set = { ...payload, 'repetition.frequency': NEVER };
-    unset = { 'repetition.parentId': '' };
+  let set = payload;
+  if (!payload.isCancelled && event.isCancelled) {
+    set = { ...set, isCancelled: false };
+    unset = { cancel: '' };
+  }
+  if (isRepetition(event) && !payload.shouldUpdateRepetition && !miscUpdatedOnly) {
+    set = { ...set, 'repetition.frequency': NEVER };
+    unset = { ...unset, 'repetition.parentId': '' };
   }
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
 
   event = await EventRepository.updateEvent(event._id, set, unset);
+  if (!miscUpdatedOnly && isRepetition(event) && payload.shouldUpdateRepetition) {
+    await exports.updateRepetitions(event, payload);
+  }
 
   return exports.populateEventSubscription(event);
 };
