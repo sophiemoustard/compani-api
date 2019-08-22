@@ -10,7 +10,7 @@ const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
 const {
-  unassignInterventions,
+  unassignInterventionsOnContractEnd,
   updateAbsencesOnContractEnd,
 } = require('../helpers/events');
 const { removeEventsExceptInterventions } = require('../repositories/EventRepository');
@@ -91,7 +91,7 @@ const update = async (req) => {
     if (req.payload.endDate) {
       contract = await endContract(req.params._id, req.payload);
       if (!contract) return Boom.notFound(translate[language].contractNotFound);
-      await unassignInterventions(contract);
+      await unassignInterventionsOnContractEnd(contract);
       await removeEventsExceptInterventions(contract);
       await updateAbsencesOnContractEnd(contract.user._id, contract.endDate);
     } else {

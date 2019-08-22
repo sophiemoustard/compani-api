@@ -65,6 +65,13 @@ exports.createEvent = async (payload, credentials) => {
   await event.save();
   event = await EventRepository.getEvent(event._id);
 
+  if (payload.type === ABSENCE) {
+    const { startDate, endDate, auxiliary, _id } = event;
+    const dates = { startDate, endDate };
+    await exports.deleteConflictEventsExceptInterventions(dates, auxiliary._id.toHexString(), _id.toHexString(), credentials);
+    await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
+  }
+
   if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
     event = await exports.createRepetitions(event);
   }
@@ -72,16 +79,24 @@ exports.createEvent = async (payload, credentials) => {
   return exports.populateEventSubscription(event);
 };
 
-exports.isCreationAllowed = async (event) => {
-  if (!event.auxiliary) return event.type === INTERVENTION;
+exports.deleteConflictEventsExceptInterventions = async (dates, auxiliary, eventId, credentials) => {
+  const types = [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY];
+  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, eventId);
 
-  if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
+  await exports.deleteEvents(events, credentials);
+};
 
-  if (event.type !== ABSENCE && !moment(event.startDate).isSame(event.endDate, 'day')) return false;
+exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
+  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION]);
 
-  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
+  for (let i = 0, l = interventions.length; i < l; i++) {
+    const payload = _.omit(interventions[i], ['_id', 'auxiliary']);
+    await exports.updateEvent(interventions[i], payload, credentials);
+  }
+};
+
+exports.checkContracts = async (event, user) => {
   if (!user.contracts || user.contracts.length === 0) return false;
-  if (event.auxiliary && event.sector !== user.sector.toHexString()) return false;
 
   // If the event is an intervention :
   // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention
@@ -113,20 +128,44 @@ exports.isCreationAllowed = async (event) => {
   return true;
 };
 
+const isOneDayEvent = event => moment(event.startDate).isSame(event.endDate, 'day');
+const eventHasAuxiliarySector = (event, user) => event.sector === user.sector.toHexString();
+const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString();
+
+exports.isCreationAllowed = async (event) => {
+  if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
+  if (!event.auxiliary) return event.type === INTERVENTION;
+
+  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
+  if (!await exports.checkContracts(event, user)) return false;
+
+  if (event.type !== ABSENCE && await exports.hasConflicts(event)) return false;
+
+  if (!eventHasAuxiliarySector(event, user)) return false;
+
+  return true;
+};
+
 exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
 
-  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) &&
-    payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString()) {
-    return false;
-  }
+  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
-  if (!payload.auxiliary) {
-    const { auxiliary, ...rest } = eventFromDB;
-    return exports.isCreationAllowed({ ...rest, ...payload });
-  }
+  const event = !payload.auxiliary
+    ? { ..._.omit(eventFromDB, 'auxiliary'), ...payload }
+    : { ...eventFromDB, ...payload };
 
-  return exports.isCreationAllowed({ ...eventFromDB, ...payload });
+  if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
+  if (!event.auxiliary) return event.type === INTERVENTION;
+
+  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
+  if (!await exports.checkContracts(event, user)) return false;
+
+  if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
+
+  if (!eventHasAuxiliarySector(event, user)) return false;
+
+  return true;
 };
 
 exports.getListQuery = (req) => {
@@ -346,7 +385,7 @@ exports.updateEvent = async (event, payload, credentials) => {
   let set;
   if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
     if (!payload.isCancelled && event.isCancelled) {
-      set = flat({ ...payload, isCancelled: false });
+      set = { ...payload, isCancelled: false };
       unset = { cancel: '' };
     } else {
       set = payload;
@@ -356,10 +395,10 @@ exports.updateEvent = async (event, payload, credentials) => {
       await exports.updateRepetitions(event, payload);
     }
   } else if (!payload.isCancelled && event.isCancelled) {
-    set = flat({ ...payload, isCancelled: false, 'repetition.frequency': NEVER });
+    set = { ...payload, isCancelled: false, 'repetition.frequency': NEVER };
     unset = { cancel: '', 'repetition.parentId': '' };
   } else {
-    set = flat({ ...payload, 'repetition.frequency': NEVER });
+    set = { ...payload, 'repetition.frequency': NEVER };
     unset = { 'repetition.parentId': '' };
   }
 
@@ -388,7 +427,7 @@ exports.deleteRepetition = async (params, credentials) => {
   return event;
 };
 
-exports.unassignInterventions = async (contract) => {
+exports.unassignInterventionsOnContractEnd = async (contract) => {
   const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract);
 
   if (customerSubscriptionsFromEvents.length === 0) return;
@@ -417,6 +456,17 @@ exports.deleteEvent = async (params, credentials) => {
   await Event.deleteOne({ _id: params._id });
 
   return event;
+};
+
+exports.deleteEvents = async (events, credentials) => {
+  const promises = [];
+  for (const event of events) {
+    const deletionInfo = _.omit(event, 'repetition');
+    promises.push(EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials));
+  }
+
+  await Promise.all(promises);
+  await Event.deleteMany({ _id: { $in: events.map(ev => ev._id) } });
 };
 
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
