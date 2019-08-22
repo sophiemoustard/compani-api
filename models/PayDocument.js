@@ -10,6 +10,7 @@ const {
 const PAY_DOCUMENT_NATURES = [PAYSLIP, CERTIFICATE, OTHER];
 
 const PayDocumentSchema = mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId },
   nature: { type: String, enum: PAY_DOCUMENT_NATURES, default: OTHER },
   date: { type: Date },
   file: driveResourceSchemaDefinition,

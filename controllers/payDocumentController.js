@@ -16,11 +16,12 @@ const create = async (req) => {
     });
     if (!uploadedFile) throw new Error('Google drive: File not uploaded');
 
-    const { date, nature } = req.payload;
+    const { date, nature, user } = req.payload;
     const { id: driveId, webViewLink: link } = uploadedFile;
     const payDocPayload = {
       date,
       nature,
+      user,
       file: { driveId, link },
     };
     const payDoc = new PayDocument(payDocPayload);
@@ -56,4 +57,18 @@ const list = async (req) => {
   }
 };
 
-module.exports = { create, list };
+const remove = async (req) => {
+  try {
+    const deletedPayDocument = await PayDocument.findByIdAndRemove(req.params._id);
+    if (!deletedPayDocument) return Boom.notFound(translate[language].payDocumentNotFound);
+
+    await GdriveStorage.deleteFile(deletedPayDocument.file.driveId);
+
+    return { message: translate[language].payDocumentDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
+
+module.exports = { create, list, remove };

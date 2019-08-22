@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { create, list } = require('../controllers/payDocumentController');
+const { create, list, remove } = require('../controllers/payDocumentController');
 const { PAY_DOCUMENT_NATURES } = require('../models/PayDocument');
 
 exports.plugin = {
@@ -27,6 +27,7 @@ exports.plugin = {
             nature: Joi.string().valid(PAY_DOCUMENT_NATURES).required(),
             'Content-Type': Joi.string().required(),
             driveFolderId: Joi.string().required(),
+            user: Joi.objectId().required(),
           }),
         },
       },
@@ -44,6 +45,19 @@ exports.plugin = {
         },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/{_id}',
+      options: {
+        validate: {
+          params: Joi.object({
+            _id: Joi.objectId(),
+          }),
+        },
+      },
+      handler: remove,
     });
   },
 };

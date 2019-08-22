@@ -42,4 +42,5 @@ const populateDB = async () => {
 module.exports = {
   populateDB,
   payDocumentsList,
+  user,
 };
