@@ -27,6 +27,10 @@ const payDocumentsList = [{
   nature: OTHER,
   date: new Date('2019-01-03'),
   file: { driveId: faker.random.alphaNumeric(8), link: faker.internet.url() },
+}, {
+  _id: new ObjectID(),
+  nature: OTHER,
+  date: new Date('2019-01-04'),
 }];
 
 const populateDB = async () => {

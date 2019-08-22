@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 
 const PayDocument = require('../models/PayDocument');
 const GdriveStorage = require('../helpers/gdriveStorage');
@@ -61,6 +62,10 @@ const remove = async (req) => {
   try {
     const deletedPayDocument = await PayDocument.findByIdAndRemove(req.params._id);
     if (!deletedPayDocument) return Boom.notFound(translate[language].payDocumentNotFound);
+
+    const deletedPayDocumentDriveId = get(deletedPayDocument, 'file.driveId');
+    if (!deletedPayDocumentDriveId) return Boom.notFound('Missing pay document google drive id.');
+
 
     await GdriveStorage.deleteFile(deletedPayDocument.file.driveId);
 

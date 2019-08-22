@@ -6,6 +6,7 @@ const path = require('path');
 const FormData = require('form-data');
 const GetStream = require('get-stream');
 const omit = require('lodash/omit');
+const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Gdrive = require('../../models/Google/Drive');
 const PayDocument = require('../../models/PayDocument');
@@ -134,6 +135,27 @@ describe('PAY DOCUMENT ROUTES', () => {
       expect(payDocuments.length).toBe(payDocumentsList.length - 1);
       sinon.assert.calledWith(deleteFileStub, payDocumentsList[0].file.driveId);
       deleteFileStub.restore();
+    });
+
+    it('should return a 404 error if pay document does not exist', async () => {
+      const randomId = new ObjectID();
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/paydocuments/${randomId}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 404 error if pay document google drive id does not exist', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/paydocuments/${payDocumentsList[3]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 });
