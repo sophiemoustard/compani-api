@@ -3,7 +3,7 @@ const Boom = require('boom');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { updateEventAndFundingHistory, createCreditNotes } = require('../helpers/creditNotes');
+const { updateEventAndFundingHistory, createCreditNotes, updateCreditNotes } = require('../helpers/creditNotes');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { getDateQuery } = require('../helpers/utils');
 const { formatPDF } = require('../helpers/creditNotes');
@@ -57,28 +57,7 @@ const update = async (req) => {
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
     if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
 
-    if (creditNote.events) await updateEventAndFundingHistory(creditNote.events, true);
-
-    if (!creditNote.linkedCreditNote) creditNote = await CreditNote.findByIdAndUpdate(req.params._id, { $set: req.payload }, { new: true });
-    else {
-      const tppPayload = { ...req.payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
-      const customerPayload = { ...req.payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
-      delete customerPayload.thirdPartyPayer;
-
-      if (creditNote.thirdPartyPayer) {
-        Promise.all([
-          CreditNote.findByIdAndUpdate(req.params._id, { $set: tppPayload }, { new: true }),
-          CreditNote.findByIdAndUpdate(creditNote.linkedCreditNote, { $set: customerPayload }, { new: true }),
-        ]);
-      } else {
-        Promise.all([
-          CreditNote.findByIdAndUpdate(req.params._id, { $set: customerPayload }, { new: true }),
-          CreditNote.findByIdAndUpdate(creditNote.linkedCreditNote, { $set: tppPayload }, { new: true })
-        ]);
-      }
-    }
-
-    if (req.payload.events) await updateEventAndFundingHistory(req.payload.events, false);
+    creditNote = await updateCreditNotes(creditNote);
 
     return {
       message: translate[language].creditNoteUpdated,

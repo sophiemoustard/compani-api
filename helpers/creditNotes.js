@@ -78,6 +78,30 @@ exports.createCreditNotes = async (payload) => {
   return creditNotes;
 };
 
+exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
+  if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true);
+
+  let creditNote;
+  if (!creditNoteFromDB.linkedCreditNote) creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payload }, { new: true });
+  else {
+    const tppPayload = { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
+    const customerPayload = { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
+    delete customerPayload.thirdPartyPayer;
+
+    if (creditNoteFromDB.thirdPartyPayer) {
+      creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });
+      await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: customerPayload }, { new: true });
+    } else {
+      creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: customerPayload }, { new: true });
+      CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: tppPayload }, { new: true });
+    }
+  }
+
+  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false);
+
+  return creditNote;
+};
+
 const formatCustomerName = customer => (customer.identity.firstname
   ? `${customer.identity.title} ${customer.identity.firstname} ${customer.identity.lastname}`
   : `${customer.identity.title} ${customer.identity.lastname}`);
