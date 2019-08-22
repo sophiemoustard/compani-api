@@ -15,17 +15,17 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
       if (event.bills.nature !== HOURLY) {
         await FundingHistory.findOneAndUpdate(
           { fundingVersion: event.bills.fundingVersion },
-          { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } },
+          { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } }
         );
       } else {
         let history = await FundingHistory.findOneAndUpdate(
           { fundingVersion: event.bills.fundingVersion, month: moment(event.startDate).format('MM/YYYY') },
-          { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } },
+          { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
         );
         if (!history) {
           history = await FundingHistory.findOneAndUpdate(
             { fundingVersion: event.bills.fundingVersion },
-            { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } },
+            { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
           );
         }
       }
@@ -37,13 +37,12 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
   await Promise.all(promises);
 };
 
-exports.createCreditNote = (payload, prefix, seq) => {
+exports.formatCreditNote = (payload, prefix, seq) => {
   payload.number = `${prefix}${seq.toString().padStart(3, '0')}`;
   if (payload.inclTaxesCustomer) payload.inclTaxesCustomer = UtilsHelper.getFixedNumber(payload.inclTaxesCustomer, 2);
   if (payload.inclTaxesTpp) payload.inclTaxesTpp = UtilsHelper.getFixedNumber(payload.inclTaxesTpp, 2);
-  const customerCreditNote = new CreditNote(payload);
 
-  return customerCreditNote.save();
+  return new CreditNote(payload);
 };
 
 exports.createCreditNotes = async (payload) => {
@@ -56,24 +55,22 @@ exports.createCreditNotes = async (payload) => {
   let customerCreditNote;
   if (payload.inclTaxesTpp) {
     const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0 };
-    tppCreditNote = await exports.createCreditNote(tppPayload, number.prefix, seq);
-    creditNotes.push(tppCreditNote);
+    tppCreditNote = await exports.formatCreditNote(tppPayload, number.prefix, seq);
     seq++;
   }
   if (payload.inclTaxesCustomer) {
     delete payload.thirdPartyPayer;
     const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0 };
-    customerCreditNote = await exports.createCreditNote(customerPayload, number.prefix, seq);
-    creditNotes.push(customerCreditNote);
+    customerCreditNote = await exports.formatCreditNote(customerPayload, number.prefix, seq);
     seq++;
   }
 
   if (tppCreditNote && customerCreditNote) {
-    creditNotes = await Promise.all([
-      CreditNote.findOneAndUpdate({ _id: customerCreditNote._id }, { $set: { linkedCreditNote: tppCreditNote._id } }),
-      CreditNote.findOneAndUpdate({ _id: tppCreditNote._id }, { $set: { linkedCreditNote: customerCreditNote._id } }),
-    ]);
+    customerCreditNote.linkedCreditNote = tppCreditNote._id;
+    tppCreditNote.linkedCreditNote = customerCreditNote._id;
   }
+
+  creditNotes = await CreditNote.insertMany([customerCreditNote, tppCreditNote]);
 
   if (payload.events) await exports.updateEventAndFundingHistory(payload.events);
   await CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } });
@@ -115,7 +112,7 @@ exports.formatPDF = (creditNote, company) => {
   } else {
     computedData.subscription = {
       service: creditNote.subscription.service.name,
-      unitInclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitInclTaxes)
+      unitInclTaxes: UtilsHelper.formatPrice(creditNote.subscription.unitInclTaxes),
     };
   }
 
@@ -128,7 +125,7 @@ exports.formatPDF = (creditNote, company) => {
       inclTaxes: creditNote.inclTaxesTpp ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp) : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,
       company,
-      logo
+      logo,
     },
   };
 };
