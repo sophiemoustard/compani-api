@@ -67,30 +67,6 @@ exports.getMatchingFunding = (date, fundings) => {
   return filteredByDateFundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
 
-exports.computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
-  const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(3));
-  let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(3));
-  if (start.isAfter(end)) end = end.add(1, 'd');
-
-  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return price * (1 + (surchargeValue / 100));
-
-  const time = moment(event.endDate).diff(moment(event.startDate), 'm');
-  let inflatedTime = 0;
-  let notInflatedTime = time;
-  if (start.isSameOrBefore(event.startDate) && end.isAfter(event.startDate) && end.isBefore(event.endDate)) {
-    inflatedTime = end.diff(event.startDate, 'm');
-    notInflatedTime = moment(event.endDate).diff(end, 'm');
-  } else if (start.isAfter(event.startDate) && start.isBefore(event.endDate) && end.isSameOrAfter(event.endDate)) {
-    inflatedTime = moment(event.endDate).diff(start, 'm');
-    notInflatedTime = start.diff(event.startDate, 'm');
-  } else if (start.isAfter(event.startDate) && end.isBefore(event.endDate)) {
-    inflatedTime = end.diff(start, 'm');
-    notInflatedTime = start.diff(event.startDate, 'm') + moment(event.endDate).diff(end, 'm');
-  }
-
-  return (price / time) * (notInflatedTime + (inflatedTime * (1 + (surchargeValue / 100))));
-};
-
 exports.getSurchargedPrice = (event, eventSurcharges, price) => {
   let coef = 1;
   const eventDuration = moment(event.endDate).diff(event.startDate, 'm');
@@ -211,9 +187,11 @@ exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   }
 
   if (funding) {
-    if (funding.nature === HOURLY) return exports.getHourlyFundingSplit(event, funding, service, price);
+    let fundingBilling;
+    if (funding.nature === HOURLY) fundingBilling = exports.getHourlyFundingSplit(event, funding, service, price);
+    else fundingBilling = exports.getFixedFundingSplit(event, funding, service, price);
 
-    return exports.getFixedFundingSplit(event, funding, service, price);
+    return { ...billing, ...fundingBilling };
   }
 
   return { ...billing, customerPrice: price, thirdPartyPayerPrice: 0 };

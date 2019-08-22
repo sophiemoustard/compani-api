@@ -253,49 +253,6 @@ describe('getMatchingFunding', () => {
   });
 });
 
-describe('computeCustomSurcharge', () => {
-  const price = 12;
-  const start = '09:00';
-  const end = '12:00';
-  const surcharge = 20;
-
-  it('case 1 : dates included between start and end', () => {
-    const event = {
-      startDate: '2019-03-12T09:00:00',
-      endDate: '2019-03-12T11:00:00',
-    };
-    const result = DraftBillsHelper.computeCustomSurcharge(event, start, end, surcharge, price);
-    expect(Number.parseFloat(result.toFixed(1))).toEqual(14.4);
-  });
-
-  it('case 2 : startDate included between start and end and endDate after end', () => {
-    const event = {
-      startDate: '2019-03-12T08:00:00',
-      endDate: '2019-03-12T10:00:00',
-    };
-    const result = DraftBillsHelper.computeCustomSurcharge(event, start, end, surcharge, price);
-    expect(Number.parseFloat(result.toFixed(1))).toEqual(13.2);
-  });
-
-  it('case 3 : startDate before start and endDate included between start and end', () => {
-    const event = {
-      startDate: '2019-03-12T10:00:00',
-      endDate: '2019-03-12T13:00:00',
-    };
-    const result = DraftBillsHelper.computeCustomSurcharge(event, start, end, surcharge, price);
-    expect(Number.parseFloat(result.toFixed(1))).toEqual(13.6);
-  });
-
-  it('case 4 : startDate before start and endDate after endDate', () => {
-    const event = {
-      startDate: '2019-03-12T07:00:00',
-      endDate: '2019-03-12T13:00:00',
-    };
-    const result = DraftBillsHelper.computeCustomSurcharge(event, start, end, surcharge, price);
-    expect(Number.parseFloat(result.toFixed(1))).toEqual(13.2);
-  });
-});
-
 describe('getExclTaxes', () => {
   it('should return excluded taxes price', () => {
     expect(Number.parseFloat(DraftBillsHelper.getExclTaxes(20, 2).toFixed(2))).toEqual(19.61);
@@ -510,7 +467,7 @@ describe('getEventBilling', () => {
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
     expect(result).toBeDefined();
-    expect(result).toMatchObject({ customerPrice: 35, thirdPartyPayerPrice: 0 });
+    expect(result).toEqual({ customerPrice: 35, thirdPartyPayerPrice: 0 });
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
@@ -525,7 +482,11 @@ describe('getEventBilling', () => {
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
     expect(result).toBeDefined();
-    expect(result).toMatchObject({ customerPrice: 38.5, thirdPartyPayerPrice: 0 });
+    expect(result).toEqual({
+      customerPrice: 38.5,
+      thirdPartyPayerPrice: 0,
+      surcharges: [{ percentage: 10 }],
+    });
     sinon.assert.calledOnce(getEventSurcharges);
     sinon.assert.calledWith(getSurchargedPrice, event, [{ percentage: 10 }], 35);
     sinon.assert.notCalled(getHourlyFundingSplit);
@@ -548,7 +509,7 @@ describe('getEventBilling', () => {
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
     expect(result).toBeDefined();
-    expect(result).toMatchObject({ customerPrice: 10, thirdPartyPayerPrice: 25 });
+    expect(result).toEqual({ customerPrice: 10, thirdPartyPayerPrice: 25 });
     sinon.assert.calledWith(getHourlyFundingSplit, event, funding, service, 35);
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
@@ -568,11 +529,66 @@ describe('getEventBilling', () => {
 
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
     expect(result).toBeDefined();
-    expect(result).toMatchObject({ customerPrice: 0, thirdPartyPayerPrice: 35 });
+    expect(result).toEqual({ customerPrice: 0, thirdPartyPayerPrice: 35 });
     sinon.assert.calledWith(getFixedFundingSplit, event, funding, service, 35);
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
     sinon.assert.notCalled(getSurchargedPrice);
+  });
+
+  it('should return event prices with hourly funding and surcharge', () => {
+    const service = { vat: 20, nature: 'hourly', surcharge: { publicHoliday: 10 } };
+    const funding = {
+      nature: 'hourly',
+      unitTTCRate: 15,
+      careHours: 4,
+      frequency: 'once',
+      customerParticipationRate: 0,
+      history: { careHours: 1 },
+      thirdPartyPayer: { _id: new ObjectID() },
+    };
+    getExclTaxes.returns(17.5);
+    getHourlyFundingSplit.returns({ customerPrice: 10, thirdPartyPayerPrice: 25 });
+    getSurchargedPrice.returns(38.5);
+    getEventSurcharges.returns([{ percentage: 10 }]);
+
+    const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      customerPrice: 10,
+      thirdPartyPayerPrice: 25,
+      surcharges: [{ percentage: 10 }],
+    });
+    sinon.assert.calledWith(getHourlyFundingSplit, event, funding, service, 38.5);
+    sinon.assert.notCalled(getFixedFundingSplit);
+    sinon.assert.calledOnce(getEventSurcharges);
+    sinon.assert.calledOnce(getSurchargedPrice);
+  });
+
+  it('should return event prices with fixed funding and surcharge', () => {
+    const service = { vat: 20, nature: 'hourly', surcharge: { publicHoliday: 10 } };
+    const funding = {
+      nature: 'fixed',
+      history: { amountTTC: 50 },
+      amountTTC: 100,
+      thirdPartyPayer: { _id: new ObjectID() },
+    };
+    getExclTaxes.returns(17.5);
+    getFixedFundingSplit.returns({ customerPrice: 0, thirdPartyPayerPrice: 35 });
+    getSurchargedPrice.returns(38.5);
+    getEventSurcharges.returns([{ percentage: 10 }]);
+
+    const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service, funding);
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      customerPrice: 0,
+      thirdPartyPayerPrice: 35,
+      surcharges: [{ percentage: 10 }],
+    });
+    sinon.assert.calledWith(getFixedFundingSplit, event, funding, service, 38.5);
+    sinon.assert.notCalled(getHourlyFundingSplit);
+    sinon.assert.calledOnce(getEventSurcharges);
+    sinon.assert.calledOnce(getSurchargedPrice);
   });
 
   it('should return event prices with fixed service', () => {
@@ -582,7 +598,7 @@ describe('getEventBilling', () => {
     const result = DraftBillsHelper.getEventBilling(event, unitTTCRate, service);
     expect(result).toBeDefined();
     result.customerPrice = Number.parseFloat(result.customerPrice.toFixed(2));
-    expect(result).toMatchObject({ customerPrice: 17.5, thirdPartyPayerPrice: 0 });
+    expect(result).toEqual({ customerPrice: 17.5, thirdPartyPayerPrice: 0 });
     sinon.assert.notCalled(getHourlyFundingSplit);
     sinon.assert.notCalled(getFixedFundingSplit);
     sinon.assert.notCalled(getEventSurcharges);
@@ -997,11 +1013,11 @@ describe('getDraftBillsList', () => {
 
 describe('getSurchargedPrice', () => {
   const event = {
-    startDate: moment().hour(10),
-    endDate: moment().hour(16),
+    startDate: '2019-06-29T10:00:00.000+02:00',
+    endDate: '2019-06-29T16:00:00.000+02:00',
   };
 
-  it('should return the price if the is no surcharge', () => {
+  it('should return the price if there is no surcharge', () => {
     expect(DraftBillsHelper.getSurchargedPrice(event, [], 11)).toBe(11);
   });
 

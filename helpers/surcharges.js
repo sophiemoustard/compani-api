@@ -1,7 +1,7 @@
 const moment = require('../extensions/moment');
 
 exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd, percentage) => {
-  if (!percentage || percentage <= 0) return;
+  if (!percentage || percentage <= 0) return null;
 
   surchargeStart = moment(eventStart).hour(surchargeStart.substring(0, 2)).minute(surchargeStart.substring(3));
   surchargeEnd = moment(eventStart).hour(surchargeEnd.substring(0, 2)).minute(surchargeEnd.substring(3));
@@ -11,39 +11,37 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
   const surchargeRange = moment.range(surchargeStart, surchargeEnd);
 
   const intersection = eventRange.intersect(surchargeRange);
+  if (!intersection) return null;
 
-  if (intersection) {
-    return {
-      percentage,
-      startHour: intersection.start.toDate(),
-      endHour: intersection.end.toDate(),
-    };
-  }
+  return {
+    percentage,
+    startHour: intersection.start.toDate(),
+    endHour: intersection.end.toDate(),
+  };
 };
 
-exports.getEventSurcharges = (event, surcharge) => {
-  const {
-    evening, eveningEndTime, eveningStartTime,
-    custom, customStartTime, customEndTime,
-  } = surcharge;
+const surchargeConditions = [
+  { key: 'twentyFifthOfDecember', condition: start => start.format('DD/MM') === '25/12' },
+  { key: 'firstOfMay', condition: start => start.format('DD/MM') === '01/05' },
+  { key: 'publicHoliday', condition: start => moment(start).startOf('d').isHoliday() },
+  { key: 'saturday', condition: start => start.isoWeekday() === 6 },
+  { key: 'sunday', condition: start => start.isoWeekday() === 7 },
+];
 
+exports.getEventSurcharges = (event, surcharge) => {
   const start = moment(event.startDate);
 
-  const surchargeCriteria = [
-    { key: 'twentyFifthOfDecember', criteria: () => start.format('DD/MM') === '25/12' },
-    { key: 'firstOfMay', criteria: () => start.format('DD/MM') === '01/05' },
-    { key: 'publicHoliday', criteria: () => moment(start).startOf('d').isHoliday() },
-    { key: 'saturday', criteria: () => start.isoWeekday() === 6 },
-    { key: 'sunday', criteria: () => start.isoWeekday() === 7 },
-  ];
-
-  for (const surchargeCriterion of surchargeCriteria) {
-    const percentage = surcharge[surchargeCriterion.key];
-    if (percentage && percentage > 0 && surchargeCriterion.criteria()) {
+  for (const surchargeCondition of surchargeConditions) {
+    const percentage = surcharge[surchargeCondition.key];
+    if (percentage && percentage > 0 && surchargeCondition.condition(start)) {
       return [{ percentage }];
     }
   }
 
+  const {
+    evening, eveningEndTime, eveningStartTime,
+    custom, customStartTime, customEndTime,
+  } = surcharge;
   const end = moment(event.endDate);
   const surcharges = [];
   const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening);

@@ -145,7 +145,7 @@
         <td> {{ startTime }} </td>
         <td> {{ endTime }} </td>
         <td> {{ service }} </td>
-        {{#unless bill.forTpp}}
+        {{#unless @root/bill.forTpp}}
           <td>
             {{#each surcharges}}
               <div>

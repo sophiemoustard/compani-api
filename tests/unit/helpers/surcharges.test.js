@@ -1,4 +1,3 @@
-/* eslint-disable no-loop-func */
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
@@ -6,61 +5,60 @@ const moment = require('moment');
 const SurchargesHelper = require('../../../helpers/surcharges');
 
 describe('getCustomSurcharge', () => {
-  const timeRange = moment.range('2018-01-01 00:00', '2018-01-01 23:00');
-  const steps = Array.from(timeRange.by('h'));
-  const surchargeSteps = steps.map(step => step.format('HH:mm'));
+  // Les dates sont triées, pour lire plus rapidement si il y a intersection.
+  const dates = [
+    '2018-01-01 01:00',
+    '2018-01-01 05:00',
+    '2018-01-01 09:00',
+    '2018-01-01 13:00',
+    '2018-01-01 17:00',
+    '2018-01-01 21:00',
+  ];
+  const surchargeSteps = dates.map(date => moment(date).format('HH:mm'));
 
-  it('should return undefined if there is no surcharge', () => {
-    const result = SurchargesHelper.getCustomSurcharge(steps[1], steps[2], surchargeSteps[1], surchargeSteps[3]);
-    expect(result).toBe(undefined);
+  it('should return null if there is no surcharge', () => {
+    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[2], surchargeSteps[1], surchargeSteps[3]);
+    expect(result).toBe(null);
   });
 
-  it('should return undefined if the surcharge is 0', () => {
-    const result = SurchargesHelper.getCustomSurcharge(steps[1], steps[2], surchargeSteps[1], surchargeSteps[3], 0);
-    expect(result).toBe(undefined);
+  it('should return null if the surcharge is 0', () => {
+    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[2], surchargeSteps[1], surchargeSteps[3], 0);
+    expect(result).toBe(null);
   });
 
-  it('should return undefined if there is no intersection', () => {
-    const result = SurchargesHelper.getCustomSurcharge(steps[1], steps[2], surchargeSteps[3], surchargeSteps[4], 0);
-    expect(result).toBe(undefined);
+  it('should return null if there is no intersection', () => {
+    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[2], surchargeSteps[3], surchargeSteps[4], 0);
+    expect(result).toBe(null);
   });
 
-  it('should return undefined if the intersection has a duration of 0', () => {
-    const result = SurchargesHelper.getCustomSurcharge(steps[1], steps[2], surchargeSteps[2], surchargeSteps[4], 25);
-    expect(result).toBe(undefined);
+  it('should return null if the intersection has a duration of 0', () => {
+    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[2], surchargeSteps[2], surchargeSteps[4], 25);
+    expect(result).toBe(null);
   });
 
   it('should return a surcharge if they intersect', () => {
-    const result = SurchargesHelper.getCustomSurcharge(steps[1], steps[3], surchargeSteps[2], surchargeSteps[4], 25);
+    const result = SurchargesHelper.getCustomSurcharge(dates[1], dates[3], surchargeSteps[2], surchargeSteps[4], 25);
     expect(result).toEqual({
-      startHour: steps[2].toDate(),
-      endHour: steps[3].toDate(),
+      startHour: moment(dates[2]).toDate(),
+      endHour: moment(dates[3]).toDate(),
       percentage: 25,
     });
   });
 
   it('should return a surcharge if the surcharge wraps the event', () => {
-    const result = SurchargesHelper.getCustomSurcharge(steps[4], steps[5], surchargeSteps[2], surchargeSteps[5], 12);
+    const result = SurchargesHelper.getCustomSurcharge(dates[4], dates[5], surchargeSteps[2], surchargeSteps[5], 12);
     expect(result).toEqual({
-      startHour: steps[4].toDate(),
-      endHour: steps[5].toDate(),
+      startHour: moment(dates[4]).toDate(),
+      endHour: moment(dates[5]).toDate(),
       percentage: 12,
     });
   });
 });
 
 describe('getEventSurcharges', () => {
-  const dailySurcharges = [
-    { key: 'twentyFifthOfDecember', date: '2019-12-25', label: '25th of december' },
-    { key: 'firstOfMay', date: '2019-05-01', label: '1st of May' },
-    { key: 'publicHoliday', date: '2019-07-14', label: 'holiday' },
-    { key: 'saturday', date: '2019-08-17', label: 'saturday' },
-    { key: 'sunday', date: '2019-08-18', label: 'sunday' },
-  ];
   let getCustomSurchargeStub;
-  let surcharge;
   let emptySurcharge;
-  let event;
+  let surchargeAllSet;
 
   beforeEach(() => {
     emptySurcharge = {
@@ -77,7 +75,7 @@ describe('getEventSurcharges', () => {
       customEndTime: '19:00',
     };
 
-    surcharge = {
+    surchargeAllSet = {
       twentyFifthOfDecember: 10,
       firstOfMay: 12,
       publicHoliday: 14,
@@ -90,69 +88,84 @@ describe('getEventSurcharges', () => {
       customStartTime: '17:00',
       customEndTime: '19:00',
     };
-    event = { startDate: moment('2019-05-01').hour(16), endDate: moment('2019-05-01').hour(23) };
-  });
 
-  beforeEach(() => {
     getCustomSurchargeStub = sinon.stub(SurchargesHelper, 'getCustomSurcharge');
-    getCustomSurchargeStub.returnsArg(4);
   });
   afterEach(() => {
     getCustomSurchargeStub.restore();
   });
 
   it('should return no surcharges if the surcharge is empty', () => {
-    const keys = [
-      'twentyFifthOfDecember',
-      'firstOfMay',
-      'publicHoliday',
-      'saturday',
-      'sunday',
-      'evening',
-      'custom',
-    ];
-    for (const key of keys) surcharge[key] = 0;
+    getCustomSurchargeStub.returnsArg(4);
+    const event = {
+      startDate: '2019-05-01T16:00:00.000',
+      endDate: '2019-05-01T23:00:00.000',
+    };
     getCustomSurchargeStub.returns();
-    expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([]);
+    expect(SurchargesHelper.getEventSurcharges(event, emptySurcharge)).toEqual([]);
   });
 
   it('should return no surcharges if none match', () => {
-    event.startDate.day(4);
-    event.endDate.day(4);
-    surcharge.evening = undefined;
-    surcharge.custom = undefined;
-    expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([]);
+    getCustomSurchargeStub.returns();
+    const event = {
+      startDate: '2019-05-03T16:00:00.000',
+      endDate: '2019-05-03T23:00:00.000',
+    };
+    expect(SurchargesHelper.getEventSurcharges(event, surchargeAllSet)).toEqual([]);
   });
 
-  for (const dailySurcharge of dailySurcharges) {
+  const dailySurcharges = [
+    { key: 'twentyFifthOfDecember', date: '2019-12-25', label: '25th of december' },
+    { key: 'firstOfMay', date: '2019-05-01', label: '1st of May' },
+    { key: 'publicHoliday', date: '2019-07-14', label: 'holiday' },
+    { key: 'saturday', date: '2019-08-17', label: 'saturday' },
+    { key: 'sunday', date: '2019-08-18', label: 'sunday' },
+  ];
+
+  dailySurcharges.forEach((dailySurcharge) => {
+    const surcharge = { ...surchargeAllSet, [dailySurcharge.key]: 35 };
+    const event = {
+      startDate: moment(dailySurcharge.date).hour(16).toISOString(),
+      endDate: moment(dailySurcharge.date).hour(18).toISOString(),
+    };
+
     it(`should return one surcharge for ${dailySurcharge.label}`, () => {
-      surcharge[dailySurcharge.key] = 35;
-      event.startDate = moment(dailySurcharge.date).hour(16);
-      event.endDate = moment(dailySurcharge.date).hour(18);
+      getCustomSurchargeStub.returnsArg(4);
       expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
         percentage: 35,
       }]);
     });
+  });
+
+  dailySurcharges.forEach((dailySurcharge) => {
+    const surcharge = { ...emptySurcharge, [dailySurcharge.key]: 22 };
+    const event = {
+      startDate: moment('2019-06-03').hour(16).toISOString(),
+      endDate: moment('2019-06-03').hour(23).toISOString(),
+    };
 
     it(`should return no surcharge for ${dailySurcharge.label}`, () => {
-      emptySurcharge[dailySurcharge.key] = 22;
-      event = { startDate: moment('2019-06-03').hour(16), endDate: moment('2019-06-03').hour(23) };
-      expect(SurchargesHelper.getEventSurcharges(event, emptySurcharge)).toEqual([]);
+      getCustomSurchargeStub.returnsArg(4);
+      expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([]);
     });
-  }
+  });
 
   it('should return holiday and not sunday surcharge', () => {
-    event = { startDate: '2019-07-14T07:00:00', endDate: '2019-07-14T09:00:00' };
-    surcharge = { sunday: 10, publicHoliday: 20 };
+    getCustomSurchargeStub.returnsArg(4);
+    const event = { startDate: '2019-07-14T07:00:00', endDate: '2019-07-14T09:00:00' };
+    const surcharge = { sunday: 10, publicHoliday: 20 };
     expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
       percentage: 20,
     }]);
   });
 
   it('should return two surcharges with ranges', () => {
-    event.startDate = moment().hour(1);
-    event.endDate = moment().hour(2);
-    expect(SurchargesHelper.getEventSurcharges(event, surcharge))
+    getCustomSurchargeStub.returnsArg(4);
+    const event = {
+      startDate: '2019-04-18T01:00:00',
+      endDate: '2019-04-18T02:00:00',
+    };
+    expect(SurchargesHelper.getEventSurcharges(event, surchargeAllSet))
       .toEqual([20, 22]);
   });
 });
