@@ -64,7 +64,11 @@ exports.createEvent = async (payload, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
   let event = { ...payload };
-  if (event.type === INTERVENTION && isRepetition(event) && await exports.hasConflicts(event)) delete event.auxiliary;
+  const isRepetedEvent = isRepetition(event);
+  if (event.type === INTERVENTION && event.auxiliary && isRepetedEvent && await exports.hasConflicts(event)) {
+    delete event.auxiliary;
+    delete event.repetition;
+  }
 
   event = new Event(event);
   await event.save();
@@ -77,7 +81,7 @@ exports.createEvent = async (payload, credentials) => {
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
-  if (isRepetition(event)) await exports.createRepetitions({ _id: event._id, ...payload });
+  if (isRepetedEvent) await exports.createRepetitions(event, payload);
 
   return exports.populateEventSubscription(event);
 };
@@ -252,7 +256,7 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
   );
 };
 
-exports.formatRepeatedEvent = async (event, momentDay) => {
+exports.formatRepeatedPayload = async (event, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
   const payload = {
     ..._.omit(event, '_id'),
@@ -260,80 +264,81 @@ exports.formatRepeatedEvent = async (event, momentDay) => {
     endDate: moment(event.endDate).add(step, 'd'),
   };
 
-  if (await exports.hasConflicts(payload)) delete payload.auxiliary;
+  if (await exports.hasConflicts(payload)) {
+    delete payload.auxiliary;
+    delete payload.repetition;
+  }
 
   return new Event(payload);
 };
 
-exports.createRepetitionsEveryDay = async (event) => {
-  const start = moment(event.startDate).add(1, 'd');
-  const end = moment(event.startDate).add(3, 'M').endOf('M');
+exports.createRepetitionsEveryDay = async (payload) => {
+  const start = moment(payload.startDate).add(1, 'd');
+  const end = moment(payload.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('days'));
-  const promises = [];
-  for (let i = 0, l = range.length; i < l; i++) {
-    const repeatedEvent = await exports.formatRepeatedEvent(event, range[i]);
+  const repeatedEvents = [];
 
-    promises.push(repeatedEvent.save());
+  for (let i = 0, l = range.length; i < l; i++) {
+    repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
   }
 
-  return Promise.all(promises);
+  await Event.insertMany(repeatedEvents);
 };
 
-exports.createRepetitionsEveryWeekDay = async (event) => {
-  const start = moment(event.startDate).add(1, 'd');
-  const end = moment(event.startDate).add(3, 'M').endOf('M');
+exports.createRepetitionsEveryWeekDay = async (payload) => {
+  const start = moment(payload.startDate).add(1, 'd');
+  const end = moment(payload.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('days'));
-  const promises = [];
+  const repeatedEvents = [];
+
   for (let i = 0, l = range.length; i < l; i++) {
     if (moment(range[i]).day() !== 0 && moment(range[i]).day() !== 6) {
-      const repeatedEvent = await exports.formatRepeatedEvent(event, range[i]);
-
-      promises.push(repeatedEvent.save());
+      repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
     }
   }
 
-  return Promise.all(promises);
+  await Event.insertMany(repeatedEvents);
 };
 
-exports.createRepetitionsByWeek = async (event, step) => {
-  const start = moment(event.startDate).add(step, 'w');
-  const end = moment(event.startDate).add(3, 'M').endOf('M');
+exports.createRepetitionsByWeek = async (payload, step) => {
+  const start = moment(payload.startDate).add(step, 'w');
+  const end = moment(payload.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
+  const repeatedEvents = [];
 
-  const promises = [];
   for (let i = 0, l = range.length; i < l; i++) {
-    const repeatedEvent = await exports.formatRepeatedEvent(event, range[i]);
-
-    promises.push(repeatedEvent.save());
+    repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
   }
 
-  return Promise.all(promises);
+  await Event.insertMany(repeatedEvents);
 };
 
-exports.createRepetitions = async (event) => {
-  if (event.repetition.frequency === NEVER) return event;
+exports.createRepetitions = async (eventFromDb, payload) => {
+  if (payload.repetition.frequency === NEVER) return eventFromDb;
 
-  event.repetition.parentId = event._id;
-  await Event.findOneAndUpdate({ _id: event._id }, { 'repetition.parentId': event._id });
+  if (_.get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
+    await Event.findOneAndUpdate({ _id: eventFromDb._id }, { 'repetition.parentId': eventFromDb._id });
+  }
 
-  switch (event.repetition.frequency) {
+  payload.repetition.parentId = eventFromDb._id;
+  switch (payload.repetition.frequency) {
     case EVERY_DAY:
-      await exports.createRepetitionsEveryDay(event);
+      await exports.createRepetitionsEveryDay(payload);
       break;
     case EVERY_WEEK_DAY:
-      await exports.createRepetitionsEveryWeekDay(event);
+      await exports.createRepetitionsEveryWeekDay(payload);
       break;
     case EVERY_WEEK:
-      await exports.createRepetitionsByWeek(event, 1);
+      await exports.createRepetitionsByWeek(payload, 1);
       break;
     case EVERY_TWO_WEEKS:
-      await exports.createRepetitionsByWeek(event, 2);
+      await exports.createRepetitionsByWeek(payload, 2);
       break;
     default:
       break;
   }
 
-  return event;
+  return eventFromDb;
 };
 
 exports.updateRepetitions = async (event, payload) => {

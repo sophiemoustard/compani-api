@@ -1305,7 +1305,7 @@ describe('exportAbsencesHistory', () => {
   });
 });
 
-describe('formatRepeatedEvent', () => {
+describe('formatRepeatedPayload', () => {
   let hasConflicts;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventHelper, 'hasConflicts');
@@ -1324,7 +1324,7 @@ describe('formatRepeatedEvent', () => {
     };
 
     hasConflicts.returns(false);
-    const result = await EventHelper.formatRepeatedEvent(event, day);
+    const result = await EventHelper.formatRepeatedPayload(event, day);
 
     expect(result).toBeDefined();
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
@@ -1342,7 +1342,7 @@ describe('formatRepeatedEvent', () => {
     };
 
     hasConflicts.returns(true);
-    const result = await EventHelper.formatRepeatedEvent(event, day);
+    const result = await EventHelper.formatRepeatedPayload(event, day);
 
     expect(result).toBeDefined();
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
@@ -1730,68 +1730,68 @@ describe('auxiliaryHasActiveCompanyContractOnDay', () => {
 });
 
 describe('createRepetitionsEveryDay', () => {
-  let formatRepeatedEvent;
-  let save;
+  let formatRepeatedPayload;
+  let insertMany;
   beforeEach(() => {
-    formatRepeatedEvent = sinon.stub(EventHelper, 'formatRepeatedEvent');
-    save = sinon.stub(Event.prototype, 'save');
+    formatRepeatedPayload = sinon.stub(EventHelper, 'formatRepeatedPayload');
+    insertMany = sinon.stub(Event, 'insertMany');
   });
   afterEach(() => {
-    formatRepeatedEvent.restore();
-    save.restore();
+    formatRepeatedPayload.restore();
+    insertMany.restore();
   });
 
   it('should create repetition every day', async () => {
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedEvent.returns(new Event());
+    formatRepeatedPayload.returns(new Event());
     await EventHelper.createRepetitionsEveryDay(event);
 
-    sinon.assert.callCount(formatRepeatedEvent, 110);
-    sinon.assert.callCount(save, 110);
+    sinon.assert.callCount(formatRepeatedPayload, 110);
+    sinon.assert.callCount(insertMany, 1);
   });
 });
 
 describe('createRepetitionsEveryWeekDay', () => {
-  let formatRepeatedEvent;
-  let save;
+  let formatRepeatedPayload;
+  let insertMany;
   beforeEach(() => {
-    formatRepeatedEvent = sinon.stub(EventHelper, 'formatRepeatedEvent');
-    save = sinon.stub(Event.prototype, 'save');
+    formatRepeatedPayload = sinon.stub(EventHelper, 'formatRepeatedPayload');
+    insertMany = sinon.stub(Event, 'insertMany');
   });
   afterEach(() => {
-    formatRepeatedEvent.restore();
-    save.restore();
+    formatRepeatedPayload.restore();
+    insertMany.restore();
   });
 
   it('should create repetition every day', async () => {
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedEvent.returns(new Event());
+    formatRepeatedPayload.returns(new Event());
     await EventHelper.createRepetitionsEveryWeekDay(event);
 
-    sinon.assert.callCount(formatRepeatedEvent, 78);
-    sinon.assert.callCount(save, 78);
+    sinon.assert.callCount(formatRepeatedPayload, 78);
+    sinon.assert.callCount(insertMany, 1);
   });
 });
 
 describe('createRepetitionsByWeek', () => {
-  let formatRepeatedEvent;
-  let save;
+  let formatRepeatedPayload;
+  let insertMany;
   beforeEach(() => {
-    formatRepeatedEvent = sinon.stub(EventHelper, 'formatRepeatedEvent');
-    save = sinon.stub(Event.prototype, 'save');
+    formatRepeatedPayload = sinon.stub(EventHelper, 'formatRepeatedPayload');
+    insertMany = sinon.stub(Event, 'insertMany');
   });
   afterEach(() => {
-    formatRepeatedEvent.restore();
-    save.restore();
+    formatRepeatedPayload.restore();
+    insertMany.restore();
   });
 
   it('should create repetition every day', async () => {
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedEvent.returns(new Event());
+    formatRepeatedPayload.returns(new Event());
     await EventHelper.createRepetitionsByWeek(event);
 
-    sinon.assert.callCount(formatRepeatedEvent, 16);
-    sinon.assert.callCount(save, 16);
+    sinon.assert.callCount(formatRepeatedPayload, 16);
+    sinon.assert.callCount(insertMany, 1);
   });
 });
 
@@ -1814,34 +1814,46 @@ describe('createRepetitions', () => {
   });
 
   it('should call createRepetitionsEveryDay', async () => {
-    const event = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
-    await EventHelper.createRepetitions(event);
+    const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
+    const event = new Event({ repetition: { frequency: EVERY_WEEK } });
+    await EventHelper.createRepetitions(event, payload);
 
     sinon.assert.called(findOneAndUpdate);
+  });
+
+  it('should call createRepetitionsEveryDay', async () => {
+    const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
+    const event = new Event();
+    await EventHelper.createRepetitions(event, payload);
+
+    sinon.assert.notCalled(findOneAndUpdate);
     sinon.assert.called(createRepetitionsEveryDay);
   });
 
   it('should call createRepetitionsEveryWeekDay', async () => {
-    const event = { _id: '1234567890', repetition: { frequency: 'every_week_day', parentId: '0987654321' } };
-    await EventHelper.createRepetitions(event);
+    const payload = { _id: '1234567890', repetition: { frequency: 'every_week_day', parentId: '0987654321' } };
+    const event = new Event();
+    await EventHelper.createRepetitions(event, payload);
 
-    sinon.assert.called(findOneAndUpdate);
+    sinon.assert.notCalled(findOneAndUpdate);
     sinon.assert.called(createRepetitionsEveryWeekDay);
   });
 
   it('should call createRepetitionsByWeek to repeat every week', async () => {
-    const event = { _id: '1234567890', repetition: { frequency: 'every_week', parentId: '0987654321' } };
-    await EventHelper.createRepetitions(event);
+    const payload = { _id: '1234567890', repetition: { frequency: 'every_week', parentId: '0987654321' } };
+    const event = new Event();
+    await EventHelper.createRepetitions(event, payload);
 
-    sinon.assert.called(findOneAndUpdate);
-    sinon.assert.calledWith(createRepetitionsByWeek, event, 1);
+    sinon.assert.notCalled(findOneAndUpdate);
+    sinon.assert.calledWith(createRepetitionsByWeek, payload, 1);
   });
 
   it('should call createRepetitionsByWeek to repeat every two weeks', async () => {
-    const event = { _id: '1234567890', repetition: { frequency: 'every_two_weeks', parentId: '0987654321' } };
-    await EventHelper.createRepetitions(event);
+    const payload = { _id: '1234567890', repetition: { frequency: 'every_two_weeks', parentId: '0987654321' } };
+    const event = new Event();
+    await EventHelper.createRepetitions(event, payload);
 
-    sinon.assert.called(findOneAndUpdate);
-    sinon.assert.calledWith(createRepetitionsByWeek, event, 2);
+    sinon.assert.notCalled(findOneAndUpdate);
+    sinon.assert.calledWith(createRepetitionsByWeek, payload, 2);
   });
 });
