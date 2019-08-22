@@ -67,7 +67,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
     });
 
-    it('should create two new credit note', async () => {
+    it('should create one credit note', async () => {
       const initialCreditNotesNumber = creditNotesList.length;
       const response = await app.inject({
         method: 'POST',

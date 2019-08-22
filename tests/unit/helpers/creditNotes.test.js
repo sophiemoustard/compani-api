@@ -5,6 +5,7 @@ const FundingHistory = require('../../../models/FundingHistory');
 const Event = require('../../../models/Event');
 const CreditNoteHelper = require('../../../helpers/creditNotes');
 const UtilsHelper = require('../../../helpers/utils');
+const PdfHelper = require('../../../helpers/pdf');
 const moment = require('moment');
 
 describe('updateEventAndFundingHistory', () => {
@@ -27,7 +28,7 @@ describe('updateEventAndFundingHistory', () => {
     const events = [
       new Event({
         bills: { nature: 'hourly', fundingVersion: fundingVersionId, thirdPartyPayer: new ObjectID(), careHours: 3 },
-        startDate: new Date('2019/01/19')
+        startDate: new Date('2019/01/19'),
       }),
     ];
 
@@ -53,7 +54,7 @@ describe('updateEventAndFundingHistory', () => {
     const events = [
       new Event({
         bills: { nature: 'hourly', fundingVersion: fundingVersionId, thirdPartyPayer: new ObjectID(), careHours: 3 },
-        startDate: new Date('2019/01/19')
+        startDate: new Date('2019/01/19'),
       }),
     ];
 
@@ -74,7 +75,7 @@ describe('updateEventAndFundingHistory', () => {
     const events = [
       new Event({
         bills: { nature: 'hourly', fundingVersion: fundingVersionId, thirdPartyPayer: new ObjectID(), careHours: 3 },
-        startDate: new Date('2019/01/19')
+        startDate: new Date('2019/01/19'),
       }),
     ];
 
@@ -95,7 +96,7 @@ describe('updateEventAndFundingHistory', () => {
     const events = [
       new Event({
         bills: { nature: 'fixed', fundingVersion: fundingVersionId, thirdPartyPayer: new ObjectID(), inclTaxesTpp: 666 },
-        startDate: new Date('2019/01/19')
+        startDate: new Date('2019/01/19'),
       }),
     ];
 
@@ -115,14 +116,17 @@ describe('updateEventAndFundingHistory', () => {
 describe('formatPDF', () => {
   let getMatchingVersion;
   let formatPrice;
+  let formatEventSurchargesForPdf;
   beforeEach(() => {
     getMatchingVersion = sinon.stub(UtilsHelper, 'getMatchingVersion').returns({ name: 'Toto' });
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
+    formatEventSurchargesForPdf = sinon.stub(PdfHelper, 'formatEventSurchargesForPdf');
   });
 
   afterEach(() => {
     getMatchingVersion.restore();
     formatPrice.restore();
+    formatEventSurchargesForPdf.restore();
   });
 
   it('should format correct credit note PDF with events for customer', () => {
@@ -131,12 +135,12 @@ describe('formatPDF', () => {
       number: 1,
       events: [{
         auxiliary: {
-          identity: { firstname: 'Nathanaelle', lastname: 'Tata' }
+          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
         },
         startDate: '2019-04-29T06:00:00.000Z',
         endDate: '2019-04-29T15:00:00.000Z',
         serviceName: 'Toto',
-        bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221 },
+        bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
       }],
       customer: {
         identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
@@ -157,6 +161,7 @@ describe('formatPDF', () => {
           identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
           contact: { address: { fullAddress: 'La ruche' } },
         },
+        forTpp: false,
         date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
         exclTaxes: '221,00 €',
         inclTaxes: '234,00 €',
@@ -167,23 +172,26 @@ describe('formatPDF', () => {
           startTime: moment('2019-04-29T06:00:00.000Z').format('HH:mm'),
           endTime: moment('2019-04-29T15:00:00.000Z').format('HH:mm'),
           service: 'Toto',
+          surcharges: [{ percentage: 30, startHour: '19h' }],
         }],
         recipient: {
           name: 'Lolo Toto Bobo',
           address: { fullAddress: 'La ruche' },
         },
         company: {},
-        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
-      }
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      },
     };
 
     formatPrice.onCall(0).returns('13,00 €');
     formatPrice.onCall(1).returns('221,00 €');
     formatPrice.onCall(2).returns('234,00 €');
+    formatEventSurchargesForPdf.returns([{ percentage: 30, startHour: '19h' }]);
 
     const result = CreditNoteHelper.formatPDF(creditNote, {});
 
     expect(result).toEqual(expectedResult);
+    sinon.assert.calledWith(formatEventSurchargesForPdf, [{ percentage: 30 }]);
   });
 
   it('should format correct credit note PDF with events for tpp', () => {
@@ -192,7 +200,7 @@ describe('formatPDF', () => {
       number: 1,
       events: [{
         auxiliary: {
-          identity: { firstname: 'Nathanaelle', lastname: 'Tata' }
+          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
         },
         startDate: '2019-04-29T06:00:00.000Z',
         endDate: '2019-04-29T15:00:00.000Z',
@@ -209,7 +217,7 @@ describe('formatPDF', () => {
       inclTaxesTpp: 34,
       exclTaxesCustomer: 221,
       inclTaxesCustomer: 234,
-      thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } }
+      thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } },
     };
 
     const expectedResult = {
@@ -219,6 +227,7 @@ describe('formatPDF', () => {
           identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
           contact: { address: { fullAddress: 'La ruche' } },
         },
+        forTpp: true,
         date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
         exclTaxes: '21,00 €',
         inclTaxes: '34,00 €',
@@ -235,8 +244,8 @@ describe('formatPDF', () => {
           address: { fullAddress: 'j\'habite ici' },
         },
         company: {},
-        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png'
-      }
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+      },
     };
 
     formatPrice.onCall(0).returns('13,00 €');
@@ -247,6 +256,7 @@ describe('formatPDF', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
+    sinon.assert.notCalled(formatEventSurchargesForPdf);
   });
 
   it('should format correct credit note PDF with subscription', () => {
@@ -267,7 +277,7 @@ describe('formatPDF', () => {
       inclTaxesTpp: 34,
       exclTaxesCustomer: 221,
       inclTaxesCustomer: 234,
-      thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } }
+      thirdPartyPayer: { name: 'tpp', address: { fullAddress: 'j\'habite ici' } },
     };
 
     formatPrice.onCall(0).returns('12,00 €');

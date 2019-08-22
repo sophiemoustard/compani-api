@@ -6,6 +6,7 @@ const { ObjectID } = require('mongodb');
 const Bill = require('../../../models/Bill');
 const BillHelper = require('../../../helpers/bills');
 const UtilsHelper = require('../../../helpers/utils');
+const PdfHelper = require('../../../helpers/pdf');
 
 require('sinon-mongoose');
 
@@ -665,61 +666,13 @@ describe('formatThirdPartyPayerBills', () => {
   });
 });
 
-describe('formatSurchargeHourForPdf', () => {
-  it('should return just the hours', () => {
-    const date = '2019-08-22 18:00';
-    expect(BillHelper.formatSurchargeHourForPdf(date)).toBe('18h');
-  });
-
-  it('should return the hours and the minutes', () => {
-    const date = '2019-08-22 17:05';
-    expect(BillHelper.formatSurchargeHourForPdf(date)).toBe('17h05');
-  });
-});
-
-describe('formatEventSurchargesForPdf', () => {
-  let formatSurchargeHourForPdf;
-
-  beforeEach(() => {
-    formatSurchargeHourForPdf = sinon.stub(BillHelper, 'formatSurchargeHourForPdf');
-    formatSurchargeHourForPdf.callsFake(date => `${date}d`);
-  });
-
-  afterEach(() => {
-    formatSurchargeHourForPdf.restore();
-  });
-
-  it('should set an empty array if the array of surcharges is empty', () => {
-    const formattedSurcharges = BillHelper.formatEventSurchargesForPdf([]);
-    expect(formattedSurcharges).toEqual([]);
-    sinon.assert.notCalled(formatSurchargeHourForPdf);
-  });
-
-  it('should set the surcharges', () => {
-    const surcharges = [
-      { percentage: 25 },
-      { percentage: 15, startHour: '18', endHour: '20' },
-    ];
-
-    const formattedSurcharges = BillHelper.formatEventSurchargesForPdf(surcharges);
-
-    expect(formattedSurcharges).toEqual([
-      { percentage: 25 },
-      { percentage: 15, startHour: '18d', endHour: '20d' },
-    ]);
-    sinon.assert.calledTwice(formatSurchargeHourForPdf);
-  });
-});
-
 describe('formatBillSubscriptionsForPdf', () => {
   let getUnitInclTaxes;
   let formatPrice;
-
   beforeEach(() => {
     formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
     getUnitInclTaxes = sinon.stub(BillHelper, 'getUnitInclTaxes');
   });
-
   afterEach(() => {
     getUnitInclTaxes.restore();
     formatPrice.restore();
@@ -765,11 +718,9 @@ describe('formatBillSubscriptionsForPdf', () => {
 
 describe('formatEventsForPdf', () => {
   let formatEventSurchargesForPdf;
-
   beforeEach(() => {
-    formatEventSurchargesForPdf = sinon.stub(BillHelper, 'formatEventSurchargesForPdf');
+    formatEventSurchargesForPdf = sinon.stub(PdfHelper, 'formatEventSurchargesForPdf');
   });
-
   afterEach(() => {
     formatEventSurchargesForPdf.restore();
   });
@@ -807,7 +758,6 @@ describe('formatEventsForPdf', () => {
 describe('formatPDF', () => {
   let formatEventsForPdf;
   let formatBillSubscriptionsForPdf;
-
   beforeEach(() => {
     formatEventsForPdf = sinon.stub(BillHelper, 'formatEventsForPdf');
     formatBillSubscriptionsForPdf = sinon.stub(BillHelper, 'formatBillSubscriptionsForPdf');
@@ -1079,7 +1029,6 @@ describe('exportBillsHistory', () => {
   ];
   let expectsFind;
   let mockBill;
-
   beforeEach(() => {
     mockBill = sinon.mock(Bill);
     expectsFind = mockBill.expects('find')
@@ -1089,7 +1038,6 @@ describe('exportBillsHistory', () => {
       .chain('lean')
       .once();
   });
-
   afterEach(() => {
     mockBill.restore();
   });

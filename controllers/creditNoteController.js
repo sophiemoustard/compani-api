@@ -57,7 +57,7 @@ const update = async (req) => {
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
     if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
 
-    creditNote = await updateCreditNotes(creditNote);
+    creditNote = await updateCreditNotes(creditNote, req.payload);
 
     return {
       message: translate[language].creditNoteUpdated,

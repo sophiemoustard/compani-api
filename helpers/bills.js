@@ -6,6 +6,7 @@ const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const UtilsHelper = require('./utils');
+const PdfHelper = require('./pdf');
 const { HOURLY, THIRD_PARTY } = require('./constants');
 
 exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
@@ -202,30 +203,10 @@ exports.formatBillSubscriptionsForPdf = (bill) => {
   return { totalExclTaxes, totalVAT, formattedSubs };
 };
 
-exports.formatSurchargeHourForPdf = (date) => {
-  date = moment(date);
-  return date.minutes() > 0 ? date.format('HH[h]mm') : date.format('HH[h]');
-};
-
-exports.formatEventSurchargesForPdf = (eventSurcharges) => {
-  const formattedSurcharges = eventSurcharges.map((surcharge) => {
-    const sur = { ...surcharge };
-    if (sur.startHour) {
-      sur.startHour = exports.formatSurchargeHourForPdf(sur.startHour);
-      sur.endHour = exports.formatSurchargeHourForPdf(sur.endHour);
-    }
-    return sur;
-  });
-  return formattedSurcharges;
-};
-
 exports.formatEventsForPdf = (events, service) => {
   const formattedEvents = [];
 
-  const sortedEvents = events
-    .map(ev => ({ ...ev, startDate: moment(ev.startDate).toDate() }))
-    .sort((ev1, ev2) => ev1.startDate - ev2.startDate);
-
+  const sortedEvents = events.sort((ev1, ev2) => ev1.startDate - ev2.startDate);
   for (const ev of sortedEvents) {
     const formattedEvent = {
       identity: `${ev.auxiliary.identity.firstname.substring(0, 1)}. ${ev.auxiliary.identity.lastname}`,
@@ -235,7 +216,7 @@ exports.formatEventsForPdf = (events, service) => {
       service: service.name,
     };
     if (ev.surcharges) {
-      formattedEvent.surcharges = exports.formatEventSurchargesForPdf(ev.surcharges);
+      formattedEvent.surcharges = PdfHelper.formatEventSurchargesForPdf(ev.surcharges);
     }
     formattedEvents.push(formattedEvent);
   }
@@ -244,7 +225,6 @@ exports.formatEventsForPdf = (events, service) => {
 };
 
 exports.formatPDF = (bill, company) => {
-  const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
   const computedData = {
     netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
     date: moment(bill.date).format('DD/MM/YYYY'),
@@ -268,7 +248,7 @@ exports.formatPDF = (bill, company) => {
       customer: bill.customer,
       ...computedData,
       company,
-      logo,
+      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
     },
   };
 };

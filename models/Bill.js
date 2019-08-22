@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const ServiceSchema = require('./Service').schema;
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
