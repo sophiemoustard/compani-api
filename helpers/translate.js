@@ -230,13 +230,18 @@ module.exports = {
     paymentUpated: 'Payment updated.',
 
     /* Pay */
-    payListCreated: 'Pay list created',
+    payListCreated: 'Pay list created.',
 
     /* Final pay */
-    finalPayListCreated: 'Final pay list created',
+    finalPayListCreated: 'Final pay list created.',
 
     /* Event history */
-    eventHistoriesFound: 'Event histories found',
+    eventHistoriesFound: 'Event histories found.',
+
+    /* Pay documents */
+    payDocumentCreated: 'Pay document created.',
+    payDocumentsFound: 'Pay documents found.',
+    payDocumentsNotFound: 'Pay documents not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -471,5 +476,10 @@ module.exports = {
 
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés',
+
+    /* Pay documents */
+    payDocumentCreated: 'Document de paie créé.',
+    payDocumentsFound: 'Documents de paie trouvés.',
+    payDocumentsNotFound: 'Documents de paie non trouvés.',
   },
 };

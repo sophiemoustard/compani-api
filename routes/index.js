@@ -123,4 +123,8 @@ exports.routes = [
     plugin: require('./eventHistories'),
     routes: { prefix: '/eventhistories' },
   },
+  {
+    plugin: require('./payDocuments'),
+    routes: { prefix: '/paydocuments' },
+  },
 ];
