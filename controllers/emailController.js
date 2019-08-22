@@ -1,16 +1,16 @@
 const Boom = require('boom');
 const nodemailer = require('nodemailer');
-
 const translate = require('../helpers/translate');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
 const { welcomeEmailContent, welcomeAuxiliaryEmailContent } = require('../helpers/emailOptions');
+const { SENDER_MAIL } = require('../helpers/constants');
 
 const { language } = translate;
 
 const sendWelcome = async (req) => {
   try {
     const mailOptions = {
-      from: req.payload.sender.email,
+      from: `Alenvi <${SENDER_MAIL}>`,
       to: req.payload.receiver.email,
       subject: 'Alenvi - Bienvenue dans votre espace Compani',
       html: welcomeEmailContent(req.payload.receiver),
@@ -29,7 +29,7 @@ const sendWelcome = async (req) => {
 const sendAuxiliaryWelcome = async (req) => {
   try {
     const mailOptions = {
-      from: 'alenvi@alenvi.io',
+      from: `Alenvi <${SENDER_MAIL}>`,
       to: req.payload.email,
       subject: 'Bienvenue chez Alenvi ! :)',
       html: welcomeAuxiliaryEmailContent(),
@@ -47,6 +47,6 @@ const sendAuxiliaryWelcome = async (req) => {
 
 module.exports = {
   sendWelcome,
-  sendAuxiliaryWelcome
+  sendAuxiliaryWelcome,
 };
 

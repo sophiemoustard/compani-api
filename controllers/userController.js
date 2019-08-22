@@ -15,7 +15,7 @@ const { createFolder, deleteFile } = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
-const { AUXILIARY } = require('../helpers/constants');
+const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
@@ -321,7 +321,7 @@ const forgotPassword = async (req) => {
     if (!user) return Boom.notFound(translate[language].userNotFound);
 
     const mailOptions = {
-      from: 'support@alenvi.io',
+      from: `Alenvi <${SENDER_MAIL}>`,
       to: req.payload.email,
       subject: 'Changement de mot de passe de votre compte Compani',
       html: forgetPasswordEmail(payload.resetPassword),

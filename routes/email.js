@@ -5,7 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const {
   sendWelcome,
-  sendAuxiliaryWelcome
+  sendAuxiliaryWelcome,
 } = require('../controllers/emailController');
 
 exports.plugin = {
@@ -17,14 +17,11 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            sender: Joi.object().keys({
-              email: Joi.string().email().required()
-            }),
             receiver: Joi.object().keys({
               email: Joi.string().email().required(),
-              password: Joi.string().required()
+              password: Joi.string().required(),
             }).required(),
-          })
+          }),
         },
       },
       handler: sendWelcome,
@@ -36,11 +33,11 @@ exports.plugin = {
       options: {
         validate: {
           payload: Joi.object().keys({
-            email: Joi.string().email().required()
-          })
+            email: Joi.string().email().required(),
+          }),
         },
       },
       handler: sendAuxiliaryWelcome,
     });
-  }
+  },
 };
