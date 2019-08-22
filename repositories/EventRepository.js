@@ -90,6 +90,18 @@ exports.getEventList = rules => Event.find(rules)
   })
   .lean();
 
+exports.getEventsInConflicts = async (dates, auxiliary, types, eventId) => {
+  const rules = {
+    startDate: { $lte: dates.endDate },
+    endDate: { $gte: dates.startDate },
+    auxiliary,
+    type: { $in: types },
+  };
+  if (eventId) rules._id = { $ne: eventId };
+
+  return Event.find(rules).lean();
+};
+
 exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate) => Event.find({
   auxiliary,
   $or: [

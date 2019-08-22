@@ -17,6 +17,7 @@ const {
   COMPANY_CONTRACT,
   INTERNAL_HOUR,
   ABSENCE,
+  UNAVAILABILITY,
   NEVER,
   EVERY_WEEK,
   INVOICED_AND_NOT_PAYED,
@@ -127,7 +128,7 @@ describe('updateEvent', () => {
     sinon.assert.calledWith(
       updateEvent,
       eventId,
-      { ...payload, repetition: { frequency: NEVER } },
+      { ...payload, 'repetition.frequency': NEVER },
       { 'repetition.parentId': '' }
     );
 
@@ -175,7 +176,7 @@ describe('updateEvent', () => {
     sinon.assert.calledWith(
       updateEvent,
       eventId,
-      { ...payload, isCancelled: false, repetition: { frequency: NEVER } },
+      { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
       { 'repetition.parentId': '', cancel: '' }
     );
     sinon.assert.notCalled(updateRepetitions);
@@ -1401,7 +1402,7 @@ describe('createEvent', () => {
       auxiliary: auxiliaryId.toHexString(),
       _id: eventId.toHexString(),
     };
-    const newEvent = new Event(payload);
+    const newEvent = new Event({ ...payload, auxiliary: { _id: auxiliaryId } });
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
@@ -1411,14 +1412,14 @@ describe('createEvent', () => {
     sinon.assert.calledWith(
       deleteConflictEventsExceptInterventions,
       { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
-      auxiliaryId,
+      auxiliaryId.toHexString(),
       eventId.toHexString(),
       { _id: 'asdfghjkl' }
     );
     sinon.assert.calledWith(
       unassignConflictInterventions,
       { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
-      auxiliaryId,
+      auxiliaryId.toHexString(),
       { _id: 'asdfghjkl' }
     );
   });
@@ -1429,23 +1430,23 @@ describe('deleteConflictEventsExceptInterventions', () => {
   const auxiliaryId = new ObjectID();
   const absenceId = new ObjectID();
   const credentials = { _id: new ObjectID() };
-  let EventMock;
+  let getEventsInConflicts;
   let deleteEvents;
   beforeEach(() => {
-    EventMock = sinon.mock(Event);
+    getEventsInConflicts = sinon.stub(EventRepository, 'getEventsInConflicts');
     deleteEvents = sinon.stub(EventHelper, 'deleteEvents');
   });
   afterEach(() => {
-    EventMock.restore();
+    getEventsInConflicts.restore();
     deleteEvents.restore();
   });
 
   it('should delete conflict events except interventions', async () => {
     const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
-    EventMock.expects('find').chain('lean').once().returns(events);
+    getEventsInConflicts.returns(events);
     await EventHelper.deleteConflictEventsExceptInterventions(dates, auxiliaryId, absenceId, credentials);
 
-    EventMock.verify();
+    getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absenceId);
     sinon.assert.calledWith(deleteEvents, events, credentials);
   });
 });
@@ -1454,23 +1455,23 @@ describe('unassignConflictInterventions', () => {
   const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
   const auxiliaryId = new ObjectID();
   const credentials = { _id: new ObjectID() };
-  let EventMock;
+  let getEventsInConflicts;
   let updateEvent;
   beforeEach(() => {
-    EventMock = sinon.mock(Event);
+    getEventsInConflicts = sinon.stub(EventRepository, 'getEventsInConflicts');
     updateEvent = sinon.stub(EventHelper, 'updateEvent');
   });
   afterEach(() => {
-    EventMock.restore();
+    getEventsInConflicts.restore();
     updateEvent.restore();
   });
 
   it('should delete conflict events except interventions', async () => {
     const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
-    EventMock.expects('find').chain('lean').once().returns(events);
+    getEventsInConflicts.returns(events);
     await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
 
-    EventMock.verify();
+    getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERVENTION]);
     sinon.assert.callCount(updateEvent, events.length);
   });
 });

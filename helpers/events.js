@@ -68,8 +68,8 @@ exports.createEvent = async (payload, credentials) => {
   if (payload.type === ABSENCE) {
     const { startDate, endDate, auxiliary, _id } = event;
     const dates = { startDate, endDate };
-    await exports.deleteConflictEventsExceptInterventions(dates, auxiliary, _id.toHexString(), credentials);
-    await exports.unassignConflictInterventions(dates, auxiliary, credentials);
+    await exports.deleteConflictEventsExceptInterventions(dates, auxiliary._id.toHexString(), _id.toHexString(), credentials);
+    await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
   if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
@@ -79,25 +79,15 @@ exports.createEvent = async (payload, credentials) => {
   return exports.populateEventSubscription(event);
 };
 
-exports.deleteConflictEventsExceptInterventions = async (dates, auxiliaryId, absenceId, credentials) => {
-  const events = await Event.find({
-    startDate: { $lte: dates.endDate },
-    endDate: { $gte: dates.startDate },
-    auxiliary: auxiliaryId,
-    type: { $in: [INTERNAL_HOUR, UNAVAILABILITY, ABSENCE] },
-    _id: { $ne: absenceId },
-  }).lean();
+exports.deleteConflictEventsExceptInterventions = async (dates, auxiliary, eventId, credentials) => {
+  const types = [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY];
+  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, eventId);
 
   await exports.deleteEvents(events, credentials);
 };
 
-exports.unassignConflictInterventions = async (dates, auxiliaryId, credentials) => {
-  const interventions = await Event.find({
-    startDate: { $lte: dates.endDate },
-    endDate: { $gte: dates.startDate },
-    auxiliary: auxiliaryId,
-    type: INTERVENTION,
-  }).lean();
+exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
+  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION]);
 
   for (let i = 0, l = interventions.length; i < l; i++) {
     const payload = _.omit(interventions[i], ['_id', 'auxiliary']);
@@ -405,10 +395,10 @@ exports.updateEvent = async (event, payload, credentials) => {
       await exports.updateRepetitions(event, payload);
     }
   } else if (!payload.isCancelled && event.isCancelled) {
-    set = { ...payload, isCancelled: false, repetition: { frequency: NEVER } };
+    set = { ...payload, isCancelled: false, 'repetition.frequency': NEVER };
     unset = { cancel: '', 'repetition.parentId': '' };
   } else {
-    set = { ...payload, repetition: { frequency: NEVER } };
+    set = { ...payload, 'repetition.frequency': NEVER };
     unset = { 'repetition.parentId': '' };
   }
 
