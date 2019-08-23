@@ -10,17 +10,10 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const {
-  AUXILIARY,
-  PLANNING_REFERENT,
-  OTHER,
-  PAYSLIP,
-  CERTIFICATE,
-} = require('../helpers/constants');
+const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
 
 const SALT_WORK_FACTOR = 10;
 
-const PAY_DOCUMENT_NATURES = [PAYSLIP, CERTIFICATE, OTHER];
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -122,11 +115,6 @@ const UserSchema = mongoose.Schema({
       name: String,
       phoneNumber: String,
     },
-    payDocuments: [{
-      nature: { type: String, enum: PAY_DOCUMENT_NATURES, default: OTHER },
-      date: { type: Date },
-      file: driveResourceSchemaDefinition,
-    }],
   },
   procedure: [{
     task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
@@ -208,5 +196,3 @@ UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);
-
-module.exports.PAY_DOCUMENT_NATURES = PAY_DOCUMENT_NATURES;

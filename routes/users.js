@@ -24,7 +24,6 @@ const {
   deletePayDocument,
 } = require('../controllers/userController');
 
-const { PAY_DOCUMENT_NATURES } = require('../models/User');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -40,7 +39,6 @@ const driveUploadKeys = [
   'mutualFund',
   'vitalCard',
   'medicalCertificate',
-  'payDocuments',
 ];
 
 exports.plugin = {
@@ -409,13 +407,11 @@ exports.plugin = {
         validate: {
           payload: Joi.object({
             ...driveUploadKeys.reduce((obj, key) => Object.assign(obj, { [key]: Joi.any() }), {}),
-            nature: Joi.string().valid(PAY_DOCUMENT_NATURES),
             date: Joi.date(),
             fileName: Joi.string().required(),
             'Content-Type': Joi.string().required(),
           })
-            .or([driveUploadKeys])
-            .and(['payDocuments', 'nature', 'date']),
+            .or([driveUploadKeys]),
           params: {
             _id: Joi.objectId().required(),
             driveId: Joi.string().required(),

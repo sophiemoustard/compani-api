@@ -381,7 +381,6 @@ const uploadFile = async (req) => {
       'mutualFund',
       'vitalCard',
       'medicalCertificate',
-      'payDocuments',
     ];
     const administrativeKey = Object.keys(req.payload).find(key => allowedFields.includes(key));
     if (!administrativeKey) {
