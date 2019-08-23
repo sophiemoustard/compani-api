@@ -3,10 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const {
-  sendWelcome,
-  sendAuxiliaryWelcome,
-} = require('../controllers/emailController');
+const { sendWelcome } = require('../controllers/emailController');
 
 exports.plugin = {
   name: 'routes-email',
@@ -25,19 +22,6 @@ exports.plugin = {
         },
       },
       handler: sendWelcome,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/sendAuxiliaryWelcome',
-      options: {
-        validate: {
-          payload: Joi.object().keys({
-            email: Joi.string().email().required(),
-          }),
-        },
-      },
-      handler: sendAuxiliaryWelcome,
     });
   },
 };

@@ -15,15 +15,6 @@ const welcomeEmailContent = receiver => (
   <img src="https://res.cloudinary.com/alenvi/image/upload/c_scale,w_183/v1507124345/images/business/alenvi_logo_complet_full.png" alt="Logo Alenvi">`
 );
 
-const welcomeAuxiliaryEmailContent = () => (
-  `<p>Bienvenue chez Alenvi,</p>
-  <p>Ton compte a bien été créé.<br>
-    Tu peux t'y connecter à tout moment en suivant ce lien:</p>
-  <p><a href="${process.env.WEBSITE_HOSTNAME}/login">${process.env.WEBSITE_HOSTNAME}</a></p>
-  <p>Merci et à bientôt,<br>
-    L'équipe Alenvi</p>`
-);
-
 const forgetPasswordEmail = resetPassword => (
   `<p>Bonjour,</p>
   <p>Vous pouvez modifier votre mot de passe en cliquant sur le lien suivant (lien valable une heure) :</p>
@@ -35,6 +26,5 @@ const forgetPasswordEmail = resetPassword => (
 
 module.exports = {
   welcomeEmailContent,
-  welcomeAuxiliaryEmailContent,
   forgetPasswordEmail,
 };
