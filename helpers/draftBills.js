@@ -1,23 +1,12 @@
-const moment = require('moment-business-days');
-const Holidays = require('date-holidays');
+const moment = require('../extensions/moment');
 const mongoose = require('mongoose');
 const EventRepository = require('../repositories/EventRepository');
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
 const { HOURLY, MONTHLY, ONCE, FIXED } = require('./constants');
-const utils = require('../helpers/utils');
-
-const holidays = new Holidays('FR');
-const now = new Date();
-const currentYear = now.getFullYear();
-const currentHolidays = [...holidays.getHolidays(currentYear), ...holidays.getHolidays(currentYear - 1)];
-moment.updateLocale('fr', {
-  holidays: currentHolidays.map(holiday => holiday.date),
-  holidayFormat: 'YYYY-MM-DD HH:mm:ss',
-  workingWeekdays: [1, 2, 3, 4, 5, 6],
-});
-moment.tz.setDefault('Europe/Paris');
+const utils = require('./utils');
+const SurchargesHelper = require('./surcharges');
 
 exports.populateSurcharge = async (subscription) => {
   for (let i = 0, l = subscription.service.versions.length; i < l; i++) {
@@ -78,60 +67,20 @@ exports.getMatchingFunding = (date, fundings) => {
   return filteredByDateFundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
 
-exports.computeCustomSurcharge = (event, startHour, endHour, surchargeValue, price) => {
-  const start = moment(event.startDate).hour(startHour.substring(0, 2)).minute(startHour.substring(3));
-  let end = moment(event.startDate).hour(endHour.substring(0, 2)).minute(endHour.substring(3));
-  if (start.isAfter(end)) end = end.add(1, 'd');
+exports.getSurchargedPrice = (event, eventSurcharges, price) => {
+  let coef = 1;
+  const eventDuration = moment(event.endDate).diff(event.startDate, 'm');
 
-  if (start.isSameOrBefore(event.startDate) && end.isSameOrAfter(event.endDate)) return price * (1 + (surchargeValue / 100));
-
-  const time = moment(event.endDate).diff(moment(event.startDate), 'm');
-  let inflatedTime = 0;
-  let notInflatedTime = time;
-  if (start.isSameOrBefore(event.startDate) && end.isAfter(event.startDate) && end.isBefore(event.endDate)) {
-    inflatedTime = end.diff(event.startDate, 'm');
-    notInflatedTime = moment(event.endDate).diff(end, 'm');
-  } else if (start.isAfter(event.startDate) && start.isBefore(event.endDate) && end.isSameOrAfter(event.endDate)) {
-    inflatedTime = moment(event.endDate).diff(start, 'm');
-    notInflatedTime = start.diff(event.startDate, 'm');
-  } else if (start.isAfter(event.startDate) && end.isBefore(event.endDate)) {
-    inflatedTime = end.diff(start, 'm');
-    notInflatedTime = start.diff(event.startDate, 'm') + moment(event.endDate).diff(end, 'm');
+  for (const surcharge of eventSurcharges) {
+    if (surcharge.startHour) {
+      const surchargedDuration = moment(surcharge.endHour).diff(surcharge.startHour, 'm');
+      coef += (surchargedDuration / eventDuration) * (surcharge.percentage / 100);
+    } else {
+      coef += surcharge.percentage / 100;
+    }
   }
 
-  return (price / time) * (notInflatedTime + (inflatedTime * (1 + (surchargeValue / 100))));
-};
-
-exports.applySurcharge = (event, price, surcharge) => {
-  const {
-    saturday,
-    sunday,
-    publicHoliday,
-    firstOfMay,
-    twentyFifthOfDecember,
-    evening,
-    eveningEndTime,
-    eveningStartTime,
-    custom,
-    customStartTime,
-    customEndTime,
-  } = surcharge;
-
-  if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
-    return price * (1 + (twentyFifthOfDecember / 100));
-  }
-  if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') return price * (1 + (firstOfMay / 100));
-  if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
-    return price * (1 + (publicHoliday / 100));
-  }
-  if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) return price * (1 + (saturday / 100));
-  if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) return price * (1 + (sunday / 100));
-
-  let surchargedPrice = price;
-  if (evening) surchargedPrice = exports.computeCustomSurcharge(event, eveningStartTime, eveningEndTime, evening, surchargedPrice);
-  if (custom) surchargedPrice = exports.computeCustomSurcharge(event, customStartTime, customEndTime, custom, surchargedPrice);
-
-  return surchargedPrice;
+  return coef * price;
 };
 
 exports.getExclTaxes = (inclTaxes, vat) => inclTaxes / (1 + (vat / 100));
@@ -223,20 +172,29 @@ exports.getFixedFundingSplit = (event, funding, service, price) => {
 /**
  * Returns customer and tpp excluded taxes prices of the given event.
  */
-exports.getEventPrice = (event, unitTTCRate, service, funding) => {
+exports.getEventBilling = (event, unitTTCRate, service, funding) => {
   const unitExclTaxes = exports.getExclTaxes(unitTTCRate, service.vat);
   let price = (moment(event.endDate).diff(moment(event.startDate), 'm') / 60) * unitExclTaxes;
+  const billing = {};
 
   if (service.nature === FIXED) price = unitExclTaxes;
-  if (service.surcharge && service.nature === HOURLY) price = exports.applySurcharge(event, price, service.surcharge);
-
-  if (funding) {
-    if (funding.nature === HOURLY) return exports.getHourlyFundingSplit(event, funding, service, price);
-
-    return exports.getFixedFundingSplit(event, funding, service, price);
+  if (service.surcharge && service.nature === HOURLY) {
+    const surcharges = SurchargesHelper.getEventSurcharges(event, service.surcharge);
+    if (surcharges.length > 0) {
+      billing.surcharges = surcharges;
+      price = exports.getSurchargedPrice(event, surcharges, price);
+    }
   }
 
-  return { customerPrice: price, thirdPartyPayerPrice: 0 };
+  if (funding) {
+    let fundingBilling;
+    if (funding.nature === HOURLY) fundingBilling = exports.getHourlyFundingSplit(event, funding, service, price);
+    else fundingBilling = exports.getFixedFundingSplit(event, funding, service, price);
+
+    return { ...billing, ...fundingBilling };
+  }
+
+  return { ...billing, customerPrice: price, thirdPartyPayerPrice: 0 };
 };
 
 exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, service) => {
@@ -249,6 +207,8 @@ exports.formatDraftBillsForCustomer = (customerPrices, event, eventPrice, servic
     inclTaxesCustomer,
     exclTaxesCustomer: eventPrice.customerPrice,
   };
+  if (eventPrice.surcharges) prices.surcharges = eventPrice.surcharges;
+
   if (eventPrice.thirdPartyPayerPrice && eventPrice.thirdPartyPayerPrice !== 0) {
     prices.inclTaxesTpp = exports.getInclTaxes(eventPrice.thirdPartyPayerPrice, service.vat);
     prices.exclTaxesTpp = eventPrice.thirdPartyPayerPrice;
@@ -303,7 +263,7 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
   for (const event of events) {
     const matchingService = utils.getMatchingVersion(event.startDate, subscription.service, 'startDate');
     const matchingFunding = fundings && fundings.length > 0 ? exports.getMatchingFunding(event.startDate, fundings) : null;
-    const eventPrice = exports.getEventPrice(event, unitTTCRate, matchingService, matchingFunding);
+    const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
     if (eventPrice.customerPrice) customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
     if (matchingFunding && eventPrice.thirdPartyPayerPrice) {

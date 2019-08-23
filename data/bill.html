@@ -132,6 +132,9 @@
         <th align="left">Début</th>
         <th align="left">Fin</th>
         <th align="left">Service</th>
+        {{#unless bill.forTpp}}
+          <th align="left">Majoration</th>
+        {{/unless}}
       </tr>
     </thead>
     <tbody>
@@ -142,6 +145,18 @@
         <td> {{ startTime }} </td>
         <td> {{ endTime }} </td>
         <td> {{ service }} </td>
+        {{#unless @root/bill.forTpp}}
+          <td>
+            {{#each surcharges}}
+              <div>
+                + {{ percentage }}%
+                {{#if startHour}}
+                  ({{ startHour }}-{{ endHour }})
+                {{/if}}
+              </div>
+            {{/each}}
+          </td>
+        {{/unless}}
       </tr>
     {{/table}}
     </tbody>

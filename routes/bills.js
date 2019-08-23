@@ -89,6 +89,11 @@ exports.plugin = {
                     inclTaxesTpp: Joi.number(),
                     exclTaxesTpp: Joi.number(),
                     thirdPartyPayer: Joi.objectId(),
+                    surcharges: Joi.array().items(Joi.object({
+                      percentage: Joi.number().required(),
+                      startHour: Joi.date(),
+                      endHour: Joi.date(),
+                    })),
                   })).required(),
                   hours: Joi.number().required(),
                   inclTaxes: Joi.number().required(),
