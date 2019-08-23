@@ -13,15 +13,15 @@ const { language } = translate;
 describe('createAndSave', () => {
   let addFileStub;
   let saveStub;
-  const params = [
-    '1234567890',
-    'test',
-    'stream',
-    'application/pdf',
-    new Date().toISOString(),
-    'test',
-    new ObjectID(),
-  ];
+  const payload = {
+    driveFolderId: '1234567890',
+    fileName: 'test',
+    payDoc: 'stream',
+    mimeType: 'application/pdf',
+    date: new Date().toISOString(),
+    nature: 'test',
+    user: new ObjectID(),
+  };
   beforeEach(() => {
     addFileStub = sinon.stub(GdriveStorageHelper, 'addFile');
     saveStub = sinon.stub(PayDocument.prototype, 'save');
@@ -35,7 +35,7 @@ describe('createAndSave', () => {
   it('should throw a 424 error if file is not uploaded to Google Drive', async () => {
     addFileStub.returns(null);
     try {
-      await PayDocumentHelper.createAndSave(...params);
+      await PayDocumentHelper.createAndSave(payload);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive: File not uploaded'));
     }
@@ -49,7 +49,7 @@ describe('createAndSave', () => {
 
   it('should save document to drive and db', async () => {
     addFileStub.returns({ id: '0987654321', webViewLink: 'http://test.com/test.pdf' });
-    await PayDocumentHelper.createAndSave(...params);
+    await PayDocumentHelper.createAndSave(payload);
     sinon.assert.calledWith(addFileStub, {
       driveFolderId: '1234567890',
       name: 'test',

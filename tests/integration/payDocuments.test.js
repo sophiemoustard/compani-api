@@ -46,7 +46,7 @@ describe('PAY DOCUMENT ROUTES', () => {
         nature: PAYSLIP,
         date: new Date('2019-01-23').toISOString(),
         user: user._id.toHexString(),
-        'Content-Type': 'application/pdf',
+        mimeType: 'application/pdf',
       };
 
       const addStub = sinon.stub(Gdrive, 'add');
@@ -77,7 +77,7 @@ describe('PAY DOCUMENT ROUTES', () => {
       addStub.restore();
     });
 
-    const wrongParams = ['payDoc', 'fileName', 'nature', 'Content-Type', 'driveFolderId'];
+    const wrongParams = ['payDoc', 'fileName', 'nature', 'mimeType', 'driveFolderId'];
     wrongParams.forEach((param) => {
       it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const docPayload = {
@@ -87,7 +87,7 @@ describe('PAY DOCUMENT ROUTES', () => {
           nature: PAYSLIP,
           date: new Date('2019-01-23').toISOString(),
           user: user._id.toHexString(),
-          'Content-Type': 'application/pdf',
+          mimeType: 'application/pdf',
         };
         const form = generateFormData(omit(docPayload, param));
         const response = await app.inject({

@@ -8,17 +8,7 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const {
-      date,
-      nature,
-      user,
-      driveFolderId,
-      fileName,
-      payDoc,
-      'Content-Type': contentType,
-    } = req.payload;
-
-    const payDocument = await createAndSave(driveFolderId, fileName, payDoc, contentType, date, nature, user);
+    const payDocument = await createAndSave(req.payload);
 
     return {
       message: translate[language].payDocumentCreated,

@@ -25,7 +25,7 @@ exports.plugin = {
             fileName: Joi.string().required(),
             payDoc: Joi.any().required(),
             nature: Joi.string().valid(PAY_DOCUMENT_NATURES).required(),
-            'Content-Type': Joi.string().required(),
+            mimeType: Joi.string().required(),
             driveFolderId: Joi.string().required(),
             user: Joi.objectId().required(),
           }),
