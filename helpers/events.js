@@ -94,7 +94,7 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
   const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION]);
 
   for (let i = 0, l = interventions.length; i < l; i++) {
-    const payload = _.omit(interventions[i], ['_id', 'auxiliary']);
+    const payload = _.omit(interventions[i], ['_id', 'auxiliary', 'repetition']);
     await exports.updateEvent(interventions[i], payload, credentials);
   }
 };
