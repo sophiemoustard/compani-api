@@ -1,40 +1,32 @@
 const Boom = require('boom');
-const get = require('lodash/get');
 
 const PayDocument = require('../models/PayDocument');
-const GdriveStorage = require('../helpers/gdriveStorage');
+const { createAndSave, removeFromDriveAndDb } = require('../helpers/payDocuments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const create = async (req) => {
   try {
-    const uploadedFile = await GdriveStorage.addFile({
-      driveFolderId: req.payload.driveFolderId,
-      name: req.payload.fileName || req.payload.payDoc.hapi.fileName,
-      type: req.payload['Content-Type'],
-      body: req.payload.payDoc,
-    });
-    if (!uploadedFile) throw new Error('Google drive: File not uploaded');
-
-    const { date, nature, user } = req.payload;
-    const { id: driveId, webViewLink: link } = uploadedFile;
-    const payDocPayload = {
+    const {
       date,
       nature,
       user,
-      file: { driveId, link },
-    };
-    const payDoc = new PayDocument(payDocPayload);
-    await payDoc.save();
+      driveFolderId,
+      fileName,
+      payDoc,
+      'Content-Type': contentType,
+    } = req.payload;
+
+    const payDocument = await createAndSave(driveFolderId, fileName, payDoc, contentType, date, nature, user);
 
     return {
       message: translate[language].payDocumentCreated,
-      data: { payDocument: payDoc },
+      data: { payDocument },
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -60,19 +52,12 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    const deletedPayDocument = await PayDocument.findByIdAndRemove(req.params._id);
-    if (!deletedPayDocument) return Boom.notFound(translate[language].payDocumentNotFound);
-
-    const deletedPayDocumentDriveId = get(deletedPayDocument, 'file.driveId');
-    if (!deletedPayDocumentDriveId) return Boom.notFound('Missing pay document google drive id.');
-
-
-    await GdriveStorage.deleteFile(deletedPayDocument.file.driveId);
+    await removeFromDriveAndDb(req.params._id);
 
     return { message: translate[language].payDocumentDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

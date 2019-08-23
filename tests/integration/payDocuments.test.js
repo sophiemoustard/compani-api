@@ -21,7 +21,7 @@ describe('NODE ENV', () => {
   });
 });
 
-const _generateFormData = (payload) => {
+const generateFormData = (payload) => {
   const form = new FormData();
 
   for (const k in payload) {
@@ -55,7 +55,7 @@ describe('PAY DOCUMENT ROUTES', () => {
         webViewLink: 'http://test.com/file.pdf',
       });
 
-      const form = _generateFormData(docPayload);
+      const form = generateFormData(docPayload);
 
       const response = await app.inject({
         method: 'POST',
@@ -89,7 +89,7 @@ describe('PAY DOCUMENT ROUTES', () => {
           user: user._id.toHexString(),
           'Content-Type': 'application/pdf',
         };
-        const form = _generateFormData(omit(docPayload, param));
+        const form = generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
           url: '/paydocuments',
@@ -136,16 +136,6 @@ describe('PAY DOCUMENT ROUTES', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/paydocuments/${randomId}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return a 404 error if pay document google drive id does not exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/paydocuments/${payDocumentsList[3]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 

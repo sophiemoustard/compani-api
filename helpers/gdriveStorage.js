@@ -2,6 +2,7 @@ const Boom = require('boom');
 const Gdrive = require('../models/Google/Drive');
 
 exports.addFile = async (params) => {
+  console.log('MEH');
   const parentFolderId = params.driveFolderId;
   const uploadedFile = await Gdrive.add({
     name: params.name,
