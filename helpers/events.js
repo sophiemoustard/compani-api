@@ -49,19 +49,25 @@ exports.hasConflicts = async (event) => {
 
   return auxiliaryEvents.some((ev) => {
     if ((_id && _id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
-    return (
-      moment(startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[]') ||
-      moment(ev.startDate).isBetween(startDate, endDate, 'minutes', '[]')
-    );
+    return true;
   });
 };
+
+const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.createEvent = async (payload, credentials) => {
   if (!(await exports.isCreationAllowed(payload))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  let event = new Event(payload);
+  let event = { ...payload };
+  const isRepeatedEvent = isRepetition(event);
+  if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await exports.hasConflicts(event)) {
+    delete event.auxiliary;
+    delete event.repetition;
+  }
+
+  event = new Event(event);
   await event.save();
   event = await EventRepository.getEvent(event._id);
 
@@ -72,9 +78,7 @@ exports.createEvent = async (payload, credentials) => {
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
-  if (event.type !== ABSENCE && payload.repetition && payload.repetition.frequency !== NEVER) {
-    event = await exports.createRepetitions(event);
-  }
+  if (isRepeatedEvent) await exports.createRepetitions(event, payload);
 
   return exports.populateEventSubscription(event);
 };
@@ -139,7 +143,7 @@ exports.isCreationAllowed = async (event) => {
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!await exports.checkContracts(event, user)) return false;
 
-  if (event.type !== ABSENCE && await exports.hasConflicts(event)) return false;
+  if (event.type !== ABSENCE && !(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event)) return false;
 
   if (!eventHasAuxiliarySector(event, user)) return false;
 
@@ -249,85 +253,88 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
   );
 };
 
-exports.formatRepeatedEvent = (event, momentDay) => {
+exports.formatRepeatedPayload = async (event, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
-
-  return new Event({
+  const payload = {
     ..._.omit(event, '_id'),
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
-  });
+  };
+
+  if (await exports.hasConflicts(payload)) {
+    delete payload.auxiliary;
+    delete payload.repetition;
+  }
+
+  return new Event(payload);
 };
 
-exports.createRepetitionsEveryDay = async (event) => {
-  const start = moment(event.startDate).add(1, 'd');
-  const end = moment(event.startDate).add(3, 'M').endOf('M');
+exports.createRepetitionsEveryDay = async (payload) => {
+  const start = moment(payload.startDate).add(1, 'd');
+  const end = moment(payload.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('days'));
-  const promises = [];
-  range.forEach((day) => {
-    const repeatedEvent = exports.formatRepeatedEvent(event, day);
+  const repeatedEvents = [];
 
-    promises.push(repeatedEvent.save());
-  });
+  for (let i = 0, l = range.length; i < l; i++) {
+    repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
+  }
 
-  return Promise.all(promises);
+  await Event.insertMany(repeatedEvents);
 };
 
-exports.createRepetitionsEveryWeekDay = async (event) => {
-  const start = moment(event.startDate).add(1, 'd');
-  const end = moment(event.startDate).add(3, 'M').endOf('M');
+exports.createRepetitionsEveryWeekDay = async (payload) => {
+  const start = moment(payload.startDate).add(1, 'd');
+  const end = moment(payload.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('days'));
-  const promises = [];
-  range.forEach((day) => {
-    if (moment(day).day() !== 0 && moment(day).day() !== 6) {
-      const repeatedEvent = exports.formatRepeatedEvent(event, day);
+  const repeatedEvents = [];
 
-      promises.push(repeatedEvent.save());
-    }
-  });
+  for (let i = 0, l = range.length; i < l; i++) {
+    const day = moment(range[i]).day();
+    if (day !== 0 && day !== 6) repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
+  }
 
-  return Promise.all(promises);
+  await Event.insertMany(repeatedEvents);
 };
 
-exports.createRepetitionsByWeek = async (event, step) => {
-  const start = moment(event.startDate).add(step, 'w');
-  const end = moment(event.startDate).add(3, 'M').endOf('M');
+exports.createRepetitionsByWeek = async (payload, step) => {
+  const start = moment(payload.startDate).add(step, 'w');
+  const end = moment(payload.startDate).add(3, 'M').endOf('M');
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
+  const repeatedEvents = [];
 
-  const promises = [];
-  range.forEach((day) => {
-    const repeatedEvent = exports.formatRepeatedEvent(event, day);
+  for (let i = 0, l = range.length; i < l; i++) {
+    repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
+  }
 
-    promises.push(repeatedEvent.save());
-  });
-
-  return Promise.all(promises);
+  await Event.insertMany(repeatedEvents);
 };
 
-exports.createRepetitions = async (event) => {
-  if (event.repetition.frequency === NEVER) return event;
+exports.createRepetitions = async (eventFromDb, payload) => {
+  if (payload.repetition.frequency === NEVER) return eventFromDb;
 
-  event.repetition.parentId = event._id;
-  await Event.findOneAndUpdate({ _id: event._id }, { 'repetition.parentId': event._id });
+  if (_.get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
+    await Event.findOneAndUpdate({ _id: eventFromDb._id }, { 'repetition.parentId': eventFromDb._id });
+  }
 
-  switch (event.repetition.frequency) {
+  payload.repetition.parentId = eventFromDb._id;
+  switch (payload.repetition.frequency) {
     case EVERY_DAY:
-      await exports.createRepetitionsEveryDay(event);
+      await exports.createRepetitionsEveryDay(payload);
       break;
     case EVERY_WEEK_DAY:
-      await exports.createRepetitionsEveryWeekDay(event);
+      await exports.createRepetitionsEveryWeekDay(payload);
       break;
     case EVERY_WEEK:
-      await exports.createRepetitionsByWeek(event, 1);
+      await exports.createRepetitionsByWeek(payload, 1);
       break;
     case EVERY_TWO_WEEKS:
-      await exports.createRepetitionsByWeek(event, 2);
+      await exports.createRepetitionsByWeek(payload, 2);
       break;
     default:
       break;
   }
 
-  return event;
+  return eventFromDb;
 };
 
 exports.updateRepetitions = async (event, payload) => {
@@ -382,29 +389,22 @@ exports.updateEvent = async (event, payload, credentials) => {
   const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
 
   let unset;
-  let set;
-  if (event.type === ABSENCE || !event.repetition || event.repetition.frequency === NEVER || payload.shouldUpdateRepetition || miscUpdatedOnly) {
-    if (!payload.isCancelled && event.isCancelled) {
-      set = { ...payload, isCancelled: false };
-      unset = { cancel: '' };
-    } else {
-      set = payload;
-    }
-
-    if (!miscUpdatedOnly && event.repetition && event.repetition.frequency !== NEVER && payload.shouldUpdateRepetition) {
-      await exports.updateRepetitions(event, payload);
-    }
-  } else if (!payload.isCancelled && event.isCancelled) {
-    set = { ...payload, isCancelled: false, 'repetition.frequency': NEVER };
-    unset = { cancel: '', 'repetition.parentId': '' };
-  } else {
-    set = { ...payload, 'repetition.frequency': NEVER };
-    unset = { 'repetition.parentId': '' };
+  let set = payload;
+  if (!payload.isCancelled && event.isCancelled) {
+    set = { ...set, isCancelled: false };
+    unset = { cancel: '' };
+  }
+  if (isRepetition(event) && !payload.shouldUpdateRepetition && !miscUpdatedOnly) {
+    set = { ...set, 'repetition.frequency': NEVER };
+    unset = { ...unset, 'repetition.parentId': '' };
   }
 
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
 
   event = await EventRepository.updateEvent(event._id, set, unset);
+  if (!miscUpdatedOnly && isRepetition(event) && payload.shouldUpdateRepetition) {
+    await exports.updateRepetitions(event, payload);
+  }
 
   return exports.populateEventSubscription(event);
 };

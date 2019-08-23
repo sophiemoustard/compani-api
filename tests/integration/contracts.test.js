@@ -227,9 +227,6 @@ describe('CONTRACTS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
 
-        if (response.statusCode === 400) {
-          console.log(payload, response.result);
-        }
         expect(response.statusCode).toBe(role.expectedCode);
       });
     });
