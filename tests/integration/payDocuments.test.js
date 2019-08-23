@@ -77,15 +77,9 @@ describe('PAY DOCUMENT ROUTES', () => {
       addStub.restore();
     });
 
-    const wrongParams = [
-      { path: 'payDoc', type: 'missing' },
-      { path: 'fileName', type: 'missing' },
-      { path: 'nature', type: 'missing' },
-      { path: 'Content-Type', type: 'missing' },
-      { path: 'driveFolderId', type: 'missing' },
-    ];
+    const wrongParams = ['payDoc', 'fileName', 'nature', 'Content-Type', 'driveFolderId'];
     wrongParams.forEach((param) => {
-      it(`should return a 400 error if ${param.type} '${param.path}' parameter`, async () => {
+      it(`should return a 400 error if missing '${param}' parameter`, async () => {
         const docPayload = {
           payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           driveFolderId: '09876543211',
@@ -95,7 +89,7 @@ describe('PAY DOCUMENT ROUTES', () => {
           user: user._id.toHexString(),
           'Content-Type': 'application/pdf',
         };
-        const form = _generateFormData(omit(docPayload, param.path));
+        const form = _generateFormData(omit(docPayload, param));
         const response = await app.inject({
           method: 'POST',
           url: '/paydocuments',
