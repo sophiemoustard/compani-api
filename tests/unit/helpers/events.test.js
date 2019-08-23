@@ -380,7 +380,7 @@ describe('hasConflicts', () => {
     };
 
     getAuxiliaryEventsBetweenDates.returns([
-      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
+      { _id: event._id, startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
     ]);
     const result = await EventHelper.hasConflicts(event);
 

@@ -49,10 +49,7 @@ exports.hasConflicts = async (event) => {
 
   return auxiliaryEvents.some((ev) => {
     if ((_id && _id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
-    return (
-      moment(startDate).isBetween(ev.startDate, ev.endDate, 'minutes', '[)') ||
-      moment(ev.startDate).isBetween(startDate, endDate, 'minutes', '[)')
-    );
+    return true;
   });
 };
 
@@ -64,8 +61,8 @@ exports.createEvent = async (payload, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
   let event = { ...payload };
-  const isRepetedEvent = isRepetition(event);
-  if (event.type === INTERVENTION && event.auxiliary && isRepetedEvent && await exports.hasConflicts(event)) {
+  const isRepeatedEvent = isRepetition(event);
+  if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await exports.hasConflicts(event)) {
     delete event.auxiliary;
     delete event.repetition;
   }
@@ -81,7 +78,7 @@ exports.createEvent = async (payload, credentials) => {
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
-  if (isRepetedEvent) await exports.createRepetitions(event, payload);
+  if (isRepeatedEvent) await exports.createRepetitions(event, payload);
 
   return exports.populateEventSubscription(event);
 };
@@ -292,9 +289,8 @@ exports.createRepetitionsEveryWeekDay = async (payload) => {
   const repeatedEvents = [];
 
   for (let i = 0, l = range.length; i < l; i++) {
-    if (moment(range[i]).day() !== 0 && moment(range[i]).day() !== 6) {
-      repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
-    }
+    const day = moment(range[i]).day();
+    if (day !== 0 && day !== 6) repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
   }
 
   await Event.insertMany(repeatedEvents);
