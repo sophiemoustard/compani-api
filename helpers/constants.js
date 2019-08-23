@@ -1,4 +1,5 @@
 module.exports = {
+  SENDER_MAIL: 'nepasrepondre@alenvi.io',
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',
