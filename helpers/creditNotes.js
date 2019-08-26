@@ -96,7 +96,7 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
       await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: customerPayload }, { new: true });
     } else {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: customerPayload }, { new: true });
-      CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: tppPayload }, { new: true });
+      await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: tppPayload }, { new: true });
     }
   }
 
@@ -136,7 +136,7 @@ exports.formatPDF = (creditNote, company) => {
 
   if (creditNote.events && creditNote.events.length > 0) {
     computedData.formattedEvents = [];
-    const sortedEvents = creditNote.events.sort((ev1, ev2) => ev1.startDate - ev2.startDate);
+    const sortedEvents = creditNote.events.map(ev => ev).sort((ev1, ev2) => ev1.startDate - ev2.startDate);
 
     for (const event of sortedEvents) {
       computedData.formattedEvents.push(formatEventForPdf(event));
