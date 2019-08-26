@@ -125,21 +125,82 @@ exports.updateEvent = async (eventId, set, unset) => Event
   .lean();
 
 exports.getWorkingEventsForExport = async (startDate, endDate) => {
-  const query = {
-    type: { $in: [INTERVENTION, INTERNAL_HOUR] },
-    $or: [
-      { startDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-    ],
-  };
+  const rules = [
+    { type: { $in: [INTERVENTION, INTERNAL_HOUR] } },
+    {
+      $or: [
+        { startDate: { $lte: endDate, $gte: startDate } },
+        { endDate: { $lte: endDate, $gte: startDate } },
+        { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
+      ],
+    },
+  ];
 
-  return Event.find(query)
-    .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity' })
-    .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'sector' })
-    .lean();
+  return Event.aggregate([
+    { $match: { $and: rules } },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customer',
+      },
+    },
+    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        subscription: {
+          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$subscription'] } },
+        },
+      },
+    },
+    { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'subscription.service',
+        foreignField: '_id',
+        as: 'subscription.service',
+      },
+    },
+    { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'auxiliary',
+        foreignField: '_id',
+        as: 'auxiliary',
+      },
+    },
+    { $unwind: { path: '$auxiliary' } },
+    {
+      $lookup: {
+        from: 'sectors',
+        localField: 'sector',
+        foreignField: '_id',
+        as: 'sector',
+      },
+    },
+    { $unwind: { path: '$sector' } },
+    {
+      $project: {
+        customer: { identity: 1 },
+        auxiliary: { identity: 1 },
+        startDate: 1,
+        endDate: 1,
+        internalHour: 1,
+        subscription: 1,
+        isCancelled: 1,
+        isBilled: 1,
+        cancel: 1,
+        repetition: 1,
+        sector: 1,
+        misc: 1,
+        type: 1,
+      },
+    },
+    { $sort: { startDate: -1 } },
+  ]);
 };
 
 exports.getAbsencesForExport = async (startDate, endDate) => {

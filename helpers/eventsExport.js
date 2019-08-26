@@ -16,6 +16,7 @@ const EventRepository = require('../repositories/EventRepository');
 const workingEventExportHeader = [
   'Type',
   'Heure interne',
+  'Service',
   'Début',
   'Fin',
   'Durée',
@@ -35,6 +36,14 @@ const workingEventExportHeader = [
   "Raison de l'annulation",
 ];
 
+const getServiceName = (service) => {
+  if (!service) return;
+
+  const lastVersion = UtilsHelper.getLastVersion(service.versions, 'startDate');
+
+  return lastVersion.name;
+};
+
 exports.exportWorkingEventsHistory = async (startDate, endDate) => {
   const events = await EventRepository.getWorkingEventsForExport(startDate, endDate);
 
@@ -45,7 +54,8 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
 
     const cells = [
       EVENT_TYPE_LIST[event.type],
-      get(event.internalHour, 'name') || '',
+      get(event, 'internalHour.name', ''),
+      event.subscription ? getServiceName(event.subscription.service) : '',
       moment(event.startDate).format('DD/MM/YYYY HH:mm'),
       moment(event.endDate).format('DD/MM/YYYY HH:mm'),
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
@@ -61,8 +71,8 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
       event.misc || '',
       event.isBilled ? 'Oui' : 'Non',
       event.isCancelled ? 'Oui' : 'Non',
-      CANCELLATION_CONDITION_LIST[get(event.cancel, 'condition')] || '',
-      CANCELLATION_REASON_LIST[get(event.cancel, 'reason')] || '',
+      CANCELLATION_CONDITION_LIST[get(event, 'cancel.condition')] || '',
+      CANCELLATION_REASON_LIST[get(event, 'cancel.reason')] || '',
     ];
 
     rows.push(cells);

@@ -6,6 +6,7 @@ const Bill = require('../../../models/Bill');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const Payment = require('../../../models/Payment');
 const Pay = require('../../../models/Pay');
+const Sector = require('../../../models/Sector');
 const FinalPay = require('../../../models/FinalPay');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 const { PAYMENT, REFUND } = require('../../../helpers/constants');
@@ -39,7 +40,7 @@ const thirdPartyPayer = {
 const eventList = [
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector,
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
@@ -48,7 +49,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -60,7 +61,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
@@ -264,10 +265,12 @@ const populateEvents = async () => {
   await Event.deleteMany();
   await User.deleteMany();
   await Customer.deleteMany();
+  await Sector.deleteMany();
 
   await populateDBForAuthentification();
   await Event.insertMany(eventList);
   await new User(auxiliary).save();
+  await new Sector(sector).save();
   await new Customer(customer).save();
 };
 
