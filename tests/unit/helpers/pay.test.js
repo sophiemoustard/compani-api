@@ -75,7 +75,9 @@ describe('formatSurchargedDetailsForExport', () => {
 
 describe('exportPayHistory', () => {
   const header = [
-    'Auxiliaire',
+    'Titre',
+    'Prénom',
+    'Nom',
     'Equipe',
     'Début',
     'Date de notif',
@@ -105,6 +107,7 @@ describe('exportPayHistory', () => {
         identity: {
           firstname: 'Tata',
           lastname: 'Toto',
+          title: 'Mme',
         },
         sector: { name: 'Test' },
       },
@@ -161,6 +164,7 @@ describe('exportPayHistory', () => {
         identity: {
           firstname: 'Tata',
           lastname: 'Toto',
+          title: 'M',
         },
         sector: { name: 'Test' },
       },
@@ -219,20 +223,17 @@ describe('exportPayHistory', () => {
   ];
   let PayMock;
   let FinalPayMock;
-  let getFullTitleFromIdentityStub;
   let formatFloatForExportStub;
   let formatSurchargedDetailsForExport;
   beforeEach(() => {
     PayMock = sinon.mock(Pay);
     FinalPayMock = sinon.mock(FinalPay);
-    getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
     formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
     formatSurchargedDetailsForExport = sinon.stub(PayHelper, 'formatSurchargedDetailsForExport');
   });
   afterEach(() => {
     PayMock.restore();
     FinalPayMock.restore();
-    getFullTitleFromIdentityStub.restore();
     formatFloatForExportStub.restore();
     formatSurchargedDetailsForExport.restore();
   });
@@ -268,7 +269,6 @@ describe('exportPayHistory', () => {
       .chain('lean')
       .once()
       .returns(finalPays);
-    getFullTitleFromIdentityStub.callsFake(id => `${id.firstname} ${id.lastname.toUpperCase()}`);
     formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
     formatSurchargedDetailsForExport.returnsArg(0);
 
@@ -276,12 +276,11 @@ describe('exportPayHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Tata TOTO', 'Test', '01/05/2019', '', '', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
-      ['Titi TUTU', 'Autre test', '01/05/2019', '', '', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
-      ['Tata TOTO', 'Test', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
-      ['Titi TUTU', 'Autre test', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      ['Mme', 'Tata', 'Toto', 'Test', '01/05/2019', '', '', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
+      ['', 'Titi', 'Tutu', 'Autre test', '01/05/2019', '', '', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      ['M', 'Tata', 'Toto', 'Test', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
+      ['', 'Titi', 'Tutu', 'Autre test', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
     ]);
-    sinon.assert.callCount(getFullTitleFromIdentityStub, 4);
     sinon.assert.callCount(formatFloatForExportStub, 53);
   });
 });

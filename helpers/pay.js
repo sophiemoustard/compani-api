@@ -1,5 +1,6 @@
 const moment = require('moment');
-const _ = require('lodash');
+const get = require('lodash/get');
+const pick = require('lodash/pick');
 
 const Pay = require('../models/Pay');
 const FinalPay = require('../models/FinalPay');
@@ -12,7 +13,7 @@ exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
   const formattedPlans = [];
 
   for (const surchargedPlanDetails of surchargedDetails) {
-    const surchages = Object.entries(_.pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
+    const surchages = Object.entries(pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
     if (surchages.length === 0) continue;
 
     const lines = [surchargedPlanDetails.planName];
@@ -42,17 +43,19 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
     .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } })
     .lean();
 
-  const header = ['Auxiliaire', 'Equipe', 'Début', 'Date de notif', 'Motif', 'Fin', 'Heures contrat', 'Heures travaillées', 'Dont exo non majo',
-    'Dont exo et majo', 'Détails des majo exo', 'Dont non exo et non majo', 'Dont non exo et majo', 'Détails des majo non exo', 'Solde heures',
-    'Compteur', 'Heures sup à payer', 'Heures comp à payer', 'Mutuelle', 'Transport', 'Autres frais', 'Prime', 'Indemnité'];
+  const header = ['Titre', 'Prénom', 'Nom', 'Equipe', 'Début', 'Date de notif', 'Motif', 'Fin', 'Heures contrat', 'Heures travaillées',
+    'Dont exo non majo', 'Dont exo et majo', 'Détails des majo exo', 'Dont non exo et non majo', 'Dont non exo et majo', 'Détails des majo non exo',
+    'Solde heures', 'Compteur', 'Heures sup à payer', 'Heures comp à payer', 'Mutuelle', 'Transport', 'Autres frais', 'Prime', 'Indemnité'];
 
   const rows = [header];
 
   const paysAndFinalPay = [...pays, ...finalPays];
   for (const pay of paysAndFinalPay) {
     const cells = [
-      utils.getFullTitleFromIdentity(_.get(pay.auxiliary, 'identity')),
-      _.get(pay.auxiliary, 'sector.name') || '',
+      get(pay, 'auxiliary.identity.title') || '',
+      get(pay, 'auxiliary.identity.firstname') || '',
+      get(pay, 'auxiliary.identity.lastname') || '',
+      get(pay.auxiliary, 'sector.name') || '',
       moment(pay.startDate).format('DD/MM/YYYY'),
       pay.endNotificationDate ? moment(pay.endNotificationDate).format('DD/MM/YYYY') : '',
       pay.endReason ? END_CONTRACT_REASONS[pay.endReason] : '',

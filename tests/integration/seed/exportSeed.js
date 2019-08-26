@@ -297,13 +297,11 @@ const populatePay = async () => {
   await Pay.deleteMany();
   await FinalPay.deleteMany();
   await User.deleteMany();
-  await ThirdPartyPayer.deleteMany();
 
   await populateDBForAuthentification();
   await Pay.insertMany(payList);
   await FinalPay.insertMany(finalPayList);
   await new User(auxiliary).save();
-  await new ThirdPartyPayer(thirdPartyPayer).save();
 };
 
 module.exports = {
