@@ -93,11 +93,32 @@ const getServicesNameList = (subscriptions) => {
   return list;
 };
 
+const customerExportHeader = [
+  'Email',
+  'Titre',
+  'Nom',
+  'Prenom',
+  'Date de naissance',
+  'Adresse',
+  'Pathologie',
+  'Commentaire',
+  'Details intervention',
+  'Autres',
+  'Référente',
+  'Nom associé au compte bancaire',
+  'IBAN',
+  'BIC',
+  'RUM',
+  'Date de signature du mandat',
+  'Nombre de souscriptions',
+  'Souscriptions',
+  'Nombre de financements',
+  'Date de création',
+];
+
 exports.exportCustomers = async () => {
   const customers = await Customer.find().populate('subscriptions.service');
-  const data = [['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Pathologie', 'Commentaire', 'Details intervention',
-    'Autres', 'Référente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombre de souscriptions', 'Souscriptions',
-    'Nombre de financements', 'Date de création']];
+  const data = [customerExportHeader];
 
   for (const cus of customers) {
     const customerData = [cus.email || ''];
