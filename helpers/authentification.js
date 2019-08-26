@@ -3,15 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
-const validate = async (decoded, req) => {
+const validate = async (decoded) => {
   try {
-    if (req.route.path === '/ogust/token') {
-      if (decoded) {
-        return { isValid: true };
-      }
-      return { isValid: false };
-    }
-
     if (!decoded._id) throw new Error('No id / role present in token');
     const user = await User.findById(decoded._id, '_id identity role company local');
 

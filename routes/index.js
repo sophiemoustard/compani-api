@@ -32,14 +32,6 @@ exports.routes = [
     routes: { prefix: '/cloudinary' },
   },
   {
-    plugin: require('./Ogust/employee'),
-    routes: { prefix: '/ogust/employees' },
-  },
-  {
-    plugin: require('./Ogust/utils'),
-    routes: { prefix: '/ogust' },
-  },
-  {
     plugin: require('./twilio'),
     routes: { prefix: '/sms' },
   },
