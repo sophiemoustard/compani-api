@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const { COMPANI, OGUST } = require('../helpers/constants');
-
 const ServiceSchema = require('./Service').schema;
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
+const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 
 const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
 
@@ -32,6 +32,7 @@ const CreditNoteSchema = mongoose.Schema({
       fundingVersion: { type: mongoose.Schema.Types.ObjectId },
       nature: String,
       careHours: Number,
+      surcharges: billEventSurchargesSchemaDefinition,
     },
   }],
   subscription: {

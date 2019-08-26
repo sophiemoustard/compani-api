@@ -48,6 +48,11 @@ exports.plugin = {
                 fundingVersion: Joi.objectId(),
                 nature: Joi.string(),
                 careHours: Joi.number(),
+                surcharges: Joi.array().items(Joi.object({
+                  percentage: Joi.number().required(),
+                  startHour: Joi.date(),
+                  endHour: Joi.date(),
+                })),
               }).required(),
             })),
             subscription: Joi.object().keys({
@@ -130,6 +135,11 @@ exports.plugin = {
                 fundingVersion: Joi.objectId(),
                 nature: Joi.string(),
                 careHours: Joi.number(),
+                surcharges: Joi.array().items(Joi.object({
+                  percentage: Joi.number().required(),
+                  startHour: Joi.date(),
+                  endHour: Joi.date(),
+                })),
               }).required(),
             })),
             subscription: Joi.object().keys({

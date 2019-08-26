@@ -1,4 +1,5 @@
 const path = require('path');
+const moment = require('moment');
 const fs = require('fs');
 const util = require('util');
 const handlebars = require('handlebars');
@@ -6,7 +7,24 @@ const puppeteer = require('puppeteer');
 
 const ReadFile = util.promisify(fs.readFile);
 
-const formatTable = (items, options) => {
+exports.formatSurchargeHourForPdf = (date) => {
+  date = moment(date);
+  return date.minutes() > 0 ? date.format('HH[h]mm') : date.format('HH[h]');
+};
+
+exports.formatEventSurchargesForPdf = (eventSurcharges) => {
+  const formattedSurcharges = eventSurcharges.map((surcharge) => {
+    const sur = { ...surcharge };
+    if (sur.startHour) {
+      sur.startHour = exports.formatSurchargeHourForPdf(sur.startHour);
+      sur.endHour = exports.formatSurchargeHourForPdf(sur.endHour);
+    }
+    return sur;
+  });
+  return formattedSurcharges;
+};
+
+exports.formatTable = (items, options) => {
   let out = '';
   if (items) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -17,12 +35,12 @@ const formatTable = (items, options) => {
   return out;
 };
 
-const generatePdf = async (data, templateUrl) => {
+exports.generatePdf = async (data, templateUrl) => {
   const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   const templatePath = path.resolve('./', templateUrl);
   const content = await ReadFile(templatePath, 'utf8');
-  handlebars.registerHelper('table', formatTable);
+  handlebars.registerHelper('table', exports.formatTable);
   const template = handlebars.compile(content);
   const html = template(data);
   await page.setContent(html);
@@ -30,8 +48,4 @@ const generatePdf = async (data, templateUrl) => {
   await browser.close();
 
   return pdf;
-};
-
-module.exports = {
-  generatePdf,
 };
