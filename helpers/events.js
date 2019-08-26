@@ -16,13 +16,6 @@ const {
   COMPANY_CONTRACT,
   ABSENCE,
   UNAVAILABILITY,
-  EVENT_TYPE_LIST,
-  REPETITION_FREQUENCY_TYPE_LIST,
-  CANCELLATION_CONDITION_LIST,
-  CANCELLATION_REASON_LIST,
-  ABSENCE_TYPE_LIST,
-  ABSENCE_NATURE_LIST,
-  HOURLY,
   PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
@@ -31,7 +24,6 @@ const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const EventHistoriesHelper = require('./eventHistories');
-const UtilsHelper = require('./utils');
 const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
@@ -467,77 +459,4 @@ exports.deleteEvents = async (events, credentials) => {
 
   await Promise.all(promises);
   await Event.deleteMany({ _id: { $in: events.map(ev => ev._id) } });
-};
-
-exports.exportWorkingEventsHistory = async (startDate, endDate) => {
-  const events = await EventRepository.getWorkingEventsForExport(startDate, endDate);
-  const header = [
-    'Type',
-    'Heure interne',
-    'Début',
-    'Fin',
-    'Durée',
-    'Répétition',
-    'Secteur',
-    'Auxiliaire',
-    'A affecter',
-    'Bénéficiaire',
-    'Divers',
-    'Facturé',
-    'Annulé',
-    "Statut de l'annulation",
-    "Raison de l'annulation",
-  ];
-
-  const rows = [header];
-  for (const event of events) {
-    let repetition = _.get(event.repetition, 'frequency');
-    repetition = NEVER === repetition ? '' : REPETITION_FREQUENCY_TYPE_LIST[repetition];
-
-    const cells = [
-      EVENT_TYPE_LIST[event.type],
-      _.get(event.internalHour, 'name') || '',
-      moment(event.startDate).format('DD/MM/YYYY HH:mm'),
-      moment(event.endDate).format('DD/MM/YYYY HH:mm'),
-      UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
-      repetition || '',
-      _.get(event.sector, 'name') || '',
-      UtilsHelper.getFullTitleFromIdentity(_.get(event.auxiliary, 'identity')),
-      event.auxiliary ? 'Non' : 'Oui',
-      UtilsHelper.getFullTitleFromIdentity(_.get(event.customer, 'identity')),
-      event.misc || '',
-      event.isBilled ? 'Oui' : 'Non',
-      event.isCancelled ? 'Oui' : 'Non',
-      CANCELLATION_CONDITION_LIST[_.get(event.cancel, 'condition')] || '',
-      CANCELLATION_REASON_LIST[_.get(event.cancel, 'reason')] || '',
-    ];
-
-    rows.push(cells);
-  }
-
-  return rows;
-};
-
-exports.exportAbsencesHistory = async (startDate, endDate) => {
-  const events = await EventRepository.getAbsencesForExport(startDate, endDate);
-
-  const header = ['Type', 'Nature', 'Début', 'Fin', 'Secteur', 'Auxiliaire', 'Divers'];
-
-  const rows = [header];
-  for (const event of events) {
-    const datetimeFormat = event.absenceNature === HOURLY ? 'DD/MM/YYYY HH:mm' : 'DD/MM/YYYY';
-    const cells = [
-      ABSENCE_TYPE_LIST[event.absence],
-      ABSENCE_NATURE_LIST[event.absenceNature],
-      moment(event.startDate).format(datetimeFormat),
-      moment(event.endDate).format(datetimeFormat),
-      _.get(event.sector, 'name') || '',
-      UtilsHelper.getFullTitleFromIdentity(_.get(event.auxiliary, 'identity')),
-      event.misc || '',
-    ];
-
-    rows.push(cells);
-  }
-
-  return rows;
 };
