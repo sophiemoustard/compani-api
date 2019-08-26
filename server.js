@@ -16,7 +16,7 @@ const server = Hapi.server({
     },
     cors: {
       origin: ['*'],
-      additionalHeaders: ['accept-language', 'accept-encoding', 'access-control-request-headers', 'x-access-token', 'x-ogust-token'],
+      additionalHeaders: ['accept-language', 'accept-encoding', 'access-control-request-headers', 'x-access-token'],
     },
     validate: {
       async failAction(request, h, err) {

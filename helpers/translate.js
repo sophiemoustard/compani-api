@@ -26,11 +26,7 @@ module.exports = {
     userAuthentified: 'User authenticated successfully.',
     userPayDocumentDeleted: 'User pay document deleted successfully.',
     userPayDocumentNotFound: 'User pay document not found.',
-    /* Ogust */
-    OgustGetTokenOk: 'Ogust Token well retrieved.',
-    OgustGetTokenFailed: 'Ogust Token retrieving failed.',
-    salariesNotFound: 'Ogust employee\'s salaries not found.',
-    salariesFound: 'Ogust employee\'s found.',
+    /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
@@ -271,11 +267,7 @@ module.exports = {
     userAuthentified: 'Utilisateur authentifié avec succès.',
     userPayDocumentDeleted: "Document de paye d'utilisateur supprimé avec succès.",
     userPayDocumentNotFound: "Document de paye d'utilisateur non trouvé.",
-    /* Ogust */
-    OgustGetTokenOk: 'Token Ogust reçu avec succès.',
-    OgustGetTokenFailed: 'Problème lors de la récupération du Token Ogust.',
-    salariesNotFound: 'Echec lors de la récupération des bulletins de salaire de l\'employé.',
-    salariesFound: 'Bulletins de salaire de l\'employé trouvés avec succès.',
+    /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
