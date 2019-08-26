@@ -43,9 +43,33 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
     .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } })
     .lean();
 
-  const header = ['Titre', 'Prénom', 'Nom', 'Equipe', 'Début', 'Date de notif', 'Motif', 'Fin', 'Heures contrat', 'Heures travaillées',
-    'Dont exo non majo', 'Dont exo et majo', 'Détails des majo exo', 'Dont non exo et non majo', 'Dont non exo et majo', 'Détails des majo non exo',
-    'Solde heures', 'Compteur', 'Heures sup à payer', 'Heures comp à payer', 'Mutuelle', 'Transport', 'Autres frais', 'Prime', 'Indemnité'];
+  const header = [
+    'Titre',
+    'Prénom',
+    'Nom',
+    'Equipe',
+    'Début',
+    'Date de notif',
+    'Motif',
+    'Fin',
+    'Heures contrat',
+    'Heures travaillées',
+    'Dont exo non majo',
+    'Dont exo et majo',
+    'Détails des majo exo',
+    'Dont non exo et non majo',
+    'Dont non exo et majo',
+    'Détails des majo non exo',
+    'Solde heures',
+    'Compteur',
+    'Heures sup à payer',
+    'Heures comp à payer',
+    'Mutuelle',
+    'Transport',
+    'Autres frais',
+    'Prime',
+    'Indemnité',
+  ];
 
   const rows = [header];
 
