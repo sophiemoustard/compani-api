@@ -161,6 +161,7 @@ const payList = [
     _id: new ObjectID(),
     auxiliary,
     endDate: '2019-01-31T14:00:18',
+    startDate: '2019-01-01T14:00:18',
     month: '01-2019',
     contractHours: 151,
     workedHours: 143,
@@ -183,6 +184,7 @@ const payList = [
     _id: new ObjectID(),
     auxiliary,
     endDate: '2019-02-28T14:00:18',
+    startDate: '2019-01-01T14:00:18',
     month: '02-2019',
     contractHours: 151,
     workedHours: 143,
@@ -208,6 +210,7 @@ const finalPayList = [
     _id: new ObjectID(),
     auxiliary,
     endDate: '2019-01-31T14:00:18',
+    startDate: '2019-01-01T14:00:18',
     endNotificationDate: '2019-01-25T14:00:18',
     endReason: 'salut',
     compensation: 10,
@@ -233,6 +236,7 @@ const finalPayList = [
     _id: new ObjectID(),
     auxiliary,
     endDate: '2019-02-28T14:00:18',
+    startDate: '2019-01-01T14:00:18',
     endNotificationDate: '2019-02-25T14:00:18',
     endReason: 'salut',
     compensation: 10,
@@ -291,21 +295,12 @@ const populatePayment = async () => {
 
 const populatePay = async () => {
   await Pay.deleteMany();
-  await User.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-
-  await populateDBForAuthentification();
-  await Pay.insertMany(payList);
-  await new User(auxiliary).save();
-  await new ThirdPartyPayer(thirdPartyPayer).save();
-};
-
-const populateFinalPay = async () => {
   await FinalPay.deleteMany();
   await User.deleteMany();
   await ThirdPartyPayer.deleteMany();
 
   await populateDBForAuthentification();
+  await Pay.insertMany(payList);
   await FinalPay.insertMany(finalPayList);
   await new User(auxiliary).save();
   await new ThirdPartyPayer(thirdPartyPayer).save();
@@ -316,5 +311,4 @@ module.exports = {
   populateBills,
   populatePayment,
   populatePay,
-  populateFinalPay,
 };
