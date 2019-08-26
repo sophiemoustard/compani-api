@@ -1,9 +1,11 @@
 const moment = require('moment');
-const _ = require('lodash');
+const get = require('lodash/get');
+const pick = require('lodash/pick');
 
 const Pay = require('../models/Pay');
+const FinalPay = require('../models/FinalPay');
 const utils = require('./utils');
-const { SURCHARGES } = require('./constants');
+const { SURCHARGES, END_CONTRACT_REASONS } = require('./constants');
 
 exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
   if (!surchargedDetails) return '';
@@ -11,7 +13,7 @@ exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
   const formattedPlans = [];
 
   for (const surchargedPlanDetails of surchargedDetails) {
-    const surchages = Object.entries(_.pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
+    const surchages = Object.entries(pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
     if (surchages.length === 0) continue;
 
     const lines = [surchargedPlanDetails.planName];
@@ -25,7 +27,7 @@ exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
   return formattedPlans.join('\r\n\r\n');
 };
 
-exports.exportPayHistory = async (startDate, endDate) => {
+exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
   const query = {
     endDate: { $lte: moment(endDate).endOf('M').toDate() },
     startDate: { $gte: moment(startDate).startOf('M').toDate() },
@@ -36,10 +38,19 @@ exports.exportPayHistory = async (startDate, endDate) => {
     .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } })
     .lean();
 
+  const finalPays = await FinalPay.find(query)
+    .sort({ startDate: 'desc' })
+    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } })
+    .lean();
+
   const header = [
-    'Auxiliaire',
+    'Titre',
+    'Prénom',
+    'Nom',
     'Equipe',
     'Début',
+    'Date de notif',
+    'Motif',
     'Fin',
     'Heures contrat',
     'Heures travaillées',
@@ -57,15 +68,21 @@ exports.exportPayHistory = async (startDate, endDate) => {
     'Transport',
     'Autres frais',
     'Prime',
+    'Indemnité',
   ];
 
   const rows = [header];
 
-  for (const pay of pays) {
+  const paysAndFinalPay = [...pays, ...finalPays];
+  for (const pay of paysAndFinalPay) {
     const cells = [
-      utils.getFullTitleFromIdentity(_.get(pay.auxiliary, 'identity')),
-      _.get(pay.auxiliary, 'sector.name') || '',
+      get(pay, 'auxiliary.identity.title') || '',
+      get(pay, 'auxiliary.identity.firstname') || '',
+      get(pay, 'auxiliary.identity.lastname') || '',
+      get(pay.auxiliary, 'sector.name') || '',
       moment(pay.startDate).format('DD/MM/YYYY'),
+      pay.endNotificationDate ? moment(pay.endNotificationDate).format('DD/MM/YYYY') : '',
+      pay.endReason ? END_CONTRACT_REASONS[pay.endReason] : '',
       moment(pay.endDate).format('DD/MM/YYYY'),
       utils.formatFloatForExport(pay.contractHours),
       utils.formatFloatForExport(pay.workedHours),
@@ -83,6 +100,7 @@ exports.exportPayHistory = async (startDate, endDate) => {
       utils.formatFloatForExport(pay.transport),
       utils.formatFloatForExport(pay.otherFees),
       utils.formatFloatForExport(pay.bonus),
+      pay.compensation ? utils.formatFloatForExport(pay.compensation) : '0,00',
     ];
 
     rows.push(cells);

@@ -6,7 +6,6 @@ const {
   populateBills,
   populatePayment,
   populatePay,
-  populateFinalPay,
 } = require('./seed/exportSeed');
 
 describe('NODE ENV', () => {
@@ -33,7 +32,7 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(4);
+        expect(response.result.split('\r\n').length).toBe(3);
       });
     });
 
@@ -74,7 +73,7 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(3);
+        expect(response.result.split('\r\n').length).toBe(2);
       });
     });
 
@@ -115,7 +114,7 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(3);
+        expect(response.result.split('\r\n').length).toBe(2);
       });
     });
 
@@ -150,13 +149,13 @@ describe('EXPORTS ROUTES', () => {
       it('should get pay', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/exports/pay/history?startDate=2019-01-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
+          url: '/exports/pay/history?startDate=2019-01-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T22%3A47%3A42.077%2B01%3A00',
           headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(2);
+        expect(response.result.split('\r\n').length).toBe(5);
       });
     });
 
@@ -173,47 +172,6 @@ describe('EXPORTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/exports/pay/history?startDate=2019-01-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
-            headers: { 'x-access-token': authToken },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-  });
-
-  describe('GET /exports/finalPay/history', () => {
-    describe('Admin', () => {
-      beforeEach(populateFinalPay);
-      beforeEach(async () => {
-        authToken = await getToken('admin');
-      });
-      it('should get payments', async () => {
-        const response = await app.inject({
-          method: 'GET',
-          url: '/exports/finalpay/history?startDate=2019-05-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(200);
-        expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(2);
-      });
-    });
-
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'GET',
-            url: '/exports/finalpay/history?startDate=2019-05-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
             headers: { 'x-access-token': authToken },
           });
 

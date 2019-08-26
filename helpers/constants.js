@@ -167,8 +167,6 @@ module.exports = {
   DRIVING: 'driving',
   // PAY
   PAY: 'pay',
-  // FINAL PAY
-  FINAL_PAY: 'finalpay',
   // CONTRACTS
   EMPLOYER_TRIAL_PERIOD_TERMINATION: 'employer_trial_period_termination',
   EMPLOYEE_TRIAL_PERIOD_TERMINATION: 'employee_trial_period_termination',
