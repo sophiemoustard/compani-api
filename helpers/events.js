@@ -19,11 +19,11 @@ const {
   PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
-const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const EventHistoriesHelper = require('./eventHistories');
+const EventsValidationHelper = require('./eventsValidation');
 const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
@@ -35,26 +35,16 @@ exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
       ((!contract.endDate && contract.versions.some(version => version.isActive)) ||
         (contract.endDate && moment(contract.endDate).isSameOrAfter(day, 'd'))));
 
-exports.hasConflicts = async (event) => {
-  const { _id, auxiliary, startDate, endDate } = event;
-  const auxiliaryEvents = await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate);
-
-  return auxiliaryEvents.some((ev) => {
-    if ((_id && _id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
-    return true;
-  });
-};
-
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.createEvent = async (payload, credentials) => {
-  if (!(await exports.isCreationAllowed(payload))) throw Boom.badData();
+  if (!(await EventsValidationHelper.isCreationAllowed(payload))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
   let event = { ...payload };
   const isRepeatedEvent = isRepetition(event);
-  if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await exports.hasConflicts(event)) {
+  if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await EventsValidationHelper.hasConflicts(event)) {
     delete event.auxiliary;
     delete event.repetition;
   }
@@ -120,46 +110,6 @@ exports.checkContracts = async (event, user) => {
   if (event.type === INTERNAL_HOUR) {
     return exports.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
   }
-
-  return true;
-};
-
-const isOneDayEvent = event => moment(event.startDate).isSame(event.endDate, 'day');
-const eventHasAuxiliarySector = (event, user) => event.sector === user.sector.toHexString();
-const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString();
-
-exports.isCreationAllowed = async (event) => {
-  if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
-  if (!event.auxiliary) return event.type === INTERVENTION;
-
-  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
-  if (!await exports.checkContracts(event, user)) return false;
-
-  if (event.type !== ABSENCE && !(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event)) return false;
-
-  if (!eventHasAuxiliarySector(event, user)) return false;
-
-  return true;
-};
-
-exports.isEditionAllowed = async (eventFromDB, payload) => {
-  if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
-
-  if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
-
-  const event = !payload.auxiliary
-    ? { ..._.omit(eventFromDB, 'auxiliary'), ...payload }
-    : { ...eventFromDB, ...payload };
-
-  if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
-  if (!event.auxiliary) return event.type === INTERVENTION;
-
-  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
-  if (!await exports.checkContracts(event, user)) return false;
-
-  if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
-
-  if (!eventHasAuxiliarySector(event, user)) return false;
 
   return true;
 };
@@ -253,7 +203,7 @@ exports.formatRepeatedPayload = async (event, momentDay) => {
     endDate: moment(event.endDate).add(step, 'd'),
   };
 
-  if (await exports.hasConflicts(payload)) {
+  if (await EventsValidationHelper.hasConflicts(payload)) {
     delete payload.auxiliary;
     delete payload.repetition;
   }
