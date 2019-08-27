@@ -321,7 +321,7 @@ const forgotPassword = async (req) => {
     if (!user) return Boom.notFound(translate[language].userNotFound);
 
     const mailOptions = {
-      from: `Alenvi <${SENDER_MAIL}>`,
+      from: `Compani <${SENDER_MAIL}>`,
       to: req.payload.email,
       subject: 'Changement de mot de passe de votre compte Compani',
       html: forgetPasswordEmail(payload.resetPassword),
