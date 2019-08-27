@@ -10,6 +10,8 @@ const {
   ABSENCE,
 } = require('../../../helpers/constants');
 
+require('sinon-mongoose');
+
 describe('hasConflicts', () => {
   let getAuxiliaryEventsBetweenDates;
   beforeEach(() => {
@@ -65,6 +67,25 @@ describe('hasConflicts', () => {
     const result = await EventsValidationHelper.hasConflicts(event);
 
     expect(result).toBeFalsy();
+  });
+
+  it('should only check conflicts with absence when absence is created', async () => {
+    const auxiliaryId = new ObjectID();
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2019-10-02T09:00:00.000Z',
+      endDate: '2019-10-02T11:00:00.000Z',
+      auxiliary: auxiliaryId,
+      type: ABSENCE,
+    };
+
+    getAuxiliaryEventsBetweenDates.returns([
+      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z', type: ABSENCE },
+    ]);
+
+    await EventsValidationHelper.hasConflicts(event);
+
+    sinon.assert.calledWith(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', ABSENCE);
   });
 });
 

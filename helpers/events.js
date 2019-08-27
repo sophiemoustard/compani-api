@@ -56,7 +56,7 @@ exports.createEvent = async (payload, credentials) => {
   if (payload.type === ABSENCE) {
     const { startDate, endDate, auxiliary, _id } = event;
     const dates = { startDate, endDate };
-    await exports.deleteConflictEventsExceptInterventions(dates, auxiliary._id.toHexString(), _id.toHexString(), credentials);
+    await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliary._id.toHexString(), _id.toHexString(), credentials);
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
@@ -65,8 +65,8 @@ exports.createEvent = async (payload, credentials) => {
   return exports.populateEventSubscription(event);
 };
 
-exports.deleteConflictEventsExceptInterventions = async (dates, auxiliary, eventId, credentials) => {
-  const types = [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY];
+exports.deleteConflictInternalHoursAndUnavailabilities = async (dates, auxiliary, eventId, credentials) => {
+  const types = [INTERNAL_HOUR, UNAVAILABILITY];
   const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, eventId);
 
   await exports.deleteEvents(events, credentials);

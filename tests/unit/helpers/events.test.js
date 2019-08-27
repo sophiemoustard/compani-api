@@ -737,7 +737,7 @@ describe('createEvent', () => {
   let populateEventSubscription;
   let createRepetitions;
   let getEvent;
-  let deleteConflictEventsExceptInterventions;
+  let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
   beforeEach(() => {
     save = sinon.stub(Event.prototype, 'save');
@@ -747,7 +747,7 @@ describe('createEvent', () => {
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     createRepetitions = sinon.stub(EventHelper, 'createRepetitions');
     getEvent = sinon.stub(EventRepository, 'getEvent');
-    deleteConflictEventsExceptInterventions = sinon.stub(EventHelper, 'deleteConflictEventsExceptInterventions');
+    deleteConflictInternalHoursAndUnavailabilities = sinon.stub(EventHelper, 'deleteConflictInternalHoursAndUnavailabilities');
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
@@ -758,7 +758,7 @@ describe('createEvent', () => {
     populateEventSubscription.restore();
     createRepetitions.restore();
     getEvent.restore();
-    deleteConflictEventsExceptInterventions.restore();
+    deleteConflictInternalHoursAndUnavailabilities.restore();
     unassignConflictInterventions.restore();
   });
 
@@ -822,7 +822,7 @@ describe('createEvent', () => {
     await EventHelper.createEvent(payload, credentials);
 
     sinon.assert.calledWith(
-      deleteConflictEventsExceptInterventions,
+      deleteConflictInternalHoursAndUnavailabilities,
       { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
       auxiliaryId.toHexString(),
       eventId.toHexString(),
@@ -837,7 +837,7 @@ describe('createEvent', () => {
   });
 });
 
-describe('deleteConflictEventsExceptInterventions', () => {
+describe('deleteConflictInternalHoursAndUnavailabilities', () => {
   const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
   const auxiliaryId = new ObjectID();
   const absenceId = new ObjectID();
@@ -856,7 +856,7 @@ describe('deleteConflictEventsExceptInterventions', () => {
   it('should delete conflict events except interventions', async () => {
     const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
     getEventsInConflicts.returns(events);
-    await EventHelper.deleteConflictEventsExceptInterventions(dates, auxiliaryId, absenceId, credentials);
+    await EventHelper.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, absenceId, credentials);
 
     getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absenceId);
     sinon.assert.calledWith(deleteEvents, events, credentials);

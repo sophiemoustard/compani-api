@@ -102,11 +102,16 @@ exports.getEventsInConflicts = async (dates, auxiliary, types, eventId) => {
   return Event.find(rules).lean();
 };
 
-exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate) => Event.find({
-  auxiliary,
-  startDate: { $lt: endDate },
-  endDate: { $gt: startDate },
-});
+exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, type) => {
+  const query = {
+    auxiliary,
+    startDate: { $lt: endDate },
+    endDate: { $gt: startDate },
+  };
+  if (type) query.type = type;
+
+  return Event.find(query);
+};
 
 exports.getEvent = async event => Event.findOne({ _id: event._id })
   .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
