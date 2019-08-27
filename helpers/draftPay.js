@@ -317,7 +317,7 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, co
   const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(absences, contract, query);
 
-  const hoursBalance = hours.workedHours - (contractInfo.contractHours - absencesHours);
+  const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
 
   return {
     auxiliaryId: auxiliary._id,
@@ -345,7 +345,7 @@ exports.computePrevPayCounterDiff = async (auxiliary, events, absences, prevPay,
   const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(absences, contract, query);
 
-  const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
+  const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
 
   return {
     auxiliary: auxiliary._id,
