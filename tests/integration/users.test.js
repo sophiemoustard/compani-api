@@ -17,14 +17,14 @@ describe('NODE ENV', () => {
 
 describe('USERS ROUTES', () => {
   let authToken = null;
-  beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('coach');
-  });
 
   describe('POST /users', () => {
     let res = null;
     let user = null;
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('coach');
+    });
     it('should not create a user if missing parameters', async () => {
       const payload = { ...userPayload };
       delete payload.role;
@@ -73,7 +73,7 @@ describe('USERS ROUTES', () => {
           lastname: 'Test',
         },
         local: {
-          email: 'test1@alenvi.io',
+          email: 'horseman@alenvi.io',
           password: '123456',
         },
         role: new ObjectID(),
@@ -91,9 +91,10 @@ describe('USERS ROUTES', () => {
   });
 
   describe('POST /users/authenticate', () => {
+    beforeEach(populateDB);
     it('should authenticate a user', async () => {
       const credentials = {
-        email: 'test4@alenvi.io',
+        email: 'horseman@alenvi.io',
         password: '123456',
       };
       const response = await app.inject({
@@ -115,7 +116,7 @@ describe('USERS ROUTES', () => {
 
     it('should authenticate a user if email has capitals', async () => {
       const credentials = {
-        email: 'Test4@alenvi.io',
+        email: 'Horseman@alenvi.io',
         password: '123456',
       };
       const res = await app.inject({
@@ -128,7 +129,7 @@ describe('USERS ROUTES', () => {
 
     it('should not authenticate a user if missing parameter', async () => {
       const credentials = {
-        email: 'test4@alenvi.io',
+        email: 'horseman@alenvi.io',
       };
       const res = await app.inject({
         method: 'POST',
@@ -153,7 +154,7 @@ describe('USERS ROUTES', () => {
 
     it('should not authenticate a user if wrong password', async () => {
       const credentials = {
-        email: 'test4@alenvi.io',
+        email: 'horseman@alenvi.io',
         password: '7890',
       };
       const res = await app.inject({
@@ -166,7 +167,7 @@ describe('USERS ROUTES', () => {
 
     it('should not authenticate a user if refreshToken is missing', async () => {
       const credentials = {
-        email: 'test2@alenvi.io',
+        email: 'white@alenvi.io',
         password: '123456',
       };
       const res = await app.inject({
@@ -179,213 +180,353 @@ describe('USERS ROUTES', () => {
   });
 
   describe('GET /users', () => {
-    it('should get all users', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users',
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users.length).toBeGreaterThan(0);
-      expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
+      it('should get all users', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBeGreaterThan(0);
+        expect(res.result.data.users[0]).toHaveProperty('role');
+        expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
+      });
+
+      it('should get all coachs users', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users?role=coach',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users[0]).toHaveProperty('role');
+        expect(res.result.data.users[0].role.name).toEqual('coach');
+      });
+
+      it("should not get users if role given doesn't exist", async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users?role=Babouin',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(404);
+      });
     });
 
-    it('should get all coachs users', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users?role=coach',
-        headers: { 'x-access-token': authToken },
-      });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.name).toEqual('coach');
-    });
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
 
-    it('should not get users if role given doesn\'t exist', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users?role=Babouin',
-        headers: { 'x-access-token': authToken },
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/users',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-      expect(res.statusCode).toBe(404);
     });
   });
 
   describe('GET /users/active', () => {
-    it('should get all active users', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users/active',
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users[0]).toHaveProperty('isActive');
-      expect(res.result.data.users[0].isActive).toBeTruthy();
+      it('should get all active users', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/active',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users[0]).toHaveProperty('isActive');
+        expect(res.result.data.users[0].isActive).toBeTruthy();
+      });
+
+      it('should get all active auxiliary users', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/active?role=auxiliary',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users[0]).toHaveProperty('role');
+        expect(res.result.data.users[0].role.name).toEqual('auxiliary');
+        expect(res.result.data.users[0]).toHaveProperty('isActive');
+        expect(res.result.data.users[0].isActive).toBeTruthy();
+      });
     });
 
-    it('should get all active auxiliary users', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users/active?role=auxiliary',
-        headers: { 'x-access-token': authToken },
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/users/active',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.users[0]).toHaveProperty('role');
-      expect(res.result.data.users[0].role.name).toEqual('auxiliary');
-      expect(res.result.data.users[0]).toHaveProperty('isActive');
-      expect(res.result.data.users[0].isActive).toBeTruthy();
     });
   });
 
   describe('GET /users/:id', () => {
-    it('should return user', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/${userList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.user).toBeDefined();
-      expect(res.result.data.user).toEqual(expect.objectContaining({
-        identity: expect.objectContaining({
-          firstname: userList[0].identity.firstname,
-          lastname: userList[0].identity.lastname,
-        }),
-        local: expect.objectContaining({ email: userList[0].local.email }),
-        role: expect.objectContaining({ name: 'auxiliary' }),
-      }));
+      it('should return user', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${userList[0]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.user).toBeDefined();
+        expect(res.result.data.user).toEqual(expect.objectContaining({
+          identity: expect.objectContaining({
+            firstname: userList[0].identity.firstname,
+            lastname: userList[0].identity.lastname,
+          }),
+          local: expect.objectContaining({ email: userList[0].local.email }),
+          role: expect.objectContaining({ name: 'auxiliary' }),
+        }));
+      });
+
+      it('should return a 404 error if no user found', async () => {
+        const id = new ObjectID().toHexString();
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${id}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(404);
+      });
     });
 
-    it('should return a 404 error if no user found', async () => {
-      const id = new ObjectID().toHexString();
-      const res = await app.inject({
-        method: 'GET',
-        url: `/users/${id}`,
-        headers: { 'x-access-token': authToken },
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/users/${userList[0]._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-      expect(res.statusCode).toBe(404);
     });
   });
 
   describe('PUT /users/:id/', () => {
-    it('should update the user', async () => {
-      const updatePayload = {
-        identity: {
-          firstname: 'Riri',
-        },
-        local: {
-          email: 'riri@alenvi.io',
-          password: '098765',
-        },
-        role: userPayload.role,
-      };
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${userList[0]._id.toHexString()}`,
-        payload: updatePayload,
-        headers: { 'x-access-token': authToken },
+    const updatePayload = {
+      identity: {
+        firstname: 'Riri',
+      },
+      local: {
+        email: 'riri@alenvi.io',
+        password: '098765',
+      },
+      role: userPayload.role,
+    };
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.userUpdated).toBeDefined();
-      expect(res.result.data.userUpdated).toMatchObject({
-        _id: userList[0]._id,
-        identity: expect.objectContaining({
-          firstname: updatePayload.identity.firstname,
-        }),
-        local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
-        role: { _id: updatePayload.role },
+      it('should update the user', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userList[0]._id.toHexString()}`,
+          payload: updatePayload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.userUpdated).toBeDefined();
+        expect(res.result.data.userUpdated).toMatchObject({
+          _id: userList[0]._id,
+          identity: expect.objectContaining({
+            firstname: updatePayload.identity.firstname,
+          }),
+          local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
+          role: { _id: updatePayload.role },
+        });
+        const updatedUser = await User.findById(res.result.data.userUpdated._id).populate({ path: 'role' });
+        expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
+        expect(updatedUser.local.email).toBe(updatePayload.local.email);
+        expect(updatedUser.role._id).toEqual(updatePayload.role);
       });
-      const updatedUser = await User.findById(res.result.data.userUpdated._id).populate({ path: 'role' });
-      expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
-      expect(updatedUser.local.email).toBe(updatePayload.local.email);
-      expect(updatedUser.role._id).toEqual(updatePayload.role);
+
+      it('should return a 404 error if no user found', async () => {
+        const id = new ObjectID().toHexString();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${id}`,
+          payload: {},
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(404);
+      });
     });
 
-    it('should return a 404 error if no user found', async () => {
-      const id = new ObjectID().toHexString();
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/users/${id}`,
-        payload: {},
-        headers: { 'x-access-token': authToken },
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        {
+          name: 'self user',
+          expectedCode: 200,
+          customCredentials: { scope: [`user-${userList[0]._id.toHexString()}`] },
+        },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const request = {
+            method: 'PUT',
+            url: `/users/${userList[0]._id.toHexString()}`,
+            payload: updatePayload,
+          };
+          if (!role.customCredentials) {
+            authToken = await getToken(role.name);
+            request.headers = { 'x-access-token': authToken };
+          } else {
+            request.credentials = role.customCredentials;
+          }
+
+          const response = await app.inject(request);
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-      expect(res.statusCode).toBe(404);
     });
   });
 
   describe('DELETE /users/:id', () => {
-    it('should delete a user by id', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/users/${userList[3]._id}`,
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
-      expect(res.statusCode).toBe(200);
+      it('should delete a user by id', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/users/${userList[3]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+      });
+
+      it('should return a 404 error if user is not found', async () => {
+        const objectId = new ObjectID();
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/users/${objectId}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(404);
+      });
+
+      it('should return a 400 error _id query is not an objectId', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: '/users/123',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(400);
+      });
+
+      describe('Other roles', () => {
+        const roles = [
+          { name: 'helper', expectedCode: 403 },
+          { name: 'auxiliary', expectedCode: 403 },
+          { name: 'coach', expectedCode: 200 },
+        ];
+
+        roles.forEach((role) => {
+          it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+            authToken = await getToken(role.name);
+            const response = await app.inject({
+              method: 'DELETE',
+              url: `/users/${userList[3]._id}`,
+              headers: { 'x-access-token': authToken },
+            });
+
+            expect(response.statusCode).toBe(role.expectedCode);
+          });
+        });
+      });
     });
 
-    it('should return a 404 error if user is not found', async () => {
-      const objectId = new ObjectID();
-      const res = await app.inject({
-        method: 'DELETE',
-        url: `/users/${objectId}`,
-        headers: { 'x-access-token': authToken },
+    describe('GET /users/presentation', () => {
+      beforeEach(populateDB);
+      it('should return users presentation by role', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/presentation?role=auxiliary',
+        });
+        expect(res.statusCode).toBe(200);
       });
-      expect(res.statusCode).toBe(404);
-    });
 
-    it('should return a 400 error _id query is not an objectId', async () => {
-      const res = await app.inject({
-        method: 'DELETE',
-        url: '/users/123',
-        headers: { 'x-access-token': authToken },
+      it('should return a 404 error if no user is found', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/presentation',
+        });
+        expect(res.statusCode).toBe(404);
       });
-      expect(res.statusCode).toBe(400);
-    });
-  });
 
-  describe('GET /users/presentation', () => {
-    it('should return users presentation by role', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users/presentation?role=auxiliary',
+      it('should return 404 error if role is not found', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/presentation?role=RoleInexistant',
+        });
+        expect(res.statusCode).toBe(404);
       });
-      expect(res.statusCode).toBe(200);
-    });
-
-    it('should return a 404 error if no user is found', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users/presentation',
-      });
-      expect(res.statusCode).toBe(404);
-    });
-
-    it('should return 404 error if role is not found', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users/presentation?role=RoleInexistant',
-      });
-      expect(res.statusCode).toBe(404);
     });
   });
 
   describe('POST /users/refreshToken', () => {
+    beforeEach(populateDB);
     it('should return refresh token', async () => {
-      const credentials = {
-        email: 'test4@alenvi.io',
-        password: '123456',
-      };
-      const user = await app.inject({
-        method: 'POST',
-        url: '/users/authenticate',
-        payload: credentials,
-      });
       const res = await app.inject({
         method: 'POST',
         url: '/users/refreshToken',
         payload: {
-          refreshToken: user.result.data.refreshToken,
+          refreshToken: userList[1].refreshToken,
         },
       });
       expect(res.statusCode).toBe(200);

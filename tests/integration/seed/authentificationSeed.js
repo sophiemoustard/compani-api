@@ -70,9 +70,9 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Supprimer son compte',
-    permission: 'users:delete',
-    name: 'users-delete',
+    description: 'Editer un utilisateur',
+    permission: 'users:edit',
+    name: 'users-edit',
   },
 ];
 
@@ -84,8 +84,10 @@ const coachRights = [
   'contracts:read:user',
   'contracts:edit:user',
   'exports:read',
+  'users:list',
+  'users:edit',
 ];
-const auxiliaryRights = ['pay:read', 'contracts:read'];
+const auxiliaryRights = ['pay:read', 'contracts:read', 'users:list'];
 const helperRights = ['billing:read'];
 
 const rolesList = [

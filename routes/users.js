@@ -21,7 +21,6 @@ const {
   uploadFile,
   uploadImage,
   createDriveFolder,
-  deletePayDocument,
 } = require('../controllers/userController');
 
 
@@ -335,7 +334,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
-        auth: { scope: ['users:delete'] },
+        auth: { scope: ['users:edit'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -460,20 +459,6 @@ exports.plugin = {
           parse: true,
           allow: 'multipart/form-data',
           maxBytes: 5242880,
-        },
-      },
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}/payDocuments/{payDocumentId}',
-      handler: deletePayDocument,
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId(),
-            payDocumentId: Joi.objectId(),
-          },
         },
       },
     });
