@@ -199,11 +199,13 @@ exports.getEventHours = async (event, prevEvent, service, details, distanceMatri
 };
 
 exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
-  if (!has(auxiliary, 'administrative.transportInvoice.transportType')) return 0;
+  const transportType = get(auxiliary, 'administrative.transportInvoice.transportType', null);
+  if (!transportType) return 0;
 
-  if (auxiliary.administrative.transportInvoice.transportType === PUBLIC_TRANSPORT) {
+  if (transportType === PUBLIC_TRANSPORT) {
     if (!has(company, 'rhConfig.transportSubs')) return 0;
     if (!has(auxiliary, 'contact.address.zipCode')) return 0;
+    if (!has(auxiliary, 'administrative.transportInvoice.driveId')) return 0;
 
     const transportSub = company.rhConfig.transportSubs.find(ts => ts.department === auxiliary.contact.address.zipCode.slice(0, 2));
     if (!transportSub) return 0;
@@ -211,7 +213,7 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
     return transportSub.price * 0.5 * workedDaysRatio;
   }
 
-  if (auxiliary.administrative.transportInvoice.transportType === PRIVATE_TRANSPORT) {
+  if (transportType === PRIVATE_TRANSPORT) {
     if (!has(company, 'rhConfig.amountPerKm')) return 0;
 
     return paidKm * company.rhConfig.amountPerKm;
@@ -315,7 +317,7 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, co
   const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(absences, contract, query);
 
-  const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
+  const hoursBalance = hours.workedHours - (contractInfo.contractHours - absencesHours);
 
   return {
     auxiliaryId: auxiliary._id,
