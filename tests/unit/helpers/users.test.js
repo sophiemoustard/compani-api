@@ -38,7 +38,7 @@ describe('exportHelpers', () => {
     const result = await UsersHelper.exportHelpers();
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Nom', 'Prénom', 'Beneficiaire', 'Date de création']);
+    expect(result[0]).toMatchObject(['Email', 'Aidant - Nom', 'Aidant - Prénom', 'Bénéficiaire - Titre', 'Bénéficiaire - Nom', 'Bénéficiaire - Prénom', 'Date de création']);
   });
 
   it('should return helper info', async () => {
@@ -62,7 +62,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', 'Je', 'suis', '', '01/02/2019']);
+    expect(result[1]).toMatchObject(['aide@sos.io', 'Je', 'suis', '', '', '', '01/02/2019']);
   });
 
   it('should return customer helper info', async () => {
@@ -84,7 +84,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', 'M Patate', '']);
+    expect(result[1]).toMatchObject(['', '', '', 'M', 'Patate', '', '']);
   });
 });
 
@@ -121,7 +121,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Email', 'Secteur', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
-      'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité socile', 'Addresse', 'Téléphone',
+      'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité sociale', 'Addresse', 'Téléphone',
       'Nombre de contracts', 'Date d\'inactivité', 'Date de création']);
   });
 

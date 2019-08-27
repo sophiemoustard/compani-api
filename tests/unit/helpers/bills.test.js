@@ -980,7 +980,7 @@ describe('getUnitInclTaxes', () => {
 });
 
 describe('exportBillsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Bénéficiaire', 'Id tiers payeur', 'Tiers payeur', 'Montant HT en €', 'Montant TTC en €', 'Services'];
+  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Montant HT en €', 'Montant TTC en €', 'Services'];
   const bills = [
     {
       billNumber: 'FACT-0549236',
@@ -1027,62 +1027,71 @@ describe('exportBillsHistory', () => {
       }],
     },
   ];
-  let expectsFind;
   let mockBill;
+  let formatPriceStub;
+  let formatFloatForExportStub;
   beforeEach(() => {
     mockBill = sinon.mock(Bill);
-    expectsFind = mockBill.expects('find')
+    formatPriceStub = sinon.stub(UtilsHelper, 'formatPrice');
+    formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
+  });
+  afterEach(() => {
+    mockBill.restore();
+    formatPriceStub.restore();
+    formatFloatForExportStub.restore();
+  });
+
+  it('should return an array containing just the header', async () => {
+    mockBill.expects('find')
       .chain('sort')
       .chain('populate')
       .chain('populate')
       .chain('lean')
-      .once();
-  });
-  afterEach(() => {
-    mockBill.restore();
-  });
-
-  it('should return an array containing just the header', async () => {
-    expectsFind.resolves([]);
+      .once()
+      .returns([]);
     const exportArray = await BillHelper.exportBillsHistory(null, null);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    expectsFind.resolves([{}]);
+    mockBill.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns([{}]);
+
+    formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
+    formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
     const exportArray = await BillHelper.exportBillsHistory(null, null);
 
     expect(exportArray).toEqual([
       header,
-      ['', '', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', '', '', '', ''],
     ]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    expectsFind.resolves(bills);
-    const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
-    const formatPriceStub = sinon.stub(UtilsHelper, 'formatPrice');
-    const formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
-
-    getFullTitleFromIdentityStub.onFirstCall().returns('Mme Mimi MATHY');
-    getFullTitleFromIdentityStub.onSecondCall().returns('M Bojack HORSEMAN');
-    formatPriceStub.callsFake(price => `P-${price}`);
-    formatFloatForExportStub.callsFake(float => `F-${float}`);
+    mockBill.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(bills);
+    formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
+    formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
     const exportArray = await BillHelper.exportBillsHistory(null, null);
 
-    sinon.assert.callCount(getFullTitleFromIdentityStub, 2);
     sinon.assert.callCount(formatPriceStub, 3);
     sinon.assert.callCount(formatFloatForExportStub, 4);
     expect(exportArray).toEqual([
       header,
-      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
-      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
+      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
+      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
     ]);
-
-    getFullTitleFromIdentityStub.restore();
-    formatPriceStub.restore();
-    formatFloatForExportStub.restore();
   });
 });

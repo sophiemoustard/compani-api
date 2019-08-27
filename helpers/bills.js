@@ -262,6 +262,20 @@ const exportBillSubscribtions = (bill) => {
   return subscriptions.join('\r\n');
 };
 
+const billExportHeader = [
+  'Identifiant',
+  'Date',
+  'Id Bénéficiaire',
+  'Titre',
+  'Nom',
+  'Prénom',
+  'Id tiers payeur',
+  'Tiers payeur',
+  'Montant HT en €',
+  'Montant TTC en €',
+  'Services',
+];
+
 exports.exportBillsHistory = async (startDate, endDate) => {
   const query = {
     date: { $lte: endDate, $gte: startDate },
@@ -273,19 +287,7 @@ exports.exportBillsHistory = async (startDate, endDate) => {
     .populate({ path: 'client' })
     .lean();
 
-  const header = [
-    'Identifiant',
-    'Date',
-    'Id Bénéficiaire',
-    'Bénéficiaire',
-    'Id tiers payeur',
-    'Tiers payeur',
-    'Montant HT en €',
-    'Montant TTC en €',
-    'Services',
-  ];
-
-  const rows = [header];
+  const rows = [billExportHeader];
 
   for (const bill of bills) {
     const customerId = get(bill.customer, '_id');
@@ -304,7 +306,9 @@ exports.exportBillsHistory = async (startDate, endDate) => {
       bill.billNumber || '',
       bill.date ? moment(bill.date).format('DD/MM/YYYY') : '',
       customerId ? customerId.toHexString() : '',
-      UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity')),
+      get(bill, 'customer.identity.title', ''),
+      get(bill, 'customer.identity.lastname', '').toUpperCase(),
+      get(bill, 'customer.identity.firstname', ''),
       clientId ? clientId.toHexString() : '',
       get(bill.client, 'name') || '',
       totalExclTaxesFormatted,
