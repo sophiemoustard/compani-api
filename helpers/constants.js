@@ -10,9 +10,6 @@ module.exports = {
   PAID_LEAVE: 'leave',
   UNPAID_LEAVE: 'unpaid leave',
   MATERNITY_LEAVE: 'maternity leave',
-  WEDDING: 'wedding',
-  BIRTH: 'birth',
-  DEATH: 'death',
   WORK_ACCIDENT: 'work accident',
   get EVENT_TYPE_LIST() {
     return {
@@ -29,10 +26,8 @@ module.exports = {
       [this.MATERNITY_LEAVE]: 'Congé maternité',
       [this.ILLNESS]: 'Maladie',
       [this.UNJUSTIFIED]: 'Absence injustifiée',
-      [this.WEDDING]: 'Mariage',
-      [this.BIRTH]: 'Naissance',
-      [this.DEATH]: 'Décès',
       [this.WORK_ACCIDENT]: 'Accident du travail',
+      [this.OTHER]: 'other',
     };
   },
   get ABSENCE_NATURE_LIST() {

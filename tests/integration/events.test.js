@@ -181,7 +181,6 @@ describe('EVENTS ROUTES', () => {
       expect(response.result.data.event).toBeDefined();
     });
 
-
     it('should create an unavailability', async () => {
       const auxiliary = eventAuxiliary;
       const payload = {

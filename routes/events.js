@@ -18,6 +18,7 @@ const {
   HOURLY,
   UNJUSTIFIED,
   ILLNESS,
+  OTHER,
 } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('../models/Contract');
 const {
@@ -50,7 +51,7 @@ exports.plugin = {
               fullAddress: Joi.string(),
             }),
             sector: Joi.objectId().required(),
-            misc: Joi.string().allow(null, ''),
+            misc: Joi.string().allow(null, '').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             internalHour: Joi.object().keys({
               name: Joi.string(),
@@ -137,7 +138,7 @@ exports.plugin = {
               driveId: Joi.string(),
               link: Joi.string(),
             }),
-            misc: Joi.string().allow(null, '').default(''),
+            misc: Joi.string().allow(null, '').default('').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             repetition: Joi.object().keys({
               frequency: Joi.string().valid(REPETITION_FREQUENCIES),
               parentId: Joi.objectId(),
