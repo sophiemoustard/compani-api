@@ -10,7 +10,7 @@ const { language } = translate;
 const sendWelcome = async (req) => {
   try {
     const mailOptions = {
-      from: `Alenvi <${SENDER_MAIL}>`,
+      from: `Compani <${SENDER_MAIL}>`,
       to: req.payload.receiver.email,
       subject: 'Alenvi - Bienvenue dans votre espace Compani',
       html: welcomeEmailContent(req.payload.receiver),
