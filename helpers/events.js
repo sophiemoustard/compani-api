@@ -210,26 +210,26 @@ const isMiscOnlyUpdated = (event, payload) => {
  * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the camcellation
  * i.e. delete the cancel object and set isCancelled to false.
  */
-exports.updateEvent = async (event, payload, credentials) => {
-  await EventHistoriesHelper.createEventHistoryOnUpdate(payload, event, credentials);
-  const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
+exports.updateEvent = async (event, eventPayload, credentials) => {
+  await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
+  const miscUpdatedOnly = eventPayload.misc && isMiscOnlyUpdated(event, eventPayload);
 
   let unset;
-  let set = payload;
-  if (!payload.isCancelled && event.isCancelled) {
+  let set = eventPayload;
+  if (!eventPayload.isCancelled && event.isCancelled) {
     set = { ...set, isCancelled: false };
     unset = { cancel: '' };
   }
-  if (isRepetition(event) && !payload.shouldUpdateRepetition && !miscUpdatedOnly) {
+  if (isRepetition(event) && !eventPayload.shouldUpdateRepetition && !miscUpdatedOnly) {
     set = { ...set, 'repetition.frequency': NEVER };
     unset = { ...unset, 'repetition.parentId': '' };
   }
 
-  if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
+  if (!eventPayload.auxiliary) unset = { ...unset, auxiliary: '' };
 
   event = await EventRepository.updateEvent(event._id, set, unset);
-  if (!miscUpdatedOnly && isRepetition(event) && payload.shouldUpdateRepetition) {
-    await EventsRepetitionHelper.updateRepetitions(event, payload);
+  if (!miscUpdatedOnly && isRepetition(event) && eventPayload.shouldUpdateRepetition) {
+    await EventsRepetitionHelper.updateRepetition(event, eventPayload);
   }
 
   return exports.populateEventSubscription(event);

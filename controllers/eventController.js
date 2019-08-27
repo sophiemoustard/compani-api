@@ -12,7 +12,7 @@ const {
   deleteEvent,
 } = require('../helpers/events');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
-const { deleteRepetition } = require('../helpers/eventsExport');
+const { deleteRepetition } = require('../helpers/eventsRepetition');
 const { ABSENCE, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
 const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
 

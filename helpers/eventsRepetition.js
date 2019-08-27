@@ -1,6 +1,6 @@
 const moment = require('moment');
-const flat = require('flat');
-const _ = require('lodash');
+const get = require('lodash/get');
+const omit = require('lodash/omit');
 const momentRange = require('moment-range');
 const {
   NEVER,
@@ -19,7 +19,7 @@ momentRange.extendMoment(moment);
 exports.formatRepeatedPayload = async (event, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
   const payload = {
-    ..._.omit(event, '_id'),
+    ...omit(event, '_id'),
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
   };
@@ -75,7 +75,7 @@ exports.createRepetitionsByWeek = async (payload, step) => {
 exports.createRepetitions = async (eventFromDb, payload) => {
   if (payload.repetition.frequency === NEVER) return eventFromDb;
 
-  if (_.get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
+  if (get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
     await Event.findOneAndUpdate({ _id: eventFromDb._id }, { 'repetition.parentId': eventFromDb._id });
   }
 
@@ -100,30 +100,35 @@ exports.createRepetitions = async (eventFromDb, payload) => {
   return eventFromDb;
 };
 
-exports.updateRepetitions = async (event, payload) => {
-  const parentStartDate = moment(payload.startDate);
-  const parentEndtDate = moment(payload.endDate);
+exports.updateRepetition = async (event, eventPayload) => {
+  const parentStartDate = moment(eventPayload.startDate);
+  const parentEndDate = moment(eventPayload.endDate);
   const promises = [];
 
-  let unset;
-  if (!payload.auxiliary) unset = { auxiliary: '' };
   const events = await Event.find({
     'repetition.parentId': event.repetition.parentId,
     startDate: { $gt: new Date(event.startDate) },
   });
-  events.forEach((ev) => {
-    const startDate = moment(ev.startDate).hours(parentStartDate.hours());
-    startDate.minutes(parentStartDate.minutes());
-    const endDate = moment(ev.endDate).hours(parentEndtDate.hours());
-    endDate.minutes(parentEndtDate.minutes());
+
+  for (let i = 0, l = events.length; i < l; i++) {
+    const startDate = moment(events[i].startDate).hours(parentStartDate.hours()).minutes(parentStartDate.minutes()).toISOString();
+    const endDate = moment(events[i].endDate).hours(parentEndDate.hours()).minutes(parentEndDate.minutes()).toISOString();
+    let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
+
+    let unset;
+    if (eventPayload.auxiliary && await EventsValidationHelper.hasConflicts(eventToSet)) {
+      eventToSet = omit(eventToSet, ['repetition', 'auxiliary']);
+      unset = { auxiliary: '', repetition: '' };
+    } else if (!eventPayload.auxiliary) {
+      eventToSet = omit(eventToSet, 'auxiliary');
+      unset = { auxiliary: '' };
+    }
+
     promises.push(Event.findOneAndUpdate(
-      { _id: ev._id },
-      {
-        $set: flat({ ...payload, startDate: startDate.toISOString(), endDate: endDate.toISOString() }),
-        ...(unset && { $unset: unset }),
-      }
+      { _id: events[i]._id },
+      { $set: eventToSet, ...(unset && { $unset: unset }) }
     ));
-  });
+  }
 
   return Promise.all(promises);
 };

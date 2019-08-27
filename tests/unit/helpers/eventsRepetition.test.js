@@ -15,7 +15,6 @@ const {
 
 require('sinon-mongoose');
 
-
 describe('formatRepeatedPayload', () => {
   let hasConflicts;
   beforeEach(() => {
@@ -75,7 +74,7 @@ describe('createRepetitionsEveryDay', () => {
   });
 
   it('should create repetition every day', async () => {
-    const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
+    const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00' };
     formatRepeatedPayload.returns(new Event());
     await EventsRepetitionHelper.createRepetitionsEveryDay(event);
 
@@ -188,6 +187,60 @@ describe('createRepetitions', () => {
 
     sinon.assert.notCalled(findOneAndUpdate);
     sinon.assert.calledWith(createRepetitionsByWeek, payload, 2);
+  });
+});
+
+describe('updateRepetition', () => {
+  let hasConflicts;
+  let findEvent;
+  let findOneAndUpdateEvent;
+  beforeEach(() => {
+    hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
+    findEvent = sinon.stub(Event, 'find');
+    findOneAndUpdateEvent = sinon.stub(Event, 'findOneAndUpdate');
+  });
+  afterEach(() => {
+    hasConflicts.restore();
+    findEvent.restore();
+    findOneAndUpdateEvent.restore();
+  });
+
+  it('should update repetition', async () => {
+    const event = { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z' };
+    const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', auxiliary: '1234567890' };
+    const events = [
+      { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-24T09:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', _id: '123456' },
+      { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-25T09:00:00.000Z', endDate: '2019-03-25T11:00:00.000Z', _id: '654321' },
+    ];
+    findEvent.returns(events);
+    hasConflicts.returns(false);
+
+    await EventsRepetitionHelper.updateRepetition(event, payload);
+
+    sinon.assert.calledTwice(hasConflicts);
+    sinon.assert.calledTwice(findOneAndUpdateEvent);
+  });
+
+  it('should unassign intervention in conflict', async () => {
+    const event = { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z' };
+    const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', auxiliary: '1234567890' };
+    const events = [
+      { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-24T09:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', _id: '123456' },
+    ];
+    findEvent.returns(events);
+    hasConflicts.returns(true);
+
+    await EventsRepetitionHelper.updateRepetition(event, payload);
+
+    sinon.assert.calledWith(
+      hasConflicts,
+      { _id: '123456', auxiliary: '1234567890', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' }
+    );
+    sinon.assert.calledWith(
+      findOneAndUpdateEvent,
+      { _id: '123456' },
+      { $set: { _id: '123456', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' }, $unset: { auxiliary: '', repetition: '' } }
+    );
   });
 });
 

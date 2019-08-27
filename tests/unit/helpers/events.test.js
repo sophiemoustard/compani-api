@@ -30,18 +30,18 @@ require('sinon-mongoose');
 describe('updateEvent', () => {
   let createEventHistoryOnUpdate;
   let populateEventSubscription;
-  let updateRepetitions;
+  let updateRepetition;
   let updateEvent;
   beforeEach(() => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
-    updateRepetitions = sinon.stub(EventsRepetitionHelper, 'updateRepetitions');
+    updateRepetition = sinon.stub(EventsRepetitionHelper, 'updateRepetition');
     updateEvent = sinon.stub(EventRepository, 'updateEvent');
   });
   afterEach(() => {
     createEventHistoryOnUpdate.restore();
     populateEventSubscription.restore();
-    updateRepetitions.restore();
+    updateRepetition.restore();
     updateEvent.restore();
   });
 
@@ -55,7 +55,7 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
   it('2. should update event without repetition without unset repetition property', async () => {
@@ -68,7 +68,7 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
   it('3. should update event with NEVER frequency without unset repetition property', async () => {
@@ -81,7 +81,7 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
   it('4. should update event and repeated events without unset repetition property', async () => {
@@ -94,7 +94,7 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.callCount(updateRepetitions, 1);
+    sinon.assert.callCount(updateRepetition, 1);
   });
 
   it('5. should update event when only misc is updated without unset repetition property', async () => {
@@ -114,7 +114,7 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
   it('6. should update event and unset repetition property if event in repetition and repetition not updated', async () => {
@@ -133,7 +133,7 @@ describe('updateEvent', () => {
       { 'repetition.parentId': '' }
     );
 
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
   it('7. should update event and unset cancel property when cancellation cancelled', async () => {
@@ -157,7 +157,7 @@ describe('updateEvent', () => {
       { ...payload, isCancelled: false },
       { cancel: '' }
     );
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
   it('8. should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
@@ -180,7 +180,7 @@ describe('updateEvent', () => {
       { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
       { 'repetition.parentId': '', cancel: '' }
     );
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
   it('9. should update event and unset auxiliary if missing in payload', async () => {
@@ -191,7 +191,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload);
 
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
     sinon.assert.calledWith(
       updateEvent,
       eventId,
