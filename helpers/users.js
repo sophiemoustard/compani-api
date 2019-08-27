@@ -119,7 +119,7 @@ const auxiliaryExportHeader = [
   'Departement de naissance',
   'Ville de naissance',
   'Nationalité',
-  'N° de sécurité socile',
+  'N° de sécurité sociale',
   'Addresse',
   'Téléphone',
   'Nombre de contracts',

@@ -121,7 +121,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Email', 'Secteur', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
-      'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité socile', 'Addresse', 'Téléphone',
+      'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité sociale', 'Addresse', 'Téléphone',
       'Nombre de contracts', 'Date d\'inactivité', 'Date de création']);
   });
 
