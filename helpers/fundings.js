@@ -1,6 +1,6 @@
 const Boom = require('boom');
 const moment = require('moment');
-
+const get = require('lodash/get');
 const Customer = require('../models/Customer');
 const { populateServices } = require('./subscriptions');
 const UtilsHelper = require('./utils');
@@ -64,8 +64,13 @@ exports.exportFundings = async () => {
 
   for (const cus of customerFundings) {
     const fundInfo = [];
-    if (cus.identity) fundInfo.push(cus.identity.title || '', cus.identity.lastname || '', cus.identity.firstname || '');
-    else fundInfo.push('', '', '');
+    if (cus.identity) {
+      fundInfo.push(
+        get(cus, 'identity.title', ''),
+        get(cus, 'identity.lastname', '').toUpperCase(),
+        get(cus, 'identity.firstname', '')
+      );
+    } else fundInfo.push('', '', '');
 
     let { funding } = cus;
     if (!funding) fundInfo.push('', '', '', '', '', '', '', '', '', '', '', '');

@@ -216,6 +216,6 @@ describe('exportSubscriptions', () => {
     sinon.assert.calledTwice(formatFloatForExport);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M', 'Autonomie', '', 'Service', 'F-12', 'F-4', 9, 2]);
+    expect(result[1]).toMatchObject(['M', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
   });
 });

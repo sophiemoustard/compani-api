@@ -78,7 +78,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
     const cells = [
       get(pay, 'auxiliary.identity.title') || '',
       get(pay, 'auxiliary.identity.firstname') || '',
-      get(pay, 'auxiliary.identity.lastname') || '',
+      get(pay, 'auxiliary.identity.lastname').toUpperCase() || '',
       get(pay.auxiliary, 'sector.name') || '',
       moment(pay.startDate).format('DD/MM/YYYY'),
       pay.endNotificationDate ? moment(pay.endNotificationDate).format('DD/MM/YYYY') : '',

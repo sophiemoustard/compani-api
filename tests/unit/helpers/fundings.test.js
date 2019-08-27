@@ -52,7 +52,7 @@ describe('exportFundings', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M', 'Autonomie', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+    expect(result[1]).toMatchObject(['M', 'AUTONOMIE', '', '', '', '', '', '', '', '', '', '', '', '', '']);
   });
 
   it('should return funding third party payer', async () => {

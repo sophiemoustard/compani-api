@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const pickBy = require('lodash/pickBy');
 const moment = require('moment');
 const flat = require('flat');
@@ -96,11 +97,11 @@ exports.exportHelpers = async () => {
   for (const hel of helpers) {
     const customer = hel.customers && hel.customers[0];
     data.push([
-      hel.local && hel.local.email ? hel.local.email : '',
-      hel.identity && hel.identity.lastname ? hel.identity.lastname : '',
-      hel.identity && hel.identity.firstname ? hel.identity.firstname : '',
+      get(hel, 'local.email', ''),
+      get(hel, 'identity.lastname', '').toUpperCase(),
+      get(hel, 'identity.firstname', ''),
       get(customer, 'identity.title', ''),
-      get(customer, 'identity.lastname', ''),
+      get(customer, 'identity.lastname', '').toUpperCase(),
       get(customer, 'identity.firstname', ''),
       hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);
   }
@@ -143,10 +144,15 @@ exports.exportAuxiliaries = async () => {
 
     if (aux.identity) {
       auxInfo.push(
-        aux.identity.title || '', aux.identity.lastname || '', aux.identity.firstname || '',
-        aux.identity.birthDate ? moment(aux.identity.birthDate).format('DD/MM/YYYY') : '', countries[aux.identity.birthCountry] || '',
-        aux.identity.birthState || '', aux.identity.birthCity || '', nationalities[aux.identity.nationality] || '',
-        aux.identity.socialSecurityNumber || ''
+        get(aux, 'identity.title', ''),
+        get(aux, 'identity.lastname', '').toUpperCase(),
+        get(aux, 'identity.firstname', ''),
+        has(aux, 'identity.birthDate') ? moment(aux.identity.birthDate).format('DD/MM/YYYY') : '',
+        countries[aux.identity.birthCountry] || '',
+        get(aux, 'identity.birthState', ''),
+        get(aux, 'identity.birthCity', ''),
+        nationalities[aux.identity.nationality] || '',
+        get(aux, 'identity.socialSecurityNumber', '')
       );
     } else auxInfo.push('', '', '', '', '', '', '', '', '');
 
