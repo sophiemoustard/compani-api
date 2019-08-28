@@ -13,7 +13,7 @@ const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
 const { createFolder, deleteFile } = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
-const { getUsers, createAndSaveFile } = require('../helpers/users');
+const UserHelper = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
 const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
 const User = require('../models/User');
@@ -87,7 +87,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const users = await getUsers(req.query);
+    const users = await UserHelper.getUsers(req.query);
     if (users.length === 0) {
       return {
         message: translate[language].usersNotFound,
@@ -108,7 +108,7 @@ const list = async (req) => {
 
 const activeList = async (req) => {
   try {
-    const users = await getUsers(req.query);
+    const users = await UserHelper.getUsers(req.query);
     if (users.length === 0) {
       return {
         message: translate[language].usersNotFound,
@@ -387,7 +387,7 @@ const uploadFile = async (req) => {
       return Boom.forbidden(translate[language].uploadNotAllowed);
     }
 
-    const uploadedFile = await createAndSaveFile(administrativeKey, req.params, req.payload);
+    const uploadedFile = await UserHelper.createAndSaveFile(administrativeKey, req.params, req.payload);
 
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {

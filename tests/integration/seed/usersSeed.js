@@ -2,6 +2,7 @@ const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
 const User = require('../../../models/User');
 const Company = require('../../../models/Company');
+const Task = require('../../../models/Task');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 
 const company = {
@@ -21,12 +22,22 @@ const company = {
   directDebitsFolderId: '1234567890',
 };
 
+const task = {
+  _id: new ObjectID(),
+  name: 'Test',
+};
+
 const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'Auxiliary', lastname: 'White' },
     local: { email: 'white@alenvi.io', password: '123456' },
     role: rolesList.find(role => role.name === 'auxiliary')._id,
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    procedure: [{ task: task._id }],
     inactivityDate: null,
   },
   {
@@ -88,12 +99,14 @@ const userPayload = {
 const populateDB = async () => {
   await User.deleteMany({});
   await Company.deleteMany({});
+  await Task.deleteMany({});
 
   await populateDBForAuthentification();
   for (const user of userList) {
     await new User(user).save();
   }
   await new Company(company).save();
+  await new Task(task).save();
 };
 
 module.exports = {

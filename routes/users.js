@@ -300,7 +300,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{user_id}/tasks/{task_id}',
       options: {
-        auth: { scope: ['users:edit', 'user-{params.user_id}'] },
+        auth: { scope: ['users:edit'] },
         validate: {
           params: {
             user_id: Joi.objectId(),
@@ -320,7 +320,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/tasks',
       options: {
-        auth: { scope: ['users:list', 'user-{params._id}'] },
+        auth: { scope: ['users:edit'] },
         validate: {
           params: {
             _id: Joi.objectId(),
