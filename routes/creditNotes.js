@@ -50,6 +50,7 @@ exports.plugin = {
                 careHours: Joi.number(),
                 surcharges: Joi.array().items(Joi.object({
                   percentage: Joi.number().required(),
+                  name: Joi.string().required(),
                   startHour: Joi.date(),
                   endHour: Joi.date(),
                 })),
@@ -137,6 +138,7 @@ exports.plugin = {
                 careHours: Joi.number(),
                 surcharges: Joi.array().items(Joi.object({
                   percentage: Joi.number().required(),
+                  name: Joi.string().required(),
                   startHour: Joi.date(),
                   endHour: Joi.date(),
                 })),
