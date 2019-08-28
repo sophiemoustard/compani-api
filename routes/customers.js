@@ -13,7 +13,6 @@ const {
   listWithCustomerContractSubscriptions,
   show,
   remove,
-  getSubscriptions,
   addSubscription,
   updateSubscription,
   removeSubscription,
@@ -30,7 +29,6 @@ const {
   createHistorySubscription,
   createFunding,
   updateFunding,
-  getFundings,
   removeFunding,
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
@@ -188,19 +186,6 @@ exports.plugin = {
         },
       },
       handler: remove,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/subscriptions',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-        },
-      },
-      handler: getSubscriptions,
     });
 
     server.route({
@@ -499,19 +484,6 @@ exports.plugin = {
         },
       },
       handler: updateFunding,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/fundings',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-        },
-      },
-      handler: getFundings,
     });
 
     server.route({

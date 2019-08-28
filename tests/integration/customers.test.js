@@ -306,32 +306,6 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
     });
   });
 
-  describe('GET /customers/{id}/subscriptions', () => {
-    it('should get customer subscriptions', async () => {
-      const customer = customersList[0];
-
-      const result = await app.inject({
-        method: 'GET',
-        url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': token },
-      });
-
-      expect(result.statusCode).toBe(200);
-      expect(result.result.data.subscriptions).toBeDefined();
-    });
-
-    it('should return 404 as customer not found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const result = await app.inject({
-        method: 'GET',
-        url: `/customers/${invalidId}/subscriptions`,
-        headers: { 'x-access-token': token },
-      });
-
-      expect(result.statusCode).toBe(404);
-    });
-  });
-
   describe('PUT /customers/{id}/subscriptions/{subscriptionId}', () => {
     const payload = {
       estimatedWeeklyVolume: 24,
@@ -955,32 +929,6 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(404);
-    });
-  });
-
-  describe('GET /customers/{id}/fundings', () => {
-    it('should get customer fundings', async () => {
-      const customer = customersList[0];
-
-      const result = await app.inject({
-        method: 'GET',
-        url: `/customers/${customer._id.toHexString()}/fundings`,
-        headers: { 'x-access-token': token },
-      });
-
-      expect(result.statusCode).toBe(200);
-      expect(result.result.data.fundings).toBeDefined();
-    });
-
-    it('should return 404 as customer not found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const result = await app.inject({
-        method: 'GET',
-        url: `/customers/${invalidId}/fundings`,
-        headers: { 'x-access-token': token },
-      });
-
-      expect(result.statusCode).toBe(404);
     });
   });
 

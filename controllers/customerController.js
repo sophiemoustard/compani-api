@@ -302,34 +302,6 @@ const update = async (req) => {
   }
 };
 
-const getSubscriptions = async (req) => {
-  try {
-    const customer = await Customer
-      .findOne(
-        { _id: req.params._id, subscriptions: { $exists: true } },
-        { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-        { autopopulate: false }
-      )
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .lean();
-
-    if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
-
-    const { subscriptions } = await populateSubscriptionsServices(customer);
-
-    return {
-      message: translate[language].customerSubscriptionsFound,
-      data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-        subscriptions,
-      },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
 const updateSubscription = async (req) => {
   try {
     const customer = await Customer
@@ -802,35 +774,6 @@ const updateFunding = async (req) => {
   }
 };
 
-const getFundings = async (req) => {
-  try {
-    const customer = await Customer.findOne(
-      { _id: req.params._id, fundings: { $exists: true } },
-      { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
-      { autopopulate: false }
-    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
-
-    if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
-
-    const versions = [];
-    for (const funding of customer.fundings) {
-      versions.push(await populateFundings(funding, customer));
-    }
-    customer.fundings = versions;
-
-    return {
-      message: translate[language].customerFundingsFound,
-      data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-        fundings: customer.fundings,
-      },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
 const removeFunding = async (req) => {
   try {
     await Customer.findOneAndUpdate(
@@ -862,7 +805,6 @@ module.exports = {
   create,
   remove,
   update,
-  getSubscriptions,
   addSubscription,
   updateSubscription,
   removeSubscription,
@@ -879,6 +821,5 @@ module.exports = {
   createHistorySubscription,
   createFunding,
   updateFunding,
-  getFundings,
   removeFunding,
 };
