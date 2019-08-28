@@ -21,11 +21,11 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
 };
 
 const surchargeConditions = [
-  { key: 'twentyFifthOfDecember', condition: start => start.format('DD/MM') === '25/12' },
-  { key: 'firstOfMay', condition: start => start.format('DD/MM') === '01/05' },
-  { key: 'publicHoliday', condition: start => moment(start).startOf('d').isHoliday() },
-  { key: 'saturday', condition: start => start.isoWeekday() === 6 },
-  { key: 'sunday', condition: start => start.isoWeekday() === 7 },
+  { key: 'twentyFifthOfDecember', condition: start => start.format('DD/MM') === '25/12', name: '25 décembre' },
+  { key: 'firstOfMay', condition: start => start.format('DD/MM') === '01/05', name: '1er Mai' },
+  { key: 'publicHoliday', condition: start => moment(start).startOf('d').isHoliday(), name: 'Jour férié' },
+  { key: 'saturday', condition: start => start.isoWeekday() === 6, name: 'Samedi' },
+  { key: 'sunday', condition: start => start.isoWeekday() === 7, name: 'Dimanche' },
 ];
 
 exports.getEventSurcharges = (event, surcharge) => {
@@ -34,7 +34,7 @@ exports.getEventSurcharges = (event, surcharge) => {
   for (const surchargeCondition of surchargeConditions) {
     const percentage = surcharge[surchargeCondition.key];
     if (percentage && percentage > 0 && surchargeCondition.condition(start)) {
-      return [{ percentage }];
+      return [{ percentage, name: surchargeCondition.name }];
     }
   }
 
@@ -45,9 +45,9 @@ exports.getEventSurcharges = (event, surcharge) => {
   const end = moment(event.endDate);
   const surcharges = [];
   const eveningSurcharge = exports.getCustomSurcharge(start, end, eveningStartTime, eveningEndTime, evening);
-  if (eveningSurcharge) surcharges.push(eveningSurcharge);
+  if (eveningSurcharge) surcharges.push({ ...eveningSurcharge, name: 'Soirée' });
   const customSurcharge = exports.getCustomSurcharge(start, end, customStartTime, customEndTime, custom);
-  if (customSurcharge) surcharges.push(customSurcharge);
+  if (customSurcharge) surcharges.push({ ...customSurcharge, name: 'Personalisée' });
 
   return surcharges;
 };
