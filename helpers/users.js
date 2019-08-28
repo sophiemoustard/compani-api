@@ -25,11 +25,6 @@ exports.getUsers = async (query) => {
     if (!query.role) throw Boom.notFound(translate[language].roleNotFound);
   }
 
-  if (query.email) {
-    query.local = { email: query.email };
-    delete query.email;
-  }
-
   const params = pickBy(query);
   return User
     .find(params, {}, { autopopulate: false })
