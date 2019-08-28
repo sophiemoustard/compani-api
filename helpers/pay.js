@@ -27,6 +27,42 @@ exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
   return formattedPlans.join('\r\n\r\n');
 };
 
+const payExportHeader = [
+  'Titre',
+  'Prénom',
+  'Nom',
+  'Equipe',
+  'Date d\'embauche',
+  'Début',
+  'Date de notif',
+  'Motif',
+  'Fin',
+  'Heures contrat',
+  'Heures travaillées',
+  'Dont exo non majo',
+  'Dont exo et majo',
+  'Détails des majo exo',
+  'Dont non exo et non majo',
+  'Dont non exo et majo',
+  'Détails des majo non exo',
+  'Solde heures',
+  'Compteur',
+  'Heures sup à payer',
+  'Heures comp à payer',
+  'Mutuelle',
+  'Transport',
+  'Autres frais',
+  'Prime',
+  'Indemnité',
+];
+
+const getHiringDate = (contracts) => {
+  if (!contracts || contracts.length === 0) return;
+  if (contracts.length === 1) return contracts[0].startDate;
+
+  return contracts.map(contract => contract.startDate).sort((a, b) => new Date(a) - new Date(b))[0];
+};
+
 exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
   const query = {
     endDate: { $lte: moment(endDate).endOf('M').toDate() },
@@ -35,51 +71,24 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
 
   const pays = await Pay.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } })
+    .populate({ path: 'auxiliary', select: 'identity sector contracts', populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }] })
     .lean();
 
   const finalPays = await FinalPay.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector', select: 'name' } })
+    .populate({ path: 'auxiliary', select: 'identity sector contracts', populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }] })
     .lean();
 
-  const header = [
-    'Titre',
-    'Prénom',
-    'Nom',
-    'Equipe',
-    'Début',
-    'Date de notif',
-    'Motif',
-    'Fin',
-    'Heures contrat',
-    'Heures travaillées',
-    'Dont exo non majo',
-    'Dont exo et majo',
-    'Détails des majo exo',
-    'Dont non exo et non majo',
-    'Dont non exo et majo',
-    'Détails des majo non exo',
-    'Solde heures',
-    'Compteur',
-    'Heures sup à payer',
-    'Heures comp à payer',
-    'Mutuelle',
-    'Transport',
-    'Autres frais',
-    'Prime',
-    'Indemnité',
-  ];
-
-  const rows = [header];
-
+  const rows = [payExportHeader];
   const paysAndFinalPay = [...pays, ...finalPays];
   for (const pay of paysAndFinalPay) {
+    const hiringDate = getHiringDate(pay.auxiliary.contracts);
     const cells = [
       get(pay, 'auxiliary.identity.title') || '',
       get(pay, 'auxiliary.identity.firstname') || '',
       get(pay, 'auxiliary.identity.lastname').toUpperCase() || '',
       get(pay.auxiliary, 'sector.name') || '',
+      hiringDate ? moment(hiringDate).format('DD/MM/YYYY') : '',
       moment(pay.startDate).format('DD/MM/YYYY'),
       pay.endNotificationDate ? moment(pay.endNotificationDate).format('DD/MM/YYYY') : '',
       pay.endReason ? END_CONTRACT_REASONS[pay.endReason] : '',

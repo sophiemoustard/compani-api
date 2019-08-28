@@ -79,6 +79,7 @@ describe('exportPayHistory', () => {
     'Prénom',
     'Nom',
     'Equipe',
+    'Date d\'embauche',
     'Début',
     'Date de notif',
     'Motif',
@@ -104,12 +105,9 @@ describe('exportPayHistory', () => {
   const pays = [
     {
       auxiliary: {
-        identity: {
-          firstname: 'Tata',
-          lastname: 'Toto',
-          title: 'Mme',
-        },
+        identity: { firstname: 'Tata', lastname: 'Toto', title: 'Mme' },
         sector: { name: 'Test' },
+        contracts: [{ startDate: '2019-05-04T00:00:00' }],
       },
       startDate: '2019-05-01T00:00:00.000Z',
       endDate: '2019-05-31T20:00:00.000Z',
@@ -132,10 +130,7 @@ describe('exportPayHistory', () => {
     },
     {
       auxiliary: {
-        identity: {
-          firstname: 'Titi',
-          lastname: 'Tutu',
-        },
+        identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
       },
       startDate: '2019-05-01T00:00:00.000Z',
@@ -161,12 +156,9 @@ describe('exportPayHistory', () => {
   const finalPays = [
     {
       auxiliary: {
-        identity: {
-          firstname: 'Tata',
-          lastname: 'Toto',
-          title: 'M',
-        },
+        identity: { firstname: 'Tata', lastname: 'Toto', title: 'M' },
         sector: { name: 'Test' },
+        contracts: [{ startDate: '2019-03-04T00:00:00' }],
       },
       startDate: '2019-05-01T00:00:00.000Z',
       endNotificationDate: '2019-05-31T20:00:00.000Z',
@@ -192,11 +184,9 @@ describe('exportPayHistory', () => {
     },
     {
       auxiliary: {
-        identity: {
-          firstname: 'Titi',
-          lastname: 'Tutu',
-        },
+        identity: { firstname: 'Titi', lastname: 'Tutu' },
         sector: { name: 'Autre test' },
+        contracts: [{ startDate: '2019-03-04T00:00:00' }, { startDate: '2019-01-19T00:00:00' }],
       },
       startDate: '2019-05-01T00:00:00.000Z',
       endNotificationDate: '2019-05-31T20:00:00.000Z',
@@ -276,10 +266,10 @@ describe('exportPayHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Mme', 'Tata', 'TOTO', 'Test', '01/05/2019', '', '', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
-      ['', 'Titi', 'TUTU', 'Autre test', '01/05/2019', '', '', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
-      ['M', 'Tata', 'TOTO', 'Test', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
-      ['', 'Titi', 'TUTU', 'Autre test', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      ['Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
+      ['', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      ['M', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
+      ['', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
     ]);
     sinon.assert.callCount(formatFloatForExportStub, 53);
   });
