@@ -73,8 +73,13 @@ exports.exportSubscriptions = async () => {
   for (const cus of customers) {
     for (const sub of cus.subscriptions) {
       const subInfo = [];
-      if (cus.identity) subInfo.push(cus.identity.title || '', cus.identity.lastname || '', cus.identity.firstname || '');
-      else subInfo.push('', '', '');
+      if (cus.identity) {
+        subInfo.push(
+          _.get(cus, 'identity.title', ''),
+          _.get(cus, 'identity.lastname', '').toUpperCase(),
+          _.get(cus, 'identity.firstname', '')
+        );
+      } else subInfo.push('', '', '');
 
       const lastServiceVersion = UtilsHelper.getLastVersion(sub.service.versions, 'startDate');
       if (lastServiceVersion) subInfo.push(lastServiceVersion.name);

@@ -62,7 +62,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', 'Je', 'suis', '', '', '', '01/02/2019']);
+    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '01/02/2019']);
   });
 
   it('should return customer helper info', async () => {
@@ -84,7 +84,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', 'M', 'Patate', '', '']);
+    expect(result[1]).toMatchObject(['', '', '', 'M', 'PATATE', '', '']);
   });
 });
 
@@ -159,7 +159,7 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { sector: { name: 'La ruche' }, },
+      { sector: { name: 'La ruche' } },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds } })
@@ -205,7 +205,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', 'M', 'Mario', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', '', 'M', 'MARIO', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
   });
 
   it('should return auxiliary contracts count', async () => {
@@ -237,7 +237,7 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { contact: { address: { fullAddress: 'La ruche' } }, },
+      { contact: { address: { fullAddress: 'La ruche' } } },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds } })

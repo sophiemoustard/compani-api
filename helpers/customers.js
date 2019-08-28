@@ -1,7 +1,7 @@
 const flat = require('flat');
 const Boom = require('boom');
 const moment = require('moment');
-
+const get = require('lodash/get');
 const { addFile } = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Drive = require('../models/Google/Drive');
@@ -124,7 +124,9 @@ exports.exportCustomers = async () => {
     const customerData = [cus.email || ''];
     if (cus.identity && Object.keys(cus.identity).length > 0) {
       customerData.push(
-        cus.identity.title || '', cus.identity.lastname || '', cus.identity.firstname || '',
+        get(cus, 'identity.title', ''),
+        get(cus, 'identity.lastname', '').toUpperCase(),
+        get(cus, 'identity.firstname', ''),
         cus.identity.birthDate ? moment(cus.identity.birthDate).format('DD/MM/YYYY') : ''
       );
     } else customerData.push('', '', '', '');
@@ -134,19 +136,26 @@ exports.exportCustomers = async () => {
 
     if (cus.followUp && Object.keys(cus.followUp).length > 0) {
       customerData.push(
-        cus.followUp.pathology ? cus.followUp.pathology : '',
-        cus.followUp.comments ? cus.followUp.comments : '',
-        cus.followUp.details ? cus.followUp.details : '',
-        cus.followUp.misc ? cus.followUp.misc : '',
-        cus.followUp.referent ? cus.followUp.referent : ''
+        get(cus, 'followUp.pathology', ''),
+        get(cus, 'followUp.comments', ''),
+        get(cus, 'followUp.details', ''),
+        get(cus, 'followUp.misc', ''),
+        get(cus, 'followUp.referent', '')
       );
     } else customerData.push('', '', '', '', '');
 
     if (cus.payment && Object.keys(cus.payment).length > 0) {
-      customerData.push(cus.payment.bankAccountOwner || '', cus.payment.iban || '', cus.payment.bic || '');
+      customerData.push(
+        get(cus, 'payment.bankAccountOwner', ''),
+        get(cus, 'payment.iban', ''),
+        get(cus, 'payment.bic', '')
+      );
       if (cus.payment.mandates && cus.payment.mandates.length > 0) {
         const lastMandate = getLastVersion(cus.payment.mandates, 'createdAt');
-        customerData.push(lastMandate.rum || '', lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '');
+        customerData.push(
+          lastMandate.rum || '',
+          lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : ''
+        );
       } else customerData.push('', '');
     } else customerData.push('', '', '', '', '');
 
