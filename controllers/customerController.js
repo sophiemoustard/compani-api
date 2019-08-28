@@ -4,7 +4,6 @@ const _ = require('lodash');
 const moment = require('moment');
 const path = require('path');
 const os = require('os');
-
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
@@ -25,10 +24,8 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    if (req.query.subscriptions) req.query.subscriptions = { $exists: true, $not: { $size: 0 } };
-
     const customers = await Customer.find(req.query)
-      .populate('subscriptions.service')
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
       .populate({ path: 'firstIntervention', select: 'startDate' })
       .lean({ virtuals: true });
     if (customers.length === 0) {
@@ -49,7 +46,35 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const listWithSubscriptions = async (req) => {
+  try {
+    const query = { ...req.query, subscriptions: { $exists: true, $ne: { $size: 0 } } };
+    const customers = await Customer.find(query)
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .lean({ virtuals: true });
+
+    if (customers.length === 0) {
+      return {
+        message: translate[language].customersNotFound,
+        data: { customers: [] },
+      };
+    }
+
+    for (let i = 0, l = customers.length; i < l; i++) {
+      customers[i] = await populateSubscriptionsServices(customers[i]);
+    }
+
+    return {
+      message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
+      data: { customers },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -100,7 +125,10 @@ const listBySector = async (req) => {
       if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
     });
 
-    const customers = await Customer.find({ _id: customerIds }).populate('subscriptions.service').lean();
+    const customers = await Customer
+      .find({ _id: customerIds })
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .lean();
 
     for (let i = 0, l = customers.length; i < l; i++) {
       customers[i] = await populateSubscriptionsServices(customers[i]);
@@ -194,7 +222,10 @@ const listWithCustomerContractSubscriptions = async (req) => {
     }
 
     const ids = customerContractServices.map(service => service._id);
-    const customers = await Customer.find({ 'subscriptions.service': { $in: ids } }).populate('subscriptions.service').lean();
+    const customers = await Customer
+      .find({ 'subscriptions.service': { $in: ids } })
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .lean();
     if (customers.length === 0) {
       return {
         message: translate[language].customersNotFound,
@@ -220,7 +251,7 @@ const listWithCustomerContractSubscriptions = async (req) => {
 const show = async (req) => {
   try {
     let customer = await Customer.findOne({ _id: req.params._id })
-      .populate('subscriptions.service')
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
       .populate('fundings.thirdPartyPayer')
       .populate({ path: 'firstIntervention', select: 'startDate' })
       .lean({ virtuals: true });
@@ -326,14 +357,14 @@ const update = async (req) => {
 
 const getSubscriptions = async (req) => {
   try {
-    const customer = await Customer.findOne(
-      {
-        _id: req.params._id,
-        subscriptions: { $exists: true },
-      },
-      { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-      { autopopulate: false }
-    ).populate('subscriptions.service').lean();
+    const customer = await Customer
+      .findOne(
+        { _id: req.params._id, subscriptions: { $exists: true } },
+        { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+        { autopopulate: false }
+      )
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
@@ -354,15 +385,18 @@ const getSubscriptions = async (req) => {
 
 const updateSubscription = async (req) => {
   try {
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
-      { $push: { 'subscriptions.$.versions': req.payload } },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-        autopopulate: false,
-      }
-    ).populate('subscriptions.service').lean();
+    const customer = await Customer
+      .findOneAndUpdate(
+        { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
+        { $push: { 'subscriptions.$.versions': req.payload } },
+        {
+          new: true,
+          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+          autopopulate: false,
+        }
+      )
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
@@ -394,15 +428,18 @@ const addSubscription = async (req) => {
       if (isServiceAlreadySubscribed) return Boom.conflict(translate[language].serviceAlreadySubscribed);
     }
 
-    const updatedCustomer = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { subscriptions: req.payload } },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-        autopopulate: false,
-      }
-    ).populate('subscriptions.service').lean();
+    const updatedCustomer = await Customer
+      .findOneAndUpdate(
+        { _id: req.params._id },
+        { $push: { subscriptions: req.payload } },
+        {
+          new: true,
+          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+          autopopulate: false,
+        }
+      )
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .lean();
 
     const { subscriptions } = await populateSubscriptionsServices(updatedCustomer);
 
@@ -870,6 +907,7 @@ const removeFunding = async (req) => {
 
 module.exports = {
   list,
+  listWithSubscriptions,
   listBySector,
   listWithCustomerContractSubscriptions,
   listWithBilledEvents,

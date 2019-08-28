@@ -7,6 +7,7 @@ const {
   create,
   update,
   list,
+  listWithSubscriptions,
   listBySector,
   listWithBilledEvents,
   listWithCustomerContractSubscriptions,
@@ -123,12 +124,17 @@ exports.plugin = {
       options: {
         validate: {
           query: Joi.object().keys({
-            subscriptions: Joi.boolean(),
             _id: [Joi.array().items(Joi.objectId()), Joi.objectId()],
           }),
         },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/subscriptions',
+      handler: listWithSubscriptions,
     });
 
     server.route({
