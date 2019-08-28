@@ -16,7 +16,7 @@ const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
-const { createAndSaveFile } = require('../helpers/customers');
+const { createAndSaveFile, getCustomerBySector } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('../helpers/constants');
 
@@ -80,63 +80,10 @@ const listWithSubscriptions = async (req) => {
 
 const listBySector = async (req) => {
   try {
-    let query = { type: INTERVENTION, sector: { $in: req.query.sector } };
-    if (req.query.startDate && req.query.endDate) {
-      const startDate = moment(req.query.startDate).startOf('d').toDate();
-      const endDate = moment(req.query.endDate).endOf('d').toDate();
-      query = {
-        ...query,
-        $or: [
-          { startDate: { $lte: endDate, $gte: startDate } },
-          { endDate: { $lte: endDate, $gte: startDate } },
-          { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-        ],
-      };
-    } else if (req.query.startDate && !req.query.endDate) {
-      const startDate = moment(req.query.startDate).startOf('d').toDate();
-      query = {
-        ...query,
-        $or: [
-          { startDate: { $gte: startDate } },
-          { endDate: { $gte: startDate } },
-        ],
-      };
-    } else if (req.query.endDate) {
-      const endDate = moment(req.query.endDate).endOf('d').toDate();
-      query = {
-        ...query,
-        $or: [
-          { startDate: { $lte: endDate } },
-          { endDate: { $lte: endDate } },
-        ],
-      };
-    }
-
-    const eventsBySector = await Event.find(query).lean();
-    if (eventsBySector.length === 0) {
-      return {
-        message: translate[language].eventsNotFound,
-        data: { customers: [] },
-      };
-    }
-
-    const customerIds = [];
-    eventsBySector.map((event) => {
-      if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
-    });
-
-    const customers = await Customer
-      .find({ _id: customerIds })
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .lean();
-
-    for (let i = 0, l = customers.length; i < l; i++) {
-      customers[i] = await populateSubscriptionsServices(customers[i]);
-      customers[i] = subscriptionsAccepted(customers[i]);
-    }
+    const customers = await getCustomerBySector(req.query.startDate, req.query.endDate, req.query.sector);
 
     return {
-      message: translate[language].customersFound,
+      message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
       data: { customers },
     };
   } catch (e) {

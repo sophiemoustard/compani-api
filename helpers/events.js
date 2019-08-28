@@ -117,10 +117,10 @@ exports.checkContracts = async (event, user) => {
   return true;
 };
 
-exports.getListQuery = (req) => {
+exports.getListQuery = (query) => {
   const rules = [];
 
-  const { auxiliary, type, customer, sector, isBilled, startDate, endDate } = req.query;
+  const { auxiliary, type, customer, sector, isBilled, startDate, endDate } = query;
 
   if (type) rules.push({ type });
 
