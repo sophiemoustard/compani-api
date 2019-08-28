@@ -21,7 +21,7 @@ exports.getCustomSurcharge = (eventStart, eventEnd, surchargeStart, surchargeEnd
 };
 
 const surchargeConditions = [
-  { key: 'twentyFifthOfDecember', condition: start => start.format('DD/MM') === '25/12', name: '25 décembre' },
+  { key: 'twentyFifthOfDecember', condition: start => start.format('DD/MM') === '25/12', name: '25 Décembre' },
   { key: 'firstOfMay', condition: start => start.format('DD/MM') === '01/05', name: '1er Mai' },
   { key: 'publicHoliday', condition: start => moment(start).startOf('d').isHoliday(), name: 'Jour férié' },
   { key: 'saturday', condition: start => start.isoWeekday() === 6, name: 'Samedi' },
