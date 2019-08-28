@@ -1,13 +1,11 @@
 const nodemailer = require('nodemailer');
 
-const sendGridTransporter = nodemailer.createTransport({
-  host: 'smtp.sendgrid.net',
-  port: 465,
-  secure: true, // true for 465, false for other ports
+const sendinBlueTransporter = nodemailer.createTransport({
+  service: 'SendinBlue',
   auth: {
-    user: 'apikey',
-    pass: process.env.SENDGRID_API_KEY
-  }
+    user: process.env.SENDINBLUE_USER,
+    pass: process.env.SENDINBLUE_PWD,
+  },
 });
 
 const testTransporter = account => nodemailer.createTransport({
@@ -16,8 +14,8 @@ const testTransporter = account => nodemailer.createTransport({
   secure: false,
   auth: {
     user: account.user,
-    pass: account.pass
-  }
+    pass: account.pass,
+  },
 });
 
-module.exports = { sendGridTransporter, testTransporter };
+module.exports = { sendinBlueTransporter, testTransporter };

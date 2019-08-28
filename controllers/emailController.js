@@ -1,7 +1,7 @@
 const Boom = require('boom');
 const nodemailer = require('nodemailer');
 const translate = require('../helpers/translate');
-const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
+const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const { welcomeEmailContent } = require('../helpers/emailOptions');
 const { SENDER_MAIL } = require('../helpers/constants');
 
@@ -16,7 +16,7 @@ const sendWelcome = async (req) => {
       html: welcomeEmailContent(req.payload.receiver),
     };
     const mailInfo = process.env.NODE_ENV !== 'test'
-      ? await sendGridTransporter.sendMail(mailOptions)
+      ? await sendinBlueTransporter.sendMail(mailOptions)
       : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
