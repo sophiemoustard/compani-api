@@ -696,7 +696,7 @@ describe('getTransportRefund', () => {
   });
 
   it('should return 0 as no doc', () => {
-    const auxiliary = { administrative: { transportInvoice: { transportType: 'public' } } };
+    const auxiliary = { administrative: { transportInvoice: { transportType: 'public', link: null } } };
     const company = {};
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
 
@@ -705,7 +705,7 @@ describe('getTransportRefund', () => {
   });
 
   it('should return 0 as no subvention', () => {
-    const auxiliary = { administrative: { transportInvoice: { transportType: 'public', driveId: '1234567890' } } };
+    const auxiliary = { administrative: { transportInvoice: { transportType: 'public', link: '1234567890' } } };
     const company = {};
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
 
@@ -714,7 +714,7 @@ describe('getTransportRefund', () => {
   });
 
   it('should return 0 as no zipcode', () => {
-    const auxiliary = { administrative: { transportInvoice: { transportType: 'public', driveId: '1234567890' } } };
+    const auxiliary = { administrative: { transportInvoice: { transportType: 'public', link: '1234567890' } } };
     const company = { rhConfig: { transportSubs: [] } };
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
 
@@ -724,7 +724,7 @@ describe('getTransportRefund', () => {
 
   it('should return 0 as no matching subvention', () => {
     const auxiliary = {
-      administrative: { transportInvoice: { transportType: 'public', driveId: '1234567890' } },
+      administrative: { transportInvoice: { transportType: 'public', link: '1234567890' } },
       contact: { address: { zipCode: '75' } },
     };
     const company = {
@@ -738,7 +738,7 @@ describe('getTransportRefund', () => {
 
   it('should return public transport refund', () => {
     const auxiliary = {
-      administrative: { transportInvoice: { transportType: 'public', driveId: '1234567890' } },
+      administrative: { transportInvoice: { transportType: 'public', link: '1234567890' } },
       contact: { address: { zipCode: '75' } },
     };
     const company = {

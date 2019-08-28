@@ -205,7 +205,7 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
   if (transportType === PUBLIC_TRANSPORT) {
     if (!has(company, 'rhConfig.transportSubs')) return 0;
     if (!has(auxiliary, 'contact.address.zipCode')) return 0;
-    if (!has(auxiliary, 'administrative.transportInvoice.driveId')) return 0;
+    if (!get(auxiliary, 'administrative.transportInvoice.link', null)) return 0;
 
     const transportSub = company.rhConfig.transportSubs.find(ts => ts.department === auxiliary.contact.address.zipCode.slice(0, 2));
     if (!transportSub) return 0;
