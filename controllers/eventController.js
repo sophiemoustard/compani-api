@@ -9,10 +9,10 @@ const {
   populateEvents,
   updateEvent,
   deleteRepetition,
-  isEditionAllowed,
   createEvent,
   deleteEvent,
 } = require('../helpers/events');
+const { isEditionAllowed } = require('../helpers/eventsValidation');
 const { ABSENCE, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
 const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
 
