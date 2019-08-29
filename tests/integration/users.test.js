@@ -339,18 +339,30 @@ describe('USERS ROUTES', () => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'auxiliary', expectedCode: 403 },
+        {
+          name: 'self user',
+          expectedCode: 200,
+          customCredentials: { scope: [`user-${userList[0]._id.toHexString()}`] },
+        },
         { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
+          const request = {
             method: 'GET',
             url: `/users/${userList[0]._id.toHexString()}`,
-            headers: { 'x-access-token': authToken },
-          });
+          };
+
+          if (!role.customCredentials) {
+            authToken = await getToken(role.name);
+            request.headers = { 'x-access-token': authToken };
+          } else {
+            request.credentials = role.customCredentials;
+          }
+
+          const response = await app.inject(request);
 
           expect(response.statusCode).toBe(role.expectedCode);
         });

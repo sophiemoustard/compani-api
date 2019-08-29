@@ -144,7 +144,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
-        auth: { scope: ['users:list', 'user-{params._id}'] },
+        auth: { scope: ['users:edit', 'user-{params._id}'] },
       },
       handler: show,
     });

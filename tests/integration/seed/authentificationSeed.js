@@ -58,12 +58,6 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Créer utilisateurs',
-    permission: 'users:create',
-    name: 'users-create',
-  },
-  {
-    _id: new ObjectID(),
     description: 'Lister les utilisateurs',
     permission: 'users:list',
     name: 'users-list',

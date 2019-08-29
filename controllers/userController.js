@@ -11,7 +11,7 @@ const { populateRole } = require('../helpers/roles');
 const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
-const { createFolder, deleteFile } = require('../helpers/gdriveStorage');
+const { createFolder } = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const UserHelper = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
@@ -458,35 +458,6 @@ const createDriveFolder = async (req) => {
   }
 };
 
-const deletePayDocument = async (req) => {
-  try {
-    const { _id, payDocumentId } = req.params;
-
-    const user = await User.findOne({ _id });
-    if (!user) return Boom.notFound(translate[language].userNotFound);
-
-    const payDocument = user.administrative.payDocuments.id(payDocumentId);
-    if (!payDocument) return Boom.notFound(translate[language].userPayDocumentNotFound);
-
-    user.administrative.payDocuments.pull(req.params.payDocumentId);
-    await user.save();
-
-    try {
-      await deleteFile(payDocument.file.driveId);
-    } catch (e) {
-      req.log('warning', e);
-    }
-
-    return {
-      message: translate[language].userPayDocumentDeleted,
-      data: null,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
 module.exports = {
   authenticate,
   create,
@@ -505,5 +476,4 @@ module.exports = {
   uploadFile,
   uploadImage,
   createDriveFolder,
-  deletePayDocument,
 };
