@@ -14,112 +14,228 @@ describe('NODE ENV', () => {
 
 describe('SECTORS ROUTES', () => {
   let authToken = null;
-  beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('coach');
-  });
 
   describe('POST /sectors', () => {
-    it('should create a new company sector', async () => {
-      const initialSectorNumber = sectorsList.length;
-
-      const payload = { name: 'Test3', company: sectorCompany._id };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/sectors',
-        headers: { 'x-access-token': authToken },
-        payload,
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      const sectors = await Sector.find();
-      expect(sectors.length).toEqual(initialSectorNumber + 1);
+      it('should create a new company sector', async () => {
+        const initialSectorNumber = sectorsList.length;
+
+        const payload = { name: 'Test3', company: sectorCompany._id };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/sectors',
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        const sectors = await Sector.find();
+        expect(sectors.length).toEqual(initialSectorNumber + 1);
+      });
+
+      it("should return a 400 error if 'name' params is missing", async () => {
+        const payload = { company: sectorCompany._id };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/sectors',
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
+      it("should return a 400 error if 'companyId' params is missing", async () => {
+        const payload = { name: 'Test3' };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/sectors',
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
     });
-    it("should return a 400 error if 'name' params is missing", async () => {
-      const payload = { company: sectorCompany._id };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/sectors',
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
 
-      expect(response.statusCode).toBe(400);
-    });
-    it("should return a 400 error if 'companyId' params is missing", async () => {
-      const payload = { name: 'Test3' };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/sectors',
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
 
-      expect(response.statusCode).toBe(400);
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const payload = { name: 'Test3', company: sectorCompany._id };
+          const response = await app.inject({
+            method: 'POST',
+            url: '/sectors',
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
   describe('GET /sectors', () => {
-    it('should get sectors', async () => {
-      const sectorNumber = sectorsList.length;
-
-      const response = await app.inject({
-        method: 'GET',
-        url: '/sectors',
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.sectors.length).toEqual(sectorNumber);
+      it('should get sectors', async () => {
+        const sectorNumber = sectorsList.length;
+
+        const response = await app.inject({
+          method: 'GET',
+          url: '/sectors',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.sectors.length).toEqual(sectorNumber);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/sectors',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
   describe('PUT /sectors/:id', () => {
-    it('should update a sector', async () => {
-      const sector = sectorsList[0];
-
-      const payload = { name: 'SuperTest' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/sectors/${sector._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-        payload,
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.updatedSector).toMatchObject(payload);
+      it('should update a sector', async () => {
+        const sector = sectorsList[0];
+
+        const payload = { name: 'SuperTest' };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/sectors/${sector._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.updatedSector).toMatchObject(payload);
+      });
+      it('should return a 404 error if sector does not exist', async () => {
+        const payload = { name: 'SuperTest' };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/sectors/${new ObjectID().toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
     });
-    it('should return a 404 error if sector does not exist', async () => {
-      const payload = { name: 'SuperTest' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/sectors/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
 
-      expect(response.statusCode).toBe(404);
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const payload = { name: 'SuperTest' };
+          const sector = sectorsList[0];
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/sectors/${sector._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
   describe('DELETE /sectors/:id', () => {
-    it('should delete a sector', async () => {
-      const sector = sectorsList[0];
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
 
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/sectors/${sector._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+      it('should delete a sector', async () => {
+        const sector = sectorsList[0];
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/sectors/${sector._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(200);
       });
-      expect(response.statusCode).toBe(200);
+      it('should return a 404 error if sector does not exist', async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/sectors/${new ObjectID().toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(404);
+      });
     });
-    it('should return a 404 error if sector does not exist', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/sectors/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': authToken },
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const sector = sectorsList[0];
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/sectors/${sector._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-      expect(response.statusCode).toBe(404);
     });
   });
 });

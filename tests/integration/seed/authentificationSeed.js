@@ -81,7 +81,7 @@ const coachRights = [
   'users:list',
   'users:edit',
 ];
-const auxiliaryRights = ['pay:read', 'contracts:read', 'users:list'];
+const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list'];
 const helperRights = ['billing:read'];
 
 const rolesList = [
