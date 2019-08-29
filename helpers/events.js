@@ -1,6 +1,5 @@
 const Boom = require('boom');
 const moment = require('moment');
-const flat = require('flat');
 const _ = require('lodash');
 const momentRange = require('moment-range');
 const { ObjectID } = require('mongodb');
@@ -8,10 +7,6 @@ const {
   INTERVENTION,
   INTERNAL_HOUR,
   NEVER,
-  EVERY_DAY,
-  EVERY_WEEK_DAY,
-  EVERY_WEEK,
-  EVERY_TWO_WEEKS,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
   ABSENCE,
@@ -24,6 +19,7 @@ const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
+const EventsRepetitionHelper = require('./eventsRepetition');
 const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
@@ -60,7 +56,7 @@ exports.createEvent = async (payload, credentials) => {
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
-  if (isRepeatedEvent) await exports.createRepetitions(event, payload);
+  if (isRepeatedEvent) await EventsRepetitionHelper.createRepetitions(event, payload);
 
   return exports.populateEventSubscription(event);
 };
@@ -198,118 +194,6 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
   );
 };
 
-exports.formatRepeatedPayload = async (event, momentDay) => {
-  const step = momentDay.diff(event.startDate, 'd');
-  const payload = {
-    ..._.omit(event, '_id'),
-    startDate: moment(event.startDate).add(step, 'd'),
-    endDate: moment(event.endDate).add(step, 'd'),
-  };
-
-  if (await EventsValidationHelper.hasConflicts(payload)) {
-    delete payload.auxiliary;
-    delete payload.repetition;
-  }
-
-  return new Event(payload);
-};
-
-exports.createRepetitionsEveryDay = async (payload) => {
-  const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(3, 'M').endOf('M');
-  const range = Array.from(moment().range(start, end).by('days'));
-  const repeatedEvents = [];
-
-  for (let i = 0, l = range.length; i < l; i++) {
-    repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
-  }
-
-  await Event.insertMany(repeatedEvents);
-};
-
-exports.createRepetitionsEveryWeekDay = async (payload) => {
-  const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(3, 'M').endOf('M');
-  const range = Array.from(moment().range(start, end).by('days'));
-  const repeatedEvents = [];
-
-  for (let i = 0, l = range.length; i < l; i++) {
-    const day = moment(range[i]).day();
-    if (day !== 0 && day !== 6) repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
-  }
-
-  await Event.insertMany(repeatedEvents);
-};
-
-exports.createRepetitionsByWeek = async (payload, step) => {
-  const start = moment(payload.startDate).add(step, 'w');
-  const end = moment(payload.startDate).add(3, 'M').endOf('M');
-  const range = Array.from(moment().range(start, end).by('weeks', { step }));
-  const repeatedEvents = [];
-
-  for (let i = 0, l = range.length; i < l; i++) {
-    repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
-  }
-
-  await Event.insertMany(repeatedEvents);
-};
-
-exports.createRepetitions = async (eventFromDb, payload) => {
-  if (payload.repetition.frequency === NEVER) return eventFromDb;
-
-  if (_.get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
-    await Event.findOneAndUpdate({ _id: eventFromDb._id }, { 'repetition.parentId': eventFromDb._id });
-  }
-
-  payload.repetition.parentId = eventFromDb._id;
-  switch (payload.repetition.frequency) {
-    case EVERY_DAY:
-      await exports.createRepetitionsEveryDay(payload);
-      break;
-    case EVERY_WEEK_DAY:
-      await exports.createRepetitionsEveryWeekDay(payload);
-      break;
-    case EVERY_WEEK:
-      await exports.createRepetitionsByWeek(payload, 1);
-      break;
-    case EVERY_TWO_WEEKS:
-      await exports.createRepetitionsByWeek(payload, 2);
-      break;
-    default:
-      break;
-  }
-
-  return eventFromDb;
-};
-
-exports.updateRepetitions = async (event, payload) => {
-  const parentStartDate = moment(payload.startDate);
-  const parentEndtDate = moment(payload.endDate);
-  const promises = [];
-
-  let unset;
-  if (!payload.auxiliary) unset = { auxiliary: '' };
-  const events = await Event.find({
-    'repetition.parentId': event.repetition.parentId,
-    startDate: { $gt: new Date(event.startDate) },
-  });
-  events.forEach((ev) => {
-    const startDate = moment(ev.startDate).hours(parentStartDate.hours());
-    startDate.minutes(parentStartDate.minutes());
-    const endDate = moment(ev.endDate).hours(parentEndtDate.hours());
-    endDate.minutes(parentEndtDate.minutes());
-    promises.push(Event.findOneAndUpdate(
-      { _id: ev._id },
-      {
-        $set: flat({ ...payload, startDate: startDate.toISOString(), endDate: endDate.toISOString() }),
-        ...(unset && { $unset: unset }),
-      }
-    ));
-  });
-
-  return Promise.all(promises);
-};
-
 const isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = {
     ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status']),
@@ -329,47 +213,29 @@ const isMiscOnlyUpdated = (event, payload) => {
  * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the camcellation
  * i.e. delete the cancel object and set isCancelled to false.
  */
-exports.updateEvent = async (event, payload, credentials) => {
-  await EventHistoriesHelper.createEventHistoryOnUpdate(payload, event, credentials);
-  const miscUpdatedOnly = payload.misc && isMiscOnlyUpdated(event, payload);
+exports.updateEvent = async (event, eventPayload, credentials) => {
+  await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
+  const miscUpdatedOnly = eventPayload.misc && isMiscOnlyUpdated(event, eventPayload);
 
   let unset;
-  let set = payload;
-  if (!payload.isCancelled && event.isCancelled) {
+  let set = eventPayload;
+  if (!eventPayload.isCancelled && event.isCancelled) {
     set = { ...set, isCancelled: false };
     unset = { cancel: '' };
   }
-  if (isRepetition(event) && !payload.shouldUpdateRepetition && !miscUpdatedOnly) {
+  if (isRepetition(event) && !eventPayload.shouldUpdateRepetition && !miscUpdatedOnly) {
     set = { ...set, 'repetition.frequency': NEVER };
     unset = { ...unset, 'repetition.parentId': '' };
   }
 
-  if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
+  if (!eventPayload.auxiliary) unset = { ...unset, auxiliary: '' };
 
   event = await EventRepository.updateEvent(event._id, set, unset);
-  if (!miscUpdatedOnly && isRepetition(event) && payload.shouldUpdateRepetition) {
-    await exports.updateRepetitions(event, payload);
+  if (!miscUpdatedOnly && isRepetition(event) && eventPayload.shouldUpdateRepetition) {
+    await EventsRepetitionHelper.updateRepetition(event, eventPayload);
   }
 
   return exports.populateEventSubscription(event);
-};
-
-exports.deleteRepetition = async (params, credentials) => {
-  const event = await Event.findOne({ _id: params._id });
-  if (!event) return null;
-
-  await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
-
-  const { type, repetition } = event;
-  if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
-    await Event.deleteMany({
-      'repetition.parentId': event.repetition.parentId,
-      startDate: { $gte: new Date(event.startDate) },
-      $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
-    });
-  }
-
-  return event;
 };
 
 exports.unassignInterventionsOnContractEnd = async (contract) => {
