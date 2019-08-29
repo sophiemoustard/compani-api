@@ -275,25 +275,20 @@ exports.getCustomerSubscriptions = contract => Event.aggregate([
   },
 ]);
 
-exports.unassignInterventions = (maxDate, auxiliary, subIds) => Event.updateMany(
-  { startDate: { $gt: maxDate }, auxiliary, subscription: { $in: subIds }, isBilled: false },
-  { $unset: { auxiliary: '' } }
-);
+exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds) => Event.find({ startDate: { $gt: maxDate }, auxiliary, subscription: { $in: subIds }, isBilled: false }).lean();
 
-exports.removeEventsExceptInterventions = async contract => Event.deleteMany({
+exports.getEventsExceptInterventions = async contract => Event.find({
   startDate: { $gt: contract.endDate },
   auxiliary: contract.user,
   subscription: { $exists: false },
-});
+}).lean();
 
-exports.updateAbsenceEndDate = async (auxiliaryId, maxEndDate) => Event.updateMany({
+exports.getAbsences = async (auxiliaryId, maxEndDate) => Event.find({
   type: ABSENCE,
   auxiliary: auxiliaryId,
   startDate: { $lte: maxEndDate },
   endDate: { $gt: maxEndDate },
-}, {
-  endDate: maxEndDate,
-});
+}).lean();
 
 exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   {

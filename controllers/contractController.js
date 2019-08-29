@@ -11,9 +11,9 @@ const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
 const {
   unassignInterventionsOnContractEnd,
+  removeEventsExceptInterventionsOnContractEnd,
   updateAbsencesOnContractEnd,
 } = require('../helpers/events');
-const { removeEventsExceptInterventions } = require('../repositories/EventRepository');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
@@ -91,9 +91,9 @@ const update = async (req) => {
     if (req.payload.endDate) {
       contract = await endContract(req.params._id, req.payload);
       if (!contract) return Boom.notFound(translate[language].contractNotFound);
-      await unassignInterventionsOnContractEnd(contract);
-      await removeEventsExceptInterventions(contract);
-      await updateAbsencesOnContractEnd(contract.user._id, contract.endDate);
+      await unassignInterventionsOnContractEnd(contract, req.auth.credentials);
+      await removeEventsExceptInterventionsOnContractEnd(contract, req.auth.credentials);
+      await updateAbsencesOnContractEnd(contract.user._id, contract.endDate, req.auth.credentials);
     } else {
       contract = await Contract
         .findByIdAndUpdate(req.params._id, req.paylaod)
