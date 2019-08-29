@@ -551,3 +551,67 @@ exports.getEventsToBill = async (dates, customerId) => {
     { $sort: { 'customer.identity.lastname': 1 } },
   ]);
 };
+
+exports.getCustomersFromEvent = async query => Event.aggregate([
+  { $match: query },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: 'customer',
+      foreignField: '_id',
+      as: 'customer',
+    },
+  },
+  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+  { $group: { _id: '$customer', customer: { $first: '$customer' } } },
+  { $replaceRoot: { newRoot: '$customer' } },
+  { $project: { subscriptions: 1, identity: 1 } },
+  { $unwind: '$subscriptions' },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'subscriptions.service',
+      foreignField: '_id',
+      as: 'subscriptions.service',
+    },
+  },
+  { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      'subscriptions.service.version': {
+        $arrayElemAt: [
+          '$subscriptions.service.versions',
+          {
+            $indexOfArray: ['$subscriptions.service.versions.startDate', { $max: '$subscriptions.service.versions.startDate' }],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: 'surcharges',
+      localField: 'subscriptions.service.version.surcharge',
+      foreignField: '_id',
+      as: 'subscriptions.service.version.surcharge',
+    },
+  },
+  { $unwind: { path: '$subscriptions.service.version.surcharge', preserveNullAndEmptyArrays: true } },
+  { $addFields: { 'subscriptions.service.exemptFromCharges': '$subscriptions.service.version.exemptFromCharges' } },
+  { $addFields: { 'subscriptions.service.name': '$subscriptions.service.version.name' } },
+  { $addFields: { 'subscriptions.service.startDate': '$subscriptions.service.version.startDate' } },
+  { $addFields: { 'subscriptions.service.defaultUnitAmount': '$subscriptions.service.version.defaultUnitAmount' } },
+  { $addFields: { 'subscriptions.service.vat': '$subscriptions.service.version.vat' } },
+  { $addFields: { 'subscriptions.service.surcharge': '$subscriptions.service.version.surcharge' } },
+  {
+    $project: {
+      'subscriptions.service.versions': 0,
+      'subscriptions.service.version': 0,
+    },
+  },
+  {
+    $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
+  },
+  { $addFields: { 'customer.subscriptions': '$subscriptions' } },
+  { $replaceRoot: { newRoot: '$customer' } },
+]);
