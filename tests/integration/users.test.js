@@ -27,73 +27,101 @@ describe('USERS ROUTES', () => {
   let authToken = null;
 
   describe('POST /users', () => {
-    let res = null;
-    let user = null;
-    beforeEach(populateDB);
-    beforeEach(async () => {
-      authToken = await getToken('coach');
-    });
-    it('should not create a user if missing parameters', async () => {
-      const payload = { ...userPayload };
-      delete payload.role;
-      const response = await app.inject({
-        method: 'POST',
-        url: '/users',
-        payload,
+    describe('Admin', () => {
+      let res = null;
+      let user = null;
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should create a user', async () => {
-      res = await app.inject({
-        method: 'POST',
-        url: '/users',
-        payload: userPayload,
-      });
-
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.user).toEqual(expect.objectContaining({
-        _id: expect.any(String),
-        role: expect.objectContaining({ name: 'auxiliary' }),
-      }));
-      user = await User.findById(res.result.data.user._id);
-      expect(user.firstname).toBe(userPayload.firstname);
-      expect(user.identity.lastname).toBe(userPayload.identity.lastname);
-      expect(user.local.email).toBe(userPayload.local.email);
-      expect(user.local.password).toBeDefined();
-      expect(user).toHaveProperty('picture');
-    });
-
-    it('should not create a user if role provided does not exist', async () => {
-      const payload = { ...userPayload, role: new ObjectID() };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/users',
-        payload,
-      });
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should not create a user if email provided already exists', () => {
-      const userPayload2 = {
-        idenity: {
-          firstname: 'Test',
-          lastname: 'Test',
-        },
-        local: {
-          email: 'horseman@alenvi.io',
-          password: '123456',
-        },
-        role: new ObjectID(),
-      };
-      expect(async () => {
+      it('should not create a user if missing parameters', async () => {
+        const payload = { ...userPayload };
+        delete payload.role;
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload: userPayload2,
+          payload,
+          headers: { 'x-access-token': authToken },
         });
-        expect(response).toThrow('NoRole');
-        expect(response.statusCode).toBe(409);
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should create a user', async () => {
+        res = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload: userPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.user).toEqual(expect.objectContaining({
+          _id: expect.any(String),
+          role: expect.objectContaining({ name: 'auxiliary' }),
+        }));
+        user = await User.findById(res.result.data.user._id);
+        expect(user.firstname).toBe(userPayload.firstname);
+        expect(user.identity.lastname).toBe(userPayload.identity.lastname);
+        expect(user.local.email).toBe(userPayload.local.email);
+        expect(user.local.password).toBeDefined();
+        expect(user).toHaveProperty('picture');
+      });
+
+      it('should not create a user if role provided does not exist', async () => {
+        const payload = { ...userPayload, role: new ObjectID() };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should not create a user if email provided already exists', () => {
+        const userPayload2 = {
+          idenity: {
+            firstname: 'Test',
+            lastname: 'Test',
+          },
+          local: {
+            email: 'horseman@alenvi.io',
+            password: '123456',
+          },
+          role: new ObjectID(),
+        };
+        expect(async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/users',
+            payload: userPayload2,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response).toThrow('NoRole');
+          expect(response.statusCode).toBe(409);
+        });
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: '/users',
+            payload: { ...userPayload },
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
     });
   });
