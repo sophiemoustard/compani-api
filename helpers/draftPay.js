@@ -322,7 +322,7 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, co
   return {
     auxiliaryId: auxiliary._id,
     auxiliary: { _id, identity, sector },
-    startDate: query.startDate,
+    startDate: moment(query.startDate).isBefore(contract.startDate) ? contract.startDate : query.startDate,
     endDate: query.endDate,
     month: moment(query.startDate).format('MM-YYYY'),
     contractHours: contractInfo.contractHours,
