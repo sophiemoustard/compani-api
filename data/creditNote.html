@@ -145,10 +145,7 @@
             <td>
               {{#each surcharges}}
                 <div>
-                  + {{ percentage }}%
-                  {{#if startHour}}
-                    ({{ startHour }}-{{ endHour }})
-                  {{/if}}
+                  + {{ percentage }}% ({{ name }}{{#if startHour}} {{ startHour }}-{{ endHour }}{{/if}})
                 </div>
               {{/each}}
             </td>

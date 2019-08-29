@@ -166,6 +166,7 @@ describe('BILL ROUTES - POST /bills', () => {
                 endDate: '2019-05-02T10:00:00.000Z',
                 inclTaxesCustomer: 24,
                 exclTaxesCustomer: 21.428571428571427,
+                surcharges: [{ percentage: 90, name: 'Noël' }],
               },
             ],
             hours: 2,

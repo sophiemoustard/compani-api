@@ -91,6 +91,7 @@ exports.plugin = {
                     thirdPartyPayer: Joi.objectId(),
                     surcharges: Joi.array().items(Joi.object({
                       percentage: Joi.number().required(),
+                      name: Joi.string().required(),
                       startHour: Joi.date(),
                       endHour: Joi.date(),
                     })),

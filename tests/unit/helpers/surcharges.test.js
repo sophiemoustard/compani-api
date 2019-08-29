@@ -115,11 +115,11 @@ describe('getEventSurcharges', () => {
   });
 
   const dailySurcharges = [
-    { key: 'twentyFifthOfDecember', date: '2019-12-25', label: '25th of december' },
-    { key: 'firstOfMay', date: '2019-05-01', label: '1st of May' },
-    { key: 'publicHoliday', date: '2019-07-14', label: 'holiday' },
-    { key: 'saturday', date: '2019-08-17', label: 'saturday' },
-    { key: 'sunday', date: '2019-08-18', label: 'sunday' },
+    { key: 'twentyFifthOfDecember', date: '2019-12-25', label: '25th of december', name: '25 Décembre' },
+    { key: 'firstOfMay', date: '2019-05-01', label: '1st of May', name: '1er Mai' },
+    { key: 'publicHoliday', date: '2019-07-14', label: 'holiday', name: 'Jour férié' },
+    { key: 'saturday', date: '2019-08-17', label: 'saturday', name: 'Samedi' },
+    { key: 'sunday', date: '2019-08-18', label: 'sunday', name: 'Dimanche' },
   ];
 
   dailySurcharges.forEach((dailySurcharge) => {
@@ -133,6 +133,7 @@ describe('getEventSurcharges', () => {
       getCustomSurchargeStub.returnsArg(4);
       expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
         percentage: 35,
+        name: dailySurcharge.name,
       }]);
     });
   });
@@ -156,16 +157,18 @@ describe('getEventSurcharges', () => {
     const surcharge = { sunday: 10, publicHoliday: 20 };
     expect(SurchargesHelper.getEventSurcharges(event, surcharge)).toEqual([{
       percentage: 20,
+      name: 'Jour férié',
     }]);
   });
 
   it('should return two surcharges with ranges', () => {
-    getCustomSurchargeStub.returnsArg(4);
+    getCustomSurchargeStub.onCall(0).returns({ percentage: 20 });
+    getCustomSurchargeStub.onCall(1).returns({ percentage: 22 });
     const event = {
       startDate: '2019-04-18T01:00:00',
       endDate: '2019-04-18T02:00:00',
     };
     expect(SurchargesHelper.getEventSurcharges(event, surchargeAllSet))
-      .toEqual([20, 22]);
+      .toEqual([{ percentage: 20, name: 'Soirée' }, { percentage: 22, name: 'Personalisée' }]);
   });
 });
