@@ -8,7 +8,7 @@ const moment = require('moment');
 
 const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/roles');
-const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
+const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
 const { createFolder, deleteFile } = require('../helpers/gdriveStorage');
@@ -327,7 +327,7 @@ const forgotPassword = async (req) => {
       html: forgetPasswordEmail(payload.resetPassword),
     };
     const mailInfo = process.env.NODE_ENV !== 'test'
-      ? await sendGridTransporter.sendMail(mailOptions)
+      ? await sendinBlueTransporter.sendMail(mailOptions)
       : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
