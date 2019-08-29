@@ -8,6 +8,7 @@ const EventRepository = require('../../../repositories/EventRepository');
 const {
   INTERVENTION,
   ABSENCE,
+  INTERNAL_HOUR,
 } = require('../../../helpers/constants');
 
 require('sinon-mongoose');
@@ -437,6 +438,69 @@ describe('isEditionAllowed', () => {
     expect(result).toBeFalsy();
     sinon.assert.calledWith(hasConflicts, { ...eventFromDB, ...payload });
     sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+  });
+
+  it('should return true as intervention is repeated and repetition should be updated', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId.toHexString(),
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      shouldUpdateRepetition: true,
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERVENTION,
+      repetition: { frequency: 'every_week' },
+    };
+    const user = { _id: auxiliaryId, sector: sectorId };
+
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    checkContracts.returns(true);
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+
+    UserModel.verify();
+    expect(result).toBeTruthy();
+    sinon.assert.called(checkContracts);
+    sinon.assert.notCalled(hasConflicts);
+  });
+
+  it('should return false as internal hour is repeated, repetition should be updated but has conflict', async () => {
+    const sectorId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const payload = {
+      auxiliary: auxiliaryId.toHexString(),
+      sector: sectorId.toHexString(),
+      startDate: '2019-04-13T09:00:00',
+      endDate: '2019-04-13T11:00:00',
+      shouldUpdateRepetition: true,
+    };
+    const eventFromDB = {
+      auxiliary: auxiliaryId,
+      type: INTERNAL_HOUR,
+      repetition: { frequency: 'every_week' },
+    };
+    const user = { _id: auxiliaryId, sector: sectorId };
+
+    UserModel.expects('findOne')
+      .withExactArgs({ _id: auxiliaryId.toHexString() })
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(user);
+    hasConflicts.returns(true);
+    checkContracts.returns(true);
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+
+    UserModel.verify();
+    expect(result).toBeFalsy();
   });
 
   it('should return false if auxiliary sector is not event sector', async () => {

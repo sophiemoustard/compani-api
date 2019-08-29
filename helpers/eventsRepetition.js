@@ -9,6 +9,7 @@ const {
   EVERY_WEEK,
   EVERY_TWO_WEEKS,
   ABSENCE,
+  INTERVENTION,
 } = require('./constants');
 const Event = require('../models/Event');
 const EventHistoriesHelper = require('./eventHistories');
@@ -107,7 +108,7 @@ exports.updateRepetition = async (event, eventPayload) => {
 
   const events = await Event.find({
     'repetition.parentId': event.repetition.parentId,
-    startDate: { $gt: new Date(event.startDate) },
+    startDate: { $gte: new Date(event.startDate) },
   });
 
   for (let i = 0, l = events.length; i < l; i++) {
@@ -116,7 +117,7 @@ exports.updateRepetition = async (event, eventPayload) => {
     let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
 
     let unset;
-    if (eventPayload.auxiliary && await EventsValidationHelper.hasConflicts(eventToSet)) {
+    if (eventPayload.auxiliary && event.type === INTERVENTION && await EventsValidationHelper.hasConflicts(eventToSet)) {
       eventToSet = omit(eventToSet, ['repetition', 'auxiliary']);
       unset = { auxiliary: '', repetition: '' };
     } else if (!eventPayload.auxiliary) {
