@@ -3,7 +3,7 @@ const _ = require('lodash');
 const Customer = require('../models/Customer');
 const UtilsHelper = require('../helpers/utils');
 
-exports.populateServices = async (service) => {
+exports.populateServices = (service) => {
   const currentVersion = [...service.versions]
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
@@ -16,13 +16,13 @@ exports.populateServices = async (service) => {
   };
 };
 
-exports.populateSubscriptionsServices = async (customer) => {
+exports.populateSubscriptionsServices = (customer) => {
   if (!customer.subscriptions || customer.subscriptions.length === 0) return customer;
   const subscriptions = [];
   for (let i = 0, l = customer.subscriptions.length; i < l; i++) {
     subscriptions.push({
       ...customer.subscriptions[i],
-      service: await exports.populateServices(customer.subscriptions[i].service),
+      service: exports.populateServices(customer.subscriptions[i].service),
     });
   }
   return { ...customer, subscriptions };

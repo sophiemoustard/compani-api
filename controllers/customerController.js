@@ -7,41 +7,33 @@ const os = require('os');
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
-const Event = require('../models/Event');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
-const { subscriptionsAccepted, populateSubscriptionsServices } = require('../helpers/subscriptions');
+const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
-const { createAndSaveFile, getCustomerBySector } = require('../helpers/customers');
+const {
+  createAndSaveFile,
+  getCustomerBySector,
+  getCustomersWithBilledEvents,
+  getCustomersWithSubscriptions,
+  getCustomers,
+  getCustomersWithCustomerContractSubscriptions,
+  getCustomer,
+} = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
-const { INTERVENTION, CUSTOMER_CONTRACT } = require('../helpers/constants');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customers = await Customer.find(req.query)
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .populate({ path: 'firstIntervention', select: 'startDate' })
-      .lean({ virtuals: true });
-    if (customers.length === 0) {
-      return {
-        message: translate[language].customersNotFound,
-        data: { customers: [] },
-      };
-    }
-
-    for (let i = 0, l = customers.length; i < l; i++) {
-      customers[i] = await populateSubscriptionsServices(customers[i]);
-      customers[i] = subscriptionsAccepted(customers[i]);
-    }
+    const customers = await getCustomers(req.query);
 
     return {
-      message: translate[language].customersFound,
+      message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
       data: { customers },
     };
   } catch (e) {
@@ -53,20 +45,7 @@ const list = async (req) => {
 const listWithSubscriptions = async (req) => {
   try {
     const query = { ...req.query, subscriptions: { $exists: true, $ne: { $size: 0 } } };
-    const customers = await Customer.find(query)
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .lean({ virtuals: true });
-
-    if (customers.length === 0) {
-      return {
-        message: translate[language].customersNotFound,
-        data: { customers: [] },
-      };
-    }
-
-    for (let i = 0, l = customers.length; i < l; i++) {
-      customers[i] = await populateSubscriptionsServices(customers[i]);
-    }
+    const customers = await getCustomersWithSubscriptions(query);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -94,64 +73,12 @@ const listBySector = async (req) => {
 
 const listWithBilledEvents = async (req) => {
   try {
-    const rules = [
-      { type: INTERVENTION },
-      { isBilled: true },
-    ];
-    const customers = await Event.aggregate([
-      { $match: { $and: rules } },
-      { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' } } },
-      {
-        $lookup: {
-          from: 'customers',
-          localField: '_id.CUSTOMER',
-          foreignField: '_id',
-          as: 'customer',
-        },
-      },
-      { $unwind: { path: '$customer' } },
-      {
-        $lookup: {
-          from: 'thirdpartypayers',
-          localField: '_id.TPP',
-          foreignField: '_id',
-          as: 'thirdPartyPayer',
-        },
-      },
-      { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
-      {
-        $addFields: {
-          sub: {
-            $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
-          },
-        },
-      },
-      { $unwind: { path: '$sub' } },
-      {
-        $lookup: {
-          from: 'services',
-          localField: 'sub.service',
-          foreignField: '_id',
-          as: 'sub.service',
-        },
-      },
-      { $unwind: { path: '$sub.service' } },
-      { $group: { _id: { CUS: '$customer' }, subscriptions: { $addToSet: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
-      {
-        $project: {
-          _id: '$_id.CUS._id',
-          subscriptions: 1,
-          identity: '$_id.CUS.identity',
-          thirdPartyPayers: 1,
-        },
-      },
-    ]);
+    const customers = await getCustomersWithBilledEvents();
 
-    for (let i = 0, l = customers.length; i < l; i++) {
-      customers[i] = await populateSubscriptionsServices(customers[i]);
-    }
-
-    return { data: { customers } };
+    return {
+      message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
+      data: { customers },
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);
@@ -160,30 +87,7 @@ const listWithBilledEvents = async (req) => {
 
 const listWithCustomerContractSubscriptions = async (req) => {
   try {
-    const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
-    if (customerContractServices.length === 0) {
-      return {
-        message: translate[language].customersNotFound,
-        data: { customers: [] },
-      };
-    }
-
-    const ids = customerContractServices.map(service => service._id);
-    const customers = await Customer
-      .find({ 'subscriptions.service': { $in: ids } })
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .lean();
-    if (customers.length === 0) {
-      return {
-        message: translate[language].customersNotFound,
-        data: { customers: [] },
-      };
-    }
-
-    for (let i = 0, l = customers.length; i < l; i++) {
-      customers[i] = await populateSubscriptionsServices(customers[i]);
-      customers[i] = subscriptionsAccepted(customers[i]);
-    }
+    const customers = await getCustomersWithCustomerContractSubscriptions();
 
     return {
       message: translate[language].customersFound,
@@ -197,29 +101,12 @@ const listWithCustomerContractSubscriptions = async (req) => {
 
 const show = async (req) => {
   try {
-    let customer = await Customer.findOne({ _id: req.params._id })
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .populate('fundings.thirdPartyPayer')
-      .populate({ path: 'firstIntervention', select: 'startDate' })
-      .lean({ virtuals: true });
-    if (!customer) {
-      return Boom.notFound(translate[language].customerNotFound);
-    }
-
-    customer = await populateSubscriptionsServices(customer);
-    customer = subscriptionsAccepted(customer);
-
-    const fundingsVersions = [];
-    if (customer.fundings && customer.fundings.length > 0) {
-      for (const funding of customer.fundings) {
-        fundingsVersions.push(await populateFundings(funding, customer));
-      }
-      customer.fundings = fundingsVersions;
-    }
+    const customer = await getCustomer(req.params._id);
+    if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     return {
       message: translate[language].customerFound,
-      data: { customer: { ...customer, subscriptions: customer.subscriptions } },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -238,9 +125,7 @@ const create = async (req) => {
     await newCustomer.save();
     return {
       message: translate[language].customerCreated,
-      data: {
-        customer: newCustomer,
-      },
+      data: { customer: newCustomer },
     };
   } catch (e) {
     req.log('error', e);
@@ -251,14 +136,11 @@ const create = async (req) => {
 const remove = async (req) => {
   try {
     const customerDeleted = await Customer.findByIdAndRemove(req.params._id);
-    if (!customerDeleted) {
-      return Boom.notFound(translate[language].customerNotFound);
-    }
+    if (!customerDeleted) return Boom.notFound(translate[language].customerNotFound);
+
     return {
       message: translate[language].customerRemoved,
-      data: {
-        customer: customerDeleted,
-      },
+      data: { customer: customerDeleted },
     };
   } catch (e) {
     req.log('error', e);
@@ -319,7 +201,7 @@ const updateSubscription = async (req) => {
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
-    const { subscriptions } = await populateSubscriptionsServices(customer);
+    const { subscriptions } = populateSubscriptionsServices(customer);
 
     return {
       message: translate[language].customerSubscriptionUpdated,
@@ -360,7 +242,7 @@ const addSubscription = async (req) => {
       .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
       .lean();
 
-    const { subscriptions } = await populateSubscriptionsServices(updatedCustomer);
+    const { subscriptions } = populateSubscriptionsServices(updatedCustomer);
 
     return {
       message: translate[language].customerSubscriptionAdded,
@@ -724,7 +606,7 @@ const createFunding = async (req) => {
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     let funding = customer.fundings[customer.fundings.length - 1];
-    funding = await populateFundings(funding, customer);
+    funding = populateFundings(funding, customer);
 
     return {
       message: translate[language].customerFundingCreated,
@@ -759,7 +641,7 @@ const updateFunding = async (req) => {
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
     let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);
-    funding = await populateFundings(funding, customer);
+    funding = populateFundings(funding, customer);
 
     return {
       message: translate[language].customerFundingUpdated,

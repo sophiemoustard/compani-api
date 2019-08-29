@@ -24,7 +24,7 @@ const list = async (req) => {
       .lean();
 
     for (let i = 0, l = creditNotes.length; i < l; i++) {
-      creditNotes[i].customer = await populateSubscriptionsServices({ ...creditNotes[i].customer });
+      creditNotes[i].customer = populateSubscriptionsServices({ ...creditNotes[i].customer });
     }
 
     return {

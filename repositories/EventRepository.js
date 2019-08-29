@@ -615,3 +615,85 @@ exports.getCustomersFromEvent = async query => Event.aggregate([
   { $addFields: { 'customer.subscriptions': '$subscriptions' } },
   { $replaceRoot: { newRoot: '$customer' } },
 ]);
+
+exports.getCustomerWithBilledEvents = async query => Event.aggregate([
+  { $match: query },
+  { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' } } },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: '_id.CUSTOMER',
+      foreignField: '_id',
+      as: 'customer',
+    },
+  },
+  { $unwind: { path: '$customer' } },
+  {
+    $lookup: {
+      from: 'thirdpartypayers',
+      localField: '_id.TPP',
+      foreignField: '_id',
+      as: 'thirdPartyPayer',
+    },
+  },
+  { $unwind: { path: '$thirdPartyPayer', preserveNullAndEmptyArrays: true } },
+  {
+    $addFields: {
+      sub: {
+        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$_id.SUBS'] } },
+      },
+    },
+  },
+  { $unwind: { path: '$sub' } },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'sub.service',
+      foreignField: '_id',
+      as: 'sub.service',
+    },
+  },
+  { $unwind: { path: '$sub.service' } },
+  {
+    $addFields: {
+      'sub.service.version': {
+        $arrayElemAt: [
+          '$sub.service.versions',
+          {
+            $indexOfArray: ['$sub.service.versions.startDate', { $max: '$sub.service.versions.startDate' }],
+          },
+        ],
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: 'surcharges',
+      localField: 'sub.service.version.surcharge',
+      foreignField: '_id',
+      as: 'sub.service.version.surcharge',
+    },
+  },
+  { $unwind: { path: '$sub.service.version.surcharge', preserveNullAndEmptyArrays: true } },
+  { $addFields: { 'sub.service.exemptFromCharges': '$sub.service.version.exemptFromCharges' } },
+  { $addFields: { 'sub.service.name': '$sub.service.version.name' } },
+  { $addFields: { 'sub.service.startDate': '$sub.service.version.startDate' } },
+  { $addFields: { 'sub.service.defaultUnitAmount': '$sub.service.version.defaultUnitAmount' } },
+  { $addFields: { 'sub.service.vat': '$sub.service.version.vat' } },
+  { $addFields: { 'sub.service.surcharge': '$sub.service.version.surcharge' } },
+  {
+    $project: {
+      'sub.service.versions': 0,
+      'sub.service.version': 0,
+    },
+  },
+  { $group: { _id: { CUS: '$customer' }, subscriptions: { $addToSet: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
+  {
+    $project: {
+      _id: '$_id.CUS._id',
+      subscriptions: 1,
+      identity: '$_id.CUS.identity',
+      thirdPartyPayers: 1,
+    },
+  },
+]);
