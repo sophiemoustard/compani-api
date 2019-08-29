@@ -628,10 +628,13 @@ describe('checkContracts', () => {
 
 describe('unassignInterventionsOnContractEnd', () => {
   let getCustomerSubscriptions = null;
-  let unassignInterventions = null;
+  let getUnassignedInterventions = null;
+  let createEventHistoryOnUpdate = null;
+  let updateMany = null;
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
+  const credentials = { _id: userId };
   const aggregation = [{
     customer: { _id: customerId },
     sub: {
@@ -646,41 +649,183 @@ describe('unassignInterventionsOnContractEnd', () => {
     },
   }];
 
+  const interventions = [
+    {
+      _id: new ObjectID(),
+      type: 'intervention',
+      startDate: '2019-10-02T10:00:00.000Z',
+      endDate: '2019-10-02T12:00:00.000Z',
+      auxiliary: userId,
+    },
+    {
+      _id: new ObjectID(),
+      type: 'intervention',
+      startDate: '2019-10-02T11:00:00.000Z',
+      endDate: '2019-10-02T13:00:00.000Z',
+      auxiliary: userId,
+    },
+  ];
+
   beforeEach(() => {
     getCustomerSubscriptions = sinon.stub(EventRepository, 'getCustomerSubscriptions');
-    unassignInterventions = sinon.stub(EventRepository, 'unassignInterventions');
+    getUnassignedInterventions = sinon.stub(EventRepository, 'getUnassignedInterventions');
+    createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
+    updateMany = sinon.stub(Event, 'updateMany');
   });
   afterEach(() => {
     getCustomerSubscriptions.restore();
-    unassignInterventions.restore();
+    getUnassignedInterventions.restore();
+    createEventHistoryOnUpdate.restore();
+    updateMany.restore();
   });
 
   it('should unassign future events linked to company contract', async () => {
-    const contract = { status: COMPANY_CONTRACT, endDate: moment().toDate(), user: userId };
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
     getCustomerSubscriptions.returns(aggregation);
+    getUnassignedInterventions.returns(interventions);
 
-    await EventHelper.unassignInterventionsOnContractEnd(contract);
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWith(
-      unassignInterventions,
+      getUnassignedInterventions,
       contract.endDate,
       contract.user,
       [aggregation[0].sub._id]
     );
+    sinon.assert.calledTwice(createEventHistoryOnUpdate);
+    sinon.assert.calledWith(updateMany, {
+      _id: { $in: [interventions[0]._id, interventions[1]._id] },
+    }, { $unset: { auxiliary: '' } });
   });
 
   it('should unassign future events linked to corresponding customer contract', async () => {
-    const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
+    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
     getCustomerSubscriptions.returns(aggregation);
+    getUnassignedInterventions.returns(interventions);
 
-    await EventHelper.unassignInterventionsOnContractEnd(contract);
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWith(
-      unassignInterventions,
+      getUnassignedInterventions,
       contract.endDate,
       contract.user,
       [aggregation[1].sub._id]
     );
+    sinon.assert.calledTwice(createEventHistoryOnUpdate);
+    sinon.assert.calledWith(updateMany, {
+      _id: { $in: [interventions[0]._id, interventions[1]._id] },
+    }, { $unset: { auxiliary: '' } });
+  });
+});
+
+describe('removeEventsExceptInterventionsOnContractEnd', () => {
+  let getEventsExceptInterventions = null;
+  let createEventHistoryOnDelete = null;
+  let deleteMany = null;
+
+  const customerId = new ObjectID();
+  const userId = new ObjectID();
+  const credentials = { _id: userId };
+
+  const events = [
+    {
+      _id: new ObjectID(),
+      type: 'internal_hour',
+      startDate: '2019-10-02T10:00:00.000Z',
+      endDate: '2019-10-02T12:00:00.000Z',
+      auxiliary: userId,
+    },
+    {
+      _id: new ObjectID(),
+      type: 'unavailability',
+      startDate: '2019-10-02T11:00:00.000Z',
+      endDate: '2019-10-02T13:00:00.000Z',
+      auxiliary: userId,
+    },
+  ];
+
+  beforeEach(() => {
+    getEventsExceptInterventions = sinon.stub(EventRepository, 'getEventsExceptInterventions');
+    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
+    deleteMany = sinon.stub(Event, 'deleteMany');
+  });
+  afterEach(() => {
+    getEventsExceptInterventions.restore();
+    createEventHistoryOnDelete.restore();
+    deleteMany.restore();
+  });
+
+  it('should remove future non-intervention events linked to company contract', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getEventsExceptInterventions.returns(events);
+
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(getEventsExceptInterventions, contract);
+    sinon.assert.calledTwice(createEventHistoryOnDelete);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0]._id, events[1]._id] } });
+  });
+
+  it('should remove future non-intervention events linked to corresponding customer contract', async () => {
+    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
+    getEventsExceptInterventions.returns(events);
+
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(getEventsExceptInterventions, contract);
+    sinon.assert.calledTwice(createEventHistoryOnDelete);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0]._id, events[1]._id] } });
+  });
+});
+
+describe('updateAbsencesOnContractEnd', () => {
+  let getAbsences = null;
+  let createEventHistoryOnUpdate = null;
+  let updateMany = null;
+
+  const customerId = new ObjectID();
+  const userId = new ObjectID();
+  const credentials = { _id: userId };
+
+  const absences = [
+    {
+      _id: new ObjectID(),
+      type: 'absences',
+      startDate: '2019-10-02T10:00:00.000Z',
+      endDate: '2019-10-04T12:00:00.000Z',
+      auxiliary: userId,
+    },
+  ];
+
+  beforeEach(() => {
+    getAbsences = sinon.stub(EventRepository, 'getAbsences');
+    createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
+    updateMany = sinon.stub(Event, 'updateMany');
+  });
+  afterEach(() => {
+    getAbsences.restore();
+    createEventHistoryOnUpdate.restore();
+    updateMany.restore();
+  });
+
+  it('should update future absences events linked to company contract', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
+    getAbsences.returns(absences);
+
+    await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
+    sinon.assert.calledWith(getAbsences, userId, maxEndDate);
+    sinon.assert.calledOnce(createEventHistoryOnUpdate);
+    sinon.assert.calledWith(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
+  });
+
+  it('should update future absences events linked to corresponding customer contract', async () => {
+    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
+    const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
+    getAbsences.returns(absences);
+
+    await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
+    sinon.assert.calledWith(getAbsences, userId, maxEndDate);
+    sinon.assert.calledOnce(createEventHistoryOnUpdate);
+    sinon.assert.calledWith(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
   });
 });
 
