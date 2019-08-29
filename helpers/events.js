@@ -89,7 +89,10 @@ exports.checkContracts = async (event, user) => {
   // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention and this customer
   //   should have an active subscription
   if (event.type === INTERVENTION) {
-    let customer = await Customer.findOne({ _id: event.customer }).populate('subscriptions.service').lean();
+    let customer = await Customer
+      .findOne({ _id: event.customer })
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .lean();
     customer = await populateSubscriptionsServices(customer);
 
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
@@ -114,10 +117,10 @@ exports.checkContracts = async (event, user) => {
   return true;
 };
 
-exports.getListQuery = (req) => {
+exports.getListQuery = (query) => {
   const rules = [];
 
-  const { auxiliary, type, customer, sector, isBilled, startDate, endDate } = req.query;
+  const { auxiliary, type, customer, sector, isBilled, startDate, endDate } = query;
 
   if (type) rules.push({ type });
 

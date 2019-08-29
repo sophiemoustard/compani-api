@@ -4,9 +4,13 @@ const moment = require('moment');
 const get = require('lodash/get');
 const { addFile } = require('./gdriveStorage');
 const Customer = require('../models/Customer');
+const Event = require('../models/Event');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 const { getLastVersion } = require('../helpers/utils');
+const { INTERVENTION } = require('./constants');
+const SubscriptionsHelper = require('./subscriptions');
+const EventsHelper = require('./events');
 
 const { language } = translate;
 
@@ -173,4 +177,27 @@ exports.exportCustomers = async () => {
   }
 
   return data;
+};
+
+exports.getCustomerBySector = async (startDate, endDate, sector) => {
+  const query = EventsHelper.getListQuery({ startDate, endDate, type: INTERVENTION, sector });
+  const eventsBySector = await Event.find(query).lean();
+  if (eventsBySector.length === 0) return [];
+
+  const customerIds = [];
+  eventsBySector.map((event) => {
+    if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
+  });
+
+  const customers = await Customer
+    .find({ _id: customerIds })
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .lean();
+
+  for (let i = 0, l = customers.length; i < l; i++) {
+    customers[i] = await SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
+    customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
+  }
+
+  return customers;
 };

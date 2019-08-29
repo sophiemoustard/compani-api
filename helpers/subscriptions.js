@@ -1,6 +1,5 @@
 const moment = require('moment');
 const _ = require('lodash');
-const Surcharge = require('../models/Surcharge');
 const Customer = require('../models/Customer');
 const UtilsHelper = require('../helpers/utils');
 
@@ -8,16 +7,12 @@ exports.populateServices = async (service) => {
   const currentVersion = [...service.versions]
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-  const surcharge = await Surcharge.findOne({ _id: currentVersion.surcharge });
 
   return {
+    ...currentVersion,
     _id: service._id,
-    name: currentVersion.name,
     nature: service.nature,
     type: service.type,
-    defaultUnitAmount: currentVersion.defaultUnitAmount,
-    vat: currentVersion.vat,
-    surcharge,
   };
 };
 

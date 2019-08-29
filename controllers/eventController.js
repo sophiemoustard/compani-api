@@ -20,7 +20,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = getListQuery(req);
+    const query = getListQuery(req.query);
     const { groupBy } = req.query;
 
     let events;
