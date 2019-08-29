@@ -56,6 +56,18 @@ const rightsList = [
     description: 'Exporter des données',
     permission: 'exports:read',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Lister les utilisateurs',
+    permission: 'users:list',
+    name: 'users-list',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer un utilisateur',
+    permission: 'users:edit',
+    name: 'users-edit',
+  },
 ];
 
 const coachRights = [
@@ -66,8 +78,10 @@ const coachRights = [
   'contracts:read:user',
   'contracts:edit:user',
   'exports:read',
+  'users:list',
+  'users:edit',
 ];
-const auxiliaryRights = ['pay:read', 'contracts:read'];
+const auxiliaryRights = ['pay:read', 'contracts:read', 'users:list'];
 const helperRights = ['billing:read'];
 
 const rolesList = [

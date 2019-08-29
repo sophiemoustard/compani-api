@@ -8,7 +8,7 @@ const Role = require('../models/Role');
 const User = require('../models/User');
 const drive = require('../models/Google/Drive');
 const translate = require('./translate');
-const { addFile } = require('./gdriveStorage');
+const GdriveStorage = require('./gdriveStorage');
 const { nationalities } = require('../data/nationalities.js');
 const { countries } = require('../data/countries');
 const { HELPER, AUXILIARY, PLANNING_REFERENT } = require('./constants.js');
@@ -53,7 +53,7 @@ const saveFile = async (userId, administrativeKey, fileInfo) => {
 };
 
 exports.createAndSaveFile = async (administrativeKey, params, payload) => {
-  const uploadedFile = await addFile({
+  const uploadedFile = await GdriveStorage.addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload[administrativeKey].hapi.filename,
     type: payload['Content-Type'],
