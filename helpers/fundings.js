@@ -27,12 +27,12 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
     });
 };
 
-exports.populateFundings = async (funding, customer) => {
+exports.populateFundings = (funding, customer) => {
   if (!funding) return false;
 
   const sub = customer.subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
   if (sub.service.versions) {
-    funding.subscription = { ...sub, service: await populateServices(sub.service) };
+    funding.subscription = { ...sub, service: populateServices(sub.service) };
   } else {
     funding.subscription = { ...sub };
   }

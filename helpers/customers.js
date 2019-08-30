@@ -4,15 +4,98 @@ const moment = require('moment');
 const get = require('lodash/get');
 const { addFile } = require('./gdriveStorage');
 const Customer = require('../models/Customer');
-const Event = require('../models/Event');
+const Service = require('../models/Service');
+const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
 const { getLastVersion } = require('../helpers/utils');
-const { INTERVENTION } = require('./constants');
-const SubscriptionsHelper = require('./subscriptions');
+const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
+const SubscriptionsHelper = require('./subscriptions');
+const FundingsHelper = require('./fundings');
 
 const { language } = translate;
+
+exports.getCustomerBySector = async (startDate, endDate, sector) => {
+  const query = EventsHelper.getListQuery({ startDate, endDate, type: INTERVENTION, sector });
+  return EventRepository.getCustomersFromEvent(query);
+};
+
+exports.getCustomersWithBilledEvents = async () => {
+  const query = { isBilled: true, type: INTERVENTION };
+  return EventRepository.getCustomerWithBilledEvents(query);
+};
+
+exports.getCustomers = async (query) => {
+  const customers = await Customer.find(query)
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .populate({ path: 'firstIntervention', select: 'startDate' })
+    .lean({ virtuals: true });
+
+  if (customers.length === 0) return [];
+
+  for (let i = 0, l = customers.length; i < l; i++) {
+    customers[i] = SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
+    customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
+  }
+
+  return customers;
+};
+
+exports.getCustomersWithSubscriptions = async (query) => {
+  const customers = await Customer.find(query)
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .lean();
+
+  if (customers.length === 0) return [];
+
+  for (let i = 0, l = customers.length; i < l; i++) {
+    customers[i] = SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
+  }
+
+  return customers;
+};
+
+exports.getCustomersWithCustomerContractSubscriptions = async () => {
+  const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
+  if (customerContractServices.length === 0) return [];
+
+  const ids = customerContractServices.map(service => service._id);
+  const customers = await Customer
+    .find({ 'subscriptions.service': { $in: ids } })
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .lean();
+  if (customers.length === 0) return [];
+
+  for (let i = 0, l = customers.length; i < l; i++) {
+    customers[i] = SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
+    customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
+  }
+
+  return customers;
+};
+
+exports.getCustomer = async (customerId) => {
+  let customer = await Customer.findOne({ _id: customerId })
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .populate('fundings.thirdPartyPayer')
+    .populate({ path: 'firstIntervention', select: 'startDate' })
+    .lean({ virtuals: true });
+  if (!customer) return null;
+
+  customer = SubscriptionsHelper.populateSubscriptionsServices(customer);
+  customer = SubscriptionsHelper.subscriptionsAccepted(customer);
+
+  const fundingsVersions = [];
+  if (customer.fundings && customer.fundings.length > 0) {
+    for (const funding of customer.fundings) {
+      fundingsVersions.push(FundingsHelper.populateFundings(funding, customer));
+    }
+    customer.fundings = fundingsVersions;
+  }
+
+  return customer;
+};
 
 const uploadQuote = async (customerId, quoteId, file) => {
   const payload = {
@@ -177,27 +260,4 @@ exports.exportCustomers = async () => {
   }
 
   return data;
-};
-
-exports.getCustomerBySector = async (startDate, endDate, sector) => {
-  const query = EventsHelper.getListQuery({ startDate, endDate, type: INTERVENTION, sector });
-  const eventsBySector = await Event.find(query).lean();
-  if (eventsBySector.length === 0) return [];
-
-  const customerIds = [];
-  eventsBySector.map((event) => {
-    if (!customerIds.includes(event.customer.toHexString())) customerIds.push(event.customer.toHexString());
-  });
-
-  const customers = await Customer
-    .find({ _id: customerIds })
-    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-    .lean();
-
-  for (let i = 0, l = customers.length; i < l; i++) {
-    customers[i] = await SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
-    customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
-  }
-
-  return customers;
 };

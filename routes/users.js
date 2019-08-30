@@ -62,6 +62,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['users:edit'] },
         validate: {
           payload: Joi.object().keys({
             mobilePhone: Joi.string(),
@@ -101,7 +102,6 @@ exports.plugin = {
             company: Joi.objectId().required(),
           }).required(),
         },
-        auth: false,
       },
       handler: create,
     });

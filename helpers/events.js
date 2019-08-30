@@ -89,7 +89,7 @@ exports.checkContracts = async (event, user) => {
       .findOne({ _id: event.customer })
       .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
       .lean();
-    customer = await populateSubscriptionsServices(customer);
+    customer = populateSubscriptionsServices(customer);
 
     const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
     if (!eventSubscription) return false;
