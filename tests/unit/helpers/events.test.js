@@ -637,32 +637,33 @@ describe('unassignInterventionsOnContractEnd', () => {
   const credentials = { _id: userId };
   const aggregation = [{
     customer: { _id: customerId },
-    sub: {
-      _id: 'qwerty',
-      service: { type: COMPANY_CONTRACT },
-    },
+    sub: { _id: 'qwerty', service: { type: COMPANY_CONTRACT } },
   }, {
     customer: { _id: customerId },
-    sub: {
-      _id: 'asdfgh',
-      service: { type: CUSTOMER_CONTRACT },
-    },
+    sub: { _id: 'asdfgh', service: { type: CUSTOMER_CONTRACT } },
   }];
 
   const interventions = [
     {
-      _id: new ObjectID(),
-      type: 'intervention',
-      startDate: '2019-10-02T10:00:00.000Z',
-      endDate: '2019-10-02T12:00:00.000Z',
-      auxiliary: userId,
+      _id: null,
+      events: [{
+        _id: new ObjectID(),
+        type: 'intervention',
+        startDate: '2019-10-02T10:00:00.000Z',
+        endDate: '2019-10-02T12:00:00.000Z',
+        auxiliary: userId,
+      }],
     },
     {
       _id: new ObjectID(),
-      type: 'intervention',
-      startDate: '2019-10-02T11:00:00.000Z',
-      endDate: '2019-10-02T13:00:00.000Z',
-      auxiliary: userId,
+      events: [{
+        _id: new ObjectID(),
+        misc: 'toto',
+        type: 'intervention',
+        startDate: '2019-10-02T11:00:00.000Z',
+        endDate: '2019-10-02T13:00:00.000Z',
+        auxiliary: userId,
+      }],
     },
   ];
 
@@ -693,9 +694,45 @@ describe('unassignInterventionsOnContractEnd', () => {
       [aggregation[0].sub._id]
     );
     sinon.assert.calledTwice(createEventHistoryOnUpdate);
-    sinon.assert.calledWith(updateMany, {
-      _id: { $in: [interventions[0]._id, interventions[1]._id] },
-    }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWith(
+      updateMany,
+      { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+    );
+  });
+
+  it('should create event history for repetition', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getCustomerSubscriptions.returns(aggregation);
+    getUnassignedInterventions.returns([interventions[1]]);
+
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(
+      createEventHistoryOnUpdate,
+      { misc: 'toto', startDate: '2019-10-02T11:00:00.000Z', endDate: '2019-10-02T13:00:00.000Z', shouldUpdateRepetition: true }
+    );
+    sinon.assert.calledWith(
+      updateMany,
+      { _id: { $in: [interventions[1].events[0]._id] } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+    );
+  });
+
+  it('should create event history for non repeated event', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getCustomerSubscriptions.returns(aggregation);
+    getUnassignedInterventions.returns([interventions[0]]);
+
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(
+      createEventHistoryOnUpdate,
+      { misc: undefined, startDate: '2019-10-02T10:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' }
+    );
+    sinon.assert.calledWith(
+      updateMany,
+      { _id: { $in: [interventions[0].events[0]._id] } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+    );
   });
 
   it('should unassign future events linked to corresponding customer contract', async () => {
@@ -712,35 +749,41 @@ describe('unassignInterventionsOnContractEnd', () => {
       [aggregation[1].sub._id]
     );
     sinon.assert.calledTwice(createEventHistoryOnUpdate);
-    sinon.assert.calledWith(updateMany, {
-      _id: { $in: [interventions[0]._id, interventions[1]._id] },
-    }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWith(
+      updateMany,
+      { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+    );
   });
 });
 
 describe('removeEventsExceptInterventionsOnContractEnd', () => {
-  let getEventsExceptInterventions = null;
-  let createEventHistoryOnDelete = null;
-  let deleteMany = null;
-
+  let getEventsExceptInterventions;
+  let createEventHistoryOnDelete;
+  let deleteMany;
   const customerId = new ObjectID();
   const userId = new ObjectID();
   const credentials = { _id: userId };
-
   const events = [
     {
       _id: new ObjectID(),
-      type: 'internal_hour',
-      startDate: '2019-10-02T10:00:00.000Z',
-      endDate: '2019-10-02T12:00:00.000Z',
-      auxiliary: userId,
+      events: [{
+        _id: new ObjectID(),
+        type: 'internal_hour',
+        startDate: '2019-10-02T10:00:00.000Z',
+        endDate: '2019-10-02T12:00:00.000Z',
+        auxiliary: userId,
+      }],
     },
     {
       _id: new ObjectID(),
-      type: 'unavailability',
-      startDate: '2019-10-02T11:00:00.000Z',
-      endDate: '2019-10-02T13:00:00.000Z',
-      auxiliary: userId,
+      events: [{
+        _id: new ObjectID(),
+        type: 'unavailability',
+        startDate: '2019-10-02T11:00:00.000Z',
+        endDate: '2019-10-02T13:00:00.000Z',
+        auxiliary: userId,
+      }],
     },
   ];
 
@@ -760,9 +803,27 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     getEventsExceptInterventions.returns(events);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWith(getEventsExceptInterventions, contract);
+    sinon.assert.calledWith(getEventsExceptInterventions, '2019-10-02T08:00:00.000Z', userId);
     sinon.assert.calledTwice(createEventHistoryOnDelete);
-    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0]._id, events[1]._id] } });
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
+  });
+
+  it('should create event history for repetition', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getEventsExceptInterventions.returns([events[1]]);
+
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(createEventHistoryOnDelete, events[1].events[0], credentials);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[1].events[0]._id] } });
+  });
+
+  it('should create event history for non repeated event', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getEventsExceptInterventions.returns([events[0]]);
+
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(createEventHistoryOnDelete, events[0].events[0], credentials);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id] } });
   });
 
   it('should remove future non-intervention events linked to corresponding customer contract', async () => {
@@ -770,9 +831,9 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     getEventsExceptInterventions.returns(events);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWith(getEventsExceptInterventions, contract);
+    sinon.assert.calledWith(getEventsExceptInterventions, '2019-10-02T08:00:00.000Z', userId);
     sinon.assert.calledTwice(createEventHistoryOnDelete);
-    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0]._id, events[1]._id] } });
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
   });
 });
 

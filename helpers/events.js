@@ -268,13 +268,16 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
     }
   }
 
-  promises.push(Event.updateMany({ _id: { $in: ids } }, { $unset: { auxiliary: '' } }));
+  promises.push(Event.updateMany(
+    { _id: { $in: ids } },
+    { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+  ));
 
   return Promise.all(promises);
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
-  const events = await EventRepository.getEventsExceptInterventions(contract);
+  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user);
   const promises = [];
   const ids = [];
 
