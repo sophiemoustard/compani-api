@@ -65,7 +65,7 @@ exports.plugin = {
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
-            }),
+            }).when('absence', { is: Joi.exist().valid([ILLNESS, UNJUSTIFIED]), then: Joi.required() }),
             repetition: Joi.object().keys({
               frequency: Joi.string().required().valid(REPETITION_FREQUENCIES),
             }),
@@ -137,7 +137,7 @@ exports.plugin = {
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
-            }),
+            }).when('absence', { is: Joi.exist().valid([ILLNESS, UNJUSTIFIED]), then: Joi.required() }),
             misc: Joi.string().allow(null, '').default('').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             repetition: Joi.object().keys({
               frequency: Joi.string().valid(REPETITION_FREQUENCIES),
