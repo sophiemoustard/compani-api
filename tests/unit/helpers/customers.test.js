@@ -77,6 +77,7 @@ describe('getCustomers', () => {
       .returns([]);
     const result = await CustomerHelper.getCustomers(query);
 
+    CustomerMock.verify();
     expect(result).toEqual([]);
   });
 
@@ -98,6 +99,7 @@ describe('getCustomers', () => {
 
     const result = await CustomerHelper.getCustomers(query);
 
+    CustomerMock.verify();
     expect(result).toEqual([
       { identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true },
       { identity: { firstname: 'Brigitte' }, subscriptions: 2, subscriptionsAccepted: true },
@@ -129,6 +131,7 @@ describe('getCustomersWithSubscriptions', () => {
       .returns([]);
     const result = await CustomerHelper.getCustomersWithSubscriptions(query);
 
+    CustomerMock.verify();
     expect(result).toEqual([]);
   });
 
@@ -148,6 +151,7 @@ describe('getCustomersWithSubscriptions', () => {
 
     const result = await CustomerHelper.getCustomersWithSubscriptions(query);
 
+    CustomerMock.verify();
     expect(result).toEqual([
       { identity: { firstname: 'Emmanuel' }, subscriptions: 2 },
       { identity: { firstname: 'Brigitte' }, subscriptions: 2 },
@@ -178,6 +182,8 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
     ServiceMock.expects('find').chain('lean').once().returns([]);
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions();
 
+    CustomerMock.verify();
+    ServiceMock.verify();
     expect(result).toEqual([]);
   });
 
@@ -192,6 +198,8 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
       .returns([]);
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions();
 
+    CustomerMock.verify();
+    ServiceMock.verify();
     expect(result).toEqual([]);
   });
 
@@ -213,6 +221,8 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
 
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions();
 
+    CustomerMock.verify();
+    ServiceMock.verify();
     expect(result).toEqual([
       { identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true },
       { identity: { firstname: 'Brigitte' }, subscriptions: 2, subscriptionsAccepted: true },
@@ -252,6 +262,7 @@ describe('getCustomer', () => {
       .returns(null);
     const result = await CustomerHelper.getCustomer(customerId);
 
+    CustomerMock.verify();
     expect(result).toBeNull();
   });
 
@@ -271,6 +282,7 @@ describe('getCustomer', () => {
 
     const result = await CustomerHelper.getCustomer(customerId);
 
+    CustomerMock.verify();
     expect(result).toEqual({ identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true });
     sinon.assert.calledOnce(populateSubscriptionsServices);
     sinon.assert.calledOnce(subscriptionsAccepted);
@@ -293,6 +305,7 @@ describe('getCustomer', () => {
 
     await CustomerHelper.getCustomer(customerId);
 
+    CustomerMock.verify();
     sinon.assert.calledOnce(populateSubscriptionsServices);
     sinon.assert.calledOnce(subscriptionsAccepted);
     sinon.assert.calledTwice(populateFundings);
