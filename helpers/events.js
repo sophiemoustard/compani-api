@@ -243,7 +243,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   return exports.populateEventSubscription(event);
 };
 
-exports.unassignInterventionsOnContractEnd = async (contract) => {
+exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract);
 
   if (customerSubscriptionsFromEvents.length === 0) return;
@@ -255,12 +255,69 @@ exports.unassignInterventionsOnContractEnd = async (contract) => {
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
-  await EventRepository.unassignInterventions(contract.endDate, contract.user, correspondingSubsIds);
+  const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds);
+  const promises = [];
+  const ids = [];
+
+  for (const group of unassignedInterventions) {
+    if (group._id) {
+      const { startDate, endDate, misc } = group.events[0];
+      promises.push(EventHistoriesHelper.createEventHistoryOnUpdate({ startDate, endDate, misc, shouldUpdateRepetition: true }, group.events[0], credentials));
+      ids.push(...group.events.map(ev => ev._id));
+    } else {
+      for (const intervention of group.events) {
+        const { startDate, endDate, misc } = intervention;
+        promises.push(EventHistoriesHelper.createEventHistoryOnUpdate({ startDate, endDate, misc }, intervention, credentials));
+        ids.push(intervention._id);
+      }
+    }
+  }
+
+  promises.push(Event.updateMany(
+    { _id: { $in: ids } },
+    { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+  ));
+
+  return Promise.all(promises);
 };
 
-exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate) => {
+exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
+  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user);
+  const promises = [];
+  const ids = [];
+
+  for (const group of events) {
+    if (group._id) {
+      promises.push(EventHistoriesHelper.createEventHistoryOnDelete(group.events[0], credentials));
+      ids.push(...group.events.map(ev => ev._id));
+    } else {
+      for (const intervention of group.events) {
+        promises.push(EventHistoriesHelper.createEventHistoryOnDelete(intervention, credentials));
+        ids.push(intervention._id);
+      }
+    }
+  }
+
+  promises.push(Event.deleteMany({ _id: { $in: ids } }));
+
+  return Promise.all(promises);
+};
+
+exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
   const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
-  await EventRepository.updateAbsenceEndDate(auxiliaryId, maxEndDate);
+  const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate);
+  const absencesIds = absences.map(abs => abs._id);
+  const promises = [];
+
+  for (const absence of absences) {
+    const { startDate, misc } = absence;
+    const payload = { startDate, endDate: maxEndDate, misc };
+    promises.push(EventHistoriesHelper.createEventHistoryOnUpdate(payload, absence, credentials));
+  }
+
+  promises.push(Event.updateMany({ _id: { $in: absencesIds } }, { $set: { endDate: maxEndDate } }));
+
+  return Promise.all(promises);
 };
 
 exports.deleteEvent = async (params, credentials) => {

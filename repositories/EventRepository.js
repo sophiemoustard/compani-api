@@ -275,24 +275,31 @@ exports.getCustomerSubscriptions = contract => Event.aggregate([
   },
 ]);
 
-exports.unassignInterventions = (maxDate, auxiliary, subIds) => Event.updateMany(
-  { startDate: { $gt: maxDate }, auxiliary, subscription: { $in: subIds }, isBilled: false },
-  { $unset: { auxiliary: '' } }
-);
+const getEventsGroupedByParentId = async rules => Event.aggregate([
+  { $match: rules },
+  {
+    $group: {
+      _id: { $ifNull: ['$repetition.parentId', null] },
+      events: { $addToSet: '$$ROOT' },
+    },
+  },
+  { $unwind: { path: '$events' } },
+  { $sort: { 'events.startDate': 1 } },
+  {
+    $group: { _id: '$_id', events: { $push: '$events' } },
+  },
+]);
 
-exports.removeEventsExceptInterventions = async contract => Event.deleteMany({
-  startDate: { $gt: contract.endDate },
-  auxiliary: contract.user,
-  subscription: { $exists: false },
-});
 
-exports.updateAbsenceEndDate = async (auxiliaryId, maxEndDate) => Event.updateMany({
+exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds) => getEventsGroupedByParentId({ startDate: { $gt: maxDate }, auxiliary, subscription: { $in: subIds }, isBilled: false });
+
+exports.getEventsExceptInterventions = async (startDate, auxiliary) => getEventsGroupedByParentId({ startDate: { $gt: startDate }, auxiliary, subscription: { $exists: false } });
+
+exports.getAbsences = async (auxiliaryId, maxEndDate) => Event.find({
   type: ABSENCE,
   auxiliary: auxiliaryId,
   startDate: { $lte: maxEndDate },
   endDate: { $gt: maxEndDate },
-}, {
-  endDate: maxEndDate,
 });
 
 exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
