@@ -253,11 +253,14 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds);
   const unassignedInterventionsIds = unassignedInterventions.map(intervention => intervention._id);
   const promises = [];
+
   for (const intervention of unassignedInterventions) {
     const { startDate, endDate, misc } = intervention;
     promises.push(EventHistoriesHelper.createEventHistoryOnUpdate({ startDate, endDate, misc }, intervention, credentials));
   }
+
   promises.push(Event.updateMany({ _id: { $in: unassignedInterventionsIds } }, { $unset: { auxiliary: '' } }));
+
   return Promise.all(promises);
 };
 
@@ -265,10 +268,13 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
   const events = await EventRepository.getEventsExceptInterventions(contract);
   const eventsIds = events.map(ev => ev._id);
   const promises = [];
+
   for (const event of events) {
     promises.push(EventHistoriesHelper.createEventHistoryOnDelete(event, credentials));
   }
+
   promises.push(Event.deleteMany({ _id: { $in: eventsIds } }));
+
   return Promise.all(promises);
 };
 
@@ -277,12 +283,15 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
   const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate);
   const absencesIds = absences.map(abs => abs._id);
   const promises = [];
+
   for (const absence of absences) {
     const { startDate, misc } = absence;
     const payload = { startDate, endDate: maxEndDate, misc };
     promises.push(EventHistoriesHelper.createEventHistoryOnUpdate(payload, absence, credentials));
   }
+
   promises.push(Event.updateMany({ _id: { $in: absencesIds } }, { $set: { endDate: maxEndDate } }));
+
   return Promise.all(promises);
 };
 
