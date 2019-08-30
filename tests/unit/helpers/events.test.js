@@ -32,99 +32,143 @@ describe('updateEvent', () => {
   let populateEventSubscription;
   let updateRepetition;
   let updateEvent;
+  let deleteConflictInternalHoursAndUnavailabilities;
+  let unassignConflictInterventions;
   beforeEach(() => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     updateRepetition = sinon.stub(EventsRepetitionHelper, 'updateRepetition');
     updateEvent = sinon.stub(EventRepository, 'updateEvent');
+    deleteConflictInternalHoursAndUnavailabilities = sinon.stub(EventHelper, 'deleteConflictInternalHoursAndUnavailabilities');
+    unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
     createEventHistoryOnUpdate.restore();
     populateEventSubscription.restore();
     updateRepetition.restore();
     updateEvent.restore();
+    deleteConflictInternalHoursAndUnavailabilities.restore();
+    unassignConflictInterventions.restore();
   });
 
   it('should update repetition', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString(), shouldUpdateRepetition: true };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString(), shouldUpdateRepetition: true };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.called(updateRepetition);
     sinon.assert.notCalled(updateEvent);
   });
 
   it('should update absence without unset repetition property', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const event = { _id: eventId, type: ABSENCE, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
+    const auxiliaryId = new ObjectID();
+    const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.notCalled(updateRepetition);
   });
 
+  it('should update absence, unassign interventions and delete unavailabilities and internal hours in conflict', async () => {
+    const credentials = { _id: new ObjectID() };
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const event = {
+      _id: eventId,
+      type: ABSENCE,
+      auxiliary: { _id: auxiliaryId },
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T10:38:18',
+    };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
+
+    updateEvent.returns(event);
+    await EventHelper.updateEvent(event, payload, credentials);
+
+    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWith(
+      unassignConflictInterventions,
+      { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
+      auxiliaryId.toHexString(),
+      credentials
+    );
+    sinon.assert.calledWith(
+      deleteConflictInternalHoursAndUnavailabilities,
+      { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
+      auxiliaryId.toHexString(),
+      eventId.toHexString(),
+      credentials
+    );
+  });
+
   it('should update event without repetition without unset repetition property', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.notCalled(updateRepetition);
   });
 
   it('should update event with NEVER frequency without unset repetition property', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, repetition: { frequency: NEVER }, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.notCalled(updateRepetition);
   });
 
   it('should update event when only misc is updated without unset repetition property', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const sector = new ObjectID();
     const event = {
       _id: eventId,
-      startDate: '2019-01-21T09:38:18.653Z',
+      startDate: '2019-01-21T09:38:18',
       repetition: { frequency: NEVER },
       auxiliary,
       sector,
     };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', misc: 'Zoro est là', auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', misc: 'Zoro est là', auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
     sinon.assert.notCalled(updateRepetition);
   });
 
   it('should update event and unset repetition property if event in repetition and repetition not updated', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(
       updateEvent,
@@ -137,6 +181,7 @@ describe('updateEvent', () => {
   });
 
   it('should update event and unset cancel property when cancellation cancelled', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = {
@@ -146,10 +191,10 @@ describe('updateEvent', () => {
       cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(
       updateEvent,
@@ -161,6 +206,7 @@ describe('updateEvent', () => {
   });
 
   it('should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = {
@@ -170,10 +216,10 @@ describe('updateEvent', () => {
       cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
     sinon.assert.calledWith(
       updateEvent,
       eventId,
@@ -184,12 +230,13 @@ describe('updateEvent', () => {
   });
 
   it('should update event and unset auxiliary if missing in payload', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const event = { _id: eventId };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z' };
+    const payload = { startDate: '2019-01-21T09:38:18' };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.notCalled(updateRepetition);
     sinon.assert.calledWith(
@@ -216,7 +263,7 @@ describe('populateEventSubscription', () => {
             sundays: 2,
           },
           {
-            createdAt: '2019-01-21T09:38:18.653Z',
+            createdAt: '2019-01-21T09:38:18',
             _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
             service: '5c35cdc2bd5e3e7360b853fa',
             unitTTCRate: 25,
@@ -261,7 +308,7 @@ describe('populateEventSubscription', () => {
       customer: {
         subscriptions: [
           {
-            createdAt: '2019-01-21T09:38:18.653Z',
+            createdAt: '2019-01-21T09:38:18',
             _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
             service: '5c35cdc2bd5e3e7360b853fa',
             unitTTCRate: 25,
@@ -305,7 +352,7 @@ describe('populateEvents', () => {
               sundays: 2,
             },
             {
-              createdAt: '2019-01-21T09:38:18.653Z',
+              createdAt: '2019-01-21T09:38:18',
               _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
               service: '5c35cdc2bd5e3e7360b853fa',
               unitTTCRate: 25,
@@ -871,7 +918,7 @@ describe('deleteEvent', () => {
     const parentId = new ObjectID();
     const deletionInfo = {
       type: INTERVENTION,
-      startDate: '2019-01-21T09:38:18.653Z',
+      startDate: '2019-01-21T09:38:18',
     };
     const event = {
       ...deletionInfo,

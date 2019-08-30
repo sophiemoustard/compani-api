@@ -233,6 +233,13 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
 
   event = await EventRepository.updateEvent(event._id, set, unset);
 
+  if (event.type === ABSENCE) {
+    const { startDate, endDate, auxiliary, _id } = event;
+    const dates = { startDate, endDate };
+    await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliary._id.toHexString(), _id.toHexString(), credentials);
+    await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
+  }
+
   return exports.populateEventSubscription(event);
 };
 
