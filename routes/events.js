@@ -19,6 +19,7 @@ const {
   UNJUSTIFIED,
   ILLNESS,
   OTHER,
+  WORK_ACCIDENT,
 } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('../models/Contract');
 const {
@@ -65,7 +66,7 @@ exports.plugin = {
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
-            }).when('absence', { is: Joi.exist().valid([ILLNESS, UNJUSTIFIED]), then: Joi.required() }),
+            }).when('absence', { is: Joi.exist().valid([ILLNESS, WORK_ACCIDENT]), then: Joi.required() }),
             repetition: Joi.object().keys({
               frequency: Joi.string().required().valid(REPETITION_FREQUENCIES),
             }),
@@ -137,7 +138,7 @@ exports.plugin = {
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
-            }).when('absence', { is: Joi.exist().valid([ILLNESS, UNJUSTIFIED]), then: Joi.required() }),
+            }).when('absence', { is: Joi.exist().valid([ILLNESS, WORK_ACCIDENT]), then: Joi.required() }),
             misc: Joi.string().allow(null, '').default('').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             repetition: Joi.object().keys({
               frequency: Joi.string().valid(REPETITION_FREQUENCIES),
