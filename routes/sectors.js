@@ -7,7 +7,7 @@ const {
   create,
   update,
   list,
-  remove
+  remove,
 } = require('../controllers/sectorController');
 
 exports.plugin = {
@@ -17,6 +17,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
@@ -31,9 +32,10 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
-            _id: Joi.objectId().required()
+            _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
             name: Joi.string(),
@@ -47,6 +49,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['config:read'] },
         validate: {
           query: Joi.object().keys({
             name: Joi.string(),
@@ -61,14 +64,14 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
-            _id: Joi.objectId().required()
-          }
+            _id: Joi.objectId().required(),
+          },
         },
-        auth: 'jwt',
       },
       handler: remove,
     });
-  }
+  },
 };
