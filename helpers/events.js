@@ -251,29 +251,46 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
   const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds);
-  const unassignedInterventionsIds = unassignedInterventions.map(intervention => intervention._id);
   const promises = [];
+  const ids = [];
 
-  for (const intervention of unassignedInterventions) {
-    const { startDate, endDate, misc } = intervention;
-    promises.push(EventHistoriesHelper.createEventHistoryOnUpdate({ startDate, endDate, misc }, intervention, credentials));
+  for (const group of unassignedInterventions) {
+    if (group._id) {
+      const { startDate, endDate, misc } = group.events[0];
+      promises.push(EventHistoriesHelper.createEventHistoryOnUpdate({ startDate, endDate, misc, shouldUpdateRepetition: true }, group.events[0], credentials));
+      ids.push(...group.events.map(ev => ev._id));
+    } else {
+      for (const intervention of group.events) {
+        const { startDate, endDate, misc } = intervention;
+        promises.push(EventHistoriesHelper.createEventHistoryOnUpdate({ startDate, endDate, misc }, intervention, credentials));
+        ids.push(intervention._id);
+      }
+    }
   }
 
-  promises.push(Event.updateMany({ _id: { $in: unassignedInterventionsIds } }, { $unset: { auxiliary: '' } }));
+  promises.push(Event.updateMany({ _id: { $in: ids } }, { $unset: { auxiliary: '' } }));
 
   return Promise.all(promises);
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
   const events = await EventRepository.getEventsExceptInterventions(contract);
-  const eventsIds = events.map(ev => ev._id);
   const promises = [];
+  const ids = [];
 
-  for (const event of events) {
-    promises.push(EventHistoriesHelper.createEventHistoryOnDelete(event, credentials));
+  for (const group of events) {
+    if (group._id) {
+      promises.push(EventHistoriesHelper.createEventHistoryOnDelete(group.events[0], credentials));
+      ids.push(...group.events.map(ev => ev._id));
+    } else {
+      for (const intervention of group.events) {
+        promises.push(EventHistoriesHelper.createEventHistoryOnDelete(intervention, credentials));
+        ids.push(intervention._id);
+      }
+    }
   }
 
-  promises.push(Event.deleteMany({ _id: { $in: eventsIds } }));
+  promises.push(Event.deleteMany({ _id: { $in: ids } }));
 
   return Promise.all(promises);
 };
