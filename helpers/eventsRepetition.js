@@ -35,7 +35,7 @@ exports.formatRepeatedPayload = async (event, momentDay) => {
 
 exports.createRepetitionsEveryDay = async (payload) => {
   const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(3, 'M').endOf('M');
+  const end = moment(payload.startDate).add(90, 'd');
   const range = Array.from(moment().range(start, end).by('days'));
   const repeatedEvents = [];
 
@@ -48,7 +48,7 @@ exports.createRepetitionsEveryDay = async (payload) => {
 
 exports.createRepetitionsEveryWeekDay = async (payload) => {
   const start = moment(payload.startDate).add(1, 'd');
-  const end = moment(payload.startDate).add(3, 'M').endOf('M');
+  const end = moment(payload.startDate).add(90, 'd');
   const range = Array.from(moment().range(start, end).by('days'));
   const repeatedEvents = [];
 
@@ -62,7 +62,7 @@ exports.createRepetitionsEveryWeekDay = async (payload) => {
 
 exports.createRepetitionsByWeek = async (payload, step) => {
   const start = moment(payload.startDate).add(step, 'w');
-  const end = moment(payload.startDate).add(3, 'M').endOf('M');
+  const end = moment(payload.startDate).add(90, 'd');
   const range = Array.from(moment().range(start, end).by('weeks', { step }));
   const repeatedEvents = [];
 

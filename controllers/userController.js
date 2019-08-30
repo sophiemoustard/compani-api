@@ -156,7 +156,6 @@ const show = async (req) => {
   }
 };
 
-
 const update = async (req) => {
   try {
     const newBody = flat(req.payload);
