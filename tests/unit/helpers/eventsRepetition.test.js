@@ -78,7 +78,7 @@ describe('createRepetitionsEveryDay', () => {
     formatRepeatedPayload.returns(new Event());
     await EventsRepetitionHelper.createRepetitionsEveryDay(event);
 
-    sinon.assert.callCount(formatRepeatedPayload, 110);
+    sinon.assert.callCount(formatRepeatedPayload, 90);
     sinon.assert.callCount(insertMany, 1);
   });
 });
@@ -100,7 +100,7 @@ describe('createRepetitionsEveryWeekDay', () => {
     formatRepeatedPayload.returns(new Event());
     await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event);
 
-    sinon.assert.callCount(formatRepeatedPayload, 78);
+    sinon.assert.callCount(formatRepeatedPayload, 64);
     sinon.assert.callCount(insertMany, 1);
   });
 });
@@ -122,7 +122,7 @@ describe('createRepetitionsByWeek', () => {
     formatRepeatedPayload.returns(new Event());
     await EventsRepetitionHelper.createRepetitionsByWeek(event);
 
-    sinon.assert.callCount(formatRepeatedPayload, 16);
+    sinon.assert.callCount(formatRepeatedPayload, 13);
     sinon.assert.callCount(insertMany, 1);
   });
 });
