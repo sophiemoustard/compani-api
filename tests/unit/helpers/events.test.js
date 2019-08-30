@@ -45,7 +45,20 @@ describe('updateEvent', () => {
     updateEvent.restore();
   });
 
-  it('1. should update absence without unset repetition property', async () => {
+  it('should update repetition', async () => {
+    const eventId = new ObjectID();
+    const auxiliary = new ObjectID();
+    const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
+    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString(), shouldUpdateRepetition: true };
+
+    updateEvent.returns(event);
+    await EventHelper.updateEvent(event, payload);
+
+    sinon.assert.called(updateRepetition);
+    sinon.assert.notCalled(updateEvent);
+  });
+
+  it('should update absence without unset repetition property', async () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, type: ABSENCE, auxiliary };
@@ -58,7 +71,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('2. should update event without repetition without unset repetition property', async () => {
+  it('should update event without repetition without unset repetition property', async () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, auxiliary };
@@ -71,7 +84,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('3. should update event with NEVER frequency without unset repetition property', async () => {
+  it('should update event with NEVER frequency without unset repetition property', async () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, repetition: { frequency: NEVER }, auxiliary };
@@ -84,20 +97,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('4. should update event and repeated events without unset repetition property', async () => {
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: true, auxiliary: auxiliary.toHexString() };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
-
-    sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.callCount(updateRepetition, 1);
-  });
-
-  it('5. should update event when only misc is updated without unset repetition property', async () => {
+  it('should update event when only misc is updated without unset repetition property', async () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const sector = new ObjectID();
@@ -117,7 +117,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('6. should update event and unset repetition property if event in repetition and repetition not updated', async () => {
+  it('should update event and unset repetition property if event in repetition and repetition not updated', async () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
@@ -136,7 +136,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('7. should update event and unset cancel property when cancellation cancelled', async () => {
+  it('should update event and unset cancel property when cancellation cancelled', async () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = {
@@ -160,7 +160,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('8. should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
+  it('should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = {
@@ -183,7 +183,7 @@ describe('updateEvent', () => {
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('9. should update event and unset auxiliary if missing in payload', async () => {
+  it('should update event and unset auxiliary if missing in payload', async () => {
     const eventId = new ObjectID();
     const event = { _id: eventId };
     const payload = { startDate: '2019-01-21T09:38:18.653Z' };

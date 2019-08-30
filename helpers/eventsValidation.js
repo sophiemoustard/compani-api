@@ -46,7 +46,6 @@ exports.isCreationAllowed = async (event) => {
 
 exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
-
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
   const event = !payload.auxiliary
@@ -59,7 +58,7 @@ exports.isEditionAllowed = async (eventFromDB, payload) => {
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!await EventsHelper.checkContracts(event, user)) return false;
 
-  if (!event.isCancelled && (await exports.hasConflicts(event))) return false;
+  if (!(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled && (await exports.hasConflicts(event))) return false;
 
   if (!eventHasAuxiliarySector(event, user)) return false;
 

@@ -206,9 +206,10 @@ describe('updateRepetition', () => {
   });
 
   it('should update repetition', async () => {
-    const event = { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z' };
+    const event = { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z', type: INTERVENTION };
     const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', auxiliary: '1234567890' };
     const events = [
+      { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', _id: 'asdfghjk' },
       { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-24T09:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', _id: '123456' },
       { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-25T09:00:00.000Z', endDate: '2019-03-25T11:00:00.000Z', _id: '654321' },
     ];
@@ -217,12 +218,13 @@ describe('updateRepetition', () => {
 
     await EventsRepetitionHelper.updateRepetition(event, payload);
 
-    sinon.assert.calledTwice(hasConflicts);
-    sinon.assert.calledTwice(findOneAndUpdateEvent);
+    sinon.assert.calledWith(findEvent, { 'repetition.parentId': 'qwertyuiop', startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') } });
+    sinon.assert.calledThrice(hasConflicts);
+    sinon.assert.calledThrice(findOneAndUpdateEvent);
   });
 
   it('should unassign intervention in conflict', async () => {
-    const event = { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z' };
+    const event = { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-23T09:00:00.000Z', type: INTERVENTION };
     const payload = { startDate: '2019-03-23T10:00:00.000Z', endDate: '2019-03-23T11:00:00.000Z', auxiliary: '1234567890' };
     const events = [
       { repetition: { parentId: 'qwertyuiop', frequency: 'every_day' }, startDate: '2019-03-24T09:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z', _id: '123456' },

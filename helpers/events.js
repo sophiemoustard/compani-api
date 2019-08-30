@@ -215,15 +215,16 @@ const isMiscOnlyUpdated = (event, payload) => {
  */
 exports.updateEvent = async (event, eventPayload, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
-  const miscUpdatedOnly = eventPayload.misc && isMiscOnlyUpdated(event, eventPayload);
+  if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload);
 
+  const miscUpdatedOnly = eventPayload.misc && isMiscOnlyUpdated(event, eventPayload);
   let unset;
   let set = eventPayload;
   if (!eventPayload.isCancelled && event.isCancelled) {
     set = { ...set, isCancelled: false };
     unset = { cancel: '' };
   }
-  if (isRepetition(event) && !eventPayload.shouldUpdateRepetition && !miscUpdatedOnly) {
+  if (isRepetition(event) && !miscUpdatedOnly) {
     set = { ...set, 'repetition.frequency': NEVER };
     unset = { ...unset, 'repetition.parentId': '' };
   }
@@ -231,9 +232,6 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   if (!eventPayload.auxiliary) unset = { ...unset, auxiliary: '' };
 
   event = await EventRepository.updateEvent(event._id, set, unset);
-  if (!miscUpdatedOnly && isRepetition(event) && eventPayload.shouldUpdateRepetition) {
-    await EventsRepetitionHelper.updateRepetition(event, eventPayload);
-  }
 
   return exports.populateEventSubscription(event);
 };
