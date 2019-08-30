@@ -1203,7 +1203,7 @@ describe('getDraftPayByAuxiliary', () => {
     expect(result).toEqual({
       auxiliaryId: '1234567890',
       auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
-      startDate: '2019-05-01T00:00:00',
+      startDate: '2019-05-13T00:00:00',
       endDate: '2019-05-31T23:59:59',
       month: '05-2019',
       contractHours: 150,
