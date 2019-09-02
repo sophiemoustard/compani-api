@@ -177,7 +177,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate) => {
         as: 'auxiliary',
       },
     },
-    { $unwind: { path: '$auxiliary' } },
+    { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: 'sectors',
