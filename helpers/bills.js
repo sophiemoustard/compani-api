@@ -6,12 +6,16 @@ const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const UtilsHelper = require('./utils');
+const PdfHelper = require('./pdf');
 const { HOURLY, THIRD_PARTY } = require('./constants');
 
 exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
 exports.formatSubscriptionData = (bill) => {
-  const events = bill.eventsList.map(ev => ({ eventId: ev.event, auxiliary: ev.auxiliary, startDate: ev.startDate, endDate: ev.endDate }));
+  const events = bill.eventsList.map(ev => ({
+    eventId: ev.event,
+    ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
+  }));
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.startDate, bill.subscription.service, 'startDate');
 
   return {
@@ -170,25 +174,15 @@ exports.getUnitInclTaxes = (bill, subscription) => {
     : version.amountTTC;
 };
 
-exports.formatPDF = (bill, company) => {
-  const logo = 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
-  const computedData = {
-    totalExclTaxes: 0,
-    totalVAT: 0,
-    netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
-    date: moment(bill.date).format('DD/MM/YYYY'),
-    formattedSubs: [],
-    formattedEvents: [],
-    recipient: {
-      address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.address', {}),
-      name: bill.client ? bill.client.name : formatCustomerName(bill.customer),
-    },
-  };
+exports.formatBillSubscriptionsForPdf = (bill) => {
+  let totalExclTaxes = 0;
+  let totalVAT = 0;
+  const formattedSubs = [];
 
   for (const sub of bill.subscriptions) {
-    computedData.totalExclTaxes += sub.exclTaxes;
-    computedData.totalVAT += sub.inclTaxes - sub.exclTaxes;
-    const formattedSubs = {
+    totalExclTaxes += sub.exclTaxes;
+    totalVAT += sub.inclTaxes - sub.exclTaxes;
+    const formattedSub = {
       unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
       inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
       vat: sub.vat.toString().replace(/\./g, ','),
@@ -196,23 +190,57 @@ exports.formatPDF = (bill, company) => {
     };
     if (sub.service.nature === HOURLY) {
       const formattedHours = UtilsHelper.formatFloatForExport(sub.hours);
-      formattedSubs.hours = formattedHours === '' ? '' : `${formattedHours} h`;
+      formattedSub.hours = formattedHours === '' ? '' : `${formattedHours} h`;
     } else {
-      formattedSubs.hours = sub.hours;
+      formattedSub.hours = sub.hours;
     }
-    computedData.formattedSubs.push(formattedSubs);
-    for (const ev of sub.events) {
-      computedData.formattedEvents.push({
-        identity: `${ev.auxiliary.identity.firstname.substring(0, 1)}. ${ev.auxiliary.identity.lastname}`,
-        date: moment(ev.startDate).format('DD/MM'),
-        startTime: moment(ev.startDate).format('HH:mm'),
-        endTime: moment(ev.endDate).format('HH:mm'),
-        service: sub.service.name,
-      });
-    }
+    formattedSubs.push(formattedSub);
   }
-  computedData.totalExclTaxes = UtilsHelper.formatPrice(computedData.totalExclTaxes);
-  computedData.totalVAT = UtilsHelper.formatPrice(computedData.totalVAT);
+
+  totalExclTaxes = UtilsHelper.formatPrice(totalExclTaxes);
+  totalVAT = UtilsHelper.formatPrice(totalVAT);
+
+  return { totalExclTaxes, totalVAT, formattedSubs };
+};
+
+exports.formatEventsForPdf = (events, service) => {
+  const formattedEvents = [];
+
+  const sortedEvents = events.map(ev => ev).sort((ev1, ev2) => ev1.startDate - ev2.startDate);
+  for (const ev of sortedEvents) {
+    const formattedEvent = {
+      identity: `${ev.auxiliary.identity.firstname.substring(0, 1)}. ${ev.auxiliary.identity.lastname}`,
+      date: moment(ev.startDate).format('DD/MM'),
+      startTime: moment(ev.startDate).format('HH:mm'),
+      endTime: moment(ev.endDate).format('HH:mm'),
+      service: service.name,
+    };
+    if (ev.surcharges) {
+      formattedEvent.surcharges = PdfHelper.formatEventSurchargesForPdf(ev.surcharges);
+    }
+    formattedEvents.push(formattedEvent);
+  }
+
+  return formattedEvents;
+};
+
+exports.formatPDF = (bill, company) => {
+  const computedData = {
+    netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
+    date: moment(bill.date).format('DD/MM/YYYY'),
+    formattedEvents: [],
+    recipient: {
+      address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.address', {}),
+      name: bill.client ? bill.client.name : formatCustomerName(bill.customer),
+    },
+    forTpp: !!bill.client,
+    ...exports.formatBillSubscriptionsForPdf(bill),
+  };
+
+  for (const sub of bill.subscriptions) {
+    const formattedEvents = exports.formatEventsForPdf(sub.events, sub.service);
+    computedData.formattedEvents.push(...formattedEvents);
+  }
 
   return {
     bill: {
@@ -220,7 +248,7 @@ exports.formatPDF = (bill, company) => {
       customer: bill.customer,
       ...computedData,
       company,
-      logo,
+      logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
     },
   };
 };
@@ -234,6 +262,20 @@ const exportBillSubscribtions = (bill) => {
   return subscriptions.join('\r\n');
 };
 
+const billExportHeader = [
+  'Identifiant',
+  'Date',
+  'Id Bénéficiaire',
+  'Titre',
+  'Nom',
+  'Prénom',
+  'Id tiers payeur',
+  'Tiers payeur',
+  'Montant HT en €',
+  'Montant TTC en €',
+  'Services',
+];
+
 exports.exportBillsHistory = async (startDate, endDate) => {
   const query = {
     date: { $lte: endDate, $gte: startDate },
@@ -245,19 +287,7 @@ exports.exportBillsHistory = async (startDate, endDate) => {
     .populate({ path: 'client' })
     .lean();
 
-  const header = [
-    'Identifiant',
-    'Date',
-    'Id Bénéficiaire',
-    'Bénéficiaire',
-    'Id tiers payeur',
-    'Tiers payeur',
-    'Montant HT en €',
-    'Montant TTC en €',
-    'Services',
-  ];
-
-  const rows = [header];
+  const rows = [billExportHeader];
 
   for (const bill of bills) {
     const customerId = get(bill.customer, '_id');
@@ -276,7 +306,9 @@ exports.exportBillsHistory = async (startDate, endDate) => {
       bill.billNumber || '',
       bill.date ? moment(bill.date).format('DD/MM/YYYY') : '',
       customerId ? customerId.toHexString() : '',
-      UtilsHelper.getFullTitleFromIdentity(get(bill.customer, 'identity')),
+      get(bill, 'customer.identity.title', ''),
+      get(bill, 'customer.identity.lastname', '').toUpperCase(),
+      get(bill, 'customer.identity.firstname', ''),
       clientId ? clientId.toHexString() : '',
       get(bill.client, 'name') || '',
       totalExclTaxesFormatted,

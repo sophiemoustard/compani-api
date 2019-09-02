@@ -3,7 +3,7 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { paymentsList, populateDB, paymentCustomerList } = require('./seed/paymentsSeed');
+const { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList } = require('./seed/paymentsSeed');
 const { PAYMENT, REFUND } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Payment = require('../../models/Payment');
@@ -19,46 +19,76 @@ describe('NODE ENV', () => {
 });
 
 describe('PAYMENTS ROUTES', () => {
-  let token = null;
+  let authToken = null;
   beforeEach(populateDB);
-  beforeEach(async () => {
-    token = await getToken('coach');
-  });
 
   describe('GET /payments', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
     it('should get all payments', async () => {
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'GET',
         url: '/payments',
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
       });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.payments.length).toBe(paymentsList.length);
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.payments.length).toBe(paymentsList.length);
     });
   });
 
-  describe('POST /payments', () => {
-    const origPayload = {
-      date: moment().toDate(),
-      customer: paymentCustomerList[0]._id,
-      netInclTaxes: 400,
-      nature: PAYMENT,
-      type: 'direct_debit',
-    };
-    const creationAssertions = [{ ...origPayload }, { ...origPayload, nature: REFUND }];
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/payments',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PAYMENTS ROUTES - POST /payments', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const originalPayload = {
+    date: moment().toDate(),
+    customer: paymentCustomerList[0]._id,
+    netInclTaxes: 400,
+    nature: PAYMENT,
+    type: 'direct_debit',
+  };
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+    const creationAssertions = [{ ...originalPayload }, { ...originalPayload, nature: REFUND }];
 
     creationAssertions.forEach((payload) => {
       it(`should create a ${payload.nature}`, async () => {
-        const res = await app.inject({
+        const response = await app.inject({
           method: 'POST',
           url: '/payments',
           payload,
-          headers: { 'x-access-token': token },
+          headers: { 'x-access-token': authToken },
         });
-        expect(res.statusCode).toBe(200);
-        expect(res.result.message).toBe(translate[language].paymentCreated);
-        expect(res.result.data.payment).toEqual(expect.objectContaining(payload));
-        expect(res.result.data.payment.number).toBe(payload.nature === PAYMENT ? `REG-${moment().format('YYMM')}001` : `REMB-${moment().format('YYMM')}001`);
+        expect(response.statusCode).toBe(200);
+        expect(response.result.message).toBe(translate[language].paymentCreated);
+        expect(response.result.data.payment).toEqual(expect.objectContaining(payload));
+        expect(response.result.data.payment.number).toBe(payload.nature === PAYMENT ? `REG-${moment().format('YYMM')}001` : `REMB-${moment().format('YYMM')}001`);
         const payments = await Payment.find().lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
@@ -67,35 +97,35 @@ describe('PAYMENTS ROUTES', () => {
     const falsyAssertions = [
       {
         param: 'date',
-        payload: { ...origPayload },
+        payload: { ...originalPayload },
         update() {
           delete this.payload[this.param];
         },
       },
       {
         param: 'customer',
-        payload: { ...origPayload },
+        payload: { ...originalPayload },
         update() {
           delete this.payload[this.param];
         },
       },
       {
         param: 'netInclTaxes',
-        payload: { ...origPayload },
+        payload: { ...originalPayload },
         update() {
           delete this.payload[this.param];
         },
       },
       {
         param: 'nature',
-        payload: { ...origPayload },
+        payload: { ...originalPayload },
         update() {
           delete this.payload[this.param];
         },
       },
       {
         param: 'type',
-        payload: { ...origPayload },
+        payload: { ...originalPayload },
         update() {
           delete this.payload[this.param];
         },
@@ -109,106 +139,148 @@ describe('PAYMENTS ROUTES', () => {
           method: 'POST',
           url: '/payments',
           payload: test.payload,
-          headers: { 'x-access-token': token },
+          headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(400);
       });
     });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const payload = { ...originalPayload };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/payments',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
+  let authToken = null;
+  const originalPayload = [
+    {
+      date: moment().toDate(),
+      customer: paymentCustomerList[0]._id,
+      customerInfo: paymentCustomerList[0],
+      netInclTaxes: 900,
+      nature: PAYMENT,
+      type: 'direct_debit',
+      rum: 'R12345678000000345634567',
+    },
+    {
+      date: moment().toDate(),
+      customer: paymentCustomerList[1]._id,
+      customerInfo: paymentCustomerList[1],
+      netInclTaxes: 250,
+      nature: PAYMENT,
+      type: 'direct_debit',
+      rum: 'R12345678000000345634567',
+    },
+  ];
+
+  describe('Admin with company', () => {
+    beforeEach(populateDBWithCompany);
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
 
     it('should create multiple payments', async () => {
-      const payload = [
-        {
-          date: moment().toDate(),
-          customer: paymentCustomerList[0]._id,
-          customerInfo: paymentCustomerList[0],
-          netInclTaxes: 900,
-          nature: PAYMENT,
-          type: 'direct_debit',
-          rum: 'R12345678000000345634567',
-        },
-        {
-          date: moment().toDate(),
-          customer: paymentCustomerList[1]._id,
-          customerInfo: paymentCustomerList[1],
-          netInclTaxes: 250,
-          nature: PAYMENT,
-          type: 'direct_debit',
-          rum: 'R12345678000000345634567',
-        },
-      ];
-
+      const payload = [...originalPayload];
       const addStub = sinon.stub(Drive, 'add');
 
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'POST',
         url: '/payments/createlist',
         payload,
-        headers: { 'x-access-token': token },
-        credentials: {
-          company: {
-            _id: new ObjectID(),
-            name: 'Test',
-            iban: 'FR3514508000505917721779B12',
-            bic: 'RTYUIKJHBFRG',
-            ics: '12345678',
-            directDebitsFolderId: '123456789',
-          },
-        },
+        headers: { 'x-access-token': authToken },
       });
 
-      expect(res.statusCode).toBe(200);
+      expect(response.statusCode).toBe(200);
       const payments = await Payment.find().lean();
       expect(payments.length).toBe(paymentsList.length + 2);
       sinon.assert.called(addStub);
       addStub.restore();
     });
+  });
 
-    it('should create multiple payments', async () => {
-      const payload = [
-        {
-          date: moment().toDate(),
-          customer: paymentCustomerList[0]._id,
-          customerInfo: paymentCustomerList[0],
-          netInclTaxes: 900,
-          nature: PAYMENT,
-          type: 'direct_debit',
-          rum: 'R12345678000000345634567',
-        },
-        {
-          date: moment().toDate(),
-          customer: paymentCustomerList[1]._id,
-          customerInfo: paymentCustomerList[1],
-          netInclTaxes: 250,
-          nature: PAYMENT,
-          type: 'direct_debit',
-          rum: 'R12345678000000345634567',
-        },
-      ];
-
-      const res = await app.inject({
+  describe('Admin without company', () => {
+    beforeEach(populateDB);
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+    it('should not create multiple payments as company credentials are missing', async () => {
+      const payload = [...originalPayload];
+      const response = await app.inject({
         method: 'POST',
         url: '/payments/createlist',
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
       });
 
-      expect(res.statusCode).toBe(400);
+      expect(response.statusCode).toBe(400);
     });
   });
 
-  describe('PUT /payments/_id', () => {
-    const origPayload = {
-      netInclTaxes: 200,
-      date: '2019-04-16T22:00:00',
-      type: 'direct_debit',
-    };
+  describe('Other roles', () => {
+    beforeEach(populateDB);
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const payload = [...originalPayload];
+        const response = await app.inject({
+          method: 'POST',
+          url: '/payments/createlist',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+  const originalPayload = {
+    netInclTaxes: 200,
+    date: '2019-04-16T22:00:00',
+    type: 'direct_debit',
+  };
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
 
     it('should update payment', async () => {
-      const payload = { ...origPayload };
+      const payload = { ...originalPayload };
       const res = await app.inject({
         method: 'PUT',
         url: `/payments/${paymentsList[0]._id}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
         payload,
       });
       expect(res.statusCode).toBe(200);
@@ -227,7 +299,7 @@ describe('PAYMENTS ROUTES', () => {
       const res = await app.inject({
         method: 'PUT',
         url: `/payments/${invalidId}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': authToken },
         payload,
       });
       expect(res.statusCode).toBe(404);
@@ -236,21 +308,21 @@ describe('PAYMENTS ROUTES', () => {
     const falsyAssertions = [
       {
         param: 'date',
-        payload: { ...origPayload },
+        payload: { ...originalPayload },
         update() {
           delete this.payload[this.param];
         },
       },
       {
         param: 'netInclTaxes',
-        payload: { ...origPayload },
+        payload: { ...originalPayload },
         update() {
           delete this.payload[this.param];
         },
       },
       {
         param: 'type',
-        payload: { ...origPayload },
+        payload: { ...originalPayload },
         update() {
           delete this.payload[this.param];
         },
@@ -263,10 +335,33 @@ describe('PAYMENTS ROUTES', () => {
         const res = await app.inject({
           method: 'PUT',
           url: `/payments/${paymentsList[0]._id}`,
-          headers: { 'x-access-token': token },
+          headers: { 'x-access-token': authToken },
           payload: test.payload,
         });
         expect(res.statusCode).toBe(400);
+      });
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const payload = { ...originalPayload };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/payments/${paymentsList[0]._id}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });

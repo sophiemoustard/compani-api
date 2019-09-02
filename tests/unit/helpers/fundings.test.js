@@ -2,18 +2,18 @@ const expect = require('expect');
 const sinon = require('sinon');
 const UtilsHelper = require('../../../helpers/utils');
 const FundingsHelper = require('../../../helpers/fundings');
-const Customer = require('../../../models/Customer');
+const CustomerRepository = require('../../../repositories/CustomerRepository');
 
 require('sinon-mongoose');
 
 describe('exportFundings', () => {
-  let CustomerModel;
+  let getCustomerFundings;
   let getLastVersion;
   let formatFloatForExport;
   let mergeLastVersionWithBaseObject;
 
   beforeEach(() => {
-    CustomerModel = sinon.mock(Customer);
+    getCustomerFundings = sinon.stub(CustomerRepository, 'getCustomerFundings');
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
     formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
     mergeLastVersionWithBaseObject = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject');
@@ -22,7 +22,7 @@ describe('exportFundings', () => {
   });
 
   afterEach(() => {
-    CustomerModel.restore();
+    getCustomerFundings.restore();
     formatFloatForExport.restore();
     getLastVersion.restore();
     mergeLastVersionWithBaseObject.restore();
@@ -30,31 +30,29 @@ describe('exportFundings', () => {
 
   it('should return csv header', async () => {
     const customers = [];
-    CustomerModel.expects('aggregate').returns(customers);
+    getCustomerFundings.returns(customers);
 
     const result = await FundingsHelper.exportFundings();
 
     sinon.assert.notCalled(getLastVersion);
     sinon.assert.notCalled(formatFloatForExport);
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Bénéficiaire', 'Tiers payeur', 'Nature', 'Service', 'Date de début', 'Date de fin', 'Numéro de dossier',
-      'Fréquence', 'Montant TTC', 'Montant unitaire TTC', 'Nombre d\'heures', 'Jours', 'Participation du bénéficiaire']);
+    expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prénom', 'Tiers payeur', 'Nature', 'Service', 'Date de début', 'Date de fin',
+      'Numéro de dossier', 'Fréquence', 'Montant TTC', 'Montant unitaire TTC', 'Nombre d\'heures', 'Jours', 'Participation du bénéficiaire']);
   });
 
   it('should return customer info', async () => {
     const customers = [
-      {
-        identity: { lastname: 'Autonomie', title: 'M' },
-      }
+      { identity: { lastname: 'Autonomie', title: 'M' } },
     ];
 
-    CustomerModel.expects('aggregate').returns(customers);
+    getCustomerFundings.returns(customers);
 
     const result = await FundingsHelper.exportFundings();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M Autonomie', '', '', '', '', '', '', '', '', '', '', '', '']);
+    expect(result[1]).toMatchObject(['M', 'AUTONOMIE', '', '', '', '', '', '', '', '', '', '', '', '', '']);
   });
 
   it('should return funding third party payer', async () => {
@@ -62,13 +60,13 @@ describe('exportFundings', () => {
       { funding: { thirdPartyPayer: { name: 'tpp' } } },
     ];
 
-    CustomerModel.expects('aggregate').returns(customers);
+    getCustomerFundings.returns(customers);
 
     const result = await FundingsHelper.exportFundings();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', 'tpp', '', '', '', '', '', '', '', '', '', '', '']);
+    expect(result[1]).toMatchObject(['', '', '', 'tpp', '', '', '', '', '', '', '', '', '', '', '']);
   });
 
   it('should return funding service', async () => {
@@ -76,7 +74,7 @@ describe('exportFundings', () => {
       { funding: { subscription: { service: { versions: [{ name: 'Toto' }] } } } },
     ];
 
-    CustomerModel.expects('aggregate').returns(customers);
+    getCustomerFundings.returns(customers);
 
     const result = await FundingsHelper.exportFundings();
 
@@ -85,7 +83,7 @@ describe('exportFundings', () => {
     sinon.assert.callCount(formatFloatForExport, 4);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', 'Toto', '', '', '', '', '', '', '', '', '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', 'Toto', '', '', '', '', '', '', '', '', '']);
   });
 
   it('should return funding info', async () => {
@@ -103,10 +101,10 @@ describe('exportFundings', () => {
           careDays: [1, 4, 5],
           customerParticipationRate: 90,
         },
-      }
+      },
     ];
 
-    CustomerModel.expects('aggregate').returns(customers);
+    getCustomerFundings.returns(customers);
 
     const result = await FundingsHelper.exportFundings();
 
@@ -115,7 +113,7 @@ describe('exportFundings', () => {
     sinon.assert.callCount(formatFloatForExport, 4);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', 'F-12', 'F-14', 'F-3',
+    expect(result[1]).toMatchObject(['', '', '', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', 'F-12', 'F-14', 'F-3',
       'Mardi Vendredi Samedi ', 'F-90']);
   });
 });

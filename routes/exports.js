@@ -16,7 +16,6 @@ const {
   PAYMENT,
   ABSENCE,
   PAY,
-  FINAL_PAY,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -31,6 +30,7 @@ exports.plugin = {
             type: Joi.string().required().valid(SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION),
           },
         },
+        auth: { scope: ['exports:read'] },
       },
       handler: exportData,
     });
@@ -41,15 +41,16 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            type: Joi.string().required().valid(WORKING_EVENT, BILL, PAYMENT, ABSENCE, PAY, FINAL_PAY),
+            type: Joi.string().required().valid(WORKING_EVENT, BILL, PAYMENT, ABSENCE, PAY),
           },
           query: {
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
           },
         },
+        auth: { scope: ['exports:read'] },
       },
       handler: exportHistory,
     });
-  }
+  },
 };

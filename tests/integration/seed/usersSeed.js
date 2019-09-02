@@ -2,6 +2,7 @@ const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
 const User = require('../../../models/User');
 const Company = require('../../../models/Company');
+const Task = require('../../../models/Task');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 
 const company = {
@@ -21,56 +22,76 @@ const company = {
   directDebitsFolderId: '1234567890',
 };
 
+const task = {
+  _id: new ObjectID(),
+  name: 'Test',
+};
+
 const userList = [
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Test2', lastname: 'Test2' },
-    local: { email: 'test2@alenvi.io', password: '123456' },
-    role: rolesList[2]._id,
+    identity: { firstname: 'Auxiliary', lastname: 'White' },
+    local: { email: 'white@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    administrative: {
+      certificates: [{ driveId: '1234567890' }],
+      driveFolder: { driveId: '0987654321' },
+    },
+    procedure: [{ task: task._id }],
     inactivityDate: null,
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Test4', lastname: 'Test4' },
-    local: { email: 'test4@alenvi.io', password: '123456' },
+    identity: { firstname: 'Admin1', lastname: 'Horseman' },
+    local: { email: 'horseman@alenvi.io', password: '123456' },
     employee_id: 12345678,
     refreshToken: uuidv4(),
     company: company._id,
-    role: rolesList[0]._id,
+    role: rolesList.find(role => role.name === 'admin')._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Test5', lastname: 'Test5' },
-    local: { email: 'test5@alenvi.io', password: '123456' },
+    identity: { firstname: 'Admin2', lastname: 'Vador' },
+    local: { email: 'vador@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
-    role: rolesList[0]._id,
+    role: rolesList.find(role => role.name === 'admin')._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Test6', lastname: 'Test6' },
-    local: { email: 'test6@alenvi.io', password: '123456' },
+    identity: { firstname: 'Admin3', lastname: 'Kitty' },
+    local: { email: 'kitty@alenvi.io', password: '123456' },
     employee_id: 12345678,
     refreshToken: uuidv4(),
-    role: rolesList[0]._id,
+    role: rolesList.find(role => role.name === 'admin')._id,
     inactivityDate: '2018-11-01T12:52:27.461Z',
   },
   {
     _id: new ObjectID(),
-    identity: { firstname: 'Test7', lastname: 'Test7' },
-    local: { email: 'test7@alenvi.io', password: '123456' },
+    identity: { firstname: 'Admin4', lastname: 'Trump' },
+    local: { email: 'trump@alenvi.io', password: '123456' },
     inactivityDate: null,
     employee_id: 12345678,
     refreshToken: uuidv4(),
-    role: rolesList[0]._id,
+    role: rolesList.find(role => role.name === 'admin')._id,
+    contracts: [new ObjectID()],
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Helper1', lastname: 'Carolyn' },
+    local: { email: 'carolyn@alenvi.io', password: '123456' },
+    inactivityDate: null,
+    employee_id: 12345678,
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
     contracts: [new ObjectID()],
   },
 ];
 
 const userPayload = {
-  identity: { firstname: 'Test', lastname: 'Test' },
-  local: { email: 'test1@alenvi.io', password: '123456' },
+  identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
+  local: { email: 'kirk@alenvi.io', password: '123456' },
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   company: company._id,
 };
@@ -78,14 +99,14 @@ const userPayload = {
 const populateDB = async () => {
   await User.deleteMany({});
   await Company.deleteMany({});
+  await Task.deleteMany({});
 
   await populateDBForAuthentification();
-  await new User(userList[0]).save();
-  await new User(userList[1]).save();
-  await new User(userList[2]).save();
-  await new User(userList[3]).save();
-  await new User(userList[4]).save();
+  for (const user of userList) {
+    await new User(user).save();
+  }
   await new Company(company).save();
+  await new Task(task).save();
 };
 
 module.exports = {

@@ -6,6 +6,7 @@ const Bill = require('../../../models/Bill');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const Payment = require('../../../models/Payment');
 const Pay = require('../../../models/Pay');
+const Sector = require('../../../models/Sector');
 const FinalPay = require('../../../models/FinalPay');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 const { PAYMENT, REFUND } = require('../../../helpers/constants');
@@ -39,7 +40,7 @@ const thirdPartyPayer = {
 const eventList = [
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector,
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
@@ -48,7 +49,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -60,7 +61,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    sector,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
@@ -161,6 +162,7 @@ const payList = [
     _id: new ObjectID(),
     auxiliary,
     endDate: '2019-01-31T14:00:18',
+    startDate: '2019-01-01T14:00:18',
     month: '01-2019',
     contractHours: 151,
     workedHours: 143,
@@ -183,6 +185,7 @@ const payList = [
     _id: new ObjectID(),
     auxiliary,
     endDate: '2019-02-28T14:00:18',
+    startDate: '2019-01-01T14:00:18',
     month: '02-2019',
     contractHours: 151,
     workedHours: 143,
@@ -208,6 +211,7 @@ const finalPayList = [
     _id: new ObjectID(),
     auxiliary,
     endDate: '2019-01-31T14:00:18',
+    startDate: '2019-01-01T14:00:18',
     endNotificationDate: '2019-01-25T14:00:18',
     endReason: 'salut',
     compensation: 10,
@@ -233,6 +237,7 @@ const finalPayList = [
     _id: new ObjectID(),
     auxiliary,
     endDate: '2019-02-28T14:00:18',
+    startDate: '2019-01-01T14:00:18',
     endNotificationDate: '2019-02-25T14:00:18',
     endReason: 'salut',
     compensation: 10,
@@ -260,10 +265,12 @@ const populateEvents = async () => {
   await Event.deleteMany();
   await User.deleteMany();
   await Customer.deleteMany();
+  await Sector.deleteMany();
 
   await populateDBForAuthentification();
   await Event.insertMany(eventList);
   await new User(auxiliary).save();
+  await new Sector(sector).save();
   await new Customer(customer).save();
 };
 
@@ -291,24 +298,13 @@ const populatePayment = async () => {
 
 const populatePay = async () => {
   await Pay.deleteMany();
+  await FinalPay.deleteMany();
   await User.deleteMany();
-  await ThirdPartyPayer.deleteMany();
 
   await populateDBForAuthentification();
   await Pay.insertMany(payList);
-  await new User(auxiliary).save();
-  await new ThirdPartyPayer(thirdPartyPayer).save();
-};
-
-const populateFinalPay = async () => {
-  await FinalPay.deleteMany();
-  await User.deleteMany();
-  await ThirdPartyPayer.deleteMany();
-
-  await populateDBForAuthentification();
   await FinalPay.insertMany(finalPayList);
   await new User(auxiliary).save();
-  await new ThirdPartyPayer(thirdPartyPayer).save();
 };
 
 module.exports = {
@@ -316,5 +312,4 @@ module.exports = {
   populateBills,
   populatePayment,
   populatePay,
-  populateFinalPay,
 };

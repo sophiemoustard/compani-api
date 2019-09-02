@@ -15,5 +15,5 @@ exports.plugin = {
     });
 
     server.auth.default('jwt');
-  }
+  },
 };

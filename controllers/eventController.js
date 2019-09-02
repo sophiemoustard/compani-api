@@ -8,11 +8,11 @@ const {
   getListQuery,
   populateEvents,
   updateEvent,
-  deleteRepetition,
-  isEditionAllowed,
   createEvent,
   deleteEvent,
 } = require('../helpers/events');
+const { isEditionAllowed } = require('../helpers/eventsValidation');
+const { deleteRepetition } = require('../helpers/eventsRepetition');
 const { ABSENCE, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
 const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
 
@@ -20,7 +20,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = getListQuery(req);
+    const query = getListQuery(req.query);
     const { groupBy } = req.query;
 
     let events;

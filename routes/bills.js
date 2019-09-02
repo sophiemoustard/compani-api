@@ -18,6 +18,7 @@ exports.plugin = {
       method: 'GET',
       path: '/drafts',
       options: {
+        auth: { scope: ['billing:edit'] },
         validate: {
           query: {
             endDate: Joi.date().required(),
@@ -35,6 +36,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['billing:read'] },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -50,6 +52,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/pdfs',
       options: {
+        auth: { scope: ['billing:read'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
@@ -61,6 +64,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['billing:edit'] },
         validate: {
           payload: {
             bills: Joi.array().items(Joi.object({
@@ -85,6 +89,12 @@ exports.plugin = {
                     inclTaxesTpp: Joi.number(),
                     exclTaxesTpp: Joi.number(),
                     thirdPartyPayer: Joi.objectId(),
+                    surcharges: Joi.array().items(Joi.object({
+                      percentage: Joi.number().required(),
+                      name: Joi.string().required(),
+                      startHour: Joi.date(),
+                      endHour: Joi.date(),
+                    })),
                   })).required(),
                   hours: Joi.number().required(),
                   inclTaxes: Joi.number().required(),

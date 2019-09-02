@@ -10,10 +10,10 @@ const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
 const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
 const {
-  unassignInterventions,
+  unassignInterventionsOnContractEnd,
+  removeEventsExceptInterventionsOnContractEnd,
   updateAbsencesOnContractEnd,
 } = require('../helpers/events');
-const { removeEventsExceptInterventions } = require('../repositories/EventRepository');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
@@ -43,6 +43,11 @@ const get = async (req) => {
       .populate({ path: 'customer', select: 'identity' })
       .lean();
     if (!contract) return Boom.notFound();
+    if (!req.auth.credentials.scope.includes('contracts:read:user')) {
+      const authUserId = req.auth.credentials._id;
+      // 404 and not 403, the client shouldn't know the contract exists
+      if (authUserId !== contract.user._id) return Boom.notFound();
+    }
 
     return { message: translate[language].contractFound, data: { contract } };
   } catch (e) {
@@ -86,9 +91,9 @@ const update = async (req) => {
     if (req.payload.endDate) {
       contract = await endContract(req.params._id, req.payload);
       if (!contract) return Boom.notFound(translate[language].contractNotFound);
-      await unassignInterventions(contract);
-      await removeEventsExceptInterventions(contract);
-      await updateAbsencesOnContractEnd(contract.user._id, contract.endDate);
+      await unassignInterventionsOnContractEnd(contract, req.auth.credentials);
+      await removeEventsExceptInterventionsOnContractEnd(contract, req.auth.credentials);
+      await updateAbsencesOnContractEnd(contract.user._id, contract.endDate, req.auth.credentials);
     } else {
       contract = await Contract
         .findByIdAndUpdate(req.params._id, req.paylaod)

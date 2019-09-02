@@ -14,10 +14,8 @@ const {
   UNPAID_LEAVE,
   MATERNITY_LEAVE,
   ILLNESS,
+  OTHER,
   UNJUSTIFIED,
-  WEDDING,
-  BIRTH,
-  DEATH,
   WORK_ACCIDENT,
   NEVER,
   EVERY_DAY,
@@ -28,6 +26,7 @@ const {
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { CONTRACT_STATUS } = require('./Contract');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
+const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
 const ABSENCE_NATURES = [HOURLY, DAILY];
@@ -37,9 +36,7 @@ const ABSENCE_TYPES = [
   MATERNITY_LEAVE,
   ILLNESS,
   UNJUSTIFIED,
-  WEDDING,
-  BIRTH,
-  DEATH,
+  OTHER,
   WORK_ACCIDENT,
 ];
 const EVENT_CANCELLATION_REASONS = [AUXILIARY_INITIATIVE, CUSTOMER_INITIATIVE];
@@ -82,6 +79,7 @@ const EventSchema = mongoose.Schema({
     fundingVersion: { type: mongoose.Schema.Types.ObjectId },
     nature: String,
     careHours: Number,
+    surcharges: billEventSurchargesSchemaDefinition,
   },
   status: { type: String, enum: CONTRACT_STATUS },
 }, { timestamps: true });

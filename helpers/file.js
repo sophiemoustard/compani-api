@@ -47,13 +47,14 @@ const fileToBase64 = filePath => new Promise((resolve, reject) => {
 
 const exportToCsv = async (data) => {
   let csvContent = '\ufeff'; // UTF16LE BOM for Microsoft Excel
-  data.forEach((rowArray) => {
+  data.forEach((rowArray, index) => {
     const rowArrayQuoted = rowArray.map((cell) => {
       if (cell === '') return cell;
       return typeof cell === 'string' ? `"${cell.replace(/"/g, '""')}"` : cell;
     });
     const row = rowArrayQuoted.join(';');
-    csvContent += `${row}\r\n`;
+
+    csvContent += index === data.length - 1 ? row : `${row}\r\n`;
   });
 
   const date = new Date();

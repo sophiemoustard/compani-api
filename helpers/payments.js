@@ -121,6 +121,19 @@ exports.savePayments = async (payload, company) => {
   return generateXML(firstPayments, recurPayments, company);
 };
 
+const paymentExportHeader = [
+  'Identifiant',
+  'Date',
+  'Id Bénéficiaire',
+  'Titre',
+  'Nom',
+  'Prénom',
+  'Id tiers payeur',
+  'Tiers payeur',
+  'Moyen de paiement',
+  'Montant TTC en €',
+];
+
 exports.exportPaymentsHistory = async (startDate, endDate) => {
   const query = {
     nature: PAYMENT,
@@ -133,18 +146,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
     .populate({ path: 'client' })
     .lean();
 
-  const header = [
-    'Identifiant',
-    'Date',
-    'Id Bénéficiaire',
-    'Bénéficiaire',
-    'Id tiers payeur',
-    'Tiers payeur',
-    'Moyen de paiement',
-    'Montant TTC en €',
-  ];
-
-  const rows = [header];
+  const rows = [paymentExportHeader];
 
   for (const payment of payments) {
     const customerId = get(payment.customer, '_id');
@@ -153,7 +155,9 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
       payment.number || '',
       moment(payment.date).format('DD/MM/YYYY'),
       customerId ? customerId.toHexString() : '',
-      UtilsHelper.getFullTitleFromIdentity(get(payment.customer, 'identity')),
+      get(payment, 'customer.identity.title', ''),
+      get(payment, 'customer.identity.lastname', '').toUpperCase(),
+      get(payment, 'customer.identity.firstname', ''),
       clientId ? clientId.toHexString() : '',
       get(payment.client, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',

@@ -13,6 +13,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['billing:read'] },
         validate: {
           query: {
             date: Joi.date(),

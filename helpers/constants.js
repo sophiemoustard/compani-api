@@ -1,4 +1,5 @@
 module.exports = {
+  SENDER_MAIL: 'nepasrepondre@compani.fr',
   // EVENTS
   INTERVENTION: 'intervention',
   ABSENCE: 'absence',
@@ -9,9 +10,6 @@ module.exports = {
   PAID_LEAVE: 'leave',
   UNPAID_LEAVE: 'unpaid leave',
   MATERNITY_LEAVE: 'maternity leave',
-  WEDDING: 'wedding',
-  BIRTH: 'birth',
-  DEATH: 'death',
   WORK_ACCIDENT: 'work accident',
   get EVENT_TYPE_LIST() {
     return {
@@ -28,10 +26,8 @@ module.exports = {
       [this.MATERNITY_LEAVE]: 'Congé maternité',
       [this.ILLNESS]: 'Maladie',
       [this.UNJUSTIFIED]: 'Absence injustifiée',
-      [this.WEDDING]: 'Mariage',
-      [this.BIRTH]: 'Naissance',
-      [this.DEATH]: 'Décès',
       [this.WORK_ACCIDENT]: 'Accident du travail',
+      [this.OTHER]: 'other',
     };
   },
   get ABSENCE_NATURE_LIST() {
@@ -166,8 +162,6 @@ module.exports = {
   DRIVING: 'driving',
   // PAY
   PAY: 'pay',
-  // FINAL PAY
-  FINAL_PAY: 'finalpay',
   // CONTRACTS
   EMPLOYER_TRIAL_PERIOD_TERMINATION: 'employer_trial_period_termination',
   EMPLOYEE_TRIAL_PERIOD_TERMINATION: 'employee_trial_period_termination',
@@ -204,4 +198,7 @@ module.exports = {
   EVENT_CREATION: 'event_creation',
   EVENT_DELETION: 'event_deletion',
   EVENT_UPDATE: 'event_update',
+  // PAY DOCUMENT NATURE
+  PAYSLIP: 'payslip',
+  CERTIFICATE: 'certificate',
 };
