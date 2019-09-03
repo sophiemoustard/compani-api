@@ -26,6 +26,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['contracts:read:user', 'user-{query.user}'] },
         validate: {
           query: Joi.object().keys({
             status: Joi.string(),
@@ -41,6 +42,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
+        auth: { scope: ['contracts:read:user', 'contracts:read'] },
         validate: {
           params: Joi.object().keys({
             _id: Joi.objectId(),
@@ -54,6 +56,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['contracts:edit:user'] },
         validate: {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
@@ -92,6 +95,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['contracts:edit:user'] },
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: {
@@ -110,6 +114,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        auth: { scope: ['contracts:edit:user'] },
         validate: {
           params: { _id: Joi.objectId().required() },
         },
@@ -121,6 +126,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/versions',
       options: {
+        auth: { scope: ['contracts:edit:user'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -153,6 +159,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/versions/{versionId}',
       options: {
+        auth: { scope: ['contracts:edit:user'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -171,6 +178,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/versions/{versionId}',
       options: {
+        auth: { scope: ['contracts:edit:user'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -186,6 +194,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
+        auth: { scope: ['contracts:edit:user'] },
         payload: {
           output: 'stream',
           parse: true,

@@ -48,7 +48,7 @@ describe('formatPayment', () => {
 });
 
 describe('exportPaymentsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Bénéficiaire', 'Id tiers payeur', 'Tiers payeur', 'Moyen de paiement', 'Montant TTC en €'];
+  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Moyen de paiement', 'Montant TTC en €'];
   const bills = [
     {
       number: 'REG-1905562',
@@ -80,17 +80,10 @@ describe('exportPaymentsHistory', () => {
       netInclTaxes: 1002.4,
     },
   ];
-  let expectsFind;
   let mockPayment;
 
   beforeEach(() => {
     mockPayment = sinon.mock(Payment);
-    expectsFind = mockPayment.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once();
   });
 
   afterEach(() => {
@@ -98,20 +91,32 @@ describe('exportPaymentsHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    expectsFind.resolves([]);
+    mockPayment.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns([]);
     const exportArray = await payments.exportPaymentsHistory(null, null);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    expectsFind.resolves(bills);
+    mockPayment.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(bills);
     const exportArray = await payments.exportPaymentsHistory(null, null);
 
     expect(exportArray).toEqual([
       header,
-      ['REG-1905562', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme Mimi MATHY', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276,02'],
-      ['REG-1905342', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M Bojack HORSEMAN', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Prélèvement', '1002,40'],
+      ['REG-1905562', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276,02'],
+      ['REG-1905342', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Prélèvement', '1002,40'],
     ]);
   });
 });

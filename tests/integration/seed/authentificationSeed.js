@@ -10,19 +10,79 @@ const rightsList = [
     _id: new ObjectID(),
     description: 'Edit config',
     permission: 'config:edit',
-    name: 'edit-config',
   },
   {
     _id: new ObjectID(),
     description: 'Read config',
     permission: 'config:read',
-    name: 'read-config',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Edit billing info',
+    permission: 'billing:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Read billing info',
+    permission: 'billing:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Edit pay info',
+    permission: 'pay:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Read pay info',
+    permission: 'pay:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter sa liste de contrats',
+    permission: 'contracts:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter la liste de contrats des autres utilisateurs',
+    permission: 'contracts:read:user',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer la liste de contrats des autres utilisateurs',
+    permission: 'contracts:edit:user',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Exporter des données',
+    permission: 'exports:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Lister les utilisateurs',
+    permission: 'users:list',
+    name: 'users-list',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer un utilisateur',
+    permission: 'users:edit',
+    name: 'users-edit',
   },
 ];
 
-const coachRights = ['config:read'];
-const auxiliaryRights = [];
-const helperRights = [];
+const coachRights = [
+  'config:read',
+  'billing:read',
+  'pay:read',
+  'contracts:read',
+  'contracts:read:user',
+  'contracts:edit:user',
+  'exports:read',
+  'users:list',
+  'users:edit',
+];
+const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list'];
+const helperRights = ['billing:read'];
 
 const rolesList = [
   {
@@ -101,9 +161,13 @@ const populateDBForAuthentification = async () => {
   }
 };
 
-const getToken = async (roleName) => {
+const getUser = (roleName) => {
   const role = rolesList.find(r => r.name === roleName);
-  const user = userList.find(u => u.role.toHexString() === role._id.toHexString());
+  return userList.find(u => u.role.toHexString() === role._id.toHexString());
+};
+
+const getToken = async (roleName) => {
+  const user = getUser(roleName);
   const response = await app.inject({
     method: 'POST',
     url: '/users/authenticate',
@@ -116,6 +180,8 @@ const getToken = async (roleName) => {
 module.exports = {
   rolesList,
   rightsList,
+  userList,
   populateDBForAuthentification,
+  getUser,
   getToken,
 };

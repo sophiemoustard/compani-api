@@ -15,7 +15,7 @@ exports.add = async (params) => {
   const fileMetadata = {
     name: params.name,
     mimeType: params.folder ? 'application/vnd.google-apps.folder' : null,
-    parents: [params.parentFolderId] || []
+    parents: [params.parentFolderId] || [],
   };
   const media = params.folder ? null : { body: params.body, mimeType: params.type };
 
@@ -24,7 +24,7 @@ exports.add = async (params) => {
 
   return new Promise((resolve, reject) => {
     drive.files.create(
-      { auth, resource: fileMetadata, media, fields: 'id' },
+      { auth, resource: fileMetadata, media, fields: ['id, webViewLink'] },
       (err, item) => {
         if (err) reject(new Error(`Google Drive API ${err}`));
         else resolve(item.data);

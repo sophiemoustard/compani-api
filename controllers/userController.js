@@ -8,14 +8,14 @@ const moment = require('moment');
 
 const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/roles');
-const { sendGridTransporter, testTransporter } = require('../helpers/nodemailer');
+const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentification');
 const { createFolder } = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { isUsedInFundings } = require('../helpers/thirdPartyPayers');
-const { AUXILIARY } = require('../helpers/constants');
+const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
@@ -155,7 +155,6 @@ const show = async (req) => {
     return Boom.badImplementation(e);
   }
 };
-
 
 const update = async (req) => {
   try {
@@ -321,13 +320,13 @@ const forgotPassword = async (req) => {
     if (!user) return Boom.notFound(translate[language].userNotFound);
 
     const mailOptions = {
-      from: 'support@alenvi.io',
+      from: `Compani <${SENDER_MAIL}>`,
       to: req.payload.email,
       subject: 'Changement de mot de passe de votre compte Compani',
       html: forgetPasswordEmail(payload.resetPassword),
     };
     const mailInfo = process.env.NODE_ENV !== 'test'
-      ? await sendGridTransporter.sendMail(mailOptions)
+      ? await sendinBlueTransporter.sendMail(mailOptions)
       : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
     return { message: translate[language].emailSent, data: { mailInfo } };
@@ -382,12 +381,12 @@ const uploadFile = async (req) => {
       'vitalCard',
       'medicalCertificate',
     ];
-    const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
-    if (administrativeKeys.length === 0) {
+    const administrativeKey = Object.keys(req.payload).find(key => allowedFields.includes(key));
+    if (!administrativeKey) {
       return Boom.forbidden(translate[language].uploadNotAllowed);
     }
 
-    const uploadedFile = await createAndSaveFile(administrativeKeys, req.params, req.payload);
+    const uploadedFile = await createAndSaveFile(administrativeKey, req.params, req.payload);
 
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {

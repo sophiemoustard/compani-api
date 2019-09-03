@@ -687,7 +687,16 @@ describe('getTransportRefund', () => {
   const workedDaysRatio = 0.8;
 
   it('should return 0 as no transport type', () => {
-    const auxiliary = {};
+    const auxiliary = { administrative: { transportInvoice: { driveId: '1234567890' } } };
+    const company = {};
+    const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(0);
+  });
+
+  it('should return 0 as no doc', () => {
+    const auxiliary = { administrative: { transportInvoice: { transportType: 'public', link: null } } };
     const company = {};
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
 
@@ -696,7 +705,7 @@ describe('getTransportRefund', () => {
   });
 
   it('should return 0 as no subvention', () => {
-    const auxiliary = { administrative: { transportInvoice: { transportType: 'public' } } };
+    const auxiliary = { administrative: { transportInvoice: { transportType: 'public', link: '1234567890' } } };
     const company = {};
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
 
@@ -705,7 +714,7 @@ describe('getTransportRefund', () => {
   });
 
   it('should return 0 as no zipcode', () => {
-    const auxiliary = { administrative: { transportInvoice: { transportType: 'public' } } };
+    const auxiliary = { administrative: { transportInvoice: { transportType: 'public', link: '1234567890' } } };
     const company = { rhConfig: { transportSubs: [] } };
     const result = DraftPayHelper.getTransportRefund(auxiliary, company, workedDaysRatio);
 
@@ -715,7 +724,7 @@ describe('getTransportRefund', () => {
 
   it('should return 0 as no matching subvention', () => {
     const auxiliary = {
-      administrative: { transportInvoice: { transportType: 'public' } },
+      administrative: { transportInvoice: { transportType: 'public', link: '1234567890' } },
       contact: { address: { zipCode: '75' } },
     };
     const company = {
@@ -729,7 +738,7 @@ describe('getTransportRefund', () => {
 
   it('should return public transport refund', () => {
     const auxiliary = {
-      administrative: { transportInvoice: { transportType: 'public' } },
+      administrative: { transportInvoice: { transportType: 'public', link: '1234567890' } },
       contact: { address: { zipCode: '75' } },
     };
     const company = {
@@ -1108,13 +1117,73 @@ describe('getDraftPayByAuxiliary', () => {
     getTransportRefund.restore();
   });
 
+  it('should not return draft pay as auxiliary does not have company contracts', async () => {
+    const auxiliary = {
+      _id: '1234567890',
+      identity: { firstname: 'Hugo', lastname: 'Lloris' },
+      sector: { name: 'La ruche' },
+      contracts: [
+        { startDate: '2019-02-23T00:00:00', status: 'contract_with_customer', versions: [{ isActive: true }] },
+      ],
+      administrative: { mutualFund: { has: true } },
+    };
+    const events = [[]];
+    const absences = [];
+    const company = { rhConfig: { feeAmount: 37 } };
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const prevPay = {};
+
+    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, absences, prevPay, company, query, [], []);
+    expect(result).not.toBeDefined();
+  });
+
+  it('should not return draft pay as auxiliary does not have started contract', async () => {
+    const auxiliary = {
+      _id: '1234567890',
+      identity: { firstname: 'Hugo', lastname: 'Lloris' },
+      sector: { name: 'La ruche' },
+      contracts: [
+        { startDate: '2019-07-23T00:00:00', status: 'contract_with_customer', versions: [{ isActive: true }] },
+      ],
+      administrative: { mutualFund: { has: true } },
+    };
+    const events = [[]];
+    const absences = [];
+    const company = { rhConfig: { feeAmount: 37 } };
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const prevPay = {};
+
+    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, absences, prevPay, company, query, [], []);
+    expect(result).not.toBeDefined();
+  });
+
+  it('should not return draft pay as auxiliary does not have active contracts', async () => {
+    const auxiliary = {
+      _id: '1234567890',
+      identity: { firstname: 'Hugo', lastname: 'Lloris' },
+      sector: { name: 'La ruche' },
+      contracts: [
+        { startDate: '2019-02-23T00:00:00', status: 'contract_with_company', versions: [{ isActive: false }] },
+      ],
+      administrative: { mutualFund: { has: true } },
+    };
+    const events = [[]];
+    const absences = [];
+    const company = { rhConfig: { feeAmount: 37 } };
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const prevPay = {};
+
+    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, absences, prevPay, company, query, [], []);
+    expect(result).not.toBeDefined();
+  });
+
   it('should return draft pay for one auxiliary', async () => {
     const auxiliary = {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [
-        { status: 'contract_with_company' },
+        { startDate: '2019-05-13T00:00:00', status: 'contract_with_company', versions: [{ isActive: true }] },
       ],
       administrative: { mutualFund: { has: true } },
     };
@@ -1134,7 +1203,7 @@ describe('getDraftPayByAuxiliary', () => {
     expect(result).toEqual({
       auxiliaryId: '1234567890',
       auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
-      startDate: '2019-05-01T00:00:00',
+      startDate: '2019-05-13T00:00:00',
       endDate: '2019-05-31T23:59:59',
       month: '05-2019',
       contractHours: 150,

@@ -66,7 +66,7 @@ describe('subscriptionsAccepted', () => {
           sundays: 2,
         }],
         approvalDate: '2019-01-21T11:14:23.030Z',
-        _id: new ObjectID('5c45a98fa2e4e133a6774e46')
+        _id: new ObjectID('5c45a98fa2e4e133a6774e46'),
       }],
     };
     findOne.returns({
@@ -81,7 +81,7 @@ describe('subscriptionsAccepted', () => {
             eveningSurcharge: 25,
             name: 'Temps de qualité - Autonomie',
             startDate: '2019-01-18T15:37:30.636Z',
-          }]
+          }],
         }, {
           _id: new ObjectID('5c41f4e42fc4d8780f0628ec'),
           versions: [{
@@ -92,7 +92,7 @@ describe('subscriptionsAccepted', () => {
           }],
           nature: 'Horaire',
         }],
-      }
+      },
     });
 
     const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
@@ -137,7 +137,7 @@ describe('subscriptionsAccepted', () => {
           startDate: '2019-01-27T23:00:00.000Z',
         }],
         approvalDate: '2019-01-21T11:14:23.030Z',
-        _id: new ObjectID('5c45a98fa2e4e133a6774e46')
+        _id: new ObjectID('5c45a98fa2e4e133a6774e46'),
       }],
     };
     findOne.returns({
@@ -152,9 +152,9 @@ describe('subscriptionsAccepted', () => {
             eveningSurcharge: 25,
             name: 'Temps de qualité - Autonomie',
             startDate: '2019-01-18T15:37:30.636Z',
-          }]
+          }],
         }],
-      }
+      },
     });
 
     const result = await SubscriptionsHelper.subscriptionsAccepted(customer);
@@ -191,7 +191,7 @@ describe('exportSubscriptions', () => {
     const result = await SubscriptionsHelper.exportSubscriptions();
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Bénéficiaire', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']);
+    expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prénom', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']);
   });
 
   it('should return subscriptions info', async () => {
@@ -202,7 +202,7 @@ describe('exportSubscriptions', () => {
           service: { versions: [{ name: 'Service' }] },
           versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 4, sundays: 2, evenings: 9 }],
         }],
-      }
+      },
     ];
     CustomerModel.expects('find')
       .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } } })
@@ -216,6 +216,6 @@ describe('exportSubscriptions', () => {
     sinon.assert.calledTwice(formatFloatForExport);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M Autonomie', 'Service', 'F-12', 'F-4', 9, 2]);
+    expect(result[1]).toMatchObject(['M', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
   });
 });

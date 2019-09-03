@@ -1,10 +1,11 @@
 const Boom = require('boom');
 const moment = require('moment');
-
+const get = require('lodash/get');
 const Customer = require('../models/Customer');
 const { populateServices } = require('./subscriptions');
 const UtilsHelper = require('./utils');
 const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES } = require('./constants');
+const CustomerRepository = require('../repositories/CustomerRepository');
 
 exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   const customer = await Customer.findOne({ _id: customerId }).lean();
@@ -26,12 +27,12 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
     });
 };
 
-exports.populateFundings = async (funding, customer) => {
+exports.populateFundings = (funding, customer) => {
   if (!funding) return false;
 
   const sub = customer.subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
   if (sub.service.versions) {
-    funding.subscription = { ...sub, service: await populateServices(sub.service) };
+    funding.subscription = { ...sub, service: populateServices(sub.service) };
   } else {
     funding.subscription = { ...sub };
   }
@@ -39,47 +40,37 @@ exports.populateFundings = async (funding, customer) => {
   return funding;
 };
 
-exports.exportFundings = async () => {
-  const customers = await Customer.aggregate([
-    { $match: { fundings: { $exists: true, $not: { $size: 0 } } } },
-    { $unwind: '$fundings' },
-    {
-      $addFields: {
-        'fundings.subscription': {
-          $filter: { input: '$subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$fundings.subscription'] } },
-        }
-      }
-    },
-    { $unwind: '$fundings.subscription' },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'fundings.subscription.service',
-        foreignField: '_id',
-        as: 'fundings.subscription.service'
-      }
-    },
-    { $unwind: { path: '$fundings.subscription.service' } },
-    {
-      $lookup: {
-        from: 'thirdpartypayers',
-        localField: 'fundings.thirdPartyPayer',
-        foreignField: '_id',
-        as: 'fundings.thirdPartyPayer'
-      }
-    },
-    { $unwind: { path: '$fundings.thirdPartyPayer' } },
-    {
-      $project: { funding: '$fundings', identity: 1 },
-    }
-  ]);
+const fundingExportHeader = [
+  'Titre',
+  'Nom',
+  'Prénom',
+  'Tiers payeur',
+  'Nature',
+  'Service',
+  'Date de début',
+  'Date de fin',
+  'Numéro de dossier',
+  'Fréquence',
+  'Montant TTC',
+  'Montant unitaire TTC',
+  'Nombre d\'heures',
+  'Jours',
+  'Participation du bénéficiaire',
+];
 
-  const data = [['Bénéficiaire', 'Tiers payeur', 'Nature', 'Service', 'Date de début', 'Date de fin', 'Numéro de dossier', 'Fréquence',
-    'Montant TTC', 'Montant unitaire TTC', 'Nombre d\'heures', 'Jours', 'Participation du bénéficiaire']];
-  for (const cus of customers) {
+exports.exportFundings = async () => {
+  const customerFundings = await CustomerRepository.getCustomerFundings();
+  const data = [fundingExportHeader];
+
+  for (const cus of customerFundings) {
     const fundInfo = [];
-    if (cus.identity) fundInfo.push(`${cus.identity.title} ${cus.identity.lastname}`);
-    else fundInfo.push('');
+    if (cus.identity) {
+      fundInfo.push(
+        get(cus, 'identity.title', ''),
+        get(cus, 'identity.lastname', '').toUpperCase(),
+        get(cus, 'identity.firstname', '')
+      );
+    } else fundInfo.push('', '', '');
 
     let { funding } = cus;
     if (!funding) fundInfo.push('', '', '', '', '', '', '', '', '', '', '', '');
@@ -110,7 +101,7 @@ exports.exportFundings = async () => {
         UtilsHelper.formatFloatForExport(funding.unitTTCRate),
         UtilsHelper.formatFloatForExport(funding.careHours),
         careDays || '',
-        UtilsHelper.formatFloatForExport(funding.customerParticipationRate),
+        UtilsHelper.formatFloatForExport(funding.customerParticipationRate)
       );
     }
 

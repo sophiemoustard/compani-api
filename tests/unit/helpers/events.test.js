@@ -8,8 +8,9 @@ const Customer = require('../../../models/Customer');
 const Contract = require('../../../models/Contract');
 const Surcharge = require('../../../models/Surcharge');
 const EventHelper = require('../../../helpers/events');
+const EventsRepetitionHelper = require('../../../helpers/eventsRepetition');
 const EventHistoriesHelper = require('../../../helpers/eventHistories');
-const UtilsHelper = require('../../../helpers/utils');
+const EventsValidationHelper = require('../../../helpers/eventsValidation');
 const EventRepository = require('../../../repositories/EventRepository');
 const {
   INTERVENTION,
@@ -29,101 +30,145 @@ require('sinon-mongoose');
 describe('updateEvent', () => {
   let createEventHistoryOnUpdate;
   let populateEventSubscription;
-  let updateRepetitions;
+  let updateRepetition;
   let updateEvent;
+  let deleteConflictInternalHoursAndUnavailabilities;
+  let unassignConflictInterventions;
   beforeEach(() => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
-    updateRepetitions = sinon.stub(EventHelper, 'updateRepetitions');
+    updateRepetition = sinon.stub(EventsRepetitionHelper, 'updateRepetition');
     updateEvent = sinon.stub(EventRepository, 'updateEvent');
+    deleteConflictInternalHoursAndUnavailabilities = sinon.stub(EventHelper, 'deleteConflictInternalHoursAndUnavailabilities');
+    unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
     createEventHistoryOnUpdate.restore();
     populateEventSubscription.restore();
-    updateRepetitions.restore();
+    updateRepetition.restore();
     updateEvent.restore();
+    deleteConflictInternalHoursAndUnavailabilities.restore();
+    unassignConflictInterventions.restore();
   });
 
-  it('1. should update absence without unset repetition property', async () => {
+  it('should update repetition', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
-    const event = { _id: eventId, type: ABSENCE, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
+    const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString(), shouldUpdateRepetition: true };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.called(updateRepetition);
+    sinon.assert.notCalled(updateEvent);
   });
 
-  it('2. should update event without repetition without unset repetition property', async () => {
+  it('should update absence without unset repetition property', async () => {
+    const credentials = { _id: new ObjectID() };
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
+
+    updateEvent.returns(event);
+    await EventHelper.updateEvent(event, payload, credentials);
+
+    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.notCalled(updateRepetition);
+  });
+
+  it('should update absence, unassign interventions and delete unavailabilities and internal hours in conflict', async () => {
+    const credentials = { _id: new ObjectID() };
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const event = {
+      _id: eventId,
+      type: ABSENCE,
+      auxiliary: { _id: auxiliaryId },
+      startDate: '2019-01-21T09:38:18',
+      endDate: '2019-01-21T10:38:18',
+    };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
+
+    updateEvent.returns(event);
+    await EventHelper.updateEvent(event, payload, credentials);
+
+    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWith(
+      unassignConflictInterventions,
+      { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
+      auxiliaryId.toHexString(),
+      credentials
+    );
+    sinon.assert.calledWith(
+      deleteConflictInternalHoursAndUnavailabilities,
+      { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
+      auxiliaryId.toHexString(),
+      eventId.toHexString(),
+      credentials
+    );
+  });
+
+  it('should update event without repetition without unset repetition property', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
-  it('3. should update event with NEVER frequency without unset repetition property', async () => {
+  it('should update event with NEVER frequency without unset repetition property', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, repetition: { frequency: NEVER }, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
-  it('4. should update event and repeated events without unset repetition property', async () => {
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: true, auxiliary: auxiliary.toHexString() };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
-
-    sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.callCount(updateRepetitions, 1);
-  });
-
-  it('5. should update event when only misc is updated without unset repetition property', async () => {
+  it('should update event when only misc is updated without unset repetition property', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const sector = new ObjectID();
     const event = {
       _id: eventId,
-      startDate: '2019-01-21T09:38:18.653Z',
+      startDate: '2019-01-21T09:38:18',
       repetition: { frequency: NEVER },
       auxiliary,
       sector,
     };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', misc: 'Zoro est là', auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', misc: 'Zoro est là', auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
-  it('6. should update event and unset repetition property if event in repetition and repetition not updated', async () => {
+  it('should update event and unset repetition property if event in repetition and repetition not updated', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(
       updateEvent,
@@ -132,10 +177,11 @@ describe('updateEvent', () => {
       { 'repetition.parentId': '' }
     );
 
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
-  it('7. should update event and unset cancel property when cancellation cancelled', async () => {
+  it('should update event and unset cancel property when cancellation cancelled', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = {
@@ -145,10 +191,10 @@ describe('updateEvent', () => {
       cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.calledWith(
       updateEvent,
@@ -156,10 +202,11 @@ describe('updateEvent', () => {
       { ...payload, isCancelled: false },
       { cancel: '' }
     );
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
-  it('8. should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
+  it('should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = {
@@ -169,28 +216,29 @@ describe('updateEvent', () => {
       cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
     sinon.assert.calledWith(
       updateEvent,
       eventId,
       { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
-      { cancel: '', 'repetition.parentId': '' }
+      { 'repetition.parentId': '', cancel: '' }
     );
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
   });
 
-  it('9. should update event and unset auxiliary if missing in payload', async () => {
+  it('should update event and unset auxiliary if missing in payload', async () => {
+    const credentials = { _id: new ObjectID() };
     const eventId = new ObjectID();
     const event = { _id: eventId };
-    const payload = { startDate: '2019-01-21T09:38:18.653Z' };
+    const payload = { startDate: '2019-01-21T09:38:18' };
 
     updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload);
+    await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.notCalled(updateRepetitions);
+    sinon.assert.notCalled(updateRepetition);
     sinon.assert.calledWith(
       updateEvent,
       eventId,
@@ -215,7 +263,7 @@ describe('populateEventSubscription', () => {
             sundays: 2,
           },
           {
-            createdAt: '2019-01-21T09:38:18.653Z',
+            createdAt: '2019-01-21T09:38:18',
             _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
             service: '5c35cdc2bd5e3e7360b853fa',
             unitTTCRate: 25,
@@ -260,7 +308,7 @@ describe('populateEventSubscription', () => {
       customer: {
         subscriptions: [
           {
-            createdAt: '2019-01-21T09:38:18.653Z',
+            createdAt: '2019-01-21T09:38:18',
             _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
             service: '5c35cdc2bd5e3e7360b853fa',
             unitTTCRate: 25,
@@ -304,7 +352,7 @@ describe('populateEvents', () => {
               sundays: 2,
             },
             {
-              createdAt: '2019-01-21T09:38:18.653Z',
+              createdAt: '2019-01-21T09:38:18',
               _id: new ObjectID('5c35b5eb1a6fb00997363eeb'),
               service: '5c35cdc2bd5e3e7360b853fa',
               unitTTCRate: 25,
@@ -346,72 +394,14 @@ describe('populateEvents', () => {
   });
 });
 
-describe('hasConflicts', () => {
-  let getAuxiliaryEventsBetweenDates;
-  beforeEach(() => {
-    getAuxiliaryEventsBetweenDates = sinon.stub(EventRepository, 'getAuxiliaryEventsBetweenDates');
-  });
-  afterEach(() => {
-    getAuxiliaryEventsBetweenDates.restore();
-  });
-
-  it('should return true if event has conflicts', async () => {
-    const event = {
-      _id: new ObjectID(),
-      startDate: '2019-10-02T09:00:00.000Z',
-      endDate: '2019-10-02T11:00:00.000Z',
-      auxiliary: new ObjectID(),
-    };
-
-    getAuxiliaryEventsBetweenDates.returns([
-      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
-    ]);
-    const result = await EventHelper.hasConflicts(event);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should return false if event does not have conflicts', async () => {
-    const event = {
-      _id: new ObjectID(),
-      startDate: '2019-10-02T15:00:00.000Z',
-      endDate: '2019-10-02T16:00:00.000Z',
-      auxiliary: new ObjectID(),
-    };
-
-    getAuxiliaryEventsBetweenDates.returns([
-      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' },
-    ]);
-    const result = await EventHelper.hasConflicts(event);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false if event has conflicts only with cancelled events', async () => {
-    const event = {
-      _id: new ObjectID(),
-      startDate: '2019-10-02T09:00:00.000Z',
-      endDate: '2019-10-02T11:00:00.000Z',
-      auxiliary: new ObjectID(),
-    };
-
-    getAuxiliaryEventsBetweenDates.returns([
-      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z', isCancelled: true },
-    ]);
-    const result = await EventHelper.hasConflicts(event);
-
-    expect(result).toBeFalsy();
-  });
-});
-
-describe('isCreationAllowed', () => {
+describe('checkContracts', () => {
   let hasConflicts;
   let UserModel;
   let CustomerModel;
   let findOneContract;
   let findOneSurcharge;
   beforeEach(() => {
-    hasConflicts = sinon.stub(EventHelper, 'hasConflicts');
+    hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     UserModel = sinon.mock(User);
     CustomerModel = sinon.mock(Customer);
     findOneContract = sinon.stub(Contract, 'findOne');
@@ -425,56 +415,12 @@ describe('isCreationAllowed', () => {
     findOneSurcharge.restore();
   });
 
-  it('should return false as event has conflicts', async () => {
-    const payload = {
-      auxiliary: new ObjectID(),
-      startDate: '2019-10-02T08:00:00.000Z',
-      endDate: '2019-10-02T10:00:00.000Z',
-    };
-
-    hasConflicts.returns(true);
-    const result = await EventHelper.isCreationAllowed(payload);
-
-    expect(result).toBeFalsy();
-  });
-
   it('should return false as user has no contract', async () => {
-    const payload = { auxiliary: new ObjectID() };
-
-    const user = { _id: payload.auxiliary };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const event = { auxiliary: (new ObjectID()).toHexString() };
+    const user = { _id: event.auxiliary };
 
     hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
-
-    expect(result).toBeFalsy();
-  });
-
-  it('should return false if auxiliary sector is not event sector', async () => {
-    const payload = { auxiliary: new ObjectID(), sector: new ObjectID().toHexString() };
-    const contract = new Contract({
-      user: payload.auxiliary,
-      customer: payload.customer,
-      versions: [{}],
-      startDate: moment(payload.startDate).add(1, 'd'),
-    });
-    findOneContract.returns(contract);
-
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: new ObjectID() };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
-
-    hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeFalsy();
   });
@@ -482,9 +428,9 @@ describe('isCreationAllowed', () => {
   it('should return false if service event is customer contract and auxiliary does not have contract with customer', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
-    const payload = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+    const event = {
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-02T08:00:00.000Z',
@@ -492,11 +438,11 @@ describe('isCreationAllowed', () => {
       sector: sectorId.toHexString(),
     };
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
         service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -506,32 +452,25 @@ describe('isCreationAllowed', () => {
       .returns(customer);
 
     const contract = new Contract({
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{}],
-      startDate: moment(payload.startDate).add(1, 'd'),
+      startDate: moment(event.startDate).add(1, 'd'),
     });
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
     expect(result).toBeFalsy();
   });
 
   it('should return true if service event is customer contract and auxiliary has contract with customer', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
-    const payload = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+    const event = {
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
@@ -540,11 +479,11 @@ describe('isCreationAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
         service: { type: CUSTOMER_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -554,23 +493,16 @@ describe('isCreationAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{ isActive: true }],
-      startDate: moment(payload.startDate).subtract(1, 'd'),
+      startDate: moment(event.startDate).subtract(1, 'd'),
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeTruthy();
   });
@@ -578,9 +510,9 @@ describe('isCreationAllowed', () => {
   it('should return false if company contract and no active contract on day', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
-    const payload = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+    const event = {
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
@@ -589,11 +521,11 @@ describe('isCreationAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -603,24 +535,17 @@ describe('isCreationAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{}],
       status: COMPANY_CONTRACT,
-      startDate: moment(payload.startDate).add(1, 'd'),
+      startDate: moment(event.startDate).add(1, 'd'),
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeFalsy();
   });
@@ -628,9 +553,9 @@ describe('isCreationAllowed', () => {
   it('should return true if company contract and active contract on day', async () => {
     const subscriptionId = new ObjectID();
     const sectorId = new ObjectID();
-    const payload = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+    const event = {
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: subscriptionId.toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
@@ -639,11 +564,11 @@ describe('isCreationAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: subscriptionId,
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).subtract(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).subtract(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -653,33 +578,26 @@ describe('isCreationAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{ isActive: true }],
       status: COMPANY_CONTRACT,
-      startDate: moment(payload.startDate).subtract(1, 'd'),
+      startDate: moment(event.startDate).subtract(1, 'd'),
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeTruthy();
   });
 
   it('should return false if company contract and customer has no subscription', async () => {
     const sectorId = new ObjectID();
-    const payload = {
-      auxiliary: new ObjectID(),
-      customer: new ObjectID(),
+    const event = {
+      auxiliary: (new ObjectID()).toHexString(),
+      customer: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       subscription: (new ObjectID()).toHexString(),
       startDate: '2019-10-03T08:00:00.000Z',
@@ -688,11 +606,11 @@ describe('isCreationAllowed', () => {
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
         _id: new ObjectID(),
         service: { type: COMPANY_CONTRACT, versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
-        versions: [{ startDate: moment(payload.startDate).add(1, 'd') }],
+        versions: [{ startDate: moment(event.startDate).add(1, 'd') }],
       }],
     };
     CustomerModel.expects('findOne')
@@ -702,41 +620,34 @@ describe('isCreationAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{ isActive: true }],
       status: COMPANY_CONTRACT,
-      startDate: moment(payload.startDate).subtract(1, 'd'),
+      startDate: moment(event.startDate).subtract(1, 'd'),
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeFalsy();
   });
 
   it('should return false if event is internal hour and auxiliary does not have contract with company', async () => {
     const sectorId = new ObjectID();
-    const payload = {
-      auxiliary: new ObjectID(),
+    const event = {
+      auxiliary: (new ObjectID()).toHexString(),
       type: INTERNAL_HOUR,
       startDate: '2019-10-03T00:00:00.000Z',
       sector: sectorId.toHexString(),
     };
 
     const customer = {
-      _id: payload.customer,
+      _id: event.customer,
       subscriptions: [{
-        _id: payload.subscription,
+        _id: event.subscription,
         service: { type: '', versions: [{ startDate: '2019-10-02T00:00:00.000Z' }, { startDate: '2018-10-02T00:00:00.000Z' }] },
       }],
     };
@@ -747,357 +658,316 @@ describe('isCreationAllowed', () => {
       .returns(customer);
 
     const contract = {
-      user: payload.auxiliary,
-      customer: payload.customer,
+      user: event.auxiliary,
+      customer: event.customer,
       versions: [{}],
       status: CUSTOMER_CONTRACT,
     };
     findOneContract.returns(contract);
 
-    const user = { _id: payload.auxiliary, contracts: [contract], sector: sectorId };
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: payload.auxiliary })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
+    const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    hasConflicts.returns(false);
-    const result = await EventHelper.isCreationAllowed(payload);
+    const result = await EventHelper.checkContracts(event, user);
 
     expect(result).toBeFalsy();
   });
 });
 
-describe('isEditionAllowed', () => {
-  let isCreationAllowed;
-  beforeEach(() => {
-    isCreationAllowed = sinon.stub(EventHelper, 'isCreationAllowed');
-  });
-  afterEach(() => {
-    isCreationAllowed.restore();
-  });
-
-  it('should return false as event is billed', async () => {
-    const eventFromDb = {
-      isBilled: true,
-      type: INTERVENTION,
-    };
-    const payload = {};
-
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
-    expect(result).toBeFalsy();
-    sinon.assert.notCalled(isCreationAllowed);
-  });
-
-  it('should return false as event is absence and auxiliary is updated', async () => {
-    const eventFromDb = {
-      type: ABSENCE,
-      auxiliary: new ObjectID(),
-    };
-    const payload = { auxiliary: '1234567890' };
-
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
-    expect(result).toBeFalsy();
-    sinon.assert.notCalled(isCreationAllowed);
-  });
-
-  it('should return false as event is unavailability and auxiliary is updated', async () => {
-    const eventFromDb = {
-      type: UNAVAILABILITY,
-      auxiliary: new ObjectID(),
-    };
-    const payload = { auxiliary: '1234567890' };
-
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
-    expect(result).toBeFalsy();
-    sinon.assert.notCalled(isCreationAllowed);
-  });
-
-  it('should call isCreationAllowed for unassigned event', async () => {
-    const eventFromDb = {
-      type: INTERVENTION,
-      auxiliary: new ObjectID(),
-    };
-    const payload = { isCancelled: false };
-
-    isCreationAllowed.returns(false);
-
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
-    expect(result).toBeFalsy();
-    sinon.assert.calledWith(isCreationAllowed, { isCancelled: false, type: INTERVENTION });
-  });
-
-  it('should call isCreationAllowed for event with auxiliary', async () => {
-    const auxiliary = new ObjectID();
-    const eventFromDb = {
-      type: INTERVENTION,
-      auxiliary,
-    };
-    const payload = { isCancelled: false, auxiliary, type: INTERVENTION };
-
-    isCreationAllowed.returns(true);
-
-    const result = await EventHelper.isEditionAllowed(eventFromDb, payload);
-    expect(result).toBeTruthy();
-    sinon.assert.calledWith(isCreationAllowed, { isCancelled: false, type: INTERVENTION, auxiliary });
-  });
-});
-
-describe('unassignInterventions', () => {
+describe('unassignInterventionsOnContractEnd', () => {
   let getCustomerSubscriptions = null;
-  let unassignInterventions = null;
+  let getUnassignedInterventions = null;
+  let createEventHistoryOnUpdate = null;
+  let updateMany = null;
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
+  const credentials = { _id: userId };
   const aggregation = [{
     customer: { _id: customerId },
-    sub: {
-      _id: 'qwerty',
-      service: { type: COMPANY_CONTRACT },
-    },
+    sub: { _id: 'qwerty', service: { type: COMPANY_CONTRACT } },
   }, {
     customer: { _id: customerId },
-    sub: {
-      _id: 'asdfgh',
-      service: { type: CUSTOMER_CONTRACT },
-    },
+    sub: { _id: 'asdfgh', service: { type: CUSTOMER_CONTRACT } },
   }];
+
+  const interventions = [
+    {
+      _id: null,
+      events: [{
+        _id: new ObjectID(),
+        type: 'intervention',
+        startDate: '2019-10-02T10:00:00.000Z',
+        endDate: '2019-10-02T12:00:00.000Z',
+        auxiliary: userId,
+      }],
+    },
+    {
+      _id: new ObjectID(),
+      events: [{
+        _id: new ObjectID(),
+        misc: 'toto',
+        type: 'intervention',
+        startDate: '2019-10-02T11:00:00.000Z',
+        endDate: '2019-10-02T13:00:00.000Z',
+        auxiliary: userId,
+      }],
+    },
+  ];
 
   beforeEach(() => {
     getCustomerSubscriptions = sinon.stub(EventRepository, 'getCustomerSubscriptions');
-    unassignInterventions = sinon.stub(EventRepository, 'unassignInterventions');
+    getUnassignedInterventions = sinon.stub(EventRepository, 'getUnassignedInterventions');
+    createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
+    updateMany = sinon.stub(Event, 'updateMany');
   });
   afterEach(() => {
     getCustomerSubscriptions.restore();
-    unassignInterventions.restore();
+    getUnassignedInterventions.restore();
+    createEventHistoryOnUpdate.restore();
+    updateMany.restore();
   });
 
   it('should unassign future events linked to company contract', async () => {
-    const contract = { status: COMPANY_CONTRACT, endDate: moment().toDate(), user: userId };
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
     getCustomerSubscriptions.returns(aggregation);
+    getUnassignedInterventions.returns(interventions);
 
-    await EventHelper.unassignInterventions(contract);
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWith(
-      unassignInterventions,
+      getUnassignedInterventions,
       contract.endDate,
       contract.user,
       [aggregation[0].sub._id]
     );
+    sinon.assert.calledTwice(createEventHistoryOnUpdate);
+    sinon.assert.calledWith(
+      updateMany,
+      { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+    );
+  });
+
+  it('should create event history for repetition', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getCustomerSubscriptions.returns(aggregation);
+    getUnassignedInterventions.returns([interventions[1]]);
+
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(
+      createEventHistoryOnUpdate,
+      { misc: 'toto', startDate: '2019-10-02T11:00:00.000Z', endDate: '2019-10-02T13:00:00.000Z', shouldUpdateRepetition: true }
+    );
+    sinon.assert.calledWith(
+      updateMany,
+      { _id: { $in: [interventions[1].events[0]._id] } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+    );
+  });
+
+  it('should create event history for non repeated event', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getCustomerSubscriptions.returns(aggregation);
+    getUnassignedInterventions.returns([interventions[0]]);
+
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(
+      createEventHistoryOnUpdate,
+      { misc: undefined, startDate: '2019-10-02T10:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' }
+    );
+    sinon.assert.calledWith(
+      updateMany,
+      { _id: { $in: [interventions[0].events[0]._id] } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+    );
   });
 
   it('should unassign future events linked to corresponding customer contract', async () => {
-    const contract = { status: CUSTOMER_CONTRACT, endDate: moment().toDate(), user: userId, customer: customerId };
+    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
     getCustomerSubscriptions.returns(aggregation);
+    getUnassignedInterventions.returns(interventions);
 
-    await EventHelper.unassignInterventions(contract);
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.called(getCustomerSubscriptions);
     sinon.assert.calledWith(
-      unassignInterventions,
+      getUnassignedInterventions,
       contract.endDate,
       contract.user,
       [aggregation[1].sub._id]
     );
+    sinon.assert.calledTwice(createEventHistoryOnUpdate);
+    sinon.assert.calledWith(
+      updateMany,
+      { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+    );
   });
 });
 
-describe('exportWorkingEventsHistory', () => {
-  const header = ['Type', 'Heure interne', 'Début', 'Fin', 'Durée', 'Répétition', 'Secteur', 'Auxiliaire', 'Bénéficiaire', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
+describe('removeEventsExceptInterventionsOnContractEnd', () => {
+  let getEventsExceptInterventions;
+  let createEventHistoryOnDelete;
+  let deleteMany;
+  const customerId = new ObjectID();
+  const userId = new ObjectID();
+  const credentials = { _id: userId };
   const events = [
     {
-      isCancelled: false,
-      isBilled: true,
-      type: 'intervention',
-      repetition: { frequency: 'every_week' },
-      sector: { name: 'Girafes - 75' },
-      subscription: {},
-      customer: {
-        identity: {
-          title: 'Mme',
-          firstname: 'Mimi',
-          lastname: 'Mathy',
-        },
-      },
-      auxiliary: {
-        identity: {
-          firstname: 'Jean-Claude',
-          lastname: 'Van Damme',
-        },
-      },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
-    }, {
-      isCancelled: true,
-      cancel: {
-        condition: 'invoiced_and_not_payed',
-        reason: 'auxiliary_initiative',
-      },
-      isBilled: false,
-      type: 'internalHour',
-      internalHour: { name: 'Formation' },
-      repetition: { frequency: 'never' },
-      sector: { name: 'Etoiles - 75' },
-      subscription: {},
-      customer: {
-        identity: {
-          title: 'M',
-          firstname: 'Bojack',
-          lastname: 'Horseman',
-        },
-      },
-      auxiliary: {
-        identity: {
-          firstname: 'Princess',
-          lastname: 'Carolyn',
-        },
-      },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
-      misc: 'brbr',
+      _id: new ObjectID(),
+      events: [{
+        _id: new ObjectID(),
+        type: 'internal_hour',
+        startDate: '2019-10-02T10:00:00.000Z',
+        endDate: '2019-10-02T12:00:00.000Z',
+        auxiliary: userId,
+      }],
     },
-  ];
-  let getWorkingEventsForExport;
-  beforeEach(() => {
-    getWorkingEventsForExport = sinon.stub(EventRepository, 'getWorkingEventsForExport');
-  });
-  afterEach(() => {
-    getWorkingEventsForExport.restore();
-  });
-
-  it('should return an array containing just the header', async () => {
-    getWorkingEventsForExport.returns([]);
-    const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
-
-    expect(exportArray).toEqual([header]);
-  });
-
-  it('should return an array with the header and 2 rows', async () => {
-    getWorkingEventsForExport.returns(events);
-    const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
-    const names = ['Jean-Claude VAN DAMME', 'Mme Mimi MATHY', 'Princess CAROLYN', 'M Bojack HORSEMAN'];
-    for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
-
-    const exportArray = await EventHelper.exportWorkingEventsHistory(null, null);
-
-    sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
-    expect(exportArray).toEqual([
-      header,
-      ['Intervention', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', 'Jean-Claude VAN DAMME', 'Mme Mimi MATHY', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', 'Princess CAROLYN', 'M Bojack HORSEMAN', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
-    ]);
-
-    getFullTitleFromIdentityStub.restore();
-  });
-});
-
-describe('exportAbsencesHistory', () => {
-  const header = ['Type', 'Nature', 'Début', 'Fin', 'Secteur', 'Auxiliaire', 'Divers'];
-  const events = [
     {
-      type: 'absence',
-      absence: 'unjustified absence',
-      absenceNature: 'hourly',
-      sector: { name: 'Girafes - 75' },
-      auxiliary: {
-        identity: {
-          firstname: 'Jean-Claude',
-          lastname: 'Van Damme',
-        },
-      },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
-    }, {
-      type: 'absence',
-      absence: 'leave',
-      absenceNature: 'daily',
-      internalHour: { name: 'Formation' },
-      sector: { name: 'Etoiles - 75' },
-      auxiliary: {
-        identity: {
-          firstname: 'Princess',
-          lastname: 'Carolyn',
-        },
-      },
-      startDate: '2019-05-20T06:00:00.000+00:00',
-      endDate: '2019-05-20T08:00:00.000+00:00',
-      misc: 'brbr',
+      _id: new ObjectID(),
+      events: [{
+        _id: new ObjectID(),
+        type: 'unavailability',
+        startDate: '2019-10-02T11:00:00.000Z',
+        endDate: '2019-10-02T13:00:00.000Z',
+        auxiliary: userId,
+      }],
     },
   ];
-  let getAbsencesForExport;
 
   beforeEach(() => {
-    getAbsencesForExport = sinon.stub(EventRepository, 'getAbsencesForExport');
+    getEventsExceptInterventions = sinon.stub(EventRepository, 'getEventsExceptInterventions');
+    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
+    deleteMany = sinon.stub(Event, 'deleteMany');
   });
-
   afterEach(() => {
-    getAbsencesForExport.restore();
+    getEventsExceptInterventions.restore();
+    createEventHistoryOnDelete.restore();
+    deleteMany.restore();
   });
 
-  it('should return an array containing just the header', async () => {
-    getAbsencesForExport.returns([]);
-    const exportArray = await EventHelper.exportAbsencesHistory(null, null);
+  it('should remove future non-intervention events linked to company contract', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getEventsExceptInterventions.returns(events);
 
-    expect(exportArray).toEqual([header]);
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(getEventsExceptInterventions, '2019-10-02T08:00:00.000Z', userId);
+    sinon.assert.calledTwice(createEventHistoryOnDelete);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
   });
 
-  it('should return an array with the header and 2 rows', async () => {
-    getAbsencesForExport.returns(events);
-    const getFullTitleFromIdentityStub = sinon.stub(UtilsHelper, 'getFullTitleFromIdentity');
-    const names = ['Jean-Claude VAN DAMME', 'Princess CAROLYN'];
-    for (const [i, name] of names.entries()) getFullTitleFromIdentityStub.onCall(i).returns(name);
+  it('should create event history for repetition', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getEventsExceptInterventions.returns([events[1]]);
 
-    const exportArray = await EventHelper.exportAbsencesHistory(null, null);
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(createEventHistoryOnDelete, events[1].events[0], credentials);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[1].events[0]._id] } });
+  });
 
-    sinon.assert.callCount(getFullTitleFromIdentityStub, names.length);
-    expect(exportArray).toEqual([
-      header,
-      ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', 'Girafes - 75', 'Jean-Claude VAN DAMME', ''],
-      ['Congé', 'Journalière', '20/05/2019', '20/05/2019', 'Etoiles - 75', 'Princess CAROLYN', 'brbr'],
-    ]);
+  it('should create event history for non repeated event', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    getEventsExceptInterventions.returns([events[0]]);
 
-    getFullTitleFromIdentityStub.restore();
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(createEventHistoryOnDelete, events[0].events[0], credentials);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id] } });
+  });
+
+  it('should remove future non-intervention events linked to corresponding customer contract', async () => {
+    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
+    getEventsExceptInterventions.returns(events);
+
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    sinon.assert.calledWith(getEventsExceptInterventions, '2019-10-02T08:00:00.000Z', userId);
+    sinon.assert.calledTwice(createEventHistoryOnDelete);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
   });
 });
 
-describe('formatRepeatedEvent', () => {
-  it('should format event', () => {
-    const day = moment('2019-07-17', 'YYYY-MM-DD');
-    const event = {
-      startDate: moment('2019-07-14').startOf('d'),
-      endDate: moment('2019-07-15').startOf('d'),
-    };
+describe('updateAbsencesOnContractEnd', () => {
+  let getAbsences = null;
+  let createEventHistoryOnUpdate = null;
+  let updateMany = null;
 
-    const result = EventHelper.formatRepeatedEvent(event, day);
+  const customerId = new ObjectID();
+  const userId = new ObjectID();
+  const credentials = { _id: userId };
 
-    expect(result).toBeDefined();
-    expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
-    expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
+  const absences = [
+    {
+      _id: new ObjectID(),
+      type: 'absences',
+      startDate: '2019-10-02T10:00:00.000Z',
+      endDate: '2019-10-04T12:00:00.000Z',
+      auxiliary: userId,
+    },
+  ];
+
+  beforeEach(() => {
+    getAbsences = sinon.stub(EventRepository, 'getAbsences');
+    createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
+    updateMany = sinon.stub(Event, 'updateMany');
+  });
+  afterEach(() => {
+    getAbsences.restore();
+    createEventHistoryOnUpdate.restore();
+    updateMany.restore();
+  });
+
+  it('should update future absences events linked to company contract', async () => {
+    const contract = { status: COMPANY_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId };
+    const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
+    getAbsences.returns(absences);
+
+    await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
+    sinon.assert.calledWith(getAbsences, userId, maxEndDate);
+    sinon.assert.calledOnce(createEventHistoryOnUpdate);
+    sinon.assert.calledWith(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
+  });
+
+  it('should update future absences events linked to corresponding customer contract', async () => {
+    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
+    const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
+    getAbsences.returns(absences);
+
+    await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
+    sinon.assert.calledWith(getAbsences, userId, maxEndDate);
+    sinon.assert.calledOnce(createEventHistoryOnUpdate);
+    sinon.assert.calledWith(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
   });
 });
 
 describe('createEvent', () => {
   let save;
   let isCreationAllowed;
+  let hasConflicts;
   let createEventHistoryOnCreate;
   let populateEventSubscription;
   let createRepetitions;
   let getEvent;
+  let deleteConflictInternalHoursAndUnavailabilities;
+  let unassignConflictInterventions;
   beforeEach(() => {
     save = sinon.stub(Event.prototype, 'save');
-    isCreationAllowed = sinon.stub(EventHelper, 'isCreationAllowed');
+    isCreationAllowed = sinon.stub(EventsValidationHelper, 'isCreationAllowed');
+    hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     createEventHistoryOnCreate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnCreate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
-    createRepetitions = sinon.stub(EventHelper, 'createRepetitions');
+    createRepetitions = sinon.stub(EventsRepetitionHelper, 'createRepetitions');
     getEvent = sinon.stub(EventRepository, 'getEvent');
+    deleteConflictInternalHoursAndUnavailabilities = sinon.stub(EventHelper, 'deleteConflictInternalHoursAndUnavailabilities');
+    unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
     save.restore();
     isCreationAllowed.restore();
+    hasConflicts.restore();
     createEventHistoryOnCreate.restore();
     populateEventSubscription.restore();
     createRepetitions.restore();
     getEvent.restore();
+    deleteConflictInternalHoursAndUnavailabilities.restore();
+    unassignConflictInterventions.restore();
   });
 
   it('should not create as creation is not allowed', async () => {
@@ -1110,9 +980,7 @@ describe('createEvent', () => {
   });
 
   it('should create as creation is allowed', async () => {
-    const newEvent = new Event({
-      type: ABSENCE,
-    });
+    const newEvent = new Event({ type: INTERNAL_HOUR });
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
@@ -1126,13 +994,12 @@ describe('createEvent', () => {
     sinon.assert.called(populateEventSubscription);
   });
 
-  it('should create repetitions as creation is a repetition', async () => {
-    const payload = { repetition: { frequency: EVERY_WEEK } };
-    const newEvent = new Event({
-      type: INTERVENTION,
-    });
+  it('should create repetitions as event is a repetition', async () => {
+    const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK } };
+    const newEvent = new Event(payload);
 
     isCreationAllowed.returns(true);
+    hasConflicts.returns(false);
     getEvent.returns(newEvent);
 
     await EventHelper.createEvent(payload, {});
@@ -1143,87 +1010,89 @@ describe('createEvent', () => {
     sinon.assert.called(createRepetitions);
     sinon.assert.called(populateEventSubscription);
   });
-});
 
-describe('deleteRepetition', () => {
-  let findOne;
-  let createEventHistoryOnDelete;
-  let deleteMany;
-  const params = { _id: new ObjectID() };
-  const credentials = { _id: new ObjectID() };
-  beforeEach(() => {
-    findOne = sinon.stub(Event, 'findOne');
-    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
-    deleteMany = sinon.stub(Event, 'deleteMany');
-  });
-  afterEach(() => {
-    findOne.restore();
-    createEventHistoryOnDelete.restore();
-    deleteMany.restore();
-  });
-
-  it('should return null if event not found', async () => {
-    findOne.returns(null);
-    const result = await EventHelper.deleteRepetition(params, {});
-
-    expect(result).toBeNull();
-  });
-
-  it('should delete repetition', async () => {
-    const parentId = new ObjectID();
-    const event = {
-      type: INTERVENTION,
-      repetition: {
-        frequency: EVERY_WEEK,
-        parentId,
-      },
-      startDate: '2019-01-21T09:38:18.653Z',
+  it('should unassign intervention and delete other event in conflict on absence creation', async () => {
+    const eventId = new ObjectID();
+    const auxiliaryId = new ObjectID();
+    const credentials = { _id: 'asdfghjkl' };
+    const payload = {
+      type: ABSENCE,
+      startDate: '2019-03-20T10:00:00',
+      endDate: '2019-03-20T12:00:00',
+      auxiliary: auxiliaryId.toHexString(),
+      _id: eventId.toHexString(),
     };
-    findOne.returns(event);
-    const result = await EventHelper.deleteRepetition(params, credentials);
+    const newEvent = new Event({ ...payload, auxiliary: { _id: auxiliaryId } });
 
-    expect(result).toEqual(event);
-    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    isCreationAllowed.returns(true);
+    getEvent.returns(newEvent);
+
+    await EventHelper.createEvent(payload, credentials);
+
     sinon.assert.calledWith(
-      deleteMany,
-      {
-        'repetition.parentId': parentId,
-        startDate: { $gte: new Date(event.startDate) },
-        $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
-      }
+      deleteConflictInternalHoursAndUnavailabilities,
+      { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
+      auxiliaryId.toHexString(),
+      eventId.toHexString(),
+      { _id: 'asdfghjkl' }
+    );
+    sinon.assert.calledWith(
+      unassignConflictInterventions,
+      { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
+      auxiliaryId.toHexString(),
+      { _id: 'asdfghjkl' }
     );
   });
+});
 
-  it('should not delete repetition as event is absence', async () => {
-    const event = {
-      type: ABSENCE,
-      repetition: { frequency: EVERY_WEEK },
-      startDate: '2019-01-21T09:38:18.653Z',
-    };
-    findOne.returns(event);
-    const result = await EventHelper.deleteRepetition(params, credentials);
-
-    expect(result).toEqual(event);
-    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
-    sinon.assert.notCalled(deleteMany);
+describe('deleteConflictInternalHoursAndUnavailabilities', () => {
+  const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
+  const auxiliaryId = new ObjectID();
+  const absenceId = new ObjectID();
+  const credentials = { _id: new ObjectID() };
+  let getEventsInConflicts;
+  let deleteEvents;
+  beforeEach(() => {
+    getEventsInConflicts = sinon.stub(EventRepository, 'getEventsInConflicts');
+    deleteEvents = sinon.stub(EventHelper, 'deleteEvents');
+  });
+  afterEach(() => {
+    getEventsInConflicts.restore();
+    deleteEvents.restore();
   });
 
-  it('should not delete repetition as event is not a repetition', async () => {
-    const parentId = new ObjectID();
-    const event = {
-      type: INTERVENTION,
-      repetition: {
-        frequency: NEVER,
-        parentId,
-      },
-      startDate: '2019-01-21T09:38:18.653Z',
-    };
-    findOne.returns(event);
-    const result = await EventHelper.deleteRepetition(params, credentials);
+  it('should delete conflict events except interventions', async () => {
+    const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
+    getEventsInConflicts.returns(events);
+    await EventHelper.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, absenceId, credentials);
 
-    expect(result).toEqual(event);
-    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
-    sinon.assert.notCalled(deleteMany);
+    getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absenceId);
+    sinon.assert.calledWith(deleteEvents, events, credentials);
+  });
+});
+
+describe('unassignConflictInterventions', () => {
+  const dates = { startDate: '2019-03-20T10:00:00', endDate: '2019-03-20T12:00:00' };
+  const auxiliaryId = new ObjectID();
+  const credentials = { _id: new ObjectID() };
+  let getEventsInConflicts;
+  let updateEvent;
+  beforeEach(() => {
+    getEventsInConflicts = sinon.stub(EventRepository, 'getEventsInConflicts');
+    updateEvent = sinon.stub(EventHelper, 'updateEvent');
+  });
+  afterEach(() => {
+    getEventsInConflicts.restore();
+    updateEvent.restore();
+  });
+
+  it('should delete conflict events except interventions', async () => {
+    const events = [new Event({ _id: new ObjectID() }), new Event({ _id: new ObjectID() })];
+    getEventsInConflicts.returns(events);
+    await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
+
+    getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERVENTION]);
+    sinon.assert.callCount(updateEvent, events.length);
   });
 });
 
@@ -1231,8 +1100,8 @@ describe('deleteEvent', () => {
   let findOne;
   let createEventHistoryOnDelete;
   let deleteOne;
-  const params = { _id: new ObjectID() };
-  const credentials = { _id: new ObjectID() };
+  const params = { _id: (new ObjectID()).toHexString() };
+  const credentials = { _id: (new ObjectID()).toHexString() };
   beforeEach(() => {
     findOne = sinon.stub(Event, 'findOne');
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
@@ -1255,7 +1124,7 @@ describe('deleteEvent', () => {
     const parentId = new ObjectID();
     const deletionInfo = {
       type: INTERVENTION,
-      startDate: '2019-01-21T09:38:18.653Z',
+      startDate: '2019-01-21T09:38:18',
     };
     const event = {
       ...deletionInfo,
@@ -1270,5 +1139,96 @@ describe('deleteEvent', () => {
     expect(result).toEqual(event);
     sinon.assert.calledWith(createEventHistoryOnDelete, deletionInfo, credentials);
     sinon.assert.calledWith(deleteOne, { _id: params._id });
+  });
+});
+
+describe('deleteEvents', () => {
+  let createEventHistoryOnDelete;
+  let deleteMany;
+  const credentials = { _id: (new ObjectID()).toHexString() };
+  beforeEach(() => {
+    createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
+    deleteMany = sinon.stub(Event, 'deleteMany');
+  });
+  afterEach(() => {
+    createEventHistoryOnDelete.restore();
+    deleteMany.restore();
+  });
+
+  it('should delete events', async () => {
+    const events = [
+      { _id: '1234567890' },
+      { _id: 'qwertyuiop' },
+      { _id: 'asdfghjkl' },
+    ];
+    await EventHelper.deleteEvents(events, credentials);
+
+    sinon.assert.callCount(createEventHistoryOnDelete, events.length);
+    sinon.assert.calledWith(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
+  });
+});
+
+describe('auxiliaryHasActiveCompanyContractOnDay', () => {
+  it('should return false as no company contract', () => {
+    const contracts = [{ status: CUSTOMER_CONTRACT }];
+    const date = '2019-01-11T08:38:18';
+    const result = EventHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false as no company contract on day (startDate after day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-03-11T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = EventHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false as no company contract on day (end date before day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', endDate: '2019-01-10T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = EventHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false as no company contract on day (no active version)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', versions: [{ isActive: false }] },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = EventHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return true as company contract on day (end date after day)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', versions: [{ isActive: false }], endDate: '2019-01-31T08:38:18' },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = EventHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true as company contract on day (active version)', () => {
+    const contracts = [
+      { status: CUSTOMER_CONTRACT },
+      { status: COMPANY_CONTRACT, startDate: '2019-01-01T08:38:18', versions: [{ isActive: true }] },
+    ];
+    const date = '2019-01-11T08:38:18';
+    const result = EventHelper.auxiliaryHasActiveCompanyContractOnDay(contracts, date);
+
+    expect(result).toBeTruthy();
   });
 });

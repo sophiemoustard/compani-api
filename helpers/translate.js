@@ -24,11 +24,9 @@ module.exports = {
     userAuthFailed: 'The email address or password you entered is not valid.',
     forbidden: 'Forbidden.',
     userAuthentified: 'User authenticated successfully.',
-    /* Ogust */
-    OgustGetTokenOk: 'Ogust Token well retrieved.',
-    OgustGetTokenFailed: 'Ogust Token retrieving failed.',
-    salariesNotFound: 'Ogust employee\'s salaries not found.',
-    salariesFound: 'Ogust employee\'s found.',
+    userPayDocumentDeleted: 'User pay document deleted successfully.',
+    userPayDocumentNotFound: 'User pay document not found.',
+    /* Rss feeds */
     blogGetRssFeedsOk: 'Rss feed found.',
     /* Messages */
     getAllMessagesFound: 'Messages found successfully.',
@@ -228,13 +226,20 @@ module.exports = {
     paymentUpated: 'Payment updated.',
 
     /* Pay */
-    payListCreated: 'Pay list created',
+    payListCreated: 'Pay list created.',
 
     /* Final pay */
-    finalPayListCreated: 'Final pay list created',
+    finalPayListCreated: 'Final pay list created.',
 
     /* Event history */
-    eventHistoriesFound: 'Event histories found',
+    eventHistoriesFound: 'Event histories found.',
+
+    /* Pay documents */
+    payDocumentCreated: 'Pay document created.',
+    payDocumentsFound: 'Pay documents found.',
+    payDocumentsNotFound: 'Pay documents not found.',
+    payDocumentNotFound: 'Pay document not found.',
+    payDocumentDeleted: 'Pay document deleted.',
   },
   'fr-FR': {
     /* Global errors */
@@ -260,11 +265,9 @@ module.exports = {
     userAuthFailed: "L'adresse email ou le mot de passe est invalide.",
     forbidden: 'Accès non autorisé.',
     userAuthentified: 'Utilisateur authentifié avec succès.',
-    /* Ogust */
-    OgustGetTokenOk: 'Token Ogust reçu avec succès.',
-    OgustGetTokenFailed: 'Problème lors de la récupération du Token Ogust.',
-    salariesNotFound: 'Echec lors de la récupération des bulletins de salaire de l\'employé.',
-    salariesFound: 'Bulletins de salaire de l\'employé trouvés avec succès.',
+    userPayDocumentDeleted: "Document de paye d'utilisateur supprimé avec succès.",
+    userPayDocumentNotFound: "Document de paye d'utilisateur non trouvé.",
+    /* Rss feeds */
     blogGetRssFeedsOk: 'Flux Rss trouvé avec succès.',
     /* Messages */
     getAllMessagesFound: 'Messages trouvés avec succès.',
@@ -467,5 +470,12 @@ module.exports = {
 
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés',
+
+    /* Pay documents */
+    payDocumentCreated: 'Document de paie créé.',
+    payDocumentsFound: 'Documents de paie trouvés.',
+    payDocumentsNotFound: 'Documents de paie non trouvés.',
+    payDocumentNotFound: 'Document de paie non trouvé.',
+    payDocumentDeleted: 'Document de paie supprimé.',
   },
 };

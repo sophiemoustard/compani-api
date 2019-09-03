@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
-
 const ServiceSchema = require('./Service').schema;
+const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
+const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 
 const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
 
@@ -25,6 +26,7 @@ const BillSchema = mongoose.Schema({
       auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       startDate: Date,
       endDate: Date,
+      surcharges: billEventSurchargesSchemaDefinition,
     }],
     hours: Number,
     unitInclTaxes: Number,
@@ -34,6 +36,7 @@ const BillSchema = mongoose.Schema({
   }],
   origin: { type: String, enum: BILL_ORIGINS, default: COMPANI },
   netInclTaxes: Number,
+  driveFile: driveResourceSchemaDefinition,
 }, { timestamps: true });
 
 module.exports = mongoose.model('Bill', BillSchema);

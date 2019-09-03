@@ -32,14 +32,6 @@ exports.routes = [
     routes: { prefix: '/cloudinary' },
   },
   {
-    plugin: require('./Ogust/employee'),
-    routes: { prefix: '/ogust/employees' },
-  },
-  {
-    plugin: require('./Ogust/utils'),
-    routes: { prefix: '/ogust' },
-  },
-  {
     plugin: require('./twilio'),
     routes: { prefix: '/sms' },
   },
@@ -122,5 +114,9 @@ exports.routes = [
   {
     plugin: require('./eventHistories'),
     routes: { prefix: '/eventhistories' },
+  },
+  {
+    plugin: require('./payDocuments'),
+    routes: { prefix: '/paydocuments' },
   },
 ];

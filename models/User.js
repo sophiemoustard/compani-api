@@ -14,6 +14,7 @@ const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
 
 const SALT_WORK_FACTOR = 10;
 
+
 // User schema
 const UserSchema = mongoose.Schema({
   refreshToken: String,

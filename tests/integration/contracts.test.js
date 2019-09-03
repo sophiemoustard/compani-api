@@ -2,13 +2,15 @@ const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const moment = require('moment');
 const app = require('../../server');
+const cloneDeep = require('lodash/cloneDeep');
+const omit = require('lodash/omit');
 const Contract = require('../../models/Contract');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');
 const Event = require('../../models/Event');
 const { populateDB, contractsList, contractUser, contractCustomer, contractEvents } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../helpers/constants');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken, getUser } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -25,42 +27,107 @@ describe('CONTRACTS ROUTES', () => {
 
   describe('GET /contracts/:contractId', () => {
     it('should return contract', async () => {
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'GET',
         url: `/contracts/${contractsList[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.contract).toBeDefined();
-      expect(res.result.data.contract._id).toEqual(contractsList[0]._id);
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contract).toBeDefined();
+      expect(response.result.data.contract._id).toEqual(contractsList[0]._id);
     });
 
     it('should return 404 error if no contract found', async () => {
       const invalidId = new ObjectID().toHexString();
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'GET',
         url: `/contracts/${invalidId}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(res.statusCode).toBe(404);
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return an auxiliary\'s own contract', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/contracts/${contractsList[1]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contract).toBeDefined();
+      expect(response.result.data.contract._id).toEqual(contractsList[1]._id);
+    });
+
+    const roles = [
+      { name: 'admin', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 404 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/contracts/${contractsList[0]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 
   describe('GET /contracts', () => {
     it('should return list of contracts', async () => {
       const userId = contractsList[0].user;
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'GET',
         url: `/contracts?user=${userId}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.contracts).toBeDefined();
-      expect(res.result.data.contracts.length)
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contracts).toBeDefined();
+      expect(response.result.data.contracts.length)
         .toEqual(contractsList.filter(contract => contract.user === userId).length);
+    });
+
+    it('should return the contracts owned by an auxiliary', async () => {
+      const user = getUser('auxiliary');
+      authToken = await getToken('auxiliary');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/contracts?user=${user._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contracts).toBeDefined();
+      expect(response.result.data.contracts.length).toEqual(1);
+    });
+
+    const roles = [
+      { name: 'admin', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const userId = contractsList[0].user;
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/contracts?user=${userId}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 
@@ -77,25 +144,25 @@ describe('CONTRACTS ROUTES', () => {
     };
 
     it('should create contract (company contract)', async () => {
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'POST',
         url: '/contracts',
         headers: { 'x-access-token': authToken },
         payload,
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.contract).toBeDefined();
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contract).toBeDefined();
       const contracts = await Contract.find({});
       expect(contracts.length).toEqual(contractsList.length + 1);
       const user = await User.findOne({ _id: payload.user });
       expect(user).toBeDefined();
-      expect(user.contracts).toContainEqual(new ObjectID(res.result.data.contract._id));
+      expect(user.contracts).toContainEqual(new ObjectID(response.result.data.contract._id));
       expect(user.inactivityDate).toBeNull();
     });
 
     it('should create contract (customer contract)', async () => {
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'POST',
         url: '/contracts',
         headers: { 'x-access-token': authToken },
@@ -111,76 +178,56 @@ describe('CONTRACTS ROUTES', () => {
         },
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.contract).toBeDefined();
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contract).toBeDefined();
       const contracts = await Contract.find({});
       expect(contracts.length).toEqual(contractsList.length + 1);
       const customer = await Customer.findOne({ _id: contractCustomer._id });
       expect(customer).toBeDefined();
-      expect(customer.contracts).toContainEqual(res.result.data.contract._id);
+      expect(customer.contracts).toContainEqual(response.result.data.contract._id);
     });
 
     const missingParams = [
+      { path: 'startDate' },
+      { path: 'status' },
+      { path: 'versions.0.grossHourlyRate' },
+      { path: 'versions.0.weeklyHours' },
+      { path: 'versions.0.startDate' },
+      { path: 'user' },
       {
-        paramName: 'startDate',
-        payload: { ...payload },
-        update() {
-          delete this.payload[this.paramName];
-        },
-      },
-      {
-        paramName: 'status',
-        payload: { ...payload },
-        update() {
-          delete this.payload[this.paramName];
-        },
-      },
-      {
-        paramName: 'grossHourlyRate',
-        payload: { ...payload },
-        update() {
-          delete this.payload.versions[0][this.paramName];
-        },
-      },
-      {
-        paramName: 'weeklyHours',
-        payload: { ...payload },
-        update() {
-          delete this.payload.versions[0][this.paramName];
-        },
-      },
-      {
-        paramName: 'startDate',
-        payload: { ...payload },
-        update() {
-          delete this.payload.versions[0][this.paramName];
-        },
-      },
-      {
-        paramName: 'user',
-        payload: { ...payload },
-        update() {
-          delete this.payload[this.paramName];
-        },
-      },
-      {
-        paramName: 'customer',
+        path: 'customer',
         payload: { ...payload, status: CUSTOMER_CONTRACT },
-        update() {
-          delete this.payload[this.paramName];
-        },
       },
     ];
     missingParams.forEach((test) => {
-      it(`should return a 400 error if missing '${test.paramName}' parameter`, async () => {
-        test.update();
-        const res = await app.inject({
+      it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
+        const response = await app.inject({
           method: 'POST',
           url: '/contracts',
-          payload: test.payload,
+          payload: omit(cloneDeep(test.payload || payload), test.path),
           headers: { 'x-access-token': authToken },
         });
-        expect(res.statusCode).toBe(400);
+        expect(response.statusCode).toBe(400);
+      });
+    });
+
+    const roles = [
+      { name: 'admin', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/contracts',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });
@@ -189,16 +236,16 @@ describe('CONTRACTS ROUTES', () => {
     it('should end the contract, unassign future interventions and remove other future events', async () => {
       const endDate = new Date('2019-07-08T14:00:18.653Z');
       const payload = { endDate };
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'PUT',
         url: `/contracts/${contractsList[0]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
 
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.contract).toBeDefined();
-      expect(res.result.data.contract.endDate).toEqual(endDate);
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.contract).toBeDefined();
+      expect(response.result.data.contract.endDate).toEqual(endDate);
 
       const user = await User.findOne({ _id: contractsList[0].user });
       expect(user.inactivityDate).not.toBeNull();
@@ -211,50 +258,90 @@ describe('CONTRACTS ROUTES', () => {
       const invalidId = new ObjectID().toHexString();
       const endDate = moment().toDate();
       const payload = { endDate };
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'PUT',
         url: `/contracts/${invalidId}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
 
-      expect(res.statusCode).toBe(404);
+      expect(response.statusCode).toBe(404);
     });
 
     it('should return 400 error invalid payload', async () => {
       const endDate = moment().toDate();
       const payload = { dateEnde: endDate };
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'PUT',
         url: `/contracts/${contractsList[0]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
 
-      expect(res.statusCode).toBe(400);
+      expect(response.statusCode).toBe(400);
+    });
+
+    const payload = { endDate: new Date('2019-07-08T14:00:18.653Z') };
+    const roles = [
+      { name: 'admin', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/contracts/${contractsList[0]._id}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 
   describe('DELETE contracts/:id', () => {
     it('should delete a contract by id', async () => {
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'DELETE',
         url: `/contracts/${contractsList[0]._id}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(res.statusCode).toBe(200);
+      expect(response.statusCode).toBe(200);
     });
 
     it('should return a 404 error if contract not found', async () => {
       const invalidId = new ObjectID().toHexString();
-      const res = await app.inject({
+      const response = await app.inject({
         method: 'DELETE',
         url: `/contracts/${invalidId}`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(res.statusCode).toBe(404);
+      expect(response.statusCode).toBe(404);
+    });
+
+    const roles = [
+      { name: 'admin', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/contracts/${contractsList[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
     });
   });
 });

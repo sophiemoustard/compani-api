@@ -125,9 +125,12 @@
         <tr>
           <th align="left">Date</th>
           <th align="left">Intervenant</th>
-          <th align="left">Heure de début</th>
-          <th align="left">Heure de fin</th>
+          <th align="left">Début</th>
+          <th align="left">Fin</th>
           <th align="left">Service</th>
+          {{#unless creditNote.forTpp}}
+            <th align="left">Majoration</th>
+          {{/unless}}
         </tr>
       </thead>
       <tbody>
@@ -138,6 +141,15 @@
           <td> {{ startTime }} </td>
           <td> {{ endTime }} </td>
           <td> {{ service }} </td>
+          {{#unless @root/creditNote.forTpp}}
+            <td>
+              {{#each surcharges}}
+                <div>
+                  + {{ percentage }}% ({{ name }}{{#if startHour}} {{ startHour }}-{{ endHour }}{{/if}})
+                </div>
+              {{/each}}
+            </td>
+          {{/unless}}
         </tr>
       {{/table}}
       </tbody>
