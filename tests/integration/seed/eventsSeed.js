@@ -198,4 +198,5 @@ module.exports = {
   eventAuxiliary,
   customerAuxiliary,
   sector,
+  thirdPartyPayer,
 };

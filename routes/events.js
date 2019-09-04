@@ -103,13 +103,14 @@ exports.plugin = {
       method: 'GET',
       path: '/credit-notes',
       options: {
+        auth: { scope: ['+admin', 'events:edit'] },
         validate: {
           query: {
-            startDate: Joi.string(),
-            endDate: Joi.string(),
-            customer: Joi.objectId(),
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+            customer: Joi.objectId().required(),
             thirdPartyPayer: Joi.objectId(),
-            isBilled: Joi.boolean(),
+            isBilled: Joi.boolean().required(),
           },
         },
       },

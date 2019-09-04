@@ -49,7 +49,7 @@ const listForCreditNotes = async (req) => {
       startDate: { $gte: moment(req.query.startDate).startOf('d').toDate() },
       endDate: { $lte: moment(req.query.endDate).endOf('d').toDate() },
       customer: req.query.customer,
-      isBilled: true,
+      isBilled: req.query.isBilled,
       type: INTERVENTION,
     };
     if (req.query.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': req.query.thirdPartyPayer };

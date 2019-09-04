@@ -1,7 +1,16 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const { populateDB, eventsList, eventAuxiliary, customerAuxiliary, sector } = require('./seed/eventsSeed');
+const qs = require('qs');
+const omit = require('lodash/omit');
+const {
+  populateDB,
+  eventsList,
+  eventAuxiliary,
+  customerAuxiliary,
+  sector,
+  thirdPartyPayer,
+} = require('./seed/eventsSeed');
 const { getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
@@ -127,6 +136,123 @@ describe('EVENTS ROUTES', () => {
     });
   });
 
+  describe('GET /events/credit-notes', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should return a list of billed events for specified customer', async () => {
+        const query = {
+          startDate: moment('2019-01-01').toDate(),
+          endDate: moment('2019-01-20').toDate(),
+          customer: customerAuxiliary._id.toHexString(),
+          isBilled: true,
+        };
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        const filteredEvents = eventsList.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
+        expect(response.result.data.events.length).toBe(filteredEvents.length);
+      });
+
+      it('should return a list of billed events for specified customer and tpp', async () => {
+        const query = {
+          startDate: moment('2019-01-01').toDate(),
+          endDate: moment('2019-01-20').toDate(),
+          customer: customerAuxiliary._id.toHexString(),
+          thirdPartyPayer: thirdPartyPayer._id.toHexString(),
+          isBilled: true,
+        };
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        const filteredEvents = eventsList.filter(ev => ev.isBilled && ev.bills.inclTaxesTpp);
+        expect(response.result.data.events.length).toBe(filteredEvents.length);
+      });
+
+      it('should return an empty list as no event is matching the request', async () => {
+        const query = {
+          startDate: moment('2017-01-01').toDate(),
+          endDate: moment('2017-01-20').toDate(),
+          customer: customerAuxiliary._id.toHexString(),
+          isBilled: true,
+        };
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toEqual([]);
+      });
+
+      const wrongParams = ['startDate', 'endDate', 'customer', 'isBilled'];
+      wrongParams.forEach((param) => {
+        it(`should return a 400 error if missing '${param}' parameter`, async () => {
+          const query = {
+            startDate: moment('2019-01-01').toDate(),
+            endDate: moment('2019-01-20').toDate(),
+            customer: customerAuxiliary._id.toHexString(),
+            isBilled: true,
+          };
+          const wrongQuery = omit(query, param);
+
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/credit-notes?${qs.stringify(wrongQuery)}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(400);
+        });
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 403 },
+      ];
+      const query = {
+        startDate: moment('2019-01-01').toDate(),
+        endDate: moment('2019-01-20').toDate(),
+        customer: customerAuxiliary._id.toHexString(),
+        isBilled: true,
+      };
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/credit-notes?${qs.stringify(query)}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 
   describe('POST /events', () => {
     describe('Admin', () => {
