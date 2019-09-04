@@ -74,6 +74,12 @@ const rightsList = [
     permission: 'events:edit',
     name: 'events-edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les événements',
+    permission: 'events:read',
+    name: 'events-read',
+  },
 ];
 
 const coachRights = [
@@ -87,10 +93,11 @@ const coachRights = [
   'users:list',
   'users:edit',
   'events:edit',
+  'events:read',
 ];
-const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list'];
+const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read'];
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
-const helperRights = ['billing:read'];
+const helperRights = ['billing:read', 'events:read'];
 
 const rolesList = [
   {

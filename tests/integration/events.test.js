@@ -16,81 +16,117 @@ describe('EVENTS ROUTES', () => {
   let authToken = null;
 
   describe('GET /events', () => {
-    it('should return all events', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/events',
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+      it('should return all events', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        expect(response.result.data.events.length).toEqual(eventsList.length);
       });
 
-      expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events.length).toEqual(eventsList.length);
+      it('should return a list of events', async () => {
+        const startDate = moment('2019-01-18');
+        const endDate = moment('2019-01-20');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        response.result.data.events.forEach((event) => {
+          expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
+          expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
+          if (event.type === 'intervention') {
+            expect(event.subscription._id).toBeDefined();
+          }
+        });
+      });
+
+      it('should return a list of events groupedBy customers', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events?groupBy=customer&type=intervention',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        expect(response.result.data.events[0]._id).toBeDefined();
+        expect(response.result.data.events[0].events).toBeDefined();
+        response.result.data.events[0].events.forEach((event) => {
+          expect(event.customer._id).toEqual(response.result.data.events[0]._id);
+        });
+      });
+
+      it('should return a list of events groupedBy auxiliaries', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events?groupBy=auxiliary',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        expect(response.result.data.events[0]._id).toBeDefined();
+        expect(response.result.data.events[0].events).toBeDefined();
+        response.result.data.events[0].events.forEach((event) => {
+          expect(event.auxiliary._id).toEqual(response.result.data.events[0]._id);
+        });
+      });
+
+      it('should return an empty list as no event is matching the request', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events?startDate=20000101&endDate=20001010',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toEqual([]);
+      });
     });
 
-    it('should return a list of events', async () => {
-      const startDate = moment('2019-01-18');
-      const endDate = moment('2019-01-20');
-      const response = await app.inject({
-        method: 'GET',
-        url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
-        headers: { 'x-access-token': authToken },
-      });
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 200 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
 
-      expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
-      response.result.data.events.forEach((event) => {
-        expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
-        expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
-        if (event.type === 'intervention') {
-          expect(event.subscription._id).toBeDefined();
-        }
-      });
-    });
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const request = {
+            method: 'GET',
+            url: '/events',
+          };
 
-    it('should return a list of events groupedBy customers', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/events?groupBy=customer&type=intervention',
-        headers: { 'x-access-token': authToken },
-      });
+          if (!role.customCredentials) {
+            authToken = await getToken(role.name);
+            request.headers = { 'x-access-token': authToken };
+          } else {
+            request.credentials = role.customCredentials;
+          }
 
-      expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events[0]._id).toBeDefined();
-      expect(response.result.data.events[0].events).toBeDefined();
-      response.result.data.events[0].events.forEach((event) => {
-        expect(event.customer._id).toEqual(response.result.data.events[0]._id);
-      });
-    });
+          const response = await app.inject(request);
 
-    it('should return a list of events groupedBy auxiliaries', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/events?groupBy=auxiliary',
-        headers: { 'x-access-token': authToken },
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-
-      expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toBeDefined();
-      expect(response.result.data.events[0]._id).toBeDefined();
-      expect(response.result.data.events[0].events).toBeDefined();
-      response.result.data.events[0].events.forEach((event) => {
-        expect(event.auxiliary._id).toEqual(response.result.data.events[0]._id);
-      });
-    });
-
-    it('should return an empty list as no event is matching the request', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/events?startDate=20000101&endDate=20001010',
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toEqual(200);
-      expect(response.result.data.events).toEqual([]);
     });
   });
+
 
   describe('POST /events', () => {
     describe('Admin', () => {

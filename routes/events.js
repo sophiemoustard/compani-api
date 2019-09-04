@@ -83,6 +83,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['events:read'] },
         validate: {
           query: {
             startDate: Joi.date(),
