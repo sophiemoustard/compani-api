@@ -38,6 +38,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['events:edit', 'user-{payload.auxiliary}'] },
         validate: {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(EVENT_TYPES),

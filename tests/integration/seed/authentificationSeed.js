@@ -68,6 +68,12 @@ const rightsList = [
     permission: 'users:edit',
     name: 'users-edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Editer un événement',
+    permission: 'events:edit',
+    name: 'events-edit',
+  },
 ];
 
 const coachRights = [
@@ -80,13 +86,15 @@ const coachRights = [
   'exports:read',
   'users:list',
   'users:edit',
+  'events:edit',
 ];
 const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list'];
+const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = ['billing:read'];
 
 const rolesList = [
   {
-    _id: new ObjectID('5d3b11e7fecdbd276adef518'),
+    _id: new ObjectID(),
     name: 'admin',
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -94,7 +102,7 @@ const rolesList = [
     })),
   },
   {
-    _id: new ObjectID('5d3b11e7fecdbd276adef51a'),
+    _id: new ObjectID(),
     name: 'coach',
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -102,7 +110,7 @@ const rolesList = [
     })),
   },
   {
-    _id: new ObjectID('5d3b117847536e273565e123'),
+    _id: new ObjectID(),
     name: 'auxiliary',
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -110,7 +118,15 @@ const rolesList = [
     })),
   },
   {
-    _id: new ObjectID('5d3b115b18518827239ed1d0'),
+    _id: new ObjectID(),
+    name: 'planningReferent',
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: planningReferentRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
     name: 'helper',
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -140,6 +156,13 @@ const userList = [
     local: { email: 'auxiliary@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'auxiliary')._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'PlanningReferent', lastname: 'Test' },
+    local: { email: 'planning-referent@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'planningReferent')._id,
   },
   {
     _id: new ObjectID(),
