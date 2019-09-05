@@ -7,7 +7,7 @@ const drive = require('../models/Google/Drive');
 
 const fsPromises = fs.promises;
 
-const generateDocx = async (params) => {
+exports.generateDocx = async (params) => {
   params.file.tmpFilePath = path.join(os.tmpdir(), 'template.docx');
   await drive.downloadFileById(params.file);
 
@@ -25,7 +25,7 @@ const generateDocx = async (params) => {
   return tmpOutputPath;
 };
 
-const createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
+exports.createAndReadFile = async (stream, outputPath) => new Promise((resolve, reject) => {
   const tmpFile = fs.createWriteStream(outputPath);
   stream.pipe(tmpFile);
   tmpFile.on('finish', () => {
@@ -34,7 +34,7 @@ const createAndReadFile = async (stream, outputPath) => new Promise((resolve, re
   tmpFile.on('error', err => reject(err));
 });
 
-const fileToBase64 = filePath => new Promise((resolve, reject) => {
+exports.fileToBase64 = filePath => new Promise((resolve, reject) => {
   const buffers = [];
   const fileStream = fs.createReadStream(filePath);
   fileStream.on('data', (chunk) => { buffers.push(chunk); });
@@ -45,7 +45,7 @@ const fileToBase64 = filePath => new Promise((resolve, reject) => {
   fileStream.once('error', err => reject(err));
 });
 
-const exportToCsv = async (data) => {
+exports.exportToCsv = async (data) => {
   let csvContent = '\ufeff'; // UTF16LE BOM for Microsoft Excel
   data.forEach((rowArray, index) => {
     const rowArrayQuoted = rowArray.map((cell) => {
@@ -63,11 +63,4 @@ const exportToCsv = async (data) => {
   await fsPromises.writeFile(tmpOutputPath, csvContent, 'utf8', () => {});
 
   return tmpOutputPath;
-};
-
-module.exports = {
-  generateDocx,
-  createAndReadFile,
-  fileToBase64,
-  exportToCsv,
 };
