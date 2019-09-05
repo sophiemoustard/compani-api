@@ -567,27 +567,80 @@ describe('EVENTS ROUTES', () => {
   });
 
   describe('DELETE /events/{_id}', () => {
-    it('should delete corresponding event', async () => {
-      const event = eventsList[0];
-
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/events/${event._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
-      expect(response.statusCode).toBe(200);
+
+      it('should delete corresponding event', async () => {
+        const event = eventsList[0];
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${event._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return a 404 error as event is not found', async () => {
+        const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${invalidId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
     });
 
-    it('should return a 404 error as event is not found', async () => {
-      const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
+    describe('Other roles', () => {
+      beforeEach(populateDB);
 
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/events/${invalidId.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        {
+          name: 'not auxiliary event',
+          expectedCode: 403,
+          customCredentials: {
+            _id: new ObjectID(),
+            scope: [`events.auxiliary:${this._id}:edit`],
+          },
+        },
+        {
+          name: 'auxiliary event',
+          expectedCode: 200,
+          customCredentials: {
+            _id: eventAuxiliary._id,
+            scope: [`events.auxiliary:${eventAuxiliary._id}:edit`],
+          },
+        },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const request = {
+            method: 'DELETE',
+            url: `/events/${eventsList[2]._id.toHexString()}`,
+          };
+
+          if (!role.customCredentials) {
+            authToken = await getToken(role.name);
+            request.headers = { 'x-access-token': authToken };
+          } else {
+            request.credentials = role.customCredentials;
+          }
+
+          const response = await app.inject(request);
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-
-      expect(response.statusCode).toBe(404);
     });
   });
 });

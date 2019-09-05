@@ -165,9 +165,7 @@ exports.plugin = {
           }).and('startDate', 'endDate'),
         },
         ext: {
-          onCredentials: {
-            method: additionalEventsScope,
-          },
+          onCredentials: { method: additionalEventsScope },
         },
       },
 
@@ -178,8 +176,12 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        auth: { scope: ['events:edit', 'events.auxiliary:{credentials._id}:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
+        },
+        ext: {
+          onCredentials: { method: additionalEventsScope },
         },
       },
       handler: remove,
@@ -189,6 +191,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/repetition',
       options: {
+        auth: { scope: ['events:edit', 'events.auxiliary:{credentials._id}:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
