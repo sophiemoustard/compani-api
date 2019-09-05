@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
+const memoize = require('lodash/memoize');
 const Role = require('../../../models/Role');
 const Right = require('../../../models/Right');
 const User = require('../../../models/User');
@@ -92,6 +93,26 @@ const rightsList = [
     permission: 'events:sector:edit',
     name: 'events-sector-edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Créer ou supprimer des bénéficiaires',
+    permission: 'customers:create',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les données de bénéficiaires',
+    permission: 'customers:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les données de bénéficiaires',
+    permission: 'customers:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les données administratives de bénéficiaires',
+    permission: 'customers:administrative',
+  },
 ];
 
 const coachRights = [
@@ -106,8 +127,12 @@ const coachRights = [
   'users:edit',
   'events:edit',
   'events:read',
+  'customers:create',
+  'customers:read',
+  'customers:edit',
+  'customers:administrative',
 ];
-const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit'];
+const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
 const planningReferentRights = [...auxiliaryRights, 'events:sector:edit'];
 const helperRights = ['billing:read'];
 
@@ -189,6 +214,7 @@ const userList = [
     local: { email: 'helper@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [new ObjectID('5d7101633a0366169cf3bc1c')],
   },
 ];
 
@@ -208,7 +234,7 @@ const getUser = (roleName) => {
   return userList.find(u => u.role.toHexString() === role._id.toHexString());
 };
 
-const getToken = async (roleName) => {
+const getToken = memoize(async (roleName) => {
   const user = getUser(roleName);
   const response = await app.inject({
     method: 'POST',
@@ -217,7 +243,7 @@ const getToken = async (roleName) => {
   });
 
   return response.result.data.token;
-};
+});
 
 module.exports = {
   rolesList,

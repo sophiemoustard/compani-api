@@ -216,6 +216,23 @@ const customersList = [
       ],
     },
   },
+  {
+    _id: new ObjectID('5d7101633a0366169cf3bc1c'),
+    email: 'volgarr@theviking.io',
+    identity: {
+      title: 'M',
+      firstname: 'Volgarr',
+      lastname: 'Theviking',
+    },
+    contact: {
+      address: {
+        fullAddress: 'Lyngsøvej 26, 8600 Silkeborg, Danemark',
+        zipCode: '8600',
+        city: 'Silkeborg',
+      },
+      phone: '0612345678',
+    },
+  },
 ];
 
 const eventList = [
