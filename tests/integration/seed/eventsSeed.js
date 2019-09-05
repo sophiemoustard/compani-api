@@ -47,6 +47,7 @@ const eventAuxiliary = {
   _id: auxiliaryId,
   identity: { firstname: 'Thibaut', lastname: 'Pinot' },
   local: { email: 't@p.com', password: 'tourdefrance' },
+  administrative: { driveFolder: { driveId: '1234567890' } },
   role: rolesList[1]._id,
   contracts: [contract._id],
   sector: sector._id,

@@ -3,6 +3,11 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const qs = require('qs');
 const omit = require('lodash/omit');
+const FormData = require('form-data');
+const GetStream = require('get-stream');
+const path = require('path');
+const fs = require('fs');
+const sinon = require('sinon');
 const {
   populateDB,
   eventsList,
@@ -14,6 +19,8 @@ const {
 const { getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
+const Drive = require('../../models/Google/Drive');
+const GdriveStorage = require('../../helpers/gdriveStorage');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -638,6 +645,106 @@ describe('EVENTS ROUTES', () => {
 
           const response = await app.inject(request);
 
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  const generateFormData = (payload) => {
+    const form = new FormData();
+
+    for (const k in payload) {
+      form.append(k, payload[k]);
+    }
+    return form;
+  };
+
+  describe('POST /events/:id/gdrive/:drive_id/upload', () => {
+    const userFolderId = eventAuxiliary.administrative.driveFolder.driveId;
+    let docPayload;
+    let form;
+    let addFileStub;
+    let getFileStub;
+    beforeEach(() => {
+      docPayload = {
+        proofOfAbsence: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+        fileName: 'absence',
+        'Content-Type': 'application/pdf',
+      };
+      form = generateFormData(docPayload);
+      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({ id: 'qwerty' });
+      getFileStub = sinon.stub(Drive, 'getFileById').returns({ webViewLink: 'http://test.com/file.pdf' });
+    });
+
+    afterEach(() => {
+      addFileStub.restore();
+      getFileStub.restore();
+    });
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+      it('should add an absence document for an event', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/events/${eventsList[1]._id}/gdrive/${userFolderId}/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.payload).toMatchObject({
+          attachment: {
+            driveId: 'qwerty',
+            link: 'http://test.com/file.pdf',
+          },
+        });
+        sinon.assert.calledOnce(addFileStub);
+        sinon.assert.calledWith(getFileStub, { fileId: 'qwerty' });
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        {
+          name: 'not auxiliary event',
+          expectedCode: 403,
+          customCredentials: {
+            _id: new ObjectID(),
+            scope: [`events.auxiliary:${this._id}:edit`],
+          },
+        },
+        {
+          name: 'auxiliary event',
+          expectedCode: 200,
+          customCredentials: {
+            _id: eventAuxiliary._id,
+            scope: [`events.auxiliary:${eventAuxiliary._id}:edit`],
+          },
+        },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const request = {
+            method: 'POST',
+            url: `/events/${eventsList[1]._id}/gdrive/${userFolderId}/upload`,
+            payload: await GetStream(form),
+          };
+          if (!role.customCredentials) {
+            authToken = await getToken(role.name);
+            request.headers = { ...form.getHeaders(), 'x-access-token': authToken };
+          } else {
+            request.credentials = role.customCredentials;
+            request.headers = { ...form.getHeaders() };
+          }
+
+          const response = await app.inject(request);
           expect(response.statusCode).toBe(role.expectedCode);
         });
       });

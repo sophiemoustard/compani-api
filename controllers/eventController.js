@@ -3,7 +3,7 @@ const moment = require('moment');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
-const { addFile } = require('../helpers/gdriveStorage');
+const GdriveStorage = require('../helpers/gdriveStorage');
 const {
   getListQuery,
   populateEvents,
@@ -138,7 +138,7 @@ const uploadFile = async (req) => {
   try {
     if (!req.payload.proofOfAbsence) return Boom.forbidden(translate[language].uploadNotAllowed);
 
-    const uploadedFile = await addFile({
+    const uploadedFile = await GdriveStorage.addFile({
       driveFolderId: req.params.driveId,
       name: req.payload.fileName,
       type: req.payload['Content-Type'],

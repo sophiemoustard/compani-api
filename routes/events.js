@@ -195,6 +195,9 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId() },
         },
+        ext: {
+          onCredentials: { method: additionalEventsScope },
+        },
       },
       handler: removeRepetition,
     });
@@ -204,11 +207,15 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
+        auth: { scope: ['events:edit', 'events.auxiliary:{credentials._id}:edit'] },
         payload: {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
           maxBytes: 5242880,
+        },
+        ext: {
+          onCredentials: { method: additionalEventsScope },
         },
       },
     });
