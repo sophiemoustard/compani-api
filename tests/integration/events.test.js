@@ -446,64 +446,123 @@ describe('EVENTS ROUTES', () => {
 
 
   describe('PUT /events/{_id}', () => {
-    it('should update corresponding event', async () => {
-      const event = eventsList[0];
-      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-01-23T12:00:00.000Z', sector: sector._id, auxiliary: event.auxiliary };
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.event).toBeDefined();
-      expect(response.result.data.event._id).toEqual(event._id);
-      expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
-      expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
+      it('should update corresponding event', async () => {
+        const event = eventsList[0];
+        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-01-23T12:00:00.000Z', sector: sector._id, auxiliary: event.auxiliary };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.event).toBeDefined();
+        expect(response.result.data.event._id).toEqual(event._id);
+        expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
+        expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
+      });
+
+      it('should return a 400 error as payload is invalid', async () => {
+        const payload = { beginDate: '2019-01-23T10:00:00.000Z', sector: new ObjectID() };
+        const event = eventsList[0];
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should return a 400 error as startDate and endDate are not on the same day', async () => {
+        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sector._id };
+        const event = eventsList[0];
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should return a 404 error as event is not found', async () => {
+        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sector._id };
+        const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${invalidId.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
     });
+    describe('Other roles', () => {
+      beforeEach(populateDB);
 
-    it('should return a 400 error as payload is invalid', async () => {
-      const payload = { beginDate: '2019-01-23T10:00:00.000Z', sector: new ObjectID() };
-      const event = eventsList[0];
+      const payload = {
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-01-23T12:00:00.000Z',
+        sector: sector._id,
+      };
 
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { 'x-access-token': authToken },
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        {
+          name: 'not auxiliary event',
+          expectedCode: 403,
+          customCredentials: {
+            _id: new ObjectID(),
+            scope: [`events.auxiliary:${this._id}:edit`],
+          },
+        },
+        {
+          name: 'auxiliary event',
+          expectedCode: 200,
+          customCredentials: {
+            _id: eventAuxiliary._id,
+            scope: [`events.auxiliary:${eventAuxiliary._id}:edit`],
+          },
+        },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const request = {
+            method: 'PUT',
+            url: `/events/${eventsList[2]._id.toHexString()}`,
+            payload,
+          };
+
+          if (!role.customCredentials) {
+            authToken = await getToken(role.name);
+            request.headers = { 'x-access-token': authToken };
+          } else {
+            request.credentials = role.customCredentials;
+          }
+
+          const response = await app.inject(request);
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 400 error as startDate and endDate are not on the same day', async () => {
-      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sector._id };
-      const event = eventsList[0];
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${event._id.toHexString()}`,
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return a 404 error as event is not found', async () => {
-      const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sector._id };
-      const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
-
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/events/${invalidId.toHexString()}`,
-        payload,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
     });
   });
 

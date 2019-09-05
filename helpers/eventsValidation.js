@@ -1,6 +1,8 @@
 const moment = require('moment');
 const _ = require('lodash');
 const momentRange = require('moment-range');
+const Boom = require('boom');
+const { ObjectID } = require('mongodb');
 const {
   INTERVENTION,
   ABSENCE,
@@ -14,6 +16,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const Contract = require('../models/Contract');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
+const Event = require('../models/Event');
 const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
@@ -109,4 +112,13 @@ exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (!eventHasAuxiliarySector(event, user)) return false;
 
   return true;
+};
+
+exports.additionalEventsScope = async (req, h) => {
+  const { credentials } = req.auth;
+  if (!ObjectID.isValid(req.params._id)) throw Boom.badRequest();
+  const event = await Event.findById(req.params._id, { auxiliary: 1 }).lean();
+  if (!event) throw Boom.notFound();
+  credentials.scope = [].concat(credentials.scope, `events.auxiliary:${event.auxiliary}:edit`);
+  return h.continue;
 };

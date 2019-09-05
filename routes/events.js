@@ -21,6 +21,7 @@ const {
   OTHER,
   WORK_ACCIDENT,
 } = require('../helpers/constants');
+const { additionalEventsScope } = require('../helpers/eventsValidation');
 const { CONTRACT_STATUS } = require('../models/Contract');
 const {
   EVENT_TYPES,
@@ -121,6 +122,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['events:edit', 'events.auxiliary:{credentials._id}:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
           payload: Joi.object().keys({
@@ -162,7 +164,13 @@ exports.plugin = {
             bills: Joi.object(),
           }).and('startDate', 'endDate'),
         },
+        ext: {
+          onCredentials: {
+            method: additionalEventsScope,
+          },
+        },
       },
+
       handler: update,
     });
 
