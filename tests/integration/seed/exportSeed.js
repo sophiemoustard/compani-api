@@ -312,4 +312,5 @@ module.exports = {
   populateBills,
   populatePayment,
   populatePay,
+  paymentsList,
 };
