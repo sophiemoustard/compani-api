@@ -401,7 +401,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/certificates',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative', 'customer-{params._id}'] },
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: Joi.object().keys({

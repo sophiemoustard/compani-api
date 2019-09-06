@@ -483,7 +483,12 @@ const createDriveFolder = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = ['signedMandate', 'signedQuote', 'financialCertificates'];
+    const allowedFields = ['financialCertificates'];
+
+    if (req.auth.credentials.scope.includes('customers:administrative')) {
+      allowedFields.push('signedMandate', 'signedQuote');
+    }
+
     const docKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (docKeys.length === 0) Boom.forbidden('Upload not allowed');
 
