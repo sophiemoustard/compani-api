@@ -21,7 +21,6 @@ const {
   OTHER,
   WORK_ACCIDENT,
 } = require('../helpers/constants');
-const { additionalEventsScope } = require('../helpers/eventsValidation');
 const { CONTRACT_STATUS } = require('../models/Contract');
 const {
   EVENT_TYPES,
@@ -31,6 +30,7 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
+const { getEvent, authorizeEventUpdate } = require('./preHandlers/events');
 
 exports.plugin = {
   name: 'routes-event',
@@ -122,7 +122,6 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['events:edit', 'events.auxiliary:{credentials._id}:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
           payload: Joi.object().keys({
@@ -164,9 +163,10 @@ exports.plugin = {
             bills: Joi.object(),
           }).and('startDate', 'endDate'),
         },
-        ext: {
-          onCredentials: { method: additionalEventsScope },
-        },
+        pre: [
+          { method: getEvent, assign: 'event' },
+          { method: authorizeEventUpdate(['events:edit']), assign: 'event' },
+        ],
       },
 
       handler: update,
@@ -176,13 +176,13 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
-        auth: { scope: ['events:edit', 'events.auxiliary:{credentials._id}:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
-        ext: {
-          onCredentials: { method: additionalEventsScope },
-        },
+        pre: [
+          { method: getEvent, assign: 'event' },
+          { method: authorizeEventUpdate(['events:edit']), assign: 'event' },
+        ],
       },
       handler: remove,
     });
@@ -191,13 +191,13 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/repetition',
       options: {
-        auth: { scope: ['events:edit', 'events.auxiliary:{credentials._id}:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
-        ext: {
-          onCredentials: { method: additionalEventsScope },
-        },
+        pre: [
+          { method: getEvent, assign: 'event' },
+          { method: authorizeEventUpdate(['events:edit']), assign: 'event' },
+        ],
       },
       handler: removeRepetition,
     });
@@ -207,16 +207,16 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
-        auth: { scope: ['events:edit', 'events.auxiliary:{credentials._id}:edit'] },
         payload: {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
-        ext: {
-          onCredentials: { method: additionalEventsScope },
-        },
+        pre: [
+          { method: getEvent, assign: 'event' },
+          { method: authorizeEventUpdate(['events:edit']) },
+        ],
       },
     });
   },

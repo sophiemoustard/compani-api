@@ -273,10 +273,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
   return Promise.all(promises);
 };
 
-exports.deleteEvent = async (params, credentials) => {
-  const event = await Event.findOne({ _id: params._id });
-  if (!event) return null;
-
+exports.deleteEvent = async (event, params, credentials) => {
   const deletionInfo = _.omit(event, 'repetition');
   await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
   await Event.deleteOne({ _id: params._id });

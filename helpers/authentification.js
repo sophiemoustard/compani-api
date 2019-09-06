@@ -1,5 +1,6 @@
-const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const intersection = require('lodash/intersection');
+const User = require('../models/User');
 
 const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: expireTime || '24h' });
 
@@ -32,7 +33,12 @@ const validate = async (decoded) => {
   }
 };
 
+const authorize = (routeScopes, userScopes) => !!(typeof scopes === 'string'
+  ? userScopes.includes(routeScopes)
+  : intersection(userScopes, routeScopes).length);
+
 module.exports = {
   encode,
   validate,
+  authorize,
 };

@@ -247,27 +247,16 @@ describe('updateRepetition', () => {
 });
 
 describe('deleteRepetition', () => {
-  let findOne;
   let createEventHistoryOnDelete;
   let deleteMany;
-  const params = { _id: (new ObjectID()).toHexString() };
   const credentials = { _id: (new ObjectID()).toHexString() };
   beforeEach(() => {
-    findOne = sinon.stub(Event, 'findOne');
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
     deleteMany = sinon.stub(Event, 'deleteMany');
   });
   afterEach(() => {
-    findOne.restore();
     createEventHistoryOnDelete.restore();
     deleteMany.restore();
-  });
-
-  it('should return null if event not found', async () => {
-    findOne.returns(null);
-    const result = await EventsRepetitionHelper.deleteRepetition(params, {});
-
-    expect(result).toBeNull();
   });
 
   it('should delete repetition', async () => {
@@ -280,8 +269,7 @@ describe('deleteRepetition', () => {
       },
       startDate: '2019-01-21T09:38:18.653Z',
     };
-    findOne.returns(event);
-    const result = await EventsRepetitionHelper.deleteRepetition(params, credentials);
+    const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
 
     expect(result).toEqual(event);
     sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
@@ -301,8 +289,7 @@ describe('deleteRepetition', () => {
       repetition: { frequency: EVERY_WEEK },
       startDate: '2019-01-21T09:38:18.653Z',
     };
-    findOne.returns(event);
-    const result = await EventsRepetitionHelper.deleteRepetition(params, credentials);
+    const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
 
     expect(result).toEqual(event);
     sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
@@ -319,8 +306,7 @@ describe('deleteRepetition', () => {
       },
       startDate: '2019-01-21T09:38:18.653Z',
     };
-    findOne.returns(event);
-    const result = await EventsRepetitionHelper.deleteRepetition(params, credentials);
+    const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
 
     expect(result).toEqual(event);
     sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);

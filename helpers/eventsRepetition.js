@@ -134,10 +134,7 @@ exports.updateRepetition = async (event, eventPayload) => {
   return Promise.all(promises);
 };
 
-exports.deleteRepetition = async (params, credentials) => {
-  const event = await Event.findOne({ _id: params._id });
-  if (!event) return null;
-
+exports.deleteRepetition = async (event, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
 
   const { type, repetition } = event;

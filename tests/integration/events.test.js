@@ -533,18 +533,12 @@ describe('EVENTS ROUTES', () => {
         {
           name: 'not auxiliary event',
           expectedCode: 403,
-          customCredentials: {
-            _id: new ObjectID(),
-            scope: [`events.auxiliary:${this._id}:edit`],
-          },
+          customCredentials: { _id: new ObjectID() },
         },
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: {
-            _id: eventAuxiliary._id,
-            scope: [`events.auxiliary:${eventAuxiliary._id}:edit`],
-          },
+          customCredentials: { _id: eventAuxiliary._id },
         },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
@@ -612,18 +606,12 @@ describe('EVENTS ROUTES', () => {
         {
           name: 'not auxiliary event',
           expectedCode: 403,
-          customCredentials: {
-            _id: new ObjectID(),
-            scope: [`events.auxiliary:${this._id}:edit`],
-          },
+          customCredentials: { _id: new ObjectID() },
         },
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: {
-            _id: eventAuxiliary._id,
-            scope: [`events.auxiliary:${eventAuxiliary._id}:edit`],
-          },
+          customCredentials: { _id: eventAuxiliary._id },
         },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
@@ -712,18 +700,12 @@ describe('EVENTS ROUTES', () => {
         {
           name: 'not auxiliary event',
           expectedCode: 403,
-          customCredentials: {
-            _id: new ObjectID(),
-            scope: [`events.auxiliary:${this._id}:edit`],
-          },
+          customCredentials: { _id: new ObjectID() },
         },
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: {
-            _id: eventAuxiliary._id,
-            scope: [`events.auxiliary:${eventAuxiliary._id}:edit`],
-          },
+          customCredentials: { _id: eventAuxiliary._id },
         },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },

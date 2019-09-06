@@ -85,8 +85,7 @@ const update = async (req) => {
   try {
     const { payload, auth } = req;
 
-    let event = await Event.findOne({ _id: req.params._id }).lean();
-    if (!event) return Boom.notFound(translate[language].eventNotFound);
+    let { event } = req.pre;
 
     if (event.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {
       throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
@@ -108,8 +107,8 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const { params, auth } = req;
-    const event = await deleteEvent(params, auth.credentials);
+    const { params, auth, pre } = req;
+    const event = await deleteEvent(pre.event, params, auth.credentials);
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     return { message: translate[language].eventDeleted };
@@ -121,8 +120,8 @@ const remove = async (req) => {
 
 const removeRepetition = async (req) => {
   try {
-    const { params, auth } = req;
-    const event = await deleteRepetition(params, auth.credentials);
+    const { params, auth, pre } = req;
+    const event = await deleteRepetition(pre.event, params, auth.credentials);
 
     return {
       message: translate[language].eventDeleted,
