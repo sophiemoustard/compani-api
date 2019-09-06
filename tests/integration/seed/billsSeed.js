@@ -119,6 +119,7 @@ const billCustomerList = [
 const billsList = [
   {
     _id: new ObjectID(),
+    number: 'FACT-1807001',
     date: '2019-05-29',
     customer: billCustomerList[0]._id,
     client: billThirdPartyPayer._id,
@@ -144,6 +145,7 @@ const billsList = [
   },
   {
     _id: new ObjectID(),
+    number: 'FACT-1807002',
     date: '2019-05-25',
     customer: billCustomerList[1]._id,
     netInclTaxes: 101.28,
