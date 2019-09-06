@@ -7,7 +7,7 @@ const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEve
 const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
 
 const BillSchema = mongoose.Schema({
-  billNumber: String,
+  number: String,
   date: Date,
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
