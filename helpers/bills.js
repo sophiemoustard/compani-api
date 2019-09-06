@@ -5,6 +5,7 @@ const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
+const CreditNote = require('../models/CreditNote');
 const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
 const { HOURLY, THIRD_PARTY } = require('./constants');
@@ -263,6 +264,7 @@ const exportBillSubscribtions = (bill) => {
 };
 
 const billExportHeader = [
+  'Nature',
   'Identifiant',
   'Date',
   'Id Bénéficiaire',
@@ -276,7 +278,23 @@ const billExportHeader = [
   'Services',
 ];
 
-exports.exportBillsHistory = async (startDate, endDate) => {
+const formatRowCommonsForExport = (document) => {
+  const customerId = get(document.customer, '_id');
+  const customerIdentity = get(document, 'customer.identity') || {};
+
+  const cells = [
+    document.number || '',
+    document.date ? moment(document.date).format('DD/MM/YYYY') : '',
+    customerId ? customerId.toHexString() : '',
+    customerIdentity.title || '',
+    (customerIdentity.lastname || '').toUpperCase(),
+    customerIdentity.firstname || '',
+  ];
+
+  return cells;
+};
+
+exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
   const query = {
     date: { $lte: endDate, $gte: startDate },
   };
@@ -290,7 +308,6 @@ exports.exportBillsHistory = async (startDate, endDate) => {
   const rows = [billExportHeader];
 
   for (const bill of bills) {
-    const customerId = get(bill.customer, '_id');
     const clientId = get(bill.client, '_id');
     let totalExclTaxesFormatted = '';
 
@@ -303,17 +320,37 @@ exports.exportBillsHistory = async (startDate, endDate) => {
     }
 
     const cells = [
-      bill.number || '',
-      bill.date ? moment(bill.date).format('DD/MM/YYYY') : '',
-      customerId ? customerId.toHexString() : '',
-      get(bill, 'customer.identity.title', ''),
-      get(bill, 'customer.identity.lastname', '').toUpperCase(),
-      get(bill, 'customer.identity.firstname', ''),
+      'Facture',
+      ...formatRowCommonsForExport(bill),
       clientId ? clientId.toHexString() : '',
       get(bill.client, 'name') || '',
       totalExclTaxesFormatted,
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       exportBillSubscribtions(bill),
+    ];
+
+    rows.push(cells);
+  }
+
+  const creditNotes = await CreditNote.find(query)
+    .sort({ date: 'desc' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'thirdPartyPayer' })
+    .lean();
+
+  for (const creditNote of creditNotes) {
+    const totalExclTaxes = (creditNote.exclTaxesCustomer || 0) + (creditNote.exclTaxesTpp || 0);
+    const totalInclTaxes = (creditNote.inclTaxesCustomer || 0) + (creditNote.inclTaxesTpp || 0);
+    const tppId = get(creditNote.thirdPartyPayer, '_id');
+
+    const cells = [
+      'Avoir',
+      ...formatRowCommonsForExport(creditNote),
+      tppId ? tppId.toHexString() : '',
+      get(creditNote.thirdPartyPayer, 'name') || '',
+      UtilsHelper.formatFloatForExport(totalExclTaxes),
+      UtilsHelper.formatFloatForExport(totalInclTaxes),
+      get(creditNote, 'subscription.service.name') || '',
     ];
 
     rows.push(cells);
