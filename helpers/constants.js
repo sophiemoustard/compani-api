@@ -100,6 +100,12 @@ module.exports = {
       [this.CESU]: 'Cesu',
     };
   },
+  get PAYMENT_NATURE_LIST() {
+    return {
+      [this.PAYMENT]: 'Paiement',
+      [this.REFUND]: 'Remboursement',
+    };
+  },
   SURCHARGES: {
     saturday: 'Samedi',
     sunday: 'Dimanche',

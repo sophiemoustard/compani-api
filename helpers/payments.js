@@ -6,7 +6,7 @@ const Boom = require('boom');
 
 const Payment = require('../models/Payment');
 const PaymentNumber = require('../models/PaymentNumber');
-const { REFUND, PAYMENT, DIRECT_DEBIT, PAYMENT_TYPES_LIST } = require('./constants');
+const { REFUND, PAYMENT, DIRECT_DEBIT, PAYMENT_TYPES_LIST, PAYMENT_NATURE_LIST } = require('./constants');
 const {
   createDocument,
   generateSEPAHeader,
@@ -132,11 +132,11 @@ const paymentExportHeader = [
   'Tiers payeur',
   'Moyen de paiement',
   'Montant TTC en €',
+  'Nature',
 ];
 
 exports.exportPaymentsHistory = async (startDate, endDate) => {
   const query = {
-    nature: PAYMENT,
     date: { $lte: endDate, $gte: startDate },
   };
 
@@ -162,6 +162,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
       get(payment.client, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',
       UtilsHelper.formatFloatForExport(payment.netInclTaxes),
+      PAYMENT_NATURE_LIST[payment.nature],
     ];
 
     rows.push(cells);
