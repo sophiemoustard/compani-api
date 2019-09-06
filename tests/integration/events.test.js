@@ -123,19 +123,12 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
             method: 'GET',
             url: '/events',
-          };
-
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-          }
-
-          const response = await app.inject(request);
+            headers: { 'x-access-token': authToken },
+          });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
