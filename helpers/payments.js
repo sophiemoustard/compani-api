@@ -122,6 +122,7 @@ exports.savePayments = async (payload, company) => {
 };
 
 const paymentExportHeader = [
+  'Nature',
   'Identifiant',
   'Date',
   'Id Bénéficiaire',
@@ -132,7 +133,6 @@ const paymentExportHeader = [
   'Tiers payeur',
   'Moyen de paiement',
   'Montant TTC en €',
-  'Nature',
 ];
 
 exports.exportPaymentsHistory = async (startDate, endDate) => {
@@ -152,6 +152,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
     const customerId = get(payment.customer, '_id');
     const clientId = get(payment.client, '_id');
     const cells = [
+      PAYMENT_NATURE_LIST[payment.nature],
       payment.number || '',
       moment(payment.date).format('DD/MM/YYYY'),
       customerId ? customerId.toHexString() : '',
@@ -162,7 +163,6 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
       get(payment.client, 'name') || '',
       PAYMENT_TYPES_LIST[payment.type] || '',
       UtilsHelper.formatFloatForExport(payment.netInclTaxes),
-      PAYMENT_NATURE_LIST[payment.nature],
     ];
 
     rows.push(cells);

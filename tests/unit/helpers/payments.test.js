@@ -48,7 +48,7 @@ describe('formatPayment', () => {
 });
 
 describe('exportPaymentsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Moyen de paiement', 'Montant TTC en €', 'Nature'];
+  const header = ['Nature', 'Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Moyen de paiement', 'Montant TTC en €'];
   const paymentsList = [
     {
       number: 'REG-1905562',
@@ -117,8 +117,8 @@ describe('exportPaymentsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['REG-1905562', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276,02', 'Paiement'],
-      ['REG-1905342', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Prélèvement', '1002,40', 'Remboursement'],
+      ['Paiement', 'REG-1905562', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276,02'],
+      ['Remboursement', 'REG-1905342', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Prélèvement', '1002,40'],
     ]);
   });
 });
