@@ -104,7 +104,7 @@ exports.plugin = {
       method: 'GET',
       path: '/credit-notes',
       options: {
-        auth: { scope: ['events.credit-notes:read'] },
+        auth: { scope: ['events:read'] },
         validate: {
           query: {
             startDate: Joi.date().required(),
