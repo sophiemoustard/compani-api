@@ -27,10 +27,10 @@ describe('NODE ENV', () => {
 });
 
 describe('CUSTOMERS ROUTES', () => {
-  let coachToken = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    coachToken = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   const payload = {
@@ -51,7 +51,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers',
         payload,
         headers: {
-          'x-access-token': coachToken,
+          'x-access-token': adminToken,
         },
       });
       expect(res.statusCode).toBe(200);
@@ -80,7 +80,7 @@ describe('CUSTOMERS ROUTES', () => {
           url: '/customers',
           payload: omit(cloneDeep(payload), paramPath),
           headers: {
-            'x-access-token': coachToken,
+            'x-access-token': adminToken,
           },
         });
         expect(res.statusCode).toBe(400);
@@ -91,7 +91,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -115,7 +115,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers',
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toHaveLength(customersList.length);
@@ -125,7 +125,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -148,7 +148,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/billed-events',
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -163,7 +163,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -187,7 +187,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customerId.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
@@ -225,7 +225,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${id}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -245,7 +245,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -276,7 +276,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customersList[0]._id.toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toEqual(expect.objectContaining({
@@ -300,7 +300,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload: ibanPayload,
       });
 
@@ -315,7 +315,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload: ibanPayload,
       });
 
@@ -330,7 +330,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${new ObjectID().toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -356,7 +356,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -380,7 +380,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -388,7 +388,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -397,7 +397,7 @@ describe('CUSTOMERS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -417,10 +417,10 @@ describe('CUSTOMERS ROUTES', () => {
 });
 
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
-  let coachToken = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    coachToken = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('POST /customers/{id}/subscriptions', () => {
@@ -439,7 +439,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -464,7 +464,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -485,7 +485,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -517,7 +517,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -535,7 +535,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -549,7 +549,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${invalidId}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -562,7 +562,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -589,7 +589,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(result.statusCode).toBe(200);
@@ -601,7 +601,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -621,10 +621,10 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
 });
 
 describe('CUSTOMER MANDATES ROUTES', () => {
-  let coachToken = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    coachToken = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('GET /customers/{_id}/mandates', () => {
@@ -633,7 +633,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${customer._id}/mandates`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(result.statusCode).toBe(200);
@@ -646,7 +646,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${invalidId}/mandates`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(result.statusCode).toBe(404);
@@ -657,7 +657,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -686,7 +686,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -705,7 +705,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/mandates/${mandate._id.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -722,7 +722,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/mandates/${invalidId}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -739,7 +739,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -820,7 +820,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customerId}/mandates/${mandateId}/esign`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       sinon.assert.calledOnce(createDocumentStub);
@@ -838,7 +838,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403, callCount: 0 },
         { name: 'auxiliary', expectedCode: 403, callCount: 0 },
-        { name: 'admin', expectedCode: 200, callCount: 1 },
+        { name: 'coach', expectedCode: 200, callCount: 1 },
       ];
 
       roles.forEach((role) => {
@@ -862,10 +862,10 @@ describe('CUSTOMER MANDATES ROUTES', () => {
 });
 
 describe('CUSTOMERS QUOTES ROUTES', () => {
-  let coachToken = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    coachToken = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('GET customers/:id/quotes', () => {
@@ -873,7 +873,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -888,7 +888,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${invalidId}/quotes`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(404);
@@ -898,7 +898,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -933,7 +933,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user).toBeDefined();
@@ -950,7 +950,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
         payload: {},
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -971,7 +971,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -995,7 +995,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}/quotes/${customersList[0].quotes[0]._id.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       const customer = await Customer.findById(customersList[0]._id);
@@ -1007,7 +1007,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'DELETE',
         url: `/customers/${invalidId}/quotes/${customersList[0].quotes[0]._id.toHexString()}`,
         payload: {},
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -1017,7 +1017,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}/quotes/${invalidId}`,
         payload: {},
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -1027,7 +1027,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1047,10 +1047,10 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 });
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
-  let coachToken = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    coachToken = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('POST customers/:id/subscriptionshistory', () => {
@@ -1076,7 +1076,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -1102,7 +1102,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
             title: 'Mme',
           },
         },
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -1123,7 +1123,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
             estimatedWeeklyVolume: 10,
           }],
         },
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -1151,7 +1151,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'DELETE',
         url: `/customers/${invalidId}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(404);
@@ -1177,7 +1177,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1198,10 +1198,10 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 });
 
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
-  let coachToken = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    coachToken = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('POST customers/:id/fundings', () => {
@@ -1225,7 +1225,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
@@ -1257,7 +1257,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(409);
     });
@@ -1280,7 +1280,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -1303,7 +1303,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -1329,7 +1329,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${invalidId}/fundings`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -1353,7 +1353,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1388,7 +1388,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
@@ -1412,7 +1412,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${invalidId}/fundings/${customersList[0].fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -1431,7 +1431,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
@@ -1458,7 +1458,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
-        headers: { 'x-access-token': coachToken },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(result.statusCode).toBe(200);
@@ -1470,7 +1470,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'admin', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
