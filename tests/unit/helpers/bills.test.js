@@ -4,6 +4,7 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 
 const Bill = require('../../../models/Bill');
+const CreditNote = require('../../../models/CreditNote');
 const BillHelper = require('../../../helpers/bills');
 const UtilsHelper = require('../../../helpers/utils');
 const PdfHelper = require('../../../helpers/pdf');
@@ -979,8 +980,8 @@ describe('getUnitInclTaxes', () => {
   });
 });
 
-describe('exportBillsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Montant HT en €', 'Montant TTC en €', 'Services'];
+describe('exportBillsAndCreditNotesHistory', () => {
+  const header = ['Nature', 'Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Montant HT en €', 'Montant TTC en €', 'Services'];
   const bills = [
     {
       number: 'FACT-0549236',
@@ -1027,71 +1028,111 @@ describe('exportBillsHistory', () => {
       }],
     },
   ];
+  const creditNotes = [
+    {
+      number: 'F1501231',
+      thirdPartyPayer: { _id: new ObjectID('5d761ad7ffd1dc0d39dadd7e'), name: 'SW' },
+      date: '2019-05-21T01:00:00.000+00:00',
+      customer: {
+        _id: new ObjectID('5d761a8f6f6cba0d259b17eb'),
+        identity: {
+          firstname: 'Jar jar',
+          lastname: 'Binks',
+        },
+      },
+      subscription: { service: { name: 'Temps de qualité - autonomie' } },
+      exclTaxesCustomer: 10.5,
+      inclTaxesCustomer: 5.5,
+      exclTaxesTpp: 8,
+      inclTaxesTpp: 3,
+    },
+    {
+      number: 'F6473250',
+      date: '2019-05-25T02:00:00.000+00:00',
+      customer: {
+        _id: new ObjectID('5d761a8f6f8eba0d259b173f'),
+        identity: {
+          lastname: 'R2D2',
+        },
+      },
+      subscription: { service: { name: 'Temps de qualité - autonomie' } },
+      exclTaxesCustomer: 10.5,
+      inclTaxesCustomer: 5.5,
+    },
+  ];
   let mockBill;
+  let mockCreditNote;
   let formatPriceStub;
   let formatFloatForExportStub;
+
+  const expectBill = value => mockBill.expects('find')
+    .chain('sort')
+    .chain('populate')
+    .chain('populate')
+    .chain('lean')
+    .once()
+    .returns(value);
+  const expectCreditNote = value => mockCreditNote.expects('find')
+    .chain('sort')
+    .chain('populate')
+    .chain('populate')
+    .chain('lean')
+    .once()
+    .returns(value);
+
   beforeEach(() => {
     mockBill = sinon.mock(Bill);
+    mockCreditNote = sinon.mock(CreditNote);
     formatPriceStub = sinon.stub(UtilsHelper, 'formatPrice');
     formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
   });
   afterEach(() => {
     mockBill.restore();
+    mockCreditNote.restore();
     formatPriceStub.restore();
     formatFloatForExportStub.restore();
   });
 
   it('should return an array containing just the header', async () => {
-    mockBill.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns([]);
-    const exportArray = await BillHelper.exportBillsHistory(null, null);
+    expectBill([]);
+    expectCreditNote([]);
+    const exportArray = await BillHelper.exportBillsAndCreditNotesHistory(null, null);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    mockBill.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns([{}]);
+    expectBill([{}]);
+    expectCreditNote([{}]);
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
-    const exportArray = await BillHelper.exportBillsHistory(null, null);
+    const exportArray = await BillHelper.exportBillsAndCreditNotesHistory(null, null);
 
     expect(exportArray).toEqual([
       header,
-      ['', '', '', '', '', '', '', '', '', '', ''],
+      ['Facture', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Avoir', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    mockBill.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(bills);
+    expectBill(bills);
+    expectCreditNote(creditNotes);
+
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
-    const exportArray = await BillHelper.exportBillsHistory(null, null);
+    const exportArray = await BillHelper.exportBillsAndCreditNotesHistory(null, null);
 
     sinon.assert.callCount(formatPriceStub, 3);
-    sinon.assert.callCount(formatFloatForExportStub, 4);
+    sinon.assert.callCount(formatFloatForExportStub, 8);
     expect(exportArray).toEqual([
       header,
-      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
-      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
+      ['Facture', 'FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
+      ['Facture', 'FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
+      ['Avoir', 'F1501231', '21/05/2019', '5d761a8f6f6cba0d259b17eb', '', 'BINKS', 'Jar jar', '5d761ad7ffd1dc0d39dadd7e', 'SW', 'F-18.5', 'F-8.5', 'Temps de qualité - autonomie'],
+      ['Avoir', 'F6473250', '25/05/2019', '5d761a8f6f8eba0d259b173f', '', 'R2D2', '', '', '', 'F-10.5', 'F-5.5', 'Temps de qualité - autonomie'],
     ]);
   });
 });
