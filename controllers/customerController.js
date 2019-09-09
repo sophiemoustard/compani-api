@@ -485,7 +485,7 @@ const uploadFile = async (req) => {
   try {
     const allowedFields = ['financialCertificates'];
 
-    if (req.auth.credentials.scope.includes('customers:administrative')) {
+    if (req.auth.credentials.scope.includes('customers:administrative:edit')) {
       allowedFields.push('signedMandate', 'signedQuote');
     }
 

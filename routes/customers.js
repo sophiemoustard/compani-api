@@ -134,7 +134,7 @@ exports.plugin = {
       method: 'GET',
       path: '/subscriptions',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
       },
       handler: listWithSubscriptions,
     });
@@ -159,7 +159,7 @@ exports.plugin = {
       method: 'GET',
       path: '/billed-events',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
       },
       handler: listWithBilledEvents,
     });
@@ -168,7 +168,7 @@ exports.plugin = {
       method: 'GET',
       path: '/customer-contract-subscriptions',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
       },
       handler: listWithCustomerContractSubscriptions,
     });
@@ -205,7 +205,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/subscriptions',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: {
@@ -226,7 +226,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/subscriptions/{subscriptionId}',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -247,7 +247,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/subscriptions/{subscriptionId}',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -262,7 +262,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/mandates',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -276,7 +276,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/mandates/{mandateId}',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -291,7 +291,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/mandates/{mandateId}/esign',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -316,7 +316,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/quotes',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -330,7 +330,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/quotes',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -353,7 +353,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/quotes/{quoteId}',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -369,7 +369,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/drivefolder',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -387,7 +387,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
-        auth: { scope: ['customers:administrative', 'customer-{params._id}'] },
+        auth: { scope: ['customers:administrative:edit', 'customer-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -401,7 +401,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/certificates',
       options: {
-        auth: { scope: ['customers:administrative', 'customer-{params._id}'] },
+        auth: { scope: ['customers:administrative:edit', 'customer-{params._id}'] },
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: Joi.object().keys({
@@ -418,7 +418,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/mandates/{mandateId}/savesigneddoc',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -433,7 +433,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/subscriptionshistory',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -462,7 +462,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/fundings',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -492,7 +492,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/fundings/{fundingId}',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -519,7 +519,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/fundings/{fundingId}',
       options: {
-        auth: { scope: ['customers:administrative'] },
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),

@@ -111,7 +111,7 @@ const rightsList = [
   {
     _id: new ObjectID(),
     description: 'Editer les données administratives de bénéficiaires',
-    permission: 'customers:administrative',
+    permission: 'customers:administrative:edit',
   },
 ];
 
@@ -130,7 +130,7 @@ const coachRights = [
   'customers:create',
   'customers:read',
   'customers:edit',
-  'customers:administrative',
+  'customers:administrative:edit',
 ];
 const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
 const planningReferentRights = [...auxiliaryRights, 'events:sector:edit'];
