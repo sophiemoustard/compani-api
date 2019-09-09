@@ -407,11 +407,11 @@ module.exports = {
     taskDeleted: 'Tâche supprimé',
 
     /* Sectors */
-    sectorCreated: 'Secteur créé.',
-    sectorUpdated: 'Secteur modifié.',
-    sectorNotFound: 'Secteur non trouvé.',
-    sectorsFound: 'Secteurs trouvés.',
-    sectorDeleted: 'Secteur supprimé.',
+    sectorCreated: 'Équipe créée.',
+    sectorUpdated: 'Équipe modifiée.',
+    sectorNotFound: 'Équipe non trouvée.',
+    sectorsFound: 'Équipes trouvées.',
+    sectorDeleted: 'Équipe supprimée.',
 
     /* Services */
     servicesFound: 'Services trouvés.',
