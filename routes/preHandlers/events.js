@@ -1,7 +1,6 @@
 const Boom = require('boom');
 const Event = require('../../models/Event');
 const translate = require('../../helpers/translate');
-const { authorize } = require('../../helpers/authentification');
 
 const { language } = translate;
 
@@ -17,16 +16,14 @@ exports.getEvent = async (req) => {
   }
 };
 
-exports.authorizeEventUpdate = scopes => async (req) => {
+exports.authorizeOwnEventUpdate = async (req) => {
   const { credentials } = req.auth;
   const { event } = req.pre;
 
-  const routeScopes = [].concat(scopes, `events.auxiliary:${credentials._id}:edit`);
-  credentials.scope = [].concat(credentials.scope, `events.auxiliary:${event.auxiliary}:edit`);
+  if (credentials.scope.includes('events:edit') ||
+    (!credentials.scope.includes('events:edit') &&
+      credentials.scope.includes('events:own:edit') &&
+      event.auxiliary === credentials._id)) return event;
 
-  const isAuthorized = authorize(routeScopes, credentials.scope);
-  if (!isAuthorized) return Boom.forbidden();
-
-  return event;
+  throw Boom.forbidden();
 };
-

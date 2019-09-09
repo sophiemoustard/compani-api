@@ -30,7 +30,7 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
-const { getEvent, authorizeEventUpdate } = require('./preHandlers/events');
+const { getEvent, authorizeOwnEventUpdate } = require('./preHandlers/events');
 
 exports.plugin = {
   name: 'routes-event',
@@ -122,6 +122,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['events:edit', 'events:own:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
           payload: Joi.object().keys({
@@ -165,7 +166,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate(['events:edit']), assign: 'event' },
+          { method: authorizeOwnEventUpdate, assign: 'event' },
         ],
       },
 
@@ -181,7 +182,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate(['events:edit']), assign: 'event' },
+          { method: authorizeOwnEventUpdate, assign: 'event' },
         ],
       },
       handler: remove,
@@ -196,7 +197,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate(['events:edit']), assign: 'event' },
+          { method: authorizeOwnEventUpdate, assign: 'event' },
         ],
       },
       handler: removeRepetition,
@@ -215,7 +216,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate(['events:edit']) },
+          { method: authorizeOwnEventUpdate },
         ],
       },
     });

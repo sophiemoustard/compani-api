@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const Event = require('../../../models/Event');
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
@@ -9,6 +10,7 @@ const EventHistory = require('../../../models/EventHistory');
 const Sector = require('../../../models/Sector');
 const Company = require('../../../models/Company');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const app = require('../../../server');
 
 const auxiliaryId = new ObjectID();
 
@@ -48,6 +50,7 @@ const eventAuxiliary = {
   identity: { firstname: 'Thibaut', lastname: 'Pinot' },
   local: { email: 't@p.com', password: 'tourdefrance' },
   administrative: { driveFolder: { driveId: '1234567890' } },
+  refreshToken: uuidv4(),
   role: rolesList[1]._id,
   contracts: [contract._id],
   sector: sector._id,
@@ -77,6 +80,7 @@ const helpersCustomer = {
   _id: new ObjectID(),
   identity: { firstname: 'Nicolas', lastname: 'Flammel' },
   local: { email: 'tt@tt.com', password: 'mdpdeouf' },
+  refreshToken: uuidv4(),
   customers: [customerAuxiliary._id],
   role: rolesList[4]._id,
 };
@@ -203,6 +207,16 @@ const populateDB = async () => {
   await (new Service(service)).save();
 };
 
+const getUserToken = async (userCredentials) => {
+  const response = await app.inject({
+    method: 'POST',
+    url: '/users/authenticate',
+    payload: userCredentials,
+  });
+
+  return response.result.data.token;
+};
+
 module.exports = {
   eventsList,
   populateDB,
@@ -210,4 +224,6 @@ module.exports = {
   customerAuxiliary,
   sector,
   thirdPartyPayer,
+  helpersCustomer,
+  getUserToken,
 };

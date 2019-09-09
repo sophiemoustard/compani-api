@@ -15,6 +15,8 @@ const {
   customerAuxiliary,
   sector,
   thirdPartyPayer,
+  helpersCustomer,
+  getUserToken,
 } = require('./seed/eventsSeed');
 const { getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
@@ -114,13 +116,15 @@ describe('EVENTS ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      beforeEach(populateDB);
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         {
           name: 'helper\'s customer',
           expectedCode: 200,
           url: `/events?customer=${customerAuxiliary._id}`,
-          customCredentials: { scope: [`customer-${customerAuxiliary._id}`] },
+          customCredentials: helpersCustomer.local,
         },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'coach', expectedCode: 200 },
@@ -129,19 +133,12 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
             method: 'GET',
             url: role.url || '/events',
-          };
-
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-          }
-
-          const response = await app.inject(request);
+            headers: { 'x-access-token': authToken },
+          });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
@@ -420,15 +417,11 @@ describe('EVENTS ROUTES', () => {
 
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        {
-          name: 'not auxiliary event',
-          expectedCode: 403,
-          customCredentials: { scope: [`user-${new ObjectID()}`] },
-        },
+        { name: 'auxiliary', expectedCode: 403 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: { scope: [`user-${eventAuxiliary._id}`] },
+          customCredentials: eventAuxiliary.local,
         },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
@@ -436,20 +429,13 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
             method: 'POST',
             url: '/events',
             payload,
-          };
-
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-          }
-
-          const response = await app.inject(request);
+            headers: { 'x-access-token': authToken },
+          });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
@@ -536,15 +522,11 @@ describe('EVENTS ROUTES', () => {
 
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        {
-          name: 'not auxiliary event',
-          expectedCode: 403,
-          customCredentials: { _id: new ObjectID() },
-        },
+        { name: 'auxiliary', expectedCode: 403 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: { _id: eventAuxiliary._id },
+          customCredentials: eventAuxiliary.local,
         },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
@@ -552,20 +534,13 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
             method: 'PUT',
             url: `/events/${eventsList[2]._id.toHexString()}`,
             payload,
-          };
-
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-          }
-
-          const response = await app.inject(request);
+            headers: { 'x-access-token': authToken },
+          });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
@@ -609,15 +584,11 @@ describe('EVENTS ROUTES', () => {
 
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        {
-          name: 'not auxiliary event',
-          expectedCode: 403,
-          customCredentials: { _id: new ObjectID() },
-        },
+        { name: 'auxiliary', expectedCode: 403 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: { _id: eventAuxiliary._id },
+          customCredentials: eventAuxiliary.local,
         },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
@@ -625,19 +596,12 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
             method: 'DELETE',
             url: `/events/${eventsList[2]._id.toHexString()}`,
-          };
-
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-          }
-
-          const response = await app.inject(request);
+            headers: { 'x-access-token': authToken },
+          });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
@@ -701,17 +665,15 @@ describe('EVENTS ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      beforeEach(populateDB);
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        {
-          name: 'not auxiliary event',
-          expectedCode: 403,
-          customCredentials: { _id: new ObjectID() },
-        },
+        { name: 'auxiliary', expectedCode: 403 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
-          customCredentials: { _id: eventAuxiliary._id },
+          customCredentials: eventAuxiliary.local,
         },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
@@ -719,20 +681,14 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
             method: 'POST',
             url: `/events/${eventsList[1]._id}/gdrive/${userFolderId}/upload`,
             payload: await GetStream(form),
-          };
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { ...form.getHeaders(), 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-            request.headers = { ...form.getHeaders() };
-          }
+            headers: { 'x-access-token': authToken, ...form.getHeaders() },
+          });
 
-          const response = await app.inject(request);
           expect(response.statusCode).toBe(role.expectedCode);
         });
       });
