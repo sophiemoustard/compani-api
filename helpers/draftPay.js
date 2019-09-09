@@ -41,8 +41,7 @@ exports.getMonthBusinessDaysCount = start =>
 
 exports.getContractMonthInfo = (contract, query) => {
   const versions = contract.versions.filter(ver =>
-    (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.endDate && moment(ver.endDate).isAfter(query.startDate)) ||
-    (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.isActive));
+    (moment(ver.startDate).isSameOrBefore(query.endDate) && (!ver.endDate || moment(ver.endDate).isAfter(query.startDate))));
   const monthBusinessDays = exports.getMonthBusinessDaysCount(query.startDate);
 
   let contractHours = 0;
@@ -300,23 +299,24 @@ exports.getPayFromAbsences = (absences, contract, query) => {
   return hours;
 };
 
+const getContract = (contracts, endDate) => contracts.find((cont) => {
+  const isCompanyContract = cont.status === COMPANY_CONTRACT;
+  if (!isCompanyContract) return false;
+
+  const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
+  if (!contractStarted) return false;
+
+  return !cont.endDate || moment(cont.endDate).isAfter(endDate);
+});
+
 exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, company, query, distanceMatrix, surcharges) => {
   const { _id, identity, sector, contracts } = auxiliary;
-  const contract = contracts.find((cont) => {
-    const isCompanyContract = cont.status === COMPANY_CONTRACT;
-    if (!isCompanyContract) return false;
-
-    const contractStarted = moment(cont.startDate).isSameOrBefore(query.endDate);
-    if (!contractStarted) return false;
-
-    return (!cont.endDate) ? cont.versions.some(v => v.isActive) : moment(cont.endDate).isAfter(query.endDate);
-  });
+  const contract = getContract(contracts, query.endDate);
   if (!contract) return;
-  const contractInfo = exports.getContractMonthInfo(contract, query);
 
+  const contractInfo = exports.getContractMonthInfo(contract, query);
   const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(absences, contract, query);
-
   const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
 
   return {

@@ -12,7 +12,7 @@ const { addFile } = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
 
-const endContract = async (contractId, payload) => {
+exports.endContract = async (contractId, payload) => {
   const contract = await Contract.findById(contractId);
   if (!contract) return null;
 
@@ -20,10 +20,8 @@ const endContract = async (contractId, payload) => {
   contract.endNotificationDate = payload.endNotificationDate;
   contract.endReason = payload.endReason;
   contract.otherMisc = payload.otherMisc;
-  // End active version
-  const versionIndex = contract.versions.findIndex(version => version.isActive);
-  contract.versions[versionIndex].isActive = false;
-  contract.versions[versionIndex].endDate = payload.endDate;
+  // End last version
+  contract.versions[contract.versions.length - 1].endDate = payload.endDate;
   await contract.save();
 
   // Update inactivityDate if all contracts are ended
@@ -36,7 +34,7 @@ const endContract = async (contractId, payload) => {
   return contract;
 };
 
-const createAndSaveFile = async (administrativeKeys, params, payload) => {
+exports.createAndSaveFile = async (administrativeKeys, params, payload) => {
   const uploadedFile = await addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload[administrativeKeys[0]].hapi.filename,
@@ -74,7 +72,7 @@ const createAndSaveFile = async (administrativeKeys, params, payload) => {
   return uploadedFile;
 };
 
-const saveCompletedContract = async (everSignDoc) => {
+exports.saveCompletedContract = async (everSignDoc) => {
   const finalPDF = await ESign.downloadFinalDocument(everSignDoc.data.document_hash);
   const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
   const file = await createAndReadFile(finalPDF.data, tmpPath);
@@ -118,10 +116,4 @@ const saveCompletedContract = async (everSignDoc) => {
     };
   }
   await Contract.findOneAndUpdate({ 'versions.signature.eversignId': everSignDoc.data.document_hash }, { $set: flat(payload) }, { new: true });
-};
-
-module.exports = {
-  endContract,
-  createAndSaveFile,
-  saveCompletedContract,
 };

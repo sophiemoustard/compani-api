@@ -66,8 +66,8 @@ describe('getContractMonthInfo', () => {
   it('Case 1. One version no sunday', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { isActive: true, endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
       ],
     };
     const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
@@ -86,8 +86,8 @@ describe('getContractMonthInfo', () => {
   it('Case 2. One version and sunday included', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { isActive: true, endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
       ],
     };
     const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
@@ -102,8 +102,8 @@ describe('getContractMonthInfo', () => {
   it('Case 3. Multiple versions', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { isActive: true, endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
       ],
     };
     const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
@@ -1123,7 +1123,7 @@ describe('getDraftPayByAuxiliary', () => {
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [
-        { startDate: '2019-02-23T00:00:00', status: 'contract_with_customer', versions: [{ isActive: true }] },
+        { startDate: '2019-02-23T00:00:00', status: 'contract_with_customer' },
       ],
       administrative: { mutualFund: { has: true } },
     };
@@ -1143,27 +1143,7 @@ describe('getDraftPayByAuxiliary', () => {
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [
-        { startDate: '2019-07-23T00:00:00', status: 'contract_with_customer', versions: [{ isActive: true }] },
-      ],
-      administrative: { mutualFund: { has: true } },
-    };
-    const events = [[]];
-    const absences = [];
-    const company = { rhConfig: { feeAmount: 37 } };
-    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const prevPay = {};
-
-    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, absences, prevPay, company, query, [], []);
-    expect(result).not.toBeDefined();
-  });
-
-  it('should not return draft pay as auxiliary does not have active contracts', async () => {
-    const auxiliary = {
-      _id: '1234567890',
-      identity: { firstname: 'Hugo', lastname: 'Lloris' },
-      sector: { name: 'La ruche' },
-      contracts: [
-        { startDate: '2019-02-23T00:00:00', status: 'contract_with_company', versions: [{ isActive: false }] },
+        { startDate: '2019-07-23T00:00:00', status: 'contract_with_customer' },
       ],
       administrative: { mutualFund: { has: true } },
     };
@@ -1183,7 +1163,7 @@ describe('getDraftPayByAuxiliary', () => {
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
       contracts: [
-        { startDate: '2019-05-13T00:00:00', status: 'contract_with_company', versions: [{ isActive: true }] },
+        { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
       ],
       administrative: { mutualFund: { has: true } },
     };

@@ -7,29 +7,18 @@ const {
   INTERVENTION,
   INTERNAL_HOUR,
   NEVER,
-  CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
   ABSENCE,
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
-const Customer = require('../models/Customer');
-const Contract = require('../models/Contract');
-const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
 const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
-
-exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
-  contracts.some(contract =>
-    contract.status === COMPANY_CONTRACT &&
-      moment(contract.startDate).isSameOrBefore(day, 'd') &&
-      ((!contract.endDate && contract.versions.some(version => version.isActive)) ||
-        (contract.endDate && moment(contract.endDate).isSameOrAfter(day, 'd'))));
 
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
@@ -75,42 +64,6 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
     const payload = _.omit(interventions[i], ['_id', 'auxiliary', 'repetition']);
     await exports.updateEvent(interventions[i], payload, credentials);
   }
-};
-
-exports.checkContracts = async (event, user) => {
-  if (!user.contracts || user.contracts.length === 0) return false;
-
-  // If the event is an intervention :
-  // - if it's a customer contract subscription, the auxiliary should have an active contract with the customer on the day of the intervention
-  // - else (company contract subscription) the auxiliary should have an active contract on the day of the intervention and this customer
-  //   should have an active subscription
-  if (event.type === INTERVENTION) {
-    let customer = await Customer
-      .findOne({ _id: event.customer })
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .lean();
-    customer = populateSubscriptionsServices(customer);
-
-    const eventSubscription = customer.subscriptions.find(sub => sub._id.toHexString() == event.subscription);
-    if (!eventSubscription) return false;
-
-    if (eventSubscription.service.type === CUSTOMER_CONTRACT) {
-      const contractBetweenAuxAndCus = await Contract.findOne({ user: event.auxiliary, customer: event.customer });
-      if (!contractBetweenAuxAndCus) return false;
-      return contractBetweenAuxAndCus.endDate
-        ? moment(event.startDate).isBetween(contractBetweenAuxAndCus.startDate, contractBetweenAuxAndCus.endDate, '[]')
-        : moment(event.startDate).isSameOrAfter(contractBetweenAuxAndCus.startDate);
-    }
-
-    return exports.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
-  }
-
-  // If the auxiliary is only under customer contract, create internal hours is not allowed
-  if (event.type === INTERNAL_HOUR) {
-    return exports.auxiliaryHasActiveCompanyContractOnDay(user.contracts, event.startDate);
-  }
-
-  return true;
 };
 
 exports.getListQuery = (query) => {

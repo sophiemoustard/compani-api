@@ -16,10 +16,7 @@ const contract = {
   status: 'contract_with_company',
   user: auxiliaryId,
   startDate: '2010-09-03T00:00:00',
-  versions: [{
-    isActive: true,
-    startDate: '2010-09-03T00:00:00',
-  }],
+  versions: [{ startDate: '2010-09-03T00:00:00' }],
 };
 
 const eventAuxiliary = {
