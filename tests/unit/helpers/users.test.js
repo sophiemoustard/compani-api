@@ -120,7 +120,7 @@ describe('exportAuxiliaries', () => {
     const result = await UsersHelper.exportAuxiliaries();
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Secteur', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
+    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
       'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité sociale', 'Addresse', 'Téléphone',
       'Nombre de contracts', 'Date d\'inactivité', 'Date de création']);
   });

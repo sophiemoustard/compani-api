@@ -5,7 +5,7 @@ const UtilsHelper = require('../../../helpers/utils');
 const EventRepository = require('../../../repositories/EventRepository');
 
 describe('exportWorkingEventsHistory', () => {
-  const header = ['Type', 'Heure interne', 'Service', 'Début', 'Fin', 'Durée', 'Répétition', 'Secteur', 'Auxiliaire - Titre', 'Auxiliaire - Prénom', 'Auxiliaire - Nom', 'A affecter', 'Bénéficiaire - Titre', 'Bénéficiaire - Nom', 'Bénéficiaire - Prénom', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
+  const header = ['Type', 'Heure interne', 'Service', 'Début', 'Fin', 'Durée', 'Répétition', 'Équipe', 'Auxiliaire - Titre', 'Auxiliaire - Prénom', 'Auxiliaire - Nom', 'A affecter', 'Bénéficiaire - Titre', 'Bénéficiaire - Nom', 'Bénéficiaire - Prénom', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
   const events = [
     {
       isCancelled: false,
@@ -87,7 +87,7 @@ describe('exportWorkingEventsHistory', () => {
 });
 
 describe('exportAbsencesHistory', () => {
-  const header = ['Type', 'Nature', 'Début', 'Fin', 'Secteur', 'Auxiliaire - Titre', 'Auxiliaire - Prénom', 'Auxiliaire - Nom', 'Divers'];
+  const header = ['Type', 'Nature', 'Début', 'Fin', 'Équipe', 'Auxiliaire - Titre', 'Auxiliaire - Prénom', 'Auxiliaire - Nom', 'Divers'];
   const events = [
     {
       type: 'absence',
