@@ -80,6 +80,12 @@ const rightsList = [
     permission: 'events:read',
     name: 'events-read',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les événements liés à des avoirs',
+    permission: 'events.credit-notes:read',
+    name: 'events-credit-notes-read',
+  },
 ];
 
 const coachRights = [
@@ -97,7 +103,7 @@ const coachRights = [
 ];
 const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read'];
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
-const helperRights = ['billing:read', 'events:read'];
+const helperRights = ['billing:read'];
 
 const rolesList = [
   {

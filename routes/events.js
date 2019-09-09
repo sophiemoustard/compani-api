@@ -84,7 +84,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['events:read'] },
+        auth: { scope: ['events:read', 'customer-{query.customer}'] },
         validate: {
           query: {
             startDate: Joi.date(),
@@ -104,7 +104,7 @@ exports.plugin = {
       method: 'GET',
       path: '/credit-notes',
       options: {
-        auth: { scope: ['+admin', 'events:edit'] },
+        auth: { scope: ['events.credit-notes:read'] },
         validate: {
           query: {
             startDate: Joi.date().required(),

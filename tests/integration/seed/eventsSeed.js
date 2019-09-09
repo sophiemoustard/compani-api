@@ -64,12 +64,21 @@ const service = {
   ],
 };
 
+
 const customerAuxiliary = {
   _id: new ObjectID('b0e491d37f0094ba49499562'),
   identity: { firstname: 'Romain', lastname: 'Bardet' },
   subscriptions: [
     { _id: new ObjectID('8b4c4f60d11f95df92d63859'), startDate: '2019-09-03T00:00:00', service: service._id },
   ],
+};
+
+const helpersCustomer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Nicolas', lastname: 'Flammel' },
+  local: { email: 'tt@tt.com', password: 'mdpdeouf' },
+  customers: [customerAuxiliary._id],
+  role: rolesList[4]._id,
 };
 
 const eventsList = [
@@ -187,6 +196,7 @@ const populateDB = async () => {
   await (new Company(company)).save();
   await (new Sector(sector)).save();
   await (new User(eventAuxiliary)).save();
+  await (new User(helpersCustomer)).save();
   await (new Customer(customerAuxiliary)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();
   await (new Contract(contract)).save();

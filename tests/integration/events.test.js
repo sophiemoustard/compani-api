@@ -115,7 +115,13 @@ describe('EVENTS ROUTES', () => {
 
     describe('Other roles', () => {
       const roles = [
-        { name: 'helper', expectedCode: 200 },
+        { name: 'helper', expectedCode: 403 },
+        {
+          name: 'helper\'s customer',
+          expectedCode: 200,
+          url: `/events?customer=${customerAuxiliary._id}`,
+          customCredentials: { scope: [`customer-${customerAuxiliary._id}`] },
+        },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'coach', expectedCode: 200 },
         { name: 'planningReferent', expectedCode: 200 },
@@ -123,12 +129,19 @@ describe('EVENTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
+          const request = {
             method: 'GET',
-            url: '/events',
-            headers: { 'x-access-token': authToken },
-          });
+            url: role.url || '/events',
+          };
+
+          if (!role.customCredentials) {
+            authToken = await getToken(role.name);
+            request.headers = { 'x-access-token': authToken };
+          } else {
+            request.credentials = role.customCredentials;
+          }
+
+          const response = await app.inject(request);
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
