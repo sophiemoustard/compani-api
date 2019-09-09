@@ -9,11 +9,11 @@ const Contract = require('../../../models/Contract');
 const User = require('../../../models/User');
 
 describe('endContract', () => {
-  let ContractFindByIdStub = null;
-  let ContractFindStub = null;
-  let UserfindOneAndUpdateStub = null;
-  let newContract = null;
-  let contractSaveStub = null;
+  let ContractFindByIdStub;
+  let ContractFindStub;
+  let UserfindOneAndUpdateStub;
+  let newContract;
+  let contractSaveStub;
   const contractId1 = new ObjectID();
   const contractId2 = new ObjectID();
   const payload = {
@@ -22,6 +22,7 @@ describe('endContract', () => {
     endReason: 'test',
     otherMisc: 'test',
   };
+
   const contracts = [{
     endDate: null,
     user: new ObjectID(),
@@ -32,13 +33,9 @@ describe('endContract', () => {
       {
         createdAt: moment('2018-12-04T16:34:04.144Z').toDate(),
         endDate: null,
-        isActive: true,
         _id: new ObjectID(),
         signature: {
-          signedBy: {
-            auxiliary: false,
-            other: false,
-          }
+          signedBy: { auxiliary: false, other: false },
         },
       },
     ],
@@ -52,13 +49,9 @@ describe('endContract', () => {
       {
         createdAt: moment('2019-05-04T16:34:04.144Z').toDate(),
         endDate: null,
-        isActive: true,
         _id: new ObjectID(),
         signature: {
-          signedBy: {
-            auxiliary: false,
-            other: false,
-          }
+          signedBy: { auxiliary: false, other: false },
         },
       },
     ],
@@ -79,7 +72,7 @@ describe('endContract', () => {
 
   it('should end contract', async () => {
     ContractFindByIdStub.returns(newContract);
-    const updatedContract = { ...contracts[0], ...payload, versions: [{ ...contracts[0].versions[0], isActive: false, endDate: payload.endDate }] };
+    const updatedContract = { ...contracts[0], ...payload, versions: [{ ...contracts[0].versions[0], endDate: payload.endDate }] };
     contractSaveStub.returns(updatedContract);
     ContractFindStub.returns([updatedContract, contracts[1]]);
     const result = await endContract(contractId1, payload);
@@ -91,7 +84,7 @@ describe('endContract', () => {
 
   it('should end contract and set inactivity date for user if all contracts are ended', async () => {
     ContractFindByIdStub.returns(newContract);
-    const updatedContract = { ...contracts[0], ...payload, versions: [{ ...contracts[0].versions[0], isActive: false, endDate: payload.endDate }] };
+    const updatedContract = { ...contracts[0], ...payload, versions: [{ ...contracts[0].versions[0], endDate: payload.endDate }] };
     contractSaveStub.returns(updatedContract);
     ContractFindStub.returns([updatedContract, { ...contracts[1], endDate: moment().toDate }]);
     const result = await endContract(contractId1, payload);
