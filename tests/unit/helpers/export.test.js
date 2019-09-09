@@ -237,21 +237,6 @@ describe('exportBillsAndCreditNotesHistory', () => {
   let formatPriceStub;
   let formatFloatForExportStub;
 
-  const expectBill = value => mockBill.expects('find')
-    .chain('sort')
-    .chain('populate')
-    .chain('populate')
-    .chain('lean')
-    .once()
-    .returns(value);
-  const expectCreditNote = value => mockCreditNote.expects('find')
-    .chain('sort')
-    .chain('populate')
-    .chain('populate')
-    .chain('lean')
-    .once()
-    .returns(value);
-
   beforeEach(() => {
     mockBill = sinon.mock(Bill);
     mockCreditNote = sinon.mock(CreditNote);
@@ -266,16 +251,19 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    expectBill([]);
-    expectCreditNote([]);
+    mockBill.expects('find').chain('lean').returns([]);
+    mockCreditNote.expects('find').chain('lean').returns([]);
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null);
 
     expect(exportArray).toEqual([header]);
+
+    mockBill.verify();
+    mockCreditNote.verify();
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    expectBill([{}]);
-    expectCreditNote([{}]);
+    mockBill.expects('find').chain('lean').returns([{}]);
+    mockCreditNote.expects('find').chain('lean').returns([{}]);
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
@@ -286,11 +274,26 @@ describe('exportBillsAndCreditNotesHistory', () => {
       ['Facture', '', '', '', '', '', '', '', '', '', '', ''],
       ['Avoir', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
+
+    mockBill.verify();
+    mockCreditNote.verify();
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    expectBill(bills);
-    expectCreditNote(creditNotes);
+    mockBill.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(bills);
+    mockCreditNote.expects('find')
+      .chain('sort')
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(creditNotes);
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
@@ -306,5 +309,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
       ['Avoir', 'F1501231', '21/05/2019', '5d761a8f6f6cba0d259b17eb', '', 'BINKS', 'Jar jar', '5d761ad7ffd1dc0d39dadd7e', 'SW', 'F-18.5', 'F-8.5', 'Temps de qualité - autonomie'],
       ['Avoir', 'F6473250', '25/05/2019', '5d761a8f6f8eba0d259b173f', '', 'R2D2', '', '', '', 'F-10.5', 'F-5.5', 'Temps de qualité - autonomie'],
     ]);
+
+    mockBill.verify();
+    mockCreditNote.verify();
   });
 });

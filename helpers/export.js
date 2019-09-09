@@ -128,7 +128,7 @@ const exportBillSubscribtions = (bill) => {
   return subscriptions.join('\r\n');
 };
 
-const billExportHeader = [
+const billAndCreditNoteExportHeader = [
   'Nature',
   'Identifiant',
   'Date',
@@ -159,18 +159,8 @@ const formatRowCommonsForExport = (document) => {
   return cells;
 };
 
-exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
-  const query = {
-    date: { $lte: endDate, $gte: startDate },
-  };
-
-  const bills = await Bill.find(query)
-    .sort({ date: 'desc' })
-    .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client' })
-    .lean();
-
-  const rows = [billExportHeader];
+const formatBillsForExport = (bills) => {
+  const rows = [];
 
   for (const bill of bills) {
     const clientId = get(bill.client, '_id');
@@ -197,11 +187,11 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
     rows.push(cells);
   }
 
-  const creditNotes = await CreditNote.find(query)
-    .sort({ date: 'desc' })
-    .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'thirdPartyPayer' })
-    .lean();
+  return rows;
+};
+
+const formatCreditNotesForExport = (creditNotes) => {
+  const rows = [];
 
   for (const creditNote of creditNotes) {
     const totalExclTaxes = (creditNote.exclTaxesCustomer || 0) + (creditNote.exclTaxesTpp || 0);
@@ -220,6 +210,31 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
 
     rows.push(cells);
   }
+
+  return rows;
+};
+
+exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
+  const query = {
+    date: { $lte: endDate, $gte: startDate },
+  };
+
+  const bills = await Bill.find(query)
+    .sort({ date: 'desc' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'client' })
+    .lean();
+
+  const creditNotes = await CreditNote.find(query)
+    .sort({ date: 'desc' })
+    .populate({ path: 'customer', select: 'identity' })
+    .populate({ path: 'thirdPartyPayer' })
+    .lean();
+
+  const rows = [billAndCreditNoteExportHeader];
+
+  rows.push(...formatBillsForExport(bills));
+  rows.push(...formatCreditNotesForExport(creditNotes));
 
   return rows;
 };
