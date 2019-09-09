@@ -166,7 +166,6 @@ exports.plugin = {
             versionId: Joi.objectId().required(),
           },
           payload: {
-            isActive: Joi.boolean(),
             endDate: Joi.date(),
           },
         },
