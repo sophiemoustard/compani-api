@@ -4,7 +4,7 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 require('sinon-mongoose');
 
-const { endContract } = require('../../../helpers/contracts');
+const ContractHelper = require('../../../helpers/contracts');
 const Contract = require('../../../models/Contract');
 const User = require('../../../models/User');
 
@@ -75,7 +75,7 @@ describe('endContract', () => {
     const updatedContract = { ...contracts[0], ...payload, versions: [{ ...contracts[0].versions[0], endDate: payload.endDate }] };
     contractSaveStub.returns(updatedContract);
     ContractFindStub.returns([updatedContract, contracts[1]]);
-    const result = await endContract(contractId1, payload);
+    const result = await ContractHelper.endContract(contractId1, payload);
     sinon.assert.called(ContractFindByIdStub);
     sinon.assert.called(contractSaveStub);
     sinon.assert.calledWith(ContractFindStub, { user: contracts[0].user });
@@ -87,11 +87,70 @@ describe('endContract', () => {
     const updatedContract = { ...contracts[0], ...payload, versions: [{ ...contracts[0].versions[0], endDate: payload.endDate }] };
     contractSaveStub.returns(updatedContract);
     ContractFindStub.returns([updatedContract, { ...contracts[1], endDate: moment().toDate }]);
-    const result = await endContract(contractId1, payload);
+    const result = await ContractHelper.endContract(contractId1, payload);
     sinon.assert.called(ContractFindByIdStub);
     sinon.assert.called(contractSaveStub);
     sinon.assert.calledWith(ContractFindStub, { user: contracts[0].user });
     sinon.assert.calledWith(UserfindOneAndUpdateStub, { _id: contracts[0].user }, { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } });
     expect(result.toObject()).toEqual(expect.objectContaining(updatedContract));
+  });
+});
+
+describe('exportContractHistory', () => {
+  const startDate = '2019-10-01T09:00:00';
+  const endDate = '2019-11-01T09:00:00';
+  let contractMock;
+  beforeEach(() => {
+    contractMock = sinon.mock(Contract);
+  });
+  afterEach(() => {
+    contractMock.restore();
+  });
+
+  it('should return an array containing just the header', async () => {
+    contractMock.expects('find')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns([]);
+
+    const result = await ContractHelper.exportContractHistory(startDate, endDate);
+    contractMock.verify();
+    expect(result.length).toEqual(1);
+    expect(result).toEqual([['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire']]);
+  });
+
+  it('should return an array with the header and 2 rows', async () => {
+    const contracts = [
+      {
+        user: { identity: { title: 'M', lastname: 'Patate' } },
+        versions: [
+          { startDate: '2019-10-10T00:00:00', weeklyHours: 12, grossHourlyRate: 10.45 },
+        ],
+      },
+      {
+        user: { identity: { title: 'Mme', firstname: 'Patate' } },
+        versions: [
+          { startDate: '2019-09-08T00:00:00', endDate: '2019-10-07T00:00:00', weeklyHours: 10, grossHourlyRate: 10 },
+          { startDate: '2019-10-08T00:00:00', endDate: '2019-11-07T00:00:00', weeklyHours: 14, grossHourlyRate: 2 },
+          { startDate: '2019-11-08T00:00:00', weeklyHours: 14, grossHourlyRate: 2 },
+        ],
+      },
+    ];
+
+    contractMock.expects('find')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(contracts);
+
+    const result = await ContractHelper.exportContractHistory(startDate, endDate);
+    contractMock.verify();
+    expect(result.length).toEqual(3);
+    expect(result).toEqual([
+      ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
+      ['Contrat', 'M', '', 'Patate', '10/10/2019', '', 10.45, 12],
+      ['Avenant', 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', 2, 14],
+    ]);
   });
 });
