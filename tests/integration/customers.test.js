@@ -220,17 +220,6 @@ describe('CUSTOMERS ROUTES', () => {
       });
     });
 
-    it('should return the customer if I am its helper', async () => {
-      const helper = getUser('helper');
-      const helperToken = await getToken('helper');
-      const res = await app.inject({
-        method: 'GET',
-        url: `/customers/${helper.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
     it('should return a 404 error if customer is not found', async () => {
       const id = new ObjectID().toHexString();
       const res = await app.inject({
@@ -242,6 +231,17 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      it('should return the customer if I am its helper', async () => {
+        const helper = getUser('helper');
+        const helperToken = await getToken('helper');
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers/${helper.customers[0]}`,
+          headers: { 'x-access-token': helperToken },
+        });
+        expect(res.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
@@ -294,23 +294,6 @@ describe('CUSTOMERS ROUTES', () => {
       }));
     });
 
-    it('should update a customer if I am its helper', async () => {
-      const helper = getUser('helper');
-      const helperToken = await getToken('helper');
-      const res = await app.inject({
-        method: 'PUT',
-        url: `/customers/${helper.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-        payload: {
-          identity: {
-            firstname: 'Volgarr',
-            lastname: 'Theviking',
-          },
-        },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
     it('should not create new rum if iban is set for the first time', async () => {
       const customer = customersList[2];
       const ibanPayload = { payment: { iban: 'FR2230066783676514892821545' } };
@@ -353,6 +336,23 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      it('should update a customer if I am its helper', async () => {
+        const helper = getUser('helper');
+        const helperToken = await getToken('helper');
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${helper.customers[0]}`,
+          headers: { 'x-access-token': helperToken },
+          payload: {
+            identity: {
+              firstname: 'Volgarr',
+              lastname: 'Theviking',
+            },
+          },
+        });
+        expect(res.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 200 },
