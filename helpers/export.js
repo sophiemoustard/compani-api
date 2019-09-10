@@ -148,7 +148,6 @@ const formatRowCommonsForExport = (document) => {
   const customerIdentity = get(document, 'customer.identity') || {};
 
   const cells = [
-    document.number || '',
     document.date ? moment(document.date).format('DD/MM/YYYY') : '',
     customerId ? customerId.toHexString() : '',
     customerIdentity.title || '',
@@ -176,6 +175,7 @@ const formatBillsForExport = (bills) => {
 
     const cells = [
       'Facture',
+      bill.billNumber || '',
       ...formatRowCommonsForExport(bill),
       clientId ? clientId.toHexString() : '',
       get(bill.client, 'name') || '',
@@ -200,6 +200,7 @@ const formatCreditNotesForExport = (creditNotes) => {
 
     const cells = [
       'Avoir',
+      creditNote.number || '',
       ...formatRowCommonsForExport(creditNote),
       tppId ? tppId.toHexString() : '',
       get(creditNote.thirdPartyPayer, 'name') || '',
