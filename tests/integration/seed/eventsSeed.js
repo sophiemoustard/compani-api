@@ -113,7 +113,7 @@ const eventsList = [
       exclTaxesCustomer: 15,
       inclTaxesTpp: 10,
       exclTaxesTpp: 5,
-      fundingVersion: new ObjectID(),
+      fundingId: new ObjectID(),
       nature: 'hourly',
       careHours: 2,
     },

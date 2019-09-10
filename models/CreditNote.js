@@ -29,7 +29,7 @@ const CreditNoteSchema = mongoose.Schema({
       thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
       inclTaxesTpp: Number,
       exclTaxesTpp: Number,
-      fundingVersion: { type: mongoose.Schema.Types.ObjectId },
+      fundingId: { type: mongoose.Schema.Types.ObjectId },
       nature: String,
       careHours: Number,
       surcharges: billEventSurchargesSchemaDefinition,
