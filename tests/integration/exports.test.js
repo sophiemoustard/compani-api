@@ -6,6 +6,7 @@ const {
   populateBills,
   populatePayment,
   populatePay,
+  paymentsList,
 } = require('./seed/exportSeed');
 
 describe('NODE ENV', () => {
@@ -114,7 +115,7 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(2);
+        expect(response.result.split('\r\n').length).toBe(paymentsList.length);
       });
     });
 
