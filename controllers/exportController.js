@@ -19,8 +19,11 @@ const { exportCustomers } = require('../helpers/customers');
 const { exportSubscriptions } = require('../helpers/subscriptions');
 const { exportFundings } = require('../helpers/fundings');
 const { exportAuxiliaries, exportHelpers } = require('../helpers/users');
-const { exportWorkingEventsHistory, exportAbsencesHistory } = require('../helpers/eventsExport');
-const { exportBillsHistory } = require('../helpers/bills');
+const {
+  exportWorkingEventsHistory,
+  exportAbsencesHistory,
+  exportBillsAndCreditNotesHistory,
+} = require('../helpers/export');
 const { exportPaymentsHistory } = require('../helpers/payments');
 const { exportPayAndFinalPayHistory } = require('../helpers/pay');
 const { exportToCsv } = require('../helpers/file');
@@ -73,7 +76,7 @@ const exportHistory = async (req, h) => {
         exportArray = await exportWorkingEventsHistory(startDate, endDate);
         break;
       case BILL:
-        exportArray = await exportBillsHistory(startDate, endDate);
+        exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate);
         break;
       case PAYMENT:
         exportArray = await exportPaymentsHistory(startDate, endDate);
