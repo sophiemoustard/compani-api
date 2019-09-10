@@ -336,8 +336,23 @@ describe('exportContractHistory', () => {
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate);
     contractMock.verify();
-    expect(result.length).toEqual(1);
     expect(result).toEqual([['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire']]);
+  });
+
+  it('should return an array containing the header and one row', async () => {
+    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }] }];
+    contractMock.expects('find')
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(contracts);
+
+    const result = await ExportHelper.exportContractHistory(startDate, endDate);
+    contractMock.verify();
+    expect(result).toEqual([
+      ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
+      ['Contrat', '', '', '', '10/10/2019', '', '', ''],
+    ]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
@@ -358,19 +373,13 @@ describe('exportContractHistory', () => {
       },
     ];
 
-    contractMock.expects('find')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(contracts);
+    contractMock.expects('find').chain('populate').chain('lean').returns(contracts);
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate);
-    contractMock.verify();
-    expect(result.length).toEqual(3);
     expect(result).toEqual([
       ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
-      ['Contrat', 'M', '', 'Patate', '10/10/2019', '', 10.45, 12],
-      ['Avenant', 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', 2, 14],
+      ['Contrat', 'M', '', 'Patate', '10/10/2019', '', '10,45', 12],
+      ['Avenant', 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
   });
 });

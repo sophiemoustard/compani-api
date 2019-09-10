@@ -259,18 +259,19 @@ exports.exportContractHistory = async (startDate, endDate) => {
   const contracts = await Contract.find(query).populate({ path: 'user', select: 'identity' }).lean();
   const rows = [contractExportHeader];
   for (const contract of contracts) {
-    const identity = get(contract, 'user.identity', {});
+    const identity = get(contract, 'user.identity') || {};
     for (let i = 0, l = contract.versions.length; i < l; i++) {
-      if (contract.versions[i].startDate && moment(contract.versions[i].startDate).isBetween(startDate, endDate, null, '[]')) {
+      const version = contract.versions[i];
+      if (version.startDate && moment(version.startDate).isBetween(startDate, endDate, null, '[]')) {
         rows.push([
           i === 0 ? 'Contrat' : 'Avenant',
           identity.title || '',
           identity.firstname || '',
           identity.lastname || '',
-          contract.versions[i].startDate ? moment(contract.versions[i].startDate).format('DD/MM/YYYY') : '',
-          contract.versions[i].endDate ? moment(contract.versions[i].endDate).format('DD/MM/YYYY') : '',
-          contract.versions[i].grossHourlyRate,
-          contract.versions[i].weeklyHours,
+          version.startDate ? moment(version.startDate).format('DD/MM/YYYY') : '',
+          version.endDate ? moment(version.endDate).format('DD/MM/YYYY') : '',
+          UtilsHelper.formatFloatForExport(version.grossHourlyRate),
+          version.weeklyHours || '',
         ]);
       }
     }
