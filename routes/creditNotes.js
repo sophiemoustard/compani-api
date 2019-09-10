@@ -45,7 +45,7 @@ exports.plugin = {
                 thirdPartyPayer: Joi.objectId(),
                 inclTaxesTpp: Joi.number(),
                 exclTaxesTpp: Joi.number(),
-                fundingVersion: Joi.objectId(),
+                fundingId: Joi.objectId(),
                 nature: Joi.string(),
                 careHours: Joi.number(),
                 surcharges: Joi.array().items(Joi.object({
@@ -133,7 +133,7 @@ exports.plugin = {
                 thirdPartyPayer: Joi.objectId(),
                 inclTaxesTpp: Joi.number(),
                 exclTaxesTpp: Joi.number(),
-                fundingVersion: Joi.objectId(),
+                fundingId: Joi.objectId(),
                 nature: Joi.string(),
                 careHours: Joi.number(),
                 surcharges: Joi.array().items(Joi.object({
