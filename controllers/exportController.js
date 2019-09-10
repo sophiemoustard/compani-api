@@ -24,10 +24,10 @@ const {
   exportWorkingEventsHistory,
   exportAbsencesHistory,
   exportBillsAndCreditNotesHistory,
+  exportContractHistory,
 } = require('../helpers/export');
 const { exportPaymentsHistory } = require('../helpers/payments');
 const { exportPayAndFinalPayHistory } = require('../helpers/pay');
-const { exportContractHistory } = require('../helpers/contracts');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {

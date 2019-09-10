@@ -13,6 +13,7 @@ const {
 const UtilsHelper = require('./utils');
 const Bill = require('../models/Bill');
 const CreditNote = require('../models/CreditNote');
+const Contract = require('../models/Contract');
 const EventRepository = require('../repositories/EventRepository');
 
 const workingEventExportHeader = [
@@ -235,6 +236,45 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
 
   rows.push(...formatBillsForExport(bills));
   rows.push(...formatCreditNotesForExport(creditNotes));
+
+  return rows;
+};
+
+const contractExportHeader = [
+  'Type',
+  'Titre',
+  'Prénom',
+  'Nom',
+  'Date de début',
+  'Date de fin',
+  'Taux horaire',
+  'Volume horaire hebdomadaire',
+];
+
+exports.exportContractHistory = async (startDate, endDate) => {
+  const query = {
+    'versions.startDate': { $lte: endDate, $gte: startDate },
+  };
+
+  const contracts = await Contract.find(query).populate({ path: 'user', select: 'identity' }).lean();
+  const rows = [contractExportHeader];
+  for (const contract of contracts) {
+    const identity = get(contract, 'user.identity', {});
+    for (let i = 0, l = contract.versions.length; i < l; i++) {
+      if (contract.versions[i].startDate && moment(contract.versions[i].startDate).isBetween(startDate, endDate, null, '[]')) {
+        rows.push([
+          i === 0 ? 'Contrat' : 'Avenant',
+          identity.title || '',
+          identity.firstname || '',
+          identity.lastname || '',
+          contract.versions[i].startDate ? moment(contract.versions[i].startDate).format('DD/MM/YYYY') : '',
+          contract.versions[i].endDate ? moment(contract.versions[i].endDate).format('DD/MM/YYYY') : '',
+          contract.versions[i].grossHourlyRate,
+          contract.versions[i].weeklyHours,
+        ]);
+      }
+    }
+  }
 
   return rows;
 };
