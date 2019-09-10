@@ -177,6 +177,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        auth: { scope: ['events:edit', 'events:own:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
@@ -192,6 +193,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/repetition',
       options: {
+        auth: { scope: ['events:edit', 'events:own:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
@@ -208,6 +210,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
+        auth: { scope: ['events:edit', 'events:own:edit'] },
         payload: {
           output: 'stream',
           parse: true,
