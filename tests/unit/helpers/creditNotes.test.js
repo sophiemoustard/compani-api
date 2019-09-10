@@ -24,10 +24,10 @@ describe('updateEventAndFundingHistory', () => {
   });
 
   it('should increment history for hourly and once funding', async () => {
-    const fundingVersionId = new ObjectID();
+    const fundingId = new ObjectID();
     const events = [
       new Event({
-        bills: { nature: 'hourly', fundingVersion: fundingVersionId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+        bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
         startDate: new Date('2019/01/19'),
       }),
     ];
@@ -39,21 +39,21 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
-      { fundingVersion: fundingVersionId, month: '01/2019' },
+      { fundingId, month: '01/2019' },
       { $inc: { careHours: -3 } }
     );
     sinon.assert.calledWith(
       findOneAndUpdate.secondCall,
-      { fundingVersion: fundingVersionId },
+      { fundingId },
       { $inc: { careHours: -3 } }
     );
   });
 
   it('should increment history for hourly and monthly funding', async () => {
-    const fundingVersionId = new ObjectID();
+    const fundingId = new ObjectID();
     const events = [
       new Event({
-        bills: { nature: 'hourly', fundingVersion: fundingVersionId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+        bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
         startDate: new Date('2019/01/19'),
       }),
     ];
@@ -65,16 +65,16 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
-      { fundingVersion: fundingVersionId, month: '01/2019' },
+      { fundingId, month: '01/2019' },
       { $inc: { careHours: -3 } }
     );
   });
 
   it('should decrement history for hourly and monthly funding', async () => {
-    const fundingVersionId = new ObjectID();
+    const fundingId = new ObjectID();
     const events = [
       new Event({
-        bills: { nature: 'hourly', fundingVersion: fundingVersionId, thirdPartyPayer: new ObjectID(), careHours: 3 },
+        bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
         startDate: new Date('2019/01/19'),
       }),
     ];
@@ -86,16 +86,16 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
-      { fundingVersion: fundingVersionId, month: '01/2019' },
+      { fundingId, month: '01/2019' },
       { $inc: { careHours: 3 } }
     );
   });
 
   it('should increment history for fixed and once funding', async () => {
-    const fundingVersionId = new ObjectID();
+    const fundingId = new ObjectID();
     const events = [
       new Event({
-        bills: { nature: 'fixed', fundingVersion: fundingVersionId, thirdPartyPayer: new ObjectID(), inclTaxesTpp: 666 },
+        bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectID(), inclTaxesTpp: 666 },
         startDate: new Date('2019/01/19'),
       }),
     ];
@@ -107,7 +107,7 @@ describe('updateEventAndFundingHistory', () => {
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
-      { fundingVersion: fundingVersionId },
+      { fundingId },
       { $inc: { amountTTC: -666 } }
     );
   });
