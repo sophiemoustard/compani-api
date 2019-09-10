@@ -12,20 +12,20 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
   const promises = [];
   const events = await Event.find({ _id: { $in: eventsToUpdate.map(ev => ev.eventId) } });
   for (const event of events) {
-    if (event.bills.thirdPartyPayer) {
+    if (event.bills.thirdPartyPayer && event.bills.fundingId) {
       if (event.bills.nature !== HOURLY) {
         await FundingHistory.findOneAndUpdate(
-          { fundingVersion: event.bills.fundingVersion },
+          { fundingId: event.bills.fundingId },
           { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } }
         );
       } else {
         let history = await FundingHistory.findOneAndUpdate(
-          { fundingVersion: event.bills.fundingVersion, month: moment(event.startDate).format('MM/YYYY') },
+          { fundingId: event.bills.fundingId, month: moment(event.startDate).format('MM/YYYY') },
           { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
         );
         if (!history) {
           history = await FundingHistory.findOneAndUpdate(
-            { fundingVersion: event.bills.fundingVersion },
+            { fundingId: event.bills.fundingId },
             { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
           );
         }
@@ -75,7 +75,7 @@ exports.createCreditNotes = async (payload) => {
 
   creditNotes = await CreditNote.insertMany(creditNotes);
 
-  if (payload.events) await exports.updateEventAndFundingHistory(payload.events);
+  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false);
   await CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } });
 
   return creditNotes;
