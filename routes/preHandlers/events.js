@@ -20,10 +20,8 @@ exports.authorizeOwnEventUpdate = async (req) => {
   const { credentials } = req.auth;
   const { event } = req.pre;
 
-  if (credentials.scope.includes('events:edit') ||
-    (!credentials.scope.includes('events:edit') &&
-      credentials.scope.includes('events:own:edit') &&
-      event.auxiliary === credentials._id)) return event;
+  if (credentials.scope.includes('events:edit')) return event;
+  if (credentials.scope.includes('events:own:edit') && event.auxiliary === credentials._id) return event;
 
   throw Boom.forbidden();
 };
