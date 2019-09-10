@@ -6,7 +6,7 @@ const encode = (payload, expireTime) => jwt.sign(payload, process.env.TOKEN_SECR
 const validate = async (decoded) => {
   try {
     if (!decoded._id) throw new Error('No id / role present in token');
-    const user = await User.findById(decoded._id, '_id identity role company local customers');
+    const user = await User.findById(decoded._id, '_id identity role company local customers sector');
 
     const rights = user.role.rights.filter(right => right.hasAccess).map((right) => {
       if (right.right_id && right.right_id.permission) return right.right_id.permission;
@@ -19,6 +19,7 @@ const validate = async (decoded) => {
       identity: user.identity || null,
       email: user.local && user.local.email ? user.local.email : null,
       company: user.company || null,
+      sector: user.sector ? user.sector.toHexString() : null,
       scope: [`user-${decoded._id}`, user.role.name, ...rights, ...customersScopes],
     };
 

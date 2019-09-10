@@ -16,12 +16,13 @@ exports.getEvent = async (req) => {
   }
 };
 
-exports.authorizeOwnEventUpdate = async (req) => {
+exports.authorizeEventUpdate = async (req) => {
   const { credentials } = req.auth;
-  const { event } = req.pre;
+  const event = req.pre.event || req.payload;
 
   if (credentials.scope.includes('events:edit')) return event;
-  if (credentials.scope.includes('events:own:edit') && event.auxiliary === credentials._id) return event;
+  if (credentials.scope.includes('events:sector:edit') && event.sector == credentials.sector) return event;
+  if (credentials.scope.includes('events:own:edit') && event.auxiliary == credentials._id) return event;
 
   throw Boom.forbidden();
 };

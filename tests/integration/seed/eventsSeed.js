@@ -13,14 +13,27 @@ const { rolesList, populateDBForAuthentification } = require('./authentification
 const app = require('../../../server');
 
 const auxiliaryId = new ObjectID();
+const planningReferentId = new ObjectID();
 
-const contract = {
-  _id: new ObjectID('c435f90089caff4ddc4bbd68'),
+const contracts = [{
+  _id: new ObjectID(),
   status: 'contract_with_company',
   user: auxiliaryId,
   startDate: '2010-09-03T00:00:00',
-  versions: [{ startDate: '2010-09-03T00:00:00' }],
-};
+  versions: [{
+    startDate: '2010-09-03T00:00:00',
+    isActive: true,
+  }],
+}, {
+  _id: new ObjectID(),
+  status: 'contract_with_company',
+  user: planningReferentId,
+  startDate: '2010-09-03T00:00:00',
+  versions: [{
+    startDate: '2010-09-03T00:00:00',
+    isActive: true,
+  }],
+}];
 
 const company = {
   _id: new ObjectID(),
@@ -52,7 +65,18 @@ const eventAuxiliary = {
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
-  contracts: [contract._id],
+  contracts: [contracts[0]._id],
+  sector: sector._id,
+};
+
+const planningReferentAuxiliary = {
+  _id: planningReferentId,
+  identity: { firstname: 'Carole', lastname: 'Test' },
+  local: { email: 'a@a.com', password: 'supertest' },
+  administrative: { driveFolder: { driveId: '0987654321' } },
+  refreshToken: uuidv4(),
+  role: rolesList[3]._id,
+  contracts: [contracts[1]._id],
   sector: sector._id,
 };
 
@@ -197,13 +221,14 @@ const populateDB = async () => {
 
   await populateDBForAuthentification();
   await Event.insertMany(eventsList);
+  await Contract.insertMany(contracts);
   await (new Company(company)).save();
   await (new Sector(sector)).save();
   await (new User(eventAuxiliary)).save();
   await (new User(helpersCustomer)).save();
+  await (new User(planningReferentAuxiliary)).save();
   await (new Customer(customerAuxiliary)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();
-  await (new Contract(contract)).save();
   await (new Service(service)).save();
 };
 
@@ -226,4 +251,5 @@ module.exports = {
   thirdPartyPayer,
   helpersCustomer,
   getUserToken,
+  planningReferentAuxiliary,
 };
