@@ -30,7 +30,7 @@ exports.getCustomers = async (query) => {
   const customers = await Customer.find(query)
     .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
     .populate({ path: 'firstIntervention', select: 'startDate' })
-    .lean({ virtuals: true });
+    .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
 
   if (customers.length === 0) return [];
 
@@ -80,7 +80,7 @@ exports.getCustomer = async (customerId) => {
     .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
     .populate('fundings.thirdPartyPayer')
     .populate({ path: 'firstIntervention', select: 'startDate' })
-    .lean({ virtuals: true });
+    .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
   if (!customer) return null;
 
   customer = SubscriptionsHelper.populateSubscriptionsServices(customer);
