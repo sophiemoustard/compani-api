@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const Event = require('../../../models/Event');
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
@@ -6,26 +7,77 @@ const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const Contract = require('../../../models/Contract');
 const Service = require('../../../models/Service');
 const EventHistory = require('../../../models/EventHistory');
+const Sector = require('../../../models/Sector');
+const Company = require('../../../models/Company');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const app = require('../../../server');
 
-const auxiliaryId = new ObjectID('5d3b239ce9e4352ef86e773c');
-const sectorId = new ObjectID('5d3b239ce9e4352ef86e773c');
+const auxiliaryId = new ObjectID();
+const planningReferentId = new ObjectID();
 
-const contract = {
-  _id: new ObjectID('c435f90089caff4ddc4bbd68'),
+const contracts = [{
+  _id: new ObjectID(),
   status: 'contract_with_company',
   user: auxiliaryId,
   startDate: '2010-09-03T00:00:00',
-  versions: [{ startDate: '2010-09-03T00:00:00' }],
+  versions: [{
+    startDate: '2010-09-03T00:00:00',
+    isActive: true,
+  }],
+}, {
+  _id: new ObjectID(),
+  status: 'contract_with_company',
+  user: planningReferentId,
+  startDate: '2010-09-03T00:00:00',
+  versions: [{
+    startDate: '2010-09-03T00:00:00',
+    isActive: true,
+  }],
+}];
+
+const company = {
+  _id: new ObjectID(),
+  name: 'Testtoto',
+  rhConfig: {
+    internalHours: [
+      { name: 'Formation', default: true, _id: new ObjectID() },
+      { name: 'Code', default: false, _id: new ObjectID() },
+      { name: 'Gouter', default: false, _id: new ObjectID() },
+    ],
+    feeAmount: 12,
+  },
+  iban: 'FR3514508000505917721779B12',
+  bic: 'RTYUIKJHBFRG',
+  ics: '12345678',
+  directDebitsFolderId: '1234567890',
+};
+
+const sector = {
+  _id: new ObjectID(),
+  name: 'Paris',
+  company: company._id,
 };
 
 const eventAuxiliary = {
   _id: auxiliaryId,
   identity: { firstname: 'Thibaut', lastname: 'Pinot' },
   local: { email: 't@p.com', password: 'tourdefrance' },
+  administrative: { driveFolder: { driveId: '1234567890' } },
+  refreshToken: uuidv4(),
   role: rolesList[1]._id,
-  contracts: [contract._id],
-  sector: sectorId,
+  contracts: [contracts[0]._id],
+  sector: sector._id,
+};
+
+const planningReferentAuxiliary = {
+  _id: planningReferentId,
+  identity: { firstname: 'Carole', lastname: 'Test' },
+  local: { email: 'a@a.com', password: 'supertest' },
+  administrative: { driveFolder: { driveId: '0987654321' } },
+  refreshToken: uuidv4(),
+  role: rolesList[3]._id,
+  contracts: [contracts[1]._id],
+  sector: sector._id,
 };
 
 const thirdPartyPayer = {
@@ -39,6 +91,7 @@ const service = {
   ],
 };
 
+
 const customerAuxiliary = {
   _id: new ObjectID('b0e491d37f0094ba49499562'),
   identity: { firstname: 'Romain', lastname: 'Bardet' },
@@ -47,10 +100,19 @@ const customerAuxiliary = {
   ],
 };
 
+const helpersCustomer = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Nicolas', lastname: 'Flammel' },
+  local: { email: 'tt@tt.com', password: 'mdpdeouf' },
+  refreshToken: uuidv4(),
+  customers: [customerAuxiliary._id],
+  role: rolesList[4]._id,
+};
+
 const eventsList = [
   {
     _id: new ObjectID(),
-    sector: sectorId,
+    sector: sector._id,
     type: 'internalHour',
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
@@ -64,7 +126,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sectorId,
+    sector: sector._id,
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
@@ -73,7 +135,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sectorId,
+    sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -85,7 +147,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sectorId,
+    sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
@@ -97,7 +159,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sectorId,
+    sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -120,7 +182,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sectorId,
+    sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
@@ -137,7 +199,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sectorId,
+    sector: sector._id,
     type: 'absence',
     startDate: '2019-07-19T14:00:18.653Z',
     endDate: '2019-07-19T17:00:18.653Z',
@@ -154,14 +216,30 @@ const populateDB = async () => {
   await Contract.deleteMany({});
   await Service.deleteMany({});
   await EventHistory.deleteMany({});
+  await Sector.deleteMany({});
+  await Company.deleteMany({});
 
   await populateDBForAuthentification();
   await Event.insertMany(eventsList);
+  await Contract.insertMany(contracts);
+  await (new Company(company)).save();
+  await (new Sector(sector)).save();
   await (new User(eventAuxiliary)).save();
+  await (new User(helpersCustomer)).save();
+  await (new User(planningReferentAuxiliary)).save();
   await (new Customer(customerAuxiliary)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();
-  await (new Contract(contract)).save();
   await (new Service(service)).save();
+};
+
+const getUserToken = async (userCredentials) => {
+  const response = await app.inject({
+    method: 'POST',
+    url: '/users/authenticate',
+    payload: userCredentials,
+  });
+
+  return response.result.data.token;
 };
 
 module.exports = {
@@ -169,5 +247,9 @@ module.exports = {
   populateDB,
   eventAuxiliary,
   customerAuxiliary,
-  sectorId,
+  sector,
+  thirdPartyPayer,
+  helpersCustomer,
+  getUserToken,
+  planningReferentAuxiliary,
 };

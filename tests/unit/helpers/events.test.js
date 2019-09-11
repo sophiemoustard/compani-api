@@ -814,32 +814,22 @@ describe('unassignConflictInterventions', () => {
 });
 
 describe('deleteEvent', () => {
-  let findOne;
   let createEventHistoryOnDelete;
   let deleteOne;
-  const params = { _id: (new ObjectID()).toHexString() };
   const credentials = { _id: (new ObjectID()).toHexString() };
   beforeEach(() => {
-    findOne = sinon.stub(Event, 'findOne');
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
     deleteOne = sinon.stub(Event, 'deleteOne');
   });
   afterEach(() => {
-    findOne.restore();
     createEventHistoryOnDelete.restore();
     deleteOne.restore();
-  });
-
-  it('should return null if event not found', async () => {
-    findOne.returns(null);
-    const result = await EventHelper.deleteEvent(params, {});
-
-    expect(result).toBeNull();
   });
 
   it('should delete repetition', async () => {
     const parentId = new ObjectID();
     const deletionInfo = {
+      _id: new ObjectID(),
       type: INTERVENTION,
       startDate: '2019-01-21T09:38:18',
     };
@@ -850,12 +840,11 @@ describe('deleteEvent', () => {
         parentId,
       },
     };
-    findOne.returns(event);
-    const result = await EventHelper.deleteEvent(params, credentials);
+    const result = await EventHelper.deleteEvent(event, credentials);
 
     expect(result).toEqual(event);
     sinon.assert.calledWith(createEventHistoryOnDelete, deletionInfo, credentials);
-    sinon.assert.calledWith(deleteOne, { _id: params._id });
+    sinon.assert.calledWith(deleteOne, { _id: event._id });
   });
 });
 

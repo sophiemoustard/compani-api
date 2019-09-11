@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, rightsList, rolesList, rolePayload } = require('./seed/rolesSeed');
 const Role = require('../../models/Role');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken, rolesList: authRolesList } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -195,7 +195,7 @@ describe('ROLES ROUTES', () => {
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.roles.length).toBe(rolesList.length + 4);
+      expect(res.result.data.roles.length).toBe(rolesList.length + authRolesList.length);
       expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
         name: expect.any(String),
         rights: expect.arrayContaining([
