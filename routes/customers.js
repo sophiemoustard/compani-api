@@ -95,12 +95,12 @@ exports.plugin = {
                   coordinates: Joi.array(),
                 },
               },
-              accessCodes: Joi.string(),
+              accessCodes: Joi.string().allow('', null),
             }),
             followUp: Joi.object().keys({
-              customerEnvironment: Joi.string(),
-              objectives: Joi.string(),
-              misc: Joi.string(),
+              environment: Joi.string().allow('', null),
+              objectives: Joi.string().allow('', null),
+              misc: Joi.string().allow('', null),
               referent: Joi.string(),
             }),
             payment: Joi.object().keys({

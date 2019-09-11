@@ -16,7 +16,7 @@ const {
   CONTRACT,
 } = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
-const { exportCustomers } = require('../helpers/customers');
+const { exportCustomers } = require('../helpers/export');
 const { exportSubscriptions } = require('../helpers/subscriptions');
 const { exportFundings } = require('../helpers/fundings');
 const { exportAuxiliaries, exportHelpers } = require('../helpers/users');

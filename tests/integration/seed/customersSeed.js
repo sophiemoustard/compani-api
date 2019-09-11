@@ -77,7 +77,7 @@ const customersList = [
       phone: '0123456789',
     },
     followUp: {
-      customerEnvironment: 'ne va pas bien',
+      environment: 'ne va pas bien',
       objectives: 'preparer le dejeuner + balade',
       misc: 'code porte: 1234',
     },

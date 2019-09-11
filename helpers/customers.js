@@ -1,14 +1,11 @@
 const flat = require('flat');
 const Boom = require('boom');
-const moment = require('moment');
-const get = require('lodash/get');
 const { addFile } = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
-const { getLastVersion } = require('../helpers/utils');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
@@ -168,76 +165,4 @@ exports.createAndSaveFile = async (docKeys, params, payload) => {
   }
 
   return uploadedFile;
-};
-
-const getServicesNameList = (subscriptions) => {
-  let list = `${getLastVersion(subscriptions[0].service.versions, 'startDate').name}`;
-  if (subscriptions.length > 1) {
-    for (const sub of subscriptions.slice(1)) {
-      list = list.concat(`\r\n ${getLastVersion(sub.service.versions, 'startDate').name}`);
-    }
-  }
-  return list;
-};
-
-const customerExportHeader = [
-  'Email',
-  'Titre',
-  'Nom',
-  'Prenom',
-  'Date de naissance',
-  'Adresse',
-  'Environnement',
-  'Objectifs',
-  'Autres',
-  'Référente',
-  'Nom associé au compte bancaire',
-  'IBAN',
-  'BIC',
-  'RUM',
-  'Date de signature du mandat',
-  'Nombre de souscriptions',
-  'Souscriptions',
-  'Nombre de financements',
-  'Date de création',
-];
-
-exports.exportCustomers = async () => {
-  const customers = await Customer.find().populate('subscriptions.service');
-  const rows = [customerExportHeader];
-
-  for (const cus of customers) {
-    const birthDate = get(cus, 'identity.birthDate');
-    const lastname = get(cus, 'identity.lastname');
-    const mandates = get(cus, 'payment.mandates');
-    const lastMandate = mandates ? getLastVersion(mandates, 'createdAt') : {};
-    const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
-    const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
-
-    const cells = [
-      cus.email || '',
-      get(cus, 'identity.title') || '',
-      lastname ? lastname.toUpperCase() : '',
-      get(cus, 'identity.firstname') || '',
-      birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
-      get(cus, 'contact.address.fullAddress') || '',
-      get(cus, 'followUp.customerEnvironment') || '',
-      get(cus, 'followUp.objectives') || '',
-      get(cus, 'followUp.misc') || '',
-      get(cus, 'followUp.referent') || '',
-      get(cus, 'payment.bankAccountOwner') || '',
-      get(cus, 'payment.iban') || '',
-      get(cus, 'payment.bic') || '',
-      lastMandate.rum || '',
-      signedAt,
-      subscriptionsCount,
-      subscriptionsCount ? getServicesNameList(cus.subscriptions) : '',
-      get(cus, 'fundings.length') || 0,
-      cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '',
-    ];
-
-    rows.push(cells);
-  }
-
-  return rows;
 };

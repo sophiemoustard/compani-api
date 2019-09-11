@@ -35,7 +35,7 @@ const CustomerSchema = mongoose.Schema({
     accessCodes: String,
   },
   followUp: {
-    customerEnvironment: String,
+    environment: String,
     objectives: String,
     misc: String,
     referent: String,
