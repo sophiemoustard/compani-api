@@ -1,15 +1,26 @@
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 const Event = require('../../../models/Event');
 const Customer = require('../../../models/Customer');
 const User = require('../../../models/User');
 const Bill = require('../../../models/Bill');
+const Service = require('../../../models/Service');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const Payment = require('../../../models/Payment');
 const Pay = require('../../../models/Pay');
 const Sector = require('../../../models/Sector');
 const FinalPay = require('../../../models/FinalPay');
+const Company = require('../../../models/Company');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
-const { PAYMENT, REFUND } = require('../../../helpers/constants');
+const {
+  PAYMENT,
+  REFUND,
+  FIXED,
+  ONCE,
+  COMPANY_CONTRACT,
+  HOURLY,
+  CUSTOMER_CONTRACT,
+} = require('../../../helpers/constants');
 
 const sector = {
   _id: new ObjectID(),
@@ -31,6 +42,196 @@ const customer = {
     { _id: new ObjectID() },
   ],
 };
+
+const company = {
+  _id: new ObjectID(),
+  name: 'Test',
+  rhConfig: {
+    internalHours: [
+      { name: 'Formation', default: true, _id: new ObjectID() },
+      { name: 'Code', default: false, _id: new ObjectID() },
+      { name: 'Gouter', default: false, _id: new ObjectID() },
+    ],
+    feeAmount: 12,
+  },
+  iban: 'FR3514508000505917721779B12',
+  bic: 'RTYUIKJHBFRG',
+  ics: '12345678',
+  directDebitsFolderId: '1234567890',
+};
+
+const serviceList = [
+  {
+    _id: new ObjectID(),
+    type: COMPANY_CONTRACT,
+    company: company._id,
+    versions: [{
+      defaultUnitAmount: 12,
+      name: 'Service 1',
+      startDate: '2019-01-16 17:58:15.519',
+      vat: 12,
+    }],
+    nature: HOURLY,
+  },
+  {
+    _id: new ObjectID(),
+    type: CUSTOMER_CONTRACT,
+    company: company._id,
+    versions: [{
+      defaultUnitAmount: 24,
+      name: 'Service 2',
+      startDate: '2019-01-18 19:58:15.519',
+      vat: 12,
+    }],
+    nature: HOURLY,
+  },
+];
+
+const customerThirdPartyPayer = {
+  _id: new ObjectID(),
+};
+
+const subscriptionId = new ObjectID();
+
+const customersList = [
+  { // Customer with subscriptions, fundings and quote
+    _id: new ObjectID(),
+    email: 'fake@test.com',
+    identity: {
+      title: 'M',
+      firstname: 'Romain',
+      lastname: 'Bardet',
+    },
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0123456789',
+      accessCodes: 'porte c3po',
+    },
+    followUp: {
+      environment: 'ne va pas bien',
+      objectives: 'preparer le dejeuner + balade',
+      misc: 'code porte: 1234',
+    },
+    subscriptions: [
+      {
+        _id: subscriptionId,
+        service: serviceList[0]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+          startDate: '2018-01-01T10:00:00.000+01:00',
+        }],
+      },
+      {
+        _id: new ObjectID(),
+        service: serviceList[1]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+          startDate: moment().subtract(1, 'month').toDate(),
+        }],
+      },
+    ],
+    payment: {
+      bankAccountOwner: 'David gaudu',
+      iban: '',
+      bic: '',
+      mandates: [
+        { rum: 'R012345678903456789' },
+      ],
+    },
+    quotes: [{
+      _id: new ObjectID(),
+      subscriptions: [{
+        serviceName: 'Test',
+        unitTTCRate: 23,
+        estimatedWeeklyVolume: 3,
+      }, {
+        serviceName: 'Test2',
+        unitTTCRate: 30,
+        estimatedWeeklyVolume: 10,
+      }],
+    }],
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayer._id,
+        subscription: subscriptionId,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
+          frequency: ONCE,
+          endDate: moment.utc().add(6, 'months').toDate(),
+          effectiveDate: moment.utc().toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        }],
+      },
+    ],
+  },
+  { // Customer with mandates
+    _id: new ObjectID(),
+    email: 'tito@ty.com',
+    identity: {
+      title: 'M',
+      firstname: 'Egan',
+      lastname: 'Bernal',
+    },
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0612345678',
+      accessCodes: 'you shall not pass',
+    },
+    payment: {
+      bankAccountOwner: 'Lance Amstrong',
+      iban: 'FR3514508000505917721779B12',
+      bic: 'BNMDHISOBD',
+      mandates: [
+        { rum: 'R09876543456765432', _id: new ObjectID(), signedAt: moment().toDate() },
+      ],
+    },
+  },
+  {
+    _id: new ObjectID(),
+    email: 'toototjo@hfjld.io',
+    identity: {
+      title: 'M',
+      firstname: 'Julian',
+      lastname: 'Alaphilippe',
+    },
+    contact: {
+      address: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0612345678',
+      accessCodes: 'Bouton a l\'entrée',
+    },
+    payment: {
+      bankAccountOwner: 'David gaudu',
+      iban: '',
+      bic: '',
+      mandates: [
+        { rum: 'R012345678903456789' },
+      ],
+    },
+  },
+];
 
 const thirdPartyPayer = {
   _id: new ObjectID(),
@@ -296,6 +497,32 @@ const populatePayment = async () => {
   await new ThirdPartyPayer(thirdPartyPayer).save();
 };
 
+const populateService = async () => {
+  await Service.deleteMany();
+  await Company.deleteMany();
+
+  await populateDBForAuthentification();
+  await (new Company(company)).save();
+  await Service.insertMany(serviceList);
+};
+
+const populateCustomer = async () => {
+  await Customer.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Service.deleteMany();
+  await Company.deleteMany();
+
+  await populateDBForAuthentification();
+  await (new Company(company)).save();
+  await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
+  await Service.insertMany(serviceList);
+  await Customer.insertMany(customersList);
+};
+
+const populateUser = async () => {
+  await populateDBForAuthentification();
+};
+
 const populatePay = async () => {
   await Pay.deleteMany();
   await FinalPay.deleteMany();
@@ -313,4 +540,7 @@ module.exports = {
   populatePayment,
   populatePay,
   paymentsList,
+  populateService,
+  populateCustomer,
+  populateUser,
 };

@@ -1,5 +1,13 @@
 const expect = require('expect');
 const app = require('../../server');
+const {
+  SERVICE,
+  AUXILIARY,
+  HELPER,
+  CUSTOMER,
+  FUNDING,
+  SUBSCRIPTION,
+} = require('../../helpers/constants');
 const { getToken } = require('./seed/authentificationSeed');
 const {
   populateEvents,
@@ -7,6 +15,9 @@ const {
   populatePayment,
   populatePay,
   paymentsList,
+  populateService,
+  populateUser,
+  populateCustomer,
 } = require('./seed/exportSeed');
 
 describe('NODE ENV', () => {
@@ -181,4 +192,81 @@ describe('EXPORTS ROUTES', () => {
       });
     });
   });
+
+  const exportTypes = [
+    {
+      exportType: SERVICE,
+      populate: populateService,
+      lineCount: 3,
+    },
+    {
+      exportType: AUXILIARY,
+      populate: populateUser,
+      lineCount: 2,
+    },
+    {
+      exportType: HELPER,
+      populate: populateUser,
+      lineCount: 2,
+    },
+    {
+      exportType: CUSTOMER,
+      populate: populateCustomer,
+      lineCount: 5,
+    },
+    {
+      exportType: FUNDING,
+      populate: populateCustomer,
+      lineCount: 2,
+    },
+    {
+      exportType: SUBSCRIPTION,
+      populate: populateCustomer,
+      lineCount: 3,
+    },
+  ];
+
+  for (const { exportType, populate, lineCount } of exportTypes) {
+    // eslint-disable-next-line no-loop-func
+    describe(`GET /exports/${exportType}/data`, () => {
+      describe('Admin', () => {
+        beforeEach(populate);
+        beforeEach(async () => {
+          authToken = await getToken('admin');
+        });
+        it(`should get ${exportType}`, async () => {
+          const response = await app.inject({
+            method: 'GET',
+            url: `/exports/${exportType}/data`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(200);
+          expect(response.result).toBeDefined();
+          expect(response.result.split('\r\n').length).toBe(lineCount);
+        });
+      });
+
+      describe('Other roles', () => {
+        const roles = [
+          { name: 'helper', expectedCode: 403 },
+          { name: 'auxiliary', expectedCode: 403 },
+          { name: 'coach', expectedCode: 200 },
+        ];
+
+        roles.forEach((role) => {
+          it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+            authToken = await getToken(role.name);
+            const response = await app.inject({
+              method: 'GET',
+              url: `/exports/${exportType}/data`,
+              headers: { 'x-access-token': authToken },
+            });
+
+            expect(response.statusCode).toBe(role.expectedCode);
+          });
+        });
+      });
+    });
+  }
 });

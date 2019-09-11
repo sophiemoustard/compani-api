@@ -75,6 +75,7 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0123456789',
+      accessCodes: 'porte c3po',
     },
     followUp: {
       environment: 'ne va pas bien',
@@ -178,6 +179,7 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0612345678',
+      accessCodes: 'you shall not pass',
     },
     payment: {
       bankAccountOwner: 'Lance Amstrong',
@@ -203,6 +205,7 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0612345678',
+      accessCodes: 'Bouton a l\'entrée',
     },
     payment: {
       bankAccountOwner: 'David gaudu',

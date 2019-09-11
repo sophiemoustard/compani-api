@@ -390,7 +390,7 @@ describe('exportCustomers', () => {
   let getLastVersion;
   beforeEach(() => {
     CustomerModel = sinon.mock(Customer);
-    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').returns(this[0]);
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(versions => versions[0]);
   });
 
   afterEach(() => {
@@ -403,10 +403,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Environnement', 'Objectifs',
@@ -421,10 +422,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -438,10 +440,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -455,10 +458,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -472,10 +476,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -489,10 +494,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -510,10 +516,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -530,10 +537,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -554,10 +562,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -578,10 +587,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -601,10 +611,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -624,10 +635,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -641,10 +653,11 @@ describe('exportCustomers', () => {
     CustomerModel.expects('find')
       .withExactArgs()
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
-    const result = await UtilsHelper.exportCustomers();
+    const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
