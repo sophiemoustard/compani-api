@@ -187,9 +187,8 @@ const customerExportHeader = [
   'Prenom',
   'Date de naissance',
   'Adresse',
-  'Pathologie',
-  'Commentaire',
-  'Details intervention',
+  'Environnement',
+  'Objectifs',
   'Autres',
   'Référente',
   'Nom associé au compte bancaire',
@@ -223,13 +222,12 @@ exports.exportCustomers = async () => {
 
     if (cus.followUp && Object.keys(cus.followUp).length > 0) {
       customerData.push(
-        get(cus, 'followUp.pathology', ''),
-        get(cus, 'followUp.comments', ''),
-        get(cus, 'followUp.details', ''),
+        get(cus, 'followUp.customerEnvironment', ''),
+        get(cus, 'followUp.objectives', ''),
         get(cus, 'followUp.misc', ''),
         get(cus, 'followUp.referent', '')
       );
-    } else customerData.push('', '', '', '', '');
+    } else customerData.push('', '', '', '');
 
     if (cus.payment && Object.keys(cus.payment).length > 0) {
       customerData.push(

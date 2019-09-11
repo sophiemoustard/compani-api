@@ -336,7 +336,7 @@ describe('exportCustomers', () => {
     const result = await CustomerHelper.exportCustomers();
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Pathologie', 'Commentaire', 'Details intervention',
+    expect(result[0]).toMatchObject(['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Environnement', 'Objectifs',
       'Autres', 'Référente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombre de souscriptions', 'Souscriptions',
       'Nombre de financements', 'Date de création']);
   });
@@ -355,7 +355,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['papi@mamie.pp', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['papi@mamie.pp', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
   });
 
   it('should return customer identity', async () => {
@@ -372,7 +372,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', 'M', 'PAPI', 'Grand Père', '12/12/1919', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', 'M', 'PAPI', 'Grand Père', '12/12/1919', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
   });
 
   it('should return empty strings if customer identity missing', async () => {
@@ -389,7 +389,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', 'M', 'PAPI', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', 'M', 'PAPI', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
   });
 
   it('should return customer address', async () => {
@@ -406,7 +406,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '9 rue du paradis 70015 Paris', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '9 rue du paradis 70015 Paris', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
   });
 
   it('should return empty strings if customer address missing', async () => {
@@ -423,14 +423,14 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
   });
 
   it('should return customer followUp', async () => {
     const customers = [
       {
         followUp: {
-          misc: 'Lala', details: 'Savate et charentaises', comments: 'Père Castor', pathology: 'Alzheimer', referent: 'Moi'
+          misc: 'Lala', objectives: 'Savate et charentaises', customerEnvironment: 'Père Castor', referent: 'Moi',
         },
       },
     ];
@@ -444,14 +444,14 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', 'Alzheimer', 'Père Castor', 'Savate et charentaises', 'Lala', 'Moi',
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', 'Père Castor', 'Savate et charentaises', 'Lala', 'Moi',
       '', '', '', '', '', 0, '', 0, '']);
   });
 
   it('should return empty strings if customer followUp missing', async () => {
     const customers = [
       {
-        followUp: { misc: 'Lala', comments: 'Père Castor', referent: 'Moi' },
+        followUp: { misc: 'Lala', customerEnvironment: 'Père Castor', referent: 'Moi' },
       },
     ];
     CustomerModel.expects('find')
@@ -464,7 +464,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', 'Père Castor', '', 'Lala', 'Moi', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', 'Père Castor', '', 'Lala', 'Moi', '', '', '', '', '', 0, '', 0, '']);
   });
 
   it('should return customer payment', async () => {
@@ -474,7 +474,7 @@ describe('exportCustomers', () => {
           bankAccountOwner: 'Lui',
           iban: 'Boom Ba Da Boom',
           bic: 'bic bic',
-          mandates: [{ rum: 'Grippe et rhume', signedAt: '2012-12-12T00:00:00.000+00:00' }]
+          mandates: [{ rum: 'Grippe et rhume', signedAt: '2012-12-12T00:00:00.000+00:00' }],
         },
       },
     ];
@@ -488,7 +488,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', 'Lui', 'Boom Ba Da Boom', 'bic bic', 'Grippe et rhume',
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', 'Lui', 'Boom Ba Da Boom', 'bic bic', 'Grippe et rhume',
       '12/12/2012', 0, '', 0, '']);
   });
 
@@ -498,7 +498,7 @@ describe('exportCustomers', () => {
         payment: {
           bankAccountOwner: 'Lui',
           bic: 'bic bic',
-          mandates: [{ rum: 'Grippe et rhume' }]
+          mandates: [{ rum: 'Grippe et rhume' }],
         },
       },
     ];
@@ -512,7 +512,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', 'Lui', '', 'bic bic', 'Grippe et rhume', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', 'Lui', '', 'bic bic', 'Grippe et rhume', '', 0, '', 0, '']);
   });
 
   it('should return customer subscription count and service list name', async () => {
@@ -522,7 +522,7 @@ describe('exportCustomers', () => {
           { service: { versions: [{ name: 'Au service de sa majesté' }] } },
           { service: { versions: [{ name: 'Service public' }] } },
           { service: { versions: [{ name: 'Service civique' }] } },
-        ]
+        ],
       },
     ];
     CustomerModel.expects('find')
@@ -535,7 +535,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 3,
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 3,
       'Au service de sa majesté\r\n Service public\r\n Service civique', 0, '']);
   });
 
@@ -545,7 +545,7 @@ describe('exportCustomers', () => {
         fundings: [
           { _id: 'toto' },
           { _id: 'lala' },
-        ]
+        ],
       },
     ];
     CustomerModel.expects('find')
@@ -558,7 +558,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 2, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 2, '']);
   });
 
   it('should return customer creation date', async () => {
@@ -575,6 +575,6 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '12/12/2012']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '12/12/2012']);
   });
 });

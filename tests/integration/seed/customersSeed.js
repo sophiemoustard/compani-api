@@ -77,9 +77,8 @@ const customersList = [
       phone: '0123456789',
     },
     followUp: {
-      pathology: 'malade',
-      comments: 'ne va pas bien',
-      details: 'preparer le dejeuner + balade',
+      customerEnvironment: 'ne va pas bien',
+      objectives: 'preparer le dejeuner + balade',
       misc: 'code porte: 1234',
     },
     subscriptions: [
