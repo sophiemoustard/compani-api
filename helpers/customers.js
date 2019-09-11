@@ -204,58 +204,40 @@ const customerExportHeader = [
 
 exports.exportCustomers = async () => {
   const customers = await Customer.find().populate('subscriptions.service');
-  const data = [customerExportHeader];
+  const rows = [customerExportHeader];
 
   for (const cus of customers) {
-    const customerData = [cus.email || ''];
-    if (cus.identity && Object.keys(cus.identity).length > 0) {
-      customerData.push(
-        get(cus, 'identity.title', ''),
-        get(cus, 'identity.lastname', '').toUpperCase(),
-        get(cus, 'identity.firstname', ''),
-        cus.identity.birthDate ? moment(cus.identity.birthDate).format('DD/MM/YYYY') : ''
-      );
-    } else customerData.push('', '', '', '');
+    const birthDate = get(cus, 'identity.birthDate');
+    const lastname = get(cus, 'identity.lastname');
+    const mandates = get(cus, 'payment.mandates');
+    const lastMandate = mandates ? getLastVersion(mandates, 'createdAt') : {};
+    const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
+    const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
 
-    if (cus.contact && cus.contact.address && cus.contact.address.fullAddress) customerData.push(cus.contact.address.fullAddress);
-    else customerData.push('');
+    const cells = [
+      cus.email || '',
+      get(cus, 'identity.title') || '',
+      lastname ? lastname.toUpperCase() : '',
+      get(cus, 'identity.firstname') || '',
+      birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
+      get(cus, 'contact.address.fullAddress') || '',
+      get(cus, 'followUp.customerEnvironment') || '',
+      get(cus, 'followUp.objectives') || '',
+      get(cus, 'followUp.misc') || '',
+      get(cus, 'followUp.referent') || '',
+      get(cus, 'payment.bankAccountOwner') || '',
+      get(cus, 'payment.iban') || '',
+      get(cus, 'payment.bic') || '',
+      lastMandate.rum || '',
+      signedAt,
+      subscriptionsCount,
+      subscriptionsCount ? getServicesNameList(cus.subscriptions) : '',
+      get(cus, 'fundings.length') || 0,
+      cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '',
+    ];
 
-    if (cus.followUp && Object.keys(cus.followUp).length > 0) {
-      customerData.push(
-        get(cus, 'followUp.customerEnvironment', ''),
-        get(cus, 'followUp.objectives', ''),
-        get(cus, 'followUp.misc', ''),
-        get(cus, 'followUp.referent', '')
-      );
-    } else customerData.push('', '', '', '');
-
-    if (cus.payment && Object.keys(cus.payment).length > 0) {
-      customerData.push(
-        get(cus, 'payment.bankAccountOwner', ''),
-        get(cus, 'payment.iban', ''),
-        get(cus, 'payment.bic', '')
-      );
-      if (cus.payment.mandates && cus.payment.mandates.length > 0) {
-        const lastMandate = getLastVersion(cus.payment.mandates, 'createdAt');
-        customerData.push(
-          lastMandate.rum || '',
-          lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : ''
-        );
-      } else customerData.push('', '');
-    } else customerData.push('', '', '', '', '');
-
-    if (cus.subscriptions && cus.subscriptions.length > 0) {
-      customerData.push(cus.subscriptions.length, getServicesNameList(cus.subscriptions));
-    } else customerData.push(0, '');
-
-    if (cus.fundings && cus.fundings.length > 0) {
-      customerData.push(cus.fundings.length);
-    } else customerData.push(0);
-
-    customerData.push(cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '');
-
-    data.push(customerData);
+    rows.push(cells);
   }
 
-  return data;
+  return rows;
 };
