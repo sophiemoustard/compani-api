@@ -78,7 +78,7 @@ const customerThirdPartyPayer = {
 const subscriptionId = new ObjectID();
 
 const customersList = [
-  { // Customer with subscriptions, fundings and quote
+  {
     _id: new ObjectID(),
     email: 'fake@test.com',
     identity: {
