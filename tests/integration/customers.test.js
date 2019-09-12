@@ -11,13 +11,14 @@ const app = require('../../server');
 const {
   populateDB,
   customersList,
+  userList,
   customerServiceList,
   customerThirdPartyPayer,
 } = require('./seed/customersSeed');
 const Customer = require('../../models/Customer');
 const ESign = require('../../models/ESign');
 const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../helpers/constants');
-const { getToken, getUser } = require('./seed/authentificationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
 const FileHelper = require('../../helpers/file');
 
 describe('NODE ENV', () => {
@@ -232,8 +233,8 @@ describe('CUSTOMERS ROUTES', () => {
 
     describe('Other roles', () => {
       it('should return the customer if I am its helper', async () => {
-        const helper = getUser('helper');
-        const helperToken = await getToken('helper');
+        const helper = userList[0];
+        const helperToken = await getTokenByCredentials(helper.local);
         const res = await app.inject({
           method: 'GET',
           url: `/customers/${helper.customers[0]}`,
@@ -337,8 +338,8 @@ describe('CUSTOMERS ROUTES', () => {
 
     describe('Other roles', () => {
       it('should update a customer if I am its helper', async () => {
-        const helper = getUser('helper');
-        const helperToken = await getToken('helper');
+        const helper = userList[0];
+        const helperToken = await getTokenByCredentials(helper.local);
         const res = await app.inject({
           method: 'PUT',
           url: `/customers/${helper.customers[0]}`,

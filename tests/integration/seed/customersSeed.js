@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const moment = require('moment');
 const Customer = require('../../../models/Customer');
 const Company = require('../../../models/Company');
@@ -6,8 +7,9 @@ const Service = require('../../../models/Service');
 const Event = require('../../../models/Event');
 const QuoteNumber = require('../../../models/QuoteNumber');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
+const User = require('../../../models/User');
 const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../helpers/constants');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const subId = new ObjectID();
 
@@ -217,7 +219,7 @@ const customersList = [
     },
   },
   {
-    _id: new ObjectID('5d7101633a0366169cf3bc1c'),
+    _id: new ObjectID(),
     email: 'volgarr@theviking.io',
     identity: {
       title: 'M',
@@ -232,6 +234,17 @@ const customersList = [
       },
       phone: '0612345678',
     },
+  },
+];
+
+const userList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    local: { email: 'helper_for_customer@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [customersList[3]._id],
   },
 ];
 
@@ -282,10 +295,14 @@ const populateDB = async () => {
   await Service.insertMany(customerServiceList);
   await Customer.insertMany(customersList);
   await Event.insertMany(eventList);
+  for (const user of userList) {
+    await (new User(user).save());
+  }
 };
 
 module.exports = {
   customersList,
+  userList,
   populateDB,
   customerServiceList,
   customerThirdPartyPayer,

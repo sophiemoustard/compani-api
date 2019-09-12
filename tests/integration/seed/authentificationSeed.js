@@ -214,7 +214,6 @@ const userList = [
     local: { email: 'helper@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
-    customers: [new ObjectID('5d7101633a0366169cf3bc1c')],
   },
 ];
 
@@ -234,16 +233,20 @@ const getUser = (roleName) => {
   return userList.find(u => u.role.toHexString() === role._id.toHexString());
 };
 
-const getToken = memoize(async (roleName) => {
-  const user = getUser(roleName);
+const getTokenByCredentials = memoize(async (credentials) => {
   const response = await app.inject({
     method: 'POST',
     url: '/users/authenticate',
-    payload: user.local,
+    payload: credentials,
   });
 
   return response.result.data.token;
-});
+}, credentials => JSON.stringify(credentials));
+
+const getToken = (roleName) => {
+  const user = getUser(roleName);
+  return getTokenByCredentials(user.local);
+};
 
 module.exports = {
   rolesList,
@@ -252,4 +255,5 @@ module.exports = {
   populateDBForAuthentification,
   getUser,
   getToken,
+  getTokenByCredentials,
 };
