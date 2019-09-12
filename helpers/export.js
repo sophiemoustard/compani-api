@@ -315,14 +315,13 @@ const customerExportHeader = [
 
 exports.exportCustomers = async () => {
   const customers = await Customer.find().populate('subscriptions.service').lean();
-  console.error(customers[0].subscriptions);
   const rows = [customerExportHeader];
 
   for (const cus of customers) {
     const birthDate = get(cus, 'identity.birthDate');
     const lastname = get(cus, 'identity.lastname');
     const mandates = get(cus, 'payment.mandates');
-    const lastMandate = mandates ? UtilsHelper.getLastVersion(mandates, 'createdAt') || {} : {};
+    const lastMandate = mandates ? (UtilsHelper.getLastVersion(mandates, 'createdAt') || {}) : {};
     const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
     const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
 
