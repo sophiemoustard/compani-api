@@ -15,7 +15,7 @@ const {
 } = require('./seed/customersSeed');
 const Customer = require('../../models/Customer');
 const ESign = require('../../models/ESign');
-const { MONTHLY, FIXED } = require('../../helpers/constants');
+const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../helpers/constants');
 const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
@@ -117,33 +117,41 @@ describe('CUSTOMERS ROUTES', () => {
 
   describe('GET /customers/{id}', () => {
     it('should return customer', async () => {
+      const customerId = customersList[0]._id;
       const res = await app.inject({
         method: 'GET',
-        url: `/customers/${customersList[0]._id.toHexString()}`,
+        url: `/customers/${customerId.toHexString()}`,
         headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customer).toEqual(expect.objectContaining({
-        _id: expect.any(Object),
-        identity: expect.objectContaining({
-          lastname: customersList[0].identity.lastname,
-          firstname: customersList[0].identity.firstname,
-          title: customersList[0].identity.title,
-        }),
-        contact: expect.objectContaining({
-          address: expect.objectContaining({
-            fullAddress: customersList[0].contact.address.fullAddress,
-            zipCode: customersList[0].contact.address.zipCode,
-            city: customersList[0].contact.address.city,
-          }),
-        }),
-        followUp: expect.objectContaining({
-          pathology: customersList[0].followUp.pathology,
-          comments: customersList[0].followUp.comments,
-          details: customersList[0].followUp.details,
-          misc: customersList[0].followUp.misc,
-        }),
-      }));
+      expect(res.result.data.customer).toMatchObject({
+        _id: customerId,
+        subscriptions: [
+          {
+            ...customersList[0].subscriptions[0],
+            service: {
+              type: COMPANY_CONTRACT,
+              defaultUnitAmount: 12,
+              name: 'Service 1',
+              startDate: new Date('2019-01-16 17:58:15'),
+              vat: 12,
+              nature: HOURLY,
+            },
+          },
+          {
+            ...customersList[0].subscriptions[1],
+            service: {
+              type: CUSTOMER_CONTRACT,
+              defaultUnitAmount: 24,
+              name: 'Service 2',
+              startDate: new Date('2019-01-18 19:58:15'),
+              vat: 12,
+              nature: HOURLY,
+            },
+          },
+        ],
+        subscriptionsAccepted: true,
+      });
     });
 
     it('should return a 404 error if customer is not found', async () => {
@@ -669,9 +677,9 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.user).toBeDefined();
+      expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.subscriptionHistory).toBeDefined();
-      expect(res.result.data.user._id).toEqual(customersList[0]._id);
+      expect(res.result.data.customer._id).toEqual(customersList[0]._id);
       expect(res.result.data.subscriptionHistory.subscriptions).toEqual(expect.arrayContaining([
         expect.objectContaining(payload.subscriptions[0]),
         expect.objectContaining(payload.subscriptions[1]),
