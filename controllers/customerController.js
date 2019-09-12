@@ -579,7 +579,7 @@ const createHistorySubscription = async (req) => {
     return {
       message: translate[language].customerSubscriptionHistoryAdded,
       data: {
-        user: _.pick(customer, ['_id', 'identity']),
+        customer: _.pick(customer, ['_id', 'identity']),
         subscriptionHistory: customer.subscriptionsHistory.find(sub => moment(sub.approvalDate).isSame(moment(), 'day')),
       },
     };
