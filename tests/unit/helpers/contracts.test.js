@@ -4,7 +4,7 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 require('sinon-mongoose');
 
-const { endContract } = require('../../../helpers/contracts');
+const ContractHelper = require('../../../helpers/contracts');
 const Contract = require('../../../models/Contract');
 const User = require('../../../models/User');
 
@@ -75,7 +75,7 @@ describe('endContract', () => {
     const updatedContract = { ...contracts[0], ...payload, versions: [{ ...contracts[0].versions[0], endDate: payload.endDate }] };
     contractSaveStub.returns(updatedContract);
     ContractFindStub.returns([updatedContract, contracts[1]]);
-    const result = await endContract(contractId1, payload);
+    const result = await ContractHelper.endContract(contractId1, payload);
     sinon.assert.called(ContractFindByIdStub);
     sinon.assert.called(contractSaveStub);
     sinon.assert.calledWith(ContractFindStub, { user: contracts[0].user });
@@ -87,7 +87,7 @@ describe('endContract', () => {
     const updatedContract = { ...contracts[0], ...payload, versions: [{ ...contracts[0].versions[0], endDate: payload.endDate }] };
     contractSaveStub.returns(updatedContract);
     ContractFindStub.returns([updatedContract, { ...contracts[1], endDate: moment().toDate }]);
-    const result = await endContract(contractId1, payload);
+    const result = await ContractHelper.endContract(contractId1, payload);
     sinon.assert.called(ContractFindByIdStub);
     sinon.assert.called(contractSaveStub);
     sinon.assert.calledWith(ContractFindStub, { user: contracts[0].user });
