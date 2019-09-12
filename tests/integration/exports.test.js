@@ -27,19 +27,19 @@ describe('NODE ENV', () => {
 });
 
 describe('EXPORTS ROUTES', () => {
-  let authToken = null;
+  let adminToken = null;
 
   describe('GET /exports/working_event/history', () => {
     describe('Admin', () => {
       beforeEach(populateEvents);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        adminToken = await getToken('admin');
       });
       it('should get working events', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/working_event/history?startDate=2019-01-15T15%3A47%3A42.077%2B01%3A00&endDate=2019-01-17T15%3A47%3A42.077%2B01%3A00',
-          headers: { 'x-access-token': authToken },
+          headers: { 'x-access-token': adminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -57,11 +57,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+          adminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/working_event/history?startDate=2019-01-15T15%3A47%3A42.077%2B01%3A00&endDate=2019-01-17T15%3A47%3A42.077%2B01%3A00',
-            headers: { 'x-access-token': authToken },
+            headers: { 'x-access-token': adminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -74,13 +74,13 @@ describe('EXPORTS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populateBills);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        adminToken = await getToken('admin');
       });
       it('should get bills', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/bill/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
-          headers: { 'x-access-token': authToken },
+          headers: { 'x-access-token': adminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -98,11 +98,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+          adminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/bill/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
-            headers: { 'x-access-token': authToken },
+            headers: { 'x-access-token': adminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -115,13 +115,13 @@ describe('EXPORTS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populatePayment);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        adminToken = await getToken('admin');
       });
       it('should get payments', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/payment/history?startDate=2019-05-25T16%3A47%3A49.168%2B02%3A00&endDate=2019-05-31T16%3A47%3A49.169%2B02%3A00',
-          headers: { 'x-access-token': authToken },
+          headers: { 'x-access-token': adminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -139,11 +139,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+          adminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/payment/history?startDate=2019-05-25T16%3A47%3A49.168%2B02%3A00&endDate=2019-05-31T16%3A47%3A49.169%2B02%3A00',
-            headers: { 'x-access-token': authToken },
+            headers: { 'x-access-token': adminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -156,13 +156,13 @@ describe('EXPORTS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populatePay);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        adminToken = await getToken('admin');
       });
       it('should get pay', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/exports/pay/history?startDate=2019-01-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T22%3A47%3A42.077%2B01%3A00',
-          headers: { 'x-access-token': authToken },
+          headers: { 'x-access-token': adminToken },
         });
 
         expect(response.statusCode).toBe(200);
@@ -180,11 +180,11 @@ describe('EXPORTS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+          adminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
             url: '/exports/pay/history?startDate=2019-01-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
-            headers: { 'x-access-token': authToken },
+            headers: { 'x-access-token': adminToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
@@ -226,19 +226,18 @@ describe('EXPORTS ROUTES', () => {
     },
   ];
 
-  for (const { exportType, populate, lineCount } of exportTypes) {
-    // eslint-disable-next-line no-loop-func
+  exportTypes.forEach(({ exportType, populate, lineCount }) => {
     describe(`GET /exports/${exportType}/data`, () => {
       describe('Admin', () => {
         beforeEach(populate);
         beforeEach(async () => {
-          authToken = await getToken('admin');
+          adminToken = await getToken('admin');
         });
         it(`should get ${exportType}`, async () => {
           const response = await app.inject({
             method: 'GET',
             url: `/exports/${exportType}/data`,
-            headers: { 'x-access-token': authToken },
+            headers: { 'x-access-token': adminToken },
           });
 
           expect(response.statusCode).toBe(200);
@@ -256,11 +255,11 @@ describe('EXPORTS ROUTES', () => {
 
         roles.forEach((role) => {
           it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-            authToken = await getToken(role.name);
+            adminToken = await getToken(role.name);
             const response = await app.inject({
               method: 'GET',
               url: `/exports/${exportType}/data`,
-              headers: { 'x-access-token': authToken },
+              headers: { 'x-access-token': adminToken },
             });
 
             expect(response.statusCode).toBe(role.expectedCode);
@@ -268,5 +267,5 @@ describe('EXPORTS ROUTES', () => {
         });
       });
     });
-  }
+  });
 });
