@@ -233,15 +233,19 @@ const getUser = (roleName) => {
   return userList.find(u => u.role.toHexString() === role._id.toHexString());
 };
 
-const getTokenByCredentials = memoize(async (credentials) => {
-  const response = await app.inject({
-    method: 'POST',
-    url: '/users/authenticate',
-    payload: credentials,
-  });
+const getTokenByCredentials = memoize(
+  async (credentials) => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload: credentials,
+    });
 
-  return response.result.data.token;
-}, credentials => JSON.stringify(credentials));
+    return response.result.data.token;
+  },
+  // do not stringify the 'credentials' object, because the order of the props can't be predicted
+  credentials => JSON.stringify([credentials.email, credentials.password])
+);
 
 const getToken = (roleName) => {
   const user = getUser(roleName);
