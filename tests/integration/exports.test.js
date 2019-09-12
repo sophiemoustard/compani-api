@@ -202,7 +202,7 @@ describe('EXPORTS ROUTES', () => {
     {
       exportType: AUXILIARY,
       populate: populateUser,
-      lineCount: 2,
+      lineCount: 3,
     },
     {
       exportType: HELPER,
