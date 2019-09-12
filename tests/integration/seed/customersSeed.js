@@ -9,10 +9,9 @@ const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../helpers/constants');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 
-
 const subId = new ObjectID();
 
-const company = {
+const customerCompany = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
   name: 'Test',
   rhConfig: {
@@ -33,11 +32,11 @@ const customerServiceList = [
   {
     _id: new ObjectID(),
     type: COMPANY_CONTRACT,
-    company: company._id,
+    company: customerCompany._id,
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
-      startDate: '2019-01-16 17:58:15.519',
+      startDate: '2019-01-16 17:58:15',
       vat: 12,
     }],
     nature: HOURLY,
@@ -45,11 +44,11 @@ const customerServiceList = [
   {
     _id: new ObjectID(),
     type: CUSTOMER_CONTRACT,
-    company: company._id,
+    company: customerCompany._id,
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
-      startDate: '2019-01-18 19:58:15.519',
+      startDate: '2019-01-18 19:58:15',
       vat: 12,
     }],
     nature: HOURLY,
@@ -61,7 +60,7 @@ const customerThirdPartyPayer = {
 };
 
 const customersList = [
-  { // Customer with subscriptions, fundings and quote
+  { // Customer with subscriptions, subscriptionsHistory, fundings and quote
     _id: new ObjectID(),
     email: 'fake@test.com',
     identity: {
@@ -92,7 +91,6 @@ const customersList = [
           estimatedWeeklyVolume: 12,
           evenings: 2,
           sundays: 1,
-          startDate: '2018-01-01T10:00:00.000+01:00',
         }],
       },
       {
@@ -103,10 +101,30 @@ const customersList = [
           estimatedWeeklyVolume: 12,
           evenings: 2,
           sundays: 1,
-          startDate: moment().subtract(1, 'month').toDate(),
         }],
       },
     ],
+    subscriptionsHistory: [{
+      subscriptions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        service: 'Service 1',
+      }, {
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        service: 'Service 2',
+      }],
+      helper: {
+        firstname: 'Vladimir',
+        lastname: 'Poutine',
+        title: 'M',
+      },
+      approvalDate: '2018-01-01T10:00:00.000+01:00',
+    }],
     payment: {
       bankAccountOwner: 'David gaudu',
       iban: '',
@@ -240,7 +258,7 @@ const populateDB = async () => {
   await QuoteNumber.deleteMany({});
 
   await populateDBForAuthentification();
-  await (new Company(company)).save();
+  await (new Company(customerCompany)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);
   await Customer.insertMany(customersList);
