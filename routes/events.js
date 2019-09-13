@@ -169,7 +169,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate, assign: 'event' },
+          { method: authorizeEventUpdate },
         ],
       },
 
@@ -186,7 +186,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate, assign: 'event' },
+          { method: authorizeEventUpdate },
         ],
       },
       handler: remove,
@@ -202,7 +202,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate, assign: 'event' },
+          { method: authorizeEventUpdate },
         ],
       },
       handler: removeRepetition,
