@@ -1,14 +1,12 @@
 const Boom = require('boom');
 const flat = require('flat');
-const mongoose = require('mongoose');
 const crypto = require('crypto');
-
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
-const { updateContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
+const { endContract, createAndSaveFile, saveCompletedContract, updateVersion } = require('../helpers/contracts');
 const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
 
 const { language } = translate;
@@ -82,7 +80,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const contract = updateContract(req.params._id, req.payload, req.auth.credentials);
+    const contract = await endContract(req.params._id, req.payload, req.auth.credentials);
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return {
@@ -134,17 +132,8 @@ const createContractVersion = async (req) => {
 
 const updateContractVersion = async (req) => {
   try {
-    const payload = { 'versions.$[version]': { ...req.payload } };
-    const contract = await Contract.findOneAndUpdate(
-      { _id: req.params._id },
-      { $set: flat(payload) },
-      {
-        // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
-        arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(req.params.versionId) }],
-        new: true,
-        autopopulate: false,
-      }
-    );
+    const contract = await updateVersion(req.params._id, req.params.versionId, req.payload);
+    if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return {
       message: translate[language].contractVersionUpdated,

@@ -12,44 +12,47 @@ const { addFile } = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
 
-exports.updateContract = async (contractId, contractToUpdate, credentials) => {
-  let contract;
-  if (contractToUpdate.endDate) {
-    contract = await exports.endContract(contractId, contractToUpdate);
-    if (!contract) return null;
-
-    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
-    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    await EventHelper.updateAbsencesOnContractEnd(contract.user._id, contract.endDate, credentials);
-  } else {
-    contract = await Contract
-      .findByIdAndUpdate(contractId, contractToUpdate)
-      .populate({ path: 'user', select: 'identity' })
-      .populate({ path: 'customer', select: 'identity' })
-      .lean();
-  }
-
-  return contract;
-};
-
-exports.endContract = async (contractId, payload) => {
-  const contract = await Contract.findById(contractId);
+exports.endContract = async (contractId, contractToEnd, credentials) => {
+  const contract = await Contract.findOne({ _id: contractId });
   if (!contract) return null;
 
-  contract.endDate = payload.endDate;
-  contract.endNotificationDate = payload.endNotificationDate;
-  contract.endReason = payload.endReason;
-  contract.otherMisc = payload.otherMisc;
+  contract.endDate = contractToEnd.endDate;
+  contract.endNotificationDate = contractToEnd.endNotificationDate;
+  contract.endReason = contractToEnd.endReason;
+  contract.otherMisc = contractToEnd.otherMisc;
   // End last version
-  contract.versions[contract.versions.length - 1].endDate = payload.endDate;
+  contract.versions[contract.versions.length - 1].endDate = contractToEnd.endDate;
   await contract.save();
 
   // Update inactivityDate if all contracts are ended
   const userContracts = await Contract.find({ user: contract.user });
   const hasActiveContracts = userContracts.some(c => !c.endDate);
   if (!hasActiveContracts) {
-    await User.findOneAndUpdate({ _id: contract.user }, { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } });
+    await User.findOneAndUpdate(
+      { _id: contract.user },
+      { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } }
+    );
   }
+
+  await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+  await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+  await EventHelper.updateAbsencesOnContractEnd(contract.user, contract.endDate, credentials);
+
+  return contract;
+};
+
+exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
+  const payload = { 'versions.$[version]': { ...versionToUpdate } };
+  const contract = await Contract.findOneAndUpdate(
+    { _id: contractId },
+    { $set: flat(payload) },
+    {
+      // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
+      arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId) }],
+      new: true,
+      autopopulate: false,
+    }
+  );
 
   return contract;
 };

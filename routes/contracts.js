@@ -99,7 +99,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: {
-            startDate: Joi.date(),
             endDate: Joi.date(),
             endReason: Joi.string().valid(END_CONTRACT_REASONS),
             otherMisc: Joi.string(),
