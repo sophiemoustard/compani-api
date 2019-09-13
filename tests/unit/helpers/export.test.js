@@ -413,6 +413,7 @@ describe('exportCustomers', () => {
     expect(result[0]).toMatchObject(['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Environnement', 'Objectifs',
       'Autres', 'Référente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombre de souscriptions', 'Souscriptions',
       'Nombre de financements', 'Date de création']);
+    CustomerModel.verify();
   });
 
   it('should return customer email', async () => {
@@ -431,6 +432,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['papi@mamie.pp', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return customer identity', async () => {
@@ -449,6 +451,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', 'M', 'PAPI', 'Grand Père', '12/12/1919', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return empty strings if customer identity missing', async () => {
@@ -467,6 +470,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', 'M', 'PAPI', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return customer address', async () => {
@@ -485,6 +489,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '9 rue du paradis 70015 Paris', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return empty strings if customer address missing', async () => {
@@ -503,6 +508,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return customer followUp', async () => {
@@ -526,6 +532,7 @@ describe('exportCustomers', () => {
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', 'Père Castor', 'Savate et charentaises', 'Lala', 'Moi',
       '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return empty strings if customer followUp missing', async () => {
@@ -546,6 +553,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', 'Père Castor', '', 'Lala', 'Moi', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return customer payment', async () => {
@@ -572,6 +580,7 @@ describe('exportCustomers', () => {
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', 'Lui', 'Boom Ba Da Boom', 'bic bic', 'Grippe et rhume',
       '12/12/2012', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return empty strings if customer payment missing', async () => {
@@ -596,6 +605,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', 'Lui', '', 'bic bic', 'Grippe et rhume', '', 0, '', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return customer subscription count and service list name', async () => {
@@ -621,6 +631,7 @@ describe('exportCustomers', () => {
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 3,
       'Au service de sa majesté\r\n Service public\r\n Service civique', 0, '']);
+    CustomerModel.verify();
   });
 
   it('should return customer funding count', async () => {
@@ -644,6 +655,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 2, '']);
+    CustomerModel.verify();
   });
 
   it('should return customer creation date', async () => {
@@ -662,5 +674,6 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '12/12/2012']);
+    CustomerModel.verify();
   });
 });
