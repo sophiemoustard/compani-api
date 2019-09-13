@@ -394,6 +394,27 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            driveId: Joi.string().required(),
+          },
+          payload: Joi.object({
+            'Content-Type': Joi.string().required(),
+            fileName: Joi.string().required(),
+            signedQuote: Joi.any(),
+            signedMandate: Joi.any(),
+            financialCertificates: Joi.any(),
+            quoteId: Joi.string().when(
+              'signedQuote',
+              { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }
+            ),
+            mandateId: Joi.string().when(
+              'signedMandate',
+              { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }
+            ),
+          }).or('signedQuote', 'signedMandate', 'financialCertificates'),
+        },
       },
     });
 

@@ -734,7 +734,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const customer = customersList[1];
       const mandate = customer.payment.mandates[0];
       const payload = {
-        signedAt: faker.date.past(1),
+        signedAt: '2019-01-18T10:00:00.000Z',
       };
 
       const roles = [
@@ -1170,8 +1170,8 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
           estimatedWeeklyVolume: 10,
         }],
         helper: {
-          firstname: faker.name.firstName(),
-          lastname: faker.name.lastName(),
+          firstname: 'Lana',
+          lastname: 'Wachowski',
           title: 'Mme',
         },
       };
