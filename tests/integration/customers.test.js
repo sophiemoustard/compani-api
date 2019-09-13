@@ -6,6 +6,9 @@ const moment = require('moment');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const cloneDeep = require('lodash/cloneDeep');
+const Drive = require('../../models/Google/Drive');
+const { generateFormData } = require('./utils');
+const GetStream = require('get-stream');
 
 const app = require('../../server');
 const {
@@ -1484,6 +1487,157 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+});
+
+describe('CUSTOMER FILE UPLOAD ROUTES', () => {
+  let adminToken = null;
+  beforeEach(populateDB);
+  beforeEach(async () => {
+    adminToken = await getToken('admin');
+  });
+
+  describe('POST /customers/:_id/gdrive/:driveId/upload', () => {
+    const fakeDriveId = 'fakeDriveId';
+    let addStub;
+    let getFileByIdStub;
+
+    beforeEach(() => {
+      addStub = sinon.stub(Drive, 'add');
+      getFileByIdStub = sinon.stub(Drive, 'getFileById');
+    });
+
+    afterEach(() => {
+      addStub.restore();
+      getFileByIdStub.restore();
+    });
+
+    it('should upload a signed mandate', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const customer = customersList[1];
+      const payload = {
+        'Content-Type': 'application/pdf',
+        fileName: 'mandat_signe',
+        mandateId: customer.payment.mandates[0]._id.toHexString(),
+        signedMandate: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      sinon.assert.calledOnce(addStub);
+      sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    it('should upload a signed quote', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const customer = customersList[0];
+      const payload = {
+        'Content-Type': 'application/pdf',
+        fileName: 'devis_signe',
+        quoteId: customer.quotes[0]._id.toHexString(),
+        signedQuote: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      sinon.assert.calledOnce(addStub);
+      sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    it('should upload a financial certificate', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const customer = customersList[0];
+      const payload = {
+        'Content-Type': 'application/pdf',
+        fileName: 'financialCertificate',
+        financialCertificates: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      sinon.assert.calledOnce(addStub);
+      sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    describe('Other roles', () => {
+      const payload = {
+        'Content-Type': 'application/pdf',
+        fileName: 'financialCertificate',
+        financialCertificates: '',
+      };
+
+      it('should upload a financial certificate if I am its helper', async () => {
+        addStub.returns({ id: 'fakeFileDriveId' });
+        getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+        const helper = userList[0];
+        const helperToken = await getTokenByCredentials(helper.local);
+        const customerId = helper.customers[0];
+        const form = generateFormData(payload);
+        const res = await app.inject({
+          method: 'POST',
+          url: `/customers/${customerId.toHexString()}/gdrive/${fakeDriveId}/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': helperToken },
+        });
+        expect(res.statusCode).toBe(200);
+        sinon.assert.calledOnce(addStub);
+        sinon.assert.calledOnce(getFileByIdStub);
+      });
+
+      const roles = [
+        { name: 'helper', expectedCode: 403, callCount: 0 },
+        { name: 'auxiliary', expectedCode: 403, callCount: 0 },
+        { name: 'coach', expectedCode: 200, callCount: 1 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          addStub.returns({ id: 'fakeFileDriveId' });
+          getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+          const form = generateFormData(payload);
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/customers/${customersList[0]._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+            payload: await GetStream(form),
+            headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+          sinon.assert.callCount(addStub, role.callCount);
+          sinon.assert.callCount(getFileByIdStub, role.callCount);
         });
       });
     });

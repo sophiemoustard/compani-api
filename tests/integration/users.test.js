@@ -2,7 +2,6 @@ const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const fs = require('fs');
 const path = require('path');
-const FormData = require('form-data');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
@@ -16,6 +15,7 @@ const {
 } = require('./seed/usersSeed');
 const { getToken } = require('./seed/authentificationSeed');
 const GdriveStorage = require('../../helpers/gdriveStorage');
+const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -755,15 +755,6 @@ describe('USERS ROUTES', () => {
       });
     });
   });
-
-  const generateFormData = (payload) => {
-    const form = new FormData();
-
-    for (const k in payload) {
-      form.append(k, payload[k]);
-    }
-    return form;
-  };
 
   describe('POST /users/:id/gdrive/:drive_id/upload', () => {
     const userFolderId = userList[0].administrative.driveFolder.driveId;

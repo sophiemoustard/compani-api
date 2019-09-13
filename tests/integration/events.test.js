@@ -3,7 +3,6 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const qs = require('qs');
 const omit = require('lodash/omit');
-const FormData = require('form-data');
 const GetStream = require('get-stream');
 const path = require('path');
 const fs = require('fs');
@@ -24,6 +23,7 @@ const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
 const Drive = require('../../models/Google/Drive');
 const GdriveStorage = require('../../helpers/gdriveStorage');
+const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -629,15 +629,6 @@ describe('EVENTS ROUTES', () => {
       });
     });
   });
-
-  const generateFormData = (payload) => {
-    const form = new FormData();
-
-    for (const k in payload) {
-      form.append(k, payload[k]);
-    }
-    return form;
-  };
 
   describe('POST /events/:id/gdrive/:drive_id/upload', () => {
     const userFolderId = eventAuxiliary.administrative.driveFolder.driveId;
