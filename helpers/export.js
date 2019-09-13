@@ -320,8 +320,8 @@ exports.exportCustomers = async () => {
   for (const cus of customers) {
     const birthDate = get(cus, 'identity.birthDate');
     const lastname = get(cus, 'identity.lastname');
-    const mandates = get(cus, 'payment.mandates');
-    const lastMandate = mandates ? (UtilsHelper.getLastVersion(mandates, 'createdAt') || {}) : {};
+    const mandates = get(cus, 'payment.mandates') || [];
+    const lastMandate = UtilsHelper.getLastVersion(mandates, 'createdAt') || {};
     const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
     const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
 

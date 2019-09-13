@@ -16,7 +16,6 @@ const {
   CONTRACT,
 } = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
-const { exportCustomers } = require('../helpers/export');
 const { exportSubscriptions } = require('../helpers/subscriptions');
 const { exportFundings } = require('../helpers/fundings');
 const { exportAuxiliaries, exportHelpers } = require('../helpers/users');
@@ -25,6 +24,7 @@ const {
   exportAbsencesHistory,
   exportBillsAndCreditNotesHistory,
   exportContractHistory,
+  exportCustomers,
 } = require('../helpers/export');
 const { exportPaymentsHistory } = require('../helpers/payments');
 const { exportPayAndFinalPayHistory } = require('../helpers/pay');
