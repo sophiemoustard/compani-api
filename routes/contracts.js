@@ -167,6 +167,7 @@ exports.plugin = {
           },
           payload: {
             endDate: Joi.date(),
+            grossHourlyRate: Joi.number(),
           },
         },
       },
