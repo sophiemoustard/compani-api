@@ -95,14 +95,12 @@ exports.plugin = {
                   coordinates: Joi.array(),
                 },
               },
-              doorCode: Joi.string(),
-              intercomCode: Joi.string(),
+              accessCodes: Joi.string().allow('', null),
             }),
             followUp: Joi.object().keys({
-              pathology: Joi.string(),
-              comments: Joi.string(),
-              details: Joi.string(),
-              misc: Joi.string(),
+              environment: Joi.string().allow('', null),
+              objectives: Joi.string().allow('', null),
+              misc: Joi.string().allow('', null),
               referent: Joi.string(),
             }),
             payment: Joi.object().keys({

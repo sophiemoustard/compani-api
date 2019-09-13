@@ -75,11 +75,11 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0123456789',
+      accessCodes: 'porte c3po',
     },
     followUp: {
-      pathology: 'malade',
-      comments: 'ne va pas bien',
-      details: 'preparer le dejeuner + balade',
+      environment: 'ne va pas bien',
+      objectives: 'preparer le dejeuner + balade',
       misc: 'code porte: 1234',
     },
     subscriptions: [
@@ -179,6 +179,7 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0612345678',
+      accessCodes: 'you shall not pass',
     },
     payment: {
       bankAccountOwner: 'Lance Amstrong',
@@ -204,6 +205,7 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0612345678',
+      accessCodes: 'Bouton a l\'entrée',
     },
     payment: {
       bankAccountOwner: 'David gaudu',

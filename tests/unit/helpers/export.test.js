@@ -3,6 +3,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 require('sinon-mongoose');
 
+const Customer = require('../../../models/Customer');
 const Bill = require('../../../models/Bill');
 const CreditNote = require('../../../models/CreditNote');
 const Contract = require('../../../models/Contract');
@@ -381,5 +382,298 @@ describe('exportContractHistory', () => {
       ['Contrat', 'M', '', 'Patate', '10/10/2019', '', '10,45', 12],
       ['Avenant', 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
+  });
+});
+
+describe('exportCustomers', () => {
+  let CustomerModel;
+  let getLastVersion;
+  beforeEach(() => {
+    CustomerModel = sinon.mock(Customer);
+    getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(versions => versions[0]);
+  });
+
+  afterEach(() => {
+    CustomerModel.restore();
+    getLastVersion.restore();
+  });
+
+  it('should return csv header', async () => {
+    const customers = [];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[0]).toMatchObject(['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse', 'Environnement', 'Objectifs',
+      'Autres', 'Référente', 'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombre de souscriptions', 'Souscriptions',
+      'Nombre de financements', 'Date de création']);
+    CustomerModel.verify();
+  });
+
+  it('should return customer email', async () => {
+    const customers = [
+      { email: 'papi@mamie.pp' },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['papi@mamie.pp', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return customer identity', async () => {
+    const customers = [
+      { identity: { lastname: 'Papi', firstname: 'Grand Père', title: 'M', birthDate: '1919-12-12T00:00:00.000+00:00' } },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', 'M', 'PAPI', 'Grand Père', '12/12/1919', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return empty strings if customer identity missing', async () => {
+    const customers = [
+      { identity: { lastname: 'Papi', title: 'M' } },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', 'M', 'PAPI', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return customer address', async () => {
+    const customers = [
+      { contact: { address: { fullAddress: '9 rue du paradis 70015 Paris' } } },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '9 rue du paradis 70015 Paris', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return empty strings if customer address missing', async () => {
+    const customers = [
+      { contact: { address: {} } },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return customer followUp', async () => {
+    const customers = [
+      {
+        followUp: {
+          misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor', referent: 'Moi',
+        },
+      },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', 'Père Castor', 'Savate et charentaises', 'Lala', 'Moi',
+      '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return empty strings if customer followUp missing', async () => {
+    const customers = [
+      {
+        followUp: { misc: 'Lala', environment: 'Père Castor', referent: 'Moi' },
+      },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', 'Père Castor', '', 'Lala', 'Moi', '', '', '', '', '', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return customer payment', async () => {
+    const customers = [
+      {
+        payment: {
+          bankAccountOwner: 'Lui',
+          iban: 'Boom Ba Da Boom',
+          bic: 'bic bic',
+          mandates: [{ rum: 'Grippe et rhume', signedAt: '2012-12-12T00:00:00.000+00:00' }],
+        },
+      },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', 'Lui', 'Boom Ba Da Boom', 'bic bic', 'Grippe et rhume',
+      '12/12/2012', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return empty strings if customer payment missing', async () => {
+    const customers = [
+      {
+        payment: {
+          bankAccountOwner: 'Lui',
+          bic: 'bic bic',
+          mandates: [{ rum: 'Grippe et rhume' }],
+        },
+      },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', 'Lui', '', 'bic bic', 'Grippe et rhume', '', 0, '', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return customer subscription count and service list name', async () => {
+    const customers = [
+      {
+        subscriptions: [
+          { service: { versions: [{ name: 'Au service de sa majesté' }] } },
+          { service: { versions: [{ name: 'Service public' }] } },
+          { service: { versions: [{ name: 'Service civique' }] } },
+        ],
+      },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 3,
+      'Au service de sa majesté\r\n Service public\r\n Service civique', 0, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return customer funding count', async () => {
+    const customers = [
+      {
+        fundings: [
+          { _id: 'toto' },
+          { _id: 'lala' },
+        ],
+      },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 2, '']);
+    CustomerModel.verify();
+  });
+
+  it('should return customer creation date', async () => {
+    const customers = [
+      { createdAt: '2012-12-12T00:00:00.000+00:00' },
+    ];
+    CustomerModel.expects('find')
+      .withExactArgs()
+      .chain('populate')
+      .chain('lean')
+      .once()
+      .returns(customers);
+
+    const result = await ExportHelper.exportCustomers();
+
+    expect(result).toBeDefined();
+    expect(result[1]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '12/12/2012']);
+    CustomerModel.verify();
   });
 });
