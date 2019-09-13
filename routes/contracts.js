@@ -166,6 +166,7 @@ exports.plugin = {
             versionId: Joi.objectId().required(),
           },
           payload: {
+            startDate: Joi.date(),
             endDate: Joi.date(),
             grossHourlyRate: Joi.number(),
           },

@@ -7,9 +7,30 @@ const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
+const EventHelper = require('./events');
 const { addFile } = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
+
+exports.updateContract = async (contractId, contractToUpdate, credentials) => {
+  let contract;
+  if (contractToUpdate.endDate) {
+    contract = await exports.endContract(contractId, contractToUpdate);
+    if (!contract) return null;
+
+    await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+    await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+    await EventHelper.updateAbsencesOnContractEnd(contract.user._id, contract.endDate, credentials);
+  } else {
+    contract = await Contract
+      .findByIdAndUpdate(contractId, contractToUpdate)
+      .populate({ path: 'user', select: 'identity' })
+      .populate({ path: 'customer', select: 'identity' })
+      .lean();
+  }
+
+  return contract;
+};
 
 exports.endContract = async (contractId, payload) => {
   const contract = await Contract.findById(contractId);
