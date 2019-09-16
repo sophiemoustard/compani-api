@@ -1,3 +1,4 @@
+const path = require('path');
 const expect = require('expect');
 const faker = require('faker');
 const { ObjectID } = require('mongodb');
@@ -5,18 +6,23 @@ const moment = require('moment');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const cloneDeep = require('lodash/cloneDeep');
+const Drive = require('../../models/Google/Drive');
+const { generateFormData } = require('./utils');
+const GetStream = require('get-stream');
 
 const app = require('../../server');
 const {
   populateDB,
   customersList,
+  userList,
   customerServiceList,
   customerThirdPartyPayer,
 } = require('./seed/customersSeed');
 const Customer = require('../../models/Customer');
 const ESign = require('../../models/ESign');
 const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../helpers/constants');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
+const FileHelper = require('../../helpers/file');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -25,10 +31,10 @@ describe('NODE ENV', () => {
 });
 
 describe('CUSTOMERS ROUTES', () => {
-  let token = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   const payload = {
@@ -49,7 +55,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers',
         payload,
         headers: {
-          'x-access-token': token,
+          'x-access-token': adminToken,
         },
       });
       expect(res.statusCode).toBe(200);
@@ -71,17 +77,39 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     const missingParams = ['identity.lastname', 'contact.address.street', 'contact.address.zipCode', 'contact.address.city'];
-    missingParams.forEach((path) => {
-      it(`should return a 400 error if missing '${path}' parameter`, async () => {
+    missingParams.forEach((paramPath) => {
+      it(`should return a 400 error if missing '${paramPath}' parameter`, async () => {
         const res = await app.inject({
           method: 'POST',
           url: '/customers',
-          payload: omit(cloneDeep(payload), path),
+          payload: omit(cloneDeep(payload), paramPath),
           headers: {
-            'x-access-token': token,
+            'x-access-token': adminToken,
           },
         });
         expect(res.statusCode).toBe(400);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: '/customers',
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
     });
   });
@@ -91,19 +119,40 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers',
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toHaveLength(customersList.length);
     });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
   });
 
-  describe('GET /customers//billed-events', () => {
-    it('should get all customers with billes events', async () => {
+  describe('GET /customers/billed-events', () => {
+    it('should get all customers with billed events', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/customers/billed-events',
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -113,6 +162,27 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customers[0].thirdPartyPayers).toBeDefined();
       expect(res.result.data.customers[0].thirdPartyPayers.length).toEqual(1);
     });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers/billed-events',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
   });
 
   describe('GET /customers/{id}', () => {
@@ -121,7 +191,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customerId.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
@@ -158,10 +228,42 @@ describe('CUSTOMERS ROUTES', () => {
       const id = new ObjectID().toHexString();
       const res = await app.inject({
         method: 'GET',
-        url: `/users/${id}`,
-        headers: { 'x-access-token': token },
+        url: `/customers/${id}`,
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      it('should return the customer if I am its helper', async () => {
+        const helper = userList[0];
+        const helperToken = await getTokenByCredentials(helper.local);
+        const res = await app.inject({
+          method: 'GET',
+          url: `/customers/${helper.customers[0]}`,
+          headers: { 'x-access-token': helperToken },
+        });
+        expect(res.statusCode).toBe(200);
+      });
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/customers/${customersList[0]._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -178,7 +280,7 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customersList[0]._id.toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toEqual(expect.objectContaining({
@@ -202,7 +304,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload: ibanPayload,
       });
 
@@ -217,7 +319,7 @@ describe('CUSTOMERS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload: ibanPayload,
       });
 
@@ -232,9 +334,48 @@ describe('CUSTOMERS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${new ObjectID().toHexString()}`,
         payload: updatePayload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      it('should update a customer if I am its helper', async () => {
+        const helper = userList[0];
+        const helperToken = await getTokenByCredentials(helper.local);
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/customers/${helper.customers[0]}`,
+          headers: { 'x-access-token': helperToken },
+          payload: {
+            identity: {
+              firstname: 'Volgarr',
+              lastname: 'Theviking',
+            },
+          },
+        });
+        expect(res.statusCode).toBe(200);
+      });
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/customers/${customersList[0]._id.toHexString()}`,
+            payload: updatePayload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -243,7 +384,7 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -251,18 +392,39 @@ describe('CUSTOMERS ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${new ObjectID().toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/customers/${customersList[0]._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 });
 
 describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
-  let token = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('POST /customers/{id}/subscriptions', () => {
@@ -281,7 +443,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -306,11 +468,43 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/subscriptions`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
       expect(result.statusCode).toBe(409);
+    });
+
+    describe('Other roles', () => {
+      const payload = {
+        service: customerServiceList[1]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      };
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/customers/${customersList[1]._id.toHexString()}/subscriptions`,
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -327,7 +521,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -345,7 +539,7 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -359,11 +553,35 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${invalidId}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
       expect(result.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[0];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -375,19 +593,42 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(result.statusCode).toBe(200);
+    });
+
+    describe('Other roles', () => {
+      const customer = customersList[0];
+      const subscription = customer.subscriptions[0];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/customers/${customer._id.toHexString()}/subscriptions/${subscription._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 });
 
 describe('CUSTOMER MANDATES ROUTES', () => {
-  let token = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('GET /customers/{_id}/mandates', () => {
@@ -396,7 +637,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${customer._id}/mandates`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(result.statusCode).toBe(200);
@@ -409,10 +650,32 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'GET',
         url: `/customers/${invalidId}/mandates`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(result.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const customer = customersList[1];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/customers/${customer._id}/mandates`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -427,7 +690,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -446,7 +709,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${invalidId}/mandates/${mandate._id.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
@@ -463,68 +726,110 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const result = await app.inject({
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/mandates/${invalidId}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
         payload,
       });
 
       expect(result.statusCode).toEqual(404);
     });
+
+    describe('Other roles', () => {
+      const customer = customersList[1];
+      const mandate = customer.payment.mandates[0];
+      const payload = {
+        signedAt: '2019-01-18T10:00:00.000Z',
+      };
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/customers/${customer._id.toHexString()}/mandates/${mandate._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
   });
 
   describe('POST customers/:id/mandates/:id/esign', () => {
-    const createDocumentStub = sinon.stub(ESign, 'createDocument');
+    let createDocumentStub;
+    let generateDocxStub;
+    let fileToBase64Stub;
 
     beforeEach(() => {
+      createDocumentStub = sinon.stub(ESign, 'createDocument');
+      generateDocxStub = sinon.stub(FileHelper, 'generateDocx');
+      fileToBase64Stub = sinon.stub(FileHelper, 'fileToBase64');
+
       createDocumentStub.returns({
         data: {
           document_hash: 'dOcUmEnThAsH',
           signers: [{ embedded_signing_url: 'embeddedSigningUrl<->' }],
         },
       });
+      generateDocxStub.returns(path.join(__dirname, 'assets/signature_request.docx'));
+      fileToBase64Stub.returns('signature_request');
     });
 
     afterEach(() => {
       createDocumentStub.restore();
+      generateDocxStub.restore();
+      fileToBase64Stub.restore();
     });
 
+    const payload = {
+      fileId: process.env.ESIGN_TEST_DOC_DRIVEID,
+      customer: {
+        name: 'Test',
+        email: 'test@test.com',
+      },
+      fields: {
+        title: 'Mme',
+        firstname: 'Test',
+        lastname: 'Test',
+        address: '15 rue du test',
+        city: 'Test city',
+        zipCode: '34000',
+        birthDate: '15/07/88',
+        birthCountry: 'France',
+        birthState: '93',
+        nationality: 'Française',
+        SSN: '12345678909876543',
+        grossHourlyRate: 24,
+        monthlyHours: 56,
+        salary: 1500,
+        startDate: '18/12/2018',
+        weeklyHours: 35,
+        yearlyHours: 1200,
+        uploadDate: '18/12/2018',
+        initialContractStartDate: '16/12/2018',
+      },
+    };
+    const customerId = customersList[1]._id.toHexString();
+    const mandateId = customersList[1].payment.mandates[0]._id.toHexString();
+
     it('should create a mandate signature request', async () => {
-      const payload = {
-        fileId: process.env.ESIGN_TEST_DOC_DRIVEID,
-        customer: {
-          name: 'Test',
-          email: 'test@test.com',
-        },
-        fields: {
-          title: 'Mme',
-          firstname: 'Test',
-          lastname: 'Test',
-          address: '15 rue du test',
-          city: 'Test city',
-          zipCode: '34000',
-          birthDate: '15/07/88',
-          birthCountry: 'France',
-          birthState: '93',
-          nationality: 'Française',
-          SSN: '12345678909876543',
-          grossHourlyRate: 24,
-          monthlyHours: 56,
-          salary: 1500,
-          startDate: '18/12/2018',
-          weeklyHours: 35,
-          yearlyHours: 1200,
-          uploadDate: '18/12/2018',
-          initialContractStartDate: '16/12/2018',
-        },
-      };
-      const customerId = customersList[1]._id.toHexString();
-      const mandateId = customersList[1].payment.mandates[0]._id.toHexString();
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${customerId}/mandates/${mandateId}/esign`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
+      sinon.assert.calledOnce(createDocumentStub);
+      sinon.assert.calledOnce(generateDocxStub);
+      sinon.assert.calledOnce(fileToBase64Stub);
       expect(res.statusCode).toBe(200);
       expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
         embeddedUrl: expect.any(String),
@@ -532,14 +837,39 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       const customer = await Customer.findById(customerId);
       expect(customer.payment.mandates[0].everSignId).toBeDefined();
     });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403, callCount: 0 },
+        { name: 'auxiliary', expectedCode: 403, callCount: 0 },
+        { name: 'coach', expectedCode: 200, callCount: 1 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/customers/${customerId}/mandates/${mandateId}/esign`,
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+          sinon.assert.callCount(createDocumentStub, role.callCount);
+          sinon.assert.callCount(generateDocxStub, role.callCount);
+          sinon.assert.callCount(fileToBase64Stub, role.callCount);
+        });
+      });
+    });
   });
 });
 
 describe('CUSTOMERS QUOTES ROUTES', () => {
-  let token = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('GET customers/:id/quotes', () => {
@@ -547,7 +877,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -562,10 +892,31 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'GET',
         url: `/customers/${invalidId}/quotes`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/customers/${customersList[0]._id.toHexString()}/quotes`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -586,7 +937,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.user).toBeDefined();
@@ -603,9 +954,43 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
         payload: {},
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
+    });
+
+    describe('Other roles', () => {
+      const payload = {
+        subscriptions: [{
+          serviceName: 'TestTest',
+          unitTTCRate: 23,
+          estimatedWeeklyVolume: 3,
+        }, {
+          serviceName: 'TestTest2',
+          unitTTCRate: 30,
+          estimatedWeeklyVolume: 10,
+        }],
+      };
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/customers/${customersList[1]._id.toHexString()}/quotes`,
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -614,7 +999,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}/quotes/${customersList[0].quotes[0]._id.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       const customer = await Customer.findById(customersList[0]._id);
@@ -626,7 +1011,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'DELETE',
         url: `/customers/${invalidId}/quotes/${customersList[0].quotes[0]._id.toHexString()}`,
         payload: {},
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -636,18 +1021,40 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         method: 'DELETE',
         url: `/customers/${customersList[0]._id.toHexString()}/quotes/${invalidId}`,
         payload: {},
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const customer = customersList[0];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/customers/${customer._id.toHexString()}/quotes/${customer.quotes[0]._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 });
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
-  let token = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('POST customers/:id/subscriptionshistory', () => {
@@ -673,7 +1080,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -699,7 +1106,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
             title: 'Mme',
           },
         },
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -720,7 +1127,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
             estimatedWeeklyVolume: 10,
           }],
         },
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -748,19 +1155,57 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'DELETE',
         url: `/customers/${invalidId}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const payload = {
+        subscriptions: [{
+          service: 'TestTest',
+          unitTTCRate: 23,
+          estimatedWeeklyVolume: 3,
+        }, {
+          service: 'TestTest2',
+          unitTTCRate: 30,
+          estimatedWeeklyVolume: 10,
+        }],
+        helper: {
+          firstname: 'Lana',
+          lastname: 'Wachowski',
+          title: 'Mme',
+        },
+      };
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 });
 
 describe('CUSTOMERS FUNDINGS ROUTES', () => {
-  let token = null;
+  let adminToken = null;
   beforeEach(populateDB);
   beforeEach(async () => {
-    token = await getToken('coach');
+    adminToken = await getToken('admin');
   });
 
   describe('POST customers/:id/fundings', () => {
@@ -784,7 +1229,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
@@ -816,7 +1261,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customer._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(409);
     });
@@ -839,7 +1284,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -862,7 +1307,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${customersList[0]._id.toHexString()}/fundings`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -888,9 +1333,46 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'POST',
         url: `/customers/${invalidId}/fundings`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const customer = customersList[0];
+      const payload = {
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayer._id,
+        subscription: customer.subscriptions[1]._id,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
+          frequency: MONTHLY,
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+        }],
+      };
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/customers/${customer._id.toHexString()}/fundings`,
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -910,7 +1392,7 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
@@ -934,9 +1416,41 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
         method: 'PUT',
         url: `/customers/${invalidId}/fundings/${customersList[0].fundings[0]._id.toHexString()}`,
         payload,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    describe('Other roles', () => {
+      const customer = customersList[0];
+      const payload = {
+        subscription: customer.subscriptions[0]._id,
+        amountTTC: 90,
+        customerParticipationRate: 20,
+        frequency: MONTHLY,
+        endDate: moment.utc().add(4, 'years').toDate(),
+        startDate: moment.utc().add(3, 'years').toDate(),
+        careDays: [1, 3],
+      };
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/customers/${customer._id.toHexString()}/fundings/${customer.fundings[0]._id.toHexString()}`,
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
@@ -948,10 +1462,184 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       const result = await app.inject({
         method: 'DELETE',
         url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
-        headers: { 'x-access-token': token },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(result.statusCode).toBe(200);
+    });
+
+    describe('Other roles', () => {
+      const customer = customersList[0];
+      const funding = customer.fundings[0];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/customers/${customer._id.toHexString()}/fundings/${funding._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+});
+
+describe('CUSTOMER FILE UPLOAD ROUTES', () => {
+  let adminToken = null;
+  beforeEach(populateDB);
+  beforeEach(async () => {
+    adminToken = await getToken('admin');
+  });
+
+  describe('POST /customers/:_id/gdrive/:driveId/upload', () => {
+    const fakeDriveId = 'fakeDriveId';
+    let addStub;
+    let getFileByIdStub;
+
+    beforeEach(() => {
+      addStub = sinon.stub(Drive, 'add');
+      getFileByIdStub = sinon.stub(Drive, 'getFileById');
+    });
+
+    afterEach(() => {
+      addStub.restore();
+      getFileByIdStub.restore();
+    });
+
+    it('should upload a signed mandate', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const customer = customersList[1];
+      const payload = {
+        'Content-Type': 'application/pdf',
+        fileName: 'mandat_signe',
+        mandateId: customer.payment.mandates[0]._id.toHexString(),
+        signedMandate: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      sinon.assert.calledOnce(addStub);
+      sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    it('should upload a signed quote', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const customer = customersList[0];
+      const payload = {
+        'Content-Type': 'application/pdf',
+        fileName: 'devis_signe',
+        quoteId: customer.quotes[0]._id.toHexString(),
+        signedQuote: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      sinon.assert.calledOnce(addStub);
+      sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    it('should upload a financial certificate', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const customer = customersList[0];
+      const payload = {
+        'Content-Type': 'application/pdf',
+        fileName: 'financialCertificate',
+        financialCertificates: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${customer._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      sinon.assert.calledOnce(addStub);
+      sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    describe('Other roles', () => {
+      const payload = {
+        'Content-Type': 'application/pdf',
+        fileName: 'financialCertificate',
+        financialCertificates: '',
+      };
+
+      it('should upload a financial certificate if I am its helper', async () => {
+        addStub.returns({ id: 'fakeFileDriveId' });
+        getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+        const helper = userList[0];
+        const helperToken = await getTokenByCredentials(helper.local);
+        const customerId = helper.customers[0];
+        const form = generateFormData(payload);
+        const res = await app.inject({
+          method: 'POST',
+          url: `/customers/${customerId.toHexString()}/gdrive/${fakeDriveId}/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': helperToken },
+        });
+        expect(res.statusCode).toBe(200);
+        sinon.assert.calledOnce(addStub);
+        sinon.assert.calledOnce(getFileByIdStub);
+      });
+
+      const roles = [
+        { name: 'helper', expectedCode: 403, callCount: 0 },
+        { name: 'auxiliary', expectedCode: 403, callCount: 0 },
+        { name: 'coach', expectedCode: 200, callCount: 1 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          addStub.returns({ id: 'fakeFileDriveId' });
+          getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+          const form = generateFormData(payload);
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/customers/${customersList[0]._id.toHexString()}/gdrive/${fakeDriveId}/upload`,
+            payload: await GetStream(form),
+            headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+          sinon.assert.callCount(addStub, role.callCount);
+          sinon.assert.callCount(getFileByIdStub, role.callCount);
+        });
+      });
     });
   });
 });

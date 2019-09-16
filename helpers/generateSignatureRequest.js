@@ -1,12 +1,12 @@
-const { generateDocx, fileToBase64 } = require('./file');
+const FileHelper = require('./file');
 const ESign = require('../models/ESign');
 
 exports.generateSignatureRequest = async (params) => {
-  const filePath = await generateDocx({
+  const filePath = await FileHelper.generateDocx({
     file: { fileId: params.templateId },
-    data: params.fields
+    data: params.fields,
   });
-  const file64 = await fileToBase64(filePath);
+  const file64 = await FileHelper.fileToBase64(filePath);
   const payload = {
     sandbox: process.env.NODE_ENV !== 'production' ? 1 : 0,
     title: params.title,
@@ -15,12 +15,12 @@ exports.generateSignatureRequest = async (params) => {
     reminders: 0,
     files: [{
       name: params.title,
-      file_base64: file64
+      file_base64: file64,
     }],
     signers: params.signers,
     meta: params.meta,
     redirect: params.redirect || '',
-    redirect_decline: params.redirectDecline || ''
+    redirect_decline: params.redirectDecline || '',
   };
   return ESign.createDocument(payload);
 };

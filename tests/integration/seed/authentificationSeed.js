@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
+const memoize = require('lodash/memoize');
 const Role = require('../../../models/Role');
 const Right = require('../../../models/Right');
 const User = require('../../../models/User');
@@ -92,6 +93,26 @@ const rightsList = [
     permission: 'events:sector:edit',
     name: 'events-sector-edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Créer ou supprimer des bénéficiaires',
+    permission: 'customers:create',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les données de bénéficiaires',
+    permission: 'customers:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les données de bénéficiaires',
+    permission: 'customers:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les données administratives de bénéficiaires',
+    permission: 'customers:administrative:edit',
+  },
 ];
 
 const coachRights = [
@@ -106,8 +127,12 @@ const coachRights = [
   'users:edit',
   'events:edit',
   'events:read',
+  'customers:create',
+  'customers:read',
+  'customers:edit',
+  'customers:administrative:edit',
 ];
-const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit'];
+const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
 const planningReferentRights = [...auxiliaryRights, 'events:sector:edit'];
 const helperRights = ['billing:read'];
 
@@ -208,15 +233,23 @@ const getUser = (roleName) => {
   return userList.find(u => u.role.toHexString() === role._id.toHexString());
 };
 
-const getToken = async (roleName) => {
-  const user = getUser(roleName);
-  const response = await app.inject({
-    method: 'POST',
-    url: '/users/authenticate',
-    payload: user.local,
-  });
+const getTokenByCredentials = memoize(
+  async (credentials) => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload: credentials,
+    });
 
-  return response.result.data.token;
+    return response.result.data.token;
+  },
+  // do not stringify the 'credentials' object, because the order of the props can't be predicted
+  credentials => JSON.stringify([credentials.email, credentials.password])
+);
+
+const getToken = (roleName) => {
+  const user = getUser(roleName);
+  return getTokenByCredentials(user.local);
 };
 
 module.exports = {
@@ -226,4 +259,5 @@ module.exports = {
   populateDBForAuthentification,
   getUser,
   getToken,
+  getTokenByCredentials,
 };

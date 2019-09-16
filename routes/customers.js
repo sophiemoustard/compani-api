@@ -40,6 +40,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['customers:create'] },
         validate: {
           payload: Joi.object().keys({
             identity: Joi.object().keys({
@@ -69,6 +70,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['customers:edit', 'customer-{params._id}'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -117,6 +119,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['customers:read'] },
         validate: {
           query: Joi.object().keys({
             _id: [Joi.array().items(Joi.objectId()), Joi.objectId()],
@@ -129,6 +132,9 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/subscriptions',
+      options: {
+        auth: { scope: ['customers:administrative:edit'] },
+      },
       handler: listWithSubscriptions,
     });
 
@@ -136,6 +142,7 @@ exports.plugin = {
       method: 'GET',
       path: '/sectors',
       options: {
+        auth: { scope: ['customers:read'] },
         validate: {
           query: Joi.object().keys({
             sector: Joi.array().items(Joi.string()),
@@ -150,12 +157,18 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: '/billed-events',
+      options: {
+        auth: { scope: ['customers:administrative:edit'] },
+      },
       handler: listWithBilledEvents,
     });
 
     server.route({
       method: 'GET',
       path: '/customer-contract-subscriptions',
+      options: {
+        auth: { scope: ['customers:administrative:edit'] },
+      },
       handler: listWithCustomerContractSubscriptions,
     });
 
@@ -163,6 +176,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
+        auth: { scope: ['customers:read', 'customer-{params._id}'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -176,6 +190,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        auth: { scope: ['customers:create'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -189,6 +204,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/subscriptions',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: {
@@ -209,6 +225,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/subscriptions/{subscriptionId}',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -229,6 +246,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/subscriptions/{subscriptionId}',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -243,6 +261,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/mandates',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -256,6 +275,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/mandates/{mandateId}',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -270,6 +290,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/mandates/{mandateId}/esign',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -294,6 +315,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/quotes',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId(),
@@ -307,6 +329,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/quotes',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -329,6 +352,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/quotes/{quoteId}',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -344,6 +368,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/drivefolder',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -361,11 +386,33 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
+        auth: { scope: ['customers:administrative:edit', 'customer-{params._id}'] },
         payload: {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
           maxBytes: 5242880,
+        },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            driveId: Joi.string().required(),
+          },
+          payload: Joi.object({
+            'Content-Type': Joi.string().required(),
+            fileName: Joi.string().required(),
+            signedQuote: Joi.any(),
+            signedMandate: Joi.any(),
+            financialCertificates: Joi.any(),
+            quoteId: Joi.string().when(
+              'signedQuote',
+              { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }
+            ),
+            mandateId: Joi.string().when(
+              'signedMandate',
+              { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }
+            ),
+          }).or('signedQuote', 'signedMandate', 'financialCertificates'),
         },
       },
     });
@@ -374,6 +421,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/certificates',
       options: {
+        auth: { scope: ['customers:administrative:edit', 'customer-{params._id}'] },
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: Joi.object().keys({
@@ -390,6 +438,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/mandates/{mandateId}/savesigneddoc',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -404,6 +453,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/subscriptionshistory',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -432,6 +482,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/fundings',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -461,6 +512,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/fundings/{fundingId}',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -487,6 +539,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/fundings/{fundingId}',
       options: {
+        auth: { scope: ['customers:administrative:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),

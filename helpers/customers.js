@@ -1,6 +1,6 @@
 const flat = require('flat');
 const Boom = require('boom');
-const { addFile } = require('./gdriveStorage');
+const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const EventRepository = require('../repositories/EventRepository');
@@ -134,7 +134,7 @@ const uploadFinancialCertificate = async (customerId, file) => {
 };
 
 exports.createAndSaveFile = async (docKeys, params, payload) => {
-  const uploadedFile = await addFile({
+  const uploadedFile = await GdriveStorageHelper.addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload[docKeys[0]].hapi.filename,
     type: payload['Content-Type'],
