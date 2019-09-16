@@ -101,7 +101,6 @@ exports.plugin = {
               environment: Joi.string().allow('', null),
               objectives: Joi.string().allow('', null),
               misc: Joi.string().allow('', null),
-              referent: Joi.string(),
             }),
             payment: Joi.object().keys({
               bankAccountOwner: Joi.string(),

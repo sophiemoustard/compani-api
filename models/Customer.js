@@ -38,7 +38,6 @@ const CustomerSchema = mongoose.Schema({
     environment: String,
     objectives: String,
     misc: String,
-    referent: String,
   },
   payment: {
     bankAccountOwner: String,
