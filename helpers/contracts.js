@@ -56,7 +56,21 @@ exports.createVersion = async (contractId, newVersion) => {
     { new: true, autopopulate: false }
   );
 
+  if (contract.versions.length > 1) {
+    await exports.updatePreviousVersion(contract, contract.versions.length - 1, newVersion.startDate);
+  }
+
   return contract;
+};
+
+exports.updatePreviousVersion = async (contract, versionIndex, versionStartDate) => {
+  const previousVersionId = contract.versions[versionIndex - 1]._id;
+  const previousVersionStartDate = moment(versionStartDate).subtract(1, 'd').endOf('d').toISOString();
+  await Contract.updateOne(
+    { _id: contract._id },
+    { $set: { 'versions.$[version].endDate': previousVersionStartDate } },
+    { arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(previousVersionId) }] }
+  );
 };
 
 exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
@@ -75,12 +89,7 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
     if (index === 0) {
       await Contract.updateOne({ _id: contractId }, { startDate: versionToUpdate.startDate });
     } else {
-      const previousVersionId = contract.versions[index - 1]._id;
-      await Contract.updateOne(
-        { _id: contractId },
-        { $set: { 'versions.$[version].endDate': moment(versionToUpdate.startDate).subtract(1, 'd').endOf('d').toISOString() } },
-        { arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(previousVersionId) }] }
-      );
+      await exports.updatePreviousVersion(contract, index, versionToUpdate.startDate);
     }
   }
 
