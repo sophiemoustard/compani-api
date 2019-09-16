@@ -24,7 +24,17 @@ const forgetPasswordEmail = resetPassword => (
     L'équipe Compani</p>`
 );
 
+const invoiceEmail = () => (
+  `<p>Bonjour,</p>
+  <p>Une nouvelle facture Alenvi est disponible dans votre espace Compani.<br>
+    Pour y accéder, veuillez cliquer sur le bouton ci-dessous.</p>
+  <a style="-webkit-appearance: button; -moz-appearance: button; appearance: button; text-decoration: none; background-color: #e2007a!important; color: #fff!important; cursor: pointer;" href="${process.env.WEBSITE_HOSTNAME}/customers/documents">Accéder à la facture</a>
+  </button>
+  <p>L'équipe Compani</p>`
+);
+
 module.exports = {
   welcomeEmailContent,
   forgetPasswordEmail,
+  invoiceEmail,
 };

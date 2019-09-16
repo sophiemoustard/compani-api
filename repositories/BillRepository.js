@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 
 const Bill = require('../models/Bill');
 
@@ -45,3 +46,47 @@ exports.findAmountsGroupedByClient = async (customerId = null, dateMax = null) =
 
   return billsAmounts;
 };
+
+exports.findHelpersFromCustomerBill = async () => Bill.aggregate([
+  {
+    $mach: {
+      createdAt: {
+        $lt: moment().startOf('d').toDate(),
+        $gte: moment().subtract(1, 'd').startOf('d').toDate(),
+      },
+      client: { $exists: false },
+    },
+  },
+  {
+    $group: { _id: '$customer' },
+  },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: '_id',
+      foreignField: '_id',
+      as: 'customer',
+    },
+  },
+  {
+    $unwind: {
+      path: '$customer',
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
+      from: 'users',
+      localField: '_id',
+      foreignField: 'customers',
+      as: 'helpers',
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      customer: { _id: 1, identity: 1 },
+      helpers: { identity: 1, local: 1 },
+    },
+  },
+]);
