@@ -99,17 +99,20 @@ describe('endContract', () => {
 
 describe('updateVersion', () => {
   let ContractMock;
-  let updateOneMock;
+  let updateOneStub;
+  let updatePreviousVersion;
   const contractId = new ObjectID();
   const versionId = new ObjectID();
   const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
-    updateOneMock = sinon.stub(Contract, 'updateOne');
+    updateOneStub = sinon.stub(Contract, 'updateOne');
+    updatePreviousVersion = sinon.stub(ContractHelper, 'updatePreviousVersion');
   });
   afterEach(() => {
     ContractMock.restore();
-    updateOneMock.restore();
+    updateOneStub.restore();
+    updatePreviousVersion.restore();
   });
 
   it('should update first version and contract', async () => {
@@ -130,7 +133,8 @@ describe('updateVersion', () => {
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
 
     ContractMock.verify();
-    sinon.assert.calledWith(updateOneMock, { _id: contractId.toHexString() }, { startDate: '2019-09-10T00:00:00' });
+    sinon.assert.calledWith(updateOneStub, { _id: contractId.toHexString() }, { startDate: '2019-09-10T00:00:00' });
+    sinon.assert.notCalled(updatePreviousVersion);
   });
 
   it('should update current and previous version', async () => {
@@ -147,11 +151,7 @@ describe('updateVersion', () => {
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
 
     ContractMock.verify();
-    sinon.assert.calledWith(
-      updateOneMock,
-      { _id: contractId.toHexString() },
-      { $set: { 'versions.$[version].endDate': '2019-09-09T21:59:59.999Z' } },
-      { arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(previousVersionId) }] }
-    );
+    sinon.assert.calledWith(updatePreviousVersion, contract, 1, '2019-09-10T00:00:00');
+    sinon.assert.notCalled(updateOneStub);
   });
 });

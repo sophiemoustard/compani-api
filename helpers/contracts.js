@@ -1,4 +1,5 @@
 const flat = require('flat');
+const Boom = require('boom');
 const mongoose = require('mongoose');
 const moment = require('moment');
 const path = require('path');
@@ -11,6 +12,7 @@ const EventHelper = require('./events');
 const { addFile } = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
+const ESignHelper = require('../helpers/eSign');
 
 exports.endContract = async (contractId, contractToEnd, credentials) => {
   const contract = await Contract.findOne({ _id: contractId });
@@ -37,6 +39,22 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
   await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
   await EventHelper.updateAbsencesOnContractEnd(contract.user, contract.endDate, credentials);
+
+  return contract;
+};
+
+exports.createVersion = async (contractId, newVersion) => {
+  if (newVersion.signature) {
+    const doc = await ESignHelper.generateSignatureRequest(newVersion.signature);
+    if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
+
+    newVersion.signature = { eversignId: doc.data.document_hash };
+  }
+  const contract = await Contract.findOneAndUpdate(
+    { _id: contractId },
+    { $push: { versions: newVersion } },
+    { new: true, autopopulate: false }
+  );
 
   return contract;
 };

@@ -6,8 +6,8 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
-const { endContract, createAndSaveFile, saveCompletedContract, updateVersion } = require('../helpers/contracts');
-const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { createVersion, endContract, createAndSaveFile, saveCompletedContract, updateVersion } = require('../helpers/contracts');
+const { generateSignatureRequest } = require('../helpers/eSign');
 
 const { language } = translate;
 
@@ -112,16 +112,7 @@ const remove = async (req) => {
 
 const createContractVersion = async (req) => {
   try {
-    if (req.payload.signature) {
-      const doc = await generateSignatureRequest(req.payload.signature);
-      if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-      req.payload.signature = { eversignId: doc.data.document_hash };
-    }
-    const contract = await Contract.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { versions: req.payload } },
-      { new: true, autopopulate: false }
-    );
+    const contract = createVersion(req.params._id, req.payload);
 
     return { message: translate[language].contractVersionAdded, data: { contract } };
   } catch (e) {
