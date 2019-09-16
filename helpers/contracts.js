@@ -49,10 +49,22 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
     {
       // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
       arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId) }],
-      new: true,
-      autopopulate: false,
     }
-  );
+  ).lean();
+
+  if (versionToUpdate.startDate) {
+    const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
+    if (index === 0) {
+      await Contract.updateOne({ _id: contractId }, { startDate: versionToUpdate.startDate });
+    } else {
+      const previousVersionId = contract.versions[index - 1]._id;
+      await Contract.updateOne(
+        { _id: contractId },
+        { $set: { 'versions.$[version].endDate': moment(versionToUpdate.startDate).subtract(1, 'd').endOf('d').toISOString() } },
+        { arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(previousVersionId) }] }
+      );
+    }
+  }
 
   return contract;
 };

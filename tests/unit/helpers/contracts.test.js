@@ -1,6 +1,8 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const moment = require('moment');
+const flat = require('flat');
+const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const EventHelper = require('../../../helpers/events');
 const ContractHelper = require('../../../helpers/contracts');
@@ -92,5 +94,64 @@ describe('endContract', () => {
       { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } }
     );
     expect(result.toObject()).toMatchObject(updatedContract);
+  });
+});
+
+describe('updateVersion', () => {
+  let ContractMock;
+  let updateOneMock;
+  const contractId = new ObjectID();
+  const versionId = new ObjectID();
+  const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
+  beforeEach(() => {
+    ContractMock = sinon.mock(Contract);
+    updateOneMock = sinon.stub(Contract, 'updateOne');
+  });
+  afterEach(() => {
+    ContractMock.restore();
+    updateOneMock.restore();
+  });
+
+  it('should update first version and contract', async () => {
+    const contract = {
+      startDate: '2019-09-09T00:00:00',
+      versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
+    };
+    ContractMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: contractId.toHexString() },
+        { $set: flat({ 'versions.$[version]': versionToUpdate }) },
+        { arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId.toHexString()) }] }
+      )
+      .chain('lean')
+      .once()
+      .returns(contract);
+
+    await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
+
+    ContractMock.verify();
+    sinon.assert.calledWith(updateOneMock, { _id: contractId.toHexString() }, { startDate: '2019-09-10T00:00:00' });
+  });
+
+  it('should update current and previous version', async () => {
+    const previousVersionId = new ObjectID();
+    const contract = {
+      startDate: '2019-09-09T00:00:00',
+      versions: [
+        { _id: previousVersionId, startDate: '2019-08-01T00:00:00', endDate: '2019-09-05T00:00:00' },
+        { _id: versionId, startDate: '2019-09-10T00:00:00' },
+      ],
+    };
+    ContractMock.expects('findOneAndUpdate').chain('lean').once().returns(contract);
+
+    await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
+
+    ContractMock.verify();
+    sinon.assert.calledWith(
+      updateOneMock,
+      { _id: contractId.toHexString() },
+      { $set: { 'versions.$[version].endDate': '2019-09-09T21:59:59.999Z' } },
+      { arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(previousVersionId) }] }
+    );
   });
 });
