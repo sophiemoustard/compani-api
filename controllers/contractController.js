@@ -113,6 +113,7 @@ const remove = async (req) => {
 const createContractVersion = async (req) => {
   try {
     const contract = createVersion(req.params._id, req.payload);
+    if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return { message: translate[language].contractVersionAdded, data: { contract } };
   } catch (e) {
