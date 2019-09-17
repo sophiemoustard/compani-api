@@ -8,6 +8,7 @@ const {
   create,
   list,
   activeList,
+  activeListForCustomer,
   show,
   update,
   remove,
@@ -138,6 +139,20 @@ exports.plugin = {
         },
       },
       handler: activeList,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/activeForCustomer',
+      options: {
+        auth: { scope: ['users:list'] },
+        validate: {
+          query: {
+            customer: Joi.objectId(),
+          },
+        },
+      },
+      handler: activeListForCustomer,
     });
 
     server.route({
