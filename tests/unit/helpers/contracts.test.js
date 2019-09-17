@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const EventHelper = require('../../../helpers/events');
 const ContractHelper = require('../../../helpers/contracts');
+const ESignHelper = require('../../../helpers/eSign');
 const Contract = require('../../../models/Contract');
 const User = require('../../../models/User');
 require('sinon-mongoose');
@@ -94,6 +95,89 @@ describe('endContract', () => {
       { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } }
     );
     expect(result.toObject()).toMatchObject(updatedContract);
+  });
+});
+
+describe('createVersion', () => {
+  let generateSignatureRequest;
+  let ContractMock;
+  let updatePreviousVersion;
+  const contractId = new ObjectID();
+  beforeEach(() => {
+    generateSignatureRequest = sinon.stub(ESignHelper, 'generateSignatureRequest');
+    ContractMock = sinon.mock(Contract);
+    updatePreviousVersion = sinon.stub(ContractHelper, 'updatePreviousVersion');
+  });
+  afterEach(() => {
+    generateSignatureRequest.restore();
+    ContractMock.restore();
+    updatePreviousVersion.restore();
+  });
+
+  it('should create version and update previous one', async () => {
+    const newVersion = { startDate: '2019-09-10T00:00:00' };
+    const contract = {
+      startDate: '2019-09-09T00:00:00',
+      versions: [
+        { _id: '1234567890', startDate: '2019-09-01T00:00:00' },
+        { _id: 'qwertyuiop', startDate: '2019-09-10T00:00:00' },
+      ],
+    };
+    ContractMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: contractId.toHexString() },
+        { $push: { versions: newVersion } },
+        { new: true, autopopulate: false }
+      )
+      .chain('lean')
+      .once()
+      .returns(contract);
+
+    await ContractHelper.createVersion(contractId.toHexString(), newVersion);
+
+    ContractMock.verify();
+    sinon.assert.notCalled(generateSignatureRequest);
+    sinon.assert.calledWith(updatePreviousVersion, contract, 1, '2019-09-10T00:00:00');
+  });
+
+  it('should generate signature request', async () => {
+    const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const contract = {
+      startDate: '2019-09-09T00:00:00',
+      versions: [{ _id: '1234567890', startDate: '2019-09-10T00:00:00' }],
+    };
+    generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
+    ContractMock
+      .expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: contractId.toHexString() },
+        { $push: { versions: { startDate: '2019-09-10T00:00:00', signature: { eversignId: '1234567890' } } } },
+        { new: true, autopopulate: false }
+      )
+      .chain('lean')
+      .once()
+      .returns(contract);
+
+    await ContractHelper.createVersion(contractId.toHexString(), newVersion);
+
+    ContractMock.verify();
+    sinon.assert.notCalled(updatePreviousVersion);
+    sinon.assert.calledWith(generateSignatureRequest, { templateId: '1234567890' });
+  });
+
+  it('should throw on signature generation error', async () => {
+    try {
+      const newVersion = { startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+      ContractMock.expects('findOneAndUpdate').never();
+      generateSignatureRequest.returns({ data: { error: { type: '1234567890' } } });
+
+      await ContractHelper.createVersion(contractId.toHexString(), newVersion);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(400);
+      ContractMock.verify();
+      sinon.assert.notCalled(updatePreviousVersion);
+      sinon.assert.calledWith(generateSignatureRequest, { templateId: '1234567890' });
+    }
   });
 });
 
