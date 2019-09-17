@@ -1,8 +1,19 @@
 'use strict';
 
 const { CronJob } = require('cron');
+const Joi = require('joi');
 
-const callJob = (server, job) => async () => job.method(server);
+const internals = {};
+
+internals.callJob = (server, job) => async () => job.method(server);
+
+internals.jobSchema = Joi.object({
+  name: Joi.string().required(),
+  time: Joi.string().required(),
+  method: Joi.func().required(),
+  onComplete: Joi.func().required(),
+  env: Joi.string().valid('production', 'development', 'staging'),
+});
 
 exports.plugin = {
   name: 'cron',
@@ -13,14 +24,15 @@ exports.plugin = {
       server.log(['cron'], 'No Jobs provided.');
     } else {
       for (const job of options.jobs) {
-        if (!job.name) throw new Error('Job name is missing');
-        if (!job.time) throw new Error('Job time is missing');
-        if (!job.method || typeof job.method !== 'function') throw new Error('Job method is invalid.');
-        if (job.onComplete && typeof job.onComplete !== 'function') throw new Error('Job onComplete must be a function.');
+        const validationResults = internals.jobSchema.validate(job);
+        if (validationResults.error) throw validationResults.error;
         if (jobs[job.name]) throw new Error('Job already defined.');
-
+        if (job.env && job.env !== process.env.NODE_ENV) {
+          server.log(['cron'], `${job.name} job can only run on ${job.env} env.`);
+          continue;
+        }
         try {
-          jobs[job.name] = new CronJob(job.time, callJob(server, job), job.onComplete, false, 'Europe/Paris');
+          jobs[job.name] = new CronJob(job.time, internals.callJob(server, job), job.onComplete, false, 'Europe/Paris');
         } catch (e) {
           server.log(['error', 'cron'], e);
         }

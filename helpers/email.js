@@ -1,10 +1,9 @@
 const nodemailer = require('nodemailer');
 const { sendinBlueTransporter, testTransporter } = require('./nodemailer');
-const { invoiceEmail } = require('./emailOptions');
+const { invoiceEmail, completeInvoiceScriptEmailBody } = require('./emailOptions');
 const { SENDER_MAIL } = require('./constants');
 
-const invoiceAlert = async (receiver) => {
-  console.log('receiver', receiver);
+const invoiceAlertEmail = async (receiver) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
@@ -19,6 +18,23 @@ const invoiceAlert = async (receiver) => {
   return mailInfo;
 };
 
+const completeIvoiceScriptEmail = async (sentNb, emails = null) => {
+  const mailOptions = {
+    from: `Compani <${SENDER_MAIL}>`,
+    to: process.env.TECH_EMAILS,
+    subject: 'Script envoi factures',
+    html: completeInvoiceScriptEmailBody(sentNb, emails),
+  };
+
+  const mailInfo = process.env.NODE_ENV === 'production'
+    ? await sendinBlueTransporter.sendMail(mailOptions)
+    : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+
+  console.log('url', nodemailer.getTestMessageUrl(mailInfo));
+  return mailInfo;
+};
+
 module.exports = {
-  invoiceAlert,
+  invoiceAlertEmail,
+  completeIvoiceScriptEmail,
 };
