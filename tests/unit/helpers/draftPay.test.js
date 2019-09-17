@@ -450,15 +450,35 @@ describe('getPaidTransportInfo', () => {
     expect(result).toEqual({ distance: 0, duration: 0 });
   });
 
+  it('should return 0 if prevEvent has fixed service', async () => {
+    const event = { hasFixedService: false };
+    const prevEvent = { hasFixedService: true };
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 0 });
+  });
+
+  it('should return 0 if event has fixed service', async () => {
+    const event = { hasFixedService: true };
+    const prevEvent = { hasFixedService: false };
+    const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ distance: 0, duration: 0 });
+  });
+
   it('should return 0 if no address in event', async () => {
     const event = {
       type: 'intervention',
+      hasFixedService: false,
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
     };
     const prevEvent = {
       type: 'intervention',
+      hasFixedService: false,
       startDate: '2019-01-18T15:46:30.636Z',
       customer: {
         contact: { address: { fullAddress: 'tamalou' } },
@@ -473,6 +493,7 @@ describe('getPaidTransportInfo', () => {
   it('should return 0 if no address in prevEvent', async () => {
     const event = {
       type: 'intervention',
+      hasFixedService: false,
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
@@ -481,6 +502,7 @@ describe('getPaidTransportInfo', () => {
       },
     };
     const prevEvent = {
+      hasFixedService: false,
       type: 'intervention',
       startDate: '2019-01-18T15:46:30.636Z',
     };
@@ -492,12 +514,14 @@ describe('getPaidTransportInfo', () => {
 
   it('should return 0 if no tranport mode', async () => {
     const event = {
+      hasFixedService: false,
       type: 'intervention',
       customer: {
         contact: { address: { fullAddress: 'jébobolà' } },
       },
     };
     const prevEvent = {
+      hasFixedService: false,
       type: 'intervention',
       startDate: '2019-01-18T15:46:30.636Z',
       customer: {
@@ -512,6 +536,7 @@ describe('getPaidTransportInfo', () => {
 
   it('should compute driving transport', async () => {
     const event = {
+      hasFixedService: false,
       type: 'intervention',
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
@@ -521,6 +546,7 @@ describe('getPaidTransportInfo', () => {
       },
     };
     const prevEvent = {
+      hasFixedService: false,
       type: 'intervention',
       startDate: '2019-01-18T15:46:30.636Z',
       customer: {
@@ -536,6 +562,7 @@ describe('getPaidTransportInfo', () => {
 
   it('should compute transit transport', async () => {
     const event = {
+      hasFixedService: false,
       startDate: '2019-01-18T18:00:00',
       type: 'intervention',
       auxiliary: {
@@ -546,6 +573,7 @@ describe('getPaidTransportInfo', () => {
       },
     };
     const prevEvent = {
+      hasFixedService: false,
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
       customer: {
@@ -561,6 +589,7 @@ describe('getPaidTransportInfo', () => {
 
   it('should return break duration', async () => {
     const event = {
+      hasFixedService: false,
       startDate: '2019-01-18T16:10:00',
       type: 'intervention',
       auxiliary: {
@@ -571,6 +600,7 @@ describe('getPaidTransportInfo', () => {
       },
     };
     const prevEvent = {
+      hasFixedService: false,
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
       customer: {
@@ -588,6 +618,7 @@ describe('getPaidTransportInfo', () => {
     const event = {
       startDate: '2019-01-18T18:00:00',
       type: 'intervention',
+      hasFixedService: false,
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
@@ -596,6 +627,7 @@ describe('getPaidTransportInfo', () => {
       },
     };
     const prevEvent = {
+      hasFixedService: false,
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
       customer: {
@@ -610,6 +642,7 @@ describe('getPaidTransportInfo', () => {
 
   it('should return transport duration if break is shorter than transport duration', async () => {
     const event = {
+      hasFixedService: false,
       startDate: '2019-01-18T15:30:00',
       type: 'intervention',
       auxiliary: {
@@ -620,6 +653,7 @@ describe('getPaidTransportInfo', () => {
       },
     };
     const prevEvent = {
+      hasFixedService: false,
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
       customer: {
@@ -800,6 +834,7 @@ describe('getPayFromEvents', () => {
         startDate: '2019-07-12T09:00:00',
         endDate: '2019-07-01T11:00:00',
         type: 'intervention',
+        hasFixedService: true,
         subscription: {
           service: {
             nature: 'fixed',
@@ -833,6 +868,7 @@ describe('getPayFromEvents', () => {
         startDate: '2019-07-12T09:00:00',
         endDate: '2019-07-01T11:00:00',
         type: 'intervention',
+        hasFixedService: false,
         subscription: {
           service: {
             versions: [{ startDate: '2019-02-22T00:00:00' }],
@@ -867,6 +903,7 @@ describe('getPayFromEvents', () => {
         startDate: '2019-07-12T09:00:00',
         endDate: '2019-07-01T11:00:00',
         type: 'intervention',
+        hasFixedService: false,
         subscription: {
           service: {
             versions: [{ startDate: '2019-02-22T00:00:00', exemptFromCharges: true }],
@@ -913,6 +950,7 @@ describe('getPayFromEvents', () => {
         startDate: '2019-07-12T09:00:00',
         endDate: '2019-07-01T11:00:00',
         type: 'intervention',
+        hasFixedService: false,
         subscription: {
           service: {
             versions: [{ startDate: '2019-02-22T00:00:00', exemptFromCharges: false }],
@@ -959,6 +997,7 @@ describe('getPayFromEvents', () => {
         startDate: '2019-07-12T09:00:00',
         endDate: '2019-07-12T11:00:00',
         type: 'intervention',
+        hasFixedService: false,
         subscription: {
           service: {
             versions: [{ startDate: '2019-02-22T00:00:00', exemptFromCharges: false }],
@@ -970,6 +1009,7 @@ describe('getPayFromEvents', () => {
         startDate: '2019-07-13T09:00:00',
         endDate: '2019-07-13T11:00:00',
         type: 'intervention',
+        hasFixedService: false,
         subscription: {
           service: {
             versions: [{ startDate: '2019-02-22T00:00:00', exemptFromCharges: false }],
@@ -981,6 +1021,7 @@ describe('getPayFromEvents', () => {
         startDate: '2019-07-14T09:00:00',
         endDate: '2019-07-14T11:00:00',
         type: 'intervention',
+        hasFixedService: false,
         subscription: {
           service: {
             versions: [{ startDate: '2019-02-22T00:00:00', exemptFromCharges: false }],

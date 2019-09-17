@@ -373,6 +373,17 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   },
   { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
   {
+    $addFields: {
+      hasFixedService: {
+        $cond: {
+          if: { $and: [{ $eq: ['$type', 'intervention'] }, { $eq: ['$subscription.service.nature', 'fixed'] }] },
+          then: true,
+          else: false,
+        },
+      },
+    },
+  },
+  {
     $project: {
       auxiliary: { _id: 1, administrative: { transportInvoice: 1 } },
       customer: { contact: 1 },
@@ -381,6 +392,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
       subscription: { service: 1 },
       type: 1,
       address: 1,
+      hasFixedService: 1,
     },
   },
   {

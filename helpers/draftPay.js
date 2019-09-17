@@ -11,7 +11,6 @@ const Pay = require('../models/Pay');
 const ContractRepository = require('../repositories/ContractRepository');
 const EventRepository = require('../repositories/EventRepository');
 const {
-  FIXED,
   PUBLIC_TRANSPORT,
   TRANSIT,
   DRIVING,
@@ -158,7 +157,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
   let paidTransportDuration = 0;
   let paidKm = 0;
 
-  if (prevEvent) {
+  if (prevEvent && !prevEvent.hasFixedService && !event.hasFixedService) {
     const origins = prevEvent.type === INTERVENTION
       ? get(prevEvent, 'customer.contact.address.fullAddress', null)
       : get(prevEvent, 'address.fullAddress', null);
@@ -241,7 +240,7 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => 
 
       let service = null;
       if (paidEvent.type === INTERVENTION) {
-        if (paidEvent.subscription.service.nature === FIXED) continue; // Fixed services are included manually in bonus
+        if (paidEvent.hasFixedService) continue; // Fixed services are included manually in bonus
 
         service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
         service.surcharge = service.surcharge ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null : null;
