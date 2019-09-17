@@ -50,7 +50,8 @@ exports.createVersion = async (contractId, newVersion) => {
 
     newVersion.signature = { eversignId: doc.data.document_hash };
   }
-  const contract = await Contract.findOneAndUpdate(
+
+  let contract = await Contract.findOneAndUpdate(
     { _id: contractId },
     { $push: { versions: newVersion } },
     { new: true, autopopulate: false }
@@ -58,7 +59,7 @@ exports.createVersion = async (contractId, newVersion) => {
   if (!contract) return null;
 
   if (contract.versions.length > 1) {
-    await exports.updatePreviousVersion(contract, contract.versions.length - 1, newVersion.startDate);
+    contract = await exports.updatePreviousVersion(contract, contract.versions.length - 1, newVersion.startDate);
   }
 
   return contract;
@@ -66,7 +67,7 @@ exports.createVersion = async (contractId, newVersion) => {
 
 exports.updatePreviousVersion = async (contract, versionIndex, versionStartDate) => {
   const previousVersionStartDate = moment(versionStartDate).subtract(1, 'd').endOf('d').toISOString();
-  await Contract.findOneAndUpdate(
+  return Contract.findOneAndUpdate(
     { _id: contract._id },
     { $set: { [`versions.${versionIndex - 1}.endDate`]: previousVersionStartDate } }
   );
