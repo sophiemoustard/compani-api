@@ -22,5 +22,6 @@ exports.generateSignatureRequest = async (params) => {
     redirect: params.redirect || '',
     redirect_decline: params.redirectDecline || '',
   };
+
   return ESign.createDocument(payload);
 };

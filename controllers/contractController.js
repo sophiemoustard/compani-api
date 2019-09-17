@@ -1,20 +1,13 @@
 const Boom = require('boom');
 const flat = require('flat');
-const mongoose = require('mongoose');
 const crypto = require('crypto');
-
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
-const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
-const {
-  unassignInterventionsOnContractEnd,
-  removeEventsExceptInterventionsOnContractEnd,
-  updateAbsencesOnContractEnd,
-} = require('../helpers/events');
-const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { createVersion, endContract, createAndSaveFile, saveCompletedContract, updateVersion } = require('../helpers/contracts');
+const { generateSignatureRequest } = require('../helpers/eSign');
 
 const { language } = translate;
 
@@ -87,23 +80,8 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    let contract;
-    if (req.payload.endDate) {
-      contract = await endContract(req.params._id, req.payload);
-      if (!contract) return Boom.notFound(translate[language].contractNotFound);
-      await unassignInterventionsOnContractEnd(contract, req.auth.credentials);
-      await removeEventsExceptInterventionsOnContractEnd(contract, req.auth.credentials);
-      await updateAbsencesOnContractEnd(contract.user._id, contract.endDate, req.auth.credentials);
-    } else {
-      contract = await Contract
-        .findByIdAndUpdate(req.params._id, req.paylaod)
-        .populate({ path: 'user', select: 'identity' })
-        .populate({ path: 'customer', select: 'identity' })
-        .lean();
-    }
-
+    const contract = await endContract(req.params._id, req.payload, req.auth.credentials);
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
-
 
     return {
       message: translate[language].contractUpdated,
@@ -134,16 +112,8 @@ const remove = async (req) => {
 
 const createContractVersion = async (req) => {
   try {
-    if (req.payload.signature) {
-      const doc = await generateSignatureRequest(req.payload.signature);
-      if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-      req.payload.signature = { eversignId: doc.data.document_hash };
-    }
-    const contract = await Contract.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { versions: req.payload } },
-      { new: true, autopopulate: false }
-    );
+    const contract = createVersion(req.params._id, req.payload);
+    if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return { message: translate[language].contractVersionAdded, data: { contract } };
   } catch (e) {
@@ -154,17 +124,8 @@ const createContractVersion = async (req) => {
 
 const updateContractVersion = async (req) => {
   try {
-    const payload = { 'versions.$[version]': { ...req.payload } };
-    const contract = await Contract.findOneAndUpdate(
-      { _id: req.params._id },
-      { $set: flat(payload) },
-      {
-        // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
-        arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(req.params.versionId) }],
-        new: true,
-        autopopulate: false,
-      }
-    );
+    const contract = await updateVersion(req.params._id, req.params.versionId, req.payload);
+    if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return {
       message: translate[language].contractVersionUpdated,

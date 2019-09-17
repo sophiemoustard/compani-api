@@ -14,7 +14,7 @@ const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
-const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { generateSignatureRequest } = require('../helpers/eSign');
 const {
   createAndSaveFile,
   getCustomerBySector,

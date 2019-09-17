@@ -1,4 +1,5 @@
 const flat = require('flat');
+const Boom = require('boom');
 const mongoose = require('mongoose');
 const moment = require('moment');
 const path = require('path');
@@ -7,27 +8,89 @@ const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
+const EventHelper = require('./events');
 const { addFile } = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
+const ESignHelper = require('../helpers/eSign');
 
-exports.endContract = async (contractId, payload) => {
-  const contract = await Contract.findById(contractId);
+exports.endContract = async (contractId, contractToEnd, credentials) => {
+  const contract = await Contract.findOne({ _id: contractId });
   if (!contract) return null;
 
-  contract.endDate = payload.endDate;
-  contract.endNotificationDate = payload.endNotificationDate;
-  contract.endReason = payload.endReason;
-  contract.otherMisc = payload.otherMisc;
+  contract.endDate = contractToEnd.endDate;
+  contract.endNotificationDate = contractToEnd.endNotificationDate;
+  contract.endReason = contractToEnd.endReason;
+  contract.otherMisc = contractToEnd.otherMisc;
   // End last version
-  contract.versions[contract.versions.length - 1].endDate = payload.endDate;
+  contract.versions[contract.versions.length - 1].endDate = contractToEnd.endDate;
   await contract.save();
 
   // Update inactivityDate if all contracts are ended
   const userContracts = await Contract.find({ user: contract.user });
   const hasActiveContracts = userContracts.some(c => !c.endDate);
   if (!hasActiveContracts) {
-    await User.findOneAndUpdate({ _id: contract.user }, { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } });
+    await User.findOneAndUpdate(
+      { _id: contract.user },
+      { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } }
+    );
+  }
+
+  await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+  await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
+  await EventHelper.updateAbsencesOnContractEnd(contract.user, contract.endDate, credentials);
+
+  return contract;
+};
+
+exports.createVersion = async (contractId, newVersion) => {
+  if (newVersion.signature) {
+    const doc = await ESignHelper.generateSignatureRequest(newVersion.signature);
+    if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
+
+    newVersion.signature = { eversignId: doc.data.document_hash };
+  }
+  const contract = await Contract.findOneAndUpdate(
+    { _id: contractId },
+    { $push: { versions: newVersion } },
+    { new: true, autopopulate: false }
+  ).lean();
+  if (!contract) return null;
+
+  if (contract.versions.length > 1) {
+    await exports.updatePreviousVersion(contract, contract.versions.length - 1, newVersion.startDate);
+  }
+
+  return contract;
+};
+
+exports.updatePreviousVersion = async (contract, versionIndex, versionStartDate) => {
+  const previousVersionStartDate = moment(versionStartDate).subtract(1, 'd').endOf('d').toISOString();
+  await Contract.findOneAndUpdate(
+    { _id: contract._id },
+    { $set: { [`versions.${versionIndex - 1}.endDate`]: previousVersionStartDate } }
+  );
+};
+
+exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
+  const payload = { 'versions.$[version]': { ...versionToUpdate } };
+  const contract = await Contract.findOneAndUpdate(
+    { _id: contractId },
+    { $set: flat(payload) },
+    {
+      // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
+      arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId) }],
+    }
+  ).lean();
+  if (!contract) return null;
+
+  if (versionToUpdate.startDate) {
+    const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
+    if (index === 0) {
+      await Contract.updateOne({ _id: contractId }, { startDate: versionToUpdate.startDate });
+    } else {
+      await exports.updatePreviousVersion(contract, index, versionToUpdate.startDate);
+    }
   }
 
   return contract;
