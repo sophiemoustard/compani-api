@@ -11,7 +11,7 @@ const Customer = require('../models/Customer');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const EventHelper = require('./events');
-const { addFile, deleteFile } = require('./gdriveStorage');
+const GDriveStorageHelper = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('../helpers/eSign');
@@ -113,7 +113,7 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
 };
 
 exports.deleteVersion = async (contractId, versionId) => {
-  const contract = await Contract.findOne({ _id: contractId });
+  const contract = await Contract.findOne({ _id: contractId }).lean();
   if (!contract.versions || contract.versions.length === 0) return null;
 
   const isLastVersion = contract.versions[contract.versions.length - 1]._id.toHexString() === versionId;
@@ -121,26 +121,26 @@ exports.deleteVersion = async (contractId, versionId) => {
   const deletedVersion = contract.versions[contract.versions.length - 1];
 
   if (contract.versions.length > 1) {
-    await Contract.findOneAndUpdate(
+    await Contract.updateOne(
       { _id: contractId, 'versions._id': versionId },
       { $pull: { versions: { _id: versionId } } },
       { autopopulate: false }
     );
-    await Contract.findOneAndUpdate(
+    await Contract.updateOne(
       { _id: contractId },
       { $unset: { [`versions.${contract.versions.length - 2}.endDate`]: '' } },
       { autopopulate: false }
     );
   } else {
     await Contract.deleteOne({ _id: contractId });
-    await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
-    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $pull: { contracts: contract._id } });
+    await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
+    if (contract.customer) await Customer.updateOne({ _id: contract.customer }, { $pull: { contracts: contract._id } });
   }
 
-  const auxiliaryDocId = get(deletedVersion, 'auxiliaryDoc.driveId', '');
-  if (auxiliaryDocId) deleteFile(auxiliaryDocId);
-  const customerDocId = get(deletedVersion, 'customerDoc.driveId', '');
-  if (customerDocId) deleteFile(customerDocId);
+  const auxiliaryDriveId = get(deletedVersion, 'auxiliaryDoc.driveId', '');
+  if (auxiliaryDriveId) GDriveStorageHelper.deleteFile(auxiliaryDriveId);
+  const customerDriveId = get(deletedVersion, 'customerDoc.driveId', '');
+  if (customerDriveId) GDriveStorageHelper.deleteFile(customerDriveId);
 };
 
 exports.createAndSaveFile = async (version, fileInfo) => {
@@ -163,15 +163,15 @@ exports.createAndSaveFile = async (version, fileInfo) => {
 
 exports.uploadFile = async (fileInfo, status) => {
   if (status === COMPANY_CONTRACT) {
-    const uploadedFile = await addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId });
+    const uploadedFile = await GDriveStorageHelper.addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId });
     const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
 
     return { auxiliaryDoc: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink } };
   }
 
   const addFilePromises = [
-    addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId }),
-    addFile({ ...fileInfo, driveFolderId: fileInfo.customerDriveId }),
+    GDriveStorageHelper.addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId }),
+    GDriveStorageHelper.addFile({ ...fileInfo, driveFolderId: fileInfo.customerDriveId }),
   ];
   const [auxiliaryFileUploaded, customerFileUploaded] = await Promise.all(addFilePromises);
 
