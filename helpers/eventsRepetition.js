@@ -12,6 +12,7 @@ const {
   INTERVENTION,
 } = require('./constants');
 const Event = require('../models/Event');
+const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
 const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
@@ -152,6 +153,8 @@ exports.deleteRepetition = async (event, credentials) => {
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     });
   }
+
+  await Repetition.deleteOne({ 'repetition.parentId': event.repetition.parentId });
 
   return event;
 };
