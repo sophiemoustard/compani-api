@@ -12,6 +12,7 @@ const {
   INTERVENTION,
 } = require('./constants');
 const Event = require('../models/Event');
+const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 
@@ -97,6 +98,9 @@ exports.createRepetitions = async (eventFromDb, payload) => {
     default:
       break;
   }
+
+  const repetition = await (new Repetition(payload)).save();
+  console.log(repetition);
 
   return eventFromDb;
 };
