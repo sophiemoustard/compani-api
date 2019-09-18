@@ -12,8 +12,8 @@ const {
   INTERVENTION,
 } = require('./constants');
 const Event = require('../models/Event');
-const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
+const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
 
 momentRange.extendMoment(moment);
@@ -134,8 +134,11 @@ exports.updateRepetition = async (event, eventPayload) => {
       { $set: eventToSet, ...(unset && { $unset: unset }) }
     ));
   }
+  await Promise.all(promises);
 
-  return Promise.all(promises);
+  await RepetitionsHelper.updateRepetitions(eventPayload, event.repetition.parentId);
+
+  return event;
 };
 
 exports.deleteRepetition = async (event, credentials) => {
