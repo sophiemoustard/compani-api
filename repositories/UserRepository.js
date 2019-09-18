@@ -78,16 +78,6 @@ exports.getAuxiliariesForCustomerFromHourlyEvents = async (customerId) => {
       },
     },
     { $unwind: { path: '$auxiliary' } },
-    { $sort: { 'lastEvent.startDate': -1 } },
-    {
-      $lookup: {
-        from: 'sectors',
-        localField: 'auxiliary.sector',
-        foreignField: '_id',
-        as: 'auxiliary.sector',
-      },
-    },
-    { $unwind: { path: '$auxiliary.sector' } },
     {
       $addFields: {
         'auxiliary.lastEvent': '$lastEvent',
@@ -95,10 +85,20 @@ exports.getAuxiliariesForCustomerFromHourlyEvents = async (customerId) => {
       },
     },
     { $replaceRoot: { newRoot: '$auxiliary' } },
+    { $sort: { 'lastEvent.startDate': -1 } },
   ];
 
-  // Required to compute isActive
-  const lookupAuxiliariesRolesAndContracts = [
+  // roles and contracts are required to compute isActive
+  const lookup = [
+    {
+      $lookup: {
+        from: 'sectors',
+        localField: 'sector',
+        foreignField: '_id',
+        as: 'sector',
+      },
+    },
+    { $unwind: { path: '$sector' } },
     {
       $lookup: {
         from: 'roles',
@@ -122,6 +122,6 @@ exports.getAuxiliariesForCustomerFromHourlyEvents = async (customerId) => {
     ...aggregateHourlySubscriptions,
     ...aggregateEventsFromSubscriptions,
     ...aggregateAuxiliariesFromEvents,
-    ...lookupAuxiliariesRolesAndContracts,
+    ...lookup,
   ]);
 };
