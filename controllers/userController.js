@@ -140,7 +140,6 @@ const activeListForCustomer = async (req) => {
       };
     }
 
-    users.forEach((user) => { user.isActive = User.isActive(user); });
     const activeUsers = users.filter(user => User.isActive(user));
 
     return {
