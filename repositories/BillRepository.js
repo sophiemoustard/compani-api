@@ -55,10 +55,11 @@ exports.findHelpersFromCustomerBill = async () => Bill.aggregate([
         $gte: moment().subtract(1, 'd').startOf('d').toDate(),
       },
       client: { $exists: false },
+      sent: { $exists: false },
     },
   },
   {
-    $group: { _id: '$customer' },
+    $group: { _id: '$customer', bills: { $addToSet: '$$ROOT' } },
   },
   {
     $lookup: {
@@ -85,6 +86,7 @@ exports.findHelpersFromCustomerBill = async () => Bill.aggregate([
   {
     $project: {
       _id: 0,
+      bills: 1,
       customer: { _id: 1, identity: 1 },
       helpers: { identity: 1, local: 1 },
     },

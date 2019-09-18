@@ -17,21 +17,10 @@ const plugins = [
       jobs: [
         {
           name: 'invoiceDispatch',
-          time: '*/30 * * * * *',
+          time: '0 0 5 * * *',
           method: invoiceDispatch.method,
           onComplete: invoiceDispatch.onComplete,
-          env: 'development',
-        },
-        {
-          name: 'test',
-          time: '*/20 * * * * *',
-          method() {
-            console.log('MEH');
-          },
-          onComplete() {
-            console.log('OKOK');
-          },
-          env: 'development',
+          env: 'production',
         },
       ],
     },
