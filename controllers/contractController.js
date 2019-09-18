@@ -156,17 +156,20 @@ const removeContractVersion = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = [
-      'signedContract',
-      'signedVersion',
-    ];
+    const allowedFields = ['signedContract', 'signedVersion'];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) return Boom.forbidden(translate[language].uploadNotAllowed);
-    if (!req.payload.contractId && !req.payload.versionId) {
-      return Boom.badRequest();
-    }
 
-    const uploadedFile = await createAndSaveFile(administrativeKeys, req.params, req.payload);
+    const { params, payload } = req;
+    const fileInfo = {
+      auxiliaryDriveId: params.driveId,
+      name: payload.fileName || payload[administrativeKeys[0]].hapi.filename,
+      type: payload['Content-Type'],
+      body: payload[administrativeKeys[0]],
+    };
+    const version = { customer: payload.customer, contractId: params._id, _id: payload.versionId, status: payload.status };
+
+    const uploadedFile = await createAndSaveFile(version, fileInfo);
 
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {

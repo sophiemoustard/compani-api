@@ -214,6 +214,21 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            driveId: Joi.string().required(),
+          },
+          payload: Joi.object({
+            'Content-Type': Joi.string().required(),
+            fileName: Joi.string().required(),
+            contractId: Joi.objectId().required(),
+            versionId: Joi.objectId().required(),
+            customer: Joi.objectId().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+            status: Joi.string().required().valid(CONTRACT_STATUS),
+            signedContract: Joi.any(),
+          }),
+        },
       },
     });
 
