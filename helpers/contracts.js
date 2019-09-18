@@ -85,10 +85,11 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
     unset = { 'versions.$[version].signature': '' };
   }
 
-  const payload = { 'versions.$[version]': { ...versionToUpdate } };
+  const payload = { $set: flat({ 'versions.$[version]': { ...versionToUpdate } }) };
+  if (unset) payload.$unset = unset;
   const contract = await Contract.findOneAndUpdate(
     { _id: contractId },
-    { $set: flat(payload), ...(!!unset && { $unset: unset }) },
+    { ...payload },
     {
       // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
       arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId) }],
@@ -138,17 +139,17 @@ exports.uploadFile = async (fileInfo, status) => {
     addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId }),
     addFile({ ...fileInfo, driveFolderId: fileInfo.customerDriveId }),
   ];
-  const [auxiliaryDoc, customerDoc] = await Promise.all(addFilePromises);
+  const [auxiliaryFileUploaded, customerFileUploaded] = await Promise.all(addFilePromises);
 
   const fileInfoPromises = [
-    Drive.getFileById({ fileId: auxiliaryDoc.id }),
-    Drive.getFileById({ fileId: customerDoc.id }),
+    Drive.getFileById({ fileId: auxiliaryFileUploaded.id }),
+    Drive.getFileById({ fileId: customerFileUploaded.id }),
   ];
-  const [auxiliaryDocInfo, customerDocInfo] = await Promise.all(fileInfoPromises);
+  const [auxiliaryDriveFile, customerDriveFile] = await Promise.all(fileInfoPromises);
 
   return {
-    auxiliaryDoc: { driveId: auxiliaryDoc.id, link: auxiliaryDocInfo.webViewLink },
-    customerDoc: { driveId: customerDoc.id, link: customerDocInfo.webViewLink },
+    auxiliaryDoc: { driveId: auxiliaryFileUploaded.id, link: auxiliaryDriveFile.webViewLink },
+    customerDoc: { driveId: customerFileUploaded.id, link: customerDriveFile.webViewLink },
   };
 };
 
