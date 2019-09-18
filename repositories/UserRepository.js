@@ -66,7 +66,7 @@ exports.getAuxiliariesForCustomerFromHourlyEvents = async (customerId) => {
     {
       $project: {
         totalDurationMs: { $sum: '$events.durationMs' },
-        lastEvent: { $arrayElemAt: ['$events', 0] },
+        'lastEvent.startDate': { $arrayElemAt: ['$events.startDate', 0] },
       },
     },
     {

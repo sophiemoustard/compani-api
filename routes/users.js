@@ -148,7 +148,7 @@ exports.plugin = {
         auth: { scope: ['users:list'] },
         validate: {
           query: {
-            customer: Joi.objectId(),
+            customer: Joi.objectId().required(),
           },
         },
       },
