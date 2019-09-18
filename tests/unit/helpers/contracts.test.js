@@ -234,7 +234,7 @@ describe('updateVersion', () => {
     ContractMock.expects('findOneAndUpdate')
       .withExactArgs(
         { _id: contractId.toHexString() },
-        { $set: flat({ 'versions.$[version]': versionToUpdate }) },
+        { $set: flat({ 'versions.$[version]': versionToUpdate }), $unset: { 'versions.$[version].signature': '' } },
         { arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId.toHexString()) }] }
       )
       .chain('lean')

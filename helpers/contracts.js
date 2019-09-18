@@ -75,17 +75,20 @@ exports.updatePreviousVersion = async (contract, versionIndex, versionStartDate)
 };
 
 exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
+  let unset;
   if (versionToUpdate.signature) {
     const doc = await ESignHelper.generateSignatureRequest(versionToUpdate.signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
     versionToUpdate.signature = { eversignId: doc.data.document_hash };
+  } else {
+    unset = { 'versions.$[version].signature': '' };
   }
 
   const payload = { 'versions.$[version]': { ...versionToUpdate } };
   const contract = await Contract.findOneAndUpdate(
     { _id: contractId },
-    { $set: flat(payload) },
+    { $set: flat(payload), ...(!!unset && { $unset: unset }) },
     {
       // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
       arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId) }],
