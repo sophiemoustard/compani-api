@@ -50,19 +50,12 @@ exports.getAuxiliariesForCustomerFromHourlyEvents = async (customerId) => {
   const aggregateAuxiliariesFromEvents = [
     {
       $project: {
-        durationMs: {
-          $subtract: ['$endDate', '$startDate'],
-        },
+        durationMs: { $subtract: ['$endDate', '$startDate'] },
         startDate: 1,
         auxiliary: 1,
       },
     },
-    {
-      $group: {
-        _id: '$auxiliary',
-        events: { $push: '$$ROOT' },
-      },
-    },
+    { $group: { _id: '$auxiliary', events: { $push: '$$ROOT' } } },
     {
       $project: {
         totalDurationMs: { $sum: '$events.durationMs' },
