@@ -144,7 +144,11 @@ exports.plugin = {
                 name: Joi.string(),
                 email: Joi.string(),
               })).required(),
-              meta: Joi.object(),
+              meta: Joi.object({
+                auxiliaryDriveId: Joi.string().required(),
+                customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+                status: Joi.string(),
+              }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
             }),
