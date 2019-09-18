@@ -185,21 +185,48 @@ describe('updateVersion', () => {
   let ContractMock;
   let updateOneStub;
   let updatePreviousVersion;
+  let generateSignatureRequest;
   const contractId = new ObjectID();
   const versionId = new ObjectID();
-  const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     updateOneStub = sinon.stub(Contract, 'updateOne');
     updatePreviousVersion = sinon.stub(ContractHelper, 'updatePreviousVersion');
+    generateSignatureRequest = sinon.stub(ESignHelper, 'generateSignatureRequest');
   });
   afterEach(() => {
     ContractMock.restore();
     updateOneStub.restore();
     updatePreviousVersion.restore();
+    generateSignatureRequest.restore();
+  });
+
+  it('should generate signature and update version', async () => {
+    const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const contract = {
+      startDate: '2019-09-09T00:00:00',
+      versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
+    };
+    generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
+    ContractMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: contractId.toHexString() },
+        { $set: flat({ 'versions.$[version]': { ...versionToUpdate, signature: { eversignId: '1234567890' } } }) },
+        { arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId.toHexString()) }] }
+      )
+      .chain('lean')
+      .once()
+      .returns(contract);
+
+    await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
+
+    ContractMock.verify();
+    sinon.assert.calledWith(updateOneStub, { _id: contractId.toHexString() }, { startDate: '2019-09-10T00:00:00' });
+    sinon.assert.notCalled(updatePreviousVersion);
   });
 
   it('should update first version and contract', async () => {
+    const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
     const contract = {
       startDate: '2019-09-09T00:00:00',
       versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
@@ -222,6 +249,7 @@ describe('updateVersion', () => {
   });
 
   it('should update current and previous version', async () => {
+    const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
     const previousVersionId = new ObjectID();
     const contract = {
       startDate: '2019-09-09T00:00:00',

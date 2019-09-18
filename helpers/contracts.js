@@ -75,6 +75,13 @@ exports.updatePreviousVersion = async (contract, versionIndex, versionStartDate)
 };
 
 exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
+  if (versionToUpdate.signature) {
+    const doc = await ESignHelper.generateSignatureRequest(versionToUpdate.signature);
+    if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
+
+    versionToUpdate.signature = { eversignId: doc.data.document_hash };
+  }
+
   const payload = { 'versions.$[version]': { ...versionToUpdate } };
   const contract = await Contract.findOneAndUpdate(
     { _id: contractId },
