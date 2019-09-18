@@ -18,7 +18,7 @@ const invoiceAlertEmail = async (receiver) => {
   return mailInfo;
 };
 
-const completeIvoiceScriptEmail = async (sentNb, emails = null) => {
+const completeInvoiceScriptEmail = async (sentNb, emails = null) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: process.env.TECH_EMAILS,
@@ -30,11 +30,10 @@ const completeIvoiceScriptEmail = async (sentNb, emails = null) => {
     ? await sendinBlueTransporter.sendMail(mailOptions)
     : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
-  console.log('url', nodemailer.getTestMessageUrl(mailInfo));
   return mailInfo;
 };
 
 module.exports = {
   invoiceAlertEmail,
-  completeIvoiceScriptEmail,
+  completeInvoiceScriptEmail,
 };
