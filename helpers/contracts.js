@@ -15,6 +15,7 @@ const GDriveStorageHelper = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('../helpers/eSign');
+const EventRepository = require('../repositories/EventRepository');
 
 exports.endContract = async (contractId, contractToEnd, credentials) => {
   const contract = await Contract.findOne({ _id: contractId });
@@ -132,6 +133,12 @@ exports.deleteVersion = async (contractId, versionId) => {
       { autopopulate: false }
     );
   } else {
+    const { user, startDate, status, customer } = contract;
+    const query = { auxiliary: user, startDate, status };
+    if (customer) query.customer = customer;
+    const eventCount = await EventRepository.countAuxiliaryEventsBetweenDates(query);
+    if (eventCount) throw Boom.forbidden();
+
     await Contract.deleteOne({ _id: contractId });
     await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
     if (contract.customer) await Customer.updateOne({ _id: contract.customer }, { $pull: { contracts: contract._id } });

@@ -11,6 +11,7 @@ const GDriveStorageHelper = require('../../../helpers/gdriveStorage');
 const Contract = require('../../../models/Contract');
 const User = require('../../../models/User');
 const Customer = require('../../../models/Customer');
+const EventRepository = require('../../../repositories/EventRepository');
 require('sinon-mongoose');
 
 describe('endContract', () => {
@@ -277,6 +278,7 @@ describe('deleteVersion', () => {
   let updateOneCustomer;
   let updateOneUser;
   let deleteFile;
+  let countAuxiliaryEventsBetweenDates;
   const versionId = new ObjectID();
   const contractId = new ObjectID();
   beforeEach(() => {
@@ -286,6 +288,7 @@ describe('deleteVersion', () => {
     updateOneCustomer = sinon.stub(Customer, 'updateOne');
     updateOneUser = sinon.stub(User, 'updateOne');
     deleteFile = sinon.stub(GDriveStorageHelper, 'deleteFile');
+    countAuxiliaryEventsBetweenDates = sinon.stub(EventRepository, 'countAuxiliaryEventsBetweenDates');
   });
   afterEach(() => {
     ContractMock.restore();
@@ -294,23 +297,52 @@ describe('deleteVersion', () => {
     updateOneCustomer.restore();
     updateOneUser.restore();
     deleteFile.restore();
+    countAuxiliaryEventsBetweenDates.restore();
   });
 
   it('should delete contract', async () => {
     const contract = {
       _id: contractId,
+      startDate: '2019-09-09',
+      status: 'ok',
       user: 'toot',
       versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
     };
+    countAuxiliaryEventsBetweenDates.returns(0);
     ContractMock.expects('findOne').withExactArgs({ _id: contractId.toHexString() }).chain('lean').returns(contract);
 
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
     ContractMock.verify();
+    sinon.assert.calledWith(countAuxiliaryEventsBetweenDates, { auxiliary: 'toot', startDate: '2019-09-09', status: 'ok' });
     sinon.assert.notCalled(updateOneContract);
     sinon.assert.calledWith(deleteOne, { _id: contractId.toHexString() });
     sinon.assert.calledWith(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
     sinon.assert.notCalled(updateOneCustomer);
     sinon.assert.calledWith(deleteFile, '123456789');
+  });
+
+  it('should throw forbidden error as deletion is not allowed', async () => {
+    try {
+      const contract = {
+        _id: contractId,
+        user: 'toot',
+        versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
+      };
+      countAuxiliaryEventsBetweenDates.returns(0);
+      ContractMock.expects('findOne').withExactArgs({ _id: contractId.toHexString() }).chain('lean').returns(contract);
+
+      await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(403);
+
+      ContractMock.verify();
+      sinon.assert.notCalled(updateOneContract);
+      sinon.assert.called(countAuxiliaryEventsBetweenDates);
+      sinon.assert.notCalled(deleteOne);
+      sinon.assert.notCalled(updateOneUser);
+      sinon.assert.notCalled(updateOneCustomer);
+      sinon.assert.notCalled(deleteFile);
+    }
   });
 
   it('should delete version and update previous version for company contract', async () => {
