@@ -4,13 +4,14 @@ const mongoose = require('mongoose');
 const moment = require('moment');
 const path = require('path');
 const os = require('os');
+const get = require('lodash/get');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
+const Customer = require('../models/Customer');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
-const Customer = require('../models/Customer');
 const EventHelper = require('./events');
-const { addFile } = require('./gdriveStorage');
+const { addFile, deleteFile } = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('../helpers/eSign');
@@ -109,6 +110,37 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
   }
 
   return contract;
+};
+
+exports.deleteVersion = async (contractId, versionId) => {
+  const contract = await Contract.findOne({ _id: contractId });
+  if (!contract.versions || contract.versions.length === 0) return null;
+
+  const isLastVersion = contract.versions[contract.versions.length - 1]._id.toHexString() === versionId;
+  if (!isLastVersion) throw Boom.forbidden();
+  const deletedVersion = contract.versions[contract.versions.length - 1];
+
+  if (contract.versions.length > 1) {
+    await Contract.findOneAndUpdate(
+      { _id: contractId, 'versions._id': versionId },
+      { $pull: { versions: { _id: versionId } } },
+      { autopopulate: false }
+    );
+    await Contract.findOneAndUpdate(
+      { _id: contractId },
+      { $unset: { [`versions.${contract.versions.length - 2}.endDate`]: '' } },
+      { autopopulate: false }
+    );
+  } else {
+    await Contract.deleteOne({ _id: contractId });
+    await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
+    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $pull: { contracts: contract._id } });
+  }
+
+  const auxiliaryDocId = get(deletedVersion, 'auxiliaryDoc.driveId', '');
+  if (auxiliaryDocId) deleteFile(auxiliaryDocId);
+  const customerDocId = get(deletedVersion, 'customerDoc.driveId', '');
+  if (customerDocId) deleteFile(customerDocId);
 };
 
 exports.createAndSaveFile = async (version, fileInfo) => {

@@ -6,7 +6,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
-const { createVersion, endContract, createAndSaveFile, saveCompletedContract, updateVersion } = require('../helpers/contracts');
+const { createVersion, endContract, createAndSaveFile, saveCompletedContract, updateVersion, deleteVersion } = require('../helpers/contracts');
 const { generateSignatureRequest } = require('../helpers/eSign');
 
 const { language } = translate;
@@ -139,15 +139,9 @@ const updateContractVersion = async (req) => {
 
 const removeContractVersion = async (req) => {
   try {
-    await Contract.findOneAndUpdate(
-      { _id: req.params._id, 'versions._id': req.params.contractId },
-      { $pull: { versions: { _id: req.params.versionId } } },
-      { autopopulate: false }
-    );
+    await deleteVersion(req.params._id, req.params.versionId);
 
-    return {
-      message: translate[language].contractVersionRemoved,
-    };
+    return { message: translate[language].contractVersionRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);
