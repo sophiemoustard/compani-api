@@ -240,6 +240,10 @@ module.exports = {
     payDocumentsNotFound: 'Pay documents not found.',
     payDocumentNotFound: 'Pay document not found.',
     payDocumentDeleted: 'Pay document deleted.',
+
+    /* Stats */
+    statsFound: 'Stats found.',
+    statsNotFound: 'Stats not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -477,5 +481,9 @@ module.exports = {
     payDocumentsNotFound: 'Documents de paie non trouvés.',
     payDocumentNotFound: 'Document de paie non trouvé.',
     payDocumentDeleted: 'Document de paie supprimé.',
+
+    /* Stats */
+    statsFound: 'Stats trouvées.',
+    statsNotFound: 'Stats non trouvées.',
   },
 };

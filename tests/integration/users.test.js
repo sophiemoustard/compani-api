@@ -10,7 +10,6 @@ const User = require('../../models/User');
 const Drive = require('../../models/Google/Drive');
 const {
   userList,
-  customerList,
   userPayload,
   populateDB,
 } = require('./seed/usersSeed');
@@ -321,46 +320,6 @@ describe('USERS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/users/active',
-            headers: { 'x-access-token': authToken },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-  });
-
-  describe('GET /users/activeForCustomer', () => {
-    describe('Admin', () => {
-      beforeEach(populateDB);
-      beforeEach(async () => {
-        authToken = await getToken('admin');
-      });
-      it('should get all active auxiliaries', async () => {
-        const res = await app.inject({
-          method: 'GET',
-          url: `/users/activeForCustomer?customer=${customerList[0]._id}`,
-          headers: { 'x-access-token': authToken },
-        });
-        expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBe(1);
-        expect(res.result.data.users[0].totalHours).toBe(2.5);
-      });
-    });
-
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 200 },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'GET',
-            url: `/users/activeForCustomer?customer=${customerList[0]._id}`,
             headers: { 'x-access-token': authToken },
           });
 

@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const Customer = require('../models/Customer');
 
-exports.getAuxiliariesForCustomerFromHourlyEvents = async (customerId) => {
+exports.getCustomerFollowUp = async (customerId) => {
   const now = new Date();
 
   const aggregateHourlySubscriptions = [

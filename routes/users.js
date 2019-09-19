@@ -143,20 +143,6 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/activeForCustomer',
-      options: {
-        auth: { scope: ['users:list'] },
-        validate: {
-          query: {
-            customer: Joi.objectId().required(),
-          },
-        },
-      },
-      handler: activeListForCustomer,
-    });
-
-    server.route({
-      method: 'GET',
       path: '/{_id}',
       options: {
         auth: { scope: ['users:edit', 'user-{params._id}'] },

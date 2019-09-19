@@ -20,7 +20,6 @@ const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
 const cloudinary = require('../models/Cloudinary');
-const { getAuxiliariesForCustomerFromHourlyEvents } = require('../repositories/UserRepository');
 
 const { language } = translate;
 
@@ -118,29 +117,6 @@ const activeList = async (req) => {
     }
 
     const activeUsers = users.filter(user => user.isActive);
-
-    return {
-      message: translate[language].userFound,
-      data: { users: activeUsers },
-    };
-  } catch (e) {
-    req.log('error', e);
-    if (Boom.isBoom(e)) return e;
-    return Boom.badImplementation(e);
-  }
-};
-
-const activeListForCustomer = async (req) => {
-  try {
-    const users = await getAuxiliariesForCustomerFromHourlyEvents(req.query.customer);
-    if (users.length === 0) {
-      return {
-        message: translate[language].usersNotFound,
-        data: { users: [] },
-      };
-    }
-
-    const activeUsers = users.filter(user => User.isActive(user));
 
     return {
       message: translate[language].userFound,
@@ -486,7 +462,6 @@ module.exports = {
   create,
   list,
   activeList,
-  activeListForCustomer,
   show,
   update,
   remove,

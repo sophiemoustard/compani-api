@@ -119,4 +119,8 @@ exports.routes = [
     plugin: require('./payDocuments'),
     routes: { prefix: '/paydocuments' },
   },
+  {
+    plugin: require('./stats'),
+    routes: { prefix: '/stats' },
+  },
 ];
