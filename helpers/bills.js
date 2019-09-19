@@ -27,7 +27,7 @@ exports.formatSubscriptionData = (bill) => {
   };
 };
 
-exports.formatCustomerBills = (customerBills, customer, number) => {
+exports.formatCustomerBills = (customerBills, customer, number, shouldBeSent) => {
   const billedEvents = {};
   const bill = {
     customer: customer._id,
@@ -35,6 +35,7 @@ exports.formatCustomerBills = (customerBills, customer, number) => {
     number: exports.formatBillNumber(number.prefix, number.seq),
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
+    shouldBeSent,
   };
 
   for (const draftBill of customerBills.bills) {
@@ -134,7 +135,7 @@ exports.formatAndCreateBills = async (number, groupByCustomerBills) => {
 
   for (const draftBills of groupByCustomerBills) {
     if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {
-      const customerBillingInfo = exports.formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
+      const customerBillingInfo = exports.formatCustomerBills(draftBills.customerBills, draftBills.customer, number, draftBills.shouldBeSent);
       eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
       number.seq += 1;
       promises.push((new Bill(customerBillingInfo.bill)).save());

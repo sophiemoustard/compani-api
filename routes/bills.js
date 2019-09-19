@@ -70,6 +70,7 @@ exports.plugin = {
             bills: Joi.array().items(Joi.object({
               customerId: Joi.objectId(),
               customer: Joi.object().required(),
+              shouldBeSent: Joi.boolean(),
               customerBills: Joi.object({
                 bills: Joi.array().items(Joi.object({
                   _id: Joi.objectId(),
@@ -102,7 +103,6 @@ exports.plugin = {
                   vat: Joi.number().required(),
                   discountEdition: Joi.boolean(),
                   identity: Joi.object(),
-                  shouldBeSent: Joi.boolean(),
                 })),
                 total: Joi.number(),
               }),

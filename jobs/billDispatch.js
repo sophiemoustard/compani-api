@@ -40,8 +40,8 @@ const billDispatch = {
           server.log(['error', 'cron', 'jobs'], e);
         }
       }
-      this.onComplete(server, results, errors);
     }
+    this.onComplete(server, results, errors);
   },
   async onComplete(server, results, errors) {
     try {
