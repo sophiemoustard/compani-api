@@ -87,6 +87,7 @@ describe('formatCustomerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
+      shouldBeSent: true,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -120,6 +121,7 @@ describe('formatCustomerBills', () => {
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
       number: 'Picsou077',
+      shouldBeSent: true,
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
@@ -156,6 +158,7 @@ describe('formatCustomerBills', () => {
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
       total: 14.4,
+      shouldBeSent: false,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -211,6 +214,7 @@ describe('formatCustomerBills', () => {
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
       number: 'Picsou077',
+      shouldBeSent: false,
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,

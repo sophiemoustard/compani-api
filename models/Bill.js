@@ -37,6 +37,8 @@ const BillSchema = mongoose.Schema({
   origin: { type: String, enum: BILL_ORIGINS, default: COMPANI },
   netInclTaxes: Number,
   driveFile: driveResourceSchemaDefinition,
+  sentAt: Date,
+  shouldBeSent: Boolean,
 }, { timestamps: true });
 
 module.exports = mongoose.model('Bill', BillSchema);

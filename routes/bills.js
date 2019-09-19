@@ -103,6 +103,7 @@ exports.plugin = {
                   discountEdition: Joi.boolean(),
                   identity: Joi.object(),
                 })),
+                shouldBeSent: Joi.boolean(),
                 total: Joi.number(),
               }),
               thirdPartyPayerBills: Joi.array().items(Joi.object({

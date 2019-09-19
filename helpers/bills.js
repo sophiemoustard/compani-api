@@ -35,6 +35,7 @@ exports.formatCustomerBills = (customerBills, customer, number) => {
     number: exports.formatBillNumber(number.prefix, number.seq),
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
+    shouldBeSent: customerBills.shouldBeSent,
   };
 
   for (const draftBill of customerBills.bills) {
