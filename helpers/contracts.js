@@ -60,17 +60,18 @@ exports.createVersion = async (contractId, newVersion) => {
   if (!contract) return null;
 
   if (contract.versions.length > 1) {
-    contract = await exports.updatePreviousVersion(contract, contract.versions.length - 1, newVersion.startDate);
+    const previousVersionIndex = contract.versions.length - 2;
+    contract = await exports.updatePreviousVersion(contract, previousVersionIndex, newVersion.startDate);
   }
 
   return contract;
 };
 
-exports.updatePreviousVersion = async (contract, versionIndex, versionStartDate) => {
+exports.updatePreviousVersion = async (contract, previousVersionIndex, versionStartDate) => {
   const previousVersionStartDate = moment(versionStartDate).subtract(1, 'd').endOf('d').toISOString();
   return Contract.findOneAndUpdate(
     { _id: contract._id },
-    { $set: { [`versions.${versionIndex - 1}.endDate`]: previousVersionStartDate } }
+    { $set: { [`versions.${previousVersionIndex}.endDate`]: previousVersionStartDate } }
   );
 };
 
@@ -102,7 +103,8 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
     if (index === 0) {
       await Contract.updateOne({ _id: contractId }, { startDate: versionToUpdate.startDate });
     } else {
-      await exports.updatePreviousVersion(contract, index, versionToUpdate.startDate);
+      const previousVersionIndex = index - 1;
+      await exports.updatePreviousVersion(contract, previousVersionIndex, versionToUpdate.startDate);
     }
   }
 

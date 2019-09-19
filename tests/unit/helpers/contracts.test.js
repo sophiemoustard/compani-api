@@ -137,7 +137,7 @@ describe('createVersion', () => {
 
     ContractMock.verify();
     sinon.assert.notCalled(generateSignatureRequest);
-    sinon.assert.calledWith(updatePreviousVersion, contract, 1, '2019-09-10T00:00:00');
+    sinon.assert.calledWith(updatePreviousVersion, contract, 0, '2019-09-10T00:00:00');
   });
 
   it('should generate signature request', async () => {
@@ -263,7 +263,7 @@ describe('updateVersion', () => {
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
 
     ContractMock.verify();
-    sinon.assert.calledWith(updatePreviousVersion, contract, 1, '2019-09-10T00:00:00');
+    sinon.assert.calledWith(updatePreviousVersion, contract, 0, '2019-09-10T00:00:00');
     sinon.assert.notCalled(updateOneStub);
   });
 });
