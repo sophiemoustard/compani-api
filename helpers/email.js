@@ -8,13 +8,14 @@ const billAlertEmail = async (receiver) => {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
     subject: 'Nouvelle facture Alenvi',
-    html: EmailOptionsHelper.invoiceEmail(),
+    html: await EmailOptionsHelper.billEmail(),
   };
 
   const mailInfo = process.env.NODE_ENV === 'production'
     ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
     : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
+  console.log('url', nodemailer.getTestMessageUrl(mailInfo));
   return mailInfo;
 };
 

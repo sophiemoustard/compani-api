@@ -45,11 +45,11 @@ const billDispatch = {
   },
   async onComplete(server, results, errors) {
     try {
-      server.log(['cron'], 'Invoice dispatch OK');
+      server.log(['cron'], 'Bill dispatch OK');
       if (errors && errors.length) {
         server.log(['error', 'cron', 'oncomplete'], errors);
       }
-      server.log(['cron', 'oncomplete'], `Invoice dispatch: ${results.length} emails envoyés.`);
+      server.log(['cron', 'oncomplete'], `Bill dispatch: ${results.length} emails envoyés.`);
       await EmailHelper.completeBillScriptEmail(results.length, errors);
     } catch (e) {
       server.log(['error', 'cron', 'oncomplete'], e);

@@ -36,7 +36,7 @@ describe('method', () => {
     date.restore();
   });
 
-  it('should email an invoice to customers helpers', async () => {
+  it('should email a bill to customers helpers', async () => {
     const server = 'server';
     const billsIds = [new ObjectID()];
     const customers = [{

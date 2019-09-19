@@ -1,3 +1,9 @@
+const handlebars = require('handlebars');
+const path = require('path');
+const fs = require('fs');
+
+const fsPromises = fs.promises;
+
 const welcomeEmailContent = receiver => (
   `<p>Bonjour,</p>
   <p>Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires d’envie chez votre proche, ainsi 
@@ -24,14 +30,11 @@ const forgetPasswordEmail = resetPassword => (
     L'équipe Compani</p>`
 );
 
-const invoiceEmail = () => (
-  `<p>Bonjour,</p>
-  <p>Une nouvelle facture Alenvi est disponible dans votre espace Compani.<br>
-    Pour y accéder, veuillez cliquer sur le bouton ci-dessous.</p>
-  <a style="-webkit-appearance: button; -moz-appearance: button; appearance: button; text-decoration: none; background-color: #e2007a!important; color: #fff!important; cursor: pointer;" href="${process.env.WEBSITE_HOSTNAME}/customers/documents">Accéder à la facture</a>
-  </button>
-  <p>L'équipe Compani</p>`
-);
+const billEmail = async () => {
+  const content = await fsPromises.readFile(path.join(__dirname, '../data/emails/billDispatch.html'), 'utf8');
+  const template = handlebars.compile(content);
+  return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents` });
+};
 
 const completeBillScriptEmailBody = (sentNb, emails) => {
   let body = `<p>Script correctement exécuté. ${sentNb} emails envoyés.</p>`;
@@ -44,6 +47,6 @@ const completeBillScriptEmailBody = (sentNb, emails) => {
 module.exports = {
   welcomeEmailContent,
   forgetPasswordEmail,
-  invoiceEmail,
+  billEmail,
   completeBillScriptEmailBody,
 };
