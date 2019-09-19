@@ -79,7 +79,7 @@ describe('method', () => {
 
     billAlertEmailStub
       .onFirstCall()
-      .returns(new Promise(resolve => resolve('leroi@lion.com')))
+      .returns(Promise.resolve('leroi@lion.com'))
       .onSecondCall()
       .returns(Promise.reject(error));
 
