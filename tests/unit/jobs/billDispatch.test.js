@@ -54,7 +54,7 @@ describe('method', () => {
 
     BillMock
       .expects('updateMany')
-      .withArgs({ _id: { $in: billsIds } }, { $set: { sent: fakeDate } })
+      .withArgs({ _id: { $in: billsIds } }, { $set: { sentAt: fakeDate } })
       .once();
 
     await billDispatch.method(server);

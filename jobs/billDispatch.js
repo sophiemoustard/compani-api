@@ -32,7 +32,7 @@ const billDispatch = {
         try {
           const emailsSent = await Promise.all(requests);
           results.push(...emailsSent);
-          await Bill.updateMany({ _id: { $in: data.billsIds } }, { $set: { sent: new Date() } });
+          await Bill.updateMany({ _id: { $in: data.billsIds } }, { $set: { sentAt: new Date() } });
         } catch (e) {
           if (!(e instanceof mongoose.Error)) {
             errors.push(...data.helpers.map(helper => helper.local && helper.local.email));
