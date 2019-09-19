@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
 const Event = require('../models/Event');
 const { INTERNAL_HOUR, INTERVENTION, ABSENCE, INVOICED_AND_PAYED, COMPANY_CONTRACT } = require('../helpers/constants');
 
@@ -100,6 +101,15 @@ exports.getEventsInConflicts = async (dates, auxiliary, types, eventId) => {
   if (eventId) rules._id = { $ne: eventId };
 
   return Event.find(rules).lean();
+};
+
+exports.countAuxiliaryEventsBetweenDates = (filters) => {
+  const dateQuery = filters.endDate
+    ? { startDate: { $lt: filters.endDate }, endDate: { $gt: filters.startDate } }
+    : { endDate: { $gt: filters.startDate } };
+  const query = { ...dateQuery, ...omit(filters, ['startDate', 'endDate']) };
+
+  return Event.countDocuments(query);
 };
 
 exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, type) => {

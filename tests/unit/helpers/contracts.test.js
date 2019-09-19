@@ -7,8 +7,11 @@ const { ObjectID } = require('mongodb');
 const EventHelper = require('../../../helpers/events');
 const ContractHelper = require('../../../helpers/contracts');
 const ESignHelper = require('../../../helpers/eSign');
+const GDriveStorageHelper = require('../../../helpers/gdriveStorage');
 const Contract = require('../../../models/Contract');
 const User = require('../../../models/User');
+const Customer = require('../../../models/Customer');
+const EventRepository = require('../../../repositories/EventRepository');
 require('sinon-mongoose');
 
 describe('endContract', () => {
@@ -265,5 +268,115 @@ describe('updateVersion', () => {
     ContractMock.verify();
     sinon.assert.calledWith(updatePreviousVersion, contract, 0, '2019-09-10T00:00:00');
     sinon.assert.notCalled(updateOneStub);
+  });
+});
+
+describe('deleteVersion', () => {
+  let findOneContract;
+  let saveContract;
+  let deleteOne;
+  let updateOneCustomer;
+  let updateOneUser;
+  let deleteFile;
+  let countAuxiliaryEventsBetweenDates;
+  const versionId = new ObjectID();
+  const contractId = new ObjectID();
+  beforeEach(() => {
+    findOneContract = sinon.stub(Contract, 'findOne');
+    saveContract = sinon.stub(Contract.prototype, 'save');
+    deleteOne = sinon.stub(Contract, 'deleteOne');
+    updateOneCustomer = sinon.stub(Customer, 'updateOne');
+    updateOneUser = sinon.stub(User, 'updateOne');
+    deleteFile = sinon.stub(GDriveStorageHelper, 'deleteFile');
+    countAuxiliaryEventsBetweenDates = sinon.stub(EventRepository, 'countAuxiliaryEventsBetweenDates');
+  });
+  afterEach(() => {
+    findOneContract.restore();
+    saveContract.restore();
+    deleteOne.restore();
+    updateOneCustomer.restore();
+    updateOneUser.restore();
+    deleteFile.restore();
+    countAuxiliaryEventsBetweenDates.restore();
+  });
+
+  it('should delete contract', async () => {
+    const contract = {
+      _id: contractId,
+      startDate: '2019-09-09',
+      status: 'ok',
+      user: 'toot',
+      versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
+    };
+    countAuxiliaryEventsBetweenDates.returns(0);
+    findOneContract.returns(contract);
+
+    await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
+    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+    sinon.assert.calledWith(countAuxiliaryEventsBetweenDates, { auxiliary: 'toot', startDate: '2019-09-09', status: 'ok' });
+    sinon.assert.notCalled(saveContract);
+    sinon.assert.calledWith(deleteOne, { _id: contractId.toHexString() });
+    sinon.assert.calledWith(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
+    sinon.assert.notCalled(updateOneCustomer);
+    sinon.assert.calledWith(deleteFile, '123456789');
+  });
+
+  it('should throw forbidden error as deletion is not allowed', async () => {
+    try {
+      const contract = {
+        _id: contractId,
+        user: 'toot',
+        versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
+      };
+      countAuxiliaryEventsBetweenDates.returns(0);
+      findOneContract.returns(contract);
+
+      await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(403);
+
+      sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+      sinon.assert.notCalled(saveContract);
+      sinon.assert.called(countAuxiliaryEventsBetweenDates);
+      sinon.assert.notCalled(deleteOne);
+      sinon.assert.notCalled(updateOneUser);
+      sinon.assert.notCalled(updateOneCustomer);
+      sinon.assert.notCalled(deleteFile);
+    }
+  });
+
+  it('should delete version and update previous version for company contract', async () => {
+    const contract = new Contract({
+      _id: contractId,
+      user: 'toot',
+      versions: [{ _id: new ObjectID() }, { _id: versionId, customerDoc: { driveId: '123456789' } }],
+    });
+    findOneContract.returns(contract);
+
+    await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
+    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+    sinon.assert.called(saveContract);
+    sinon.assert.notCalled(deleteOne);
+    sinon.assert.notCalled(updateOneUser);
+    sinon.assert.notCalled(updateOneCustomer);
+    sinon.assert.calledWith(deleteFile, '123456789');
+  });
+
+  it('should delete customer contract', async () => {
+    const contract = {
+      _id: contractId,
+      user: 'toot',
+      customer: 'qwer',
+      versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
+    };
+    findOneContract.returns(contract);
+
+    await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
+    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+    sinon.assert.notCalled(saveContract);
+    sinon.assert.calledWith(deleteOne, { _id: contractId.toHexString() });
+    sinon.assert.calledWith(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
+    sinon.assert.calledWith(updateOneCustomer, { _id: 'qwer' }, { $pull: { contracts: contractId } });
+    sinon.assert.calledWith(deleteFile, '123456789');
   });
 });

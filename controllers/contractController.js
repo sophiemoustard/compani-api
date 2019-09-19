@@ -6,7 +6,7 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
-const { createVersion, endContract, createAndSaveFile, saveCompletedContract, updateVersion } = require('../helpers/contracts');
+const { createVersion, endContract, createAndSaveFile, saveCompletedContract, updateVersion, deleteVersion } = require('../helpers/contracts');
 const { generateSignatureRequest } = require('../helpers/eSign');
 
 const { language } = translate;
@@ -24,7 +24,7 @@ const list = async (req) => {
     return { message, data: { contracts } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -45,7 +45,7 @@ const get = async (req) => {
     return { message: translate[language].contractFound, data: { contract } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -74,7 +74,7 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -106,7 +106,7 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -118,7 +118,7 @@ const createContractVersion = async (req) => {
     return { message: translate[language].contractVersionAdded, data: { contract } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -133,24 +133,18 @@ const updateContractVersion = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const removeContractVersion = async (req) => {
   try {
-    await Contract.findOneAndUpdate(
-      { _id: req.params._id, 'versions._id': req.params.contractId },
-      { $pull: { versions: { _id: req.params.versionId } } },
-      { autopopulate: false }
-    );
+    await deleteVersion(req.params._id, req.params.versionId);
 
-    return {
-      message: translate[language].contractVersionRemoved,
-    };
+    return { message: translate[language].contractVersionRemoved };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -174,7 +168,7 @@ const uploadFile = async (req) => {
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -195,7 +189,7 @@ const receiveSignatureEvents = async (req, h) => {
     return h.response().code(200);
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
