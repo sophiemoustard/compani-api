@@ -12,8 +12,8 @@ const invoiceDispatch = require('../../../jobs/invoiceDispatch');
 describe('method', () => {
   let BillMock;
   let findHelpersFromCustomerBillStub;
-  let invoiceAlertEmailStub;
-  let completeInvoiceScriptEmailStub;
+  let billAlertEmailStub;
+  let completeBillScriptEmailStub;
   let invoiceDispatchOnCompleteStub;
   let date;
   const fakeDate = new Date('2019-01-03');
@@ -21,8 +21,8 @@ describe('method', () => {
   beforeEach(() => {
     BillMock = sinon.mock(Bill);
     findHelpersFromCustomerBillStub = sinon.stub(BillRepository, 'findHelpersFromCustomerBill');
-    invoiceAlertEmailStub = sinon.stub(EmailHelper, 'invoiceAlertEmail');
-    completeInvoiceScriptEmailStub = sinon.stub(EmailHelper, 'completeInvoiceScriptEmail');
+    billAlertEmailStub = sinon.stub(EmailHelper, 'billAlertEmail');
+    completeBillScriptEmailStub = sinon.stub(EmailHelper, 'completeBillScriptEmail');
     invoiceDispatchOnCompleteStub = sinon.stub(invoiceDispatch, 'onComplete');
     date = sinon.useFakeTimers(fakeDate.getTime());
   });
@@ -30,8 +30,8 @@ describe('method', () => {
   afterEach(() => {
     BillMock.restore();
     findHelpersFromCustomerBillStub.restore();
-    invoiceAlertEmailStub.restore();
-    completeInvoiceScriptEmailStub.restore();
+    billAlertEmailStub.restore();
+    completeBillScriptEmailStub.restore();
     invoiceDispatchOnCompleteStub.restore();
     date.restore();
   });
@@ -46,7 +46,7 @@ describe('method', () => {
 
     findHelpersFromCustomerBillStub.returns(customers);
 
-    invoiceAlertEmailStub
+    billAlertEmailStub
       .onFirstCall()
       .returns(new Promise(resolve => resolve('leroi@lion.com')))
       .onSecondCall()
@@ -58,9 +58,9 @@ describe('method', () => {
       .once();
 
     await invoiceDispatch.method(server);
-    expect(invoiceAlertEmailStub.callCount).toBe(2);
-    expect(invoiceAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
-    expect(invoiceAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
+    expect(billAlertEmailStub.callCount).toBe(2);
+    expect(billAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
+    expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
     BillMock.verify();
     sinon.assert.calledWith(invoiceDispatchOnCompleteStub, server, ['leroi@lion.com', 'rox@rouky.com'], []);
   });
@@ -77,7 +77,7 @@ describe('method', () => {
 
     findHelpersFromCustomerBillStub.returns(customers);
 
-    invoiceAlertEmailStub
+    billAlertEmailStub
       .onFirstCall()
       .returns(new Promise(resolve => resolve('leroi@lion.com')))
       .onSecondCall()
@@ -89,9 +89,9 @@ describe('method', () => {
 
 
     await invoiceDispatch.method(server);
-    expect(invoiceAlertEmailStub.callCount).toBe(2);
-    expect(invoiceAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
-    expect(invoiceAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
+    expect(billAlertEmailStub.callCount).toBe(2);
+    expect(billAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
+    expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
     BillMock.verify();
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
     sinon.assert.calledWith(invoiceDispatchOnCompleteStub, server, [], ['leroi@lion.com', 'rox@rouky.com']);
