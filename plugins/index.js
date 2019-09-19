@@ -2,7 +2,7 @@ const good = require('./good');
 const hapiSentry = require('./hapiSentry');
 const hapiAuthJwt2 = require('./hapiAuthJwt2');
 const cron = require('./cron');
-const { invoiceDispatch } = require('../jobs/invoiceDispatch');
+const invoiceDispatch = require('../jobs/invoiceDispatch');
 
 const plugins = [
   {
