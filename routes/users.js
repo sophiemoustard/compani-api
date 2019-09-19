@@ -8,6 +8,7 @@ const {
   create,
   list,
   activeList,
+  activeListForCustomer,
   show,
   update,
   remove,
