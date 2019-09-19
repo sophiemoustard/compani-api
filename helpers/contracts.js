@@ -79,30 +79,41 @@ exports.updatePreviousVersion = async (contract, previousVersionIndex, versionSt
 };
 
 exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
-  let unset;
+  let contract = await Contract.findOne({ _id: contractId });
+  const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
   if (versionToUpdate.signature) {
     const doc = await ESignHelper.generateSignatureRequest(versionToUpdate.signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
-    versionToUpdate.signature = { eversignId: doc.data.document_hash };
+    contract.versions[index].signature = { eversignId: doc.data.document_hash };
   } else {
-    unset = { 'versions.$[version].signature': '' };
+    contract.versions[index].signature = { eversignId: undefined };
   }
 
-  const payload = { $set: flat({ 'versions.$[version]': { ...versionToUpdate } }) };
-  if (unset) payload.$unset = unset;
-  const contract = await Contract.findOneAndUpdate(
-    { _id: contractId },
-    { ...payload },
-    {
-      // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
-      arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(versionId) }],
+  if (contract.versions[index].customerDoc) {
+    if (!contract.versions[index].customerArchives) {
+      contract.versions[index].customerArchives = [contract.versions[index].customerDoc];
+    } else {
+      contract.versions[index].customerArchives.push(contract.versions[index].customerDoc);
     }
-  ).lean();
-  if (!contract) return null;
+    contract.versions[index].customerDoc = undefined;
+  }
+
+  if (contract.versions[index].auxiliaryDoc) {
+    if (!contract.versions[index].auxiliaryArchives) {
+      contract.versions[index].auxiliaryArchives = [{ ...contract.versions[index].auxiliaryDoc }];
+    } else {
+      contract.versions[index].auxiliaryArchives.push({ ...contract.versions[index].auxiliaryDoc });
+    }
+    contract.versions[index].auxiliaryDoc = undefined;
+  }
+
+  contract.versions[index].startDate = versionToUpdate.startDate;
+  contract.versions[index].grossHourlyRate = versionToUpdate.grossHourlyRate;
+
+  contract = await contract.save();
 
   if (versionToUpdate.startDate) {
-    const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
     if (index === 0) {
       await Contract.updateOne({ _id: contractId }, { startDate: versionToUpdate.startDate });
     } else {
@@ -153,11 +164,10 @@ exports.createAndSaveFile = async (version, fileInfo) => {
 
   return Contract.findOneAndUpdate(
     { _id: version.contractId },
-    { $set: { 'versions.$[version]': payload } },
+    { $set: flat({ 'versions.$[version]': payload }) },
     {
       new: true,
       arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(version._id) }],
-      autopopulate: false,
     }
   );
 };
