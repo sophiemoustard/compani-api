@@ -6,7 +6,7 @@ const {
 } = require('./seed/statsSeed');
 const { getToken } = require('./seed/authentificationSeed');
 
-describe('GET /stats/customerFollowUp', () => {
+describe('GET /stats/customer-follow-up', () => {
   let adminToken = null;
 
   describe('Admin', () => {
@@ -17,7 +17,7 @@ describe('GET /stats/customerFollowUp', () => {
     it('should get customer follow up', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customerFollowUp?customer=${customerList[0]._id}`,
+        url: `/stats/customer-follow-up?customer=${customerList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
@@ -38,7 +38,7 @@ describe('GET /stats/customerFollowUp', () => {
         const authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/stats/customerFollowUp?customer=${customerList[0]._id}`,
+          url: `/stats/customer-follow-up?customer=${customerList[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 

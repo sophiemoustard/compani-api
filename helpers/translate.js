@@ -483,7 +483,7 @@ module.exports = {
     payDocumentDeleted: 'Document de paie supprimé.',
 
     /* Stats */
-    statsFound: 'Stats trouvées.',
-    statsNotFound: 'Stats non trouvées.',
+    statsFound: 'Statistiques trouvées.',
+    statsNotFound: 'Statistiques non trouvées.',
   },
 };

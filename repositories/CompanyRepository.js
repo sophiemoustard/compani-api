@@ -111,10 +111,27 @@ exports.getCustomerFollowUp = async (customerId) => {
     },
   ];
 
+  const pickFields = [{
+    $project: {
+      'picture.link': 1,
+      'identity.firstname': 1,
+      'identity.lastname': 1,
+      'sector.name': 1,
+      totalHours: 1,
+      'lastEvent.startDate': 1,
+      // to compute isActive
+      'role.name': 1,
+      inactivityDate: 1,
+      'contracts._id': 1,
+      createdAt: 1,
+    },
+  }];
+
   return Customer.aggregate([
     ...aggregateHourlySubscriptions,
     ...aggregateEventsFromSubscriptions,
     ...aggregateAuxiliariesFromEvents,
     ...lookup,
+    ...pickFields,
   ]);
 };

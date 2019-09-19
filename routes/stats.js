@@ -10,9 +10,9 @@ exports.plugin = {
   register: async (server) => {
     server.route({
       method: 'GET',
-      path: '/customerFollowUp',
+      path: '/customer-follow-up',
       options: {
-        auth: { scope: ['customers:read', 'customer-{query.id}'] },
+        auth: { scope: ['customers:read'] },
         validate: {
           query: {
             customer: Joi.objectId().required(),
