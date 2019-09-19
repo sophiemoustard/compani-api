@@ -97,6 +97,7 @@ exports.plugin = {
             customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
             groupBy: Joi.string(),
+            status: Joi.string(),
           },
         },
       },

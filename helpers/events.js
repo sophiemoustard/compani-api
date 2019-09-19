@@ -69,9 +69,10 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
 exports.getListQuery = (query) => {
   const rules = [];
 
-  const { auxiliary, type, customer, sector, isBilled, startDate, endDate } = query;
+  const { auxiliary, type, customer, sector, isBilled, startDate, endDate, status } = query;
 
   if (type) rules.push({ type });
+  if (status) rules.push({ status });
 
   const sectorOrAuxiliary = [];
   if (auxiliary) {
@@ -89,26 +90,13 @@ exports.getListQuery = (query) => {
     rules.push({ customer: { $in: customerCondition } });
   }
   if (isBilled) rules.push({ customer: isBilled });
-  if (startDate && endDate) {
+  if (startDate) {
     const startDateQuery = moment(startDate).startOf('d').toDate();
+    rules.push({ endDate: { $gt: startDateQuery } });
+  }
+  if (endDate) {
     const endDateQuery = moment(endDate).endOf('d').toDate();
-    rules.push({
-      $or: [
-        { startDate: { $lte: endDateQuery, $gte: startDateQuery } },
-        { endDate: { $lte: endDateQuery, $gte: startDateQuery } },
-        { endDate: { $gte: endDateQuery }, startDate: { $lte: startDateQuery } },
-      ],
-    });
-  } else if (startDate && !endDate) {
-    const startDateQuery = moment(startDate).startOf('d').toDate();
-    rules.push({
-      $or: [{ startDate: { $gte: startDateQuery } }, { endDate: { $gte: startDateQuery } }],
-    });
-  } else if (endDate) {
-    const endDateQuery = moment(endDate).endOf('d').toDate();
-    rules.push({
-      $or: [{ startDate: { $lte: endDateQuery } }, { endDate: { $lte: endDateQuery } }],
-    });
+    rules.push({ startDate: { $lt: endDateQuery } });
   }
 
   return rules.length > 0 ? { $and: rules } : {};

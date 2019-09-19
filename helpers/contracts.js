@@ -5,6 +5,7 @@ const moment = require('moment');
 const path = require('path');
 const os = require('os');
 const get = require('lodash/get');
+const pullAt = require('lodash/pullAt');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
@@ -114,24 +115,17 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
 };
 
 exports.deleteVersion = async (contractId, versionId) => {
-  const contract = await Contract.findOne({ _id: contractId }).lean();
-  if (!contract.versions || contract.versions.length === 0) return null;
+  const contract = await Contract.findOne({ _id: contractId, 'versions.0': { $exists: true } });
+  if (!contract) return null;
 
   const isLastVersion = contract.versions[contract.versions.length - 1]._id.toHexString() === versionId;
   if (!isLastVersion) throw Boom.forbidden();
   const deletedVersion = contract.versions[contract.versions.length - 1];
 
   if (contract.versions.length > 1) {
-    await Contract.updateOne(
-      { _id: contractId, 'versions._id': versionId },
-      { $pull: { versions: { _id: versionId } } },
-      { autopopulate: false }
-    );
-    await Contract.updateOne(
-      { _id: contractId },
-      { $unset: { [`versions.${contract.versions.length - 2}.endDate`]: '' } },
-      { autopopulate: false }
-    );
+    contract.versions[contract.versions.length - 2].endDate = undefined;
+    contract.versions.pop();
+    contract.save();
   } else {
     const { user, startDate, status, customer } = contract;
     const query = { auxiliary: user, startDate, status };
@@ -144,9 +138,9 @@ exports.deleteVersion = async (contractId, versionId) => {
     if (contract.customer) await Customer.updateOne({ _id: contract.customer }, { $pull: { contracts: contract._id } });
   }
 
-  const auxiliaryDriveId = get(deletedVersion, 'auxiliaryDoc.driveId', '');
+  const auxiliaryDriveId = get(deletedVersion, 'auxiliaryDoc.driveId');
   if (auxiliaryDriveId) GDriveStorageHelper.deleteFile(auxiliaryDriveId);
-  const customerDriveId = get(deletedVersion, 'customerDoc.driveId', '');
+  const customerDriveId = get(deletedVersion, 'customerDoc.driveId');
   if (customerDriveId) GDriveStorageHelper.deleteFile(customerDriveId);
 };
 
