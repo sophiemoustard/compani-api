@@ -21,7 +21,7 @@ const invoiceDispatch = {
         const requests = data.helpers.map((helper) => {
           try {
             if (helper.local && helper.local.email) {
-              return EmailHelper.billAlertEmail(helper.local.email);
+              return EmailHelper.invoiceAlertEmail(helper.local.email);
             }
           } catch (e) {
             server.log(['error', 'cron', 'jobs'], e);
@@ -50,7 +50,7 @@ const invoiceDispatch = {
         server.log(['error', 'cron', 'oncomplete'], errors);
       }
       server.log(['cron', 'oncomplete'], `Invoice dispatch: ${results.length} emails envoyés.`);
-      await EmailHelper.completeBillScriptEmail(results.length, errors);
+      await EmailHelper.completeInvoiceScriptEmail(results.length, errors);
     } catch (e) {
       server.log(['error', 'cron', 'oncomplete'], e);
     }

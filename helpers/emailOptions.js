@@ -24,7 +24,7 @@ const forgetPasswordEmail = resetPassword => (
     L'équipe Compani</p>`
 );
 
-const billEmail = () => (
+const invoiceEmail = () => (
   `<p>Bonjour,</p>
   <p>Une nouvelle facture Alenvi est disponible dans votre espace Compani.<br>
     Pour y accéder, veuillez cliquer sur le bouton ci-dessous.</p>
@@ -33,7 +33,7 @@ const billEmail = () => (
   <p>L'équipe Compani</p>`
 );
 
-const completeBillScriptEmailBody = (sentNb, emails) => {
+const completeInvoiceScriptEmailBody = (sentNb, emails) => {
   let body = `<p>Script correctement exécuté. ${sentNb} emails envoyés.</p>`;
   if (emails.length) {
     body = body.concat(`<p>Facture non envoyée à ${emails.join()}</p>`);
@@ -44,6 +44,6 @@ const completeBillScriptEmailBody = (sentNb, emails) => {
 module.exports = {
   welcomeEmailContent,
   forgetPasswordEmail,
-  billEmail,
-  completeBillScriptEmailBody,
+  invoiceEmail,
+  completeInvoiceScriptEmailBody,
 };

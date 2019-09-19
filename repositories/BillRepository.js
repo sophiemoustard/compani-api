@@ -49,7 +49,7 @@ exports.findAmountsGroupedByClient = async (customerId = null, dateMax = null) =
 
 exports.findHelpersFromCustomerBill = async () => Bill.aggregate([
   {
-    $match: {
+    $mach: {
       createdAt: {
         $lt: moment().startOf('d').toDate(),
         $gte: moment().subtract(1, 'd').startOf('d').toDate(),
@@ -58,7 +58,9 @@ exports.findHelpersFromCustomerBill = async () => Bill.aggregate([
       sent: { $exists: false },
     },
   },
-  { $group: { _id: '$customer', bills: { $addToSet: '$$ROOT' } } },
+  {
+    $group: { _id: '$customer', bills: { $addToSet: '$$ROOT' } },
+  },
   {
     $lookup: {
       from: 'customers',
@@ -67,7 +69,12 @@ exports.findHelpersFromCustomerBill = async () => Bill.aggregate([
       as: 'customer',
     },
   },
-  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+  {
+    $unwind: {
+      path: '$customer',
+      preserveNullAndEmptyArrays: true,
+    },
+  },
   {
     $lookup: {
       from: 'users',
