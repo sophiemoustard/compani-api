@@ -56,6 +56,8 @@ const ContractSchema = mongoose.Schema({
     grossHourlyRate: Number,
     customerDoc: driveResourceSchemaDefinition,
     auxiliaryDoc: driveResourceSchemaDefinition,
+    customerArchives: [driveResourceSchemaDefinition],
+    auxiliaryArchives: [driveResourceSchemaDefinition],
   }],
 }, {
   timestamps: true,
