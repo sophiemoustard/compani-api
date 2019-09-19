@@ -55,7 +55,7 @@ exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
         $gte: moment().subtract(1, 'd').startOf('d').toDate(),
       },
       client: { $exists: false },
-      sent: { $exists: false },
+      sentAt: { $exists: false },
     },
   },
   { $group: { _id: '$customer', bills: { $addToSet: '$$ROOT' } } },
