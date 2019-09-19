@@ -11,7 +11,7 @@ const billDispatch = require('../../../jobs/billDispatch');
 
 describe('method', () => {
   let BillMock;
-  let findHelpersFromCustomerBillStub;
+  let findBillsAndHelpersByCustomerStub;
   let billAlertEmailStub;
   let completeBillScriptEmailStub;
   let billDispatchOnCompleteStub;
@@ -20,7 +20,7 @@ describe('method', () => {
 
   beforeEach(() => {
     BillMock = sinon.mock(Bill);
-    findHelpersFromCustomerBillStub = sinon.stub(BillRepository, 'findHelpersFromCustomerBill');
+    findBillsAndHelpersByCustomerStub = sinon.stub(BillRepository, 'findBillsAndHelpersByCustomer');
     billAlertEmailStub = sinon.stub(EmailHelper, 'billAlertEmail');
     completeBillScriptEmailStub = sinon.stub(EmailHelper, 'completeBillScriptEmail');
     billDispatchOnCompleteStub = sinon.stub(billDispatch, 'onComplete');
@@ -29,7 +29,7 @@ describe('method', () => {
 
   afterEach(() => {
     BillMock.restore();
-    findHelpersFromCustomerBillStub.restore();
+    findBillsAndHelpersByCustomerStub.restore();
     billAlertEmailStub.restore();
     completeBillScriptEmailStub.restore();
     billDispatchOnCompleteStub.restore();
@@ -44,7 +44,7 @@ describe('method', () => {
       bills: [{ _id: billsIds[0] }],
     }];
 
-    findHelpersFromCustomerBillStub.returns(customers);
+    findBillsAndHelpersByCustomerStub.returns(customers);
 
     billAlertEmailStub
       .onFirstCall()
@@ -75,7 +75,7 @@ describe('method', () => {
       bills: [{ _id: billsIds[0] }],
     }];
 
-    findHelpersFromCustomerBillStub.returns(customers);
+    findBillsAndHelpersByCustomerStub.returns(customers);
 
     billAlertEmailStub
       .onFirstCall()

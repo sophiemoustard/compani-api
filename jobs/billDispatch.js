@@ -9,7 +9,7 @@ const billDispatch = {
   async method(server) {
     const errors = [];
     const results = [];
-    const customers = await BillRepository.findHelpersFromCustomerBill();
+    const customers = await BillRepository.findBillsAndHelpersByCustomer();
     if (customers.length) {
       for (let i = 0, l = customers.length; i < l; i += BATCH_SIZE) {
         const customersChunk = customers.slice(i, i + BATCH_SIZE);

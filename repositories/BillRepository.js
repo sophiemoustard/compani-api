@@ -47,7 +47,7 @@ exports.findAmountsGroupedByClient = async (customerId = null, dateMax = null) =
   return billsAmounts;
 };
 
-exports.findHelpersFromCustomerBill = async () => Bill.aggregate([
+exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
   {
     $match: {
       createdAt: {
