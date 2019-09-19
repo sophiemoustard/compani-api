@@ -15,7 +15,6 @@ const billAlertEmail = async (receiver) => {
     ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
     : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
-  console.log('url', nodemailer.getTestMessageUrl(mailInfo));
   return mailInfo;
 };
 

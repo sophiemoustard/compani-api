@@ -102,6 +102,7 @@ exports.plugin = {
                   vat: Joi.number().required(),
                   discountEdition: Joi.boolean(),
                   identity: Joi.object(),
+                  shouldBeSent: Joi.boolean(),
                 })),
                 total: Joi.number(),
               }),

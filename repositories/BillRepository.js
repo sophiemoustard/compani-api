@@ -56,6 +56,7 @@ exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
       },
       client: { $exists: false },
       sentAt: { $exists: false },
+      shouldBeSent: true,
     },
   },
   { $group: { _id: '$customer', bills: { $addToSet: '$$ROOT' } } },
@@ -67,7 +68,7 @@ exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
       as: 'customer',
     },
   },
-  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+  { $unwind: { path: '$customer' } },
   {
     $lookup: {
       from: 'users',

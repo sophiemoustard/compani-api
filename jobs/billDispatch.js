@@ -9,13 +9,13 @@ const billDispatch = {
   async method(server) {
     const errors = [];
     const results = [];
-    const customers = await BillRepository.findBillsAndHelpersByCustomer();
-    if (customers.length) {
-      for (let i = 0, l = customers.length; i < l; i += BATCH_SIZE) {
-        const customersChunk = customers.slice(i, i + BATCH_SIZE);
+    const billsAndHelpers = await BillRepository.findBillsAndHelpersByCustomer();
+    if (billsAndHelpers.length) {
+      for (let i = 0, l = billsAndHelpers.length; i < l; i += BATCH_SIZE) {
+        const billsAndHelpersChunk = billsAndHelpers.slice(i, i + BATCH_SIZE);
         const data = {
-          helpers: customersChunk.reduce((acc, cus) => [...acc, ...cus.helpers], []),
-          billsIds: customersChunk.reduce((acc, cus) => [...acc, ...cus.bills], []).map(bill => bill._id),
+          helpers: billsAndHelpersChunk.reduce((acc, cus) => [...acc, ...cus.helpers], []),
+          billsIds: billsAndHelpersChunk.reduce((acc, cus) => [...acc, ...cus.bills], []).map(bill => bill._id),
         };
 
         const requests = data.helpers.map((helper) => {

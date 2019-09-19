@@ -38,6 +38,7 @@ const BillSchema = mongoose.Schema({
   netInclTaxes: Number,
   driveFile: driveResourceSchemaDefinition,
   sentAt: Date,
+  shouldBeSent: Boolean,
 }, { timestamps: true });
 
 module.exports = mongoose.model('Bill', BillSchema);
