@@ -86,8 +86,8 @@ describe('formatCustomerBills', () => {
   it('Case 1 : 1 bill', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
-    const shouldBeSent = true;
     const customerBills = {
+      shouldBeSent: true,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -115,13 +115,13 @@ describe('formatCustomerBills', () => {
       total: 14.4,
     };
 
-    const result = BillHelper.formatCustomerBills(customerBills, customer, number, shouldBeSent);
+    const result = BillHelper.formatCustomerBills(customerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
       number: 'Picsou077',
-      shouldBeSent,
+      shouldBeSent: true,
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
@@ -156,9 +156,9 @@ describe('formatCustomerBills', () => {
   it('Case 2 : multiple bills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
-    const shouldBeSent = true;
     const customerBills = {
       total: 14.4,
+      shouldBeSent: false,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -208,13 +208,13 @@ describe('formatCustomerBills', () => {
       }],
     };
 
-    const result = BillHelper.formatCustomerBills(customerBills, customer, number, shouldBeSent);
+    const result = BillHelper.formatCustomerBills(customerBills, customer, number);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
       number: 'Picsou077',
-      shouldBeSent,
+      shouldBeSent: false,
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
