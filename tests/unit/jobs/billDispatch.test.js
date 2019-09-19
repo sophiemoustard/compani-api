@@ -48,9 +48,9 @@ describe('method', () => {
 
     billAlertEmailStub
       .onFirstCall()
-      .returns(new Promise(resolve => resolve('leroi@lion.com')))
+      .returns(Promise.resolve('leroi@lion.com'))
       .onSecondCall()
-      .returns(new Promise(resolve => resolve('rox@rouky.com')));
+      .returns(Promise.resolve('rox@rouky.com'));
 
     BillMock
       .expects('updateMany')
