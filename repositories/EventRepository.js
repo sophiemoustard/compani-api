@@ -104,9 +104,10 @@ exports.getEventsInConflicts = async (dates, auxiliary, types, eventId) => {
 };
 
 exports.countAuxiliaryEventsBetweenDates = (filters) => {
-  const dateQuery = filters.endDate
-    ? { startDate: { $lt: filters.endDate }, endDate: { $gt: filters.startDate } }
-    : { endDate: { $gt: filters.startDate } };
+  const dateQuery = {};
+  if (filters.endDate) dateQuery.startDate = { $lt: filters.endDate };
+  if (filters.startDate) dateQuery.endDate = { $gt: filters.startDate };
+
   const query = { ...dateQuery, ...omit(filters, ['startDate', 'endDate']) };
 
   return Event.countDocuments(query);
