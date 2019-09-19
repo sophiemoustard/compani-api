@@ -33,7 +33,7 @@ const invoiceEmail = () => (
   <p>L'équipe Compani</p>`
 );
 
-const completeInvoiceScriptEmailBody = (sentNb, emails) => {
+const completeBillScriptEmailBody = (sentNb, emails) => {
   let body = `<p>Script correctement exécuté. ${sentNb} emails envoyés.</p>`;
   if (emails.length) {
     body = body.concat(`<p>Facture non envoyée à ${emails.join()}</p>`);
@@ -45,5 +45,5 @@ module.exports = {
   welcomeEmailContent,
   forgetPasswordEmail,
   invoiceEmail,
-  completeInvoiceScriptEmailBody,
+  completeBillScriptEmailBody,
 };

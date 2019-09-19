@@ -2,7 +2,7 @@ const good = require('./good');
 const hapiSentry = require('./hapiSentry');
 const hapiAuthJwt2 = require('./hapiAuthJwt2');
 const cron = require('./cron');
-const invoiceDispatch = require('../jobs/invoiceDispatch');
+const billDispatch = require('../jobs/billDispatch');
 
 const plugins = [
   {
@@ -16,10 +16,10 @@ const plugins = [
     options: {
       jobs: [
         {
-          name: 'invoiceDispatch',
+          name: 'billDispatch',
           time: '0 0 5 * * *',
-          method: invoiceDispatch.method,
-          onComplete: invoiceDispatch.onComplete,
+          method: billDispatch.method,
+          onComplete: billDispatch.onComplete,
           env: 'production',
         },
       ],

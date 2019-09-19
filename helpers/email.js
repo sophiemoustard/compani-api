@@ -1,39 +1,39 @@
 const nodemailer = require('nodemailer');
-const { sendinBlueTransporter, testTransporter } = require('./nodemailer');
-const { invoiceEmail, completeInvoiceScriptEmailBody } = require('./emailOptions');
+const NodemailerHelper = require('./nodemailer');
+const EmailOptionsHelper = require('./emailOptions');
 const { SENDER_MAIL } = require('./constants');
 
-const invoiceAlertEmail = async (receiver) => {
+const billAlertEmail = async (receiver) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
     subject: 'Nouvelle facture Alenvi',
-    html: invoiceEmail(),
+    html: EmailOptionsHelper.invoiceEmail(),
   };
 
   const mailInfo = process.env.NODE_ENV === 'production'
-    ? await sendinBlueTransporter.sendMail(mailOptions)
-    : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+    ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
+    : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
   return mailInfo;
 };
 
-const completeInvoiceScriptEmail = async (sentNb, emails = null) => {
+const completeBillScriptEmail = async (sentNb, emails = null) => {
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: process.env.TECH_EMAILS,
     subject: 'Script envoi factures',
-    html: completeInvoiceScriptEmailBody(sentNb, emails),
+    html: EmailOptionsHelper.completeBillScriptEmailBody(sentNb, emails),
   };
 
   const mailInfo = process.env.NODE_ENV === 'production'
-    ? await sendinBlueTransporter.sendMail(mailOptions)
-    : await testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+    ? await NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
+    : await NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
 
   return mailInfo;
 };
 
 module.exports = {
-  invoiceAlertEmail,
-  completeInvoiceScriptEmail,
+  billAlertEmail,
+  completeBillScriptEmail,
 };

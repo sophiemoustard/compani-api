@@ -5,7 +5,7 @@ const EmailHelper = require('../helpers/email');
 
 const BATCH_SIZE = 20;
 
-const invoiceDispatch = {
+const billDispatch = {
   async method(server) {
     const errors = [];
     const results = [];
@@ -21,7 +21,7 @@ const invoiceDispatch = {
         const requests = data.helpers.map((helper) => {
           try {
             if (helper.local && helper.local.email) {
-              return EmailHelper.invoiceAlertEmail(helper.local.email);
+              return EmailHelper.billAlertEmail(helper.local.email);
             }
           } catch (e) {
             server.log(['error', 'cron', 'jobs'], e);
@@ -50,11 +50,11 @@ const invoiceDispatch = {
         server.log(['error', 'cron', 'oncomplete'], errors);
       }
       server.log(['cron', 'oncomplete'], `Invoice dispatch: ${results.length} emails envoyés.`);
-      await EmailHelper.completeInvoiceScriptEmail(results.length, errors);
+      await EmailHelper.completeBillScriptEmail(results.length, errors);
     } catch (e) {
       server.log(['error', 'cron', 'oncomplete'], e);
     }
   },
 };
 
-module.exports = invoiceDispatch;
+module.exports = billDispatch;
