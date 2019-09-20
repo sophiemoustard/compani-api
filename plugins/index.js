@@ -3,6 +3,7 @@ const hapiSentry = require('./hapiSentry');
 const hapiAuthJwt2 = require('./hapiAuthJwt2');
 const cron = require('./cron');
 const billDispatch = require('../jobs/billDispatch');
+const eventRepetitions = require('../jobs/eventRepetitions');
 
 const plugins = [
   {
@@ -21,6 +22,12 @@ const plugins = [
           method: billDispatch.method,
           onComplete: billDispatch.onComplete,
           env: 'production',
+        },
+        {
+          name: 'eventRepetitions',
+          time: '0 0 4 * * *',
+          method: eventRepetitions.method,
+          onComplete: eventRepetitions.onComplete,
         },
       ],
     },
