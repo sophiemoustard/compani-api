@@ -100,7 +100,7 @@ exports.createRepetitions = async (eventFromDb, payload) => {
       break;
   }
 
-  await (new Repetition(payload)).save();
+  await (new Repetition({ ...payload, ...payload.repetition })).save();
 
   return eventFromDb;
 };
@@ -152,7 +152,7 @@ exports.deleteRepetition = async (event, credentials) => {
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     });
 
-    await Repetition.deleteOne({ 'repetition.parentId': event.repetition.parentId });
+    await Repetition.deleteOne({ parentId: event.repetition.parentId });
   }
 
   return event;

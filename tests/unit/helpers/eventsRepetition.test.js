@@ -296,7 +296,7 @@ describe('deleteRepetition', () => {
         $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
       }
     );
-    sinon.assert.calledWith(deleteOne, { 'repetition.parentId': parentId });
+    sinon.assert.calledWith(deleteOne, { parentId });
   });
 
   it('should not delete repetition as event is absence', async () => {
