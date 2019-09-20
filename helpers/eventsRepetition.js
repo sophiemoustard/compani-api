@@ -12,7 +12,9 @@ const {
   INTERVENTION,
 } = require('./constants');
 const Event = require('../models/Event');
+const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
+const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
 
 momentRange.extendMoment(moment);
@@ -98,6 +100,8 @@ exports.createRepetitions = async (eventFromDb, payload) => {
       break;
   }
 
+  await (new Repetition(payload)).save();
+
   return eventFromDb;
 };
 
@@ -130,20 +134,25 @@ exports.updateRepetition = async (event, eventPayload) => {
       { $set: eventToSet, ...(unset && { $unset: unset }) }
     ));
   }
+  await Promise.all(promises);
 
-  return Promise.all(promises);
+  await RepetitionsHelper.updateRepetitions(eventPayload, event.repetition.parentId);
+
+  return event;
 };
 
 exports.deleteRepetition = async (event, credentials) => {
-  await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
-
   const { type, repetition } = event;
   if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
+    await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
+
     await Event.deleteMany({
       'repetition.parentId': event.repetition.parentId,
       startDate: { $gte: new Date(event.startDate) },
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     });
+
+    await Repetition.deleteOne({ 'repetition.parentId': event.repetition.parentId });
   }
 
   return event;
