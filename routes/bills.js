@@ -18,7 +18,7 @@ exports.plugin = {
       method: 'GET',
       path: '/drafts',
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['bills:edit'] },
         validate: {
           query: {
             endDate: Joi.date().required(),
@@ -36,7 +36,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['billing:read'] },
+        auth: { scope: ['bills:read', 'customer-{query.customer}'] },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -52,7 +52,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/pdfs',
       options: {
-        auth: { scope: ['billing:read'] },
+        auth: { scope: ['bills:read'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
@@ -64,7 +64,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['bills:edit'] },
         validate: {
           payload: {
             bills: Joi.array().items(Joi.object({

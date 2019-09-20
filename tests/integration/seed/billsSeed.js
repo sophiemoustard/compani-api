@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const moment = require('moment');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../helpers/constants');
 const Bill = require('../../../models/Bill');
@@ -8,7 +9,8 @@ const Company = require('../../../models/Company');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const BillNumber = require('../../../models/BillNumber');
 const Event = require('../../../models/Event');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const User = require('../../../models/User');
+const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const billThirdPartyPayer = {
   _id: new ObjectID(),
@@ -220,6 +222,17 @@ const eventList = [
   },
 ];
 
+const userList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [billCustomerList[0]._id],
+  },
+];
+
 const populateDB = async () => {
   await Service.deleteMany({});
   await Company.deleteMany({});
@@ -228,6 +241,7 @@ const populateDB = async () => {
   await Bill.deleteMany({});
   await Event.deleteMany({});
   await BillNumber.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentification();
   await (new Company(company)).save();
@@ -236,10 +250,14 @@ const populateDB = async () => {
   await Customer.insertMany(billCustomerList);
   await Bill.insertMany(billsList);
   await Event.insertMany(eventList);
+  for (const user of userList) {
+    await (new User(user).save());
+  }
 };
 
 module.exports = {
   billsList,
   populateDB,
   billCustomerList,
+  userList,
 };

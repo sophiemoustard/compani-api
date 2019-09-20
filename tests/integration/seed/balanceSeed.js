@@ -1,12 +1,14 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const uuidv4 = require('uuid/v4');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY } = require('../../../helpers/constants');
 const Customer = require('../../../models/Customer');
 const Company = require('../../../models/Company');
 const Service = require('../../../models/Service');
 const Bill = require('../../../models/Bill');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const User = require('../../../models/User');
+const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
@@ -191,12 +193,24 @@ const balanceBillList = [
   },
 ];
 
+const balanceUserList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    local: { email: 'helper_for_customer_balance@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [balanceCustomerList[0]._id],
+  },
+];
+
 const populateDB = async () => {
   await Service.deleteMany({});
   await Company.deleteMany({});
   await Customer.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Bill.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentification();
 
@@ -205,6 +219,9 @@ const populateDB = async () => {
   await Service.insertMany(customerServiceList);
   await Customer.insertMany(balanceCustomerList);
   await Bill.insertMany(balanceBillList);
+  for (const user of balanceUserList) {
+    await (new User(user).save());
+  }
 };
 
 module.exports = {
@@ -212,4 +229,5 @@ module.exports = {
   balanceCustomerList,
   balanceBillList,
   balanceThirdPartyPayer,
+  balanceUserList,
 };

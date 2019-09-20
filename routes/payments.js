@@ -53,7 +53,7 @@ exports.plugin = {
       method: 'POST',
       path: '/createlist',
       options: {
-        auth: { scope: ['payments:edit'] },
+        auth: { scope: ['payments:list:create'] },
         validate: {
           payload: Joi.array().items(Joi.object().keys({
             date: Joi.date().required(),
