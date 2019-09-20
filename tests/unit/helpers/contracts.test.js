@@ -185,59 +185,73 @@ describe('createVersion', () => {
 });
 
 describe('updateVersion', () => {
-  let findOneContract;
-  let saveContract;
+  let ContractMock;
   let updateOneContract;
   let updatePreviousVersion;
   let generateSignatureRequest;
+  let canUpdate;
   const contractId = new ObjectID();
   const versionId = new ObjectID();
   beforeEach(() => {
-    findOneContract = sinon.stub(Contract, 'findOne');
+    ContractMock = sinon.mock(Contract);
     updateOneContract = sinon.stub(Contract, 'updateOne');
-    saveContract = sinon.stub(Contract.prototype, 'save').returnsThis();
     updatePreviousVersion = sinon.stub(ContractHelper, 'updatePreviousVersion');
+    canUpdate = sinon.stub(ContractHelper, 'canUpdate');
     generateSignatureRequest = sinon.stub(ESignHelper, 'generateSignatureRequest');
   });
   afterEach(() => {
-    findOneContract.restore();
+    ContractMock.restore();
     updateOneContract.restore();
-    saveContract.restore();
     updatePreviousVersion.restore();
     generateSignatureRequest.restore();
+    canUpdate.restore();
   });
 
   it('should generate signature and update version', async () => {
     const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
-    const contract = new Contract({
+    const contract = {
       startDate: '2019-09-09T00:00:00',
-      versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
-    });
+      versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' }],
+    };
     generateSignatureRequest.returns({ data: { document_hash: '1234567890' } });
-    findOneContract.returns(contract);
+    canUpdate.returns(true);
+    ContractMock.expects('findOne').chain('lean').once().returns(contract);
+    ContractMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: contractId.toHexString() },
+        {
+          $set: flat({ 'versions.0': { ...versionToUpdate, signature: { eversignId: '1234567890' } } }),
+          $push: { 'versions.0.auxiliaryArchives': 'toto' },
+          $unset: flat({ 'versions.0': { auxiliaryDoc: '' } }),
+        }
+      )
+      .chain('lean')
+      .once()
+      .returns(contract);
 
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
 
+    ContractMock.verify();
     sinon.assert.called(generateSignatureRequest);
-    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString() });
-    sinon.assert.called(saveContract);
     sinon.assert.calledWith(updateOneContract, { _id: contractId.toHexString() }, { startDate: '2019-09-10T00:00:00' });
     sinon.assert.notCalled(updatePreviousVersion);
   });
 
   it('should update first version and contract', async () => {
     const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
-    const contract = new Contract({
+    const contract = {
       startDate: '2019-09-09T00:00:00',
       versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
-    });
-    findOneContract.returns(contract);
+    };
+    ContractMock.expects('findOne').chain('lean').once().returns(contract);
+    ContractMock.expects('findOneAndUpdate').chain('lean').once().returns(contract);
+    canUpdate.returns(true);
 
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
 
+    ContractMock.verify();
     sinon.assert.notCalled(generateSignatureRequest);
-    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString() });
-    sinon.assert.called(saveContract);
+    canUpdate.returns(true);
     sinon.assert.calledWith(updateOneContract, { _id: contractId.toHexString() }, { startDate: '2019-09-10T00:00:00' });
     sinon.assert.notCalled(updatePreviousVersion);
   });
@@ -245,20 +259,22 @@ describe('updateVersion', () => {
   it('should update current and previous version', async () => {
     const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
     const previousVersionId = new ObjectID();
-    const contract = new Contract({
+    const contract = {
       startDate: '2019-09-09T00:00:00',
       versions: [
         { _id: previousVersionId, startDate: '2019-08-01T00:00:00', endDate: '2019-09-05T00:00:00' },
         { _id: versionId, startDate: '2019-09-10T00:00:00' },
       ],
-    });
-    findOneContract.returns(contract);
+    };
+    ContractMock.expects('findOne').chain('lean').once().returns(contract);
+    ContractMock.expects('findOneAndUpdate').chain('lean').once().returns(contract);
+    canUpdate.returns(true);
 
     await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
 
+    ContractMock.verify();
+    canUpdate.returns(true);
     sinon.assert.notCalled(generateSignatureRequest);
-    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString() });
-    sinon.assert.called(saveContract);
     sinon.assert.calledWith(updatePreviousVersion, contract, 0, '2019-09-10T00:00:00');
     sinon.assert.notCalled(updateOneContract);
   });

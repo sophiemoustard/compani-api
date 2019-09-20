@@ -5,7 +5,6 @@ const moment = require('moment');
 const path = require('path');
 const os = require('os');
 const get = require('lodash/get');
-const pullAt = require('lodash/pullAt');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
@@ -78,41 +77,50 @@ exports.updatePreviousVersion = async (contract, previousVersionIndex, versionSt
   );
 };
 
+exports.canUpdate = async (contract, versionToUpdate, versionIndex) => {
+  if (versionIndex !== 0) return true;
+
+  const { status, user } = contract;
+  const { startDate } = versionToUpdate;
+  const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates({ status, auxiliary: user, endDate: startDate });
+
+  return eventsCount === 0;
+};
+
 exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
-  let contract = await Contract.findOne({ _id: contractId });
+  let contract = await Contract.findOne({ _id: contractId }).lean();
   const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
+
+  const canUpdate = await exports.canUpdate(contract, versionToUpdate, index);
+  if (!canUpdate) throw Boom.badData();
+
+  const unset = {};
+  const set = { ...versionToUpdate };
+  const push = {};
   if (versionToUpdate.signature) {
     const doc = await ESignHelper.generateSignatureRequest(versionToUpdate.signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
-    contract.versions[index].signature = { eversignId: doc.data.document_hash };
+    set.signature = { eversignId: doc.data.document_hash };
   } else {
-    contract.versions[index].signature = { eversignId: undefined };
+    unset.signature = '';
   }
 
   if (contract.versions[index].customerDoc) {
-    if (!contract.versions[index].customerArchives) {
-      contract.versions[index].customerArchives = [contract.versions[index].customerDoc];
-    } else {
-      contract.versions[index].customerArchives.push(contract.versions[index].customerDoc);
-    }
-    contract.versions[index].customerDoc = undefined;
+    push[`versions.${index}.customerArchives`] = contract.versions[index].customerDoc;
+    unset.customerDoc = '';
   }
 
   if (contract.versions[index].auxiliaryDoc) {
-    if (!contract.versions[index].auxiliaryArchives) {
-      contract.versions[index].auxiliaryArchives = [{ ...contract.versions[index].auxiliaryDoc }];
-    } else {
-      contract.versions[index].auxiliaryArchives.push({ ...contract.versions[index].auxiliaryDoc });
-    }
-    contract.versions[index].auxiliaryDoc = undefined;
+    push[`versions.${index}.auxiliaryArchives`] = contract.versions[index].auxiliaryDoc;
+    unset.auxiliaryDoc = '';
   }
 
-  contract.versions[index].startDate = versionToUpdate.startDate;
-  contract.versions[index].grossHourlyRate = versionToUpdate.grossHourlyRate;
+  const payload = { $set: flat({ [`versions.${index}`]: { ...set } }) };
+  if (Object.keys(unset).length > 0) payload.$unset = flat({ [`versions.${index}`]: unset });
+  if (Object.keys(push).length > 0) payload.$push = push;
 
-  contract = await contract.save();
-
+  contract = await Contract.findOneAndUpdate({ _id: contractId }, { ...payload }).lean();
   if (versionToUpdate.startDate) {
     if (index === 0) {
       await Contract.updateOne({ _id: contractId }, { startDate: versionToUpdate.startDate });
