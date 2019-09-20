@@ -3,8 +3,10 @@ const sinon = require('sinon');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Event = require('../../../models/Event');
+const Repetition = require('../../../models/Repetition');
 const EventsRepetitionHelper = require('../../../helpers/eventsRepetition');
 const EventsValidationHelper = require('../../../helpers/eventsValidation');
+const RepetitionHelper = require('../../../helpers/repetitions');
 const EventHistoriesHelper = require('../../../helpers/eventHistories');
 const {
   INTERVENTION,
@@ -132,17 +134,20 @@ describe('createRepetitions', () => {
   let createRepetitionsEveryDay;
   let createRepetitionsEveryWeekDay;
   let createRepetitionsByWeek;
+  let saveRepetition;
   beforeEach(() => {
     findOneAndUpdate = sinon.stub(Event, 'findOneAndUpdate');
     createRepetitionsEveryDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryDay');
     createRepetitionsEveryWeekDay = sinon.stub(EventsRepetitionHelper, 'createRepetitionsEveryWeekDay');
     createRepetitionsByWeek = sinon.stub(EventsRepetitionHelper, 'createRepetitionsByWeek');
+    saveRepetition = sinon.stub(Repetition.prototype, 'save');
   });
   afterEach(() => {
     findOneAndUpdate.restore();
     createRepetitionsEveryDay.restore();
     createRepetitionsEveryWeekDay.restore();
     createRepetitionsByWeek.restore();
+    saveRepetition.restore();
   });
 
   it('should call createRepetitionsEveryDay', async () => {
@@ -151,6 +156,7 @@ describe('createRepetitions', () => {
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
     sinon.assert.called(findOneAndUpdate);
+    sinon.assert.called(saveRepetition);
   });
 
   it('should call createRepetitionsEveryDay', async () => {
@@ -160,6 +166,7 @@ describe('createRepetitions', () => {
 
     sinon.assert.notCalled(findOneAndUpdate);
     sinon.assert.called(createRepetitionsEveryDay);
+    sinon.assert.called(saveRepetition);
   });
 
   it('should call createRepetitionsEveryWeekDay', async () => {
@@ -169,6 +176,7 @@ describe('createRepetitions', () => {
 
     sinon.assert.notCalled(findOneAndUpdate);
     sinon.assert.called(createRepetitionsEveryWeekDay);
+    sinon.assert.called(saveRepetition);
   });
 
   it('should call createRepetitionsByWeek to repeat every week', async () => {
@@ -178,6 +186,7 @@ describe('createRepetitions', () => {
 
     sinon.assert.notCalled(findOneAndUpdate);
     sinon.assert.calledWith(createRepetitionsByWeek, payload, 1);
+    sinon.assert.called(saveRepetition);
   });
 
   it('should call createRepetitionsByWeek to repeat every two weeks', async () => {
@@ -187,6 +196,7 @@ describe('createRepetitions', () => {
 
     sinon.assert.notCalled(findOneAndUpdate);
     sinon.assert.calledWith(createRepetitionsByWeek, payload, 2);
+    sinon.assert.called(saveRepetition);
   });
 });
 
@@ -194,15 +204,18 @@ describe('updateRepetition', () => {
   let hasConflicts;
   let findEvent;
   let findOneAndUpdateEvent;
+  let updateRepetitions;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     findEvent = sinon.stub(Event, 'find');
     findOneAndUpdateEvent = sinon.stub(Event, 'findOneAndUpdate');
+    updateRepetitions = sinon.stub(RepetitionHelper, 'updateRepetitions');
   });
   afterEach(() => {
     hasConflicts.restore();
     findEvent.restore();
     findOneAndUpdateEvent.restore();
+    updateRepetitions.restore();
   });
 
   it('should update repetition', async () => {
@@ -221,6 +234,7 @@ describe('updateRepetition', () => {
     sinon.assert.calledWith(findEvent, { 'repetition.parentId': 'qwertyuiop', startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') } });
     sinon.assert.calledThrice(hasConflicts);
     sinon.assert.calledThrice(findOneAndUpdateEvent);
+    sinon.assert.calledWith(updateRepetitions, payload, 'qwertyuiop');
   });
 
   it('should unassign intervention in conflict', async () => {
@@ -243,30 +257,31 @@ describe('updateRepetition', () => {
       { _id: '123456' },
       { $set: { _id: '123456', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' }, $unset: { auxiliary: '', repetition: '' } }
     );
+    sinon.assert.calledWith(updateRepetitions, payload, 'qwertyuiop');
   });
 });
 
 describe('deleteRepetition', () => {
   let createEventHistoryOnDelete;
   let deleteMany;
+  let deleteOne;
   const credentials = { _id: (new ObjectID()).toHexString() };
   beforeEach(() => {
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
     deleteMany = sinon.stub(Event, 'deleteMany');
+    deleteOne = sinon.stub(Repetition, 'deleteOne');
   });
   afterEach(() => {
     createEventHistoryOnDelete.restore();
     deleteMany.restore();
+    deleteOne.restore();
   });
 
   it('should delete repetition', async () => {
     const parentId = new ObjectID();
     const event = {
       type: INTERVENTION,
-      repetition: {
-        frequency: EVERY_WEEK,
-        parentId,
-      },
+      repetition: { frequency: EVERY_WEEK, parentId },
       startDate: '2019-01-21T09:38:18.653Z',
     };
     const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
@@ -281,6 +296,7 @@ describe('deleteRepetition', () => {
         $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
       }
     );
+    sinon.assert.calledWith(deleteOne, { 'repetition.parentId': parentId });
   });
 
   it('should not delete repetition as event is absence', async () => {
@@ -292,8 +308,9 @@ describe('deleteRepetition', () => {
     const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
 
     expect(result).toEqual(event);
-    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.notCalled(createEventHistoryOnDelete);
     sinon.assert.notCalled(deleteMany);
+    sinon.assert.notCalled(deleteOne);
   });
 
   it('should not delete repetition as event is not a repetition', async () => {
@@ -309,7 +326,8 @@ describe('deleteRepetition', () => {
     const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
 
     expect(result).toEqual(event);
-    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.notCalled(createEventHistoryOnDelete);
     sinon.assert.notCalled(deleteMany);
+    sinon.assert.notCalled(deleteOne);
   });
 });

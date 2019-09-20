@@ -100,8 +100,7 @@ exports.createRepetitions = async (eventFromDb, payload) => {
       break;
   }
 
-  const repetition = await (new Repetition(payload)).save();
-  console.log(repetition);
+  await (new Repetition(payload)).save();
 
   return eventFromDb;
 };
@@ -143,18 +142,18 @@ exports.updateRepetition = async (event, eventPayload) => {
 };
 
 exports.deleteRepetition = async (event, credentials) => {
-  await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
-
   const { type, repetition } = event;
   if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
+    await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
+
     await Event.deleteMany({
       'repetition.parentId': event.repetition.parentId,
       startDate: { $gte: new Date(event.startDate) },
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     });
-  }
 
-  await Repetition.deleteOne({ 'repetition.parentId': event.repetition.parentId });
+    await Repetition.deleteOne({ 'repetition.parentId': event.repetition.parentId });
+  }
 
   return event;
 };
