@@ -1,6 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const momentRange = require('moment-range');
 const {
   NEVER,
@@ -156,4 +157,25 @@ exports.deleteRepetition = async (event, credentials) => {
   }
 
   return event;
+};
+
+exports.createFutureEventBasedOnRepetition = async (repetition) => {
+  const { frequency, parentId, startDate, endDate } = repetition;
+  const startDateObj = moment(startDate).toObject();
+  const endDateObj = moment(endDate).toObject();
+  const newEventStartDate = moment().add(90, 'd').set(pick(startDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
+  const newEventEndDate = moment().add(90, 'd').set(pick(endDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
+  const newEventPayload = {
+    ...pick(repetition, ['type', 'customer', 'subscription', 'auxiliary', 'sector', 'status']),
+    startDate: newEventStartDate,
+    endDate: newEventEndDate,
+    repetition: { frequency, parentId },
+  };
+
+  if (await EventsValidationHelper.hasConflicts(newEventPayload)) {
+    delete newEventPayload.auxiliary;
+    delete newEventPayload.repetition;
+  }
+
+  return new Event(newEventPayload);
 };
