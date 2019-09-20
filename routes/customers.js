@@ -133,7 +133,7 @@ exports.plugin = {
       method: 'GET',
       path: '/subscriptions',
       options: {
-        auth: { scope: ['customers:administrative:edit'] },
+        auth: { scope: ['customers:read'] },
       },
       handler: listWithSubscriptions,
     });
@@ -167,7 +167,7 @@ exports.plugin = {
       method: 'GET',
       path: '/customer-contract-subscriptions',
       options: {
-        auth: { scope: ['customers:administrative:edit'] },
+        auth: { scope: ['customers:read'] },
       },
       handler: listWithCustomerContractSubscriptions,
     });
