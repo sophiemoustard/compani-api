@@ -20,10 +20,8 @@ const RepetitionSchema = mongoose.Schema({
   address: addressSchemaDefinition,
   misc: String,
   attachment: driveResourceSchemaDefinition,
-  repetition: {
-    frequency: { type: String, enum: REPETITION_FREQUENCIES },
-    parentId: { type: mongoose.Schema.Types.ObjectId },
-  },
+  frequency: { type: String, enum: REPETITION_FREQUENCIES },
+  parentId: { type: mongoose.Schema.Types.ObjectId },
   status: { type: String, enum: CONTRACT_STATUS },
 }, { timestamps: true });
 

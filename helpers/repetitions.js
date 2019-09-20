@@ -14,7 +14,7 @@ exports.updateRepetitions = async (eventPayload, parentId) => {
     .hours(eventEndDate.hours())
     .minutes(eventEndDate.minutes()).toISOString();
 
-  const repetitionPayload = { $set: { ...omit(eventPayload, ['_id']), startDate, endDate } };
+  const repetitionPayload = { $set: { ...omit(eventPayload, ['_id']), startDate, endDate, ...eventPayload.repetition } };
   if (!eventPayload.auxiliary) repetitionPayload.$unset = { auxiliary: '' };
   await Repetition.findOneAndUpdate({ 'repetition.parentId': parentId }, repetitionPayload);
 };
