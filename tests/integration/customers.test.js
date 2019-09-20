@@ -1051,10 +1051,12 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
 });
 
 describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
-  let adminToken = null;
+  let helper;
+  let helperToken;
   beforeEach(populateDB);
   beforeEach(async () => {
-    adminToken = await getToken('admin');
+    [helper] = userList;
+    helperToken = await getTokenByCredentials(helper.local);
   });
 
   describe('POST customers/:id/subscriptionshistory', () => {
@@ -1078,15 +1080,15 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
 
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[0]._id.toHexString()}/subscriptionshistory`,
+        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': helperToken },
       });
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.subscriptionHistory).toBeDefined();
-      expect(res.result.data.customer._id).toEqual(customersList[0]._id);
+      expect(res.result.data.customer._id).toEqual(helper.customers[0]);
       expect(res.result.data.subscriptionHistory.subscriptions).toEqual(expect.arrayContaining([
         expect.objectContaining(payload.subscriptions[0]),
         expect.objectContaining(payload.subscriptions[1]),
@@ -1098,7 +1100,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
     it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[1]._id.toHexString()}/subscriptionshistory`,
+        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
         payload: {
           helper: {
             firstname: faker.name.firstName(),
@@ -1106,7 +1108,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
             title: 'Mme',
           },
         },
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': helperToken },
       });
 
       expect(res.statusCode).toBe(400);
@@ -1115,7 +1117,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
     it("should return a 400 error if 'helper' object is missing from payload", async () => {
       const res = await app.inject({
         method: 'POST',
-        url: `/customers/${customersList[1]._id.toHexString()}/subscriptionshistory`,
+        url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
         payload: {
           subscriptions: [{
             service: 'TestTest',
@@ -1127,7 +1129,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
             estimatedWeeklyVolume: 10,
           }],
         },
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': helperToken },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -1155,7 +1157,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         method: 'DELETE',
         url: `/customers/${invalidId}/subscriptionshistory`,
         payload,
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': helperToken },
       });
 
       expect(res.statusCode).toBe(404);
@@ -1181,7 +1183,8 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'coach', expectedCode: 200 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'admin', expectedCode: 403 },
       ];
 
       roles.forEach((role) => {
