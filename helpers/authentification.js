@@ -12,7 +12,7 @@ const validate = async (decoded) => {
       if (right.right_id && right.right_id.permission) return right.right_id.permission;
     });
 
-    const customersScopes = user.customers ? user.customers.map(id => `customer-${id}`) : [];
+    const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
 
     const credentials = {
       _id: decoded._id,
