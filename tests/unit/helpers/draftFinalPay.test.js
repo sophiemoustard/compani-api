@@ -53,7 +53,7 @@ describe('getContractMonthInfo', () => {
   it('Case 2. One version and sunday included', () => {
     const contract = {
       versions: [
-        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { startDate: '2019-01-01', endDate: '2019-05-03', weeklyHours: 18 },
         { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
       ],
       endDate: '2019-05-16',

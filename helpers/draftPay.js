@@ -40,7 +40,7 @@ exports.getMonthBusinessDaysCount = start =>
 
 exports.getContractMonthInfo = (contract, query) => {
   const versions = contract.versions.filter(ver =>
-    (moment(ver.startDate).isSameOrBefore(query.endDate) && (!ver.endDate || moment(ver.endDate).isAfter(query.startDate))));
+    (moment(ver.startDate).isSameOrBefore(query.endDate) && (!ver.endDate || moment(ver.endDate).isSameOrAfter(query.startDate))));
   const monthBusinessDays = exports.getMonthBusinessDaysCount(query.startDate);
 
   let contractHours = 0;
@@ -48,7 +48,7 @@ exports.getContractMonthInfo = (contract, query) => {
   for (const version of versions) {
     const startDate = moment(version.startDate).isBefore(query.startDate) ? moment(query.startDate) : moment(version.startDate).startOf('d');
     const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
-      ? moment(version.endDate).subtract(1, 'd').endOf('d')
+      ? moment(version.endDate).endOf('d')
       : moment(query.endDate);
     const businessDays = exports.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
     workedDays += businessDays;
