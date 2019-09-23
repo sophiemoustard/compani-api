@@ -44,13 +44,14 @@ describe('formatRepeatedPayload', () => {
     expect(result.auxiliary).toEqual(auxiliaryId);
   });
 
-  it('should format event without auxiliary', async () => {
+  it('should format intervention without auxiliary', async () => {
     const auxiliaryId = new ObjectID();
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
       startDate: moment('2019-07-14').startOf('d'),
       endDate: moment('2019-07-15').startOf('d'),
       auxiliary: auxiliaryId,
+      type: 'intervention',
     };
 
     hasConflicts.returns(true);
@@ -60,6 +61,23 @@ describe('formatRepeatedPayload', () => {
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
     expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
     expect(result.auxiliary).not.toBeDefined();
+  });
+
+  it('should format internal hour with auxiliary', async () => {
+    const auxiliaryId = new ObjectID();
+    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const event = {
+      startDate: moment('2019-07-14').startOf('d'),
+      endDate: moment('2019-07-15').startOf('d'),
+      auxiliary: auxiliaryId,
+      type: 'internalHour',
+    };
+
+    hasConflicts.returns(true);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+
+    expect(result).toBeDefined();
+    expect(result.auxiliary).toBeDefined();
   });
 });
 
