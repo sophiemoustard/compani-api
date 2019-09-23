@@ -3,7 +3,7 @@ const User = require('./User');
 
 const SectorSchema = mongoose.Schema({
   name: String,
-  company: mongoose.Schema.Types.ObjectId
+  company: mongoose.Schema.Types.ObjectId,
 }, {
   timestamps: true,
 });
