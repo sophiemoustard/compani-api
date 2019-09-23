@@ -13,11 +13,11 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            id: Joi.string().required()
-          }
+            id: Joi.string().required(),
+          },
         },
       },
       handler: show,
     });
-  }
+  },
 };
