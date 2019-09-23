@@ -1,4 +1,5 @@
 const moment = require('moment');
+const pick = require('lodash/pick');
 const Repetition = require('../models/Repetition');
 const Event = require('../models/Event');
 const { EVERY_WEEK, EVERY_DAY, EVERY_WEEK_DAY, EVERY_TWO_WEEKS } = require('../helpers/constants');
@@ -13,17 +14,35 @@ const eventRepetitions = {
     if (!repetitions.length) return server.log(['cron', 'jobs'], 'Event repetitions: No repetitions found.');
     for (const repetition of repetitions) {
       const { startDate, frequency } = repetition;
+      const newEventStartDate = moment().add(90, 'd').set(pick(moment(startDate).toObject(), ['hours', 'minutes', 'seconds', 'milliseconds']));
+      let futureEvent;
       try {
-        const futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
-        const { newEventStartDate } = futureEvent;
-        if (frequency === EVERY_TWO_WEEKS && moment(startDate).day() === moment(newEventStartDate).day() && (moment(newEventStartDate).diff(moment(startDate), 'week') % 2 === 0)) {
-          newEvents.push(futureEvent);
-        } else if (frequency === EVERY_WEEK && moment(startDate).day() === moment(newEventStartDate).day()) {
-          newEvents.push(futureEvent);
-        } else if (frequency === EVERY_DAY) {
-          newEvents.push(futureEvent);
-        } else if (frequency === EVERY_WEEK_DAY && moment(newEventStartDate).day() !== 0 && moment(newEventStartDate).day() !== 6) {
-          newEvents.push(futureEvent);
+        switch (frequency) {
+          case EVERY_TWO_WEEKS:
+            if (moment(startDate).day() === moment(newEventStartDate).day() && (newEventStartDate.diff(moment(startDate), 'week') % 2 === 0)) {
+              futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
+              newEvents.push(futureEvent);
+            }
+            break;
+
+          case EVERY_WEEK:
+            if (moment(startDate).day() === newEventStartDate.day()) {
+              futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
+              newEvents.push(futureEvent);
+            }
+            break;
+
+          case EVERY_DAY:
+            futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
+            newEvents.push(futureEvent);
+            break;
+
+          case EVERY_WEEK_DAY:
+            if (newEventStartDate.day() !== 0 && newEventStartDate.day() !== 6) {
+              futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
+              newEvents.push(futureEvent);
+            }
+            break;
         }
       } catch (e) {
         server.log(['error', 'cron', 'jobs'], e);
