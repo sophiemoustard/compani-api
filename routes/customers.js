@@ -453,7 +453,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/subscriptionshistory',
       options: {
-        auth: { scope: ['customers:administrative:edit'] },
+        auth: { scope: ['customer-{params._id}'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
