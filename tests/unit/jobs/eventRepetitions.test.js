@@ -37,9 +37,9 @@ describe('method', () => {
 
   const frequencies = [
     { type: 'every_day', dates: { startDate: '2019-09-16T06:00:00.000Z', endDate: '2019-09-16T07:00:00.000Z' } },
-    { type: 'every_week', dates: { startDate: '2019-09-13T06:00:00.000Z', endDate: '2019-09-13T07:00:00.000Z' } },
+    { type: 'every_week', dates: { startDate: '2019-09-12T06:00:00.000Z', endDate: '2019-09-12T07:00:00.000Z' } },
     { type: 'every_week_day', dates: { startDate: '2019-09-19T06:00:00.000Z', endDate: '2019-09-19T07:00:00.000Z' } },
-    { type: 'every_two_weeks', dates: { startDate: '2019-08-30T06:00:00.000Z', endDate: '2019-06-30T07:00:00.000Z' } },
+    { type: 'every_two_weeks', dates: { startDate: '2019-08-29T06:00:00.000Z', endDate: '2019-08-29T07:00:00.000Z' } },
   ];
   frequencies.forEach((freq) => {
     const repetition = [{

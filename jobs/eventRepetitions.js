@@ -10,11 +10,12 @@ const eventRepetitions = {
   async method(server) {
     const errors = [];
     const newEvents = [];
-    const repetitions = await Repetition.find({ startDate: { $lt: moment().startOf('d').toDate() } }).lean();
+    const repetitions = await Repetition.find({ startDate: { $lt: moment(new Date()).startOf('d').toDate() } }).lean();
     if (!repetitions.length) return server.log(['cron', 'jobs'], 'Event repetitions: No repetitions found.');
+
     for (const repetition of repetitions) {
       const { startDate, frequency } = repetition;
-      const newEventStartDate = moment().add(90, 'd').set(pick(moment(startDate).toObject(), ['hours', 'minutes', 'seconds', 'milliseconds']));
+      const newEventStartDate = moment(new Date()).add(90, 'd').set(pick(moment(startDate).toObject(), ['hours', 'minutes', 'seconds', 'milliseconds']));
       let futureEvent;
       try {
         switch (frequency) {

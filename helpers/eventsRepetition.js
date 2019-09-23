@@ -172,7 +172,7 @@ exports.createFutureEventBasedOnRepetition = async (repetition) => {
     repetition: { frequency, parentId },
   };
 
-  if (await EventsValidationHelper.hasConflicts(newEventPayload)) {
+  if (newEventPayload.type === INTERVENTION && await EventsValidationHelper.hasConflicts(newEventPayload)) {
     delete newEventPayload.auxiliary;
     delete newEventPayload.repetition;
   }
