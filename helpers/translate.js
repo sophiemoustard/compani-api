@@ -160,15 +160,6 @@ module.exports = {
     distanceMatrixFound: 'Distance Matrix found',
     distanceMatrixNotFound: 'Distance Matrix not found',
 
-    /* Task */
-    taskFound: 'Tasks found',
-    taskNotFound: 'Tasks non found',
-    tasksFound: 'Tasks found',
-    tasksNotFound: 'Tasks non found',
-    taskCreated: 'Tasks created',
-    taskUpdated: 'Tasks updated',
-    taskDeleted: 'Tasks deleted',
-
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -400,15 +391,6 @@ module.exports = {
     /* Google Map */
     distanceMatrixFound: 'Distance Matrix trouvée',
     distanceMatrixNotFound: 'Distance Matrix non trouvée',
-
-    /* Task */
-    taskFound: 'Tâche trouvée',
-    taskNotFound: 'Tâche non trouvée',
-    tasksFound: 'Tâches trouvées',
-    tasksNotFound: 'Tâches non trouvées',
-    taskCreated: 'Tâche crée',
-    taskUpdated: 'Tâche mis à jour',
-    taskDeleted: 'Tâche supprimé',
 
     /* Sectors */
     sectorCreated: 'Équipe créée.',

@@ -36,10 +36,6 @@ exports.routes = [
     routes: { prefix: '/sms' },
   },
   {
-    plugin: require('./tasks'),
-    routes: { prefix: '/tasks' },
-  },
-  {
     plugin: require('./companies'),
     routes: { prefix: '/companies' },
   },
