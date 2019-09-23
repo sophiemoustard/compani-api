@@ -20,6 +20,7 @@ const EventRepository = require('../repositories/EventRepository');
 exports.endContract = async (contractId, contractToEnd, credentials) => {
   const contract = await Contract.findOne({ _id: contractId });
   if (!contract) return null;
+  if (contract.endDate) throw Boom.forbidden('Contract is already ended.');
 
   contract.endDate = contractToEnd.endDate;
   contract.endNotificationDate = contractToEnd.endNotificationDate;
@@ -47,6 +48,10 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
 };
 
 exports.createVersion = async (contractId, newVersion) => {
+  let contract = await Contract.findById(contractId, {}, { autopopulate: false });
+  if (!contract) return null;
+  if (contract.endDate) throw Boom.forbidden('Contract is already ended.');
+
   if (newVersion.signature) {
     const doc = await ESignHelper.generateSignatureRequest(newVersion.signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
@@ -54,31 +59,28 @@ exports.createVersion = async (contractId, newVersion) => {
     newVersion.signature = { eversignId: doc.data.document_hash };
   }
 
-  let contract = await Contract.findOneAndUpdate(
-    { _id: contractId },
-    { $push: { versions: newVersion } },
-    { new: true, autopopulate: false }
-  ).lean();
-  if (!contract) return null;
+  contract.versions.push(newVersion);
+  await contract.save();
 
   if (contract.versions.length > 1) {
     const previousVersionIndex = contract.versions.length - 2;
-    contract = await exports.updatePreviousVersion(contract, previousVersionIndex, newVersion.startDate);
+    contract = await exports.updatePreviousVersion(contractId, previousVersionIndex, newVersion.startDate);
   }
 
   return contract;
 };
 
-exports.updatePreviousVersion = async (contract, previousVersionIndex, versionStartDate) => {
+exports.updatePreviousVersion = async (contractId, previousVersionIndex, versionStartDate) => {
   const previousVersionStartDate = moment(versionStartDate).subtract(1, 'd').endOf('d').toISOString();
   return Contract.findOneAndUpdate(
-    { _id: contract._id },
+    { _id: contractId },
     { $set: { [`versions.${previousVersionIndex}.endDate`]: previousVersionStartDate } }
   );
 };
 
 exports.canUpdate = async (contract, versionToUpdate, versionIndex) => {
   if (versionIndex !== 0) return true;
+  if (contract.endDate) return false;
 
   const { status, user } = contract;
   const { startDate } = versionToUpdate;
