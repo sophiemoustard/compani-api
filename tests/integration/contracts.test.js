@@ -107,7 +107,8 @@ describe('CONTRACTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.contracts).toBeDefined();
-      expect(response.result.data.contracts.length).toEqual(1);
+      expect(response.result.data.contracts.length)
+        .toBe(contractsList.filter(contract => contract.user === user._id).length);
     });
 
     const roles = [
