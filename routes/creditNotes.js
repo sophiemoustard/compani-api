@@ -10,6 +10,7 @@ const {
   remove,
   generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
+const { getCreditNote, authorizeCreditNoteReading } = require('./preHandlers/creditNotes');
 
 const { SERVICE_NATURES } = require('../models/Service');
 
@@ -163,10 +164,13 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/pdfs',
       options: {
-        auth: { scope: ['bills:read'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
+        pre: [
+          { method: getCreditNote, assign: 'creditNote' },
+          { method: authorizeCreditNoteReading },
+        ],
       },
       handler: generateCreditNotePdf,
     });

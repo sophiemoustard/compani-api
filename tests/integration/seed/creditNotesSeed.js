@@ -67,6 +67,23 @@ const creditNoteCustomer = {
   ],
 };
 
+const creditNoteUserList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [creditNoteCustomer._id],
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Tata', lastname: 'Toto' },
+    local: { email: 'toto@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+  },
+];
+
 const creditNoteEvent = {
   _id: new ObjectID(),
   sector: new ObjectID(),
@@ -74,7 +91,7 @@ const creditNoteEvent = {
   status: 'contract_with_company',
   startDate: '2019-01-16T09:30:19.543Z',
   endDate: '2019-01-16T11:30:21.653Z',
-  auxiliary: new ObjectID(),
+  auxiliary: creditNoteUserList[1]._id,
   customer: creditNoteCustomer._id,
   createdAt: '2019-01-15T11:33:14.343Z',
   subscription: creditNoteCustomer.subscriptions[0]._id,
@@ -114,17 +131,6 @@ const creditNotesList = [
   },
 ];
 
-const userList = [
-  {
-    _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-    local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456' },
-    refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'helper')._id,
-    customers: [creditNoteCustomer._id],
-  },
-];
-
 const populateDB = async () => {
   await CreditNote.deleteMany({});
   await Event.deleteMany({});
@@ -138,7 +144,7 @@ const populateDB = async () => {
   await new Customer(creditNoteCustomer).save();
   await new Service(creditNoteService).save();
   await CreditNote.insertMany(creditNotesList);
-  for (const user of userList) {
+  for (const user of creditNoteUserList) {
     await (new User(user).save());
   }
 };
@@ -148,5 +154,5 @@ module.exports = {
   populateDB,
   creditNoteCustomer,
   creditNoteEvent,
-  userList,
+  creditNoteUserList,
 };

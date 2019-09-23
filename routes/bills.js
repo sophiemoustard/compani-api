@@ -9,6 +9,7 @@ const {
   list,
   generateBillPdf,
 } = require('../controllers/billsController');
+const { getBill, authorizeBillReading } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
@@ -52,10 +53,13 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/pdfs',
       options: {
-        auth: { scope: ['bills:read'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
+        pre: [
+          { method: getBill, assign: 'bill' },
+          { method: authorizeBillReading },
+        ],
       },
       handler: generateBillPdf,
     });
