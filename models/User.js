@@ -37,10 +37,7 @@ const UserSchema = mongoose.Schema({
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
-    autopopulate: {
-      select: '-__v -createdAt -updatedAt',
-      maxDepth: 3,
-    },
+    autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
   },
   employee_id: { type: Number, trim: true },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
