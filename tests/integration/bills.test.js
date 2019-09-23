@@ -5,7 +5,7 @@ const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const { populateDB, userList, billsList, billCustomerList } = require('./seed/billsSeed');
+const { populateDB, billUserList, billsList, billCustomerList } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
 const Bill = require('../../models/Bill');
@@ -309,6 +309,59 @@ describe('BILL ROUTES - POST /bills', () => {
   });
 });
 
+describe('BILL ROUTES - GET /bills/pdfs', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should get bill pdf', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/bills/${billsList[0]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+  });
+
+  describe('Other roles', () => {
+    it('should return customer bills pdf if I am its helper', async () => {
+      const helper = billUserList[0];
+      const helperToken = await getTokenByCredentials(helper.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/bills/${billsList[0]._id}/pdfs`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/bills/${billsList[0]._id}/pdfs`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('BILL ROUTES - GET /bills', () => {
   let authToken = null;
   beforeEach(populateDB);
@@ -332,7 +385,7 @@ describe('BILL ROUTES - GET /bills', () => {
 
   describe('Other roles', () => {
     it('should return customer bills if I am its helper', async () => {
-      const helper = userList[0];
+      const helper = billUserList[0];
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',

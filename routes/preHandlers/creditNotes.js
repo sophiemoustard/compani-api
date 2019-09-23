@@ -20,7 +20,7 @@ exports.authorizeCreditNoteReading = async (req) => {
   const { credentials } = req.auth;
   const { creditNote } = req.pre;
 
-  if (credentials.scope.includes('creditNotes:read')) return null;
+  if (credentials.scope.includes('bills:read')) return null;
   if (credentials.scope.includes(`customer-${creditNote.customer.toHexString()}`)) return null;
 
   throw Boom.forbidden();

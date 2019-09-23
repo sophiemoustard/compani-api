@@ -118,6 +118,23 @@ const billCustomerList = [
   },
 ];
 
+const billUserList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [billCustomerList[0]._id],
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Tata', lastname: 'Toto' },
+    local: { email: 'toto@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+  },
+];
+
 const billsList = [
   {
     _id: new ObjectID(),
@@ -136,7 +153,7 @@ const billsList = [
         eventId: new ObjectID(),
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: billUserList[1]._id,
       }],
       hours: 8,
       unitExclTaxes: 9,
@@ -160,7 +177,7 @@ const billsList = [
         eventId: new ObjectID(),
         startDate: '2019-01-16T10:30:19.543Z',
         endDate: '2019-01-16T12:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: billUserList[1]._id,
       }],
       service: { name: 'Temps de qualité - autonomie' },
       hours: 4,
@@ -222,17 +239,6 @@ const eventList = [
   },
 ];
 
-const userList = [
-  {
-    _id: new ObjectID(),
-    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-    local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456' },
-    refreshToken: uuidv4(),
-    role: rolesList.find(role => role.name === 'helper')._id,
-    customers: [billCustomerList[0]._id],
-  },
-];
-
 const populateDB = async () => {
   await Service.deleteMany({});
   await Company.deleteMany({});
@@ -250,7 +256,7 @@ const populateDB = async () => {
   await Customer.insertMany(billCustomerList);
   await Bill.insertMany(billsList);
   await Event.insertMany(eventList);
-  for (const user of userList) {
+  for (const user of billUserList) {
     await (new User(user).save());
   }
 };
@@ -259,5 +265,5 @@ module.exports = {
   billsList,
   populateDB,
   billCustomerList,
-  userList,
+  billUserList,
 };
