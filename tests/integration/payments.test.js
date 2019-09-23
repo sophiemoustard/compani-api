@@ -3,12 +3,12 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList } = require('./seed/paymentsSeed');
+const { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList, paymentUser } = require('./seed/paymentsSeed');
 const { PAYMENT, REFUND } = require('../../helpers/constants');
 const translate = require('../../helpers/translate');
 const Payment = require('../../models/Payment');
 const Drive = require('../../models/Google/Drive');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
 
 const { language } = translate;
 
@@ -39,8 +39,19 @@ describe('PAYMENTS ROUTES', () => {
   });
 
   describe('Other roles', () => {
+    it('should return customer payments if I am its helper', async () => {
+      const helper = paymentUser;
+      const helperToken = await getTokenByCredentials(helper.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/payments?customer=${helper.customers[0]}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
     const roles = [
-      { name: 'helper', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
@@ -150,7 +161,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
@@ -347,7 +358,7 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {

@@ -1,12 +1,14 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const uuidv4 = require('uuid/v4');
 const CreditNote = require('../../../models/CreditNote');
 const Customer = require('../../../models/Customer');
 const Event = require('../../../models/Event');
+const User = require('../../../models/User');
 const Service = require('../../../models/Service');
 const CreditNoteNumber = require('../../../models/CreditNoteNumber');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../helpers/constants');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -112,18 +114,33 @@ const creditNotesList = [
   },
 ];
 
+const userList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [creditNoteCustomer._id],
+  },
+];
+
 const populateDB = async () => {
   await CreditNote.deleteMany({});
   await Event.deleteMany({});
   await Customer.deleteMany({});
   await Service.deleteMany({});
   await CreditNoteNumber.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentification();
   await new Event(creditNoteEvent).save();
   await new Customer(creditNoteCustomer).save();
   await new Service(creditNoteService).save();
   await CreditNote.insertMany(creditNotesList);
+  for (const user of userList) {
+    await (new User(user).save());
+  }
 };
 
 module.exports = {
@@ -131,4 +148,5 @@ module.exports = {
   populateDB,
   creditNoteCustomer,
   creditNoteEvent,
+  userList,
 };

@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const uuidv4 = require('uuid/v4');
 const Payment = require('../../../models/Payment');
 const Customer = require('../../../models/Customer');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
@@ -132,16 +133,27 @@ const company = {
   directDebitsFolderId: '1234567890',
 };
 
+const paymentUser = {
+  _id: new ObjectID(),
+  identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+  local: { email: 'helper_for_customer_payment@alenvi.io', password: '123456' },
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'helper')._id,
+  customers: [paymentCustomerList[0]._id],
+};
+
 const populateDB = async () => {
   await PaymentNumber.deleteMany({});
   await Payment.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Customer.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentification();
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
+  await (new User(paymentUser).save());
 };
 
 const populateDBWithCompany = async () => {
@@ -156,10 +168,17 @@ const populateDBWithCompany = async () => {
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
   await new Company(company).save();
+  await (new User(paymentUser).save());
 
   const role = rolesList.find(r => r.name === 'admin');
   const user = userList.find(u => u.role.toHexString() === role._id.toHexString());
   await User.findOneAndUpdate({ _id: user._id }, { company: company._id });
 };
 
-module.exports = { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList };
+module.exports = {
+  paymentsList,
+  populateDB,
+  populateDBWithCompany,
+  paymentCustomerList,
+  paymentUser,
+};

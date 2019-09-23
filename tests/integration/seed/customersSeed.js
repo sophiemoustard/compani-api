@@ -241,7 +241,7 @@ const userList = [
   {
     _id: new ObjectID(),
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-    local: { email: 'helper_for_customer@alenvi.io', password: '123456' },
+    local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[3]._id],
@@ -288,6 +288,7 @@ const populateDB = async () => {
   await Event.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await QuoteNumber.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentification();
   await (new Company(customerCompany)).save();

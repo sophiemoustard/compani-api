@@ -20,12 +20,22 @@ const rightsList = [
   {
     _id: new ObjectID(),
     description: 'Edit billing info',
-    permission: 'billing:edit',
+    permission: 'bills:edit',
   },
   {
     _id: new ObjectID(),
     description: 'Read billing info',
-    permission: 'billing:read',
+    permission: 'bills:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Edit payment info',
+    permission: 'payments:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Create payment list',
+    permission: 'payments:list:create',
   },
   {
     _id: new ObjectID(),
@@ -117,7 +127,8 @@ const rightsList = [
 
 const coachRights = [
   'config:read',
-  'billing:read',
+  'bills:read',
+  'payments:edit',
   'pay:read',
   'contracts:read',
   'contracts:read:user',
@@ -134,7 +145,7 @@ const coachRights = [
 ];
 const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
 const planningReferentRights = [...auxiliaryRights, 'events:sector:edit'];
-const helperRights = ['billing:read'];
+const helperRights = [];
 
 const rolesList = [
   {
