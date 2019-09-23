@@ -10,10 +10,6 @@ const RoleSchema = mongoose.Schema({
       autopopulate: { select: 'name description permission _id' },
     },
     hasAccess: { type: Boolean, default: false },
-    rolesConcerned: [{
-      role_id: { type: mongoose.Schema.Types.ObjectId },
-      name: String,
-    }],
   }],
 }, { timestamps: true });
 

@@ -19,12 +19,12 @@ exports.plugin = {
       handler: deleteFile,
       options: {
         validate: {
-          params: { id: Joi.string() }
+          params: { id: Joi.string() },
         },
         auth: {
-          strategy: 'jwt'
-        }
-      }
+          strategy: 'jwt',
+        },
+      },
     });
 
     server.route({
@@ -33,12 +33,12 @@ exports.plugin = {
       handler: getFileById,
       options: {
         validate: {
-          params: { id: Joi.string() }
+          params: { id: Joi.string() },
         },
         auth: {
-          strategy: 'jwt'
-        }
-      }
+          strategy: 'jwt',
+        },
+      },
     });
 
     server.route({
@@ -50,12 +50,12 @@ exports.plugin = {
           query: {
             folderId: Joi.string(),
             nextPageToken: Joi.string(),
-          }
+          },
         },
         auth: {
-          strategy: 'jwt'
-        }
-      }
+          strategy: 'jwt',
+        },
+      },
     });
 
     server.route({
@@ -64,12 +64,12 @@ exports.plugin = {
       handler: generateDocxFromDrive,
       options: {
         validate: {
-          params: { id: Joi.string() }
+          params: { id: Joi.string() },
         },
         auth: {
           strategy: 'jwt',
-        }
-      }
+        },
+      },
     });
-  }
+  },
 };
