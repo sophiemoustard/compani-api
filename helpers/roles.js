@@ -15,7 +15,6 @@ const processingRights = rights => rights.map((right) => {
       name: right.right_id.name || '',
       permission: right.right_id.permission,
       description: right.right_id.description,
-      rolesConcerned: right.rolesConcerned,
       hasAccess: right.hasAccess,
     };
   }
@@ -40,7 +39,6 @@ const populateRoles = roles => roles.map((role) => {
 const formatRight = (roleRight, rightToUpdate = roleRight) => ({
   right_id: roleRight.right_id,
   hasAccess: rightToUpdate.hasAccess,
-  rolesConcerned: rightToUpdate.rolesConcerned && rightToUpdate.rolesConcerned.length > 0 ? rightToUpdate.rolesConcerned : [],
 });
 
 const formatRoleRights = (rights, rightsUpdateData) => {

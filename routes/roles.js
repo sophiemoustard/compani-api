@@ -41,10 +41,6 @@ exports.plugin = {
             rights: Joi.array().invalid([]).items(Joi.object().keys({
               right_id: Joi.objectId().required(),
               hasAccess: Joi.boolean().required(),
-              rolesConcerned: Joi.array().items(Joi.object().keys({
-                role_id: Joi.objectId(),
-                name: Joi.string()
-              }))
             })).optional(),
           }).required(),
         },

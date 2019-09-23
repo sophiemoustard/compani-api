@@ -8,10 +8,6 @@ exports.routes = [
     routes: { prefix: '/roles' },
   },
   {
-    plugin: require('./rights'),
-    routes: { prefix: '/rights' },
-  },
-  {
     plugin: require('./activation'),
     routes: { prefix: '/activation' },
   },

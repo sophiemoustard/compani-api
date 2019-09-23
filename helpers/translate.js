@@ -53,16 +53,6 @@ module.exports = {
     roleNotFound: 'Role not found',
     roleExists: 'Role already exists.',
     roleRemoved: 'Role removed.',
-    /* Right */
-    rightCreated: 'Right created.',
-    rightDeleted: 'Right deleted.',
-    rightUpdated: 'Right updated.',
-    rightsFound: 'Rights found',
-    rightsNotFound: 'Rights not found.',
-    rightNotFound: 'Right not found',
-    rightExists: 'Right already exists.',
-    rightsDoNotExist: 'Rights do not exist.',
-    rightRemoved: 'Right removed.',
     /* Email */
     emailSent: 'Email successfully sent.',
     /* Reset password token */
@@ -289,15 +279,6 @@ module.exports = {
     roleNotFound: 'Role non trouvé.',
     roleExists: 'Role déjà existant.',
     roleRemoved: 'Role supprimé.',
-    /* Droits */
-    rightCreated: 'Droit crée.',
-    rightRemoved: 'Droit supprimé.',
-    rightUpdated: 'Droit mis a jour.',
-    rightsFound: 'Droits trouvés',
-    rightsNotFound: 'Droits non trouvés.',
-    rightNotFound: 'Droit non trouvé.',
-    rightExists: 'Droit déjà existant.',
-    rightsDoNotExist: 'Droit inexistant.',
     /* Email */
     emailSent: 'Email envoyé avec succès.',
     /* Reset password token */
