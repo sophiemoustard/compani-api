@@ -45,14 +45,8 @@ module.exports = {
     refreshTokenNotFound: 'Refresh token not found.',
     activationCodeDeleted: 'Activation data deleted.',
     /* Role */
-    roleCreated: 'Role created.',
-    roleDeleted: 'Role deleted.',
-    roleUpdated: 'Role updated.',
     rolesNotFound: 'Roles not found.',
     rolesFound: 'Roles found.',
-    roleNotFound: 'Role not found',
-    roleExists: 'Role already exists.',
-    roleRemoved: 'Role removed.',
     /* Email */
     emailSent: 'Email successfully sent.',
     /* Reset password token */
@@ -271,14 +265,8 @@ module.exports = {
     refreshTokenNotFound: 'Refresh token not found.',
     activationCodeDeleted: 'Données d\'activations bien effacées.',
     /* Role */
-    roleCreated: 'Rôle créé.',
-    roleDeleted: 'Rôle effacé.',
-    roleUpdated: 'Rôle mis à jour.',
     rolesNotFound: 'Rôles non trouvés.',
     rolesFound: 'Rôles trouvés.',
-    roleNotFound: 'Role non trouvé.',
-    roleExists: 'Role déjà existant.',
-    roleRemoved: 'Role supprimé.',
     /* Email */
     emailSent: 'Email envoyé avec succès.',
     /* Reset password token */
