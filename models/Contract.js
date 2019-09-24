@@ -54,9 +54,10 @@ const ContractSchema = mongoose.Schema({
     endDate: Date,
     weeklyHours: Number,
     grossHourlyRate: Number,
-    isActive: { type: Boolean, default: false },
     customerDoc: driveResourceSchemaDefinition,
     auxiliaryDoc: driveResourceSchemaDefinition,
+    customerArchives: [driveResourceSchemaDefinition],
+    auxiliaryArchives: [driveResourceSchemaDefinition],
   }],
 }, {
   timestamps: true,

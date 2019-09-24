@@ -32,9 +32,10 @@ exports.formatCustomerBills = (customerBills, customer, number) => {
   const bill = {
     customer: customer._id,
     subscriptions: [],
-    billNumber: exports.formatBillNumber(number.prefix, number.seq),
+    number: exports.formatBillNumber(number.prefix, number.seq),
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
+    shouldBeSent: customerBills.shouldBeSent,
   };
 
   for (const draftBill of customerBills.bills) {
@@ -61,7 +62,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) =>
       date: tpp.bills[0].endDate,
     };
     if (!tpp.bills[0].externalBilling) {
-      tppBill.billNumber = exports.formatBillNumber(number.prefix, seq);
+      tppBill.number = exports.formatBillNumber(number.prefix, seq);
       seq += 1;
     } else {
       tppBill.origin = THIRD_PARTY;
@@ -147,7 +148,7 @@ exports.formatAndCreateBills = async (number, groupByCustomerBills) => {
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
         promises.push((new Bill(bill)).save());
-        if (bill.billNumber) number.seq += 1;
+        if (bill.number) number.seq += 1;
       }
     }
   }
@@ -244,7 +245,7 @@ exports.formatPDF = (bill, company) => {
 
   return {
     bill: {
-      billNumber: bill.billNumber,
+      number: bill.number,
       customer: bill.customer,
       ...computedData,
       company,

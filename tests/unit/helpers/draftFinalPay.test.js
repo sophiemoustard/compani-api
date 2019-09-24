@@ -28,8 +28,8 @@ describe('getContractMonthInfo', () => {
   it('Case 1. One version no sunday', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { isActive: false, endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
+        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
       ],
       endDate: '2019-05-16',
     };
@@ -53,8 +53,8 @@ describe('getContractMonthInfo', () => {
   it('Case 2. One version and sunday included', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { isActive: true, endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
+        { startDate: '2019-01-01', endDate: '2019-05-03', weeklyHours: 18 },
+        { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
       ],
       endDate: '2019-05-16',
     };
@@ -74,8 +74,8 @@ describe('getContractMonthInfo', () => {
   it('Case 3. Multiple versions', () => {
     const contract = {
       versions: [
-        { isActive: false, startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { isActive: true, endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
+        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+        { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
       ],
       endDate: '2019-05-16',
     };

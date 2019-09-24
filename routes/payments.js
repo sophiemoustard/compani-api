@@ -18,7 +18,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['billing:read'] },
+        auth: { scope: ['payments:edit', 'customer-{query.customer}'] },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -34,7 +34,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['payments:edit'] },
         validate: {
           payload: Joi.object({
             date: Joi.date().required(),
@@ -53,7 +53,7 @@ exports.plugin = {
       method: 'POST',
       path: '/createlist',
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['payments:list:create'] },
         validate: {
           payload: Joi.array().items(Joi.object().keys({
             date: Joi.date().required(),
@@ -74,7 +74,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['payments:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
           payload: {

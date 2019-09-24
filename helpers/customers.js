@@ -1,14 +1,11 @@
 const flat = require('flat');
 const Boom = require('boom');
-const moment = require('moment');
-const get = require('lodash/get');
-const { addFile } = require('./gdriveStorage');
+const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
-const { getLastVersion } = require('../helpers/utils');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
@@ -137,7 +134,7 @@ const uploadFinancialCertificate = async (customerId, file) => {
 };
 
 exports.createAndSaveFile = async (docKeys, params, payload) => {
-  const uploadedFile = await addFile({
+  const uploadedFile = await GdriveStorageHelper.addFile({
     driveFolderId: params.driveId,
     name: payload.fileName || payload[docKeys[0]].hapi.filename,
     type: payload['Content-Type'],
@@ -168,96 +165,4 @@ exports.createAndSaveFile = async (docKeys, params, payload) => {
   }
 
   return uploadedFile;
-};
-
-const getServicesNameList = (subscriptions) => {
-  let list = `${getLastVersion(subscriptions[0].service.versions, 'startDate').name}`;
-  if (subscriptions.length > 1) {
-    for (const sub of subscriptions.slice(1)) {
-      list = list.concat(`\r\n ${getLastVersion(sub.service.versions, 'startDate').name}`);
-    }
-  }
-  return list;
-};
-
-const customerExportHeader = [
-  'Email',
-  'Titre',
-  'Nom',
-  'Prenom',
-  'Date de naissance',
-  'Adresse',
-  'Pathologie',
-  'Commentaire',
-  'Details intervention',
-  'Autres',
-  'Référente',
-  'Nom associé au compte bancaire',
-  'IBAN',
-  'BIC',
-  'RUM',
-  'Date de signature du mandat',
-  'Nombre de souscriptions',
-  'Souscriptions',
-  'Nombre de financements',
-  'Date de création',
-];
-
-exports.exportCustomers = async () => {
-  const customers = await Customer.find().populate('subscriptions.service');
-  const data = [customerExportHeader];
-
-  for (const cus of customers) {
-    const customerData = [cus.email || ''];
-    if (cus.identity && Object.keys(cus.identity).length > 0) {
-      customerData.push(
-        get(cus, 'identity.title', ''),
-        get(cus, 'identity.lastname', '').toUpperCase(),
-        get(cus, 'identity.firstname', ''),
-        cus.identity.birthDate ? moment(cus.identity.birthDate).format('DD/MM/YYYY') : ''
-      );
-    } else customerData.push('', '', '', '');
-
-    if (cus.contact && cus.contact.address && cus.contact.address.fullAddress) customerData.push(cus.contact.address.fullAddress);
-    else customerData.push('');
-
-    if (cus.followUp && Object.keys(cus.followUp).length > 0) {
-      customerData.push(
-        get(cus, 'followUp.pathology', ''),
-        get(cus, 'followUp.comments', ''),
-        get(cus, 'followUp.details', ''),
-        get(cus, 'followUp.misc', ''),
-        get(cus, 'followUp.referent', '')
-      );
-    } else customerData.push('', '', '', '', '');
-
-    if (cus.payment && Object.keys(cus.payment).length > 0) {
-      customerData.push(
-        get(cus, 'payment.bankAccountOwner', ''),
-        get(cus, 'payment.iban', ''),
-        get(cus, 'payment.bic', '')
-      );
-      if (cus.payment.mandates && cus.payment.mandates.length > 0) {
-        const lastMandate = getLastVersion(cus.payment.mandates, 'createdAt');
-        customerData.push(
-          lastMandate.rum || '',
-          lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : ''
-        );
-      } else customerData.push('', '');
-    } else customerData.push('', '', '', '', '');
-
-    if (cus.subscriptions && cus.subscriptions.length > 0) {
-      customerData.push(cus.subscriptions.length, getServicesNameList(cus.subscriptions));
-    } else customerData.push(0, '');
-
-    if (cus.fundings && cus.fundings.length > 0) {
-      customerData.push(cus.fundings.length);
-    } else customerData.push(0);
-
-    customerData.push(cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '');
-
-    data.push(customerData);
-  }
-
-  return data;
 };

@@ -1,6 +1,6 @@
 const expect = require('expect');
-const { populateDB, balanceCustomerList, balanceThirdPartyPayer, balanceBillList } = require('./seed/balanceSeed');
-const { getToken } = require('./seed/authentificationSeed');
+const { populateDB, balanceCustomerList, balanceThirdPartyPayer, balanceBillList, balanceUserList } = require('./seed/balanceSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
 const app = require('../../server');
 
 describe('NODE ENV', () => {
@@ -76,8 +76,19 @@ describe('BALANCES ROUTES - GET /balances', () => {
   });
 
   describe('Other roles', () => {
+    it('should return customer balance if I am its helper', async () => {
+      const helper = balanceUserList[0];
+      const helperToken = await getTokenByCredentials(helper.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/balances?customer=${helper.customers[0]}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
     const roles = [
-      { name: 'helper', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];

@@ -9,6 +9,7 @@ const {
   list,
   generateBillPdf,
 } = require('../controllers/billsController');
+const { getBill, authorizeBillReading } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
@@ -18,7 +19,7 @@ exports.plugin = {
       method: 'GET',
       path: '/drafts',
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['bills:edit'] },
         validate: {
           query: {
             endDate: Joi.date().required(),
@@ -36,7 +37,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['billing:read'] },
+        auth: { scope: ['bills:read', 'customer-{query.customer}'] },
         validate: {
           query: {
             endDate: Joi.date(),
@@ -52,10 +53,13 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/pdfs',
       options: {
-        auth: { scope: ['billing:read'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
+        pre: [
+          { method: getBill, assign: 'bill' },
+          { method: authorizeBillReading },
+        ],
       },
       handler: generateBillPdf,
     });
@@ -64,7 +68,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['bills:edit'] },
         validate: {
           payload: {
             bills: Joi.array().items(Joi.object({
@@ -103,6 +107,7 @@ exports.plugin = {
                   discountEdition: Joi.boolean(),
                   identity: Joi.object(),
                 })),
+                shouldBeSent: Joi.boolean(),
                 total: Joi.number(),
               }),
               thirdPartyPayerBills: Joi.array().items(Joi.object({

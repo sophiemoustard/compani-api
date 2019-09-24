@@ -13,11 +13,11 @@ exports.plugin = {
       path: '/rssFeeds',
       options: {
         validate: {
-          query: { feed_url: Joi.string().uri().required() }
+          query: { feed_url: Joi.string().uri().required() },
         },
-        auth: false
+        auth: false,
       },
-      handler: getRssFeeds
+      handler: getRssFeeds,
     });
-  }
+  },
 };

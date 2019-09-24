@@ -54,7 +54,6 @@ const contract = {
       createdAt: '2018-12-04T16:34:04',
       endDate: null,
       grossHourlyRate: 10.28,
-      isActive: true,
       startDate: '2018-12-03T23:00:00.000Z',
       weeklyHours: 9,
       _id: new ObjectID(),

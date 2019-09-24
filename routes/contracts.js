@@ -81,7 +81,11 @@ exports.plugin = {
                 name: Joi.string(),
                 email: Joi.string(),
               })).required(),
-              meta: Joi.object(),
+              meta: Joi.object({
+                auxiliaryDriveId: Joi.string().required(),
+                customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+                status: Joi.string(),
+              }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
             }),
@@ -99,7 +103,6 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: {
-            startDate: Joi.date(),
             endDate: Joi.date(),
             endReason: Joi.string().valid(END_CONTRACT_REASONS),
             otherMisc: Joi.string(),
@@ -145,7 +148,11 @@ exports.plugin = {
                 name: Joi.string(),
                 email: Joi.string(),
               })).required(),
-              meta: Joi.object(),
+              meta: Joi.object({
+                auxiliaryDriveId: Joi.string().required(),
+                customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+                status: Joi.string(),
+              }),
               redirect: Joi.string().uri(),
               redirectDecline: Joi.string().uri(),
             }),
@@ -166,8 +173,26 @@ exports.plugin = {
             versionId: Joi.objectId().required(),
           },
           payload: {
-            isActive: Joi.boolean(),
+            startDate: Joi.date(),
             endDate: Joi.date(),
+            grossHourlyRate: Joi.number(),
+            signature: Joi.object().keys({
+              templateId: Joi.string().required(),
+              fields: Joi.object(),
+              title: Joi.string().required(),
+              signers: Joi.array().items(Joi.object().keys({
+                id: Joi.string(),
+                name: Joi.string(),
+                email: Joi.string(),
+              })).required(),
+              meta: Joi.object({
+                auxiliaryDriveId: Joi.string().required(),
+                customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+                status: Joi.string(),
+              }),
+              redirect: Joi.string().uri(),
+              redirectDecline: Joi.string().uri(),
+            }),
           },
         },
       },
@@ -200,6 +225,21 @@ exports.plugin = {
           parse: true,
           allow: 'multipart/form-data',
           maxBytes: 5242880,
+        },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+            driveId: Joi.string().required(),
+          },
+          payload: Joi.object({
+            'Content-Type': Joi.string().required(),
+            fileName: Joi.string().required(),
+            contractId: Joi.objectId().required(),
+            versionId: Joi.objectId().required(),
+            customer: Joi.objectId().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+            status: Joi.string().required().valid(CONTRACT_STATUS),
+            signedContract: Joi.any(),
+          }),
         },
       },
     });

@@ -14,7 +14,7 @@ const { populateSubscriptionsServices } = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/generateRum');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
-const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { generateSignatureRequest } = require('../helpers/eSign');
 const {
   createAndSaveFile,
   getCustomerBySector,
@@ -344,8 +344,10 @@ const generateMandateSignatureRequest = async (req) => {
   try {
     const customer = await Customer.findById(req.params._id);
     if (!customer) return Boom.notFound();
+
     const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
+
     const doc = await generateSignatureRequest({
       templateId: req.payload.fileId,
       fields: req.payload.fields,
@@ -483,7 +485,12 @@ const createDriveFolder = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = ['signedMandate', 'signedQuote', 'financialCertificates'];
+    const allowedFields = ['financialCertificates'];
+
+    if (req.auth.credentials.scope.includes('customers:administrative:edit')) {
+      allowedFields.push('signedMandate', 'signedQuote');
+    }
+
     const docKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (docKeys.length === 0) Boom.forbidden('Upload not allowed');
 

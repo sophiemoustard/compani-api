@@ -3,7 +3,7 @@ const moment = require('moment');
 const Event = require('../models/Event');
 const GoogleDrive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
-const { addFile } = require('../helpers/gdriveStorage');
+const GdriveStorage = require('../helpers/gdriveStorage');
 const {
   getListQuery,
   populateEvents,
@@ -49,7 +49,7 @@ const listForCreditNotes = async (req) => {
       startDate: { $gte: moment(req.query.startDate).startOf('d').toDate() },
       endDate: { $lte: moment(req.query.endDate).endOf('d').toDate() },
       customer: req.query.customer,
-      isBilled: true,
+      isBilled: req.query.isBilled,
       type: INTERVENTION,
     };
     if (req.query.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': req.query.thirdPartyPayer };
@@ -85,8 +85,7 @@ const update = async (req) => {
   try {
     const { payload, auth } = req;
 
-    let event = await Event.findOne({ _id: req.params._id }).lean();
-    if (!event) return Boom.notFound(translate[language].eventNotFound);
+    let { event } = req.pre;
 
     if (event.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {
       throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
@@ -108,8 +107,8 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const { params, auth } = req;
-    const event = await deleteEvent(params, auth.credentials);
+    const { auth, pre } = req;
+    const event = await deleteEvent(pre.event, auth.credentials);
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     return { message: translate[language].eventDeleted };
@@ -121,8 +120,8 @@ const remove = async (req) => {
 
 const removeRepetition = async (req) => {
   try {
-    const { params, auth } = req;
-    const event = await deleteRepetition(params, auth.credentials);
+    const { auth, pre } = req;
+    const event = await deleteRepetition(pre.event, auth.credentials);
 
     return {
       message: translate[language].eventDeleted,
@@ -138,7 +137,7 @@ const uploadFile = async (req) => {
   try {
     if (!req.payload.proofOfAbsence) return Boom.forbidden(translate[language].uploadNotAllowed);
 
-    const uploadedFile = await addFile({
+    const uploadedFile = await GdriveStorage.addFile({
       driveFolderId: req.params.driveId,
       name: req.payload.fileName,
       type: req.payload['Content-Type'],

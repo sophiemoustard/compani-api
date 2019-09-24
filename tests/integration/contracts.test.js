@@ -107,7 +107,8 @@ describe('CONTRACTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.contracts).toBeDefined();
-      expect(response.result.data.contracts.length).toEqual(1);
+      expect(response.result.data.contracts.length)
+        .toBe(contractsList.filter(contract => contract.user === user._id).length);
     });
 
     const roles = [
@@ -279,6 +280,18 @@ describe('CONTRACTS ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it('should return a 403 error if contract already has an end date', async () => {
+      const payload = { endDate: moment().toDate() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/contracts/${contractsList[2]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const payload = { endDate: new Date('2019-07-08T14:00:18.653Z') };

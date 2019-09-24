@@ -87,6 +87,7 @@ describe('formatCustomerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
+      shouldBeSent: true,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -119,7 +120,8 @@ describe('formatCustomerBills', () => {
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
+      shouldBeSent: true,
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
@@ -156,6 +158,7 @@ describe('formatCustomerBills', () => {
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
       total: 14.4,
+      shouldBeSent: false,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -210,7 +213,8 @@ describe('formatCustomerBills', () => {
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
+      shouldBeSent: false,
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
@@ -305,7 +309,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -383,7 +387,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -459,7 +463,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -560,7 +564,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -776,7 +780,7 @@ describe('formatPDF', () => {
     });
 
     const bill = {
-      billNumber: '12345',
+      number: '12345',
       subscriptions: [{
         events: [{}],
         startDate: '2019-03-31T22:00:00.000Z',
@@ -798,7 +802,7 @@ describe('formatPDF', () => {
 
     const expectedResult = {
       bill: {
-        billNumber: '12345',
+        number: '12345',
         customer: {
           identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
           contact: { address: { fullAddress: 'La ruche' } },
@@ -840,7 +844,7 @@ describe('formatPDF', () => {
     });
 
     const bill = {
-      billNumber: '12345',
+      number: '12345',
       subscriptions: [{
         events: [{
           auxiliary: {
@@ -874,7 +878,7 @@ describe('formatPDF', () => {
 
     const expected = {
       bill: {
-        billNumber: '12345',
+        number: '12345',
         customer: {
           identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
           contact: { address: { fullAddress: 'La ruche' } },

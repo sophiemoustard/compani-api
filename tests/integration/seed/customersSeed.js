@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const moment = require('moment');
 const Customer = require('../../../models/Customer');
 const Company = require('../../../models/Company');
@@ -6,8 +7,9 @@ const Service = require('../../../models/Service');
 const Event = require('../../../models/Event');
 const QuoteNumber = require('../../../models/QuoteNumber');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
+const User = require('../../../models/User');
 const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../helpers/constants');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const subId = new ObjectID();
 
@@ -75,11 +77,11 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0123456789',
+      accessCodes: 'porte c3po',
     },
     followUp: {
-      pathology: 'malade',
-      comments: 'ne va pas bien',
-      details: 'preparer le dejeuner + balade',
+      environment: 'ne va pas bien',
+      objectives: 'preparer le dejeuner + balade',
       misc: 'code porte: 1234',
     },
     subscriptions: [
@@ -179,6 +181,7 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0612345678',
+      accessCodes: 'you shall not pass',
     },
     payment: {
       bankAccountOwner: 'Lance Amstrong',
@@ -204,6 +207,7 @@ const customersList = [
         city: 'Paris',
       },
       phone: '0612345678',
+      accessCodes: 'Bouton a l\'entrée',
     },
     payment: {
       bankAccountOwner: 'David gaudu',
@@ -213,6 +217,34 @@ const customersList = [
         { rum: 'R012345678903456789' },
       ],
     },
+  },
+  {
+    _id: new ObjectID(),
+    email: 'volgarr@theviking.io',
+    identity: {
+      title: 'M',
+      firstname: 'Volgarr',
+      lastname: 'Theviking',
+    },
+    contact: {
+      address: {
+        fullAddress: 'Lyngsøvej 26, 8600 Silkeborg, Danemark',
+        zipCode: '8600',
+        city: 'Silkeborg',
+      },
+      phone: '0612345678',
+    },
+  },
+];
+
+const userList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [customersList[1]._id],
   },
 ];
 
@@ -256,6 +288,7 @@ const populateDB = async () => {
   await Event.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await QuoteNumber.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentification();
   await (new Company(customerCompany)).save();
@@ -263,10 +296,14 @@ const populateDB = async () => {
   await Service.insertMany(customerServiceList);
   await Customer.insertMany(customersList);
   await Event.insertMany(eventList);
+  for (const user of userList) {
+    await (new User(user).save());
+  }
 };
 
 module.exports = {
   customersList,
+  userList,
   populateDB,
   customerServiceList,
   customerThirdPartyPayer,

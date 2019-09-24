@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
+const memoize = require('lodash/memoize');
 const Role = require('../../../models/Role');
 const Right = require('../../../models/Right');
 const User = require('../../../models/User');
@@ -19,12 +20,22 @@ const rightsList = [
   {
     _id: new ObjectID(),
     description: 'Edit billing info',
-    permission: 'billing:edit',
+    permission: 'bills:edit',
   },
   {
     _id: new ObjectID(),
     description: 'Read billing info',
-    permission: 'billing:read',
+    permission: 'bills:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Edit payment info',
+    permission: 'payments:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Create payment list',
+    permission: 'payments:list:create',
   },
   {
     _id: new ObjectID(),
@@ -68,11 +79,56 @@ const rightsList = [
     permission: 'users:edit',
     name: 'users-edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Editer un évènement',
+    permission: 'events:edit',
+    name: 'events-edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les évènements',
+    permission: 'events:read',
+    name: 'events-read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer son évènement',
+    permission: 'events:own:edit',
+    name: 'events-own-edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer un évènement de son secteur',
+    permission: 'events:sector:edit',
+    name: 'events-sector-edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Créer ou supprimer des bénéficiaires',
+    permission: 'customers:create',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les données de bénéficiaires',
+    permission: 'customers:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les données de bénéficiaires',
+    permission: 'customers:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les données administratives de bénéficiaires',
+    permission: 'customers:administrative:edit',
+  },
 ];
 
 const coachRights = [
   'config:read',
-  'billing:read',
+  'bills:read',
+  'payments:edit',
   'pay:read',
   'contracts:read',
   'contracts:read:user',
@@ -80,13 +136,20 @@ const coachRights = [
   'exports:read',
   'users:list',
   'users:edit',
+  'events:edit',
+  'events:read',
+  'customers:create',
+  'customers:read',
+  'customers:edit',
+  'customers:administrative:edit',
 ];
-const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list'];
-const helperRights = ['billing:read'];
+const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
+const planningReferentRights = [...auxiliaryRights, 'events:sector:edit'];
+const helperRights = [];
 
 const rolesList = [
   {
-    _id: new ObjectID('5d3b11e7fecdbd276adef518'),
+    _id: new ObjectID(),
     name: 'admin',
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -94,7 +157,7 @@ const rolesList = [
     })),
   },
   {
-    _id: new ObjectID('5d3b11e7fecdbd276adef51a'),
+    _id: new ObjectID(),
     name: 'coach',
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -102,7 +165,7 @@ const rolesList = [
     })),
   },
   {
-    _id: new ObjectID('5d3b117847536e273565e123'),
+    _id: new ObjectID(),
     name: 'auxiliary',
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -110,7 +173,15 @@ const rolesList = [
     })),
   },
   {
-    _id: new ObjectID('5d3b115b18518827239ed1d0'),
+    _id: new ObjectID(),
+    name: 'planningReferent',
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: planningReferentRights.includes(right.permission),
+    })),
+  },
+  {
+    _id: new ObjectID(),
     name: 'helper',
     rights: rightsList.map(right => ({
       right_id: right._id,
@@ -143,6 +214,13 @@ const userList = [
   },
   {
     _id: new ObjectID(),
+    identity: { firstname: 'PlanningReferent', lastname: 'Test' },
+    local: { email: 'planning-referent@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'planningReferent')._id,
+  },
+  {
+    _id: new ObjectID(),
     identity: { firstname: 'Helper', lastname: 'Test' },
     local: { email: 'helper@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
@@ -166,15 +244,23 @@ const getUser = (roleName) => {
   return userList.find(u => u.role.toHexString() === role._id.toHexString());
 };
 
-const getToken = async (roleName) => {
-  const user = getUser(roleName);
-  const response = await app.inject({
-    method: 'POST',
-    url: '/users/authenticate',
-    payload: user.local,
-  });
+const getTokenByCredentials = memoize(
+  async (credentials) => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users/authenticate',
+      payload: credentials,
+    });
 
-  return response.result.data.token;
+    return response.result.data.token;
+  },
+  // do not stringify the 'credentials' object, because the order of the props can't be predicted
+  credentials => JSON.stringify([credentials.email, credentials.password])
+);
+
+const getToken = (roleName) => {
+  const user = getUser(roleName);
+  return getTokenByCredentials(user.local);
 };
 
 module.exports = {
@@ -184,4 +270,5 @@ module.exports = {
   populateDBForAuthentification,
   getUser,
   getToken,
+  getTokenByCredentials,
 };
