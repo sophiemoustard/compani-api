@@ -244,7 +244,7 @@ const userList = [
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
-    customers: [customersList[3]._id],
+    customers: [customersList[1]._id],
   },
 ];
 

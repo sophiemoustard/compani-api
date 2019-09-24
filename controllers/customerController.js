@@ -344,8 +344,10 @@ const generateMandateSignatureRequest = async (req) => {
   try {
     const customer = await Customer.findById(req.params._id);
     if (!customer) return Boom.notFound();
+
     const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
+
     const doc = await generateSignatureRequest({
       templateId: req.payload.fileId,
       fields: req.payload.fields,

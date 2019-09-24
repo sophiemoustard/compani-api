@@ -819,14 +819,16 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     const customerId = customersList[1]._id.toHexString();
     const mandateId = customersList[1].payment.mandates[0]._id.toHexString();
 
-    it('should create a mandate signature request', async () => {
+    it('should create a mandate signature request if I am its helper', async () => {
+      const helper = userList[0];
+      const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'POST',
         url: `/customers/${customerId}/mandates/${mandateId}/esign`,
+        headers: { 'x-access-token': helperToken },
         payload,
-        headers: { 'x-access-token': adminToken },
       });
-
+      expect(res.statusCode).toBe(200);
       sinon.assert.calledOnce(createDocumentStub);
       sinon.assert.calledOnce(generateDocxStub);
       sinon.assert.calledOnce(fileToBase64Stub);
@@ -838,28 +840,24 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       expect(customer.payment.mandates[0].everSignId).toBeDefined();
     });
 
-    describe('Other roles', () => {
-      const roles = [
-        { name: 'helper', expectedCode: 403, callCount: 0 },
-        { name: 'auxiliary', expectedCode: 403, callCount: 0 },
-        { name: 'coach', expectedCode: 200, callCount: 1 },
-      ];
+    const roles = [
+      { name: 'helper', expectedCode: 403, callCount: 0 },
+      { name: 'admin', expectedCode: 403, callCount: 0 },
+      { name: 'auxiliary', expectedCode: 403, callCount: 0 },
+      { name: 'coach', expectedCode: 403, callCount: 0 },
+    ];
 
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const authToken = await getToken(role.name);
-          const response = await app.inject({
-            method: 'POST',
-            url: `/customers/${customerId}/mandates/${mandateId}/esign`,
-            payload,
-            headers: { 'x-access-token': authToken },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-          sinon.assert.callCount(createDocumentStub, role.callCount);
-          sinon.assert.callCount(generateDocxStub, role.callCount);
-          sinon.assert.callCount(fileToBase64Stub, role.callCount);
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/customers/${customerId}/mandates/${mandateId}/esign`,
+          payload,
+          headers: { 'x-access-token': authToken },
         });
+
+        expect(response.statusCode).toBe(role.expectedCode);
       });
     });
   });
