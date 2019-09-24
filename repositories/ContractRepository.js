@@ -42,7 +42,7 @@ exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate(
   },
 ]);
 
-exports.getUserEndingCompanyContracts = async contractUserId => Contract.find(
+exports.getUserEndedCompanyContracts = async contractUserId => Contract.find(
   {
     user: contractUserId,
     status: COMPANY_CONTRACT,

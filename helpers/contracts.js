@@ -21,8 +21,8 @@ const ContractRepository = require('../repositories/ContractRepository');
 
 exports.createContract = async (contractPayload) => {
   if (contractPayload.status === COMPANY_CONTRACT) {
-    const endingCompanyContracts = await ContractRepository.getUserEndingCompanyContracts(contractPayload.user, contractPayload.startDate);
-    if (endingCompanyContracts.length && moment(contractPayload.startDate).isBefore(moment(endingCompanyContracts[0].endDate), 'd')) {
+    const endedCompanyContracts = await ContractRepository.getUserEndedCompanyContracts(contractPayload.user, contractPayload.startDate);
+    if (endedCompanyContracts.length && moment(contractPayload.startDate).isSameOrBefore(moment(endedCompanyContracts[0].endDate), 'd')) {
       throw Boom.badRequest('New company contract start date is before last company contract end date.');
     }
   }
