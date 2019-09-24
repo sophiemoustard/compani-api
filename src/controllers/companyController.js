@@ -10,54 +10,6 @@ const { updateEventsInternalHourType } = require('../helpers/events');
 
 const { language } = translate;
 
-const list = async (req) => {
-  try {
-    const companies = await Company.find(req.query);
-
-    return {
-      message: translate[language].companiesFound,
-      data: companies,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const show = async (req) => {
-  try {
-    const company = await Company.findOne({ _id: req.params._id });
-    if (!company) return Boom.notFound(translate[language].companyNotFound);
-
-    return {
-      message: translate[language].companyFound,
-      data: { company },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const create = async (req) => {
-  try {
-    const newCompany = new Company(req.payload);
-    await newCompany.save();
-
-    return {
-      message: translate[language].companyCreated,
-      data: { company: newCompany },
-    };
-  } catch (e) {
-    req.log('error', e);
-    if (e.code === 11000) {
-      req.log(['error', 'db'], e);
-      return Boom.conflict(translate[language].companyExists);
-    }
-    return Boom.badImplementation(e);
-  }
-};
-
 const update = async (req) => {
   try {
     let companyUpdated;
@@ -89,17 +41,6 @@ const update = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].companyExists);
     }
-    return Boom.badImplementation(e);
-  }
-};
-
-const remove = async (req) => {
-  try {
-    await Company.findOneAndRemove({ _id: req.params._id });
-
-    return { message: translate[language].companyDeleted };
-  } catch (e) {
-    req.log('error', e);
     return Boom.badImplementation(e);
   }
 };
@@ -256,11 +197,7 @@ const removeInternalHour = async (req) => {
 };
 
 module.exports = {
-  list,
-  show,
-  create,
   update,
-  remove,
   uploadFile,
   addInternalHour,
   updateInternalHour,

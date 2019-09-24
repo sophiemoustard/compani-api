@@ -17,47 +17,6 @@ describe('COMPANIES ROUTES', () => {
     authToken = await getToken('coach');
   });
 
-  describe('GET /companies/:id', () => {
-    it('should return company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/companies/${company._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.company).toBeDefined();
-    });
-
-    it('should return 404 if no company found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const response = await app.inject({
-        method: 'GET',
-        url: `/companies/${invalidId}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-  });
-
-  describe('POST /companies', () => {
-    it('should create a new service', async () => {
-      const payload = {
-        name: 'Alenvi',
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/companies',
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.company.name).toBe('Alenvi');
-    });
-  });
-
   describe('PUT /companies/:id', () => {
     it('should update company service', async () => {
       const payload = {
@@ -88,18 +47,6 @@ describe('COMPANIES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(404);
-    });
-  });
-
-  describe('DELETE /companies/:id', () => {
-    it('should delete company service', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/companies/${company._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
     });
   });
 });

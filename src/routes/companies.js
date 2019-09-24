@@ -1,15 +1,10 @@
-
 'use strict';
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
-  create,
   update,
-  list,
-  show,
-  remove,
   uploadFile,
   addInternalHour,
   updateInternalHour,
@@ -22,35 +17,6 @@ exports.plugin = {
   name: 'routes-companies',
   register: async (server) => {
     server.route({
-      method: 'POST',
-      path: '/',
-      options: {
-        validate: {
-          payload: Joi.object().keys({
-            name: Joi.string().required(),
-            rhConfig: Joi.object().keys({
-              contractWithCompany: {
-                grossHourlyRate: Joi.number(),
-              },
-              contractWithCustomer: {
-                grossHourlyRate: Joi.number(),
-              },
-              feeAmount: Joi.number(),
-              transportSubs: Joi.array().items({
-                department: Joi.string(),
-                price: Joi.number(),
-              }),
-            }),
-            customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
-            }),
-          }),
-        },
-      },
-      handler: create,
-    });
-
-    server.route({
       method: 'PUT',
       path: '/{_id}',
       options: {
@@ -59,7 +25,6 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            _id: Joi.objectId(),
             name: Joi.string(),
             address: Joi.object().keys({
               street: Joi.string().required(),
@@ -127,45 +92,6 @@ exports.plugin = {
         },
       },
       handler: update,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/',
-      options: {
-        validate: {
-          query: Joi.object().keys({
-            name: Joi.string(),
-          }),
-        },
-      },
-      handler: list,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-        },
-      },
-      handler: show,
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-        },
-      },
-      handler: remove,
     });
 
     server.route({
