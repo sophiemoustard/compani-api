@@ -3,10 +3,10 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 
-const PayDocument = require('../../../models/PayDocument');
-const PayDocumentHelper = require('../../../helpers/payDocuments');
-const GdriveStorageHelper = require('../../../helpers/gdriveStorage');
-const translate = require('../../../helpers/translate');
+const PayDocument = require('../../../src/models/PayDocument');
+const PayDocumentHelper = require('../../../src/helpers/payDocuments');
+const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const translate = require('../../../src/helpers/translate');
 
 const { language } = translate;
 

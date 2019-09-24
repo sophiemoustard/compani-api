@@ -2,7 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const { populateDB } = require('./seed/paySeed');
 const app = require('../../server');
-const Pay = require('../../models/Pay');
+const Pay = require('../../src/models/Pay');
 const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {

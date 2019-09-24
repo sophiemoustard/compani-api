@@ -20,9 +20,9 @@ const {
 } = require('./seed/eventsSeed');
 const { getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
-const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../helpers/constants');
-const Drive = require('../../models/Google/Drive');
-const GdriveStorage = require('../../helpers/gdriveStorage');
+const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../src/helpers/constants');
+const Drive = require('../../src/models/Google/Drive');
+const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {

@@ -2,7 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
 const { surchargesList, populateDB } = require('./seed/surchargesSeed');
-const Surcharge = require('../../models/Surcharge');
+const Surcharge = require('../../src/models/Surcharge');
 const app = require('../../server');
 const { getToken } = require('./seed/authentificationSeed');
 

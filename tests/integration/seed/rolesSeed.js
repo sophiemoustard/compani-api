@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const { populateDBForAuthentification } = require('./authentificationSeed');
-const Role = require('../../../models/Role');
-const Right = require('../../../models/Right');
+const Role = require('../../../src/models/Role');
+const Right = require('../../../src/models/Right');
 
 const rightsList = [
   {

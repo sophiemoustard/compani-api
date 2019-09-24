@@ -5,14 +5,14 @@ const flat = require('flat');
 const Boom = require('boom');
 const cloneDeep = require('lodash/cloneDeep');
 const { ObjectID } = require('mongodb');
-const EventHelper = require('../../../helpers/events');
-const ContractHelper = require('../../../helpers/contracts');
-const ESignHelper = require('../../../helpers/eSign');
-const GDriveStorageHelper = require('../../../helpers/gdriveStorage');
-const Contract = require('../../../models/Contract');
-const User = require('../../../models/User');
-const Customer = require('../../../models/Customer');
-const EventRepository = require('../../../repositories/EventRepository');
+const EventHelper = require('../../../src/helpers/events');
+const ContractHelper = require('../../../src/helpers/contracts');
+const ESignHelper = require('../../../src/helpers/eSign');
+const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const Contract = require('../../../src/models/Contract');
+const User = require('../../../src/models/User');
+const Customer = require('../../../src/models/Customer');
+const EventRepository = require('../../../src/repositories/EventRepository');
 require('sinon-mongoose');
 
 describe('endContract', () => {

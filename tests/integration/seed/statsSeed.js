@@ -1,10 +1,10 @@
 const { ObjectID } = require('mongodb');
-const User = require('../../../models/User');
-const Customer = require('../../../models/Customer');
-const Service = require('../../../models/Service');
-const Event = require('../../../models/Event');
-const Sector = require('../../../models/Sector');
-const Contract = require('../../../models/Contract');
+const User = require('../../../src/models/User');
+const Customer = require('../../../src/models/Customer');
+const Service = require('../../../src/models/Service');
+const Event = require('../../../src/models/Event');
+const Sector = require('../../../src/models/Sector');
+const Contract = require('../../../src/models/Contract');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 
 const sectorList = [{

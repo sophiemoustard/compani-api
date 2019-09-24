@@ -2,15 +2,15 @@ const expect = require('expect');
 const sinon = require('sinon');
 const _ = require('lodash');
 
-const DistanceMatrixHelper = require('../../../helpers/distanceMatrix');
-const DistanceMatrix = require('../../../models/DistanceMatrix');
-const maps = require('../../../models/Google/Maps');
+const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
+const maps = require('../../../src/models/Google/Maps');
 
 describe('getOrCreateDistanceMatrix', () => {
   const distanceMatrixRequest = {
     origins: 'Washington, DC',
     destinations: 'New York City, NY',
-    mode: 'DRIVING'
+    mode: 'DRIVING',
   };
   const distanceMatrixResult = {
     data: {
@@ -18,10 +18,10 @@ describe('getOrCreateDistanceMatrix', () => {
         elements: [{
           distance: { value: 363998 },
           duration: { value: 13790 },
-        }]
-      }]
+        }],
+      }],
     },
-    status: 200
+    status: 200,
   };
   let findOne;
   let save;
@@ -104,7 +104,7 @@ describe('getOrCreateDistanceMatrix', () => {
       distance: 363998,
       duration: 13790,
       origins: 'Washington, DC',
-      mode: 'DRIVING'
+      mode: 'DRIVING',
     }));
   });
 });

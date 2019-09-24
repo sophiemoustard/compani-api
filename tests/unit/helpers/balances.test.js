@@ -4,10 +4,10 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const _ = require('lodash');
 
-const BalanceHelper = require('../../../helpers/balances');
-const BillRepository = require('../../../repositories/BillRepository');
-const CreditNoteRepository = require('../../../repositories/CreditNoteRepository');
-const PaymentRepository = require('../../../repositories/PaymentRepository');
+const BalanceHelper = require('../../../src/helpers/balances');
+const BillRepository = require('../../../src/repositories/BillRepository');
+const CreditNoteRepository = require('../../../src/repositories/CreditNoteRepository');
+const PaymentRepository = require('../../../src/repositories/PaymentRepository');
 
 describe('canBeDirectDebited', () => {
   const bill = {

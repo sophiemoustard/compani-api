@@ -3,10 +3,10 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 require('sinon-mongoose');
 
-const Bill = require('../../../models/Bill');
-const BillRepository = require('../../../repositories/BillRepository');
-const EmailHelper = require('../../../helpers/email');
-const billDispatch = require('../../../jobs/billDispatch');
+const Bill = require('../../../src/models/Bill');
+const BillRepository = require('../../../src/repositories/BillRepository');
+const EmailHelper = require('../../../src/helpers/email');
+const billDispatch = require('../../../src/jobs/billDispatch');
 
 
 describe('method', () => {

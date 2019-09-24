@@ -1,9 +1,9 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const UtilsHelper = require('../../../helpers/utils');
-const EventHistoryHelper = require('../../../helpers/eventHistories');
-const EventHistory = require('../../../models/EventHistory');
+const UtilsHelper = require('../../../src/helpers/utils');
+const EventHistoryHelper = require('../../../src/helpers/eventHistories');
+const EventHistory = require('../../../src/models/EventHistory');
 
 require('sinon-mongoose');
 

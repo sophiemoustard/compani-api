@@ -1,14 +1,14 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const moment = require('moment');
-const Customer = require('../../../models/Customer');
-const Company = require('../../../models/Company');
-const Service = require('../../../models/Service');
-const Event = require('../../../models/Event');
-const QuoteNumber = require('../../../models/QuoteNumber');
-const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
-const User = require('../../../models/User');
-const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../helpers/constants');
+const Customer = require('../../../src/models/Customer');
+const Company = require('../../../src/models/Company');
+const Service = require('../../../src/models/Service');
+const Event = require('../../../src/models/Event');
+const QuoteNumber = require('../../../src/models/QuoteNumber');
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const User = require('../../../src/models/User');
+const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const subId = new ObjectID();

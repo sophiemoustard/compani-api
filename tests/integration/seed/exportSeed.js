@@ -1,15 +1,15 @@
 const { ObjectID } = require('mongodb');
-const Event = require('../../../models/Event');
-const Customer = require('../../../models/Customer');
-const User = require('../../../models/User');
-const Bill = require('../../../models/Bill');
-const Service = require('../../../models/Service');
-const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
-const Payment = require('../../../models/Payment');
-const Pay = require('../../../models/Pay');
-const Sector = require('../../../models/Sector');
-const FinalPay = require('../../../models/FinalPay');
-const Company = require('../../../models/Company');
+const Event = require('../../../src/models/Event');
+const Customer = require('../../../src/models/Customer');
+const User = require('../../../src/models/User');
+const Bill = require('../../../src/models/Bill');
+const Service = require('../../../src/models/Service');
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const Payment = require('../../../src/models/Payment');
+const Pay = require('../../../src/models/Pay');
+const Sector = require('../../../src/models/Sector');
+const FinalPay = require('../../../src/models/FinalPay');
+const Company = require('../../../src/models/Company');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 const {
   PAYMENT,
@@ -18,7 +18,7 @@ const {
   COMPANY_CONTRACT,
   HOURLY,
   CUSTOMER_CONTRACT,
-} = require('../../../helpers/constants');
+} = require('../../../src/helpers/constants');
 
 const sector = {
   _id: new ObjectID(),

@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
-const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
-const Company = require('../../../models/Company');
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const Company = require('../../../src/models/Company');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 
 const tppCompany = {

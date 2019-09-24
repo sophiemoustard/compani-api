@@ -6,9 +6,9 @@ const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
 const { populateDB, billUserList, billsList, billCustomerList } = require('./seed/billsSeed');
-const { TWO_WEEKS } = require('../../helpers/constants');
+const { TWO_WEEKS } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
-const Bill = require('../../models/Bill');
+const Bill = require('../../src/models/Bill');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

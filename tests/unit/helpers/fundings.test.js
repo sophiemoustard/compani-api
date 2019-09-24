@@ -1,8 +1,8 @@
 const expect = require('expect');
 const sinon = require('sinon');
-const UtilsHelper = require('../../../helpers/utils');
-const FundingsHelper = require('../../../helpers/fundings');
-const CustomerRepository = require('../../../repositories/CustomerRepository');
+const UtilsHelper = require('../../../src/helpers/utils');
+const FundingsHelper = require('../../../src/helpers/fundings');
+const CustomerRepository = require('../../../src/repositories/CustomerRepository');
 
 require('sinon-mongoose');
 

@@ -2,11 +2,11 @@ const sinon = require('sinon');
 const moment = require('moment');
 require('sinon-mongoose');
 
-const Repetition = require('../../../models/Repetition');
-const Event = require('../../../models/Event');
-const EventsRepetitionHelper = require('../../../helpers/eventsRepetition');
-const EmailHelper = require('../../../helpers/email');
-const eventRepetitions = require('../../../jobs/eventRepetitions');
+const Repetition = require('../../../src/models/Repetition');
+const Event = require('../../../src/models/Event');
+const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
+const EmailHelper = require('../../../src/helpers/email');
+const eventRepetitions = require('../../../src/jobs/eventRepetitions');
 
 describe('method', () => {
   let EventMock;

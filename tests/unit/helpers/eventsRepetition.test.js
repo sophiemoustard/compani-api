@@ -2,18 +2,18 @@ const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
-const Event = require('../../../models/Event');
-const Repetition = require('../../../models/Repetition');
-const EventsRepetitionHelper = require('../../../helpers/eventsRepetition');
-const EventsValidationHelper = require('../../../helpers/eventsValidation');
-const RepetitionHelper = require('../../../helpers/repetitions');
-const EventHistoriesHelper = require('../../../helpers/eventHistories');
+const Event = require('../../../src/models/Event');
+const Repetition = require('../../../src/models/Repetition');
+const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
+const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
+const RepetitionHelper = require('../../../src/helpers/repetitions');
+const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const {
   INTERVENTION,
   ABSENCE,
   NEVER,
   EVERY_WEEK,
-} = require('../../../helpers/constants');
+} = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 

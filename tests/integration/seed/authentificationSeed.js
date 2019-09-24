@@ -1,9 +1,9 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const memoize = require('lodash/memoize');
-const Role = require('../../../models/Role');
-const Right = require('../../../models/Right');
-const User = require('../../../models/User');
+const Role = require('../../../src/models/Role');
+const Right = require('../../../src/models/Right');
+const User = require('../../../src/models/User');
 const app = require('../../../server');
 
 const rightsList = [

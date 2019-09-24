@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { payValidation } = require('../validations/pay');
+const { payValidation } = require('../../validations/pay');
 const {
   draftPayList,
   createList,

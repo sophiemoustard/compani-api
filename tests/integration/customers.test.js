@@ -6,7 +6,7 @@ const moment = require('moment');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const cloneDeep = require('lodash/cloneDeep');
-const Drive = require('../../models/Google/Drive');
+const Drive = require('../../src/models/Google/Drive');
 const { generateFormData } = require('./utils');
 const GetStream = require('get-stream');
 
@@ -18,11 +18,11 @@ const {
   customerServiceList,
   customerThirdPartyPayer,
 } = require('./seed/customersSeed');
-const Customer = require('../../models/Customer');
-const ESign = require('../../models/ESign');
-const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../helpers/constants');
+const Customer = require('../../src/models/Customer');
+const ESign = require('../../src/models/ESign');
+const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
-const FileHelper = require('../../helpers/file');
+const FileHelper = require('../../src/helpers/file');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
