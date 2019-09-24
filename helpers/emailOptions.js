@@ -44,9 +44,18 @@ const completeBillScriptEmailBody = (sentNb, emails) => {
   return body;
 };
 
+const completeEventRepScriptEmailBody = (nb, repIds) => {
+  let body = `<p>Script correctement exécuté. ${nb} répétitions traitées.</p>`;
+  if (repIds.length) {
+    body = body.concat(`<p>Répétitions à traiter manuellement ${repIds.join()}</p>`);
+  }
+  return body;
+};
+
 module.exports = {
   welcomeEmailContent,
   forgetPasswordEmail,
   billEmail,
   completeBillScriptEmailBody,
+  completeEventRepScriptEmailBody,
 };
