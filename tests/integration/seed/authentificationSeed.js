@@ -123,6 +123,11 @@ const rightsList = [
     description: 'Editer les données administratives de bénéficiaires',
     permission: 'customers:administrative:edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les informations de la compagnie',
+    permission: 'companies:edit',
+  },
 ];
 
 const coachRights = [

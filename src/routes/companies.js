@@ -20,6 +20,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['companies:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -99,6 +100,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
+        auth: { scope: ['companies:edit'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -113,6 +115,7 @@ exports.plugin = {
       path: '/{_id}/internalHours',
       handler: addInternalHour,
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -130,6 +133,7 @@ exports.plugin = {
       path: '/{_id}/internalHours/{internalHourId}',
       handler: updateInternalHour,
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -148,6 +152,7 @@ exports.plugin = {
       path: '/{_id}/internalHours',
       handler: getInternalHours,
       options: {
+        auth: { scope: ['config:read'] },
         validate: {
           params: { _id: Joi.objectId().required() },
         },
@@ -159,6 +164,7 @@ exports.plugin = {
       path: '/{_id}/internalHours/{internalHourId}',
       handler: removeInternalHour,
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
