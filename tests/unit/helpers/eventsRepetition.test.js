@@ -79,6 +79,21 @@ describe('formatRepeatedPayload', () => {
     expect(result).toBeDefined();
     expect(result.auxiliary).toBeDefined();
   });
+
+  it('should not called hasConflicts if event is not affected', async () => {
+    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const event = {
+      startDate: moment('2019-07-14').startOf('d'),
+      endDate: moment('2019-07-15').startOf('d'),
+      type: 'intervention',
+    };
+
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+
+    expect(result).toBeDefined();
+    expect(result.auxiliary).not.toBeDefined();
+    sinon.assert.notCalled(hasConflicts);
+  });
 });
 
 describe('createRepetitionsEveryDay', () => {
