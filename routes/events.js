@@ -30,6 +30,7 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
+const { getEvent, authorizeEventUpdate } = require('./preHandlers/events');
 
 exports.plugin = {
   name: 'routes-event',
@@ -38,6 +39,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['events:edit', 'events:sector:edit', 'events:own:edit'] },
         validate: {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(EVENT_TYPES),
@@ -74,6 +76,9 @@ exports.plugin = {
               .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
+        pre: [
+          { method: authorizeEventUpdate },
+        ],
       },
       handler: create,
     });
@@ -82,6 +87,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['events:read', 'customer-{query.customer}'] },
         validate: {
           query: {
             startDate: Joi.date(),
@@ -91,6 +97,7 @@ exports.plugin = {
             customer: [Joi.array().items(Joi.string()), Joi.string()],
             type: Joi.string(),
             groupBy: Joi.string(),
+            status: Joi.string(),
           },
         },
       },
@@ -101,13 +108,14 @@ exports.plugin = {
       method: 'GET',
       path: '/credit-notes',
       options: {
+        auth: { scope: ['events:read'] },
         validate: {
           query: {
-            startDate: Joi.string(),
-            endDate: Joi.string(),
-            customer: Joi.objectId(),
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+            customer: Joi.objectId().required(),
             thirdPartyPayer: Joi.objectId(),
-            isBilled: Joi.boolean(),
+            isBilled: Joi.boolean().required(),
           },
         },
       },
@@ -118,6 +126,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['events:edit', 'events:sector:edit', 'events:own:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
           payload: Joi.object().keys({
@@ -159,7 +168,12 @@ exports.plugin = {
             bills: Joi.object(),
           }).and('startDate', 'endDate'),
         },
+        pre: [
+          { method: getEvent, assign: 'event' },
+          { method: authorizeEventUpdate },
+        ],
       },
+
       handler: update,
     });
 
@@ -167,9 +181,14 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        auth: { scope: ['events:edit', 'events:sector:edit', 'events:own:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
+        pre: [
+          { method: getEvent, assign: 'event' },
+          { method: authorizeEventUpdate },
+        ],
       },
       handler: remove,
     });
@@ -178,9 +197,14 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/repetition',
       options: {
+        auth: { scope: ['events:edit', 'events:sector:edit', 'events:own:edit'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
+        pre: [
+          { method: getEvent, assign: 'event' },
+          { method: authorizeEventUpdate },
+        ],
       },
       handler: removeRepetition,
     });
@@ -190,12 +214,17 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
+        auth: { scope: ['events:edit', 'events:sector:edit', 'events:own:edit'] },
         payload: {
           output: 'stream',
           parse: true,
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
+        pre: [
+          { method: getEvent, assign: 'event' },
+          { method: authorizeEventUpdate },
+        ],
       },
     });
   },

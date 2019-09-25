@@ -100,6 +100,12 @@ module.exports = {
       [this.CESU]: 'Cesu',
     };
   },
+  get PAYMENT_NATURE_LIST() {
+    return {
+      [this.PAYMENT]: 'Paiement',
+      [this.REFUND]: 'Remboursement',
+    };
+  },
   SURCHARGES: {
     saturday: 'Samedi',
     sunday: 'Dimanche',
@@ -163,6 +169,7 @@ module.exports = {
   // PAY
   PAY: 'pay',
   // CONTRACTS
+  CONTRACT: 'contract',
   EMPLOYER_TRIAL_PERIOD_TERMINATION: 'employer_trial_period_termination',
   EMPLOYEE_TRIAL_PERIOD_TERMINATION: 'employee_trial_period_termination',
   RESIGNATION: 'resignation',

@@ -16,8 +16,8 @@ exports.plugin = {
           payload: Joi.object().keys({
             code: Joi.string().min(4).max(4),
             newUserId: Joi.objectId().required(),
-            userEmail: Joi.string().email().required()
-          })
+            userEmail: Joi.string().email().required(),
+          }),
         },
       },
       handler: createActivationCode,
@@ -29,12 +29,12 @@ exports.plugin = {
       options: {
         validate: {
           params: Joi.object().keys({
-            code: Joi.string().length(4).required()
-          })
+            code: Joi.string().length(4).required(),
+          }),
         },
         auth: false,
       },
       handler: checkActivationCode,
     });
-  }
+  },
 };

@@ -23,7 +23,8 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const thirdPartyPayers = await ThirdPartyPayer.find(req.query);
+    const thirdPartyPayers = await ThirdPartyPayer.find(req.query).lean();
+
     return {
       message: thirdPartyPayers.length === 0 ? translate[language].thirdPartyPayersNotFound : translate[language].thirdPartyPayersFound,
       data: { thirdPartyPayers },

@@ -11,7 +11,6 @@ const Pay = require('../models/Pay');
 const ContractRepository = require('../repositories/ContractRepository');
 const EventRepository = require('../repositories/EventRepository');
 const {
-  FIXED,
   PUBLIC_TRANSPORT,
   TRANSIT,
   DRIVING,
@@ -41,8 +40,7 @@ exports.getMonthBusinessDaysCount = start =>
 
 exports.getContractMonthInfo = (contract, query) => {
   const versions = contract.versions.filter(ver =>
-    (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.endDate && moment(ver.endDate).isAfter(query.startDate)) ||
-    (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.isActive));
+    (moment(ver.startDate).isSameOrBefore(query.endDate) && (!ver.endDate || moment(ver.endDate).isSameOrAfter(query.startDate))));
   const monthBusinessDays = exports.getMonthBusinessDaysCount(query.startDate);
 
   let contractHours = 0;
@@ -50,7 +48,7 @@ exports.getContractMonthInfo = (contract, query) => {
   for (const version of versions) {
     const startDate = moment(version.startDate).isBefore(query.startDate) ? moment(query.startDate) : moment(version.startDate).startOf('d');
     const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
-      ? moment(version.endDate).subtract(1, 'd').endOf('d')
+      ? moment(version.endDate).endOf('d')
       : moment(query.endDate);
     const businessDays = exports.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
     workedDays += businessDays;
@@ -159,7 +157,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
   let paidTransportDuration = 0;
   let paidKm = 0;
 
-  if (prevEvent) {
+  if (prevEvent && !prevEvent.hasFixedService && !event.hasFixedService) {
     const origins = prevEvent.type === INTERVENTION
       ? get(prevEvent, 'customer.contact.address.fullAddress', null)
       : get(prevEvent, 'address.fullAddress', null);
@@ -242,7 +240,7 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => 
 
       let service = null;
       if (paidEvent.type === INTERVENTION) {
-        if (paidEvent.subscription.service.nature === FIXED) continue; // Fixed services are included manually in bonus
+        if (paidEvent.hasFixedService) continue; // Fixed services are included manually in bonus
 
         service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
         service.surcharge = service.surcharge ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null : null;
@@ -300,23 +298,24 @@ exports.getPayFromAbsences = (absences, contract, query) => {
   return hours;
 };
 
+const getContract = (contracts, endDate) => contracts.find((cont) => {
+  const isCompanyContract = cont.status === COMPANY_CONTRACT;
+  if (!isCompanyContract) return false;
+
+  const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
+  if (!contractStarted) return false;
+
+  return !cont.endDate || moment(cont.endDate).isAfter(endDate);
+});
+
 exports.getDraftPayByAuxiliary = async (auxiliary, events, absences, prevPay, company, query, distanceMatrix, surcharges) => {
   const { _id, identity, sector, contracts } = auxiliary;
-  const contract = contracts.find((cont) => {
-    const isCompanyContract = cont.status === COMPANY_CONTRACT;
-    if (!isCompanyContract) return false;
-
-    const contractStarted = moment(cont.startDate).isSameOrBefore(query.endDate);
-    if (!contractStarted) return false;
-
-    return (!cont.endDate) ? cont.versions.some(v => v.isActive) : moment(cont.endDate).isAfter(query.endDate);
-  });
+  const contract = getContract(contracts, query.endDate);
   if (!contract) return;
-  const contractInfo = exports.getContractMonthInfo(contract, query);
 
+  const contractInfo = exports.getContractMonthInfo(contract, query);
   const hours = await exports.getPayFromEvents(events, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(absences, contract, query);
-
   const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
 
   return {

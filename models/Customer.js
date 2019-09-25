@@ -32,15 +32,12 @@ const CustomerSchema = mongoose.Schema({
       location: locationSchemaDefinition,
     },
     phone: String,
-    doorCode: String,
-    intercomCode: String,
+    accessCodes: String,
   },
   followUp: {
-    pathology: String,
-    comments: String,
-    details: String,
+    environment: String,
+    objectives: String,
     misc: String,
-    referent: String,
   },
   payment: {
     bankAccountOwner: String,

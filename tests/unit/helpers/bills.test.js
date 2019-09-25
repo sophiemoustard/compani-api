@@ -3,7 +3,6 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 
-const Bill = require('../../../models/Bill');
 const BillHelper = require('../../../helpers/bills');
 const UtilsHelper = require('../../../helpers/utils');
 const PdfHelper = require('../../../helpers/pdf');
@@ -88,6 +87,7 @@ describe('formatCustomerBills', () => {
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
+      shouldBeSent: true,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -120,7 +120,8 @@ describe('formatCustomerBills', () => {
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
+      shouldBeSent: true,
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
@@ -157,6 +158,7 @@ describe('formatCustomerBills', () => {
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
       total: 14.4,
+      shouldBeSent: false,
       bills: [{
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -211,7 +213,8 @@ describe('formatCustomerBills', () => {
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
+      shouldBeSent: false,
       subscriptions: [{
         subscription: 'asd',
         unitExclTaxes: 24.644549763033176,
@@ -306,7 +309,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -384,7 +387,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -460,7 +463,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -561,7 +564,7 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
       customer: 'lilalo',
-      billNumber: 'Picsou077',
+      number: 'Picsou077',
       client: 'Papa',
       subscriptions: [{
         subscription: 'asd',
@@ -777,7 +780,7 @@ describe('formatPDF', () => {
     });
 
     const bill = {
-      billNumber: '12345',
+      number: '12345',
       subscriptions: [{
         events: [{}],
         startDate: '2019-03-31T22:00:00.000Z',
@@ -799,7 +802,7 @@ describe('formatPDF', () => {
 
     const expectedResult = {
       bill: {
-        billNumber: '12345',
+        number: '12345',
         customer: {
           identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
           contact: { address: { fullAddress: 'La ruche' } },
@@ -841,7 +844,7 @@ describe('formatPDF', () => {
     });
 
     const bill = {
-      billNumber: '12345',
+      number: '12345',
       subscriptions: [{
         events: [{
           auxiliary: {
@@ -875,7 +878,7 @@ describe('formatPDF', () => {
 
     const expected = {
       bill: {
-        billNumber: '12345',
+        number: '12345',
         customer: {
           identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
           contact: { address: { fullAddress: 'La ruche' } },
@@ -976,122 +979,5 @@ describe('getUnitInclTaxes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(14.4);
     sinon.assert.called(getLastVersion);
-  });
-});
-
-describe('exportBillsHistory', () => {
-  const header = ['Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Montant HT en €', 'Montant TTC en €', 'Services'];
-  const bills = [
-    {
-      billNumber: 'FACT-0549236',
-      date: '2019-05-20T06:00:00.000+00:00',
-      customer: {
-        _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
-        identity: {
-          title: 'Mme',
-          firstname: 'Mimi',
-          lastname: 'Mathy',
-        },
-      },
-      client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
-      netInclTaxes: 389276.023,
-      subscriptions: [{
-        service: { name: 'Temps de qualité - autonomie' },
-        hours: 20,
-        exclTaxes: 389276.0208,
-        inclTaxes: 410686.201944,
-      }],
-    }, {
-      billNumber: 'FACT-0419457',
-      date: '2019-05-22T06:00:00.000+00:00',
-      customer: {
-        _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
-        identity: {
-          title: 'M',
-          firstname: 'Bojack',
-          lastname: 'Horseman',
-        },
-      },
-      client: { _id: ObjectID('5c35b5eb1a6fb87297363eb2'), name: 'The Sherif' },
-      netInclTaxes: 1057.1319439,
-      subscriptions: [{
-        service: { name: 'Forfait nuit' },
-        hours: 15,
-        exclTaxes: 700.0208,
-        inclTaxes: 738.521944,
-      }, {
-        service: { name: 'Forfait nuit' },
-        hours: 7,
-        inclTaxes: 302,
-        exclTaxes: 318.6099999,
-      }],
-    },
-  ];
-  let mockBill;
-  let formatPriceStub;
-  let formatFloatForExportStub;
-  beforeEach(() => {
-    mockBill = sinon.mock(Bill);
-    formatPriceStub = sinon.stub(UtilsHelper, 'formatPrice');
-    formatFloatForExportStub = sinon.stub(UtilsHelper, 'formatFloatForExport');
-  });
-  afterEach(() => {
-    mockBill.restore();
-    formatPriceStub.restore();
-    formatFloatForExportStub.restore();
-  });
-
-  it('should return an array containing just the header', async () => {
-    mockBill.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns([]);
-    const exportArray = await BillHelper.exportBillsHistory(null, null);
-
-    expect(exportArray).toEqual([header]);
-  });
-
-  it('should return an array with the header and a row of empty cells', async () => {
-    mockBill.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns([{}]);
-
-    formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
-    formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
-    const exportArray = await BillHelper.exportBillsHistory(null, null);
-
-    expect(exportArray).toEqual([
-      header,
-      ['', '', '', '', '', '', '', '', '', '', ''],
-    ]);
-  });
-
-  it('should return an array with the header and 2 rows', async () => {
-    mockBill.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(bills);
-    formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
-    formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
-
-    const exportArray = await BillHelper.exportBillsHistory(null, null);
-
-    sinon.assert.callCount(formatPriceStub, 3);
-    sinon.assert.callCount(formatFloatForExportStub, 4);
-    expect(exportArray).toEqual([
-      header,
-      ['FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
-      ['FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
-    ]);
   });
 });

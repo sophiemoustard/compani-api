@@ -32,9 +32,10 @@ exports.formatCustomerBills = (customerBills, customer, number) => {
   const bill = {
     customer: customer._id,
     subscriptions: [],
-    billNumber: exports.formatBillNumber(number.prefix, number.seq),
+    number: exports.formatBillNumber(number.prefix, number.seq),
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
+    shouldBeSent: customerBills.shouldBeSent,
   };
 
   for (const draftBill of customerBills.bills) {
@@ -61,7 +62,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) =>
       date: tpp.bills[0].endDate,
     };
     if (!tpp.bills[0].externalBilling) {
-      tppBill.billNumber = exports.formatBillNumber(number.prefix, seq);
+      tppBill.number = exports.formatBillNumber(number.prefix, seq);
       seq += 1;
     } else {
       tppBill.origin = THIRD_PARTY;
@@ -147,7 +148,7 @@ exports.formatAndCreateBills = async (number, groupByCustomerBills) => {
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
         promises.push((new Bill(bill)).save());
-        if (bill.billNumber) number.seq += 1;
+        if (bill.number) number.seq += 1;
       }
     }
   }
@@ -244,80 +245,11 @@ exports.formatPDF = (bill, company) => {
 
   return {
     bill: {
-      billNumber: bill.billNumber,
+      number: bill.number,
       customer: bill.customer,
       ...computedData,
       company,
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
     },
   };
-};
-
-const exportBillSubscribtions = (bill) => {
-  if (!bill.subscriptions) return '';
-
-  const subscriptions = bill.subscriptions.map(sub =>
-    `${sub.service.name} - ${sub.hours} heures - ${UtilsHelper.formatPrice(sub.inclTaxes)} TTC`);
-
-  return subscriptions.join('\r\n');
-};
-
-const billExportHeader = [
-  'Identifiant',
-  'Date',
-  'Id Bénéficiaire',
-  'Titre',
-  'Nom',
-  'Prénom',
-  'Id tiers payeur',
-  'Tiers payeur',
-  'Montant HT en €',
-  'Montant TTC en €',
-  'Services',
-];
-
-exports.exportBillsHistory = async (startDate, endDate) => {
-  const query = {
-    date: { $lte: endDate, $gte: startDate },
-  };
-
-  const bills = await Bill.find(query)
-    .sort({ date: 'desc' })
-    .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client' })
-    .lean();
-
-  const rows = [billExportHeader];
-
-  for (const bill of bills) {
-    const customerId = get(bill.customer, '_id');
-    const clientId = get(bill.client, '_id');
-    let totalExclTaxesFormatted = '';
-
-    if (bill.subscriptions != null) {
-      let totalExclTaxes = 0;
-      for (const sub of bill.subscriptions) {
-        totalExclTaxes += sub.exclTaxes;
-      }
-      totalExclTaxesFormatted = UtilsHelper.formatFloatForExport(totalExclTaxes);
-    }
-
-    const cells = [
-      bill.billNumber || '',
-      bill.date ? moment(bill.date).format('DD/MM/YYYY') : '',
-      customerId ? customerId.toHexString() : '',
-      get(bill, 'customer.identity.title', ''),
-      get(bill, 'customer.identity.lastname', '').toUpperCase(),
-      get(bill, 'customer.identity.firstname', ''),
-      clientId ? clientId.toHexString() : '',
-      get(bill.client, 'name') || '',
-      totalExclTaxesFormatted,
-      UtilsHelper.formatFloatForExport(bill.netInclTaxes),
-      exportBillSubscribtions(bill),
-    ];
-
-    rows.push(cells);
-  }
-
-  return rows;
 };

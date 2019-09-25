@@ -1,4 +1,5 @@
 const Contract = require('../models/Contract');
+const { COMPANY_CONTRACT } = require('../helpers/constants');
 
 exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate([
   { $match: { ...contractRules } },
@@ -40,3 +41,13 @@ exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate(
     },
   },
 ]);
+
+exports.getUserEndedCompanyContracts = async contractUserId => Contract.find(
+  {
+    user: contractUserId,
+    status: COMPANY_CONTRACT,
+    endDate: { $exists: true },
+  },
+  { endDate: 1 },
+  { sort: { endDate: -1 } }
+).lean();

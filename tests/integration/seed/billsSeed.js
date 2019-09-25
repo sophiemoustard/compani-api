@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const moment = require('moment');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../helpers/constants');
 const Bill = require('../../../models/Bill');
@@ -8,7 +9,8 @@ const Company = require('../../../models/Company');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const BillNumber = require('../../../models/BillNumber');
 const Event = require('../../../models/Event');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const User = require('../../../models/User');
+const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const billThirdPartyPayer = {
   _id: new ObjectID(),
@@ -116,9 +118,27 @@ const billCustomerList = [
   },
 ];
 
+const billUserList = [
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
+    local: { email: 'helper_for_customer_bill@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [billCustomerList[0]._id],
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Tata', lastname: 'Toto' },
+    local: { email: 'toto@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+  },
+];
+
 const billsList = [
   {
     _id: new ObjectID(),
+    number: 'FACT-1807001',
     date: '2019-05-29',
     customer: billCustomerList[0]._id,
     client: billThirdPartyPayer._id,
@@ -133,7 +153,7 @@ const billsList = [
         eventId: new ObjectID(),
         startDate: '2019-01-16T09:30:19.543Z',
         endDate: '2019-01-16T11:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: billUserList[1]._id,
       }],
       hours: 8,
       unitExclTaxes: 9,
@@ -144,6 +164,7 @@ const billsList = [
   },
   {
     _id: new ObjectID(),
+    number: 'FACT-1807002',
     date: '2019-05-25',
     customer: billCustomerList[1]._id,
     netInclTaxes: 101.28,
@@ -156,7 +177,7 @@ const billsList = [
         eventId: new ObjectID(),
         startDate: '2019-01-16T10:30:19.543Z',
         endDate: '2019-01-16T12:30:21.653Z',
-        auxiliary: new ObjectID(),
+        auxiliary: billUserList[1]._id,
       }],
       service: { name: 'Temps de qualité - autonomie' },
       hours: 4,
@@ -226,6 +247,7 @@ const populateDB = async () => {
   await Bill.deleteMany({});
   await Event.deleteMany({});
   await BillNumber.deleteMany({});
+  await User.deleteMany({});
 
   await populateDBForAuthentification();
   await (new Company(company)).save();
@@ -234,10 +256,14 @@ const populateDB = async () => {
   await Customer.insertMany(billCustomerList);
   await Bill.insertMany(billsList);
   await Event.insertMany(eventList);
+  for (const user of billUserList) {
+    await (new User(user).save());
+  }
 };
 
 module.exports = {
   billsList,
   populateDB,
   billCustomerList,
+  billUserList,
 };

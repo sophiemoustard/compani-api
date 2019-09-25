@@ -1,20 +1,12 @@
 const Boom = require('boom');
 const flat = require('flat');
-const mongoose = require('mongoose');
 const crypto = require('crypto');
-
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
-const { endContract, createAndSaveFile, saveCompletedContract } = require('../helpers/contracts');
-const {
-  unassignInterventionsOnContractEnd,
-  removeEventsExceptInterventionsOnContractEnd,
-  updateAbsencesOnContractEnd,
-} = require('../helpers/events');
-const { generateSignatureRequest } = require('../helpers/generateSignatureRequest');
+const { createContract, createVersion, endContract, createAndSaveFile, saveCompletedContract, updateVersion, deleteVersion } = require('../helpers/contracts');
 
 const { language } = translate;
 
@@ -31,7 +23,7 @@ const list = async (req) => {
     return { message, data: { contracts } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -52,28 +44,14 @@ const get = async (req) => {
     return { message: translate[language].contractFound, data: { contract } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const create = async (req) => {
   try {
-    const contract = new Contract(req.payload);
-    contract.version = [{
-      startDate: req.payload.startDate,
-      weeklyHours: req.payload.weeklyHours,
-      grossHourlyRate: req.payload.grossHourlyRate,
-    }];
-    if (req.payload.signature) {
-      const doc = await generateSignatureRequest(req.payload.signature);
-      if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-      contract.versions[0].signature.eversignId = doc.data.document_hash;
-      delete req.payload.signature;
-    }
-    await contract.save();
-
-    await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } });
-    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $push: { contracts: contract._id } });
+    const { payload } = req;
+    const contract = await createContract(payload);
 
     return {
       message: translate[language].contractCreated,
@@ -81,29 +59,14 @@ const create = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const update = async (req) => {
   try {
-    let contract;
-    if (req.payload.endDate) {
-      contract = await endContract(req.params._id, req.payload);
-      if (!contract) return Boom.notFound(translate[language].contractNotFound);
-      await unassignInterventionsOnContractEnd(contract, req.auth.credentials);
-      await removeEventsExceptInterventionsOnContractEnd(contract, req.auth.credentials);
-      await updateAbsencesOnContractEnd(contract.user._id, contract.endDate, req.auth.credentials);
-    } else {
-      contract = await Contract
-        .findByIdAndUpdate(req.params._id, req.paylaod)
-        .populate({ path: 'user', select: 'identity' })
-        .populate({ path: 'customer', select: 'identity' })
-        .lean();
-    }
-
+    const contract = await endContract(req.params._id, req.payload, req.auth.credentials);
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
-
 
     return {
       message: translate[language].contractUpdated,
@@ -128,43 +91,26 @@ const remove = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const createContractVersion = async (req) => {
   try {
-    if (req.payload.signature) {
-      const doc = await generateSignatureRequest(req.payload.signature);
-      if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-      req.payload.signature = { eversignId: doc.data.document_hash };
-    }
-    const contract = await Contract.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { versions: req.payload } },
-      { new: true, autopopulate: false }
-    );
+    const contract = await createVersion(req.params._id, req.payload);
+    if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return { message: translate[language].contractVersionAdded, data: { contract } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const updateContractVersion = async (req) => {
   try {
-    const payload = { 'versions.$[version]': { ...req.payload } };
-    const contract = await Contract.findOneAndUpdate(
-      { _id: req.params._id },
-      { $set: flat(payload) },
-      {
-        // Conversion to objectIds is mandatory as we use directly mongo arrayFilters
-        arrayFilters: [{ 'version._id': mongoose.Types.ObjectId(req.params.versionId) }],
-        new: true,
-        autopopulate: false,
-      }
-    );
+    const contract = await updateVersion(req.params._id, req.params.versionId, req.payload);
+    if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return {
       message: translate[language].contractVersionUpdated,
@@ -172,45 +118,42 @@ const updateContractVersion = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const removeContractVersion = async (req) => {
   try {
-    await Contract.findOneAndUpdate(
-      { _id: req.params._id, 'versions._id': req.params.contractId },
-      { $pull: { versions: { _id: req.params.versionId } } },
-      { autopopulate: false }
-    );
+    await deleteVersion(req.params._id, req.params.versionId);
 
-    return {
-      message: translate[language].contractVersionRemoved,
-    };
+    return { message: translate[language].contractVersionRemoved };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = [
-      'signedContract',
-      'signedVersion',
-    ];
+    const allowedFields = ['signedContract', 'signedVersion'];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) return Boom.forbidden(translate[language].uploadNotAllowed);
-    if (!req.payload.contractId && !req.payload.versionId) {
-      return Boom.badRequest();
-    }
 
-    const uploadedFile = await createAndSaveFile(administrativeKeys, req.params, req.payload);
+    const { params, payload } = req;
+    const fileInfo = {
+      auxiliaryDriveId: params.driveId,
+      name: payload.fileName || payload[administrativeKeys[0]].hapi.filename,
+      type: payload['Content-Type'],
+      body: payload[administrativeKeys[0]],
+    };
+    const version = { customer: payload.customer, contractId: params._id, _id: payload.versionId, status: payload.status };
+
+    const uploadedFile = await createAndSaveFile(version, fileInfo);
 
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -231,7 +174,7 @@ const receiveSignatureEvents = async (req, h) => {
     return h.response().code(200);
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

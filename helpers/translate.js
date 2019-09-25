@@ -45,24 +45,8 @@ module.exports = {
     refreshTokenNotFound: 'Refresh token not found.',
     activationCodeDeleted: 'Activation data deleted.',
     /* Role */
-    roleCreated: 'Role created.',
-    roleDeleted: 'Role deleted.',
-    roleUpdated: 'Role updated.',
     rolesNotFound: 'Roles not found.',
     rolesFound: 'Roles found.',
-    roleNotFound: 'Role not found',
-    roleExists: 'Role already exists.',
-    roleRemoved: 'Role removed.',
-    /* Right */
-    rightCreated: 'Right created.',
-    rightDeleted: 'Right deleted.',
-    rightUpdated: 'Right updated.',
-    rightsFound: 'Rights found',
-    rightsNotFound: 'Rights not found.',
-    rightNotFound: 'Right not found',
-    rightExists: 'Right already exists.',
-    rightsDoNotExist: 'Rights do not exist.',
-    rightRemoved: 'Right removed.',
     /* Email */
     emailSent: 'Email successfully sent.',
     /* Reset password token */
@@ -160,15 +144,6 @@ module.exports = {
     distanceMatrixFound: 'Distance Matrix found',
     distanceMatrixNotFound: 'Distance Matrix not found',
 
-    /* Task */
-    taskFound: 'Tasks found',
-    taskNotFound: 'Tasks non found',
-    tasksFound: 'Tasks found',
-    tasksNotFound: 'Tasks non found',
-    taskCreated: 'Tasks created',
-    taskUpdated: 'Tasks updated',
-    taskDeleted: 'Tasks deleted',
-
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
@@ -240,6 +215,10 @@ module.exports = {
     payDocumentsNotFound: 'Pay documents not found.',
     payDocumentNotFound: 'Pay document not found.',
     payDocumentDeleted: 'Pay document deleted.',
+
+    /* Stats */
+    statsFound: 'Stats found.',
+    statsNotFound: 'Stats not found.',
   },
   'fr-FR': {
     /* Global errors */
@@ -286,23 +265,8 @@ module.exports = {
     refreshTokenNotFound: 'Refresh token not found.',
     activationCodeDeleted: 'Données d\'activations bien effacées.',
     /* Role */
-    roleCreated: 'Rôle créé.',
-    roleDeleted: 'Rôle effacé.',
-    roleUpdated: 'Rôle mis à jour.',
     rolesNotFound: 'Rôles non trouvés.',
     rolesFound: 'Rôles trouvés.',
-    roleNotFound: 'Role non trouvé.',
-    roleExists: 'Role déjà existant.',
-    roleRemoved: 'Role supprimé.',
-    /* Droits */
-    rightCreated: 'Droit crée.',
-    rightRemoved: 'Droit supprimé.',
-    rightUpdated: 'Droit mis a jour.',
-    rightsFound: 'Droits trouvés',
-    rightsNotFound: 'Droits non trouvés.',
-    rightNotFound: 'Droit non trouvé.',
-    rightExists: 'Droit déjà existant.',
-    rightsDoNotExist: 'Droit inexistant.',
     /* Email */
     emailSent: 'Email envoyé avec succès.',
     /* Reset password token */
@@ -397,21 +361,12 @@ module.exports = {
     distanceMatrixFound: 'Distance Matrix trouvée',
     distanceMatrixNotFound: 'Distance Matrix non trouvée',
 
-    /* Task */
-    taskFound: 'Tâche trouvée',
-    taskNotFound: 'Tâche non trouvée',
-    tasksFound: 'Tâches trouvées',
-    tasksNotFound: 'Tâches non trouvées',
-    taskCreated: 'Tâche crée',
-    taskUpdated: 'Tâche mis à jour',
-    taskDeleted: 'Tâche supprimé',
-
     /* Sectors */
-    sectorCreated: 'Secteur créé.',
-    sectorUpdated: 'Secteur modifié.',
-    sectorNotFound: 'Secteur non trouvé.',
-    sectorsFound: 'Secteurs trouvés.',
-    sectorDeleted: 'Secteur supprimé.',
+    sectorCreated: 'Équipe créée.',
+    sectorUpdated: 'Équipe modifiée.',
+    sectorNotFound: 'Équipe non trouvée.',
+    sectorsFound: 'Équipes trouvées.',
+    sectorDeleted: 'Équipe supprimée.',
 
     /* Services */
     servicesFound: 'Services trouvés.',
@@ -477,5 +432,9 @@ module.exports = {
     payDocumentsNotFound: 'Documents de paie non trouvés.',
     payDocumentNotFound: 'Document de paie non trouvé.',
     payDocumentDeleted: 'Document de paie supprimé.',
+
+    /* Stats */
+    statsFound: 'Statistiques trouvées.',
+    statsNotFound: 'Statistiques non trouvées.',
   },
 };

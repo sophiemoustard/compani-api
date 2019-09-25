@@ -37,10 +37,7 @@ const UserSchema = mongoose.Schema({
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
-    autopopulate: {
-      select: '-__v -createdAt -updatedAt',
-      maxDepth: 3,
-    },
+    autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
   },
   employee_id: { type: Number, trim: true },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
@@ -182,13 +179,18 @@ async function findOneAndUpdate(next) {
   }
 }
 
-function setIsActive() {
-  if (this.role && [AUXILIARY, PLANNING_REFERENT].includes(this.role.name)) {
-    return !((this.inactivityDate && moment(this.inactivityDate).isSameOrBefore(moment()))
-      || ((!this.contracts || this.contracts.length === 0) && moment().diff(this.createdAt, 'd') > 45));
+const isActive = (auxiliary) => {
+  if (auxiliary.role && [AUXILIARY, PLANNING_REFERENT].includes(auxiliary.role.name)) {
+    return !((auxiliary.inactivityDate && moment(auxiliary.inactivityDate).isSameOrBefore(moment()))
+      || ((!auxiliary.contracts || auxiliary.contracts.length === 0) && moment().diff(auxiliary.createdAt, 'd') > 45));
   }
+};
+
+function setIsActive() {
+  return isActive(this);
 }
 
+UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);

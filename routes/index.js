@@ -8,10 +8,6 @@ exports.routes = [
     routes: { prefix: '/roles' },
   },
   {
-    plugin: require('./rights'),
-    routes: { prefix: '/rights' },
-  },
-  {
     plugin: require('./activation'),
     routes: { prefix: '/activation' },
   },
@@ -34,10 +30,6 @@ exports.routes = [
   {
     plugin: require('./twilio'),
     routes: { prefix: '/sms' },
-  },
-  {
-    plugin: require('./tasks'),
-    routes: { prefix: '/tasks' },
   },
   {
     plugin: require('./companies'),
@@ -118,5 +110,9 @@ exports.routes = [
   {
     plugin: require('./payDocuments'),
     routes: { prefix: '/paydocuments' },
+  },
+  {
+    plugin: require('./stats'),
+    routes: { prefix: '/stats' },
   },
 ];

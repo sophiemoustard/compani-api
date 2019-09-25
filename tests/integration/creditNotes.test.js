@@ -2,9 +2,9 @@ const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const app = require('../../server');
 const CreditNote = require('../../models/CreditNote');
-const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent } = require('./seed/creditNotesSeed');
+const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent, creditNoteUserList } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../helpers/constants');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -208,8 +208,19 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
   });
 
   describe('Other roles', () => {
+    it('should return customer creditnotes if I am its helper', async () => {
+      const helper = creditNoteUserList[0];
+      const helperToken = await getTokenByCredentials(helper.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/creditNotes?customer=${helper.customers[0]}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
     const roles = [
-      { name: 'helper', expectedCode: 200 },
+      { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
       { name: 'coach', expectedCode: 200 },
     ];
@@ -220,6 +231,59 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/creditNotes',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should get credit note pdf', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/creditNotes/${creditNotesList[0]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+  });
+
+  describe('Other roles', () => {
+    it('should return customer creditnotes pdfs if I am its helper', async () => {
+      const helper = creditNoteUserList[0];
+      const helperToken = await getTokenByCredentials(helper.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/creditNotes/${creditNotesList[0]._id}/pdfs`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/creditNotes/${creditNotesList[0]._id}/pdfs`,
           headers: { 'x-access-token': authToken },
         });
 

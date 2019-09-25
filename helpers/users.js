@@ -106,7 +106,7 @@ exports.exportHelpers = async () => {
 
 const auxiliaryExportHeader = [
   'Email',
-  'Secteur',
+  'Équipe',
   'Titre',
   'Nom',
   'Prénom',

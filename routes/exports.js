@@ -16,6 +16,7 @@ const {
   PAYMENT,
   ABSENCE,
   PAY,
+  CONTRACT,
 } = require('../helpers/constants');
 
 exports.plugin = {
@@ -41,7 +42,7 @@ exports.plugin = {
       options: {
         validate: {
           params: {
-            type: Joi.string().required().valid(WORKING_EVENT, BILL, PAYMENT, ABSENCE, PAY),
+            type: Joi.string().required().valid(WORKING_EVENT, BILL, PAYMENT, ABSENCE, PAY, CONTRACT),
           },
           query: {
             startDate: Joi.date().required(),

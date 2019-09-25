@@ -3,7 +3,6 @@ const expect = require('expect');
 const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
-const FormData = require('form-data');
 const GetStream = require('get-stream');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
@@ -14,21 +13,13 @@ const { populateDB, payDocumentsList, user } = require('./seed/payDocumentsSeed'
 const { getToken } = require('./seed/authentificationSeed');
 const GdriveStorage = require('../../helpers/gdriveStorage');
 const { PAYSLIP } = require('../../helpers/constants');
+const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
-
-const generateFormData = (payload) => {
-  const form = new FormData();
-
-  for (const k in payload) {
-    form.append(k, payload[k]);
-  }
-  return form;
-};
 
 describe('PAY DOCUMENT ROUTES', () => {
   let authToken = null;

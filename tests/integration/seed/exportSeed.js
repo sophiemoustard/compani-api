@@ -3,13 +3,22 @@ const Event = require('../../../models/Event');
 const Customer = require('../../../models/Customer');
 const User = require('../../../models/User');
 const Bill = require('../../../models/Bill');
+const Service = require('../../../models/Service');
 const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
 const Payment = require('../../../models/Payment');
 const Pay = require('../../../models/Pay');
 const Sector = require('../../../models/Sector');
 const FinalPay = require('../../../models/FinalPay');
+const Company = require('../../../models/Company');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
-const { PAYMENT, REFUND } = require('../../../helpers/constants');
+const {
+  PAYMENT,
+  REFUND,
+  FIXED,
+  COMPANY_CONTRACT,
+  HOURLY,
+  CUSTOMER_CONTRACT,
+} = require('../../../helpers/constants');
 
 const sector = {
   _id: new ObjectID(),
@@ -31,6 +40,99 @@ const customer = {
     { _id: new ObjectID() },
   ],
 };
+
+const company = {
+  _id: new ObjectID(),
+  name: 'Test',
+};
+
+const serviceList = [
+  {
+    _id: new ObjectID(),
+    type: COMPANY_CONTRACT,
+    company: company._id,
+    versions: [{
+      name: 'Service 1',
+      startDate: '2019-01-16 17:58:15.519',
+    }],
+    nature: HOURLY,
+  },
+  {
+    _id: new ObjectID(),
+    type: CUSTOMER_CONTRACT,
+    company: company._id,
+    versions: [{
+      defaultUnitAmount: 24,
+      name: 'Service 2',
+      startDate: '2019-01-18 19:58:15.519',
+      vat: 12,
+    }],
+    nature: HOURLY,
+  },
+];
+
+const customerThirdPartyPayer = {
+  _id: new ObjectID(),
+};
+
+const subscriptionId = new ObjectID();
+
+const customersList = [
+  {
+    _id: new ObjectID(),
+    email: 'fake@test.com',
+    identity: {
+      title: 'M',
+      firstname: 'Romain',
+      lastname: 'Bardet',
+    },
+    subscriptions: [
+      {
+        _id: subscriptionId,
+        service: serviceList[0]._id,
+        versions: [{
+          startDate: '2018-01-01T10:00:00.000+01:00',
+        }],
+      },
+      {
+        _id: new ObjectID(),
+        service: serviceList[1]._id,
+        versions: [{
+          startDate: '2018-01-05T15:00:00.000+01:00',
+        }],
+      },
+    ],
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayer._id,
+        subscription: subscriptionId,
+        versions: [{
+          startDate: '2018-02-03T22:00:00.000+01:00',
+        }],
+      },
+    ],
+  },
+  {
+    _id: new ObjectID(),
+    email: 'tito@ty.com',
+    identity: {
+      title: 'M',
+      firstname: 'Egan',
+      lastname: 'Bernal',
+    },
+  },
+  {
+    _id: new ObjectID(),
+    email: 'toototjo@hfjld.io',
+    identity: {
+      title: 'M',
+      firstname: 'Julian',
+      lastname: 'Alaphilippe',
+    },
+  },
+];
 
 const thirdPartyPayer = {
   _id: new ObjectID(),
@@ -296,6 +398,32 @@ const populatePayment = async () => {
   await new ThirdPartyPayer(thirdPartyPayer).save();
 };
 
+const populateService = async () => {
+  await Service.deleteMany();
+  await Company.deleteMany();
+
+  await populateDBForAuthentification();
+  await (new Company(company)).save();
+  await Service.insertMany(serviceList);
+};
+
+const populateCustomer = async () => {
+  await Customer.deleteMany();
+  await ThirdPartyPayer.deleteMany();
+  await Service.deleteMany();
+  await Company.deleteMany();
+
+  await populateDBForAuthentification();
+  await (new Company(company)).save();
+  await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
+  await Service.insertMany(serviceList);
+  await Customer.insertMany(customersList);
+};
+
+const populateUser = async () => {
+  await populateDBForAuthentification();
+};
+
 const populatePay = async () => {
   await Pay.deleteMany();
   await FinalPay.deleteMany();
@@ -312,4 +440,8 @@ module.exports = {
   populateBills,
   populatePayment,
   populatePay,
+  paymentsList,
+  populateService,
+  populateCustomer,
+  populateUser,
 };

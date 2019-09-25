@@ -10,6 +10,7 @@ const {
   remove,
   generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
+const { getCreditNote, authorizeCreditNoteReading } = require('./preHandlers/creditNotes');
 
 const { SERVICE_NATURES } = require('../models/Service');
 
@@ -21,7 +22,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['bills:edit'] },
         validate: {
           payload: Joi.object().keys({
             date: Joi.date().required(),
@@ -76,7 +77,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { scope: ['billing:read'] },
+        auth: { scope: ['bills:read', 'customer-{query.customer}'] },
         validate: {
           query: {
             startDate: Joi.date(),
@@ -92,7 +93,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: remove,
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['bills:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -106,7 +107,7 @@ exports.plugin = {
       path: '/{_id}',
       handler: update,
       options: {
-        auth: { scope: ['billing:edit'] },
+        auth: { scope: ['bills:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -163,10 +164,13 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}/pdfs',
       options: {
-        auth: { scope: ['billing:read'] },
         validate: {
           params: { _id: Joi.objectId() },
         },
+        pre: [
+          { method: getCreditNote, assign: 'creditNote' },
+          { method: authorizeCreditNoteReading },
+        ],
       },
       handler: generateCreditNotePdf,
     });

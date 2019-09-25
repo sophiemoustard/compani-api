@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
 const Event = require('../models/Event');
 const { INTERNAL_HOUR, INTERVENTION, ABSENCE, INVOICED_AND_PAYED, COMPANY_CONTRACT } = require('../helpers/constants');
 
@@ -100,6 +101,16 @@ exports.getEventsInConflicts = async (dates, auxiliary, types, eventId) => {
   if (eventId) rules._id = { $ne: eventId };
 
   return Event.find(rules).lean();
+};
+
+exports.countAuxiliaryEventsBetweenDates = (filters) => {
+  const dateQuery = {};
+  if (filters.endDate) dateQuery.startDate = { $lt: filters.endDate };
+  if (filters.startDate) dateQuery.endDate = { $gt: filters.startDate };
+
+  const query = { ...dateQuery, ...omit(filters, ['startDate', 'endDate']) };
+
+  return Event.countDocuments(query);
 };
 
 exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, type) => {
@@ -373,6 +384,17 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
   },
   { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
   {
+    $addFields: {
+      hasFixedService: {
+        $cond: {
+          if: { $and: [{ $eq: ['$type', 'intervention'] }, { $eq: ['$subscription.service.nature', 'fixed'] }] },
+          then: true,
+          else: false,
+        },
+      },
+    },
+  },
+  {
     $project: {
       auxiliary: { _id: 1, administrative: { transportInvoice: 1 } },
       customer: { contact: 1 },
@@ -381,6 +403,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
       subscription: { service: 1 },
       type: 1,
       address: 1,
+      hasFixedService: 1,
     },
   },
   {

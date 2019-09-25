@@ -1,6 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
+const pick = require('lodash/pick');
 const momentRange = require('moment-range');
 const {
   NEVER,
@@ -12,7 +13,9 @@ const {
   INTERVENTION,
 } = require('./constants');
 const Event = require('../models/Event');
+const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
+const RepetitionsHelper = require('./repetitions');
 const EventsValidationHelper = require('./eventsValidation');
 
 momentRange.extendMoment(moment);
@@ -25,7 +28,7 @@ exports.formatRepeatedPayload = async (event, momentDay) => {
     endDate: moment(event.endDate).add(step, 'd'),
   };
 
-  if (await EventsValidationHelper.hasConflicts(payload)) {
+  if (event.type === INTERVENTION && await EventsValidationHelper.hasConflicts(payload)) {
     delete payload.auxiliary;
     delete payload.repetition;
   }
@@ -98,6 +101,8 @@ exports.createRepetitions = async (eventFromDb, payload) => {
       break;
   }
 
+  await (new Repetition({ ...payload, ...payload.repetition })).save();
+
   return eventFromDb;
 };
 
@@ -130,24 +135,47 @@ exports.updateRepetition = async (event, eventPayload) => {
       { $set: eventToSet, ...(unset && { $unset: unset }) }
     ));
   }
+  await Promise.all(promises);
 
-  return Promise.all(promises);
+  await RepetitionsHelper.updateRepetitions(eventPayload, event.repetition.parentId);
+
+  return event;
 };
 
-exports.deleteRepetition = async (params, credentials) => {
-  const event = await Event.findOne({ _id: params._id });
-  if (!event) return null;
-
-  await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
-
+exports.deleteRepetition = async (event, credentials) => {
   const { type, repetition } = event;
   if (type !== ABSENCE && repetition && repetition.frequency !== NEVER) {
+    await EventHistoriesHelper.createEventHistoryOnDelete(event, credentials);
+
     await Event.deleteMany({
       'repetition.parentId': event.repetition.parentId,
       startDate: { $gte: new Date(event.startDate) },
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     });
+
+    await Repetition.deleteOne({ parentId: event.repetition.parentId });
   }
 
   return event;
+};
+
+exports.createFutureEventBasedOnRepetition = async (repetition) => {
+  const { frequency, parentId, startDate, endDate } = repetition;
+  const startDateObj = moment(startDate).toObject();
+  const endDateObj = moment(endDate).toObject();
+  const newEventStartDate = moment().add(90, 'd').set(pick(startDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
+  const newEventEndDate = moment().add(90, 'd').set(pick(endDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
+  const newEventPayload = {
+    ...pick(repetition, ['type', 'customer', 'subscription', 'auxiliary', 'sector', 'status', 'misc', 'internalHour', 'address']),
+    startDate: newEventStartDate,
+    endDate: newEventEndDate,
+    repetition: { frequency, parentId },
+  };
+
+  if (newEventPayload.type === INTERVENTION && await EventsValidationHelper.hasConflicts(newEventPayload)) {
+    delete newEventPayload.auxiliary;
+    delete newEventPayload.repetition;
+  }
+
+  return new Event(newEventPayload);
 };
