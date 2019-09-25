@@ -27,25 +27,18 @@ exports.createContract = async (contractPayload) => {
     }
   }
 
-  const contract = new Contract(contractPayload);
-  contract.version = [{
-    startDate: contractPayload.startDate,
-    weeklyHours: contractPayload.weeklyHours,
-    grossHourlyRate: contractPayload.grossHourlyRate,
-  }];
-
   if (contractPayload.signature) {
     const doc = await ESignHelper.generateSignatureRequest(contractPayload.signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-    contract.versions[0].signature.eversignId = doc.data.document_hash;
+    contractPayload.versions[0].signature = { eversignId: doc.data.document_hash };
     delete contractPayload.signature;
   }
-  await contract.save();
+  const newContract = await Contract.create(contractPayload);
 
-  await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } });
-  if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $push: { contracts: contract._id } });
+  await User.findOneAndUpdate({ _id: newContract.user }, { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' } });
+  if (newContract.customer) await Customer.findOneAndUpdate({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
 
-  return contract;
+  return newContract;
 };
 
 exports.endContract = async (contractId, contractToEnd, credentials) => {
