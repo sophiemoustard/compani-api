@@ -1,6 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
+const cloneDeep = require('lodash/cloneDeep');
 const pick = require('lodash/pick');
 const momentRange = require('moment-range');
 const {
@@ -23,14 +24,14 @@ momentRange.extendMoment(moment);
 exports.formatRepeatedPayload = async (event, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
   const payload = {
-    ...omit(event, '_id'),
+    ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
   };
 
   if (event.type === INTERVENTION && event.auxiliary && await EventsValidationHelper.hasConflicts(payload)) {
     delete payload.auxiliary;
-    delete payload.repetition;
+    payload.repetition.frequency = NEVER;
   }
 
   return new Event(payload);
@@ -113,6 +114,7 @@ exports.updateRepetition = async (event, eventPayload) => {
 
   const events = await Event.find({
     'repetition.parentId': event.repetition.parentId,
+    'repetition.frequency': { $not: { $eq: NEVER } },
     startDate: { $gte: new Date(event.startDate) },
   });
 
@@ -174,7 +176,7 @@ exports.createFutureEventBasedOnRepetition = async (repetition) => {
 
   if (newEvent.type === INTERVENTION && newEvent.auxiliary && await EventsValidationHelper.hasConflicts(newEvent)) {
     delete newEvent.auxiliary;
-    delete newEvent.repetition;
+    newEvent.repetition.frequency = NEVER;
   }
 
   return new Event(newEvent);

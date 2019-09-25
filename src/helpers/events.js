@@ -13,6 +13,7 @@ const {
   PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
+const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
@@ -31,7 +32,7 @@ exports.createEvent = async (payload, credentials) => {
   const isRepeatedEvent = isRepetition(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await EventsValidationHelper.hasConflicts(event)) {
     delete event.auxiliary;
-    delete event.repetition;
+    event.repetition.frequency = NEVER;
   }
 
   event = new Event(event);
@@ -167,7 +168,6 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   }
   if (isRepetition(event) && !miscUpdatedOnly) {
     set = { ...set, 'repetition.frequency': NEVER };
-    unset = { ...unset, 'repetition.parentId': '' };
   }
 
   if (!eventPayload.auxiliary) unset = { ...unset, auxiliary: '' };
@@ -214,12 +214,15 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
     }
   }
 
-  promises.push(Event.updateMany(
-    { _id: { $in: ids } },
-    { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
-  ));
+  promises.push(
+    Event.updateMany(
+      { _id: { $in: ids } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
+    ),
+    Repetition.updateMany({ auxiliary: contract.user }, { $unset: { auxiliary: '' } })
+  );
 
-  return Promise.all(promises);
+  await Promise.all(promises);
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
