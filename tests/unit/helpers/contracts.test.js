@@ -10,6 +10,7 @@ const EventHelper = require('../../../src/helpers/events');
 const ContractHelper = require('../../../src/helpers/contracts');
 const ESignHelper = require('../../../src/helpers/eSign');
 const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
+const { RESIGNATION } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -178,7 +179,7 @@ describe('endContract', () => {
   const payload = {
     endDate: moment('2018-12-03T23:00:00').toDate(),
     endNotificationDate: moment('2018-12-03T23:00:00').toDate(),
-    endReason: 'test',
+    endReason: RESIGNATION,
     otherMisc: 'test',
   };
   const newContract = {
@@ -203,7 +204,7 @@ describe('endContract', () => {
   const credentials = { _id: new ObjectID() };
   beforeEach(() => {
     contractDoc = new Contract(cloneDeep(newContract));
-    contractSaveStub = sinon.mock(contractDoc, 'save');
+    contractSaveStub = sinon.stub(contractDoc, 'save');
     ContractFindOneStub = sinon.stub(Contract, 'findOne');
     ContractFindStub = sinon.stub(Contract, 'find');
     UserfindOneAndUpdateStub = sinon.stub(User, 'findOneAndUpdate');
