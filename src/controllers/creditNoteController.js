@@ -101,7 +101,7 @@ const generateCreditNotePdf = async (req, h) => {
 
     const company = await Company.findOne();
     const data = formatPDF(creditNote, company);
-    const pdf = await generatePdf(data, './data/creditNote.html');
+    const pdf = await generatePdf(data, './src/data/creditNote.html');
 
     return h.response(pdf).type('application/pdf');
   } catch (e) {

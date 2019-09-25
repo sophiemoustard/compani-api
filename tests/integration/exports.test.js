@@ -7,7 +7,7 @@ const {
   CUSTOMER,
   FUNDING,
   SUBSCRIPTION,
-} = require('../../helpers/constants');
+} = require('../../src/helpers/constants');
 const { getToken } = require('./seed/authentificationSeed');
 const {
   populateEvents,

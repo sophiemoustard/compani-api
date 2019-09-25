@@ -2,7 +2,7 @@ const expect = require('expect');
 
 const app = require('../../server');
 const { populateDB, activationCode, activationCodeUser } = require('./seed/activationCodeSeed');
-const ActivationCode = require('../../models/ActivationCode');
+const ActivationCode = require('../../src/models/ActivationCode');
 const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {

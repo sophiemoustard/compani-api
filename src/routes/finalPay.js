@@ -1,7 +1,7 @@
 'use-strict';
 
 const Joi = require('joi');
-const { payValidation } = require('../validations/pay');
+const { payValidation } = require('../../validations/pay');
 const { draftFinalPayList, createList } = require('../controllers/finalPayController');
 
 exports.plugin = {

@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
-const ActivationCode = require('../../../models/ActivationCode');
-const User = require('../../../models/User');
+const ActivationCode = require('../../../src/models/ActivationCode');
+const User = require('../../../src/models/User');
 const { rolesList } = require('./authentificationSeed');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 

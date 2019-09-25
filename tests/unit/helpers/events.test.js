@@ -2,12 +2,12 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const Event = require('../../../models/Event');
-const EventHelper = require('../../../helpers/events');
-const EventsRepetitionHelper = require('../../../helpers/eventsRepetition');
-const EventHistoriesHelper = require('../../../helpers/eventHistories');
-const EventsValidationHelper = require('../../../helpers/eventsValidation');
-const EventRepository = require('../../../repositories/EventRepository');
+const Event = require('../../../src/models/Event');
+const EventHelper = require('../../../src/helpers/events');
+const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
+const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
+const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
+const EventRepository = require('../../../src/repositories/EventRepository');
 const {
   INTERVENTION,
   CUSTOMER_CONTRACT,
@@ -19,7 +19,7 @@ const {
   EVERY_WEEK,
   INVOICED_AND_NOT_PAYED,
   CUSTOMER_INITIATIVE,
-} = require('../../../helpers/constants');
+} = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 

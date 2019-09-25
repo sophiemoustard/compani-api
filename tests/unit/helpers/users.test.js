@@ -1,10 +1,10 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const UtilsHelper = require('../../../helpers/utils');
-const UsersHelper = require('../../../helpers/users');
-const User = require('../../../models/User');
-const Role = require('../../../models/Role');
+const UtilsHelper = require('../../../src/helpers/utils');
+const UsersHelper = require('../../../src/helpers/users');
+const User = require('../../../src/models/User');
+const Role = require('../../../src/models/Role');
 
 require('sinon-mongoose');
 

@@ -4,9 +4,9 @@ require('dotenv').config();
 const Hapi = require('hapi');
 const Boom = require('boom');
 
-const { mongooseConnection } = require('./config/mongoose');
-const { routes } = require('./routes/index');
-const { plugins } = require('./plugins/index');
+const { mongooseConnection } = require('./src/config/mongoose');
+const { routes } = require('./src/routes/index');
+const { plugins } = require('./src/plugins/index');
 
 const server = Hapi.server({
   port: process.env.PORT || 3000,

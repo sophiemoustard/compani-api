@@ -1,11 +1,11 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
-const FundingHistory = require('../../../models/FundingHistory');
-const Event = require('../../../models/Event');
-const CreditNoteHelper = require('../../../helpers/creditNotes');
-const UtilsHelper = require('../../../helpers/utils');
-const PdfHelper = require('../../../helpers/pdf');
+const FundingHistory = require('../../../src/models/FundingHistory');
+const Event = require('../../../src/models/Event');
+const CreditNoteHelper = require('../../../src/helpers/creditNotes');
+const UtilsHelper = require('../../../src/helpers/utils');
+const PdfHelper = require('../../../src/helpers/pdf');
 const moment = require('moment');
 
 describe('updateEventAndFundingHistory', () => {

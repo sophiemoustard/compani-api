@@ -3,13 +3,13 @@ const expect = require('expect');
 const sinon = require('sinon');
 require('sinon-mongoose');
 
-const Customer = require('../../../models/Customer');
-const Bill = require('../../../models/Bill');
-const CreditNote = require('../../../models/CreditNote');
-const Contract = require('../../../models/Contract');
-const ExportHelper = require('../../../helpers/export');
-const UtilsHelper = require('../../../helpers/utils');
-const EventRepository = require('../../../repositories/EventRepository');
+const Customer = require('../../../src/models/Customer');
+const Bill = require('../../../src/models/Bill');
+const CreditNote = require('../../../src/models/CreditNote');
+const Contract = require('../../../src/models/Contract');
+const ExportHelper = require('../../../src/helpers/export');
+const UtilsHelper = require('../../../src/helpers/utils');
+const EventRepository = require('../../../src/repositories/EventRepository');
 
 describe('exportWorkingEventsHistory', () => {
   const header = ['Type', 'Heure interne', 'Service', 'Début', 'Fin', 'Durée', 'Répétition', 'Équipe', 'Auxiliaire - Titre', 'Auxiliaire - Prénom', 'Auxiliaire - Nom', 'A affecter', 'Bénéficiaire - Titre', 'Bénéficiaire - Nom', 'Bénéficiaire - Prénom', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];

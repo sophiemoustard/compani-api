@@ -42,5 +42,5 @@ const checkActivationCode = async (req) => {
 
 module.exports = {
   createActivationCode,
-  checkActivationCode
+  checkActivationCode,
 };

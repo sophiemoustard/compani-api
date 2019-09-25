@@ -3,9 +3,9 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 
-const BillHelper = require('../../../helpers/bills');
-const UtilsHelper = require('../../../helpers/utils');
-const PdfHelper = require('../../../helpers/pdf');
+const BillHelper = require('../../../src/helpers/bills');
+const UtilsHelper = require('../../../src/helpers/utils');
+const PdfHelper = require('../../../src/helpers/pdf');
 
 require('sinon-mongoose');
 

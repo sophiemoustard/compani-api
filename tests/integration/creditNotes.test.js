@@ -1,9 +1,9 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const app = require('../../server');
-const CreditNote = require('../../models/CreditNote');
+const CreditNote = require('../../src/models/CreditNote');
 const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent, creditNoteUserList } = require('./seed/creditNotesSeed');
-const { FIXED } = require('../../helpers/constants');
+const { FIXED } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {

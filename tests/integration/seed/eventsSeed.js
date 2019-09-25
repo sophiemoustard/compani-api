@@ -1,14 +1,14 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
-const Event = require('../../../models/Event');
-const User = require('../../../models/User');
-const Customer = require('../../../models/Customer');
-const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
-const Contract = require('../../../models/Contract');
-const Service = require('../../../models/Service');
-const EventHistory = require('../../../models/EventHistory');
-const Sector = require('../../../models/Sector');
-const Company = require('../../../models/Company');
+const Event = require('../../../src/models/Event');
+const User = require('../../../src/models/User');
+const Customer = require('../../../src/models/Customer');
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const Contract = require('../../../src/models/Contract');
+const Service = require('../../../src/models/Service');
+const EventHistory = require('../../../src/models/EventHistory');
+const Sector = require('../../../src/models/Sector');
+const Company = require('../../../src/models/Company');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
 const app = require('../../../server');
 

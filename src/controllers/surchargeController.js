@@ -69,5 +69,5 @@ module.exports = {
   list,
   create,
   update,
-  remove
+  remove,
 };

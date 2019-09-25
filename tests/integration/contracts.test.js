@@ -4,12 +4,12 @@ const moment = require('moment');
 const app = require('../../server');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
-const Contract = require('../../models/Contract');
-const Customer = require('../../models/Customer');
-const User = require('../../models/User');
-const Event = require('../../models/Event');
+const Contract = require('../../src/models/Contract');
+const Customer = require('../../src/models/Customer');
+const User = require('../../src/models/User');
+const Event = require('../../src/models/Event');
 const { populateDB, contractsList, contractUser, contractCustomer, contractEvents } = require('./seed/contractsSeed');
-const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../helpers/constants');
+const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const { getToken, getUser } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {

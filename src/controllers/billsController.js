@@ -81,7 +81,7 @@ const generateBillPdf = async (req, h) => {
 
     const company = await Company.findOne();
     const data = formatPDF(bill, company);
-    const pdf = await generatePdf(data, './data/bill.html');
+    const pdf = await generatePdf(data, './src/data/bill.html');
 
     return h.response(pdf).type('application/pdf');
   } catch (e) {

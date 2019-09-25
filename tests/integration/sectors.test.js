@@ -2,7 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const Sector = require('../../models/Sector');
+const Sector = require('../../src/models/Sector');
 const { populateDB, sectorsList, sectorCompany } = require('./seed/sectorsSeed');
 const { getToken } = require('./seed/authentificationSeed');
 

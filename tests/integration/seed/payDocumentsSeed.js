@@ -1,9 +1,9 @@
 const { ObjectID } = require('mongodb');
 const faker = require('faker');
-const PayDocument = require('../../../models/PayDocument');
-const User = require('../../../models/User');
+const PayDocument = require('../../../src/models/PayDocument');
+const User = require('../../../src/models/User');
 const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
-const { PAYSLIP, CERTIFICATE, OTHER } = require('../../../helpers/constants');
+const { PAYSLIP, CERTIFICATE, OTHER } = require('../../../src/helpers/constants');
 
 const user = {
   _id: new ObjectID(),

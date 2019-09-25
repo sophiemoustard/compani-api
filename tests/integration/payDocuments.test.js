@@ -7,12 +7,12 @@ const GetStream = require('get-stream');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const Gdrive = require('../../models/Google/Drive');
-const PayDocument = require('../../models/PayDocument');
+const Gdrive = require('../../src/models/Google/Drive');
+const PayDocument = require('../../src/models/PayDocument');
 const { populateDB, payDocumentsList, user } = require('./seed/payDocumentsSeed');
 const { getToken } = require('./seed/authentificationSeed');
-const GdriveStorage = require('../../helpers/gdriveStorage');
-const { PAYSLIP } = require('../../helpers/constants');
+const GdriveStorage = require('../../src/helpers/gdriveStorage');
+const { PAYSLIP } = require('../../src/helpers/constants');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {

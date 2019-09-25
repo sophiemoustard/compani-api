@@ -1,9 +1,9 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const { servicesList, populateDB } = require('./seed/servicesSeed');
-const Service = require('../../models/Service');
+const Service = require('../../src/models/Service');
 const app = require('../../server');
-const { CUSTOMER_CONTRACT, HOURLY } = require('../../helpers/constants');
+const { CUSTOMER_CONTRACT, HOURLY } = require('../../src/helpers/constants');
 const { getToken } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {

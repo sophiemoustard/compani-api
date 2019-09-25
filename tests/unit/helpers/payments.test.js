@@ -3,10 +3,10 @@ const expect = require('expect');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 
-const payments = require('../../../helpers/payments');
-const { PAYMENT, REFUND } = require('../../../helpers/constants');
-const PaymentNumber = require('../../../models/PaymentNumber');
-const Payment = require('../../../models/Payment');
+const payments = require('../../../src/helpers/payments');
+const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
+const PaymentNumber = require('../../../src/models/PaymentNumber');
+const Payment = require('../../../src/models/Payment');
 
 require('sinon-mongoose');
 
