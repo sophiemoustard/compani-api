@@ -12,289 +12,374 @@ describe('NODE ENV', () => {
 
 describe('COMPANIES ROUTES', () => {
   let authToken = null;
-  beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('coach');
-  });
-
-  describe('GET /companies/:id', () => {
-    it('should return company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/companies/${company._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.company).toBeDefined();
-    });
-
-    it('should return 404 if no company found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const response = await app.inject({
-        method: 'GET',
-        url: `/companies/${invalidId}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-  });
-
-  describe('POST /companies', () => {
-    it('should create a new service', async () => {
-      const payload = {
-        name: 'Alenvi',
-      };
-      const response = await app.inject({
-        method: 'POST',
-        url: '/companies',
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.company.name).toBe('Alenvi');
-    });
-  });
-
   describe('PUT /companies/:id', () => {
-    it('should update company service', async () => {
-      const payload = {
-        name: 'Alenvi Alenvi',
-        rhConfig: { feeAmount: 70 },
-      };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/companies/${company._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-        payload,
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.company.name).toEqual(payload.name);
+      it('should update company service', async () => {
+        const payload = {
+          name: 'Alenvi Alenvi',
+          rhConfig: { feeAmount: 70 },
+        };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${company._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.company.name).toEqual(payload.name);
+      });
+
+      it('should return 404 if no company found', async () => {
+        const invalidId = new ObjectID().toHexString();
+        const payload = {
+          name: 'Alenvi Alenvi',
+        };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${invalidId}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
     });
 
-    it('should return 404 if no company found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const payload = {
-        name: 'Alenvi Alenvi',
-      };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/companies/${invalidId}`,
-        headers: { 'x-access-token': authToken },
-        payload,
+    describe('Other role', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const payload = { name: 'SuperTest' };
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/companies/${company._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-
-      expect(response.statusCode).toBe(404);
-    });
-  });
-
-  describe('DELETE /companies/:id', () => {
-    it('should delete company service', async () => {
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/companies/${company._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
     });
   });
 });
 
 describe('COMPANIES INTERNAL HOURS ROUTES', () => {
   let authToken = null;
-  beforeEach(populateDB);
-  beforeEach(async () => {
-    authToken = await getToken('coach');
-  });
-
   describe('GET /companies/{_id}/internalHours', () => {
-    it('should return company internal hours', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.internalHours).toBeDefined();
-      expect(response.result.data.internalHours.length).toEqual(company.rhConfig.internalHours.length);
+      it('should return company internal hours', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.internalHours).toBeDefined();
+        expect(response.result.data.internalHours.length).toEqual(company.rhConfig.internalHours.length);
+      });
+
+      it('should return 404 if no company found', async () => {
+        const invalidId = new ObjectID().toHexString();
+        const response = await app.inject({
+          method: 'GET',
+          url: `/companies/${invalidId}/internalHours`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
     });
 
-    it('should return 404 if no company found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const response = await app.inject({
-        method: 'GET',
-        url: `/companies/${invalidId}/internalHours`,
-        headers: { 'x-access-token': authToken },
-      });
+    describe('Other role', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
 
-      expect(response.statusCode).toBe(404);
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/companies/${company._id.toHexString()}/internalHours`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 
   describe('POST /companies/{_id}/internalHours', () => {
-    it('should create new internal hour', async () => {
-      const payload = { name: 'Gros run' };
-      const response = await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload,
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.internalHours).toBeDefined();
-      expect(response.result.data.internalHours.length).toEqual(company.rhConfig.internalHours.length + 1);
+      it('should create new internal hour', async () => {
+        const payload = { name: 'Gros run' };
+        const response = await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.internalHours).toBeDefined();
+        expect(response.result.data.internalHours.length).toEqual(company.rhConfig.internalHours.length + 1);
+      });
+
+      it('should return 404 if no company found', async () => {
+        const invalidId = new ObjectID().toHexString();
+        const payload = { name: 'Gros run' };
+        const response = await app.inject({
+          method: 'POST',
+          url: `/companies/${invalidId}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+
+      it('should return 400 if invalid payload', async () => {
+        const payload = { type: 'Gros run' };
+        const response = await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('shold return a 403 error as companyhas already 9 internal hours', async () => {
+        await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload: { name: 'Gros run' },
+        });
+        await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload: { name: 'Dejeuner d\'équipe' },
+        });
+        await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload: { name: 'Balade à vélo' },
+        });
+        await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload: { name: 'Atelier peinture' },
+        });
+        await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload: { name: 'Futsal' },
+        });
+        await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload: { name: 'Sieste' },
+        });
+        await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload: { name: 'Apéro' },
+        });
+        const response = await app.inject({
+          method: 'POST',
+          url: `/companies/${company._id.toHexString()}/internalHours`,
+          headers: { 'x-access-token': authToken },
+          payload: { name: 'Raclette' },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
 
-    it('should return 404 if no company found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const payload = { name: 'Gros run' };
-      const response = await app.inject({
-        method: 'POST',
-        url: `/companies/${invalidId}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
+    describe('Other role', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
 
-      expect(response.statusCode).toBe(404);
-    });
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const payload = { name: 'Gros run' };
+          const response = await app.inject({
+            method: 'POST',
+            url: `/companies/${company._id.toHexString()}/internalHours`,
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
 
-    it('should return 400 if invalid payload', async () => {
-      const payload = { type: 'Gros run' };
-      const response = await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload,
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('shold return a 403 error as companyhas already 9 internal hours', async () => {
-      await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload: { name: 'Gros run' },
-      });
-      await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload: { name: 'Dejeuner d\'équipe' },
-      });
-      await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload: { name: 'Balade à vélo' },
-      });
-      await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload: { name: 'Atelier peinture' },
-      });
-      await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload: { name: 'Futsal' },
-      });
-      await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload: { name: 'Sieste' },
-      });
-      await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload: { name: 'Apéro' },
-      });
-      const response = await app.inject({
-        method: 'POST',
-        url: `/companies/${company._id.toHexString()}/internalHours`,
-        headers: { 'x-access-token': authToken },
-        payload: { name: 'Raclette' },
-      });
-
-      expect(response.statusCode).toBe(403);
     });
   });
 
   describe('PUT /comapnies/{_id}/internalHours/{internalHoursId}', () => {
-    it('should update internal hour', async () => {
-      const payload = { default: true };
-      const internalHour = company.rhConfig.internalHours[0];
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-        payload,
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.internalHours).toBeDefined();
-      expect(response.result.data.internalHours[0].default).toBeTruthy();
+      it('should update internal hour', async () => {
+        const payload = { default: true };
+        const internalHour = company.rhConfig.internalHours[0];
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.internalHours).toBeDefined();
+        expect(response.result.data.internalHours[0].default).toBeTruthy();
+      });
+
+      it('should return 400 if invalid payload', async () => {
+        const payload = { type: true };
+        const internalHour = company.rhConfig.internalHours[0];
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(400);
+      });
+
+      it('should return 404 if no company found', async () => {
+        const invalidId = new ObjectID().toHexString();
+        const internalHour = company.rhConfig.internalHours[0];
+        const payload = { name: 'Gros run' };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${invalidId}/internalHours/${internalHour._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
     });
 
-    it('should return 400 if invalid payload', async () => {
-      const payload = { type: true };
-      const internalHour = company.rhConfig.internalHours[0];
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-        payload,
+    describe('Other role', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const payload = { default: true };
+          const internalHour = company.rhConfig.internalHours[0];
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should return 404 if no company found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const internalHour = company.rhConfig.internalHours[0];
-      const payload = { name: 'Gros run' };
-      const response = await app.inject({
-        method: 'PUT',
-        url: `/companies/${invalidId}/internalHours/${internalHour._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-        payload,
-      });
-
-      expect(response.statusCode).toBe(404);
     });
   });
 
   describe('DELETE /companies/{_id}/internalHours/{internalHourId}', () => {
-    it('should delete internalHour', async () => {
-      const internalHour = company.rhConfig.internalHours.find(hour => !hour.default);
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
       });
 
-      expect(response.statusCode).toBe(200);
+      it('should delete internalHour', async () => {
+        const internalHour = company.rhConfig.internalHours.find(hour => !hour.default);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      it('should return a 403 error if delete default internal hour', async () => {
+        const internalHour = company.rhConfig.internalHours.find(hour => hour.default);
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
 
-    it('should return a 403 error if delete default internal hour', async () => {
-      const internalHour = company.rhConfig.internalHours.find(hour => hour.default);
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
+    describe('Other role', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+      ];
 
-      expect(response.statusCode).toBe(403);
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const internalHour = company.rhConfig.internalHours[0];
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/companies/${company._id.toHexString()}/internalHours/${internalHour._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
     });
   });
 });

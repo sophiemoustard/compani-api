@@ -63,11 +63,7 @@ module.exports = {
     fileCreated: 'File successfully created.',
     uploadNotAllowed: 'Upload not allowed',
     /* Company */
-    companiesFound: 'Companies found.',
-    companyFound: 'Company found.',
     companyNotFound: 'Company not found',
-    companyCreated: 'Company created.',
-    companyDeleted: 'Company deleted.',
     companyExists: 'Company already exists.',
     companyInternalHourCreated: 'Company internal hour created',
     companyInternalHourNotFound: 'Company internal hour not found.',
@@ -281,11 +277,7 @@ module.exports = {
     fileCreated: 'Fichier créé.',
     uploadNotAllowed: 'Téléchargement non autorisé.',
     /* Company */
-    companiesFound: 'Entreprises trouvées.',
-    companyFound: 'Entreprise trouvée.',
     companyNotFound: 'Entreprise non trouvée.',
-    companyCreated: 'Entreprise créée.',
-    companyDeleted: 'Entreprise supprimée.',
     companyExists: 'Entreprise déjà existante.',
     companyInternalHourCreated: 'Heure interne de l\'entreprise créée.',
     companyInternalHourNotFound: 'Heure interne de l\'entreprise non trouvée.',

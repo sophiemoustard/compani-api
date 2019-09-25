@@ -1,15 +1,10 @@
-
 'use strict';
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
-  create,
   update,
-  list,
-  show,
-  remove,
   uploadFile,
   addInternalHour,
   updateInternalHour,
@@ -22,44 +17,15 @@ exports.plugin = {
   name: 'routes-companies',
   register: async (server) => {
     server.route({
-      method: 'POST',
-      path: '/',
-      options: {
-        validate: {
-          payload: Joi.object().keys({
-            name: Joi.string().required(),
-            rhConfig: Joi.object().keys({
-              contractWithCompany: {
-                grossHourlyRate: Joi.number(),
-              },
-              contractWithCustomer: {
-                grossHourlyRate: Joi.number(),
-              },
-              feeAmount: Joi.number(),
-              transportSubs: Joi.array().items({
-                department: Joi.string(),
-                price: Joi.number(),
-              }),
-            }),
-            customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
-            }),
-          }),
-        },
-      },
-      handler: create,
-    });
-
-    server.route({
       method: 'PUT',
       path: '/{_id}',
       options: {
+        auth: { scope: ['companies:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            _id: Joi.objectId(),
             name: Joi.string(),
             address: Joi.object().keys({
               street: Joi.string().required(),
@@ -130,49 +96,11 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'GET',
-      path: '/',
-      options: {
-        validate: {
-          query: Joi.object().keys({
-            name: Joi.string(),
-          }),
-        },
-      },
-      handler: list,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-        },
-      },
-      handler: show,
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}',
-      options: {
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-        },
-      },
-      handler: remove,
-    });
-
-    server.route({
       method: 'POST',
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
+        auth: { scope: ['companies:edit'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -187,6 +115,7 @@ exports.plugin = {
       path: '/{_id}/internalHours',
       handler: addInternalHour,
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -204,6 +133,7 @@ exports.plugin = {
       path: '/{_id}/internalHours/{internalHourId}',
       handler: updateInternalHour,
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -222,6 +152,7 @@ exports.plugin = {
       path: '/{_id}/internalHours',
       handler: getInternalHours,
       options: {
+        auth: { scope: ['config:read'] },
         validate: {
           params: { _id: Joi.objectId().required() },
         },
@@ -233,6 +164,7 @@ exports.plugin = {
       path: '/{_id}/internalHours/{internalHourId}',
       handler: removeInternalHour,
       options: {
+        auth: { scope: ['config:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
