@@ -25,19 +25,16 @@ const eventRepetitions = {
               newEvents.push(futureEvent);
             }
             break;
-
           case EVERY_WEEK:
             if (moment(startDate).day() === newEventStartDate.day()) {
               futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
               newEvents.push(futureEvent);
             }
             break;
-
           case EVERY_DAY:
             futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
             newEvents.push(futureEvent);
             break;
-
           case EVERY_WEEK_DAY:
             if (newEventStartDate.day() !== 0 && newEventStartDate.day() !== 6) {
               futureEvent = await EventsRepetitionHelper.createFutureEventBasedOnRepetition(repetition);
@@ -59,7 +56,7 @@ const eventRepetitions = {
       if (errors && errors.length) {
         server.log(['error', 'cron', 'oncomplete'], errors);
       }
-      server.log(['cron', 'oncomplete'], `Event repetitions: ${results.length} répétitions traitées.`);
+      server.log(['cron', 'oncomplete'], `Event repetitions: ${results.length} évènements créés.`);
       EmailHelper.completeEventRepScriptEmail(results.length, errors);
     } catch (e) {
       server.log(['error', 'cron', 'oncomplete'], e);

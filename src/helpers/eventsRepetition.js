@@ -165,17 +165,17 @@ exports.createFutureEventBasedOnRepetition = async (repetition) => {
   const endDateObj = moment(endDate).toObject();
   const newEventStartDate = moment().add(90, 'd').set(pick(startDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
   const newEventEndDate = moment().add(90, 'd').set(pick(endDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
-  const newEventPayload = {
+  const newEvent = {
     ...pick(repetition, ['type', 'customer', 'subscription', 'auxiliary', 'sector', 'status', 'misc', 'internalHour', 'address']),
     startDate: newEventStartDate,
     endDate: newEventEndDate,
     repetition: { frequency, parentId },
   };
 
-  if (newEventPayload.type === INTERVENTION && await EventsValidationHelper.hasConflicts(newEventPayload)) {
-    delete newEventPayload.auxiliary;
-    delete newEventPayload.repetition;
+  if (newEvent.type === INTERVENTION && newEvent.auxiliary && await EventsValidationHelper.hasConflicts(newEvent)) {
+    delete newEvent.auxiliary;
+    delete newEvent.repetition;
   }
 
-  return new Event(newEventPayload);
+  return new Event(newEvent);
 };
