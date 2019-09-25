@@ -28,7 +28,7 @@ exports.formatRepeatedPayload = async (event, momentDay) => {
     endDate: moment(event.endDate).add(step, 'd'),
   };
 
-  if (event.type === INTERVENTION && await EventsValidationHelper.hasConflicts(payload)) {
+  if (event.type === INTERVENTION && event.auxiliary && await EventsValidationHelper.hasConflicts(payload)) {
     delete payload.auxiliary;
     delete payload.repetition;
   }
