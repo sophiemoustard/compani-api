@@ -223,7 +223,6 @@ describe('CONTRACTS ROUTES', () => {
         },
       });
 
-      if (response.statusCode === 400) console.log(response);
       expect(response.statusCode).toBe(200);
       sinon.assert.calledOnce(generateSignatureRequestStub);
       generateSignatureRequestStub.restore();
