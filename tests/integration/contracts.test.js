@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const moment = require('moment');
+const sinon = require('sinon');
 const app = require('../../server');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
@@ -10,6 +11,7 @@ const User = require('../../src/models/User');
 const Event = require('../../src/models/Event');
 const { populateDB, contractsList, contractUser, contractCustomer, contractEvents } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
+const EsignHelper = require('../../src/helpers/eSign');
 const { getToken, getUser } = require('./seed/authentificationSeed');
 
 describe('NODE ENV', () => {
@@ -186,6 +188,51 @@ describe('CONTRACTS ROUTES', () => {
       const customer = await Customer.findOne({ _id: contractCustomer._id });
       expect(customer).toBeDefined();
       expect(customer.contracts).toContainEqual(response.result.data.contract._id);
+    });
+
+    it('should create contract (customer contract) with signature request', async () => {
+      const payloadWithSignature = {
+        startDate: '2019-01-19T15:46:30.636Z',
+        versions: [{
+          grossHourlyRate: 10.43,
+          startDate: '2019-01-19T15:46:30.636Z',
+          signature: {
+            templateId: '0987654321',
+            title: 'Test',
+            signers: [{
+              id: new ObjectID(),
+              name: 'Toto',
+              email: 'test@test.com',
+            }, {
+              id: new ObjectID(),
+              name: 'Tata',
+              email: 'tt@tt.com',
+            }],
+            meta: { auxiliaryDriveId: '1234567890' },
+          },
+        }],
+        user: contractUser._id,
+        status: CUSTOMER_CONTRACT,
+        customer: contractCustomer._id,
+      };
+
+      const generateSignatureRequestStub = sinon.stub(EsignHelper, 'generateSignatureRequest');
+      generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        headers: { 'x-access-token': authToken },
+        payload: payloadWithSignature,
+      });
+
+      expect(response.statusCode).toBe(200);
+      sinon.assert.calledOnce(generateSignatureRequestStub);
+      generateSignatureRequestStub.restore();
+      expect(response.result.data.contract).toBeDefined();
+      expect(response.result.data.contract.versions[0]).toMatchObject({
+        signature: { signedBy: { auxiliary: false, other: false }, eversignId: '1234567890' },
+      });
     });
 
     const missingParams = [

@@ -5,6 +5,7 @@ const moment = require('moment');
 const path = require('path');
 const os = require('os');
 const get = require('lodash/get');
+const cloneDeep = require('lodash/cloneDeep');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
@@ -20,32 +21,26 @@ const ContractRepository = require('../repositories/ContractRepository');
 
 
 exports.createContract = async (contractPayload) => {
-  if (contractPayload.status === COMPANY_CONTRACT) {
-    const endedCompanyContracts = await ContractRepository.getUserEndedCompanyContracts(contractPayload.user, contractPayload.startDate);
-    if (endedCompanyContracts.length && moment(contractPayload.startDate).isSameOrBefore(moment(endedCompanyContracts[0].endDate), 'd')) {
+  const newContractPayload = cloneDeep(contractPayload);
+  if (newContractPayload.status === COMPANY_CONTRACT) {
+    const endedCompanyContracts = await ContractRepository.getUserEndedCompanyContracts(newContractPayload.user, newContractPayload.startDate);
+    if (endedCompanyContracts.length && moment(newContractPayload.startDate).isSameOrBefore(moment(endedCompanyContracts[0].endDate), 'd')) {
       throw Boom.badRequest('New company contract start date is before last company contract end date.');
     }
   }
 
-  const contract = new Contract(contractPayload);
-  contract.version = [{
-    startDate: contractPayload.startDate,
-    weeklyHours: contractPayload.weeklyHours,
-    grossHourlyRate: contractPayload.grossHourlyRate,
-  }];
-
-  if (contractPayload.signature) {
-    const doc = await ESignHelper.generateSignatureRequest(contractPayload.signature);
+  if (newContractPayload.versions[0].signature) {
+    const { signature } = newContractPayload.versions[0];
+    const doc = await ESignHelper.generateSignatureRequest(signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-    contract.versions[0].signature.eversignId = doc.data.document_hash;
-    delete contractPayload.signature;
+    newContractPayload.versions[0].signature = { eversignId: doc.data.document_hash };
   }
-  await contract.save();
+  const newContract = await Contract.create(newContractPayload);
 
-  await User.findOneAndUpdate({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } });
-  if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $push: { contracts: contract._id } });
+  await User.findOneAndUpdate({ _id: newContract.user }, { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' } });
+  if (newContract.customer) await Customer.findOneAndUpdate({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
 
-  return contract;
+  return newContract;
 };
 
 exports.endContract = async (contractId, contractToEnd, credentials) => {
