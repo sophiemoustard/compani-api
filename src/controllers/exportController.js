@@ -18,13 +18,14 @@ const {
 const { exportServices } = require('../helpers/services');
 const { exportSubscriptions } = require('../helpers/subscriptions');
 const { exportFundings } = require('../helpers/fundings');
-const { exportAuxiliaries, exportHelpers } = require('../helpers/users');
 const {
   exportWorkingEventsHistory,
   exportAbsencesHistory,
   exportBillsAndCreditNotesHistory,
   exportContractHistory,
   exportCustomers,
+  exportAuxiliaries,
+  exportHelpers,
 } = require('../helpers/export');
 const { exportPaymentsHistory } = require('../helpers/payments');
 const { exportPayAndFinalPayHistory } = require('../helpers/pay');
