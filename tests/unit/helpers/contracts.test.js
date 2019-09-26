@@ -4,7 +4,6 @@ const moment = require('moment');
 const flat = require('flat');
 const Boom = require('boom');
 const cloneDeep = require('lodash/cloneDeep');
-const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const EventHelper = require('../../../src/helpers/events');
 const ContractHelper = require('../../../src/helpers/contracts');
@@ -43,15 +42,15 @@ describe('createContract', () => {
     user: new ObjectID(),
     startDate: moment('2018-12-03T23:00:00').toDate(),
     status: 'contract_with_company',
-    signature: { templateId: '0987654321', title: 'Test' },
     versions: [{
       weeklyHours: 18,
       grossHourlyRate: 25,
+      signature: { templateId: '0987654321', title: 'Test' },
     }],
   };
 
   const newCompanyContractWithSignatureDoc = {
-    ...omit(newCompanyContractWithSignaturePayload, ['signature']),
+    ...newCompanyContractWithSignaturePayload,
     versions: [{ ...newCompanyContractWithSignaturePayload.versions[0], signature: { eversignId: '1234567890' } }],
   };
 
@@ -107,7 +106,7 @@ describe('createContract', () => {
 
     const result = await ContractHelper.createContract(newCompanyContractWithSignaturePayload);
 
-    sinon.assert.calledOnce(generateSignatureRequestStub);
+    sinon.assert.calledWith(generateSignatureRequestStub, newCompanyContractWithSignaturePayload.versions[0].signature);
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();

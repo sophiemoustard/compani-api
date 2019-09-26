@@ -191,29 +191,29 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     it('should create contract (customer contract) with signature request', async () => {
-      const payload = {
+      const payloadWithSignature = {
         startDate: '2019-01-19T15:46:30.636Z',
         versions: [{
           grossHourlyRate: 10.43,
           startDate: '2019-01-19T15:46:30.636Z',
+          signature: {
+            templateId: '0987654321',
+            title: 'Test',
+            signers: [{
+              id: new ObjectID(),
+              name: 'Toto',
+              email: 'test@test.com',
+            }, {
+              id: new ObjectID(),
+              name: 'Tata',
+              email: 'tt@tt.com',
+            }],
+            meta: { auxiliaryDriveId: '1234567890' },
+          },
         }],
         user: contractUser._id,
         status: CUSTOMER_CONTRACT,
         customer: contractCustomer._id,
-        signature: {
-          templateId: '0987654321',
-          title: 'Test',
-          signers: [{
-            id: new ObjectID(),
-            name: 'Toto',
-            email: 'test@test.com',
-          }, {
-            id: new ObjectID(),
-            name: 'Tata',
-            email: 'tt@tt.com',
-          }],
-          meta: { auxiliaryDriveId: '1234567890' },
-        },
       };
 
       const generateSignatureRequestStub = sinon.stub(EsignHelper, 'generateSignatureRequest');
@@ -223,7 +223,7 @@ describe('CONTRACTS ROUTES', () => {
         method: 'POST',
         url: '/contracts',
         headers: { 'x-access-token': authToken },
-        payload,
+        payload: payloadWithSignature,
       });
 
       expect(response.statusCode).toBe(200);

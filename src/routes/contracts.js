@@ -65,6 +65,23 @@ exports.plugin = {
               grossHourlyRate: Joi.number().required(),
               weeklyHours: Joi.number(),
               startDate: Joi.date().required(),
+              signature: Joi.object().keys({
+                templateId: Joi.string().required(),
+                fields: Joi.object(),
+                title: Joi.string().required(),
+                signers: Joi.array().items(Joi.object().keys({
+                  id: Joi.string(),
+                  name: Joi.string(),
+                  email: Joi.string(),
+                })).required(),
+                meta: Joi.object({
+                  auxiliaryDriveId: Joi.string().required(),
+                  customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
+                  status: Joi.string(),
+                }),
+                redirect: Joi.string().uri(),
+                redirectDecline: Joi.string().uri(),
+              }),
             }).required()
               .when('status', { is: COMPANY_CONTRACT, then: Joi.object({ weeklyHours: Joi.required() }) })
               .when('status', { is: CUSTOMER_CONTRACT, then: Joi.object({ weeklyHours: Joi.forbidden() }) })),
@@ -72,23 +89,6 @@ exports.plugin = {
             customer: Joi.objectId()
               .when('status', { is: CUSTOMER_CONTRACT, then: Joi.required() })
               .when('status', { is: COMPANY_CONTRACT, then: Joi.forbidden() }),
-            signature: Joi.object().keys({
-              templateId: Joi.string().required(),
-              fields: Joi.object(),
-              title: Joi.string().required(),
-              signers: Joi.array().items(Joi.object().keys({
-                id: Joi.string(),
-                name: Joi.string(),
-                email: Joi.string(),
-              })).required(),
-              meta: Joi.object({
-                auxiliaryDriveId: Joi.string().required(),
-                customerDriveId: Joi.string().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
-                status: Joi.string(),
-              }),
-              redirect: Joi.string().uri(),
-              redirectDecline: Joi.string().uri(),
-            }),
           }),
         },
       },
