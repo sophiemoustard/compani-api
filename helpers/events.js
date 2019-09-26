@@ -135,7 +135,7 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
   );
 };
 
-const isMiscOnlyUpdated = (event, payload) => {
+exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = {
     ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status']),
     sector: event.sector.toHexString(),
@@ -144,7 +144,7 @@ const isMiscOnlyUpdated = (event, payload) => {
   if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
   const mainPayloadInfo = _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc']);
 
-  return !event.misc || event.misc === '' || (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
+  return (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
 };
 
 /**
@@ -158,7 +158,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
   if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload);
 
-  const miscUpdatedOnly = eventPayload.misc && isMiscOnlyUpdated(event, eventPayload);
+  const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
   let unset;
   let set = eventPayload;
   if (!eventPayload.isCancelled && event.isCancelled) {
