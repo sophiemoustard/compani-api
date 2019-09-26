@@ -222,7 +222,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
     Repetition.updateMany({ auxiliary: contract.user }, { $unset: { auxiliary: '' } })
   );
 
-  await Promise.all(promises);
+  return Promise.all(promises);
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {

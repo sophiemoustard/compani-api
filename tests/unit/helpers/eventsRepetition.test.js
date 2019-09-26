@@ -52,7 +52,7 @@ describe('formatRepeatedPayload', () => {
       endDate: moment('2019-07-15').startOf('d'),
       auxiliary: auxiliaryId,
       type: 'intervention',
-      repetition: { frequency: 'eevry_week' },
+      repetition: { frequency: 'every_week' },
     };
 
     hasConflicts.returns(true);
