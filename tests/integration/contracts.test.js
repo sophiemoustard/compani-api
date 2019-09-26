@@ -191,36 +191,39 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     it('should create contract (customer contract) with signature request', async () => {
+      const payload = {
+        startDate: '2019-01-19T15:46:30.636Z',
+        versions: [{
+          grossHourlyRate: 10.43,
+          startDate: '2019-01-19T15:46:30.636Z',
+        }],
+        user: contractUser._id,
+        status: CUSTOMER_CONTRACT,
+        customer: contractCustomer._id,
+        signature: {
+          templateId: '0987654321',
+          title: 'Test',
+          signers: [{
+            id: new ObjectID(),
+            name: 'Toto',
+            email: 'test@test.com',
+          }, {
+            id: new ObjectID(),
+            name: 'Tata',
+            email: 'tt@tt.com',
+          }],
+          meta: { auxiliaryDriveId: '1234567890' },
+        },
+      };
+
       const generateSignatureRequestStub = sinon.stub(EsignHelper, 'generateSignatureRequest');
       generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
+
       const response = await app.inject({
         method: 'POST',
         url: '/contracts',
         headers: { 'x-access-token': authToken },
-        payload: {
-          startDate: '2019-01-19T15:46:30.636Z',
-          versions: [{
-            grossHourlyRate: 10.43,
-            startDate: '2019-01-19T15:46:30.636Z',
-          }],
-          user: contractUser._id,
-          status: CUSTOMER_CONTRACT,
-          customer: contractCustomer._id,
-          signature: {
-            templateId: '0987654321',
-            title: 'Test',
-            signers: [{
-              id: new ObjectID(),
-              name: 'Toto',
-              email: 'test@test.com',
-            }, {
-              id: new ObjectID(),
-              name: 'Tata',
-              email: 'tt@tt.com',
-            }],
-            meta: { auxiliaryDriveId: '1234567890' },
-          },
-        },
+        payload,
       });
 
       expect(response.statusCode).toBe(200);

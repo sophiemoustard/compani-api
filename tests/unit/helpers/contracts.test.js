@@ -50,7 +50,7 @@ describe('createContract', () => {
     }],
   };
 
-  const newCompanyContractWithSignature = {
+  const newCompanyContractWithSignatureDoc = {
     ...omit(newCompanyContractWithSignaturePayload, ['signature']),
     versions: [{ ...newCompanyContractWithSignaturePayload.versions[0], signature: { eversignId: '1234567890' } }],
   };
@@ -73,20 +73,15 @@ describe('createContract', () => {
 
   it('should create a new company contract', async () => {
     getUserEndedCompanyContractsStub.returns([]);
-
     ContractMock
       .expects('create')
       .withArgs(newCompanyContractPayload)
       .returns(newCompanyContractPayload);
-
     UserMock
       .expects('findOneAndUpdate')
       .withArgs({ _id: newCompanyContractPayload.user }, { $push: { contracts: newCompanyContractPayload._id }, $unset: { inactivityDate: '' } })
       .once();
-
-    CustomerMock
-      .expects('findOneAndUpdate')
-      .never();
+    CustomerMock.expects('findOneAndUpdate').never();
 
     const result = await ContractHelper.createContract(newCompanyContractPayload);
 
@@ -100,20 +95,15 @@ describe('createContract', () => {
   it('should create a new company contract and generate a signature request', async () => {
     getUserEndedCompanyContractsStub.returns([]);
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
-
     ContractMock
       .expects('create')
-      .withArgs(newCompanyContractWithSignature)
-      .returns(newCompanyContractWithSignature);
-
+      .withArgs(newCompanyContractWithSignatureDoc)
+      .returns(newCompanyContractWithSignatureDoc);
     UserMock
       .expects('findOneAndUpdate')
       .withArgs({ _id: newCompanyContractWithSignaturePayload.user }, { $push: { contracts: newCompanyContractWithSignaturePayload._id }, $unset: { inactivityDate: '' } })
       .once();
-
-    CustomerMock
-      .expects('findOneAndUpdate')
-      .never();
+    CustomerMock.expects('findOneAndUpdate').never();
 
     const result = await ContractHelper.createContract(newCompanyContractWithSignaturePayload);
 
@@ -121,32 +111,25 @@ describe('createContract', () => {
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
-    expect(result).toEqual(expect.objectContaining(newCompanyContractWithSignature));
+    expect(result).toEqual(expect.objectContaining(newCompanyContractWithSignatureDoc));
   });
 
   it('should create a new customer contract', async () => {
     const newCustomerContractPayload = { ...newCompanyContractPayload, customer: new ObjectID() };
 
     getUserEndedCompanyContractsStub.returns([]);
-
     ContractMock
       .expects('create')
       .withArgs(newCustomerContractPayload)
       .returns(newCustomerContractPayload);
-
     UserMock
       .expects('findOneAndUpdate')
       .withArgs({ _id: newCustomerContractPayload.user }, { $push: { contracts: newCustomerContractPayload._id }, $unset: { inactivityDate: '' } })
       .once();
-
     CustomerMock
       .expects('findOneAndUpdate')
       .withArgs({ _id: newCustomerContractPayload.customer }, { $push: { contracts: newCustomerContractPayload._id } })
       .once();
-
-    CustomerMock
-      .expects('findOneAndUpdate')
-      .never();
 
     const result = await ContractHelper.createContract(newCustomerContractPayload);
 
