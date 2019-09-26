@@ -130,34 +130,31 @@ exports.exportAuxiliaries = async () => {
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {
-    const auxInfo = [];
-    if (aux.local && aux.local.email) auxInfo.push(aux.local.email);
-    else auxInfo.push('');
+    const nationality = get(aux, 'identity.nationality');
+    const lastname = get(aux, 'identity.lastname');
+    const birthDate = get(aux, 'identity.birthDate');
+    const address = get(aux, 'contact.address.fullAddress');
+    const birthCountry = get(aux, 'identity.birthCountry');
+    const { contracts, inactivityDate, createdAt, mobilePhone } = aux;
 
-    if (aux.sector && aux.sector.name) auxInfo.push(aux.sector.name);
-    else auxInfo.push('');
-
-    if (aux.identity) {
-      auxInfo.push(
-        get(aux, 'identity.title', ''),
-        get(aux, 'identity.lastname', '').toUpperCase(),
-        get(aux, 'identity.firstname', ''),
-        has(aux, 'identity.birthDate') ? moment(aux.identity.birthDate).format('DD/MM/YYYY') : '',
-        countries[aux.identity.birthCountry] || '',
-        get(aux, 'identity.birthState', ''),
-        get(aux, 'identity.birthCity', ''),
-        nationalities[aux.identity.nationality] || '',
-        get(aux, 'identity.socialSecurityNumber', '')
-      );
-    } else auxInfo.push('', '', '', '', '', '', '', '', '');
-
-    const address = aux.contact && aux.contact.address && aux.contact.address.fullAddress ? aux.contact.address.fullAddress : '';
-    auxInfo.push(
-      address, aux.mobilePhone || '', aux.contracts ? aux.contracts.length : 0, aux.inactivityDate ? moment(aux.inactivityDate).format('DD/MM/YYYY') : '',
-      aux.createdAt ? moment(aux.createdAt).format('DD/MM/YYYY') : ''
-    );
-
-    data.push(auxInfo);
+    data.push([
+      get(aux, 'local.email') || '',
+      get(aux, 'sector.name') || '',
+      get(aux, 'identity.title') || '',
+      lastname ? lastname.toUpperCase() : '',
+      get(aux, 'identity.firstname') || '',
+      birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
+      countries[birthCountry] || '',
+      get(aux, 'identity.birthState') || '',
+      get(aux, 'identity.birthCity') || '',
+      nationality ? nationalities[nationality] : '',
+      get(aux, 'identity.socialSecurityNumber') || '',
+      address || '',
+      mobilePhone || '',
+      contracts ? contracts.length : 0,
+      inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
+      createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
+    ]);
   }
 
   return data;
