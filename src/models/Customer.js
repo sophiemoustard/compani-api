@@ -121,6 +121,14 @@ CustomerSchema.virtual('firstIntervention', {
   options: { sort: { startDate: 1 } },
 });
 
+CustomerSchema.virtual('futureEventsCount', {
+  ref: 'Event',
+  localField: '_id',
+  foreignField: 'customer',
+  count: true,
+  options: { match: { startDate: { $gte: new Date() } } },
+});
+
 CustomerSchema.post('findOne', countSubscriptionUsage);
 
 CustomerSchema.plugin(mongooseLeanVirtuals);

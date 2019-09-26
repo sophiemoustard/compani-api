@@ -27,6 +27,7 @@ exports.getCustomers = async (query) => {
   const customers = await Customer.find(query)
     .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
     .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'futureEventsCount' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
 
   if (customers.length === 0) return [];
