@@ -133,6 +133,11 @@ const rightsList = [
     description: 'Consulter les roles',
     permission: 'roles:read',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les documents de paie',
+    permission: 'paydocuments:edit',
+  },
 ];
 
 const coachRights = [
@@ -153,6 +158,7 @@ const coachRights = [
   'customers:edit',
   'customers:administrative:edit',
   'roles:read',
+  'paydocuments:edit',
 ];
 const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
 const planningReferentRights = [...auxiliaryRights, 'events:sector:edit'];
