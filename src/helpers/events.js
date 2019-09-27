@@ -138,12 +138,17 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
 
 exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = {
-    ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status']),
+    ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status', 'internalHour.name', 'address.fullAddress']),
     sector: event.sector.toHexString(),
   };
   if (event.auxiliary) mainEventInfo.auxiliary = event.auxiliary.toHexString();
   if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
-  const mainPayloadInfo = _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc']);
+
+  const mainPayloadInfo = _.pick(
+    payload,
+    ['isCancelled', 'startDate', 'endDate', 'status', 'sector', 'auxiliary', 'subscription', 'internalHour.name', 'address.fullAddress']
+  );
+  if (!mainPayloadInfo.isCancelled) mainPayloadInfo.isCancelled = false;
 
   return (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
 };
