@@ -19,7 +19,7 @@ exports.getCustomer = async (req) => {
 exports.authorizeCustomerDelete = async (req) => {
   const { customer } = req.pre;
 
-  if (!customer.firstIntervention) throw Boom.forbidden();
+  if (customer.firstIntervention) throw Boom.forbidden();
 
   return null;
 };

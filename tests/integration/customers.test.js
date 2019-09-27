@@ -20,6 +20,7 @@ const {
 const Customer = require('../../src/models/Customer');
 const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
+const User = require('../../src/models/User');
 const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
 const FileHelper = require('../../src/helpers/file');
@@ -380,30 +381,30 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('DELETE /customers/{id}', () => {
-    // it('should delete a customer', async () => {
-    //   const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
+    it('should delete a customer', async () => {
+      const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
 
-    //   const res = await app.inject({
-    //     method: 'DELETE',
-    //     url: `/customers/${customersList[0]._id.toHexString()}`,
-    //     headers: { 'x-access-token': adminToken },
-    //   });
-    //   expect(res.statusCode).toBe(200);
-    //   sinon.assert.calledWith(deleteFileStub, { fileId: customersList[0].driveFolder.driveId });
-    //   deleteFileStub.restore();
-    //   const customers = await Customer.find().lean();
-    //   expect(customers.length).toBe(customersList.length - 1);
-    //   const helper = await User.findById(userList[0]._id).lean();
-    //   expect(helper).toBeNull();
-    // });
-    // it('should return a 404 error if no customer found', async () => {
-    //   const res = await app.inject({
-    //     method: 'DELETE',
-    //     url: `/customers/${new ObjectID().toHexString()}`,
-    //     headers: { 'x-access-token': adminToken },
-    //   });
-    //   expect(res.statusCode).toBe(404);
-    // });
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[3]._id.toHexString()}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      sinon.assert.calledWith(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
+      deleteFileStub.restore();
+      const customers = await Customer.find().lean();
+      expect(customers.length).toBe(customersList.length - 1);
+      const helper = await User.findById(userList[2]._id).lean();
+      expect(helper).toBeNull();
+    });
+    it('should return a 404 error if no customer found', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${new ObjectID().toHexString()}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(404);
+    });
 
     // describe('Other roles', () => {
     //   const roles = [
