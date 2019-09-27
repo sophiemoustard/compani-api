@@ -303,6 +303,7 @@ const customerExportHeader = [
   'Prenom',
   'Date de naissance',
   'Adresse',
+  '1ère intervention',
   'Environnement',
   'Objectifs',
   'Autres',
@@ -318,7 +319,10 @@ const customerExportHeader = [
 ];
 
 exports.exportCustomers = async () => {
-  const customers = await Customer.find().populate('subscriptions.service').lean();
+  const customers = await Customer.find()
+    .populate('subscriptions.service')
+    .populate({ path: 'firstIntervention', select: 'startDate' })
+    .lean();
   const rows = [customerExportHeader];
 
   for (const cus of customers) {
@@ -328,6 +332,7 @@ exports.exportCustomers = async () => {
     const lastMandate = UtilsHelper.getLastVersion(mandates, 'createdAt') || {};
     const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
     const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
+    const firstIntervention = get(cus, 'firstIntervention.startDate');
 
     const cells = [
       cus.email || '',
@@ -336,6 +341,7 @@ exports.exportCustomers = async () => {
       get(cus, 'identity.firstname') || '',
       birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
       get(cus, 'contact.address.fullAddress') || '',
+      firstIntervention ? moment(firstIntervention).format('DD/MM/YYYY') : '',
       get(cus, 'followUp.environment') || '',
       get(cus, 'followUp.objectives') || '',
       get(cus, 'followUp.misc') || '',
