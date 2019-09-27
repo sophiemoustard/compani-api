@@ -381,7 +381,7 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('DELETE /customers/{id}', () => {
-    it('should delete a customer', async () => {
+    it('should delete a customer without interventions', async () => {
       const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
 
       const res = await app.inject({

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
+const Boom = require('boom');
 
 const {
   MONTHLY,
@@ -7,8 +8,9 @@ const {
   HOURLY,
   FIXED,
 } = require('../helpers/constants');
-const { removeCustomerInfo } = require('../helpers/customers');
 const Event = require('./Event');
+const User = require('./User');
+const Drive = require('./Google/Drive');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
@@ -119,7 +121,10 @@ async function removeCustomer(next) {
   const { _id, driveFolder } = customer;
 
   try {
-    await removeCustomerInfo(_id, driveFolder.driveId);
+    if (!_id) throw Boom.badRequest('CustomerId is missing.');
+    if (!driveFolder.driveId) throw Boom.badRequest('CustomerDriveId is missing.');
+
+    await Promise.all([User.deleteMany({ customers: _id }), Drive.deleteFile({ fileId: driveFolder.driveId })]);
     return next();
   } catch (e) {
     return next(e);
