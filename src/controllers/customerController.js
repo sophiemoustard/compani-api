@@ -135,16 +135,14 @@ const create = async (req) => {
 
 const remove = async (req) => {
   try {
-    const customerDeleted = await Customer.findByIdAndRemove(req.params._id);
-    if (!customerDeleted) return Boom.notFound(translate[language].customerNotFound);
+    const { customer } = req.pre;
 
-    return {
-      message: translate[language].customerRemoved,
-      data: { customer: customerDeleted },
-    };
+    await customer.remove();
+
+    return { message: translate[language].customerRemoved };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -271,11 +269,9 @@ const removeSubscription = async (req) => {
         },
         autopopulate: false,
       }
-    ).populate('subscriptions.service');
+    );
 
-    return {
-      message: translate[language].customerSubscriptionRemoved,
-    };
+    return { message: translate[language].customerSubscriptionRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);

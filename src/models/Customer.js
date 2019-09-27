@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
+const Boom = require('boom');
 
 const {
   MONTHLY,
@@ -8,6 +9,8 @@ const {
   FIXED,
 } = require('../helpers/constants');
 const Event = require('./Event');
+const User = require('./User');
+const Drive = require('./Google/Drive');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const identitySchemaDefinition = require('./schemaDefinitions/identity');
@@ -113,6 +116,23 @@ const countSubscriptionUsage = async (doc) => {
   }
 };
 
+async function removeCustomer(next) {
+  const customer = this;
+  const { _id, driveFolder } = customer;
+
+  try {
+    if (!_id) throw Boom.badRequest('CustomerId is missing.');
+
+    const promises = [User.deleteMany({ customers: _id })];
+    if (driveFolder && driveFolder.driveId) promises.push(Drive.deleteFile({ fileId: driveFolder.driveId }));
+    await Promise.all(promises);
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
 CustomerSchema.virtual('firstIntervention', {
   ref: 'Event',
   localField: '_id',
@@ -121,6 +141,7 @@ CustomerSchema.virtual('firstIntervention', {
   options: { sort: { startDate: 1 } },
 });
 
+CustomerSchema.pre('remove', removeCustomer);
 CustomerSchema.post('findOne', countSubscriptionUsage);
 
 CustomerSchema.plugin(mongooseLeanVirtuals);

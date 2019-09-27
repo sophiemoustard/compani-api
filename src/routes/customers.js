@@ -32,6 +32,7 @@ const {
   removeFunding,
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
+const { getCustomer, authorizeCustomerDelete } = require('./preHandlers/customers');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -178,9 +179,7 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:read', 'customer-{params._id}'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: { _id: Joi.objectId().required() },
         },
       },
       handler: show,
@@ -192,10 +191,12 @@ exports.plugin = {
       options: {
         auth: { scope: ['customers:create'] },
         validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
+          params: { _id: Joi.objectId().required() },
         },
+        pre: [
+          { method: getCustomer, assign: 'customer' },
+          { method: authorizeCustomerDelete },
+        ],
       },
       handler: remove,
     });

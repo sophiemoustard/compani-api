@@ -226,6 +226,7 @@ const customersList = [
       firstname: 'Volgarr',
       lastname: 'Theviking',
     },
+    driveFolder: { driveId: '1234567890' },
     contact: {
       address: {
         fullAddress: 'Lyngsøvej 26, 8600 Silkeborg, Danemark',
@@ -244,7 +245,23 @@ const userList = [
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [customersList[0]._id],
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer2', lastname: 'Test' },
+    local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[1]._id],
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'HelperForCustomer4', lastname: 'Test' },
+    local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: [customersList[3]._id],
   },
 ];
 
