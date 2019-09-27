@@ -842,7 +842,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     const mandateId = customersList[1].payment.mandates[0]._id.toHexString();
 
     it('should create a mandate signature request if I am its helper', async () => {
-      const helper = userList[0];
+      const helper = userList[1];
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'POST',
