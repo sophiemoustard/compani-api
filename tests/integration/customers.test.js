@@ -406,26 +406,39 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
 
-    // describe('Other roles', () => {
-    //   const roles = [
-    //     { name: 'helper', expectedCode: 403 },
-    //     { name: 'auxiliary', expectedCode: 403 },
-    //     { name: 'coach', expectedCode: 200 },
-    //   ];
+    it('should return a 403 error if customer has interventions', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': adminToken },
+      });
 
-    //   roles.forEach((role) => {
-    //     it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-    //       const authToken = await getToken(role.name);
-    //       const response = await app.inject({
-    //         method: 'DELETE',
-    //         url: `/customers/${customersList[0]._id.toHexString()}`,
-    //         headers: { 'x-access-token': authToken },
-    //       });
+      expect(res.statusCode).toBe(403);
+    });
 
-    //       expect(response.statusCode).toBe(role.expectedCode);
-    //     });
-    //   });
-    // });
+    describe('Other roles', () => {
+      let deleteFileStub;
+      before(() => { deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' }); });
+      after(() => { deleteFileStub.restore(); });
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/customers/${customersList[3]._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
   });
 });
 

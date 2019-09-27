@@ -6,7 +6,7 @@ const { language } = translate;
 
 exports.getCustomer = async (req) => {
   try {
-    const customer = await Customer.findById(req.params._id);
+    const customer = await Customer.findById(req.params._id).populate({ path: 'firstIntervention', select: 'startDate' });
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
     return customer;
