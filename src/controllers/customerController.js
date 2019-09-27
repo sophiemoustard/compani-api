@@ -135,13 +135,11 @@ const create = async (req) => {
 
 const remove = async (req) => {
   try {
-    const customerDeleted = await Customer.findByIdAndRemove(req.params._id);
-    if (!customerDeleted) return Boom.notFound(translate[language].customerNotFound);
+    const { customer } = req.pre;
 
-    return {
-      message: translate[language].customerRemoved,
-      data: { customer: customerDeleted },
-    };
+    customer.remove();
+
+    return { message: translate[language].customerRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);

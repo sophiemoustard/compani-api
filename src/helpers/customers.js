@@ -3,6 +3,7 @@ const Boom = require('boom');
 const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
+const User = require('../models/User');
 const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
@@ -166,4 +167,11 @@ exports.createAndSaveFile = async (docKeys, params, payload) => {
   }
 
   return uploadedFile;
+};
+
+exports.removeCustomerInfo = async (customerId, customerDriveId) => {
+  if (!customerId) throw Boom.badRequest('CustomerId is missing.');
+  if (!customerDriveId) throw Boom.badRequest('CustomerDriveId is missing.');
+
+  await Promise.all([User.deleteMany({ customers: customerId }), Drive.deleteFile({ fileId: customerDriveId })]);
 };

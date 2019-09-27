@@ -7,6 +7,7 @@ const {
   HOURLY,
   FIXED,
 } = require('../helpers/constants');
+const { removeCustomerInfo } = require('../helpers/customers');
 const Event = require('./Event');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
@@ -113,6 +114,18 @@ const countSubscriptionUsage = async (doc) => {
   }
 };
 
+async function removeCustomer(next) {
+  const customer = this;
+  const { _id, driveFolder } = customer;
+
+  try {
+    await removeCustomerInfo(_id, driveFolder.driveId);
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
 CustomerSchema.virtual('firstIntervention', {
   ref: 'Event',
   localField: '_id',
@@ -121,14 +134,7 @@ CustomerSchema.virtual('firstIntervention', {
   options: { sort: { startDate: 1 } },
 });
 
-CustomerSchema.virtual('futureEventsCount', {
-  ref: 'Event',
-  localField: '_id',
-  foreignField: 'customer',
-  count: true,
-  options: { match: { startDate: { $gte: new Date() } } },
-});
-
+CustomerSchema.pre('remove', removeCustomer);
 CustomerSchema.post('findOne', countSubscriptionUsage);
 
 CustomerSchema.plugin(mongooseLeanVirtuals);
