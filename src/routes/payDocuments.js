@@ -13,6 +13,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
+        auth: { scope: ['paydocuments:edit'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -38,6 +39,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
+        auth: { scope: ['paydocuments:edit', 'user-{query.user}'] },
         validate: {
           query: Joi.object({
             user: Joi.objectId(),
@@ -51,6 +53,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
+        auth: { scope: ['paydocuments:edit'] },
         validate: {
           params: Joi.object({
             _id: Joi.objectId(),
