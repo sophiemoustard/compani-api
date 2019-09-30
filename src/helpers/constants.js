@@ -118,6 +118,7 @@ module.exports = {
   // CANCELLATION OPTIONS
   INVOICED_AND_PAYED: 'invoiced_and_payed',
   INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',
+  NOT_INVOICED_AND_NOT_PAID: 'not_invoiced_and_not_paid',
   CUSTOMER_INITIATIVE: 'customer_initiative',
   AUXILIARY_INITIATIVE: 'auxiliary_initiative',
   get CANCELLATION_CONDITION_LIST() {
