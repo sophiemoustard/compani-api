@@ -69,17 +69,6 @@ const eventAuxiliary = {
   sector: sector._id,
 };
 
-const planningReferentAuxiliary = {
-  _id: planningReferentId,
-  identity: { firstname: 'Carole', lastname: 'Test' },
-  local: { email: 'a@a.com', password: 'supertest' },
-  administrative: { driveFolder: { driveId: '0987654321' } },
-  refreshToken: uuidv4(),
-  role: rolesList[3]._id,
-  contracts: [contracts[1]._id],
-  sector: sector._id,
-};
-
 const thirdPartyPayer = {
   _id: new ObjectID('62400565f8fd3555379720c9'),
 };
@@ -90,7 +79,6 @@ const service = {
     { _id: new ObjectID() },
   ],
 };
-
 
 const customerAuxiliary = {
   _id: new ObjectID('b0e491d37f0094ba49499562'),
@@ -226,7 +214,6 @@ const populateDB = async () => {
   await (new Sector(sector)).save();
   await (new User(eventAuxiliary)).save();
   await (new User(helpersCustomer)).save();
-  await (new User(planningReferentAuxiliary)).save();
   await (new Customer(customerAuxiliary)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();
   await (new Service(service)).save();
@@ -251,5 +238,4 @@ module.exports = {
   thirdPartyPayer,
   helpersCustomer,
   getUserToken,
-  planningReferentAuxiliary,
 };
