@@ -42,7 +42,7 @@ describe('exportWorkingEventsHistory', () => {
     }, {
       isCancelled: true,
       cancel: {
-        condition: 'invoiced_and_not_payed',
+        condition: 'invoiced_and_not_paid',
         reason: 'auxiliary_initiative',
       },
       isBilled: false,

@@ -18,7 +18,7 @@ const {
   UNAVAILABILITY,
   NEVER,
   EVERY_WEEK,
-  INVOICED_AND_NOT_PAYED,
+  INVOICED_AND_NOT_PAID,
   CUSTOMER_INITIATIVE,
 } = require('../../../src/helpers/constants');
 
@@ -184,7 +184,7 @@ describe('updateEvent', () => {
       _id: eventId,
       repetition: { frequency: NEVER },
       isCancelled: true,
-      cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
+      cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
     const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
@@ -209,7 +209,7 @@ describe('updateEvent', () => {
       _id: eventId,
       repetition: { frequency: EVERY_WEEK },
       isCancelled: true,
-      cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
+      cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
     const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };

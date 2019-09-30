@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const Event = require('../models/Event');
-const { INTERNAL_HOUR, INTERVENTION, ABSENCE, INVOICED_AND_PAYED, COMPANY_CONTRACT } = require('../helpers/constants');
+const { INTERNAL_HOUR, INTERVENTION, ABSENCE, INVOICED_AND_PAID, COMPANY_CONTRACT } = require('../helpers/constants');
 
 const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
   { $match: rules },
@@ -324,7 +324,7 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
             $or: [
               { isCancelled: false },
               { isCancelled: { $exists: false } },
-              { 'cancel.condition': INVOICED_AND_PAYED },
+              { 'cancel.condition': INVOICED_AND_PAID },
             ],
           },
           {
