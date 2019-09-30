@@ -116,14 +116,15 @@ module.exports = {
     custom: 'Personnalisée',
   },
   // CANCELLATION OPTIONS
-  INVOICED_AND_PAYED: 'invoiced_and_payed',
-  INVOICED_AND_NOT_PAYED: 'invoiced_and_not_payed',
+  INVOICED_AND_PAID: 'invoiced_and_paid',
+  INVOICED_AND_NOT_PAID: 'invoiced_and_not_paid',
+  NOT_INVOICED_AND_NOT_PAID: 'not_invoiced_and_not_paid',
   CUSTOMER_INITIATIVE: 'customer_initiative',
   AUXILIARY_INITIATIVE: 'auxiliary_initiative',
   get CANCELLATION_CONDITION_LIST() {
     return {
-      [this.INVOICED_AND_PAYED]: 'Facturée & payée',
-      [this.INVOICED_AND_NOT_PAYED]: 'Facturée & non payée',
+      [this.INVOICED_AND_PAID]: 'Facturée & payée',
+      [this.INVOICED_AND_NOT_PAID]: 'Facturée & non payée',
     };
   },
   get CANCELLATION_REASON_LIST() {
