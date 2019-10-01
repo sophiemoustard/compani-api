@@ -148,7 +148,9 @@ exports.plugin = {
               driveId: Joi.string(),
               link: Joi.string(),
             }).when('absence', { is: Joi.exist().valid([ILLNESS, WORK_ACCIDENT]), then: Joi.required() }),
-            misc: Joi.string().allow(null, '').default('').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
+            misc: Joi.string().allow(null, '').default('')
+              .when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() })
+              .when('isCancelled', { is: Joi.exist().valid(true), then: Joi.required() }),
             repetition: Joi.object().keys({
               frequency: Joi.string().valid(REPETITION_FREQUENCIES),
               parentId: Joi.objectId(),
