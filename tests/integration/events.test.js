@@ -12,7 +12,6 @@ const {
   eventsList,
   eventAuxiliary,
   customerAuxiliary,
-  planningReferentAuxiliary,
   sector,
   thirdPartyPayer,
   helpersCustomer,
@@ -419,18 +418,13 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
           customCredentials: eventAuxiliary.local,
         },
         { name: 'coach', expectedCode: 200 },
-        {
-          name: 'auxiliary\'s planningReferent',
-          expectedCode: 200,
-          customCredentials: planningReferentAuxiliary.local,
-        },
       ];
 
       roles.forEach((role) => {
@@ -534,18 +528,13 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
           customCredentials: eventAuxiliary.local,
         },
         { name: 'coach', expectedCode: 200 },
-        {
-          name: 'auxiliary\'s planningReferent',
-          expectedCode: 200,
-          customCredentials: planningReferentAuxiliary.local,
-        },
       ];
 
       roles.forEach((role) => {
@@ -601,18 +590,13 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
           customCredentials: eventAuxiliary.local,
         },
         { name: 'coach', expectedCode: 200 },
-        {
-          name: 'auxiliary\'s planningReferent',
-          expectedCode: 200,
-          customCredentials: planningReferentAuxiliary.local,
-        },
       ];
 
       roles.forEach((role) => {
@@ -682,18 +666,13 @@ describe('EVENTS ROUTES', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 200 },
         {
           name: 'auxiliary event',
           expectedCode: 200,
           customCredentials: eventAuxiliary.local,
         },
         { name: 'coach', expectedCode: 200 },
-        {
-          name: 'auxiliary\'s planningReferent',
-          expectedCode: 200,
-          customCredentials: planningReferentAuxiliary.local,
-        },
       ];
 
       roles.forEach((role) => {

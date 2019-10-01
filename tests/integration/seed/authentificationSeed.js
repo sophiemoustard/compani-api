@@ -99,12 +99,6 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Editer un évènement de son secteur',
-    permission: 'events:sector:edit',
-    name: 'events-sector-edit',
-  },
-  {
-    _id: new ObjectID(),
     description: 'Créer ou supprimer des bénéficiaires',
     permission: 'customers:create',
   },
@@ -161,7 +155,7 @@ const coachRights = [
   'paydocuments:edit',
 ];
 const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
-const planningReferentRights = [...auxiliaryRights, 'events:sector:edit'];
+const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
 
 const rolesList = [
