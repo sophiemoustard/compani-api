@@ -47,7 +47,7 @@ exports.formatCreditNote = (payload, prefix, seq) => {
 };
 
 exports.createCreditNotes = async (payload) => {
-  const query = { prefix: `AV-${moment().format('YYMM')}` };
+  const query = { prefix: `AV-${moment(payload.date).format('YYMM')}` };
   const number = await CreditNoteNumber.findOneAndUpdate(query, {}, { new: true, upsert: true, setDefaultsOnInsert: true });
   let { seq } = number;
 
