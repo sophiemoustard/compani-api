@@ -889,6 +889,7 @@ describe('getDraftBillsList', () => {
       {
         customerId: 'ghjk',
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
+        endDate: '2019-12-25T07:00:00',
         customerBills: {
           bills: [
             { identity: { firstname: 'Toto' }, inclTaxes: 20 },
@@ -957,6 +958,7 @@ describe('getDraftBillsList', () => {
       {
         customerId: 'ghjk',
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
+        endDate: '2019-12-25T07:00:00',
         customerBills: {
           bills: [
             { identity: { firstname: 'Toto' }, inclTaxes: 20 },
@@ -967,6 +969,7 @@ describe('getDraftBillsList', () => {
       },
       {
         customerId: 'asdf',
+        endDate: '2019-12-25T07:00:00',
         customer: { _id: 'asdf', identity: { firstname: 'Tata' } },
         customerBills: {
           bills: [

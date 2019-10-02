@@ -74,6 +74,7 @@ exports.plugin = {
             bills: Joi.array().items(Joi.object({
               customerId: Joi.objectId(),
               customer: Joi.object().required(),
+              endDate: Joi.date().required(),
               customerBills: Joi.object({
                 bills: Joi.array().items(Joi.object({
                   _id: Joi.objectId(),

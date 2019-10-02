@@ -32,14 +32,15 @@ const draftBillsList = async (req) => {
 
 const createBills = async (req) => {
   try {
-    const prefix = `FACT-${moment().format('MMYY')}`;
+    const { bills } = req.payload;
+    const prefix = `FACT-${moment(bills[0].endDate).format('MMYY')}`;
     const number = await BillNumber.findOneAndUpdate(
       { prefix },
       {},
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
-    await formatAndCreateBills(number, req.payload.bills);
+    await formatAndCreateBills(number, bills);
 
     return { message: translate[language].billsCreated };
   } catch (e) {
