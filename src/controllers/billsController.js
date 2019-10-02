@@ -83,7 +83,9 @@ const generateBillPdf = async (req, h) => {
     const data = formatPDF(bill, company);
     const pdf = await generatePdf(data, './src/data/bill.html');
 
-    return h.response(pdf).type('application/pdf');
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${bill.number}.pdf`)
+      .type('application/pdf');
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

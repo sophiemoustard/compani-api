@@ -103,7 +103,9 @@ const generateCreditNotePdf = async (req, h) => {
     const data = formatPDF(creditNote, company);
     const pdf = await generatePdf(data, './src/data/creditNote.html');
 
-    return h.response(pdf).type('application/pdf');
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${creditNote.number}.pdf`)
+      .type('application/pdf');
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
