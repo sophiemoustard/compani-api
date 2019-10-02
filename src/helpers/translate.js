@@ -80,6 +80,7 @@ module.exports = {
     contractUpdated: 'Contract updated.',
     contractAdded: 'Contract added.',
     contractRemoved: 'Contract removed.',
+    staffRegisteredFound: 'Staff Registered Found.',
     /* Contracts amendments */
     contractVersionAdded: 'Contract amendment added.',
     contractVersionRemoved: 'Contract amendment removed.',
@@ -294,6 +295,7 @@ module.exports = {
     contractUpdated: 'Contrat mis à jour.',
     contractAdded: 'Contrat ajouté.',
     contractRemoved: 'Contrat supprimé.',
+    staffRegisteredFound: 'Registre Unique du personnel récuperé.',
     /* Contracts amendments */
     contractVersionAdded: 'Avenant au contrat ajouté.',
     contractVersionRemoved: 'Avenant au contrat supprimé.',
