@@ -3,6 +3,7 @@ const flat = require('flat');
 const crypto = require('crypto');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
+const Role = require('../models/Role');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
@@ -184,10 +185,9 @@ const getStaffRegister = async (req) => {
       .find()
       .populate({
         path: 'user',
-        select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto residencePermitVerso'
+        select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto residencePermitVerso',
       })
       .lean();
-
     return {
       message: translate[language].staffRegisteredFound,
       data: { staffRegister },
