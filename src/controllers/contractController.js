@@ -185,7 +185,7 @@ const getStaffRegister = async (req) => {
       .find()
       .populate({
         path: 'user',
-        select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto residencePermitVerso',
+        select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto administrative.residencePermitVerso',
       })
       .lean();
     return {
