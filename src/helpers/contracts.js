@@ -33,8 +33,10 @@ exports.getContractList = async (query) => {
   if (query.status) rules.push({ status: query.status });
   if (query.user) rules.push({ user: query.user });
 
+  const params = rules.length > 0 ? { $and: rules } : {};
+
   return Contract
-    .find({ $and: rules })
+    .find(params)
     .populate({ path: 'user', select: 'identity administrative.driveFolder' })
     .populate({ path: 'customer', select: 'identity driveFolder' })
     .lean();
