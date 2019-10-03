@@ -7,7 +7,7 @@ const { language } = translate;
 exports.getBill = async (req) => {
   try {
     const bill = await Bill.findOne({ _id: req.params._id }).lean();
-    if (!bill) throw Boom.notFound(translate[language].eventNotFound);
+    if (!bill) throw Boom.notFound(translate[language].billNotFound);
 
     return bill;
   } catch (e) {
