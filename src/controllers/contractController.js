@@ -178,6 +178,26 @@ const receiveSignatureEvents = async (req, h) => {
   }
 };
 
+const getStaffRegister = async (req) => {
+  try {
+    const staffRegister = await Contract
+      .find()
+      .populate({
+        path: 'user',
+        select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto administrative.residencePermitVerso',
+      })
+      .lean();
+
+    return {
+      message: translate[language].staffRegisteredFound,
+      data: { staffRegister },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   get,
@@ -189,4 +209,5 @@ module.exports = {
   removeContractVersion,
   uploadFile,
   receiveSignatureEvents,
+  getStaffRegister,
 };

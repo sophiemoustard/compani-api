@@ -404,4 +404,37 @@ describe('CONTRACTS ROUTES', () => {
       });
     });
   });
+
+  describe('GET contracts/staff-register', () => {
+    it('should return list of contracts', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/contracts/staff-register',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.staffRegister).toBeDefined();
+      expect(response.result.data.staffRegister.length).toEqual(contractsList.length);
+    });
+
+    const roles = [
+      { name: 'admin', expectedCode: 200 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'helper', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/contracts/staff-register',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
 });
