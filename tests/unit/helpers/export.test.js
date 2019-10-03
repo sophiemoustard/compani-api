@@ -412,7 +412,7 @@ describe('exportCustomers', () => {
     const result = await ExportHelper.exportCustomers();
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse',
+    expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse',
       '1ère intervention', 'Environnement', 'Objectifs', 'Autres', 'Nom associé au compte bancaire', 'IBAN', 'BIC',
       'RUM', 'Date de signature du mandat', 'Nombre de souscriptions', 'Souscriptions', 'Nombre de financements',
       'Date de création']);
@@ -452,7 +452,6 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      'papi@mamie.pp',
       'M',
       'PAPI',
       'Grand Père',
@@ -488,7 +487,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
     CustomerModel.verify();
   });
 });
