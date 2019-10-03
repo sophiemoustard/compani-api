@@ -35,11 +35,6 @@ const get = async (req) => {
       .populate({ path: 'customer', select: 'identity' })
       .lean();
     if (!contract) return Boom.notFound();
-    if (!req.auth.credentials.scope.includes('contracts:read:user')) {
-      const authUserId = req.auth.credentials._id;
-      // 404 and not 403, the client shouldn't know the contract exists
-      if (authUserId !== contract.user._id) return Boom.notFound();
-    }
 
     return { message: translate[language].contractFound, data: { contract } };
   } catch (e) {

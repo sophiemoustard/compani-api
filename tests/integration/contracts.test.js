@@ -65,7 +65,7 @@ describe('CONTRACTS ROUTES', () => {
 
     const roles = [
       { name: 'admin', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 404 },
+      { name: 'auxiliary', expectedCode: 403 },
       { name: 'helper', expectedCode: 403 },
     ];
 

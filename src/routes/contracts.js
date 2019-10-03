@@ -27,7 +27,7 @@ exports.plugin = {
       method: 'GET',
       path: '/',
       options: {
-        auth: { scope: ['contracts:read:user', 'user-{query.user}'] },
+        auth: { scope: ['contracts:edit', 'user-{query.user}'] },
         validate: {
           query: Joi.object().keys({
             status: Joi.string(),
@@ -43,7 +43,7 @@ exports.plugin = {
       method: 'GET',
       path: '/{_id}',
       options: {
-        auth: { scope: ['contracts:read:user', 'contracts:read'] },
+        auth: { scope: ['contracts:edit'] },
         validate: {
           params: Joi.object().keys({
             _id: Joi.objectId(),
@@ -57,7 +57,7 @@ exports.plugin = {
       method: 'POST',
       path: '/',
       options: {
-        auth: { scope: ['contracts:edit:user'] },
+        auth: { scope: ['contracts:edit'] },
         validate: {
           payload: Joi.object().keys({
             startDate: Joi.date().required(),
@@ -100,7 +100,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}',
       options: {
-        auth: { scope: ['contracts:edit:user'] },
+        auth: { scope: ['contracts:edit'] },
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: {
@@ -118,7 +118,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}',
       options: {
-        auth: { scope: ['contracts:edit:user'] },
+        auth: { scope: ['contracts:edit'] },
         validate: {
           params: { _id: Joi.objectId().required() },
         },
@@ -130,7 +130,7 @@ exports.plugin = {
       method: 'POST',
       path: '/{_id}/versions',
       options: {
-        auth: { scope: ['contracts:edit:user'] },
+        auth: { scope: ['contracts:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -167,7 +167,7 @@ exports.plugin = {
       method: 'PUT',
       path: '/{_id}/versions/{versionId}',
       options: {
-        auth: { scope: ['contracts:edit:user'] },
+        auth: { scope: ['contracts:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -204,7 +204,7 @@ exports.plugin = {
       method: 'DELETE',
       path: '/{_id}/versions/{versionId}',
       options: {
-        auth: { scope: ['contracts:edit:user'] },
+        auth: { scope: ['contracts:edit'] },
         validate: {
           params: {
             _id: Joi.objectId().required(),
@@ -220,7 +220,7 @@ exports.plugin = {
       path: '/{_id}/gdrive/{driveId}/upload',
       handler: uploadFile,
       options: {
-        auth: { scope: ['contracts:edit:user'] },
+        auth: { scope: ['contracts:edit'] },
         payload: {
           output: 'stream',
           parse: true,
@@ -257,7 +257,7 @@ exports.plugin = {
       path: '/staff-register',
       handler: getStaffRegister,
       options: {
-        auth: { scope: ['contracts:read:user'] },
+        auth: { scope: ['contracts:edit'] },
       },
     });
   },
