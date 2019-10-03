@@ -297,7 +297,6 @@ const getServicesNameList = (subscriptions) => {
 };
 
 const customerExportHeader = [
-  'Email',
   'Titre',
   'Nom',
   'Prenom',
@@ -335,7 +334,6 @@ exports.exportCustomers = async () => {
     const firstIntervention = get(cus, 'firstIntervention.startDate');
 
     const cells = [
-      cus.email || '',
       get(cus, 'identity.title') || '',
       lastname ? lastname.toUpperCase() : '',
       get(cus, 'identity.firstname') || '',
