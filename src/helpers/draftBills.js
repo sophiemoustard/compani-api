@@ -329,6 +329,7 @@ exports.getDraftBillsList = async (dates, billingStartDate, customerId = null) =
     const groupedByCustomerBills = {
       customerId: customer._id,
       customer,
+      endDate: dates.endDate,
       customerBills: {
         bills: customerDraftBills,
         total: customerDraftBills.reduce((sum, b) => sum + (b.inclTaxes || 0), 0),

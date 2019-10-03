@@ -108,6 +108,7 @@ describe('BILL ROUTES - POST /bills', () => {
           birthDate: '2018-05-23T18:59:04.466Z',
         },
       },
+      endDate: '2019-05-31T23:59:59.999Z',
       customerBills: {
         bills: [
           {
