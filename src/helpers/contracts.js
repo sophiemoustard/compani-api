@@ -19,6 +19,26 @@ const ESignHelper = require('../helpers/eSign');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 
+exports.getContractList = async (query) => {
+  const rules = [];
+  if (query.endDate && query.endDate) {
+    rules.push({
+      $or: [
+        { versions: { $elemMatch: { startDate: { $gte: query.startDate, $lte: query.endDate } } } },
+        { endDate: { $gte: query.startDate, $lte: query.endDate } },
+      ],
+    });
+  }
+  if (query.customer) rules.push({ customer: query.customer });
+  if (query.status) rules.push({ status: query.status });
+  if (query.user) rules.push({ user: query.user });
+
+  return Contract
+    .find({ $and: rules })
+    .populate({ path: 'user', select: 'identity administrative.driveFolder' })
+    .populate({ path: 'customer', select: 'identity driveFolder' })
+    .lean();
+};
 
 exports.createContract = async (contractPayload) => {
   const newContractPayload = cloneDeep(contractPayload);

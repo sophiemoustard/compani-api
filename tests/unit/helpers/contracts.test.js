@@ -17,6 +17,52 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 require('sinon-mongoose');
 
+describe('getContractList', () => {
+  const contracts = [{ _id: new ObjectID() }];
+  let ContractMock;
+  beforeEach(() => {
+    ContractMock = sinon.mock(Contract);
+  });
+  afterEach(() => {
+    ContractMock.restore();
+  });
+
+  it('should return contract list', async () => {
+    const query = { user: '1234567890' };
+    ContractMock.expects('find')
+      .withExactArgs({ $and: [{ user: '1234567890' }] })
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .returns(contracts);
+
+    const result = await ContractHelper.getContractList(query);
+    expect(result).toEqual(contracts);
+    ContractMock.verify();
+  });
+
+  it('should format query with dates', async () => {
+    const query = { startDate: '2019-09-09T00:00:00', endDate: '2019-09-09T00:00:00' };
+    ContractMock.expects('find')
+      .withExactArgs({
+        $and: [{
+          $or: [
+            { versions: { $elemMatch: { startDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } } } },
+            { endDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
+          ],
+        }],
+      })
+      .chain('populate')
+      .chain('populate')
+      .chain('lean')
+      .returns(contracts);
+
+    const result = await ContractHelper.getContractList(query);
+    expect(result).toEqual(contracts);
+    ContractMock.verify();
+  });
+});
+
 describe('createContract', () => {
   let getUserEndedCompanyContractsStub;
   let ContractMock;
