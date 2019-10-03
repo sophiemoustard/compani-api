@@ -23,9 +23,7 @@ const list = async (req) => {
   try {
     const contracts = await getContractList(req.query);
 
-    const message = !contracts || contracts.length === 0
-      ? translate[language].contractsNotFound
-      : translate[language].contractsFound;
+    const message = contracts.length ? translate[language].contractsFound : translate[language].contractsNotFound;
 
     return { message, data: { contracts } };
   } catch (e) {

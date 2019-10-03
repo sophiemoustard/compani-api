@@ -21,7 +21,7 @@ const ContractRepository = require('../repositories/ContractRepository');
 
 exports.getContractList = async (query) => {
   const rules = [];
-  if (query.endDate && query.endDate) {
+  if (query.startDate && query.endDate) {
     rules.push({
       $or: [
         { versions: { $elemMatch: { startDate: { $gte: query.startDate, $lte: query.endDate } } } },
