@@ -187,6 +187,7 @@ const getStaffRegister = async (req) => {
         select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto administrative.residencePermitVerso',
       })
       .lean();
+
     return {
       message: translate[language].staffRegisteredFound,
       data: { staffRegister },
