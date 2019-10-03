@@ -3,7 +3,6 @@ const flat = require('flat');
 const crypto = require('crypto');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
-const Role = require('../models/Role');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
