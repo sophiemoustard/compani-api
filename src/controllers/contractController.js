@@ -27,22 +27,6 @@ const list = async (req) => {
   }
 };
 
-const get = async (req) => {
-  try {
-    const contract = await Contract
-      .findOne({ _id: req.params._id })
-      .populate({ path: 'user', select: 'identity' })
-      .populate({ path: 'customer', select: 'identity' })
-      .lean();
-    if (!contract) return Boom.notFound();
-
-    return { message: translate[language].contractFound, data: { contract } };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const create = async (req) => {
   try {
     const { payload } = req;
@@ -195,7 +179,6 @@ const getStaffRegister = async (req) => {
 
 module.exports = {
   list,
-  get,
   create,
   update,
   remove,

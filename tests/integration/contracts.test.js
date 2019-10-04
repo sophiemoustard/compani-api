@@ -27,62 +27,6 @@ describe('CONTRACTS ROUTES', () => {
     authToken = await getToken('coach');
   });
 
-  describe('GET /contracts/:contractId', () => {
-    it('should return contract', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/contracts/${contractsList[0]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.contract).toBeDefined();
-      expect(response.result.data.contract._id).toEqual(contractsList[0]._id);
-    });
-
-    it('should return 404 error if no contract found', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const response = await app.inject({
-        method: 'GET',
-        url: `/contracts/${invalidId}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(404);
-    });
-
-    it('should return an auxiliary\'s own contract', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/contracts/${contractsList[1]._id.toHexString()}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.contract).toBeDefined();
-      expect(response.result.data.contract._id).toEqual(contractsList[1]._id);
-    });
-
-    const roles = [
-      { name: 'admin', expectedCode: 200 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'helper', expectedCode: 403 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: `/contracts/${contractsList[0]._id.toHexString()}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-
   describe('GET /contracts', () => {
     it('should return list of contracts', async () => {
       const userId = contractsList[0].user;

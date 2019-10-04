@@ -5,10 +5,8 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('../helpers/constants');
 const { CONTRACT_STATUS, END_CONTRACT_REASONS } = require('../models/Contract');
-const { getContract, authorizeContractEdition } = require('./preHandlers/contracts');
 const {
   list,
-  get,
   create,
   update,
   remove,
@@ -37,23 +35,6 @@ exports.plugin = {
         },
       },
       handler: list,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}',
-      options: {
-        validate: {
-          params: Joi.object().keys({
-            _id: Joi.objectId(),
-          }),
-        },
-        pre: [
-          { method: getContract, assign: 'contract' },
-          { method: authorizeContractEdition },
-        ],
-      },
-      handler: get,
     });
 
     server.route({
