@@ -31,6 +31,8 @@ exports.plugin = {
             status: Joi.string(),
             user: Joi.objectId(),
             customer: Joi.objectId(),
+            startDate: Joi.date(),
+            endDate: Joi.date(),
           }),
         },
       },

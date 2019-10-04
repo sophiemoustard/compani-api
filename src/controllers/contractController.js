@@ -6,19 +6,24 @@ const User = require('../models/User');
 const Customer = require('../models/Customer');
 const ESign = require('../models/ESign');
 const translate = require('../helpers/translate');
-const { createContract, createVersion, endContract, createAndSaveFile, saveCompletedContract, updateVersion, deleteVersion } = require('../helpers/contracts');
+const {
+  createContract,
+  createVersion,
+  endContract,
+  createAndSaveFile,
+  saveCompletedContract,
+  updateVersion,
+  deleteVersion,
+  getContractList,
+} = require('../helpers/contracts');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const contracts = await Contract
-      .find(req.query)
-      .populate({ path: 'user', select: 'identity administrative.driveFolder' })
-      .populate({ path: 'customer', select: 'identity driveFolder' })
-      .lean();
+    const contracts = await getContractList(req.query);
 
-    const message = !contracts ? translate[language].contractsNotFound : translate[language].contractsFound;
+    const message = contracts.length ? translate[language].contractsFound : translate[language].contractsNotFound;
 
     return { message, data: { contracts } };
   } catch (e) {
