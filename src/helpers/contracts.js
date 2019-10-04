@@ -37,7 +37,7 @@ exports.getContractList = async (query) => {
 
   return Contract
     .find(params)
-    .populate({ path: 'user', select: 'identity administrative.driveFolder sector', populate: { path: 'sector', select: 'name' } })
+    .populate({ path: 'user', select: 'identity administrative.driveFolder sector contact local', populate: { path: 'sector', select: 'name' } })
     .populate({ path: 'customer', select: 'identity driveFolder' })
     .lean();
 };
