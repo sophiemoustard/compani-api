@@ -49,18 +49,8 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Consulter sa liste de contrats',
-    permission: 'contracts:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Consulter la liste de contrats des autres utilisateurs',
-    permission: 'contracts:read:user',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer la liste de contrats des autres utilisateurs',
-    permission: 'contracts:edit:user',
+    description: 'Editer la liste de contrats',
+    permission: 'contracts:edit',
   },
   {
     _id: new ObjectID(),
@@ -139,9 +129,7 @@ const coachRights = [
   'bills:read',
   'payments:edit',
   'pay:read',
-  'contracts:read',
-  'contracts:read:user',
-  'contracts:edit:user',
+  'contracts:edit',
   'exports:read',
   'users:list',
   'users:edit',
@@ -154,7 +142,7 @@ const coachRights = [
   'roles:read',
   'paydocuments:edit',
 ];
-const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
+const auxiliaryRights = ['config:read', 'pay:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
 
