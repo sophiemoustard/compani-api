@@ -2,14 +2,14 @@ const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
-const DraftFinalPayHelper = require('../../../helpers/draftFinalPay');
-const DraftPayHelper = require('../../../helpers/draftPay');
-const Company = require('../../../models/Company');
-const Surcharge = require('../../../models/Surcharge');
-const DistanceMatrix = require('../../../models/DistanceMatrix');
-const FinalPay = require('../../../models/FinalPay');
-const ContractRepository = require('../../../repositories/ContractRepository');
-const EventRepository = require('../../../repositories/EventRepository');
+const DraftFinalPayHelper = require('../../../src/helpers/draftFinalPay');
+const DraftPayHelper = require('../../../src/helpers/draftPay');
+const Company = require('../../../src/models/Company');
+const Surcharge = require('../../../src/models/Surcharge');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
+const FinalPay = require('../../../src/models/FinalPay');
+const ContractRepository = require('../../../src/repositories/ContractRepository');
+const EventRepository = require('../../../src/repositories/EventRepository');
 
 require('sinon-mongoose');
 

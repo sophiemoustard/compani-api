@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { populateRole } = require('../../../helpers/roles');
+const { populateRole } = require('../../../src/helpers/roles');
 
 describe('populateRole', () => {
   it('should update rights without options', () => {

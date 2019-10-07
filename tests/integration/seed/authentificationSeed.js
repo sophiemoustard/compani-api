@@ -1,9 +1,9 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const memoize = require('lodash/memoize');
-const Role = require('../../../models/Role');
-const Right = require('../../../models/Right');
-const User = require('../../../models/User');
+const Role = require('../../../src/models/Role');
+const Right = require('../../../src/models/Right');
+const User = require('../../../src/models/User');
 const app = require('../../../server');
 
 const rightsList = [
@@ -49,18 +49,8 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Consulter sa liste de contrats',
-    permission: 'contracts:read',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Consulter la liste de contrats des autres utilisateurs',
-    permission: 'contracts:read:user',
-  },
-  {
-    _id: new ObjectID(),
-    description: 'Editer la liste de contrats des autres utilisateurs',
-    permission: 'contracts:edit:user',
+    description: 'Editer la liste de contrats',
+    permission: 'contracts:edit',
   },
   {
     _id: new ObjectID(),
@@ -99,12 +89,6 @@ const rightsList = [
   },
   {
     _id: new ObjectID(),
-    description: 'Editer un évènement de son secteur',
-    permission: 'events:sector:edit',
-    name: 'events-sector-edit',
-  },
-  {
-    _id: new ObjectID(),
     description: 'Créer ou supprimer des bénéficiaires',
     permission: 'customers:create',
   },
@@ -123,6 +107,21 @@ const rightsList = [
     description: 'Editer les données administratives de bénéficiaires',
     permission: 'customers:administrative:edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les informations de la compagnie',
+    permission: 'companies:edit',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Consulter les roles',
+    permission: 'roles:read',
+  },
+  {
+    _id: new ObjectID(),
+    description: 'Editer les documents de paie',
+    permission: 'paydocuments:edit',
+  },
 ];
 
 const coachRights = [
@@ -130,9 +129,7 @@ const coachRights = [
   'bills:read',
   'payments:edit',
   'pay:read',
-  'contracts:read',
-  'contracts:read:user',
-  'contracts:edit:user',
+  'contracts:edit',
   'exports:read',
   'users:list',
   'users:edit',
@@ -142,9 +139,11 @@ const coachRights = [
   'customers:read',
   'customers:edit',
   'customers:administrative:edit',
+  'roles:read',
+  'paydocuments:edit',
 ];
-const auxiliaryRights = ['config:read', 'pay:read', 'contracts:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
-const planningReferentRights = [...auxiliaryRights, 'events:sector:edit'];
+const auxiliaryRights = ['config:read', 'pay:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
+const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
 
 const rolesList = [

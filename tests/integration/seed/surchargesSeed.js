@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
-const Surcharge = require('../../../models/Surcharge');
-const Company = require('../../../models/Company');
+const Surcharge = require('../../../src/models/Surcharge');
+const Company = require('../../../src/models/Company');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 
 const company = {

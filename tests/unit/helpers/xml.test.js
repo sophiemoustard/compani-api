@@ -10,10 +10,10 @@ const {
   generatePaymentInfo,
   addTransactionInfo,
   generateSEPAXml,
-} = require('../../../helpers/xml');
-const utils = require('../../../helpers/utils');
-const gdriveStorage = require('../../../helpers/gdriveStorage');
-const { PAYMENT } = require('../../../helpers/constants');
+} = require('../../../src/helpers/xml');
+const utils = require('../../../src/helpers/utils');
+const gdriveStorage = require('../../../src/helpers/gdriveStorage');
+const { PAYMENT } = require('../../../src/helpers/constants');
 
 describe('XML helper', () => {
   let getFixedNbStub = null;

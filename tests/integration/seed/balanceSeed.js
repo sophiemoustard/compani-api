@@ -1,13 +1,13 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const uuidv4 = require('uuid/v4');
-const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY } = require('../../../helpers/constants');
-const Customer = require('../../../models/Customer');
-const Company = require('../../../models/Company');
-const Service = require('../../../models/Service');
-const Bill = require('../../../models/Bill');
-const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
-const User = require('../../../models/User');
+const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
+const Customer = require('../../../src/models/Customer');
+const Company = require('../../../src/models/Company');
+const Service = require('../../../src/models/Service');
+const Bill = require('../../../src/models/Bill');
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const User = require('../../../src/models/User');
 const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const balanceThirdPartyPayer = {

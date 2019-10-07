@@ -13,6 +13,7 @@ const {
   PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
+const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
@@ -27,11 +28,11 @@ exports.createEvent = async (payload, credentials) => {
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  let event = { ...payload };
+  let event = _.cloneDeep(payload);
   const isRepeatedEvent = isRepetition(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await EventsValidationHelper.hasConflicts(event)) {
     delete event.auxiliary;
-    delete event.repetition;
+    event.repetition.frequency = NEVER;
   }
 
   event = new Event(event);
@@ -135,16 +136,16 @@ exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour
   );
 };
 
-const isMiscOnlyUpdated = (event, payload) => {
+exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = {
     ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status']),
-    auxiliary: event.auxiliary.toHexString(),
     sector: event.sector.toHexString(),
   };
+  if (event.auxiliary) mainEventInfo.auxiliary = event.auxiliary.toHexString();
   if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
   const mainPayloadInfo = _.omit({ ...payload, ...(!payload.isCancelled && { isCancelled: false }) }, ['misc']);
 
-  return !event.misc || event.misc === '' || (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
+  return (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
 };
 
 /**
@@ -158,7 +159,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
   if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload);
 
-  const miscUpdatedOnly = eventPayload.misc && isMiscOnlyUpdated(event, eventPayload);
+  const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
   let unset;
   let set = eventPayload;
   if (!eventPayload.isCancelled && event.isCancelled) {
@@ -167,7 +168,6 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   }
   if (isRepetition(event) && !miscUpdatedOnly) {
     set = { ...set, 'repetition.frequency': NEVER };
-    unset = { ...unset, 'repetition.parentId': '' };
   }
 
   if (!eventPayload.auxiliary) unset = { ...unset, auxiliary: '' };
@@ -214,10 +214,13 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
     }
   }
 
-  promises.push(Event.updateMany(
-    { _id: { $in: ids } },
-    { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
-  ));
+  promises.push(
+    Event.updateMany(
+      { _id: { $in: ids } },
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
+    ),
+    Repetition.updateMany({ auxiliary: contract.user }, { $unset: { auxiliary: '' } })
+  );
 
   return Promise.all(promises);
 };

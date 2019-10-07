@@ -1,8 +1,8 @@
 const { ObjectID } = require('mongodb');
 
-const Service = require('../../../models/Service');
-const Company = require('../../../models/Company');
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../../../helpers/constants');
+const Service = require('../../../src/models/Service');
+const Company = require('../../../src/models/Company');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../../../src/helpers/constants');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 
 const company = {

@@ -1,10 +1,10 @@
 const expect = require('expect');
 const sinon = require('sinon');
 
-const ServiceHelper = require('../../../helpers/services');
-const Service = require('../../../models/Service');
-const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY, FIXED } = require('../../../helpers/constants');
-const UtilsHelper = require('../../../helpers/utils.js');
+const ServiceHelper = require('../../../src/helpers/services');
+const Service = require('../../../src/models/Service');
+const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY, FIXED } = require('../../../src/helpers/constants');
+const UtilsHelper = require('../../../src/helpers/utils.js');
 
 require('sinon-mongoose');
 

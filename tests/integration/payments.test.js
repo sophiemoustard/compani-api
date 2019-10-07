@@ -4,10 +4,10 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList, paymentUser } = require('./seed/paymentsSeed');
-const { PAYMENT, REFUND } = require('../../helpers/constants');
-const translate = require('../../helpers/translate');
-const Payment = require('../../models/Payment');
-const Drive = require('../../models/Google/Drive');
+const { PAYMENT, REFUND } = require('../../src/helpers/constants');
+const translate = require('../../src/helpers/translate');
+const Payment = require('../../src/models/Payment');
+const Drive = require('../../src/models/Google/Drive');
 const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
 
 const { language } = translate;

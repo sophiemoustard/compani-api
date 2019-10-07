@@ -11,39 +11,63 @@ describe('NODE ENV', () => {
 
 describe('ROLES ROUTES', () => {
   let token = null;
-  beforeEach(populateDB);
-  beforeEach(async () => {
-    token = await getToken('coach');
-  });
 
   describe('GET /roles', () => {
-    it('should return all roles', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/roles',
-        headers: { 'x-access-token': token },
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        token = await getToken('coach');
       });
-      expect(res.statusCode).toBe(200);
-      expect(res.result.data.roles.length).toBe(rolesList.length + authRolesList.length);
-      expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
-        name: expect.any(String),
-        rights: expect.arrayContaining([
-          expect.objectContaining({
-            permission: expect.any(String),
-            description: expect.any(String),
-            hasAccess: expect.any(Boolean),
-          }),
-        ]),
-      }));
+
+      it('should return all roles', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/roles',
+          headers: { 'x-access-token': token },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.roles.length).toBe(rolesList.length + authRolesList.length);
+        expect(res.result.data.roles[0]).toEqual(expect.objectContaining({
+          name: expect.any(String),
+          rights: expect.arrayContaining([
+            expect.objectContaining({
+              permission: expect.any(String),
+              description: expect.any(String),
+              hasAccess: expect.any(Boolean),
+            }),
+          ]),
+        }));
+      });
+
+      it('should return a 400 error if query parameter does not exist', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/roles?toto=test',
+          headers: { 'x-access-token': token },
+        });
+        expect(res.statusCode).toBe(400);
+      });
     });
 
-    it('should return a 400 error if query parameter does not exist', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/roles?toto=test',
-        headers: { 'x-access-token': token },
+    describe('Other role', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          token = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/roles',
+            headers: { 'x-access-token': token },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
       });
-      expect(res.statusCode).toBe(400);
     });
   });
 });

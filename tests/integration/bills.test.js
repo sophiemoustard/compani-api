@@ -6,9 +6,9 @@ const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
 const { populateDB, billUserList, billsList, billCustomerList } = require('./seed/billsSeed');
-const { TWO_WEEKS } = require('../../helpers/constants');
+const { TWO_WEEKS } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
-const Bill = require('../../models/Bill');
+const Bill = require('../../src/models/Bill');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -108,6 +108,7 @@ describe('BILL ROUTES - POST /bills', () => {
           birthDate: '2018-05-23T18:59:04.466Z',
         },
       },
+      endDate: '2019-05-31T23:59:59.999Z',
       customerBills: {
         bills: [
           {

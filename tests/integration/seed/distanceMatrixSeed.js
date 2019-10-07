@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const DistanceMatrix = require('../../../models/DistanceMatrix');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 
 const distanceMatrixList = [

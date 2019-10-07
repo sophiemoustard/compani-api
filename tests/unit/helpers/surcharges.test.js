@@ -2,7 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
 
-const SurchargesHelper = require('../../../helpers/surcharges');
+const SurchargesHelper = require('../../../src/helpers/surcharges');
 
 describe('getCustomSurcharge', () => {
   // Les dates sont triées, pour lire plus rapidement si il y a intersection.

@@ -2,12 +2,13 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const Event = require('../../../models/Event');
-const EventHelper = require('../../../helpers/events');
-const EventsRepetitionHelper = require('../../../helpers/eventsRepetition');
-const EventHistoriesHelper = require('../../../helpers/eventHistories');
-const EventsValidationHelper = require('../../../helpers/eventsValidation');
-const EventRepository = require('../../../repositories/EventRepository');
+const Event = require('../../../src/models/Event');
+const Repetition = require('../../../src/models/Repetition');
+const EventHelper = require('../../../src/helpers/events');
+const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
+const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
+const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
+const EventRepository = require('../../../src/repositories/EventRepository');
 const {
   INTERVENTION,
   CUSTOMER_CONTRACT,
@@ -17,9 +18,9 @@ const {
   UNAVAILABILITY,
   NEVER,
   EVERY_WEEK,
-  INVOICED_AND_NOT_PAYED,
+  INVOICED_AND_NOT_PAID,
   CUSTOMER_INITIATIVE,
-} = require('../../../helpers/constants');
+} = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -169,8 +170,7 @@ describe('updateEvent', () => {
     sinon.assert.calledWith(
       updateEvent,
       eventId,
-      { ...payload, 'repetition.frequency': NEVER },
-      { 'repetition.parentId': '' }
+      { ...payload, 'repetition.frequency': NEVER }
     );
 
     sinon.assert.notCalled(updateRepetition);
@@ -184,7 +184,7 @@ describe('updateEvent', () => {
       _id: eventId,
       repetition: { frequency: NEVER },
       isCancelled: true,
-      cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
+      cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
     const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
@@ -209,7 +209,7 @@ describe('updateEvent', () => {
       _id: eventId,
       repetition: { frequency: EVERY_WEEK },
       isCancelled: true,
-      cancel: { condition: INVOICED_AND_NOT_PAYED, reason: CUSTOMER_INITIATIVE },
+      cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
     const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
@@ -220,7 +220,7 @@ describe('updateEvent', () => {
       updateEvent,
       eventId,
       { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
-      { 'repetition.parentId': '', cancel: '' }
+      { cancel: '' }
     );
     sinon.assert.notCalled(updateRepetition);
   });
@@ -391,11 +391,11 @@ describe('populateEvents', () => {
 });
 
 describe('unassignInterventionsOnContractEnd', () => {
-  let getCustomerSubscriptions = null;
-  let getUnassignedInterventions = null;
-  let createEventHistoryOnUpdate = null;
-  let updateMany = null;
-
+  let getCustomerSubscriptions;
+  let getUnassignedInterventions;
+  let createEventHistoryOnUpdate;
+  let updateManyEvent;
+  let updateManyRepetition;
   const customerId = new ObjectID();
   const userId = new ObjectID();
   const credentials = { _id: userId };
@@ -435,13 +435,15 @@ describe('unassignInterventionsOnContractEnd', () => {
     getCustomerSubscriptions = sinon.stub(EventRepository, 'getCustomerSubscriptions');
     getUnassignedInterventions = sinon.stub(EventRepository, 'getUnassignedInterventions');
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
-    updateMany = sinon.stub(Event, 'updateMany');
+    updateManyEvent = sinon.stub(Event, 'updateMany');
+    updateManyRepetition = sinon.stub(Repetition, 'updateMany');
   });
   afterEach(() => {
     getCustomerSubscriptions.restore();
     getUnassignedInterventions.restore();
     createEventHistoryOnUpdate.restore();
-    updateMany.restore();
+    updateManyEvent.restore();
+    updateManyRepetition.restore();
   });
 
   it('should unassign future events linked to company contract', async () => {
@@ -459,10 +461,11 @@ describe('unassignInterventionsOnContractEnd', () => {
     );
     sinon.assert.calledTwice(createEventHistoryOnUpdate);
     sinon.assert.calledWith(
-      updateMany,
+      updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
+    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
   });
 
   it('should create event history for repetition', async () => {
@@ -476,10 +479,11 @@ describe('unassignInterventionsOnContractEnd', () => {
       { misc: 'toto', startDate: '2019-10-02T11:00:00.000Z', endDate: '2019-10-02T13:00:00.000Z', shouldUpdateRepetition: true }
     );
     sinon.assert.calledWith(
-      updateMany,
+      updateManyEvent,
       { _id: { $in: [interventions[1].events[0]._id] } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
+    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
   });
 
   it('should create event history for non repeated event', async () => {
@@ -493,10 +497,11 @@ describe('unassignInterventionsOnContractEnd', () => {
       { misc: undefined, startDate: '2019-10-02T10:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' }
     );
     sinon.assert.calledWith(
-      updateMany,
+      updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id] } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
+    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
   });
 
   it('should unassign future events linked to corresponding customer contract', async () => {
@@ -514,10 +519,11 @@ describe('unassignInterventionsOnContractEnd', () => {
     );
     sinon.assert.calledTwice(createEventHistoryOnUpdate);
     sinon.assert.calledWith(
-      updateMany,
+      updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '', 'repetition.parentId': '' } }
+      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
+    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
   });
 });
 
@@ -871,5 +877,131 @@ describe('deleteEvents', () => {
 
     sinon.assert.callCount(createEventHistoryOnDelete, events.length);
     sinon.assert.calledWith(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
+  });
+
+  describe('isMiscOnlyUpdated', () => {
+    it('should return true if event misc field is the only one being updated (assigned intervention)', () => {
+      const event = {
+        status: INTERVENTION,
+        sector: new ObjectID(),
+        auxiliary: new ObjectID(),
+        subscription: new ObjectID(),
+        startDate: '2019-01-21T09:30:00',
+        endDate: '2019-01-21T11:30:00',
+        isCancelled: false,
+      };
+      const updatedEventPayload = {
+        ...event,
+        sector: event.sector.toHexString(),
+        auxiliary: event.auxiliary.toHexString(),
+        subscription: event.subscription.toHexString(),
+        misc: 'Test',
+      };
+
+      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+    });
+
+    it('should return true if event misc field is the only one being updated (unassigned intervention)', () => {
+      const event = {
+        status: INTERVENTION,
+        sector: new ObjectID(),
+        subscription: new ObjectID(),
+        startDate: '2019-01-21T09:30:00',
+        endDate: '2019-01-21T11:30:00',
+        isCancelled: false,
+        misc: 'Test',
+      };
+      const updatedEventPayload = {
+        ...event,
+        sector: event.sector.toHexString(),
+        subscription: event.subscription.toHexString(),
+        misc: '',
+      };
+
+      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+    });
+
+    it('should return true if event misc field is the only one being updated (unavailability)', () => {
+      const event = {
+        status: UNAVAILABILITY,
+        sector: new ObjectID(),
+        auxiliary: new ObjectID(),
+        startDate: '2019-01-21T09:30:00',
+        endDate: '2019-01-21T11:30:00',
+        isCancelled: false,
+        misc: '',
+      };
+      const updatedEventPayload = {
+        ...event,
+        sector: event.sector.toHexString(),
+        auxiliary: event.auxiliary.toHexString(),
+        misc: 'Test',
+      };
+
+      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+    });
+
+    it('should return false if event misc field is not the only one being updated (assigned intervention)', () => {
+      const event = {
+        status: INTERVENTION,
+        sector: new ObjectID(),
+        auxiliary: new ObjectID(),
+        subscription: new ObjectID(),
+        startDate: '2019-01-21T09:30:00',
+        endDate: '2019-01-21T11:30:00',
+        isCancelled: false,
+      };
+      const updatedEventPayload = {
+        ...event,
+        sector: event.sector.toHexString(),
+        auxiliary: new ObjectID().toHexString(),
+        subscription: event.subscription.toHexString(),
+        misc: 'Test',
+      };
+
+      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+    });
+
+    it('should return false if event misc field is not the only one being updated (unassigned intervention)', () => {
+      const event = {
+        status: INTERVENTION,
+        sector: new ObjectID(),
+        subscription: new ObjectID(),
+        startDate: '2019-01-21T09:30:00',
+        endDate: '2019-01-21T11:30:00',
+        isCancelled: false,
+        misc: 'Test',
+      };
+      const updatedEventPayload = {
+        ...event,
+        sector: new ObjectID().toHexString(),
+        subscription: event.subscription.toHexString(),
+        misc: '',
+      };
+
+      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+    });
+
+    it('should return false if event misc field is not the only one being updated (unavailability)', () => {
+      const event = {
+        status: UNAVAILABILITY,
+        sector: new ObjectID(),
+        auxiliary: new ObjectID(),
+        startDate: '2019-01-21T09:30:00',
+        endDate: '2019-01-21T11:30:00',
+        isCancelled: false,
+        misc: '',
+      };
+      const updatedEventPayload = {
+        ...event,
+        startDate: '2019-01-22T09:30:00',
+        endDate: '2019-01-22T11:30:00',
+        sector: event.sector.toHexString(),
+        auxiliary: event.auxiliary.toHexString(),
+        misc: 'Test',
+      };
+
+      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+    });
   });
 });

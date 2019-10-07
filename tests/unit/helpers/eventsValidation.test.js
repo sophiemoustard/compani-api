@@ -2,19 +2,19 @@ const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
-const User = require('../../../models/User');
-const Customer = require('../../../models/Customer');
-const Contract = require('../../../models/Contract');
-const Surcharge = require('../../../models/Surcharge');
-const EventsValidationHelper = require('../../../helpers/eventsValidation');
-const EventRepository = require('../../../repositories/EventRepository');
+const User = require('../../../src/models/User');
+const Customer = require('../../../src/models/Customer');
+const Contract = require('../../../src/models/Contract');
+const Surcharge = require('../../../src/models/Surcharge');
+const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
+const EventRepository = require('../../../src/repositories/EventRepository');
 const {
   INTERVENTION,
   ABSENCE,
   INTERNAL_HOUR,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
-} = require('../../../helpers/constants');
+} = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 

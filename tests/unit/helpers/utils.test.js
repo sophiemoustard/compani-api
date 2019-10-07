@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 
-const UtilsHelper = require('../../../helpers/utils');
+const UtilsHelper = require('../../../src/helpers/utils');
 
 describe('getLastVersion', () => {
   it('should return the last version based on the date key', () => {
@@ -17,8 +17,8 @@ describe('getLastVersion', () => {
         createdAt: moment()
           .subtract(1, 'd')
           .toISOString(),
-        _id: 2
-      }
+        _id: 2,
+      },
     ];
 
     expect(UtilsHelper.getLastVersion(versions, 'startDate')).toBeDefined();
@@ -85,9 +85,9 @@ describe('getMatchingVersion', () => {
           startDate: moment()
             .add(2, 'd')
             .toISOString(),
-          _id: 2
-        }
-      ]
+          _id: 2,
+        },
+      ],
     };
 
     const result = UtilsHelper.getMatchingVersion(moment().add(1, 'd').toISOString(), obj, 'startDate');
@@ -117,15 +117,15 @@ describe('getMatchingVersion', () => {
           endDate: moment()
             .add(5, 'h')
             .toISOString(),
-          _id: 1
+          _id: 1,
         },
         {
           startDate: moment()
             .add(3, 'd')
             .toISOString(),
-          _id: 2
-        }
-      ]
+          _id: 2,
+        },
+      ],
     };
 
     expect(UtilsHelper.getMatchingVersion(moment().add(2, 'd').toISOString(), obj, 'startDate')).toBeNull();

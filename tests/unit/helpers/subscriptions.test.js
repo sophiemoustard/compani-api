@@ -1,10 +1,10 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
-const UtilsHelper = require('../../../helpers/utils');
-const SubscriptionsHelper = require('../../../helpers/subscriptions');
-const Company = require('../../../models/Company');
-const Customer = require('../../../models/Customer');
+const UtilsHelper = require('../../../src/helpers/utils');
+const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
+const Company = require('../../../src/models/Company');
+const Customer = require('../../../src/models/Customer');
 
 require('sinon-mongoose');
 

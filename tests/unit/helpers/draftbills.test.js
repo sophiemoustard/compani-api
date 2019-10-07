@@ -5,13 +5,13 @@ const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 require('sinon-mongoose');
 
-const Surcharge = require('../../../models/Surcharge');
-const ThirdPartyPayer = require('../../../models/ThirdPartyPayer');
-const FundingHistory = require('../../../models/FundingHistory');
-const DraftBillsHelper = require('../../../helpers/draftBills');
-const UtilsHelper = require('../../../helpers/utils');
-const SurchargesHelper = require('../../../helpers/surcharges');
-const EventRepository = require('../../../repositories/EventRepository');
+const Surcharge = require('../../../src/models/Surcharge');
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
+const FundingHistory = require('../../../src/models/FundingHistory');
+const DraftBillsHelper = require('../../../src/helpers/draftBills');
+const UtilsHelper = require('../../../src/helpers/utils');
+const SurchargesHelper = require('../../../src/helpers/surcharges');
+const EventRepository = require('../../../src/repositories/EventRepository');
 
 describe('populateSurcharge', () => {
   let findOne;
@@ -889,6 +889,7 @@ describe('getDraftBillsList', () => {
       {
         customerId: 'ghjk',
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
+        endDate: '2019-12-25T07:00:00',
         customerBills: {
           bills: [
             { identity: { firstname: 'Toto' }, inclTaxes: 20 },
@@ -957,6 +958,7 @@ describe('getDraftBillsList', () => {
       {
         customerId: 'ghjk',
         customer: { _id: 'ghjk', identity: { firstname: 'Toto' } },
+        endDate: '2019-12-25T07:00:00',
         customerBills: {
           bills: [
             { identity: { firstname: 'Toto' }, inclTaxes: 20 },
@@ -967,6 +969,7 @@ describe('getDraftBillsList', () => {
       },
       {
         customerId: 'asdf',
+        endDate: '2019-12-25T07:00:00',
         customer: { _id: 'asdf', identity: { firstname: 'Tata' } },
         customerBills: {
           bills: [

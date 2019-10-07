@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const PdfHelper = require('../../../helpers/pdf');
+const PdfHelper = require('../../../src/helpers/pdf');
 
 describe('formatSurchargeHourForPdf', () => {
   it('should return just the hours', () => {

@@ -2,18 +2,18 @@ const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
-const Event = require('../../../models/Event');
-const Repetition = require('../../../models/Repetition');
-const EventsRepetitionHelper = require('../../../helpers/eventsRepetition');
-const EventsValidationHelper = require('../../../helpers/eventsValidation');
-const RepetitionHelper = require('../../../helpers/repetitions');
-const EventHistoriesHelper = require('../../../helpers/eventHistories');
+const Event = require('../../../src/models/Event');
+const Repetition = require('../../../src/models/Repetition');
+const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
+const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
+const RepetitionHelper = require('../../../src/helpers/repetitions');
+const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const {
   INTERVENTION,
   ABSENCE,
   NEVER,
   EVERY_WEEK,
-} = require('../../../helpers/constants');
+} = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -52,6 +52,7 @@ describe('formatRepeatedPayload', () => {
       endDate: moment('2019-07-15').startOf('d'),
       auxiliary: auxiliaryId,
       type: 'intervention',
+      repetition: { frequency: 'every_week' },
     };
 
     hasConflicts.returns(true);
@@ -61,6 +62,7 @@ describe('formatRepeatedPayload', () => {
     expect(result.startDate).toEqual(moment('2019-07-17').startOf('d').toDate());
     expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
     expect(result.auxiliary).not.toBeDefined();
+    expect(result.repetition.frequency).toEqual('never');
   });
 
   it('should format internal hour with auxiliary', async () => {
@@ -78,6 +80,21 @@ describe('formatRepeatedPayload', () => {
 
     expect(result).toBeDefined();
     expect(result.auxiliary).toBeDefined();
+  });
+
+  it('should not called hasConflicts if event is not affected', async () => {
+    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const event = {
+      startDate: moment('2019-07-14').startOf('d'),
+      endDate: moment('2019-07-15').startOf('d'),
+      type: 'intervention',
+    };
+
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+
+    expect(result).toBeDefined();
+    expect(result.auxiliary).not.toBeDefined();
+    sinon.assert.notCalled(hasConflicts);
   });
 });
 
@@ -248,8 +265,14 @@ describe('updateRepetition', () => {
     hasConflicts.returns(false);
 
     await EventsRepetitionHelper.updateRepetition(event, payload);
-
-    sinon.assert.calledWith(findEvent, { 'repetition.parentId': 'qwertyuiop', startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') } });
+    sinon.assert.calledWith(
+      findEvent,
+      {
+        'repetition.parentId': 'qwertyuiop',
+        'repetition.frequency': { $not: { $eq: 'never' } },
+        startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+      }
+    );
     sinon.assert.calledThrice(hasConflicts);
     sinon.assert.calledThrice(findOneAndUpdateEvent);
     sinon.assert.calledWith(updateRepetitions, payload, 'qwertyuiop');

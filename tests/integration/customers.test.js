@@ -6,7 +6,6 @@ const moment = require('moment');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const cloneDeep = require('lodash/cloneDeep');
-const Drive = require('../../models/Google/Drive');
 const { generateFormData } = require('./utils');
 const GetStream = require('get-stream');
 
@@ -18,11 +17,13 @@ const {
   customerServiceList,
   customerThirdPartyPayer,
 } = require('./seed/customersSeed');
-const Customer = require('../../models/Customer');
-const ESign = require('../../models/ESign');
-const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../helpers/constants');
+const Customer = require('../../src/models/Customer');
+const ESign = require('../../src/models/ESign');
+const Drive = require('../../src/models/Google/Drive');
+const User = require('../../src/models/User');
+const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
-const FileHelper = require('../../helpers/file');
+const FileHelper = require('../../src/helpers/file');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -380,13 +381,21 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('DELETE /customers/{id}', () => {
-    it('should delete a customer', async () => {
+    it('should delete a customer without interventions', async () => {
+      const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
+
       const res = await app.inject({
         method: 'DELETE',
-        url: `/customers/${customersList[0]._id.toHexString()}`,
+        url: `/customers/${customersList[3]._id.toHexString()}`,
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
+      sinon.assert.calledWith(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
+      deleteFileStub.restore();
+      const customers = await Customer.find().lean();
+      expect(customers.length).toBe(customersList.length - 1);
+      const helper = await User.findById(userList[2]._id).lean();
+      expect(helper).toBeNull();
     });
     it('should return a 404 error if no customer found', async () => {
       const res = await app.inject({
@@ -397,7 +406,20 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
 
+    it('should return a 403 error if customer has interventions', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${customersList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
+      let deleteFileStub;
+      before(() => { deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' }); });
+      after(() => { deleteFileStub.restore(); });
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
@@ -409,7 +431,7 @@ describe('CUSTOMERS ROUTES', () => {
           const authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
-            url: `/customers/${customersList[0]._id.toHexString()}`,
+            url: `/customers/${customersList[3]._id.toHexString()}`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -820,7 +842,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     const mandateId = customersList[1].payment.mandates[0]._id.toHexString();
 
     it('should create a mandate signature request if I am its helper', async () => {
-      const helper = userList[0];
+      const helper = userList[1];
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'POST',

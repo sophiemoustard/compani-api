@@ -1,12 +1,12 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const Customer = require('../../../models/Customer');
-const Service = require('../../../models/Service');
-const CustomerHelper = require('../../../helpers/customers');
-const FundingsHelper = require('../../../helpers/fundings');
-const EventsHelper = require('../../../helpers/events');
-const SubscriptionsHelper = require('../../../helpers/subscriptions');
-const EventRepository = require('../../../repositories/EventRepository');
+const Customer = require('../../../src/models/Customer');
+const Service = require('../../../src/models/Service');
+const CustomerHelper = require('../../../src/helpers/customers');
+const FundingsHelper = require('../../../src/helpers/fundings');
+const EventsHelper = require('../../../src/helpers/events');
+const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
+const EventRepository = require('../../../src/repositories/EventRepository');
 
 require('sinon-mongoose');
 

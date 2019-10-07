@@ -1,11 +1,13 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const sinon = require('sinon');
-const FundingHistory = require('../../../models/FundingHistory');
-const Event = require('../../../models/Event');
-const CreditNoteHelper = require('../../../helpers/creditNotes');
-const UtilsHelper = require('../../../helpers/utils');
-const PdfHelper = require('../../../helpers/pdf');
+const FundingHistory = require('../../../src/models/FundingHistory');
+const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
+const CreditNote = require('../../../src/models/CreditNote');
+const Event = require('../../../src/models/Event');
+const CreditNoteHelper = require('../../../src/helpers/creditNotes');
+const UtilsHelper = require('../../../src/helpers/utils');
+const PdfHelper = require('../../../src/helpers/pdf');
 const moment = require('moment');
 
 describe('updateEventAndFundingHistory', () => {
@@ -288,5 +290,98 @@ describe('formatPDF', () => {
     expect(result.creditNote.subscription).toBeDefined();
     expect(result.creditNote.subscription.service).toBe('service');
     expect(result.creditNote.subscription.unitInclTaxes).toBe('12,00 €');
+  });
+});
+
+describe('createCreditNotes', () => {
+  let findOneAndUpdateNumber;
+  let formatCreditNote;
+  let insertManyCreditNote;
+  let updateEventAndFundingHistory;
+  beforeEach(() => {
+    findOneAndUpdateNumber = sinon.stub(CreditNoteNumber, 'findOneAndUpdate');
+    formatCreditNote = sinon.stub(CreditNoteHelper, 'formatCreditNote');
+    insertManyCreditNote = sinon.stub(CreditNote, 'insertMany');
+    updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
+  });
+  afterEach(() => {
+    findOneAndUpdateNumber.restore();
+    formatCreditNote.restore();
+    insertManyCreditNote.restore();
+    updateEventAndFundingHistory.restore();
+  });
+
+  it('should create one credit note (for customer)', async () => {
+    const payload = {
+      date: '2019-07-30T00:00:00',
+      inclTaxesCustomer: 123,
+      thirdPartyPayer: 'qwertyuiop',
+    };
+    findOneAndUpdateNumber.returns({ seq: 1, prefix: 'Toto' });
+    formatCreditNote.returns({ inclTaxesCustomer: 1234 });
+
+    await CreditNoteHelper.createCreditNotes(payload);
+    sinon.assert.calledWith(
+      formatCreditNote,
+      { date: '2019-07-30T00:00:00', inclTaxesCustomer: 123, exclTaxesTpp: 0, inclTaxesTpp: 0 },
+      'Toto',
+      1
+    );
+    sinon.assert.calledWith(insertManyCreditNote, [{ inclTaxesCustomer: 1234 }]);
+    sinon.assert.notCalled(updateEventAndFundingHistory);
+    sinon.assert.callCount(findOneAndUpdateNumber, 2);
+  });
+
+  it('should create one credit note (for tpp)', async () => {
+    const payload = {
+      date: '2019-07-30T00:00:00',
+      inclTaxesTpp: 123,
+      thirdPartyPayer: 'qwertyuiop',
+      events: [{ _id: 'asdfghjkl' }],
+    };
+    findOneAndUpdateNumber.returns({ seq: 1, prefix: 'Toto' });
+    formatCreditNote.returns({ inclTaxesTpp: 1234 });
+
+    await CreditNoteHelper.createCreditNotes(payload);
+    sinon.assert.calledWith(
+      formatCreditNote,
+      {
+        date: '2019-07-30T00:00:00',
+        events: [{ _id: 'asdfghjkl' }],
+        inclTaxesTpp: 123,
+        thirdPartyPayer: 'qwertyuiop',
+        exclTaxesCustomer: 0,
+        inclTaxesCustomer: 0,
+      },
+      'Toto',
+      1
+    );
+    sinon.assert.calledWith(insertManyCreditNote, [{ inclTaxesTpp: 1234 }]);
+    sinon.assert.calledWith(updateEventAndFundingHistory, [{ _id: 'asdfghjkl' }], false);
+    sinon.assert.callCount(findOneAndUpdateNumber, 2);
+  });
+
+  it('should create two credit notes (for customer and tpp)', async () => {
+    const payload = {
+      date: '2019-07-30T00:00:00',
+      inclTaxesTpp: 123,
+      inclTaxesCustomer: 654,
+      thirdPartyPayer: 'qwertyuiop',
+    };
+    findOneAndUpdateNumber.returns({ seq: 1, prefix: 'Toto' });
+    formatCreditNote.onCall(0).returns({ _id: '1234', inclTaxesCustomer: 32 });
+    formatCreditNote.onCall(1).returns({ _id: '0987', inclTaxesTpp: 1234 });
+
+    await CreditNoteHelper.createCreditNotes(payload);
+    sinon.assert.callCount(formatCreditNote, 2);
+    sinon.assert.calledWith(
+      insertManyCreditNote,
+      [
+        { _id: '0987', linkedCreditNote: '1234', inclTaxesTpp: 1234 },
+        { _id: '1234', linkedCreditNote: '0987', inclTaxesCustomer: 32 },
+      ]
+    );
+    sinon.assert.notCalled(updateEventAndFundingHistory);
+    sinon.assert.callCount(findOneAndUpdateNumber, 2);
   });
 });

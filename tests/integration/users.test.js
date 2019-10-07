@@ -6,15 +6,15 @@ const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const User = require('../../models/User');
-const Drive = require('../../models/Google/Drive');
+const User = require('../../src/models/User');
+const Drive = require('../../src/models/Google/Drive');
 const {
   userList,
   userPayload,
   populateDB,
 } = require('./seed/usersSeed');
 const { getToken } = require('./seed/authentificationSeed');
-const GdriveStorage = require('../../helpers/gdriveStorage');
+const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {

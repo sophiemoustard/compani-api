@@ -1,9 +1,9 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
-const Contract = require('../../../models/Contract');
-const User = require('../../../models/User');
-const Customer = require('../../../models/Customer');
-const Event = require('../../../models/Event');
+const Contract = require('../../../src/models/Contract');
+const User = require('../../../src/models/User');
+const Customer = require('../../../src/models/Customer');
+const Event = require('../../../src/models/Event');
 const { rolesList, getUser } = require('./authentificationSeed');
 const { populateDBForAuthentification } = require('./authentificationSeed');
 

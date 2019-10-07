@@ -1,13 +1,13 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const uuidv4 = require('uuid/v4');
-const CreditNote = require('../../../models/CreditNote');
-const Customer = require('../../../models/Customer');
-const Event = require('../../../models/Event');
-const User = require('../../../models/User');
-const Service = require('../../../models/Service');
-const CreditNoteNumber = require('../../../models/CreditNoteNumber');
-const { COMPANY_CONTRACT, HOURLY } = require('../../../helpers/constants');
+const CreditNote = require('../../../src/models/CreditNote');
+const Customer = require('../../../src/models/Customer');
+const Event = require('../../../src/models/Event');
+const User = require('../../../src/models/User');
+const Service = require('../../../src/models/Service');
+const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
+const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
 const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
 
 const creditNoteThirdPartyPayer = {

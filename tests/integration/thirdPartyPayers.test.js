@@ -1,7 +1,7 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const { thirdPartyPayersList, populateDB, tppCompany } = require('./seed/thirdPartyPayersSeed');
-const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
+const ThirdPartyPayer = require('../../src/models/ThirdPartyPayer');
 const app = require('../../server');
 const { getToken } = require('./seed/authentificationSeed');
 
