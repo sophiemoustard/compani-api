@@ -50,7 +50,7 @@ exports.plugin = {
               lastname: Joi.string().required(),
             }).min(1),
             contact: Joi.object().keys({
-              address: {
+              primaryAddress: {
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
@@ -87,7 +87,7 @@ exports.plugin = {
             email: Joi.string().email(),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: {
+              primaryAddress: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string().allow('', null),
                 zipCode: Joi.string().required(),

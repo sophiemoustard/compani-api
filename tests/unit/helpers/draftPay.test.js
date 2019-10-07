@@ -481,7 +481,7 @@ describe('getPaidTransportInfo', () => {
       hasFixedService: false,
       startDate: '2019-01-18T15:46:30.636Z',
       customer: {
-        contact: { address: { fullAddress: 'tamalou' } },
+        contact: { primaryAddress: { fullAddress: 'tamalou' } },
       },
     };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
@@ -498,7 +498,7 @@ describe('getPaidTransportInfo', () => {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
       customer: {
-        contact: { address: { fullAddress: 'jébobolà' } },
+        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
       },
     };
     const prevEvent = {
@@ -517,7 +517,7 @@ describe('getPaidTransportInfo', () => {
       hasFixedService: false,
       type: 'intervention',
       customer: {
-        contact: { address: { fullAddress: 'jébobolà' } },
+        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
       },
     };
     const prevEvent = {
@@ -525,7 +525,7 @@ describe('getPaidTransportInfo', () => {
       type: 'intervention',
       startDate: '2019-01-18T15:46:30.636Z',
       customer: {
-        contact: { address: { fullAddress: 'tamalou' } },
+        contact: { primaryAddress: { fullAddress: 'tamalou' } },
       },
     };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
@@ -542,7 +542,7 @@ describe('getPaidTransportInfo', () => {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
       customer: {
-        contact: { address: { fullAddress: 'jébobolà' } },
+        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
       },
     };
     const prevEvent = {
@@ -550,7 +550,7 @@ describe('getPaidTransportInfo', () => {
       type: 'intervention',
       startDate: '2019-01-18T15:46:30.636Z',
       customer: {
-        contact: { address: { fullAddress: 'tamalou' } },
+        contact: { primaryAddress: { fullAddress: 'tamalou' } },
       },
     };
     getTransportInfo.resolves({ distance: 10, duration: 40 });
@@ -569,7 +569,7 @@ describe('getPaidTransportInfo', () => {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
       customer: {
-        contact: { address: { fullAddress: 'jébobolà' } },
+        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
       },
     };
     const prevEvent = {
@@ -577,7 +577,7 @@ describe('getPaidTransportInfo', () => {
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
       customer: {
-        contact: { address: { fullAddress: 'tamalou' } },
+        contact: { primaryAddress: { fullAddress: 'tamalou' } },
       },
     };
     getTransportInfo.resolves({ distance: 10, duration: 40 });
@@ -596,7 +596,7 @@ describe('getPaidTransportInfo', () => {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
       customer: {
-        contact: { address: { fullAddress: 'jébobolà' } },
+        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
       },
     };
     const prevEvent = {
@@ -604,7 +604,7 @@ describe('getPaidTransportInfo', () => {
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
       customer: {
-        contact: { address: { fullAddress: 'tamalou' } },
+        contact: { primaryAddress: { fullAddress: 'tamalou' } },
       },
     };
     getTransportInfo.resolves({ distance: 10, duration: 60 });
@@ -623,7 +623,7 @@ describe('getPaidTransportInfo', () => {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
       customer: {
-        contact: { address: { fullAddress: 'jébobolà' } },
+        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
       },
     };
     const prevEvent = {
@@ -631,7 +631,7 @@ describe('getPaidTransportInfo', () => {
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
       customer: {
-        contact: { address: { fullAddress: 'tamalou' } },
+        contact: { primaryAddress: { fullAddress: 'tamalou' } },
       },
     };
     getTransportInfo.resolves({ distance: 10, duration: 60 });
@@ -649,7 +649,7 @@ describe('getPaidTransportInfo', () => {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
       customer: {
-        contact: { address: { fullAddress: 'jébobolà' } },
+        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
       },
     };
     const prevEvent = {
@@ -657,7 +657,7 @@ describe('getPaidTransportInfo', () => {
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
       customer: {
-        contact: { address: { fullAddress: 'tamalou' } },
+        contact: { primaryAddress: { fullAddress: 'tamalou' } },
       },
     };
     getTransportInfo.resolves({ distance: 8, duration: 60 });

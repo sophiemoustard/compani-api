@@ -41,7 +41,7 @@ describe('CUSTOMERS ROUTES', () => {
   const payload = {
     identity: { lastname: faker.name.lastName() },
     contact: {
-      address: {
+      primaryAddress: {
         street: faker.address.streetAddress(),
         zipCode: faker.address.zipCode(),
         city: faker.address.city(),
@@ -59,14 +59,15 @@ describe('CUSTOMERS ROUTES', () => {
           'x-access-token': adminToken,
         },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
         identity: { lastname: payload.identity.lastname },
         contact: {
-          address: {
-            street: payload.contact.address.street,
-            zipCode: payload.contact.address.zipCode,
-            city: payload.contact.address.city,
+          primaryAddress: {
+            street: payload.contact.primaryAddress.street,
+            zipCode: payload.contact.primaryAddress.zipCode,
+            city: payload.contact.primaryAddress.city,
           },
         },
       });
@@ -77,7 +78,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(customers).toHaveLength(customersList.length + 1);
     });
 
-    const missingParams = ['identity.lastname', 'contact.address.street', 'contact.address.zipCode', 'contact.address.city'];
+    const missingParams = ['identity.lastname', 'contact.primaryAddress.street', 'contact.primaryAddress.zipCode', 'contact.primaryAddress.city'];
     missingParams.forEach((paramPath) => {
       it(`should return a 400 error if missing '${paramPath}' parameter`, async () => {
         const res = await app.inject({

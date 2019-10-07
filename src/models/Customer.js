@@ -29,7 +29,7 @@ const CustomerSchema = mongoose.Schema({
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
-    address: {
+    primaryAddress: {
       ...addressSchemaDefinition,
       additionalAddress: String,
       location: locationSchemaDefinition,

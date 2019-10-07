@@ -338,7 +338,7 @@ exports.exportCustomers = async () => {
       lastname ? lastname.toUpperCase() : '',
       get(cus, 'identity.firstname') || '',
       birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
-      get(cus, 'contact.address.fullAddress') || '',
+      get(cus, 'contact.primaryAddress.fullAddress') || '',
       firstIntervention ? moment(firstIntervention).format('DD/MM/YYYY') : '',
       get(cus, 'followUp.environment') || '',
       get(cus, 'followUp.objectives') || '',

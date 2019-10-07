@@ -794,7 +794,7 @@ describe('formatPDF', () => {
       }],
       customer: {
         identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
-        contact: { address: { fullAddress: 'La ruche' } },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
       },
       netInclTaxes: 1074,
       date: '2019-04-30T21:59:59.999Z',
@@ -805,7 +805,7 @@ describe('formatPDF', () => {
         number: '12345',
         customer: {
           identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
-          contact: { address: { fullAddress: 'La ruche' } },
+          contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         formattedSubs: [{
           vat: '5,5',
@@ -865,7 +865,7 @@ describe('formatPDF', () => {
       }],
       customer: {
         identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
-        contact: { address: { fullAddress: 'La ruche' } },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
       },
       client: {
         name: 'tpp',
@@ -881,7 +881,7 @@ describe('formatPDF', () => {
         number: '12345',
         customer: {
           identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
-          contact: { address: { fullAddress: 'La ruche' } },
+          contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         formattedSubs: [{
           vat: '5,5',

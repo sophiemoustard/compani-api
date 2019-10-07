@@ -159,10 +159,10 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
 
   if (prevEvent && !prevEvent.hasFixedService && !event.hasFixedService) {
     const origins = prevEvent.type === INTERVENTION
-      ? get(prevEvent, 'customer.contact.address.fullAddress', null)
+      ? get(prevEvent, 'customer.contact.primaryAddress.fullAddress', null)
       : get(prevEvent, 'address.fullAddress', null);
     const destinations = event.type === INTERVENTION
-      ? get(event, 'customer.contact.address.fullAddress', null)
+      ? get(event, 'customer.contact.primaryAddress.fullAddress', null)
       : get(event, 'address.fullAddress', null);
     let transportMode = null;
     if (has(event, 'auxiliary.administrative.transportInvoice.transportType')) {

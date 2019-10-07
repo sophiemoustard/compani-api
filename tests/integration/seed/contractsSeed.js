@@ -16,7 +16,7 @@ const contractCustomer = {
     lastname: 'Bardet',
   },
   contact: {
-    address: {
+    primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
