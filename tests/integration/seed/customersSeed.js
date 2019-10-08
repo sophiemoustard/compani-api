@@ -71,7 +71,7 @@ const customersList = [
       lastname: 'Bardet',
     },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
@@ -175,7 +175,7 @@ const customersList = [
       lastname: 'Bernal',
     },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
@@ -201,7 +201,7 @@ const customersList = [
       lastname: 'Alaphilippe',
     },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
@@ -228,7 +228,7 @@ const customersList = [
     },
     driveFolder: { driveId: '1234567890' },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: 'Lyngsøvej 26, 8600 Silkeborg, Danemark',
         zipCode: '8600',
         city: 'Silkeborg',

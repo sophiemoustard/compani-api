@@ -146,7 +146,7 @@ describe('formatPDF', () => {
       }],
       customer: {
         identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
-        contact: { address: { fullAddress: 'La ruche' } },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
         subscriptions: [{ _id: subId, service: { versions: [{ name: 'Toto' }] } }],
       },
       date: '2019-04-29T22:00:00.000Z',
@@ -161,7 +161,7 @@ describe('formatPDF', () => {
         number: 1,
         customer: {
           identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
-          contact: { address: { fullAddress: 'La ruche' } },
+          contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         forTpp: false,
         date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
@@ -211,7 +211,7 @@ describe('formatPDF', () => {
       }],
       customer: {
         identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
-        contact: { address: { fullAddress: 'La ruche' } },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
         subscriptions: [{ _id: subId, service: { versions: [{ name: 'Toto' }] } }],
       },
       date: '2019-04-29T22:00:00.000Z',
@@ -227,7 +227,7 @@ describe('formatPDF', () => {
         number: 1,
         customer: {
           identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
-          contact: { address: { fullAddress: 'La ruche' } },
+          contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         forTpp: true,
         date: moment('2019-04-29T22:00:00.000Z').format('DD/MM/YYYY'),
@@ -272,7 +272,7 @@ describe('formatPDF', () => {
       },
       customer: {
         identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
-        contact: { address: { fullAddress: 'La ruche' } },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
       },
       date: '2019-04-29T22:00:00.000Z',
       exclTaxesTpp: 21,

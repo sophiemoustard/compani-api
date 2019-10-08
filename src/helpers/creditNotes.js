@@ -129,7 +129,7 @@ exports.formatPDF = (creditNote, company) => {
     number: creditNote.number,
     forTpp: !!creditNote.thirdPartyPayer,
     recipient: {
-      address: creditNote.thirdPartyPayer ? get(creditNote, 'thirdPartyPayer.address', {}) : get(creditNote, 'customer.contact.address', {}),
+      address: creditNote.thirdPartyPayer ? get(creditNote, 'thirdPartyPayer.address', {}) : get(creditNote, 'customer.contact.primaryAddress', {}),
       name: creditNote.thirdPartyPayer ? creditNote.thirdPartyPayer.name : formatCustomerName(creditNote.customer),
     },
   };

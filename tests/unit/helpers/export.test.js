@@ -423,7 +423,7 @@ describe('exportCustomers', () => {
     const customers = [{
       email: 'papi@mamie.pp',
       identity: { lastname: 'Papi', firstname: 'Grand Père', title: 'M', birthDate: '1919-12-12T00:00:00.000+00:00' },
-      contact: { address: { fullAddress: '9 rue du paradis 70015 Paris' } },
+      contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
       followUp: { misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
       firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
       payment: {

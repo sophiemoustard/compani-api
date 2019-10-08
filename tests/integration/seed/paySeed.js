@@ -110,7 +110,7 @@ const customer = {
   },
   sectors: ['1e*'],
   contact: {
-    address: {
+    primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75',
     },
