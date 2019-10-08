@@ -42,14 +42,14 @@ describe('CUSTOMERS ROUTES', () => {
     identity: { lastname: faker.name.lastName() },
     contact: {
       primaryAddress: {
-        street: faker.address.streetAddress(),
-        zipCode: faker.address.zipCode(),
-        city: faker.address.city(),
+        street: '37 rue de Ponthieu',
+        zipCode: '75008',
+        city: 'Paris',
       },
       secondaryAddress: {
-        street: faker.address.streetAddress(),
-        zipCode: faker.address.zipCode(),
-        city: faker.address.city(),
+        street: '27 rue des Renaudes',
+        zipCode: '75017',
+        city: 'Paris',
       },
     },
   };
