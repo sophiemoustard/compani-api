@@ -46,6 +46,11 @@ describe('CUSTOMERS ROUTES', () => {
         zipCode: faker.address.zipCode(),
         city: faker.address.city(),
       },
+      secondaryAddress: {
+        street: faker.address.streetAddress(),
+        zipCode: faker.address.zipCode(),
+        city: faker.address.city(),
+      },
     },
   };
 

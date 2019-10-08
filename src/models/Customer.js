@@ -34,6 +34,11 @@ const CustomerSchema = mongoose.Schema({
       additionalAddress: String,
       location: locationSchemaDefinition,
     },
+    secondaryAddress: {
+      ...addressSchemaDefinition,
+      additionalAddress: String,
+      location: locationSchemaDefinition,
+    },
     phone: String,
     accessCodes: String,
   },

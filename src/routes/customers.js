@@ -60,6 +60,16 @@ exports.plugin = {
                   coordinates: Joi.array(),
                 },
               },
+              secondaryAddress: {
+                street: Joi.string().allow('', null),
+                zipCode: Joi.string().allow('', null),
+                city: Joi.string().allow('', null),
+                fullAddress: Joi.string().allow('', null),
+                location: {
+                  type: Joi.string().allow('', null),
+                  coordinates: Joi.array().allow([], null),
+                },
+              },
             }).required(),
           }),
         },
@@ -96,6 +106,16 @@ exports.plugin = {
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
+                },
+              },
+              secondaryAddress: {
+                street: Joi.string().allow('', null),
+                zipCode: Joi.string().allow('', null),
+                city: Joi.string().allow('', null),
+                fullAddress: Joi.string().allow('', null),
+                location: {
+                  type: Joi.string().allow('', null),
+                  coordinates: Joi.array().allow([], null),
                 },
               },
               accessCodes: Joi.string().allow('', null),
