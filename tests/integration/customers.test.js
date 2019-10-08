@@ -74,6 +74,11 @@ describe('CUSTOMERS ROUTES', () => {
             zipCode: payload.contact.primaryAddress.zipCode,
             city: payload.contact.primaryAddress.city,
           },
+          secondaryAddress: {
+            street: payload.contact.secondaryAddress.street,
+            zipCode: payload.contact.secondaryAddress.zipCode,
+            city: payload.contact.secondaryAddress.city,
+          },
         },
       });
       expect(res.result.data.customer.payment.mandates).toBeDefined();
