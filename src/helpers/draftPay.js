@@ -375,7 +375,12 @@ exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, distanceMat
 exports.getDraftPay = async (query) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
-  const auxiliaries = await ContractRepository.getAuxiliariesToPay(end, COMPANY_CONTRACT);
+  const contractRules = {
+    status: COMPANY_CONTRACT,
+    startDate: { $lte: end },
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
+  };
+  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, end, 'pays');
   if (auxiliaries.length === 0) return [];
 
   const [company, surcharges, distanceMatrix] = await Promise.all([
@@ -393,11 +398,12 @@ exports.getDraftPay = async (query) => {
 
   const draftPay = [];
   for (const auxiliary of auxiliaries) {
-    const auxEvents = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString()) || { absences: [], events: [] };
-
+    const auxEvents =
+      eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString())
+      || { absences: [], events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxiliary._id.toHexString());
-    const auxiliaryDraftPay = await exports.getDraftPayByAuxiliary(auxiliary, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
-    if (auxiliaryDraftPay) draftPay.push(auxiliaryDraftPay);
+    const draft = await exports.getDraftPayByAuxiliary(auxiliary, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
+    if (draft) draftPay.push(draft);
   }
 
   return draftPay;
