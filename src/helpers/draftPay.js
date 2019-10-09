@@ -145,10 +145,13 @@ exports.getTransportInfo = async (distances, origins, destinations, mode) => {
   let distanceMatrix = distances.find(dm => dm.origins === origins && dm.destinations === destinations && dm.mode === mode);
 
   if (!distanceMatrix) {
+    const query = { origins, destinations, mode };
     distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix({ origins, destinations, mode });
+    distances.push(distanceMatrix || { ...query, distance: 0, duration: 0 });
   }
 
-  return !distanceMatrix ? { distance: 0, duration: 0 }
+  return !distanceMatrix
+    ? { distance: 0, duration: 0 }
     : { duration: distanceMatrix.duration / 60, distance: distanceMatrix.distance / 1000 };
 };
 
