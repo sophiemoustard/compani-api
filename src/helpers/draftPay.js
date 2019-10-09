@@ -364,17 +364,15 @@ exports.getPreviousMonthPay = async (query, surcharges, distanceMatrix) => {
   const auxiliaries = await ContractRepository.getAuxiliariesFromContracts(contractRules);
   const auxIds = auxiliaries.map(aux => aux._id);
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxIds);
-  const absencesByAuxiliary = await EventRepository.getAbsencesToPay(start, end, auxIds);
-  const prevPayList = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });
+  const prevPayList = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') }).lean();
 
   const prevPayDiff = [];
   for (const auxiliary of auxiliaries) {
-    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === auxiliary._id.toHexString()) || { events: [] };
-    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === auxiliary._id.toHexString()) || { events: [] };
+    const auxEvents = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString());
     const auxPrevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxiliary._id.toHexString());
 
-    if (auxAbsences.events.length > 0 || auxEvents.events.length > 0 || auxPrevPay) {
-      prevPayDiff.push(await exports.computePrevPayCounterDiff(auxiliary, auxEvents.events, auxAbsences.events, auxPrevPay, query, distanceMatrix, surcharges));
+    if (auxEvents && (auxEvents.absences || auxEvents.events || auxPrevPay)) {
+      prevPayDiff.push(await exports.computePrevPayCounterDiff(auxiliary, auxEvents.events, auxEvents.absences, auxPrevPay, query, distanceMatrix, surcharges));
     }
   }
 
@@ -390,27 +388,27 @@ exports.getDraftPay = async (query) => {
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
   const auxiliaries = await ContractRepository.getAuxiliariesFromContracts(contractRules);
-  const existingPay = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') });
+  const existingPay = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') }).lean();
 
   const auxIds = differenceBy(auxiliaries.map(aux => aux._id), existingPay.map(pay => pay.auxiliary), x => x.toHexString());
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxIds);
-  const absencesByAuxiliary = await EventRepository.getAbsencesToPay(start, end, auxIds);
-  const company = await Company.findOne({}).lean();
-  const surcharges = await Surcharge.find({});
-  const distanceMatrix = await DistanceMatrix.find();
+  const [company, surcharges, distanceMatrix] = await Promise.all([
+    Company.findOne().lean(),
+    Surcharge.find().lean(),
+    DistanceMatrix.find().lean(),
+  ]);
 
   const prevMonthQuery = { startDate: moment(query.startDate).subtract(1, 'M').startOf('M'), endDate: moment(query.endDate).subtract(1, 'M').endOf('M') };
   const prevPayList = await exports.getPreviousMonthPay(prevMonthQuery, surcharges, distanceMatrix);
 
   const draftPay = [];
   for (const id of auxIds) {
-    const auxEvents = eventsByAuxiliary.find(group => group._id.toHexString() === id.toHexString()) || { events: [] };
-    const auxAbsences = absencesByAuxiliary.find(group => group._id.toHexString() === id.toHexString()) || { events: [] };
+    const auxEvents = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === id.toHexString()) || { absences: [], events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === id.toHexString());
     const auxiliary = auxiliaries.find(aux => aux._id.toHexString() === id.toHexString());
-    const auxiliaryDraftPay = await exports.getDraftPayByAuxiliary(auxiliary, auxEvents.events, auxAbsences.events, prevPay, company, query, distanceMatrix, surcharges);
+    const auxiliaryDraftPay = await exports.getDraftPayByAuxiliary(auxiliary, auxEvents.events, auxEvents.absences, prevPay, company, query, distanceMatrix, surcharges);
     if (auxiliaryDraftPay) draftPay.push(auxiliaryDraftPay);
   }
 
-  return draftPay;
+  return eventsByAuxiliary;
 };
