@@ -1,13 +1,11 @@
 const moment = require('moment');
 const get = require('lodash/get');
-const differenceBy = require('lodash/differenceBy');
 const { COMPANY_CONTRACT, WEEKS_PER_MONTH } = require('./constants');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const ContractRepository = require('../repositories/ContractRepository');
 const EventRepository = require('../repositories/EventRepository');
-const FinalPay = require('../models/FinalPay');
 const DraftPayHelper = require('./draftPay');
 
 exports.getContractMonthInfo = (contract, query) => {
