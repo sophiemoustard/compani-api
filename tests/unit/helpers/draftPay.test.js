@@ -8,7 +8,6 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const Company = require('../../../src/models/Company');
 const Surcharge = require('../../../src/models/Surcharge');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
-const Pay = require('../../../src/models/Pay');
 const ContractRepository = require('../../../src/repositories/ContractRepository');
 const EventRepository = require('../../../src/repositories/EventRepository');
 

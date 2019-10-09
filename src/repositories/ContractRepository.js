@@ -43,7 +43,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contr
   },
   {
     $lookup: {
-      from: 'pays',
+      from: payCollection,
       as: 'pay',
       let: { auxiliaryId: '$auxiliary', month: moment(end).format('MM-YYYY') },
       pipeline: [
@@ -60,7 +60,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contr
   { $match: { pay: { $size: 0 } } },
   {
     $lookup: {
-      from: payCollection,
+      from: 'pays',
       as: 'prevPay',
       let: { auxiliaryId: '$auxiliary', month: moment(end).subtract(1, 'M').format('MM-YYYY') },
       pipeline: [
