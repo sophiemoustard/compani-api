@@ -1,4 +1,3 @@
-const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const Event = require('../models/Event');
@@ -430,74 +429,9 @@ exports.getEventsToPay = async (start, end, auxiliaries) => {
     },
   ];
 
-  const aggregateAuxiliaries = [
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'auxiliary',
-        foreignField: '_id',
-        as: 'auxiliary',
-      },
-    },
-    { $unwind: { path: '$auxiliary' } },
-    {
-      $lookup: {
-        from: 'sectors',
-        localField: 'auxiliary.sector',
-        foreignField: '_id',
-        as: 'auxiliary.sector',
-      },
-    },
-    { $unwind: { path: '$auxiliary.sector' } },
-    {
-      $lookup: {
-        from: 'contracts',
-        localField: 'auxiliary.contracts',
-        foreignField: '_id',
-        as: 'auxiliary.contracts',
-      },
-    },
-    {
-      $project: {
-        auxiliary: {
-          _id: 1,
-          identity: { firstname: '$auxiliary.identity.firstname', lastname: '$auxiliary.identity.lastname' },
-          sector: '$auxiliary.sector',
-          contracts: '$auxiliary.contracts',
-          contact: '$auxiliary.contact',
-          administrative: { mutualFund: '$auxiliary.administrative.mutualFund', transportInvoice: '$auxiliary.administrative.transportInvoice' },
-        },
-        absences: 1,
-        events: 1,
-      },
-    },
-  ];
-
-  const aggregatePay = [
-    {
-      $lookup: {
-        from: 'pays',
-        as: 'pay',
-        let: { auxiliaryId: '$auxiliary._id', month: moment(start).format('MM-YYYY') },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$month', '$$month'] }],
-              },
-            },
-          },
-        ],
-      },
-    },
-    { $unwind: { path: '$pay', preserveNullAndEmptyArrays: true } },
-  ];
-
   return Event.aggregate([
     ...match,
     ...group,
-    ...aggregateAuxiliaries,
-    ...aggregatePay,
   ]);
 };
 
