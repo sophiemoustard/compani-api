@@ -65,6 +65,23 @@ exports.getAuxiliariesToPay = async (end, status) => {
       },
     },
     { $match: { pay: { $size: 0 } } },
+    {
+      $lookup: {
+        from: 'pays',
+        as: 'prevPay',
+        let: { auxiliaryId: '$auxiliary', month: moment(end).subtract(1, 'M').format('MM-YYYY') },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$month', '$$month'] }],
+              },
+            },
+          },
+        ],
+      },
+    },
+    { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
   ]);
 };
 

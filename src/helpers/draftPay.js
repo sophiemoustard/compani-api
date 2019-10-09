@@ -219,7 +219,7 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
   return 0;
 };
 
-exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => {
+exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges, query) => {
   let workedHours = 0;
   let notSurchargedAndNotExempt = 0;
   let surchargedAndNotExempt = 0;
@@ -235,6 +235,7 @@ exports.getPayFromEvents = async (events, distanceMatrix, surcharges, query) => 
         ...sortedEvents[i],
         startDate: moment(sortedEvents[i].startDate).isSameOrAfter(query.startDate) ? sortedEvents[i].startDate : query.startDate,
         endDate: moment(sortedEvents[i].endDate).isSameOrBefore(query.endDate) ? sortedEvents[i].endDate : query.endDate,
+        auxiliary,
       };
 
       let service = null;
@@ -313,7 +314,7 @@ exports.getDraftPayByAuxiliary = async (auxiliary, events, prevPay, company, que
   if (!contract) return;
 
   const contractInfo = exports.getContractMonthInfo(contract, query);
-  const hours = await exports.getPayFromEvents(events.events, distanceMatrix, surcharges, query);
+  const hours = await exports.getPayFromEvents(events.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(events.absences, contract, query);
   const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
 
@@ -340,7 +341,7 @@ exports.computePrevPayCounterDiff = async (auxiliary, events, prevPay, query, di
   const contract = auxiliary.contracts.find(cont => cont.status === COMPANY_CONTRACT && (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
   const contractInfo = exports.getContractMonthInfo(contract, query);
 
-  const hours = await exports.getPayFromEvents(events.events, distanceMatrix, surcharges, query);
+  const hours = await exports.getPayFromEvents(events.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(events.absences, contract, query);
 
   const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
@@ -352,21 +353,18 @@ exports.computePrevPayCounterDiff = async (auxiliary, events, prevPay, query, di
   };
 };
 
-exports.getPreviousMonthPay = async (query, surcharges, distanceMatrix) => {
+exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, distanceMatrix) => {
   const start = moment(query.startDate).toDate();
   const end = moment(query.endDate).toDate();
-  const auxiliaries = await ContractRepository.getAuxiliariesToPay(end, COMPANY_CONTRACT);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id));
-  const prevPayList = await Pay.find({ month: moment(query.startDate).format('MM-YYYY') }).lean();
 
   const prevPayDiff = [];
   for (const auxiliary of auxiliaries) {
     const auxEvents = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString());
-    const auxPrevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxiliary._id.toHexString());
 
-    if (auxEvents && (auxEvents.absences || auxEvents.events || auxPrevPay)) {
-      prevPayDiff.push(await exports.computePrevPayCounterDiff(auxiliary, auxEvents, auxPrevPay, query, distanceMatrix, surcharges));
+    if (auxEvents && (auxEvents.absences || auxEvents.events || auxiliary.prevPay)) {
+      prevPayDiff.push(await exports.computePrevPayCounterDiff(auxiliary, auxEvents, auxiliary.prevPay, query, distanceMatrix, surcharges));
     }
   }
 
@@ -391,7 +389,7 @@ exports.getDraftPay = async (query) => {
     startDate: moment(query.startDate).subtract(1, 'M').startOf('M'),
     endDate: moment(query.endDate).subtract(1, 'M').endOf('M'),
   };
-  const prevPayList = await exports.getPreviousMonthPay(prevMonthQuery, surcharges, distanceMatrix);
+  const prevPayList = await exports.getPreviousMonthPay(auxiliaries, prevMonthQuery, surcharges, distanceMatrix);
 
   const draftPay = [];
   for (const auxiliary of auxiliaries) {
