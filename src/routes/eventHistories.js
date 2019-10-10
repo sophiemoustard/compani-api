@@ -15,8 +15,7 @@ exports.plugin = {
           query: {
             auxiliaries: [Joi.array().items(Joi.string()), Joi.string()],
             sectors: [Joi.array().items(Joi.string()), Joi.string()],
-            lastId: Joi.objectId(),
-            pageSize: Joi.number(),
+            createdAt: Joi.date(),
           },
         },
       },

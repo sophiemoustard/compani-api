@@ -1,16 +1,15 @@
 const Boom = require('boom');
-// const { getEventHistoryList } = require('../repositories/EventHistoryRepository');
 const translate = require('../helpers/translate');
-const EventHistory = require('../models/EventHistory');
+const EventHistoryRepository = require('../repositories/EventHistoryRepository');
 const { getListQuery } = require('../helpers/eventHistories');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const { lastId, pageSize } = req.query;
+    const { createdAt } = req.query;
     const query = getListQuery(req.query);
-    const eventHistories = await EventHistory.paginate(query, pageSize, lastId);
+    const eventHistories = await EventHistoryRepository.paginate(query, createdAt);
 
     return {
       message: translate[language].eventHistoriesFound,
