@@ -1,9 +1,10 @@
 const moment = require('moment');
 const Contract = require('../models/Contract');
+const { ObjectID } = require('mongodb');
 const { COMPANY_CONTRACT } = require('../helpers/constants');
 
 exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contract.aggregate([
-  { $match: { ...contractRules } },
+  { $match: { ...contractRules, user: new ObjectID('5947d1aeff6c27ce07405656') } },
   { $group: { _id: '$user', contracts: { $push: '$$ROOT' } } },
   {
     $lookup: {

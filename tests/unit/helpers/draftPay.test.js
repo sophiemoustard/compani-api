@@ -1145,17 +1145,20 @@ describe('getDraftPayByAuxiliary', () => {
   let getPayFromAbsences;
   let getContractMonthInfo;
   let getTransportRefund;
+  let computeHoursWithPrevPayDiff;
   beforeEach(() => {
     getPayFromEvents = sinon.stub(DraftPayHelper, 'getPayFromEvents');
     getPayFromAbsences = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
     getContractMonthInfo = sinon.stub(DraftPayHelper, 'getContractMonthInfo');
     getTransportRefund = sinon.stub(DraftPayHelper, 'getTransportRefund');
+    computeHoursWithPrevPayDiff = sinon.stub(DraftPayHelper, 'computeHoursWithPrevPayDiff');
   });
   afterEach(() => {
     getPayFromEvents.restore();
     getPayFromAbsences.restore();
     getContractMonthInfo.restore();
     getTransportRefund.restore();
+    computeHoursWithPrevPayDiff.restore();
   });
 
   it('should not return draft pay as auxiliary does not have company contracts', async () => {
@@ -1209,12 +1212,19 @@ describe('getDraftPayByAuxiliary', () => {
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const prevPay = { hoursCounter: 10, diff: 2 };
+    const prevPay = { hoursCounter: 10, diff: { hoursBalance: 2 } };
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
     getPayFromAbsences.returns(16);
     getContractMonthInfo.returns({ contractHours: 150, workedDaysRatio: 0.8 });
     getTransportRefund.returns(26.54);
+    computeHoursWithPrevPayDiff.returns({
+      workedHours: 138,
+      notSurchargedAndNotExempt: 15,
+      surchargedAndNotExempt: 9,
+      hoursBalance: 6,
+      hoursCounter: 16,
+    });
 
     const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, prevPay, company, query, [], []);
     expect(result).toBeDefined();
@@ -1228,7 +1238,7 @@ describe('getDraftPayByAuxiliary', () => {
       workedHours: 138,
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
-      hoursBalance: 4,
+      hoursBalance: 6,
       hoursCounter: 16,
       overtimeHours: 0,
       additionalHours: 0,
@@ -1237,6 +1247,12 @@ describe('getDraftPayByAuxiliary', () => {
       otherFees: 29.6,
       bonus: 0,
     });
+    sinon.assert.calledWith(
+      computeHoursWithPrevPayDiff,
+      { workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 },
+      4,
+      prevPay
+    );
   });
 });
 
@@ -1244,14 +1260,14 @@ describe('getPreviousMonthPay', () => {
   const auxiliaryId = new ObjectID();
   const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
   let getEventsToPay;
-  let computePrevPayCounterDiff;
+  let computePrevPayDiff;
   beforeEach(() => {
     getEventsToPay = sinon.stub(EventRepository, 'getEventsToPay');
-    computePrevPayCounterDiff = sinon.stub(DraftPayHelper, 'computePrevPayCounterDiff');
+    computePrevPayDiff = sinon.stub(DraftPayHelper, 'computePrevPayDiff');
   });
   afterEach(() => {
     getEventsToPay.restore();
-    computePrevPayCounterDiff.restore();
+    computePrevPayDiff.restore();
   });
 
   it('should return an empty array if no auxiliary', async () => {
@@ -1271,7 +1287,7 @@ describe('getPreviousMonthPay', () => {
     const result = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, [], []);
 
     expect(result).toBeDefined();
-    sinon.assert.notCalled(computePrevPayCounterDiff);
+    sinon.assert.notCalled(computePrevPayDiff);
   });
 
   it('should compute prev pay counter difference', async () => {
@@ -1292,7 +1308,7 @@ describe('getPreviousMonthPay', () => {
 
     expect(result).toBeDefined();
     sinon.assert.calledWith(
-      computePrevPayCounterDiff,
+      computePrevPayDiff,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
       payData,
       undefined,
