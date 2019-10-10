@@ -105,7 +105,7 @@ describe('exportPayHistory', () => {
   const pays = [
     {
       auxiliary: {
-        identity: { firstname: 'Tata', lastname: 'Toto', title: 'Mme' },
+        identity: { firstname: 'Tata', lastname: 'Toto', title: 'mrs' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-05-04T00:00:00' }],
       },
@@ -156,7 +156,7 @@ describe('exportPayHistory', () => {
   const finalPays = [
     {
       auxiliary: {
-        identity: { firstname: 'Tata', lastname: 'Toto', title: 'M' },
+        identity: { firstname: 'Tata', lastname: 'Toto', title: 'mr' },
         sector: { name: 'Test' },
         contracts: [{ startDate: '2019-03-04T00:00:00' }],
       },
@@ -268,7 +268,7 @@ describe('exportPayHistory', () => {
       header,
       ['Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
       ['', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
-      ['M', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
+      ['M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
       ['', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
     ]);
     sinon.assert.callCount(formatFloatForExportStub, 53);

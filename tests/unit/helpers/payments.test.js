@@ -58,7 +58,7 @@ describe('exportPaymentsHistory', () => {
       customer: {
         _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
         identity: {
-          title: 'Mme',
+          title: 'mrs',
           firstname: 'Mimi',
           lastname: 'Mathy',
         },
@@ -73,7 +73,7 @@ describe('exportPaymentsHistory', () => {
       customer: {
         _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
         identity: {
-          title: 'M',
+          title: 'mr',
           firstname: 'Bojack',
           lastname: 'Horseman',
         },
@@ -118,7 +118,7 @@ describe('exportPaymentsHistory', () => {
     expect(exportArray).toEqual([
       header,
       ['Paiement', 'REG-1905562', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276,02'],
-      ['Remboursement', 'REG-1905342', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Prélèvement', '1002,40'],
+      ['Remboursement', 'REG-1905342', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M.', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Prélèvement', '1002,40'],
     ]);
   });
 });

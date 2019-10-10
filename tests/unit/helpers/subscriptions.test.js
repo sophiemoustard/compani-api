@@ -197,7 +197,7 @@ describe('exportSubscriptions', () => {
   it('should return subscriptions info', async () => {
     const customers = [
       {
-        identity: { lastname: 'Autonomie', title: 'M' },
+        identity: { lastname: 'Autonomie', title: 'mr' },
         subscriptions: [{
           service: { versions: [{ name: 'Service' }] },
           versions: [{ unitTTCRate: 12, estimatedWeeklyVolume: 4, sundays: 2, evenings: 9 }],
@@ -216,6 +216,6 @@ describe('exportSubscriptions', () => {
     sinon.assert.calledTwice(formatFloatForExport);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
+    expect(result[1]).toMatchObject(['M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
   });
 });

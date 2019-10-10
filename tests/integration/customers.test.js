@@ -1,6 +1,5 @@
 const path = require('path');
 const expect = require('expect');
-const faker = require('faker');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const sinon = require('sinon');
@@ -39,7 +38,7 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   const payload = {
-    identity: { lastname: faker.name.lastName() },
+    identity: { title: 'mr', lastname: 'leboncoin' },
     contact: {
       primaryAddress: {
         street: '37 rue de Ponthieu',
@@ -282,8 +281,8 @@ describe('CUSTOMERS ROUTES', () => {
   describe('PUT /customers/{id}', () => {
     const updatePayload = {
       identity: {
-        firstname: faker.name.firstName(),
-        lastname: faker.name.lastName(),
+        firstname: 'seloger',
+        lastname: 'pap',
       },
     };
 
@@ -716,9 +715,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     it('should update customer mandate', async () => {
       const customer = customersList[1];
       const mandate = customer.payment.mandates[0];
-      const payload = {
-        signedAt: faker.date.past(1),
-      };
+      const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
@@ -735,9 +732,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     it('should return 404 if customer not found', async () => {
       const invalidId = new ObjectID().toHexString();
       const mandate = customersList[1].payment.mandates[0];
-      const payload = {
-        signedAt: faker.date.past(1),
-      };
+      const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
@@ -752,9 +747,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     it('should return 404 if mandate not found', async () => {
       const invalidId = new ObjectID().toHexString();
       const customer = customersList[1];
-      const payload = {
-        signedAt: faker.date.past(1),
-      };
+      const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
@@ -828,7 +821,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         email: 'test@test.com',
       },
       fields: {
-        title: 'Mme',
+        title: 'mrs',
         firstname: 'Test',
         lastname: 'Test',
         address: '15 rue du test',
@@ -1103,9 +1096,9 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
           estimatedWeeklyVolume: 10,
         }],
         helper: {
-          firstname: faker.name.firstName(),
-          lastname: faker.name.lastName(),
-          title: 'Mme',
+          firstname: 'Emmanuel',
+          lastname: 'Magellan',
+          title: 'mrs',
         },
       };
 
@@ -1134,9 +1127,9 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
         payload: {
           helper: {
-            firstname: faker.name.firstName(),
-            lastname: faker.name.lastName(),
-            title: 'Mme',
+            firstname: 'Emmanuel',
+            lastname: 'Magellan',
+            title: 'mrs',
           },
         },
         headers: { 'x-access-token': helperToken },
@@ -1178,9 +1171,9 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
           estimatedWeeklyVolume: 10,
         }],
         helper: {
-          firstname: faker.name.firstName(),
-          lastname: faker.name.lastName(),
-          title: 'Mme',
+          firstname: 'Emmanuel',
+          lastname: 'Magellan',
+          title: 'mrs',
         },
       };
 
@@ -1208,7 +1201,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         helper: {
           firstname: 'Lana',
           lastname: 'Wachowski',
-          title: 'Mme',
+          title: 'mrs',
         },
       };
       const roles = [

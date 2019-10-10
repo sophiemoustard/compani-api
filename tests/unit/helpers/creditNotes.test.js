@@ -145,7 +145,7 @@ describe('formatPDF', () => {
         bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
       }],
       customer: {
-        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
         contact: { primaryAddress: { fullAddress: 'La ruche' } },
         subscriptions: [{ _id: subId, service: { versions: [{ name: 'Toto' }] } }],
       },
@@ -160,7 +160,7 @@ describe('formatPDF', () => {
       creditNote: {
         number: 1,
         customer: {
-          identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+          identity: { firstname: 'Toto', lastname: 'Bobo', title: 'M.' },
           contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         forTpp: false,
@@ -177,7 +177,7 @@ describe('formatPDF', () => {
           surcharges: [{ percentage: 30, startHour: '19h' }],
         }],
         recipient: {
-          name: 'Lolo Toto Bobo',
+          name: 'M. Toto Bobo',
           address: { fullAddress: 'La ruche' },
         },
         company: {},
@@ -210,7 +210,7 @@ describe('formatPDF', () => {
         bills: { inclTaxesTpp: 234, exclTaxesTpp: 221 },
       }],
       customer: {
-        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mrs' },
         contact: { primaryAddress: { fullAddress: 'La ruche' } },
         subscriptions: [{ _id: subId, service: { versions: [{ name: 'Toto' }] } }],
       },
@@ -226,7 +226,7 @@ describe('formatPDF', () => {
       creditNote: {
         number: 1,
         customer: {
-          identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+          identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Mme' },
           contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         forTpp: true,
@@ -271,7 +271,7 @@ describe('formatPDF', () => {
         unitInclTaxes: 12,
       },
       customer: {
-        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'Lolo' },
+        identity: { firstname: 'Toto', lastname: 'Bobo', title: 'couple' },
         contact: { primaryAddress: { fullAddress: 'La ruche' } },
       },
       date: '2019-04-29T22:00:00.000Z',

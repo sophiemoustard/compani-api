@@ -102,7 +102,7 @@ describe('BILL ROUTES - POST /bills', () => {
       customer: {
         _id: '5ccbfcf3d6eaa746a3c34cdf',
         identity: {
-          title: 'a a Directeur',
+          title: 'mr',
           firstname: 'Marie',
           lastname: 'Renard',
           birthDate: '2018-05-23T18:59:04.466Z',
@@ -148,7 +148,7 @@ describe('BILL ROUTES - POST /bills', () => {
               createdAt: '2019-05-03T08:33:56.144Z',
             },
             identity: {
-              title: 'a a Directeur',
+              title: 'mr',
               firstname: 'Marie',
               lastname: 'Renard',
               birthDate: '2018-05-23T18:59:04.466Z',
@@ -217,7 +217,7 @@ describe('BILL ROUTES - POST /bills', () => {
                 createdAt: '2019-05-03T08:33:56.144Z',
               },
               identity: {
-                title: 'a a Directeur',
+                title: 'mr',
                 firstname: 'Marie',
                 lastname: 'Renard',
                 birthDate: '2018-05-23T18:59:04.466Z',
