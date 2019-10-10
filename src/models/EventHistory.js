@@ -62,5 +62,4 @@ const EventHistorySchema = mongoose.Schema({
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
 }, { timestamps: true });
 
-
 module.exports = mongoose.model('EventHistory', EventHistorySchema);
