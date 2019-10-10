@@ -33,6 +33,7 @@ const {
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 const { getCustomer, authorizeCustomerDelete } = require('./preHandlers/customers');
+const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -45,7 +46,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             identity: Joi.object().keys({
-              title: Joi.string(),
+              title: Joi.string().valid(CIVILITY_OPTIONS).required(),
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string().required(),
             }).min(1),
@@ -88,7 +89,7 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             identity: Joi.object().keys({
-              title: Joi.string(),
+              title: Joi.string().valid(CIVILITY_OPTIONS),
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               birthDate: Joi.date(),
