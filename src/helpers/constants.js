@@ -46,6 +46,13 @@ module.exports = {
   MISTER: 'mr',
   MRS: 'mrs',
   COUPLE: 'couple',
+  get CIVILITY_LIST() {
+    return {
+      [this.MISTER]: 'M.',
+      [this.MRS]: 'Mme',
+      [this.COUPLE]: 'Mme et M.',
+    };
+  },
   // CUSTOMER FUNDINGS
   MONTHLY: 'monthly',
   ONCE: 'once',

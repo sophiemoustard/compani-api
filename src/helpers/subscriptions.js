@@ -2,6 +2,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const Customer = require('../models/Customer');
 const UtilsHelper = require('../helpers/utils');
+const { CIVILITY_LIST } = require('./constants');
 
 exports.populateServices = (service) => {
   const currentVersion = [...service.versions]
@@ -70,7 +71,7 @@ exports.exportSubscriptions = async () => {
       const subInfo = [];
       if (cus.identity) {
         subInfo.push(
-          _.get(cus, 'identity.title', ''),
+          CIVILITY_LIST[_.get(cus, 'identity.title')] || '',
           _.get(cus, 'identity.lastname', '').toUpperCase(),
           _.get(cus, 'identity.firstname', '')
         );

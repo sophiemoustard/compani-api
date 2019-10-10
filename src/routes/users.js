@@ -8,7 +8,6 @@ const {
   create,
   list,
   activeList,
-  activeListForCustomer,
   show,
   update,
   remove,
@@ -23,7 +22,7 @@ const {
   uploadImage,
   createDriveFolder,
 } = require('../controllers/userController');
-
+const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -79,7 +78,7 @@ exports.plugin = {
             identity: Joi.object().keys({
               firstname: Joi.string(),
               lastname: Joi.string(),
-              title: Joi.string(),
+              title: Joi.string().valid(CIVILITY_OPTIONS),
             }),
             contact: Joi.object().keys({
               address: {
