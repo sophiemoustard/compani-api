@@ -145,7 +145,7 @@ exports.getTransportInfo = async (distances, origins, destinations, mode) => {
 
   if (!distanceMatrix) {
     const query = { origins, destinations, mode };
-    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix({ origins, destinations, mode });
+    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query);
     distances.push(distanceMatrix || { ...query, distance: 0, duration: 0 });
   }
 

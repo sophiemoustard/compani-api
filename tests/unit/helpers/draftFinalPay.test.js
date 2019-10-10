@@ -192,7 +192,6 @@ describe('getDraftPay', () => {
     getAuxiliariesToPay.returns([]);
     const result = await DraftFinalPayHelper.getDraftFinalPay([], [], query);
 
-    companyMock.verify();
     expect(result).toBeDefined();
     expect(result).toEqual([]);
   });
@@ -232,6 +231,8 @@ describe('getDraftPay', () => {
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
     companyMock.verify();
+    surchargeMock.verify();
+    distanceMatrixMock.verify();
     sinon.assert.calledWith(
       getDraftFinalPayByAuxiliary,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },

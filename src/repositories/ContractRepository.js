@@ -4,7 +4,7 @@ const { COMPANY_CONTRACT } = require('../helpers/constants');
 
 exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contract.aggregate([
   { $match: { ...contractRules } },
-  { $group: { _id: '$user' } },
+  { $group: { _id: '$user', contracts: { $push: '$$ROOT' } } },
   {
     $lookup: {
       from: 'users',
@@ -24,19 +24,11 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contr
   },
   { $unwind: { path: '$auxiliary.sector' } },
   {
-    $lookup: {
-      from: 'contracts',
-      localField: 'auxiliary.contracts',
-      foreignField: '_id',
-      as: 'auxiliary.contracts',
-    },
-  },
-  {
     $project: {
       _id: 1,
       identity: { firstname: '$auxiliary.identity.firstname', lastname: '$auxiliary.identity.lastname' },
       sector: '$auxiliary.sector',
-      contracts: '$auxiliary.contracts',
+      contracts: '$contracts',
       contact: '$auxiliary.contact',
       administrative: { mutualFund: '$auxiliary.administrative.mutualFund', transportInvoice: '$auxiliary.administrative.transportInvoice' },
     },

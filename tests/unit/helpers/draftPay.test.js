@@ -1375,6 +1375,8 @@ describe('getDraftPay', () => {
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
     companyMock.verify();
+    surchargeMock.verify();
+    distanceMatrixMock.verify();
     sinon.assert.calledWith(
       getDraftPayByAuxiliary,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
