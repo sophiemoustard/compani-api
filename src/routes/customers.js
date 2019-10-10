@@ -87,7 +87,6 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            _id: Joi.objectId(),
             identity: Joi.object().keys({
               title: Joi.string(),
               firstname: Joi.string().allow('', null),
