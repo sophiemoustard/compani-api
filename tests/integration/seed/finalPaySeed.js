@@ -76,7 +76,7 @@ const event = {
 const customer = {
   _id: customerId,
   identity: {
-    title: 'M',
+    title: 'mr',
     firstname: 'Toto',
     lastname: 'Tata',
   },

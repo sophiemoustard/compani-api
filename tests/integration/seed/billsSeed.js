@@ -52,7 +52,7 @@ const billCustomerList = [
     _id: new ObjectID(),
     email: 'tito@ty.com',
     identity: {
-      title: 'M',
+      title: 'mr',
       firstname: 'Egan',
       lastname: 'Bernal',
     },
@@ -90,7 +90,7 @@ const billCustomerList = [
     _id: new ObjectID(),
     email: 'fake@test.com',
     identity: {
-      title: 'M',
+      title: 'mr',
       firstname: 'Romain',
       lastname: 'Bardet',
     },

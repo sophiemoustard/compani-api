@@ -5,7 +5,7 @@ const pick = require('lodash/pick');
 const Pay = require('../models/Pay');
 const FinalPay = require('../models/FinalPay');
 const utils = require('./utils');
-const { SURCHARGES, END_CONTRACT_REASONS } = require('./constants');
+const { SURCHARGES, END_CONTRACT_REASONS, CIVILITY_LIST } = require('./constants');
 
 exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
   if (!surchargedDetails) return '';
@@ -84,7 +84,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
   for (const pay of paysAndFinalPay) {
     const hiringDate = getHiringDate(pay.auxiliary.contracts);
     const cells = [
-      get(pay, 'auxiliary.identity.title') || '',
+      CIVILITY_LIST[get(pay, 'auxiliary.identity.title')] || '',
       get(pay, 'auxiliary.identity.firstname') || '',
       get(pay, 'auxiliary.identity.lastname').toUpperCase() || '',
       get(pay.auxiliary, 'sector.name') || '',

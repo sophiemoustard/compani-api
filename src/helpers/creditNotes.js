@@ -6,7 +6,7 @@ const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
-const { HOURLY } = require('./constants');
+const { HOURLY, CIVILITY_LIST } = require('./constants');
 
 exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
   const promises = [];
@@ -106,8 +106,8 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
 };
 
 const formatCustomerName = customer => (customer.identity.firstname
-  ? `${customer.identity.title} ${customer.identity.firstname} ${customer.identity.lastname}`
-  : `${customer.identity.title} ${customer.identity.lastname}`);
+  ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
+  : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
 
 const formatEventForPdf = event => ({
   identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
@@ -153,7 +153,10 @@ exports.formatPDF = (creditNote, company) => {
 
   return {
     creditNote: {
-      customer: { identity: creditNote.customer.identity, contact: creditNote.customer.contact },
+      customer: {
+        identity: { ...creditNote.customer.identity, title: CIVILITY_LIST[get(creditNote, 'customer.identity.title')] },
+        contact: creditNote.customer.contact,
+      },
       exclTaxes: creditNote.exclTaxesTpp ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp) : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
       inclTaxes: creditNote.inclTaxesTpp ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp) : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,

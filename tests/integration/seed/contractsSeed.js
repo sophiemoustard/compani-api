@@ -11,7 +11,7 @@ const contractCustomer = {
   _id: new ObjectID(),
   email: 'fake@test.com',
   identity: {
-    title: 'M',
+    title: 'mr',
     firstname: 'Romain',
     lastname: 'Bardet',
   },

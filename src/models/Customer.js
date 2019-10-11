@@ -13,7 +13,7 @@ const User = require('./User');
 const Drive = require('./Google/Drive');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
-const identitySchemaDefinition = require('./schemaDefinitions/identity');
+const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
 

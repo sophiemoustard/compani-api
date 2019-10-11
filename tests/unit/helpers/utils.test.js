@@ -191,19 +191,19 @@ describe('formatPrice', () => {
 
 describe('getFullTitleFromIdentity', () => {
   const identityBase = {
-    title: 'M',
+    title: 'mr',
     firstname: 'Bojack',
     lastname: 'Horseman',
   };
 
   it('should return the title, the firstname and the name', () => {
     const result = UtilsHelper.getFullTitleFromIdentity(identityBase);
-    expect(result).toBe('M Bojack HORSEMAN');
+    expect(result).toBe('M. Bojack HORSEMAN');
   });
 
   it('should return the title and the lastname', () => {
     const result = UtilsHelper.getFullTitleFromIdentity(omit(identityBase, 'firstname'));
-    expect(result).toBe('M HORSEMAN');
+    expect(result).toBe('M. HORSEMAN');
   });
 
   it('should return the firstname and the name', () => {

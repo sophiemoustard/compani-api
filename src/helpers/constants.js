@@ -42,6 +42,17 @@ module.exports = {
   // COMPANY THIRD PARTY PAYERS
   BILLING_INDIRECT: 'indirect',
   BILLING_DIRECT: 'direct',
+  // CUSTOMER
+  MISTER: 'mr',
+  MRS: 'mrs',
+  COUPLE: 'couple',
+  get CIVILITY_LIST() {
+    return {
+      [this.MISTER]: 'M.',
+      [this.MRS]: 'Mme',
+      [this.COUPLE]: 'Mme et M.',
+    };
+  },
   // CUSTOMER FUNDINGS
   MONTHLY: 'monthly',
   ONCE: 'once',

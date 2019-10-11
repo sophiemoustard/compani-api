@@ -43,7 +43,7 @@ describe('exportFundings', () => {
 
   it('should return customer info', async () => {
     const customers = [
-      { identity: { lastname: 'Autonomie', title: 'M' } },
+      { identity: { lastname: 'Autonomie', title: 'mr' } },
     ];
 
     getCustomerFundings.returns(customers);
@@ -52,7 +52,7 @@ describe('exportFundings', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['M', 'AUTONOMIE', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+    expect(result[1]).toMatchObject(['M.', 'AUTONOMIE', '', '', '', '', '', '', '', '', '', '', '', '', '']);
   });
 
   it('should return funding third party payer', async () => {

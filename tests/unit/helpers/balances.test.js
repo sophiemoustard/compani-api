@@ -19,7 +19,7 @@ describe('canBeDirectDebited', () => {
     customer: {
       _id: '5c75019d4448ad001428dbed',
       identity: {
-        title: 'M.',
+        title: 'mr',
         lastname: 'Boetie',
         firstname: 'Jean-Marc',
         birthDate: '1931-02-02T00:00:00.000Z',

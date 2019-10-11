@@ -32,7 +32,7 @@ const creditNoteCustomer = {
   _id: new ObjectID(),
   email: 'tito@ty.com',
   identity: {
-    title: 'M',
+    title: 'mr',
     firstname: 'Egan',
     lastname: 'Bernal',
   },
