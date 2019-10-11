@@ -28,6 +28,7 @@ const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource
 const { CONTRACT_STATUS } = require('./Contract');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
+const locationSchemaDefinition = require('./schemaDefinitions/location');
 
 const EVENT_TYPES = [ABSENCE, INTERNAL_HOUR, INTERVENTION, UNAVAILABILITY];
 const ABSENCE_NATURES = [HOURLY, DAILY];
@@ -58,7 +59,11 @@ const EventSchema = mongoose.Schema({
   },
   absence: { type: String, enum: ABSENCE_TYPES },
   absenceNature: { type: String, enum: ABSENCE_NATURES },
-  address: addressSchemaDefinition,
+  address: {
+    ...addressSchemaDefinition,
+    additionalAddress: String,
+    location: locationSchemaDefinition,
+  },
   misc: String,
   attachment: driveResourceSchemaDefinition,
   repetition: {
