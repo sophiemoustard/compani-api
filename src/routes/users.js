@@ -77,7 +77,7 @@ exports.plugin = {
               link: Joi.string(),
             }),
             identity: Joi.object().keys({
-              firstname: Joi.string(),
+              firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               title: Joi.string(),
             }),
@@ -178,7 +178,7 @@ exports.plugin = {
             }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
-              firstname: Joi.string(),
+              firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               nationality: Joi.string(),
               birthDate: Joi.date(),
