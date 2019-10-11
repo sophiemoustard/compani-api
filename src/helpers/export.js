@@ -392,7 +392,7 @@ exports.exportAuxiliaries = async () => {
     const birthDate = get(aux, 'identity.birthDate');
     const address = get(aux, 'contact.address.fullAddress');
     const birthCountry = get(aux, 'identity.birthCountry');
-    const { contracts, inactivityDate, createdAt, mobilePhone } = aux;
+    const { contracts, inactivityDate, createdAt } = aux;
 
     data.push([
       get(aux, 'local.email') || '',
@@ -407,7 +407,7 @@ exports.exportAuxiliaries = async () => {
       nationality ? nationalities[nationality] : '',
       get(aux, 'identity.socialSecurityNumber') || '',
       address || '',
-      mobilePhone || '',
+      get(aux, 'contact.phone') || '',
       contracts ? contracts.length : 0,
       inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
       createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',

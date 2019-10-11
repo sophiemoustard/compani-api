@@ -65,7 +65,6 @@ exports.plugin = {
         auth: { scope: ['users:edit'] },
         validate: {
           payload: Joi.object().keys({
-            mobilePhone: Joi.string().allow('', null),
             sector: Joi.objectId(),
             local: {
               email: Joi.string().email().required(),
@@ -81,6 +80,7 @@ exports.plugin = {
               title: Joi.string().valid(CIVILITY_OPTIONS),
             }),
             contact: Joi.object().keys({
+              phone: Joi.string().allow('', null),
               address: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string().allow('', null),
@@ -157,7 +157,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             _id: Joi.objectId(),
-            mobilePhone: Joi.string().allow('', null),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
@@ -187,6 +186,7 @@ exports.plugin = {
               socialSecurityNumber: Joi.number(),
             }),
             contact: Joi.object().keys({
+              phone: Joi.string().allow('', null),
               address: {
                 street: Joi.string().required(),
                 additionalAddress: Joi.string().allow('', null),
