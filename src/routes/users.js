@@ -66,7 +66,7 @@ exports.plugin = {
         auth: { scope: ['users:edit'] },
         validate: {
           payload: Joi.object().keys({
-            mobilePhone: Joi.string(),
+            mobilePhone: Joi.string().allow('', null),
             sector: Joi.objectId(),
             local: {
               email: Joi.string().email().required(),
@@ -158,7 +158,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             _id: Joi.objectId(),
-            mobilePhone: Joi.string(),
+            mobilePhone: Joi.string().allow('', null),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
