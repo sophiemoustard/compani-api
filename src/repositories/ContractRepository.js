@@ -1,6 +1,5 @@
 const moment = require('moment');
 const Contract = require('../models/Contract');
-const { ObjectID } = require('mongodb');
 const { COMPANY_CONTRACT } = require('../helpers/constants');
 
 exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contract.aggregate([

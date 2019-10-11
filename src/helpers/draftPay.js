@@ -346,6 +346,7 @@ exports.computeHoursWithPrevPayDiff = (hours, balance, prevPay) => {
     else computedHours[key] = hours[key];
   }
 
+
   return computedHours;
 };
 
@@ -357,10 +358,8 @@ const genericData = query => ({
   month: moment(query.startDate).format('MM-YYYY'),
 });
 
-exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
-  const { _id, identity, sector, contracts } = auxiliary;
-  const contract = getContract(contracts, query.endDate);
-  if (!contract) return;
+exports.computePay = async (auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
+  const { _id, identity, sector } = auxiliary;
 
   const contractInfo = exports.getContractMonthInfo(contract, query);
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
@@ -381,6 +380,14 @@ exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company
     transport: exports.getTransportRefund(auxiliary, company, contractInfo.workedDaysRatio, hours.paidKm),
     otherFees: (get(company, 'rhConfig.feeAmount') || 0) * contractInfo.workedDaysRatio,
   };
+};
+
+exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
+  const { contracts } = auxiliary;
+  const contract = getContract(contracts, query.endDate);
+  if (!contract) return;
+
+  return exports.computePay(auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges);
 };
 
 exports.computeDetailDiff = (hours, prevPay, detailType) => {
@@ -412,7 +419,6 @@ exports.computeDetailDiff = (hours, prevPay, detailType) => {
 exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, distanceMatrix, surcharges) => {
   const contract = auxiliary.contracts.find(cont => cont.status === COMPANY_CONTRACT && (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
   const contractInfo = exports.getContractMonthInfo(contract, query);
-
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
 
@@ -421,7 +427,11 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
   let prevPayDiff = { auxiliary: auxiliary._id };
   const keys = ['workedHours', 'notSurchargedAndNotExempt', 'surchargedAndNotExempt', 'notSurchargedAndExempt', 'surchargedAndExempt'];
   if (!prevPay) {
-    prevPayDiff = { ...prevPayDiff, diff: { ...pick(hours, [...keys, 'surchargedAndExemptDetails', 'surchargedAndNotExemptDetails']), hoursBalance }, hoursCounter: 0 };
+    prevPayDiff = {
+      ...prevPayDiff,
+      diff: { ...pick(hours, [...keys, 'surchargedAndExemptDetails', 'surchargedAndNotExemptDetails']), hoursBalance },
+      hoursCounter: hoursBalance,
+    };
   } else {
     prevPayDiff = {
       ...prevPayDiff,
@@ -441,17 +451,19 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
 };
 
 exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, distanceMatrix) => {
-  const start = moment(query.startDate).toDate();
-  const end = moment(query.endDate).toDate();
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id));
+  const prevMonthQuery = {
+    startDate: moment(query.startDate).subtract(1, 'M').startOf('M').toDate(),
+    endDate: moment(query.endDate).subtract(1, 'M').endOf('M').toDate(),
+  };
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(prevMonthQuery.startDate, prevMonthQuery.endDate, auxiliaries.map(aux => aux._id));
 
   const prevPayDiff = [];
   for (const auxiliary of auxiliaries) {
-    const auxEvents = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString());
-    if (auxEvents && (auxEvents.absences || auxEvents.events || auxiliary.prevPay)) {
-      const diff = await exports.computePrevPayDiff(auxiliary, auxEvents, auxiliary.prevPay, query, distanceMatrix, surcharges);
-      if (diff) prevPayDiff.push(diff);
-    }
+    const auxEvents =
+      eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString())
+      || { absences: [], events: [] };
+    const diff = await exports.computePrevPayDiff(auxiliary, auxEvents, auxiliary.prevPay, prevMonthQuery, distanceMatrix, surcharges);
+    if (diff) prevPayDiff.push(diff);
   }
 
   return prevPayDiff;
@@ -475,11 +487,7 @@ exports.getDraftPay = async (query) => {
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id));
-  const prevMonthQuery = {
-    startDate: moment(query.startDate).subtract(1, 'M').startOf('M'),
-    endDate: moment(query.endDate).subtract(1, 'M').endOf('M'),
-  };
-  const prevPayList = await exports.getPreviousMonthPay(auxiliaries, prevMonthQuery, surcharges, distanceMatrix);
+  const prevPayList = await exports.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix);
 
   const draftPay = [];
   for (const auxiliary of auxiliaries) {

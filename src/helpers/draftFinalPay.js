@@ -1,5 +1,4 @@
 const moment = require('moment');
-const get = require('lodash/get');
 const { COMPANY_CONTRACT, WEEKS_PER_MONTH } = require('./constants');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
@@ -29,32 +28,15 @@ exports.getContractMonthInfo = (contract, query) => {
 };
 
 exports.getDraftFinalPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
-  const { _id, identity, sector, contracts } = auxiliary;
+  const { contracts } = auxiliary;
   const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
-  const contractInfo = exports.getContractMonthInfo(contract, query);
-
-  const hours = await DraftPayHelper.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
-  const absencesHours = DraftPayHelper.getPayFromAbsences(eventsToPay.absences, contract, query);
-  const hoursBalance = (hours.workedHours - contractInfo.contractHours) + absencesHours;
+  const pay = await DraftPayHelper.computePay(auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges);
 
   return {
-    auxiliaryId: auxiliary._id,
-    auxiliary: { _id, identity, sector },
-    startDate: query.startDate,
+    ...pay,
     endDate: contract.endDate,
     endReason: contract.endReason,
     endNotificationDate: contract.endNotificationDate,
-    month: moment(query.startDate).format('MM-YYYY'),
-    contractHours: contractInfo.contractHours,
-    ...hours,
-    hoursBalance,
-    hoursCounter: prevPay ? prevPay.hoursCounter + prevPay.diff + hoursBalance : hoursBalance,
-    overtimeHours: 0,
-    additionalHours: 0,
-    mutual: !get(auxiliary, 'administrative.mutualFund.has'),
-    transport: DraftPayHelper.getTransportRefund(auxiliary, company, contractInfo.workedDaysRatio, hours.paidKm),
-    otherFees: (get(company, 'rhConfig.feeAmount') || 0) * contractInfo.workedDaysRatio,
-    bonus: 0,
     compensation: 0,
   };
 };
@@ -76,11 +58,7 @@ exports.getDraftFinalPay = async (query) => {
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id));
-  const prevMonthQuery = {
-    startDate: moment(query.startDate).subtract(1, 'M').startOf('M'),
-    endDate: moment(query.endDate).subtract(1, 'M').endOf('M'),
-  };
-  const prevPayList = await DraftPayHelper.getPreviousMonthPay(auxiliaries, prevMonthQuery, surcharges, distanceMatrix);
+  const prevPayList = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix);
 
   const draftFinalPay = [];
   for (const auxiliary of auxiliaries) {
