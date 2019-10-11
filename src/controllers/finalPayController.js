@@ -1,7 +1,7 @@
 const Boom = require('boom');
 const translate = require('../helpers/translate');
 const { getDraftFinalPay } = require('../helpers/draftFinalPay');
-const FinalPay = require('../models/FinalPay');
+const { createFinalPayList } = require('../helpers/finalPay');
 
 const { language } = translate;
 
@@ -21,16 +21,7 @@ const draftFinalPayList = async (req) => {
 
 const createList = async (req) => {
   try {
-    const finalPayList = [];
-    for (const finalPay of req.payload) {
-      finalPayList.push((new FinalPay({
-        ...finalPay,
-        ...(finalPay.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: Object.values(finalPay.surchargedAndNotExemptDetails) }),
-        ...(finalPay.surchargedAndExemptDetails && { surchargedAndExemptDetails: Object.values(finalPay.surchargedAndExemptDetails) }),
-      })));
-    }
-
-    await FinalPay.insertMany(finalPayList);
+    await createFinalPayList(req.payload);
 
     return { message: translate[language].finalPayListCreated };
   } catch (e) {
