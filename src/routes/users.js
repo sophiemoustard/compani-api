@@ -83,7 +83,6 @@ exports.plugin = {
             contact: Joi.object().keys({
               address: {
                 street: Joi.string().required(),
-                additionalAddress: Joi.string().allow('', null),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string().required(),
@@ -189,7 +188,6 @@ exports.plugin = {
             contact: Joi.object().keys({
               address: {
                 street: Joi.string().required(),
-                additionalAddress: Joi.string().allow('', null),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),
