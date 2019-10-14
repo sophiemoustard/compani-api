@@ -3,10 +3,6 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const qs = require('qs');
 const omit = require('lodash/omit');
-const GetStream = require('get-stream');
-const path = require('path');
-const fs = require('fs');
-const sinon = require('sinon');
 const {
   populateDB,
   eventsList,
@@ -20,9 +16,6 @@ const {
 const { getToken } = require('./seed/authentificationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../src/helpers/constants');
-const Drive = require('../../src/models/Google/Drive');
-const GdriveStorage = require('../../src/helpers/gdriveStorage');
-const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -606,83 +599,6 @@ describe('EVENTS ROUTES', () => {
             method: 'DELETE',
             url: `/events/${eventsList[2]._id.toHexString()}`,
             headers: { 'x-access-token': authToken },
-          });
-
-          expect(response.statusCode).toBe(role.expectedCode);
-        });
-      });
-    });
-  });
-
-  describe('POST /events/:id/gdrive/:drive_id/upload', () => {
-    const userFolderId = eventAuxiliary.administrative.driveFolder.driveId;
-    let docPayload;
-    let form;
-    let addFileStub;
-    let getFileStub;
-    beforeEach(() => {
-      docPayload = {
-        proofOfAbsence: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-        fileName: 'absence',
-        'Content-Type': 'application/pdf',
-      };
-      form = generateFormData(docPayload);
-      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({ id: 'qwerty' });
-      getFileStub = sinon.stub(Drive, 'getFileById').returns({ webViewLink: 'http://test.com/file.pdf' });
-    });
-
-    afterEach(() => {
-      addFileStub.restore();
-      getFileStub.restore();
-    });
-    describe('Admin', () => {
-      beforeEach(populateDB);
-      beforeEach(async () => {
-        authToken = await getToken('admin');
-      });
-      it('should add an absence document for an event', async () => {
-        const response = await app.inject({
-          method: 'POST',
-          url: `/events/${eventsList[1]._id}/gdrive/${userFolderId}/upload`,
-          payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(200);
-        expect(response.result.data.payload).toMatchObject({
-          attachment: {
-            driveId: 'qwerty',
-            link: 'http://test.com/file.pdf',
-          },
-        });
-        sinon.assert.calledOnce(addFileStub);
-        sinon.assert.calledWith(getFileStub, { fileId: 'qwerty' });
-      });
-    });
-
-    describe('Other roles', () => {
-      beforeEach(populateDB);
-
-      const roles = [
-        { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
-        {
-          name: 'auxiliary event',
-          expectedCode: 200,
-          customCredentials: eventAuxiliary.local,
-        },
-        { name: 'coach', expectedCode: 200 },
-      ];
-
-      roles.forEach((role) => {
-        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-          const response = await app.inject({
-            method: 'POST',
-            url: `/events/${eventsList[1]._id}/gdrive/${userFolderId}/upload`,
-            payload: await GetStream(form),
-            headers: { 'x-access-token': authToken, ...form.getHeaders() },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
