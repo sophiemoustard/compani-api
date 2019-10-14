@@ -538,7 +538,7 @@ describe('exportAuxiliaries', () => {
     const auxiliaries = [
       {
         local: { email: 'aide@sos.io' },
-        mobilePhone: '0123456789',
+        contact: { phone: '0123456789' },
         inactivityDate: '2019-02-01T09:38:18.653Z',
         createdAt: '2019-02-01T09:38:18.653Z',
       },
