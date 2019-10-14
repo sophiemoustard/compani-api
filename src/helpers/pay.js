@@ -7,6 +7,36 @@ const FinalPay = require('../models/FinalPay');
 const utils = require('./utils');
 const { SURCHARGES, END_CONTRACT_REASONS, CIVILITY_LIST } = require('./constants');
 
+const formatSurchargeDetail = (detail) => {
+  const surchargeDetail = [];
+  for (const key of Object.keys(detail)) {
+    surchargeDetail.push({ ...detail[key], planId: key });
+  }
+
+  return surchargeDetail;
+};
+
+exports.formatPay = (draftPay) => {
+  const payload = { ...draftPay };
+  if (draftPay.surchargedAndNotExemptDetails) {
+    payload.surchargedAndNotExemptDetails = formatSurchargeDetail(draftPay.surchargedAndNotExemptDetails);
+  }
+  if (draftPay.surchargedAndExemptDetails) {
+    payload.surchargedAndExemptDetails = formatSurchargeDetail(draftPay.surchargedAndExemptDetails);
+  }
+
+  return payload;
+};
+
+exports.createPayList = async (payToCreate) => {
+  const list = [];
+  for (const pay of payToCreate) {
+    list.push(new Pay(this.formatPay(pay)));
+  }
+
+  await Pay.insertMany(list);
+};
+
 exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
   if (!surchargedDetails) return '';
 

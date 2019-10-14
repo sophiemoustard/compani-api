@@ -90,21 +90,12 @@ describe('getContractMonthInfo', () => {
 });
 
 describe('getDraftFinalPayByAuxiliary', () => {
-  let getPayFromEvents;
-  let getPayFromAbsences;
-  let getContractMonthInfo;
-  let getTransportRefund;
+  let computePay;
   beforeEach(() => {
-    getPayFromEvents = sinon.stub(DraftPayHelper, 'getPayFromEvents');
-    getPayFromAbsences = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
-    getContractMonthInfo = sinon.stub(DraftFinalPayHelper, 'getContractMonthInfo');
-    getTransportRefund = sinon.stub(DraftPayHelper, 'getTransportRefund');
+    computePay = sinon.stub(DraftPayHelper, 'computePay');
   });
   afterEach(() => {
-    getPayFromEvents.restore();
-    getPayFromAbsences.restore();
-    getContractMonthInfo.restore();
-    getTransportRefund.restore();
+    computePay.restore();
   });
 
   it('should return draft pay for one auxiliary', async () => {
@@ -117,26 +108,15 @@ describe('getDraftFinalPayByAuxiliary', () => {
       ],
       administrative: { mutualFund: { has: true } },
     };
-    const events = [[{ auxiliary: '1234567890' }]];
-    const absences = [];
+    const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = { hoursCounter: 10, diff: 2 };
-
-    getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
-    getPayFromAbsences.returns(16);
-    getContractMonthInfo.returns({ contractHours: 150, workedDaysRatio: 0.8 });
-    getTransportRefund.returns(26.54);
-
-    const result = await DraftFinalPayHelper.getDraftFinalPayByAuxiliary(auxiliary, { events, absences }, prevPay, company, query, [], []);
-    expect(result).toBeDefined();
-    expect(result).toEqual({
+    const computedPay = {
       auxiliaryId: '1234567890',
       auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
       startDate: '2019-05-01T00:00:00',
       endDate: '2019-05-17T23:59:59',
-      endNotificationDate: '2019-05-12T23:59:59',
-      endReason: 'plus envie',
       month: '05-2019',
       contractHours: 150,
       workedHours: 138,
@@ -150,6 +130,16 @@ describe('getDraftFinalPayByAuxiliary', () => {
       transport: 26.54,
       otherFees: 29.6,
       bonus: 0,
+    };
+    computePay.returns(computedPay);
+
+    const result = await DraftFinalPayHelper.getDraftFinalPayByAuxiliary(auxiliary, events, prevPay, company, query, [], []);
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      ...computedPay,
+      endDate: '2019-05-17T23:59:59',
+      endNotificationDate: '2019-05-12T23:59:59',
+      endReason: 'plus envie',
       compensation: 0,
     });
   });
