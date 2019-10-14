@@ -31,12 +31,10 @@ const CustomerSchema = mongoose.Schema({
   contact: {
     primaryAddress: {
       ...addressSchemaDefinition,
-      additionalAddress: String,
       location: locationSchemaDefinition,
     },
     secondaryAddress: {
       ...addressSchemaDefinition,
-      additionalAddress: String,
       location: locationSchemaDefinition,
     },
     phone: String,

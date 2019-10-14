@@ -63,7 +63,6 @@ const UserSchema = mongoose.Schema({
   contact: {
     address: {
       ...addressSchemaDefinition,
-      additionalAddress: String,
       location: locationSchemaDefinition,
     },
     phone: String,
