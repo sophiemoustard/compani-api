@@ -116,6 +116,7 @@ module.exports = {
     customerFundingUpdated: 'Customer funding updated.',
     customerFundingsFound: 'Customer fundings found.',
     customerFundingRemoved: 'Customer funding removed.',
+    customerSecondaryAddressRemoved: 'Customer secondary address removed.',
 
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
@@ -329,6 +330,7 @@ module.exports = {
     customerFundingUpdated: 'Financement du bénéficiaire modifié.',
     customerFundingsFound: 'Financements du bénéficiaire trouvés.',
     customerFundingRemoved: 'Financement du bénéficiaire supprimé.',
+    customerSecondaryAddressRemoved: 'Addresse secondaire du bénéficiaire supprimé',
 
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',

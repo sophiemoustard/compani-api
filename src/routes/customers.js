@@ -30,6 +30,7 @@ const {
   createFunding,
   updateFunding,
   removeFunding,
+  removeSecondaryAddress,
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 const { getCustomer, authorizeCustomerDelete } = require('./preHandlers/customers');
@@ -260,6 +261,20 @@ exports.plugin = {
         },
       },
       handler: updateSubscription,
+    });
+
+    server.route({
+      method: 'PUT',
+      path: '/{_id}/removesecaddress',
+      options: {
+        auth: { scope: ['customers:administrative:edit'] },
+        validate: {
+          params: {
+            _id: Joi.objectId().required(),
+          },
+        },
+      },
+      handler: removeSecondaryAddress,
     });
 
     server.route({

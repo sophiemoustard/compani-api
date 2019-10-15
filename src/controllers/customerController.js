@@ -679,6 +679,21 @@ const removeFunding = async (req) => {
   }
 };
 
+const removeSecondaryAddress = async (req) => {
+  try {
+    await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $unset: { 'contact.secondaryAddress': '' } }
+    );
+
+    return {
+      message: translate[language].customerFundingRemoved,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
 
 module.exports = {
   list,
@@ -707,4 +722,5 @@ module.exports = {
   createFunding,
   updateFunding,
   removeFunding,
+  removeSecondaryAddress,
 };
