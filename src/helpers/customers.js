@@ -95,36 +95,36 @@ exports.getCustomer = async (customerId) => {
   return customer;
 };
 
-exports.updateCustomer = async (req) => {
+exports.updateCustomer = async (customerId, customerInfo) => {
   let customerUpdated;
-  if (req.payload.referent === '') {
+  if (customerInfo.referent === '') {
     customerUpdated = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
+      { _id: customerId },
       { $unset: { referent: '' } },
       { new: true }
     );
-  } else if (req.payload.payment && req.payload.payment.iban) {
-    const customer = await Customer.findById(req.params._id);
+  } else if (customerInfo.payment && customerInfo.payment.iban) {
+    const customer = await Customer.findById(customerId);
     // if the user updates its RIB, we should generate a new mandate.
-    if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== req.payload.payment.iban) {
+    if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerInfo.payment.iban) {
       const mandate = { rum: await generateRum() };
-      req.payload.payment.bic = null;
+      customerInfo.payment.bic = null;
       customerUpdated = await Customer.findOneAndUpdate(
-        { _id: req.params._id },
-        { $set: flat(req.payload, { safe: true }), $push: { 'payment.mandates': mandate } },
+        { _id: customerId },
+        { $set: flat(customerInfo, { safe: true }), $push: { 'payment.mandates': mandate } },
         { new: true, runValidators: true }
       );
     } else {
       customerUpdated = await Customer.findOneAndUpdate(
-        { _id: req.params._id },
-        { $set: flat(req.payload, { safe: true }) },
+        { _id: customerId },
+        { $set: flat(customerInfo, { safe: true }) },
         { new: true }
       );
     }
   } else {
     customerUpdated = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $set: flat(req.payload, { safe: true }) },
+      { _id: customerId },
+      { $set: flat(customerInfo, { safe: true }) },
       { new: true }
     );
   }
