@@ -12,7 +12,6 @@ const Event = require('./Event');
 const User = require('./User');
 const Drive = require('./Google/Drive');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const locationSchemaDefinition = require('./schemaDefinitions/location');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
@@ -29,14 +28,8 @@ const CustomerSchema = mongoose.Schema({
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
-    primaryAddress: {
-      ...addressSchemaDefinition,
-      location: locationSchemaDefinition,
-    },
-    secondaryAddress: {
-      ...addressSchemaDefinition,
-      location: locationSchemaDefinition,
-    },
+    primaryAddress: addressSchemaDefinition,
+    secondaryAddress: addressSchemaDefinition,
     phone: String,
     accessCodes: String,
   },

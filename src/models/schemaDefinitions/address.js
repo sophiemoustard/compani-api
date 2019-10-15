@@ -3,4 +3,8 @@ module.exports = {
   fullAddress: String,
   zipCode: String,
   city: String,
+  location: {
+    type: { type: String },
+    coordinates: [Number],
+  },
 };

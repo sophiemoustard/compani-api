@@ -51,6 +51,10 @@ exports.plugin = {
               zipCode: Joi.string(),
               city: Joi.string(),
               fullAddress: Joi.string(),
+              location: {
+                type: Joi.string().allow('', null),
+                coordinates: Joi.array().allow([], null),
+              },
             }),
             sector: Joi.objectId().required(),
             misc: Joi.string().allow(null, '').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
@@ -138,6 +142,10 @@ exports.plugin = {
               zipCode: Joi.string().allow(null, '').default(''),
               city: Joi.string().allow(null, '').default(''),
               fullAddress: Joi.string().allow(null, '').default(''),
+              location: {
+                type: Joi.string().allow('', null),
+                coordinates: Joi.array().allow([], null),
+              },
             }),
             subscription: Joi.objectId(),
             internalHour: Joi.object(),
