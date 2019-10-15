@@ -11,8 +11,6 @@ const {
   uploadFile,
 } = require('../../controllers/Google/driveController');
 
-const { authorizeDocumentUpload } = require('../preHandlers/drive');
-
 exports.plugin = {
   name: 'routes-gdrive',
   register: async (server) => {
@@ -86,7 +84,13 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
-        pre: [{ method: authorizeDocumentUpload, assign: 'authorizedKey' }],
+        validate: {
+          payload: Joi.object().keys({
+            file: Joi.any().required(),
+            fileName: Joi.string().required(),
+            'Content-Type': Joi.string().required(),
+          }),
+        },
       },
     });
   },

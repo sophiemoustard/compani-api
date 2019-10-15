@@ -1,4 +1,5 @@
 const expect = require('expect');
+const omit = require('lodash/omit');
 const GetStream = require('get-stream');
 const path = require('path');
 const fs = require('fs');
@@ -39,7 +40,7 @@ describe('DRIVE ROUTES', () => {
       });
       it('should add an absence document for an event', async () => {
         const payload = {
-          proofOfAbsence: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           fileName: 'absence',
           'Content-Type': 'application/pdf',
         };
@@ -58,27 +59,30 @@ describe('DRIVE ROUTES', () => {
             link: 'http://test.com/file.pdf',
           },
         });
-        sinon.assert.calledWith(uploadFileSpy, userFolderId, 'proofOfAbsence', sinon.match({ fileName: 'absence', 'Content-Type': 'application/pdf' }));
+        sinon.assert.calledWith(uploadFileSpy, userFolderId, sinon.match({ fileName: 'absence', 'Content-Type': 'application/pdf' }));
         sinon.assert.calledOnce(addFileStub);
       });
 
-      it('should return a 403 error if file is not allowed to be uploaded', async () => {
-        const payload = {
-          test: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
-          fileName: 'absence',
-          'Content-Type': 'application/pdf',
-        };
-        const form = generateFormData(payload);
-        const response = await app.inject({
-          method: 'POST',
-          url: `/gdrive/${userFolderId}/upload`,
-          payload: await GetStream(form),
-          headers: { ...form.getHeaders(), 'x-access-token': authToken },
-        });
+      const missingParams = ['file', 'Content-Type', 'fileName'];
+      missingParams.forEach((param) => {
+        it(`should return a 400 error if '${param}' params is missing`, async () => {
+          const payload = {
+            file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+            fileName: 'absence',
+            'Content-Type': 'application/pdf',
+          };
+          const form = generateFormData(omit(payload, param));
+          const response = await app.inject({
+            method: 'POST',
+            url: `/gdrive/${userFolderId}/upload`,
+            payload: await GetStream(form),
+            headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          });
 
-        expect(response.statusCode).toBe(403);
-        sinon.assert.notCalled(uploadFileSpy);
-        sinon.assert.notCalled(addFileStub);
+          expect(response.statusCode).toBe(400);
+          sinon.assert.notCalled(uploadFileSpy);
+          sinon.assert.notCalled(addFileStub);
+        });
       });
     });
   });

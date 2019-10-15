@@ -1,14 +1,12 @@
 const GdriveStorage = require('./gdriveStorage');
 
-exports.uploadFile = async (driveId, docKey, docPayload) => {
+exports.uploadFile = async (driveId, docPayload) => {
   const uploadedFile = await GdriveStorage.addFile({
     driveFolderId: driveId,
     name: docPayload.fileName,
     type: docPayload['Content-Type'],
-    body: docPayload[docKey],
+    body: docPayload.file,
   });
 
-  const fileInfo = { driveId: uploadedFile.id, link: uploadedFile.webViewLink };
-
-  return { attachment: fileInfo };
+  return { attachment: { driveId: uploadedFile.id, link: uploadedFile.webViewLink } };
 };
