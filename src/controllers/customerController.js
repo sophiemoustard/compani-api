@@ -149,7 +149,13 @@ const remove = async (req) => {
 const update = async (req) => {
   try {
     let customerUpdated;
-    if (req.payload.payment && req.payload.payment.iban) {
+    if (req.payload.referent === '') {
+      customerUpdated = await Customer.findOneAndUpdate(
+        { _id: req.params._id },
+        { $unset: { referent: '' } },
+        { new: true }
+      );
+    } else if (req.payload.payment && req.payload.payment.iban) {
       const customer = await Customer.findById(req.params._id);
       // if the user updates its RIB, we should generate a new mandate.
       if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== req.payload.payment.iban) {
@@ -161,10 +167,17 @@ const update = async (req) => {
           { new: true, runValidators: true }
         );
       } else {
-        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
+        customerUpdated = await Customer.findOneAndUpdate(
+          { _id: req.params._id },
+          { $set: flat(req.payload, { safe: true }) },
+          { new: true }
+        );
       }
     } else {
-      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
+      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id },
+        { $set: flat(req.payload, { safe: true }) },
+        { new: true }
+      );
     }
 
     if (!customerUpdated) {
