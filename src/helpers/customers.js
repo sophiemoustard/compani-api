@@ -10,6 +10,7 @@ const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
+const { generateRum } = require('../helpers/generateRum');
 
 const { language } = translate;
 
@@ -92,6 +93,42 @@ exports.getCustomer = async (customerId) => {
   }
 
   return customer;
+};
+
+exports.updateCustomer = async (req) => {
+  let customerUpdated;
+  if (req.payload.referent === '') {
+    customerUpdated = await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $unset: { referent: '' } },
+      { new: true }
+    );
+  } else if (req.payload.payment && req.payload.payment.iban) {
+    const customer = await Customer.findById(req.params._id);
+    // if the user updates its RIB, we should generate a new mandate.
+    if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== req.payload.payment.iban) {
+      const mandate = { rum: await generateRum() };
+      req.payload.payment.bic = null;
+      customerUpdated = await Customer.findOneAndUpdate(
+        { _id: req.params._id },
+        { $set: flat(req.payload, { safe: true }), $push: { 'payment.mandates': mandate } },
+        { new: true, runValidators: true }
+      );
+    } else {
+      customerUpdated = await Customer.findOneAndUpdate(
+        { _id: req.params._id },
+        { $set: flat(req.payload, { safe: true }) },
+        { new: true }
+      );
+    }
+  } else {
+    customerUpdated = await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $set: flat(req.payload, { safe: true }) },
+      { new: true }
+    );
+  }
+  return customerUpdated;
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {
