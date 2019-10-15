@@ -89,6 +89,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   }
 
   await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+  await EventHelper.unassignReferentOnContractEnd(contract);
   await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
   await EventHelper.updateAbsencesOnContractEnd(contract.user, contract.endDate, credentials);
 

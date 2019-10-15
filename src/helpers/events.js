@@ -13,6 +13,7 @@ const {
   PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
+const Customer = require('../models/Customer');
 const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
@@ -228,6 +229,13 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   );
 
   return Promise.all(promises);
+};
+
+exports.unassignReferentOnContractEnd = async (contract) => {
+  return Customer.updateMany(
+    { referent: contract.user },
+    { $unset: { referent: '' } }
+  );
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
