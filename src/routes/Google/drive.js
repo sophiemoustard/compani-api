@@ -8,6 +8,7 @@ const {
   getFileById,
   generateDocxFromDrive,
   getList,
+  uploadFile,
 } = require('../../controllers/Google/driveController');
 
 exports.plugin = {
@@ -68,6 +69,27 @@ exports.plugin = {
         },
         auth: {
           strategy: 'jwt',
+        },
+      },
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/{id}/upload',
+      handler: uploadFile,
+      options: {
+        payload: {
+          output: 'stream',
+          parse: true,
+          allow: 'multipart/form-data',
+          maxBytes: 5242880,
+        },
+        validate: {
+          payload: Joi.object().keys({
+            file: Joi.any().required(),
+            fileName: Joi.string().required(),
+            'Content-Type': Joi.string().required(),
+          }),
         },
       },
     });

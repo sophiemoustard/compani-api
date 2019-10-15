@@ -7,7 +7,6 @@ const {
   create,
   update,
   remove,
-  uploadFile,
   removeRepetition,
   listForCreditNotes,
 } = require('../controllers/eventController');
@@ -209,25 +208,6 @@ exports.plugin = {
         ],
       },
       handler: removeRepetition,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/gdrive/{driveId}/upload',
-      handler: uploadFile,
-      options: {
-        auth: { scope: ['events:edit', 'events:own:edit'] },
-        payload: {
-          output: 'stream',
-          parse: true,
-          allow: 'multipart/form-data',
-          maxBytes: 5242880,
-        },
-        pre: [
-          { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate },
-        ],
-      },
     });
   },
 };

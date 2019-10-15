@@ -2,6 +2,7 @@ const Boom = require('boom');
 
 const translate = require('../../helpers/translate');
 const drive = require('../../models/Google/Drive');
+const DriveHelper = require('../../helpers/drive');
 const { generateDocx } = require('../../helpers/file');
 
 const { language } = translate;
@@ -42,16 +43,27 @@ const getList = async (req) => {
   }
 };
 
+const uploadFile = async (req) => {
+  try {
+    const fileInfo = await DriveHelper.uploadFile(req.params.id, req.payload);
+
+    return {
+      message: translate[language].fileCreated,
+      data: { payload: fileInfo },
+    };
+  } catch (e) {
+    req.log('error', e);
+  }
+};
+
 const generateDocxFromDrive = async (req, h) => {
   try {
     const payload = {
       file: { fileId: req.params.id },
-      data: req.payload
+      data: req.payload,
     };
     const tmpOutputPath = await generateDocx(payload);
-    return h.file(tmpOutputPath, {
-      confine: false
-    });
+    return h.file(tmpOutputPath, { confine: false });
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);
@@ -62,5 +74,6 @@ module.exports = {
   deleteFile,
   getFileById,
   getList,
+  uploadFile,
   generateDocxFromDrive,
 };
