@@ -7,7 +7,6 @@ const Boom = require('boom');
 
 const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const locationSchemaDefinition = require('./schemaDefinitions/location');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
@@ -61,10 +60,7 @@ const UserSchema = mongoose.Schema({
     required: true,
   },
   contact: {
-    address: {
-      ...addressSchemaDefinition,
-      location: locationSchemaDefinition,
-    },
+    address: addressSchemaDefinition,
     phone: String,
   },
   emergencyPhone: String,
