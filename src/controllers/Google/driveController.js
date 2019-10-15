@@ -2,7 +2,7 @@ const Boom = require('boom');
 
 const translate = require('../../helpers/translate');
 const drive = require('../../models/Google/Drive');
-const { addFile } = require('../../helpers/gdriveStorage');
+const DriveHelper = require('../../helpers/drive');
 const { generateDocx } = require('../../helpers/file');
 
 const { language } = translate;
@@ -45,27 +45,11 @@ const getList = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = [
-      'proofOfAbsence',
-    ];
-    const payloadKey = Object.keys(req.payload).find(key => allowedFields.includes(key));
-    if (!payloadKey) {
-      Boom.forbidden('Upload not allowed');
-    }
-
-    const uploadedFile = await addFile({
-      driveFolderId: req.params.id,
-      name: req.payload.fileName,
-      type: req.payload['Content-Type'],
-      body: req.payload[payloadKey],
-    });
-
-    const file = { driveId: uploadedFile.id, link: uploadedFile.webViewLink };
-    const payload = { attachment: file };
+    const fileInfo = await DriveHelper.uploadFile(req.params.id, req.pre.authorizedKey, req.payload);
 
     return {
       message: translate[language].fileCreated,
-      data: { payload },
+      data: { payload: fileInfo },
     };
   } catch (e) {
     req.log('error', e);
@@ -79,9 +63,7 @@ const generateDocxFromDrive = async (req, h) => {
       data: req.payload,
     };
     const tmpOutputPath = await generateDocx(payload);
-    return h.file(tmpOutputPath, {
-      confine: false,
-    });
+    return h.file(tmpOutputPath, { confine: false });
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);
