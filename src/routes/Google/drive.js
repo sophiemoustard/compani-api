@@ -11,6 +11,8 @@ const {
   uploadFile,
 } = require('../../controllers/Google/driveController');
 
+const { authorizeDocumentUpload } = require('../preHandlers/drive');
+
 exports.plugin = {
   name: 'routes-gdrive',
   register: async (server) => {
@@ -84,6 +86,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
+        pre: [{ method: authorizeDocumentUpload, assign: 'authorizedKey' }],
       },
     });
   },
