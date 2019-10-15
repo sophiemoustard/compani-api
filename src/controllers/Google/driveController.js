@@ -45,7 +45,7 @@ const getList = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const fileInfo = await DriveHelper.uploadFile(req.params.id, req.pre.authorizedKey, req.payload);
+    const fileInfo = await DriveHelper.uploadFile(req.params.id, req.payload);
 
     return {
       message: translate[language].fileCreated,
