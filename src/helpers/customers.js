@@ -115,39 +115,28 @@ exports.generateRum = async () => {
 };
 
 exports.updateCustomer = async (customerId, customerInfo) => {
-  let customerUpdated;
+  let payload;
   if (customerInfo.referent === '') {
-    customerUpdated = await Customer.findOneAndUpdate(
-      { _id: customerId },
-      { $unset: { referent: '' } },
-      { new: true }
-    );
+    payload = { $unset: { referent: '' } };
   } else if (customerInfo.payment && customerInfo.payment.iban) {
-    const customer = await Customer.findById(customerId);
+    const customer = await Customer.findById(customerId).lean();
     // if the user updates its RIB, we should generate a new mandate.
     if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerInfo.payment.iban) {
       const mandate = { rum: await exports.generateRum() };
       customerInfo.payment.bic = null;
-      customerUpdated = await Customer.findOneAndUpdate(
-        { _id: customerId },
-        { $set: flat(customerInfo, { safe: true }), $push: { 'payment.mandates': mandate } },
-        { new: true, runValidators: true }
-      );
+      payload = { $set: flat(customerInfo, { safe: true }), $push: { 'payment.mandates': mandate } };
     } else {
-      customerUpdated = await Customer.findOneAndUpdate(
-        { _id: customerId },
-        { $set: flat(customerInfo, { safe: true }) },
-        { new: true }
-      );
+      payload = { $set: flat(customerInfo, { safe: true }) };
     }
   } else {
-    customerUpdated = await Customer.findOneAndUpdate(
-      { _id: customerId },
-      { $set: flat(customerInfo, { safe: true }) },
-      { new: true }
-    );
+    payload = { $set: flat(customerInfo, { safe: true }) };
   }
-  return customerUpdated;
+
+  return Customer.findOneAndUpdate(
+    { _id: customerId },
+    payload,
+    { new: true }
+  ).lean();
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {

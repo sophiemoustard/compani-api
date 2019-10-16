@@ -1,5 +1,6 @@
 const sinon = require('sinon');
 const expect = require('expect');
+const flat = require('flat');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const CustomerHelper = require('../../../src/helpers/customers');
@@ -7,7 +8,6 @@ const FundingsHelper = require('../../../src/helpers/fundings');
 const EventsHelper = require('../../../src/helpers/events');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const flat = require('flat');
 const cloneDeep = require('lodash/cloneDeep');
 
 require('sinon-mongoose');
@@ -314,41 +314,31 @@ describe('getCustomer', () => {
 });
 
 describe('updateCustomer', () => {
-  let findOneAndUpdate;
-  let findById;
+  let CustomerMock;
   let generateRum;
   beforeEach(() => {
-    findOneAndUpdate = sinon.stub(Customer, 'findOneAndUpdate');
-    findById = sinon.stub(Customer, 'findById');
+    CustomerMock = sinon.mock(Customer);
     generateRum = sinon.stub(CustomerHelper, 'generateRum');
   });
   afterEach(() => {
-    findOneAndUpdate.restore();
-    findById.restore();
+    CustomerMock.restore();
     generateRum.restore();
   });
 
   it('should unset the referent of a customer', async () => {
     const customerId = 'qwertyuiop';
-    const referentId = '';
     const customer = { referent: 'asdfghjkl' };
-    const req = {
-      params: {
-        _id: customerId,
-      },
-      payload: {
-        referent: referentId,
-      },
-    };
+    const payload = { referent: '' };
 
-    delete customer.referent;
-    findOneAndUpdate.returns(customer);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $unset: { referent: '' } }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customer);
 
-    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
 
-    sinon.assert.calledOnce(findOneAndUpdate);
     sinon.assert.notCalled(generateRum);
-    sinon.assert.notCalled(findById);
     expect(result).toBe(customer);
   });
 
@@ -362,27 +352,35 @@ describe('updateCustomer', () => {
         mandates: [],
       },
     };
-    const req = {
-      params: {
-        _id: customerId,
-      },
-      payload: {
-        payment: {
-          iban: 'FR8312739000501844178231W37',
-        },
+    const payload = {
+      payment: {
+        iban: 'FR8312739000501844178231W37',
+        bic: null,
       },
     };
-    findById.returns(customer);
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
     const mandate = '1234567890';
     generateRum.returns(mandate);
     const customerResult = cloneDeep(customer);
     customerResult.payment.mandates.push(mandate);
     customerResult.payment.iban = 'FR8312739000501844178231W37';
-    findOneAndUpdate.returns(customerResult);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: customerId },
+        { $set: flat(payload, { safe: true }), $push: { 'payment.mandates': { rum: mandate } } },
+        { new: true }
+      )
+      .chain('lean')
+      .once()
+      .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
-    sinon.assert.calledOnce(findById);
-    sinon.assert.calledOnce(findOneAndUpdate);
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
     sinon.assert.calledOnce(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -397,26 +395,27 @@ describe('updateCustomer', () => {
         mandates: [],
       },
     };
-    const req = {
-      params: {
-        _id: customerId,
-      },
-      payload: {
-        payment: {
-          iban: 'FR4717569000303461796573B36',
-          bic: 'BNPAFRPPXXX',
-        },
+    const payload = {
+      payment: {
+        iban: 'FR4717569000303461796573B36',
+        bic: 'BNPAFRPPXXX',
       },
     };
 
-    findById.returns(customer);
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
     const customerResult = cloneDeep(customer);
     customerResult.bic = 'BNPAFRPPXXX';
-    findOneAndUpdate.returns(customerResult);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
-    sinon.assert.calledOnce(findById);
-    sinon.assert.calledOnce(findOneAndUpdate);
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -431,26 +430,26 @@ describe('updateCustomer', () => {
         mandates: [],
       },
     };
-    const req = {
-      params: {
-        _id: customerId,
-      },
-      payload: {
-        payment: {
-          iban: 'FR4717569000303461796573B36',
-          bankAccountOwner: 'Jake Peralta',
-        },
+    const payload = {
+      payment: {
+        iban: 'FR4717569000303461796573B36',
+        bankAccountOwner: 'Jake Peralta',
       },
     };
 
-    findById.returns(customer);
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
     const customerResult = cloneDeep(customer);
     customerResult.bankAccountOwner = 'Jake Peralta';
-    findOneAndUpdate.returns(customerResult);
-
-    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
-    sinon.assert.calledOnce(findById);
-    sinon.assert.calledOnce(findOneAndUpdate);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -465,25 +464,26 @@ describe('updateCustomer', () => {
         mandates: [],
       },
     };
-    const req = {
-      params: {
-        _id: customerId,
-      },
-      payload: {
-        payment: {
-          iban: 'FR4717569000303461796573B36',
-        },
+    const payload = {
+      payment: {
+        iban: 'FR4717569000303461796573B36',
       },
     };
 
-    findById.returns(customer);
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
     const customerResult = cloneDeep(customer);
     customerResult.payment.iban = 'FR4717569000303461796573B36';
-    findOneAndUpdate.returns(customerResult);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
-    sinon.assert.calledOnce(findById);
-    sinon.assert.calledOnce(findOneAndUpdate);
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -496,27 +496,23 @@ describe('updateCustomer', () => {
         lastname: 'Peralta',
       },
     };
-    const req = {
-      params: {
-        _id: customerId,
-      },
-      payload: {
-        identity: {
-          firstname: 'Raymond',
-          lastname: 'Holt',
-        },
+    const payload = {
+      identity: {
+        firstname: 'Raymond',
+        lastname: 'Holt',
       },
     };
 
     const customerResult = cloneDeep(customer);
     customerResult.identity.firstname = 'Raymond';
     customerResult.identity.lastname = 'Holt';
-    findOneAndUpdate.returns(customerResult);
-
-    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
-    sinon.assert.calledOnce(findOneAndUpdate);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
     sinon.assert.notCalled(generateRum);
-    sinon.assert.notCalled(findById);
     expect(result).toBe(customerResult);
   });
 });
