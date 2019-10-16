@@ -320,20 +320,14 @@ exports.computeDetail = (hours, prevPayDiff, detailType) => {
   if (Object.keys(hours[detailType]).length > 0) {
     details = cloneDeep(hours[detailType]);
     if (prevPayDiff[detailType]) {
-      const planKeys = uniq([...Object.keys(hours[detailType]), ...Object.keys(prevPayDiff[detailType])]);
-      for (const plan of planKeys) {
+      for (const plan of Object.keys(prevPayDiff[detailType])) {
         const prevPayPlan = prevPayDiff[detailType][plan];
         const currentPlan = hours[detailType][plan];
         if (prevPayPlan) {
-          let surchargeKeys = [];
-          if (prevPayPlan && currentPlan) surchargeKeys = uniq([...Object.keys(currentPlan), ...Object.keys(prevPayPlan)]);
-          else if (currentPlan) surchargeKeys = Object.keys(currentPlan);
-          else if (prevPayPlan) surchargeKeys = Object.keys(prevPayPlan);
-
-          for (const surcharge of surchargeKeys) {
-            if (prevPayPlan && currentPlan && prevPayPlan[surcharge] && currentPlan[surcharge]) {
+          for (const surcharge of Object.keys(prevPayPlan)) {
+            if (currentPlan && currentPlan[surcharge]) {
               details[plan][surcharge].hours += prevPayPlan[surcharge].hours;
-            } else if (prevPayPlan[surcharge]) {
+            } else {
               if (!details[plan]) details[plan] = {};
               details[plan][surcharge] = { ...prevPayPlan[surcharge] };
             }
@@ -409,20 +403,17 @@ exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
   if (hours[detailType]) {
     details = cloneDeep(hours[detailType]);
     if (prevPayDetail) {
-      const planKeys = uniq([...Object.keys(hours[detailType]), ...Object.keys(prevPayDetail)]);
-      for (const plan of planKeys) {
+      for (const plan of Object.keys(prevPayDetail)) {
         if (prevPayDetail[plan]) {
-          let surchargeKeys = [];
-          if (prevPayDetail[plan] && hours[detailType][plan]) {
-            surchargeKeys = uniq([...Object.keys(hours[detailType][plan]), ...Object.keys(omit(prevPayDetail[plan], ['planId', 'planName']))]);
-          } else if (hours[detailType][plan]) surchargeKeys = Object.keys(hours[detailType][plan]);
-          else if (prevPayDetail[plan]) surchargeKeys = Object.keys(omit(prevPayDetail[plan], ['planId', 'planName']));
-
+          const surchargeKeys = Object.keys(omit(prevPayDetail[plan], ['planId', 'planName']));
           for (const surcharge of surchargeKeys) {
-            if (prevPayDetail[plan] && details[plan] && prevPayDetail[plan][surcharge] && details[plan][surcharge]) {
+            if (details[plan] && details[plan][surcharge]) {
               details[plan][surcharge].hours -= prevPayDetail[plan][surcharge].hours;
-            } else if (prevPayDetail[plan] && prevPayDetail[plan][surcharge]) {
-              details[plan] = { ...details[plan], [surcharge]: { ...prevPayDetail[plan][surcharge], hours: -prevPayDetail[plan][surcharge].hours } };
+            } else {
+              details[plan] = {
+                ...details[plan],
+                [surcharge]: { ...prevPayDetail[plan][surcharge], hours: -prevPayDetail[plan][surcharge].hours },
+              };
             }
           }
         }
