@@ -479,9 +479,7 @@ describe('getPaidTransportInfo', () => {
       type: 'intervention',
       hasFixedService: false,
       startDate: '2019-01-18T15:46:30.636Z',
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'tamalou' } },
-      },
+      address: { fullAddress: 'tamalou' },
     };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
@@ -496,9 +494,7 @@ describe('getPaidTransportInfo', () => {
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
-      },
+      address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
       hasFixedService: false,
@@ -515,17 +511,13 @@ describe('getPaidTransportInfo', () => {
     const event = {
       hasFixedService: false,
       type: 'intervention',
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
-      },
+      address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
       hasFixedService: false,
       type: 'intervention',
       startDate: '2019-01-18T15:46:30.636Z',
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'tamalou' } },
-      },
+      address: { fullAddress: 'tamalou' },
     };
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
@@ -540,17 +532,13 @@ describe('getPaidTransportInfo', () => {
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
-      },
+      address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
       hasFixedService: false,
       type: 'intervention',
       startDate: '2019-01-18T15:46:30.636Z',
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'tamalou' } },
-      },
+      address: { fullAddress: 'tamalou' },
     };
     getTransportInfo.resolves({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
@@ -567,17 +555,13 @@ describe('getPaidTransportInfo', () => {
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
-      },
+      address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
       hasFixedService: false,
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'tamalou' } },
-      },
+      address: { fullAddress: 'tamalou' },
     };
     getTransportInfo.resolves({ distance: 10, duration: 40 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
@@ -594,17 +578,13 @@ describe('getPaidTransportInfo', () => {
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
-      },
+      address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
       hasFixedService: false,
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'tamalou' } },
-      },
+      address: { fullAddress: 'tamalou' },
     };
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
@@ -621,17 +601,13 @@ describe('getPaidTransportInfo', () => {
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
-      },
+      address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
       hasFixedService: false,
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'tamalou' } },
-      },
+      address: { fullAddress: 'tamalou' },
     };
     getTransportInfo.resolves({ distance: 10, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
@@ -647,17 +623,13 @@ describe('getPaidTransportInfo', () => {
       auxiliary: {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'jébobolà' } },
-      },
+      address: { fullAddress: 'jébobolà' },
     };
     const prevEvent = {
       hasFixedService: false,
       type: 'intervention',
       endDate: '2019-01-18T15:00:00',
-      customer: {
-        contact: { primaryAddress: { fullAddress: 'tamalou' } },
-      },
+      address: { fullAddress: 'tamalou' },
     };
     getTransportInfo.resolves({ distance: 8, duration: 60 });
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
