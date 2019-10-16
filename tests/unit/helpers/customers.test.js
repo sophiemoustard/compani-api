@@ -338,6 +338,7 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
+    CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customer);
   });
@@ -381,6 +382,7 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
+    CustomerMock.verify();
     sinon.assert.calledOnce(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -416,6 +418,8 @@ describe('updateCustomer', () => {
       .returns(customerResult);
 
     const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -450,6 +454,8 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
     const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -484,6 +490,8 @@ describe('updateCustomer', () => {
       .returns(customerResult);
 
     const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -512,6 +520,8 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
     const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });

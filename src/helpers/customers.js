@@ -103,8 +103,8 @@ exports.generateRum = async () => {
   };
   const payload = { seq: 1 };
   const number = await Counter.findOneAndUpdate(
-    flat(query),
-    { $inc: flat(payload) },
+    query,
+    { $inc: payload },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
 
@@ -114,22 +114,22 @@ exports.generateRum = async () => {
   return `${number.prefix}${number.seq.toString().padStart(5, '0')}${random}`;
 };
 
-exports.updateCustomer = async (customerId, customerInfo) => {
+exports.updateCustomer = async (customerId, customerPayload) => {
   let payload;
-  if (customerInfo.referent === '') {
+  if (customerPayload.referent === '') {
     payload = { $unset: { referent: '' } };
-  } else if (customerInfo.payment && customerInfo.payment.iban) {
+  } else if (customerPayload.payment && customerPayload.payment.iban) {
     const customer = await Customer.findById(customerId).lean();
     // if the user updates its RIB, we should generate a new mandate.
-    if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerInfo.payment.iban) {
+    if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerPayload.payment.iban) {
       const mandate = { rum: await exports.generateRum() };
-      customerInfo.payment.bic = null;
-      payload = { $set: flat(customerInfo, { safe: true }), $push: { 'payment.mandates': mandate } };
+      customerPayload.payment.bic = null;
+      payload = { $set: flat(customerPayload, { safe: true }), $push: { 'payment.mandates': mandate } };
     } else {
-      payload = { $set: flat(customerInfo, { safe: true }) };
+      payload = { $set: flat(customerPayload, { safe: true }) };
     }
   } else {
-    payload = { $set: flat(customerInfo, { safe: true }) };
+    payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
   return Customer.findOneAndUpdate(
