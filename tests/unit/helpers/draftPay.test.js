@@ -1140,6 +1140,83 @@ describe('getPayFromAbsences', () => {
   });
 });
 
+describe('computeDetail', () => {
+  it('should compute previous pay detail if hours and prevPay are defined', () => {
+    const hours = {
+      surchargedAndExemptDetails: {
+        qwertyuiop: {
+          evenings: { hours: 23 },
+          saturdays: { hours: 23 },
+        },
+        asdfghjkl: { christmas: { hours: 5 } },
+      },
+    };
+    const prevPay = {
+      surchargedAndExemptDetails: {
+        qwertyuiop: {
+          evenings: { hours: 2 },
+          sundays: { hours: 3 },
+        },
+        zxcvbnm: { evenings: { hours: 4 } },
+      },
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computeDetail(hours, prevPay, detailType);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: 25 },
+        saturdays: { hours: 23 },
+        sundays: { hours: 3 },
+      },
+      asdfghjkl: { christmas: { hours: 5 } },
+      zxcvbnm: { evenings: { hours: 4 } },
+    });
+  });
+
+  it('should compute previous pay detail if hours is empty', async () => {});
+});
+
+describe('computeHoursWithPrevPayDiff', () => {
+  let computeDetail;
+  beforeEach(() => {
+    computeDetail = sinon.stub(DraftPayHelper, 'computeDetail');
+  });
+  afterEach(() => {
+    computeDetail.restore();
+  });
+
+  it('should compute hours with previous pay diff', () => {
+    const hours = {
+      paidKm: 23,
+      surchargedAndExemptDetails: {},
+      surchargedAndExempt: 12,
+      surchargedAndNotExempt: 5,
+    };
+    const balance = 12;
+    const prevPay = {
+      hoursCounter: 23,
+      diff: { surchargedAndExempt: 4, hoursBalance: 4 },
+    };
+
+    computeDetail.onCall(0).returns({ evenings: 4 });
+    computeDetail.onCall(1).returns({ sundays: 3 });
+    const result = DraftPayHelper.computeHoursWithPrevPayDiff(hours, balance, prevPay);
+
+    expect(result).toEqual({
+      hoursCounter: 35,
+      hoursBalance: 16,
+      surchargedAndExemptDetails: { evenings: 4 },
+      surchargedAndNotExemptDetails: { sundays: 3 },
+      surchargedAndExempt: 16,
+      surchargedAndNotExempt: 5,
+    });
+    sinon.assert.calledTwice(computeDetail);
+  });
+});
+
 describe('computePay', () => {
   let getPayFromEvents;
   let getPayFromAbsences;
@@ -1312,6 +1389,46 @@ describe('getDraftPayByAuxiliary', () => {
       [],
       []
     );
+  });
+});
+
+describe('computePrevPayDiff', () => {
+  beforeEach(() => {});
+  afterEach(() => {});
+
+  it('should compute previous pay if is hours is defined', () => {
+    const hours = {
+      surchargedAndExemptDetails: {
+        qwertyuiop: {
+          evenings: { hours: 23 },
+          saturdays: { hours: 23 },
+        },
+        asdfghjkl: { christmas: { hours: 5 } },
+      },
+    };
+    const prevPay = {
+      surchargedAndExemptDetails: [
+        {
+          planId: 'qwertyuiop',
+          evenings: { hours: 2 },
+          sundays: { hours: 3 },
+        },
+        { planId: 'zxcvbnm', evenings: { hours: 4 } },
+      ],
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: 21 },
+        saturdays: { hours: 23 },
+        sundays: { hours: -3 },
+      },
+      asdfghjkl: { christmas: { hours: 5 } },
+      zxcvbnm: { evenings: { hours: -4 } },
+    });
   });
 });
 

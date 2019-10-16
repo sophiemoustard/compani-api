@@ -325,10 +325,18 @@ exports.computeDetail = (hours, prevPayDiff, detailType) => {
         const prevPayPlan = prevPayDiff[detailType][plan];
         const currentPlan = hours[detailType][plan];
         if (prevPayPlan) {
-          const surchargeKeys = uniq([...Object.keys(currentPlan), ...Object.keys(prevPayPlan)]);
+          let surchargeKeys = [];
+          if (prevPayPlan && currentPlan) surchargeKeys = uniq([...Object.keys(currentPlan), ...Object.keys(prevPayPlan)]);
+          else if (currentPlan) surchargeKeys = Object.keys(currentPlan);
+          else if (prevPayPlan) surchargeKeys = Object.keys(prevPayPlan);
+
           for (const surcharge of surchargeKeys) {
-            if (prevPayPlan[surcharge] && currentPlan[surcharge]) details[plan][surcharge].hours += prevPayPlan[surcharge].hours;
-            else if (prevPayPlan[surcharge]) details[plan][surcharge] = { ...prevPayPlan[surcharge] };
+            if (prevPayPlan && currentPlan && prevPayPlan[surcharge] && currentPlan[surcharge]) {
+              details[plan][surcharge].hours += prevPayPlan[surcharge].hours;
+            } else if (prevPayPlan[surcharge]) {
+              if (!details[plan]) details[plan] = {};
+              details[plan][surcharge] = { ...prevPayPlan[surcharge] };
+            }
           }
         }
       }
@@ -395,16 +403,27 @@ exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company
   return exports.computePay(auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges);
 };
 
-exports.computeDetailDiff = (hours, prevPay, detailType) => {
+exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
   let details = {};
   const prevPayDetail = mapKeys(prevPay[detailType], value => value.planId);
   if (hours[detailType]) {
     details = cloneDeep(hours[detailType]);
     if (prevPayDetail) {
-      for (const plan of Object.keys(hours[detailType])) {
+      const planKeys = uniq([...Object.keys(hours[detailType]), ...Object.keys(prevPayDetail)]);
+      for (const plan of planKeys) {
         if (prevPayDetail[plan]) {
-          for (const surcharge of Object.keys(hours[detailType][plan])) {
-            if (prevPayDetail[plan][surcharge]) details[plan][surcharge].hours -= prevPayDetail[plan][surcharge].hours;
+          let surchargeKeys = [];
+          if (prevPayDetail[plan] && hours[detailType][plan]) {
+            surchargeKeys = uniq([...Object.keys(hours[detailType][plan]), ...Object.keys(omit(prevPayDetail[plan], ['planId', 'planName']))]);
+          } else if (hours[detailType][plan]) surchargeKeys = Object.keys(hours[detailType][plan]);
+          else if (prevPayDetail[plan]) surchargeKeys = Object.keys(omit(prevPayDetail[plan], ['planId', 'planName']));
+
+          for (const surcharge of surchargeKeys) {
+            if (prevPayDetail[plan] && details[plan] && prevPayDetail[plan][surcharge] && details[plan][surcharge]) {
+              details[plan][surcharge].hours -= prevPayDetail[plan][surcharge].hours;
+            } else if (prevPayDetail[plan] && prevPayDetail[plan][surcharge]) {
+              details[plan] = { ...details[plan], [surcharge]: { ...prevPayDetail[plan][surcharge], hours: -prevPayDetail[plan][surcharge].hours } };
+            }
           }
         }
       }
@@ -442,8 +461,8 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
       ...prevPayDiff,
       diff: {
         hoursBalance: hoursBalance - prevPay.hoursBalance,
-        surchargedAndExemptDetails: exports.computeDetailDiff(hours, prevPay, 'surchargedAndExemptDetails'),
-        surchargedAndNotExemptDetails: exports.computeDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),
+        surchargedAndExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndExemptDetails'),
+        surchargedAndNotExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),
       },
       hoursCounter: prevPay.hoursCounter + (hoursBalance - prevPay.hoursBalance),
     };
