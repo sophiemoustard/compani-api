@@ -7,6 +7,7 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const mapKeys = require('lodash/mapKeys');
+const uniq = require('lodash/uniq');
 const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
@@ -316,19 +317,23 @@ const getContract = (contracts, endDate) => contracts.find((cont) => {
 
 exports.computeDetail = (hours, prevPayDiff, detailType) => {
   let details = {};
-  if (hours[detailType]) {
+  if (Object.keys(hours[detailType]).length > 0) {
     details = cloneDeep(hours[detailType]);
     if (prevPayDiff[detailType]) {
-      for (const plan of Object.keys(hours[detailType])) {
+      const planKeys = uniq([...Object.keys(hours[detailType]), ...Object.keys(prevPayDiff[detailType])]);
+      for (const plan of planKeys) {
         const prevPayPlan = prevPayDiff[detailType][plan];
+        const currentPlan = hours[detailType][plan];
         if (prevPayPlan) {
-          for (const surcharge of Object.keys(hours[detailType][plan])) {
-            if (prevPayPlan[surcharge]) details[plan][surcharge].hours += prevPayPlan[surcharge].hours;
+          const surchargeKeys = uniq([...Object.keys(currentPlan), ...Object.keys(prevPayPlan)]);
+          for (const surcharge of surchargeKeys) {
+            if (prevPayPlan[surcharge] && currentPlan[surcharge]) details[plan][surcharge].hours += prevPayPlan[surcharge].hours;
+            else if (prevPayPlan[surcharge]) details[plan][surcharge] = { ...prevPayPlan[surcharge] };
           }
         }
       }
     }
-  } else if (prevPayDiff) details = cloneDeep(prevPayDiff);
+  } else if (prevPayDiff) details = cloneDeep(prevPayDiff[detailType]);
 
   return details;
 };
