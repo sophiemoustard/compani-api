@@ -231,13 +231,6 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   return Promise.all(promises);
 };
 
-exports.unassignReferentOnContractEnd = async (contract) => {
-  return Customer.updateMany(
-    { referent: contract.user },
-    { $unset: { referent: '' } }
-  );
-};
-
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
   const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user);
   const promises = [];

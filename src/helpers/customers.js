@@ -2,6 +2,7 @@ const flat = require('flat');
 const Boom = require('boom');
 const crypto = require('crypto');
 const moment = require('moment');
+const has = require('lodash/has');
 const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
@@ -114,17 +115,25 @@ exports.generateRum = async () => {
   return `${number.prefix}${number.seq.toString().padStart(5, '0')}${random}`;
 };
 
+exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
+  { referent: contract.user },
+  { $unset: { referent: '' } }
+);
+
 exports.updateCustomer = async (customerId, customerPayload) => {
   let payload;
   if (customerPayload.referent === '') {
     payload = { $unset: { referent: '' } };
-  } else if (customerPayload.payment && customerPayload.payment.iban) {
+  } else if (has(customerPayload, 'payment.iban')) {
     const customer = await Customer.findById(customerId).lean();
     // if the user updates its RIB, we should generate a new mandate.
     if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerPayload.payment.iban) {
       const mandate = { rum: await exports.generateRum() };
-      customerPayload.payment.bic = null;
-      payload = { $set: flat(customerPayload, { safe: true }), $push: { 'payment.mandates': mandate } };
+      payload = {
+        $set: flat(customerPayload, { safe: true }),
+        $push: { 'payment.mandates': mandate },
+        $unset: { 'payment.bic': '' },
+      };
     } else {
       payload = { $set: flat(customerPayload, { safe: true }) };
     }
