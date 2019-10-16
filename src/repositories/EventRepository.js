@@ -92,7 +92,7 @@ exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '
 exports.getEventList = rules => Event.find(rules)
   .populate({
     path: 'auxiliary',
-    select: 'identity administrative.driveFolder administrative.transportInvoice company pictur sector',
+    select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
     populate: { path: 'sector' },
   })
   .populate({
