@@ -7,6 +7,8 @@ const FundingsHelper = require('../../../src/helpers/fundings');
 const EventsHelper = require('../../../src/helpers/events');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
+const flat = require('flat');
+const cloneDeep = require('lodash/cloneDeep');
 
 require('sinon-mongoose');
 
@@ -308,5 +310,213 @@ describe('getCustomer', () => {
     sinon.assert.calledOnce(populateSubscriptionsServices);
     sinon.assert.calledOnce(subscriptionsAccepted);
     sinon.assert.calledTwice(populateFundings);
+  });
+});
+
+describe('updateCustomer', () => {
+  let findOneAndUpdate;
+  let findById;
+  let generateRum;
+  beforeEach(() => {
+    findOneAndUpdate = sinon.stub(Customer, 'findOneAndUpdate');
+    findById = sinon.stub(Customer, 'findById');
+    generateRum = sinon.stub(CustomerHelper, 'generateRum');
+  });
+  afterEach(() => {
+    findOneAndUpdate.restore();
+    findById.restore();
+    generateRum.restore();
+  });
+
+  it('should unset the referent of a customer', async () => {
+    const customerId = 'qwertyuiop';
+    const referentId = '';
+    const customer = { referent: 'asdfghjkl' };
+    const req = {
+      params: {
+        _id: customerId,
+      },
+      payload: {
+        referent: referentId,
+      },
+    };
+
+    delete customer.referent;
+    findOneAndUpdate.returns(customer);
+
+    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+
+    sinon.assert.calledOnce(findOneAndUpdate);
+    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(findById);
+    expect(result).toBe(customer);
+  });
+
+  it('should generate a new mandate', async () => {
+    const customerId = 'qwertyuiop';
+    const customer = {
+      payment: {
+        bankAccountNumber: '',
+        iban: 'FR4717569000303461796573B36',
+        bic: '',
+        mandates: [],
+      },
+    };
+    const req = {
+      params: {
+        _id: customerId,
+      },
+      payload: {
+        payment: {
+          iban: 'FR8312739000501844178231W37',
+        },
+      },
+    };
+    findById.returns(customer);
+    const mandate = '1234567890';
+    generateRum.returns(mandate);
+    const customerResult = cloneDeep(customer);
+    customerResult.payment.mandates.push(mandate);
+    customerResult.payment.iban = 'FR8312739000501844178231W37';
+    findOneAndUpdate.returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+    sinon.assert.calledOnce(findById);
+    sinon.assert.calledOnce(findOneAndUpdate);
+    sinon.assert.calledOnce(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('shouldn\'t generate a new mandate (update bic)', async () => {
+    const customerId = 'qwertyuiop';
+    const customer = {
+      payment: {
+        bankAccountNumber: '',
+        iban: 'FR4717569000303461796573B36',
+        bic: '',
+        mandates: [],
+      },
+    };
+    const req = {
+      params: {
+        _id: customerId,
+      },
+      payload: {
+        payment: {
+          iban: 'FR4717569000303461796573B36',
+          bic: 'BNPAFRPPXXX',
+        },
+      },
+    };
+
+    findById.returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.bic = 'BNPAFRPPXXX';
+    findOneAndUpdate.returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+    sinon.assert.calledOnce(findById);
+    sinon.assert.calledOnce(findOneAndUpdate);
+    sinon.assert.notCalled(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('shouldn\'t generate a new mandate (update name)', async () => {
+    const customerId = 'qwertyuiop';
+    const customer = {
+      payment: {
+        bankAccountNumber: '',
+        iban: 'FR4717569000303461796573B36',
+        bic: '',
+        mandates: [],
+      },
+    };
+    const req = {
+      params: {
+        _id: customerId,
+      },
+      payload: {
+        payment: {
+          iban: 'FR4717569000303461796573B36',
+          bankAccountOwner: 'Jake Peralta',
+        },
+      },
+    };
+
+    findById.returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.bankAccountOwner = 'Jake Peralta';
+    findOneAndUpdate.returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+    sinon.assert.calledOnce(findById);
+    sinon.assert.calledOnce(findOneAndUpdate);
+    sinon.assert.notCalled(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('shouldn\'t generate a new mandate (create iban)', async () => {
+    const customerId = 'qwertyuiop';
+    const customer = {
+      payment: {
+        bankAccountNumber: '',
+        iban: '',
+        bic: '',
+        mandates: [],
+      },
+    };
+    const req = {
+      params: {
+        _id: customerId,
+      },
+      payload: {
+        payment: {
+          iban: 'FR4717569000303461796573B36',
+        },
+      },
+    };
+
+    findById.returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.payment.iban = 'FR4717569000303461796573B36';
+    findOneAndUpdate.returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+    sinon.assert.calledOnce(findById);
+    sinon.assert.calledOnce(findOneAndUpdate);
+    sinon.assert.notCalled(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('should update a customer', async () => {
+    const customerId = 'qwertyuiop';
+    const customer = {
+      identity: {
+        firstname: 'Jake',
+        lastname: 'Peralta',
+      },
+    };
+    const req = {
+      params: {
+        _id: customerId,
+      },
+      payload: {
+        identity: {
+          firstname: 'Raymond',
+          lastname: 'Holt',
+        },
+      },
+    };
+
+    const customerResult = cloneDeep(customer);
+    customerResult.identity.firstname = 'Raymond';
+    customerResult.identity.lastname = 'Holt';
+    findOneAndUpdate.returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+    sinon.assert.calledOnce(findOneAndUpdate);
+    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(findById);
+    expect(result).toBe(customerResult);
   });
 });

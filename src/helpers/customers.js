@@ -1,5 +1,7 @@
 const flat = require('flat');
 const Boom = require('boom');
+const crypto = require('crypto');
+const moment = require('moment');
 const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
@@ -10,7 +12,7 @@ const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
-const { generateRum } = require('../helpers/generateRum');
+const Counter = require('../models/Rum');
 
 const { language } = translate;
 
@@ -95,6 +97,23 @@ exports.getCustomer = async (customerId) => {
   return customer;
 };
 
+exports.generateRum = async () => {
+  const query = {
+    prefix: `R${moment().format('YYMM')}`,
+  };
+  const payload = { seq: 1 };
+  const number = await Counter.findOneAndUpdate(
+    flat(query),
+    { $inc: flat(payload) },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+
+  const len = 20;
+  const random = crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len).toUpperCase();
+
+  return `${number.prefix}${number.seq.toString().padStart(5, '0')}${random}`;
+};
+
 exports.updateCustomer = async (customerId, customerInfo) => {
   let customerUpdated;
   if (customerInfo.referent === '') {
@@ -107,7 +126,7 @@ exports.updateCustomer = async (customerId, customerInfo) => {
     const customer = await Customer.findById(customerId);
     // if the user updates its RIB, we should generate a new mandate.
     if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerInfo.payment.iban) {
-      const mandate = { rum: await generateRum() };
+      const mandate = { rum: await exports.generateRum() };
       customerInfo.payment.bic = null;
       customerUpdated = await Customer.findOneAndUpdate(
         { _id: customerId },
