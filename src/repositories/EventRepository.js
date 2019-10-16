@@ -90,7 +90,11 @@ exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules,
 exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
 
 exports.getEventList = rules => Event.find(rules)
-  .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
+  .populate({
+    path: 'auxiliary',
+    select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
+    populate: { path: 'sector' },
+  })
   .populate({
     path: 'customer',
     select: 'identity subscriptions contact',
