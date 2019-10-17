@@ -7,6 +7,7 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const mapKeys = require('lodash/mapKeys');
+const uniq = require('lodash/uniq');
 const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
@@ -312,19 +313,25 @@ const getContract = (contracts, endDate) => contracts.find((cont) => {
 
 exports.computeDetail = (hours, prevPayDiff, detailType) => {
   let details = {};
-  if (hours[detailType]) {
+  if (hours[detailType] && Object.keys(hours[detailType]).length > 0) {
     details = cloneDeep(hours[detailType]);
     if (prevPayDiff[detailType]) {
-      for (const plan of Object.keys(hours[detailType])) {
+      for (const plan of Object.keys(prevPayDiff[detailType])) {
         const prevPayPlan = prevPayDiff[detailType][plan];
+        const currentPlan = hours[detailType][plan];
         if (prevPayPlan) {
-          for (const surcharge of Object.keys(hours[detailType][plan])) {
-            if (prevPayPlan[surcharge]) details[plan][surcharge].hours += prevPayPlan[surcharge].hours;
+          for (const surcharge of Object.keys(prevPayPlan)) {
+            if (currentPlan && currentPlan[surcharge]) {
+              details[plan][surcharge].hours += prevPayPlan[surcharge].hours;
+            } else {
+              if (!details[plan]) details[plan] = {};
+              details[plan][surcharge] = { ...prevPayPlan[surcharge] };
+            }
           }
         }
       }
     }
-  } else if (prevPayDiff) details = cloneDeep(prevPayDiff);
+  } else if (prevPayDiff) details = cloneDeep(prevPayDiff[detailType]);
 
   return details;
 };
@@ -386,16 +393,24 @@ exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company
   return exports.computePay(auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges);
 };
 
-exports.computeDetailDiff = (hours, prevPay, detailType) => {
+exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
   let details = {};
   const prevPayDetail = mapKeys(prevPay[detailType], value => value.planId);
   if (hours[detailType]) {
     details = cloneDeep(hours[detailType]);
     if (prevPayDetail) {
-      for (const plan of Object.keys(hours[detailType])) {
+      for (const plan of Object.keys(prevPayDetail)) {
         if (prevPayDetail[plan]) {
-          for (const surcharge of Object.keys(hours[detailType][plan])) {
-            if (prevPayDetail[plan][surcharge]) details[plan][surcharge].hours -= prevPayDetail[plan][surcharge].hours;
+          const surchargeKeys = Object.keys(omit(prevPayDetail[plan], ['planId', 'planName']));
+          for (const surcharge of surchargeKeys) {
+            if (details[plan] && details[plan][surcharge]) {
+              details[plan][surcharge].hours -= prevPayDetail[plan][surcharge].hours;
+            } else {
+              details[plan] = {
+                ...details[plan],
+                [surcharge]: { ...prevPayDetail[plan][surcharge], hours: -prevPayDetail[plan][surcharge].hours },
+              };
+            }
           }
         }
       }
@@ -433,8 +448,8 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
       ...prevPayDiff,
       diff: {
         hoursBalance: hoursBalance - prevPay.hoursBalance,
-        surchargedAndExemptDetails: exports.computeDetailDiff(hours, prevPay, 'surchargedAndExemptDetails'),
-        surchargedAndNotExemptDetails: exports.computeDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),
+        surchargedAndExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndExemptDetails'),
+        surchargedAndNotExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),
       },
       hoursCounter: prevPay.hoursCounter + (hoursBalance - prevPay.hoursBalance),
     };
