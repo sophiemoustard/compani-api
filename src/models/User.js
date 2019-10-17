@@ -10,7 +10,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const locationSchemaDefinition = require('./schemaDefinitions/location');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
-const { AUXILIARY, PLANNING_REFERENT } = require('../helpers/constants');
+const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -181,7 +181,7 @@ async function findOneAndUpdate(next) {
 const isActive = (auxiliary) => {
   if (auxiliary.role && [AUXILIARY, PLANNING_REFERENT].includes(auxiliary.role.name)) {
     return !((auxiliary.inactivityDate && moment(auxiliary.inactivityDate).isSameOrBefore(moment()))
-      || ((!auxiliary.contracts || auxiliary.contracts.length === 0) && moment().diff(auxiliary.createdAt, 'd') > 45));
+      || (((!auxiliary.contracts || auxiliary.contracts.length === 0) && auxiliary.contracts.some(contract => contract.status === COMPANY_CONTRACT)) && moment().diff(auxiliary.createdAt, 'd') > 45));
   }
 };
 
