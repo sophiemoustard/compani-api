@@ -317,7 +317,7 @@ const getContract = (contracts, endDate) => contracts.find((cont) => {
 
 exports.computeDetail = (hours, prevPayDiff, detailType) => {
   let details = {};
-  if (Object.keys(hours[detailType]).length > 0) {
+  if (hours[detailType] && Object.keys(hours[detailType]).length > 0) {
     details = cloneDeep(hours[detailType]);
     if (prevPayDiff[detailType]) {
       for (const plan of Object.keys(prevPayDiff[detailType])) {

@@ -1176,7 +1176,29 @@ describe('computeDetail', () => {
     });
   });
 
-  it('should compute previous pay detail if hours is empty', async () => {});
+  it('should compute previous pay detail if hours is empty', async () => {
+    const hours = {};
+    const prevPay = {
+      surchargedAndExemptDetails: {
+        qwertyuiop: {
+          evenings: { hours: 2 },
+          sundays: { hours: 3 },
+        },
+        zxcvbnm: { evenings: { hours: 4 } },
+      },
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computeDetail(hours, prevPay, detailType);
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: 2 },
+        sundays: { hours: 3 },
+      },
+      zxcvbnm: { evenings: { hours: 4 } },
+    });
+  });
 });
 
 describe('computeHoursWithPrevPayDiff', () => {
