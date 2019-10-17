@@ -13,7 +13,6 @@ const {
   PLANNING_VIEW_END_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
-const Customer = require('../models/Customer');
 const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');

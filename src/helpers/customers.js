@@ -77,10 +77,11 @@ exports.getCustomersWithCustomerContractSubscriptions = async () => {
 };
 
 exports.getCustomer = async (customerId) => {
-  let customer = await Customer.findOne({ _id: customerId })
+  let customer = await Customer.findById(customerId)
     .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
     .populate('fundings.thirdPartyPayer')
     .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
   if (!customer) return null;
 
@@ -141,11 +142,7 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
-  return Customer.findOneAndUpdate(
-    { _id: customerId },
-    payload,
-    { new: true }
-  ).lean();
+  return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {

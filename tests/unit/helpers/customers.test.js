@@ -326,21 +326,27 @@ describe('updateCustomer', () => {
   });
 
   it('should unset the referent of a customer', async () => {
-    const customerId = 'qwertyuiop';
-    const customer = { referent: 'asdfghjkl' };
+    const customer = {
+      _id: 'qwertyuiop',
+      referent: 'asdfghjkl',
+    };
     const payload = { referent: '' };
 
+    const customerResult = {
+      _id: 'qwertyuiop',
+    };
+
     CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $unset: { referent: '' } }, { new: true })
+      .withExactArgs({ _id: customer._id }, { $unset: { referent: '' } }, { new: true })
       .chain('lean')
       .once()
-      .returns(customer);
+      .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const result = await CustomerHelper.updateCustomer(customer._id, payload);
 
     CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
-    expect(result).toBe(customer);
+    expect(result).toBe(customerResult);
   });
 
   it('should generate a new mandate', async () => {
@@ -356,7 +362,6 @@ describe('updateCustomer', () => {
     const payload = {
       payment: {
         iban: 'FR8312739000501844178231W37',
-        bic: null,
       },
     };
 
@@ -367,13 +372,22 @@ describe('updateCustomer', () => {
       .returns(customer);
     const mandate = '1234567890';
     generateRum.returns(mandate);
-    const customerResult = cloneDeep(customer);
-    customerResult.payment.mandates.push(mandate);
-    customerResult.payment.iban = 'FR8312739000501844178231W37';
+    const customerResult = {
+      payment: {
+        bankAccountNumber: '',
+        iban: 'FR8312739000501844178231W37',
+        bic: '',
+        mandates: [mandate],
+      },
+    };
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs(
         { _id: customerId },
-        { $set: flat(payload, { safe: true }), $push: { 'payment.mandates': { rum: mandate } } },
+        {
+          $set: flat(payload, { safe: true }),
+          $push: { 'payment.mandates': { rum: mandate } },
+          $unset: { 'payment.bic': '' },
+        },
         { new: true }
       )
       .chain('lean')
@@ -409,8 +423,16 @@ describe('updateCustomer', () => {
       .chain('lean')
       .once()
       .returns(customer);
-    const customerResult = cloneDeep(customer);
-    customerResult.bic = 'BNPAFRPPXXX';
+
+    const customerResult = {
+      payment: {
+        bankAccountNumber: '',
+        iban: 'FR4717569000303461796573B36',
+        bic: 'BNPAFRPPXXX',
+        mandates: [],
+      },
+    };
+
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')
@@ -440,14 +462,19 @@ describe('updateCustomer', () => {
         bankAccountOwner: 'Jake Peralta',
       },
     };
-
+    const customerResult = {
+      payment: {
+        bankAccountNumber: 'Jake Peralta',
+        iban: 'FR4717569000303461796573B36',
+        bic: '',
+        mandates: [],
+      },
+    };
     CustomerMock.expects('findById')
       .withExactArgs(customerId)
       .chain('lean')
       .once()
       .returns(customer);
-    const customerResult = cloneDeep(customer);
-    customerResult.bankAccountOwner = 'Jake Peralta';
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')

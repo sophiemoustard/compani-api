@@ -122,8 +122,8 @@ exports.getCustomerFollowUp = async (customerId) => {
       // to compute isActive
       'role.name': 1,
       inactivityDate: 1,
-      'contracts._id': 1,
       createdAt: 1,
+      contracts: 1,
     },
   }];
 
