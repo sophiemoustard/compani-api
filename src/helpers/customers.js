@@ -6,6 +6,7 @@ const has = require('lodash/has');
 const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
+const Event = require('../models/Event');
 const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
@@ -138,6 +139,15 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     } else {
       payload = { $set: flat(customerPayload, { safe: true }) };
     }
+  } else if (customerPayload.contact.primaryAddress || customerPayload.contact.secondaryAddress) {
+    const addressField = customerPayload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
+    const customer = await Customer.findById(customerId).lean();
+    await Event.updateMany(
+      { 'address.fullAddress': customer.contact[addressField].fullAddress, startDate: { $gte: moment().startOf('day') } },
+      { $set: { address: customerPayload.contact[addressField] } },
+      { new: true }
+    );
+    payload = { $set: flat(customerPayload, { safe: true }) };
   } else {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
