@@ -559,7 +559,6 @@ describe('updateCustomer', () => {
         { $set: { address: payload.contact.primaryAddress } },
         { new: true }
       )
-      .chain('lean')
       .once();
 
     CustomerMock.expects('findOneAndUpdate')
@@ -607,7 +606,6 @@ describe('updateCustomer', () => {
         { $set: { address: payload.contact.secondaryAddress } },
         { new: true }
       )
-      .chain('lean')
       .once();
 
     CustomerMock.expects('findOneAndUpdate')

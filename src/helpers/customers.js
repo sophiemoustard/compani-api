@@ -146,7 +146,7 @@ exports.updateCustomer = async (customerId, customerPayload) => {
       { 'address.fullAddress': customer.contact[addressField].fullAddress, startDate: { $gte: moment().startOf('day') } },
       { $set: { address: customerPayload.contact[addressField] } },
       { new: true }
-    ).lean();
+    );
     payload = { $set: flat(customerPayload, { safe: true }) };
   } else {
     payload = { $set: flat(customerPayload, { safe: true }) };
