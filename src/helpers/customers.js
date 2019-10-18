@@ -77,7 +77,7 @@ exports.getCustomersWithCustomerContractSubscriptions = async () => {
 };
 
 exports.getCustomer = async (customerId) => {
-  let customer = await Customer.findById(customerId)
+  let customer = await Customer.findOne({ _id: customerId })
     .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
     .populate('fundings.thirdPartyPayer')
     .populate({ path: 'firstIntervention', select: 'startDate' })
