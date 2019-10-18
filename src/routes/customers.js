@@ -45,6 +45,7 @@ exports.plugin = {
         auth: { scope: ['customers:create'] },
         validate: {
           payload: Joi.object().keys({
+            referent: Joi.objectId().allow(null, ''),
             identity: Joi.object().keys({
               title: Joi.string().valid(CIVILITY_OPTIONS).required(),
               firstname: Joi.string().allow(null, ''),
@@ -88,6 +89,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
+            referent: Joi.objectId().allow(null, ''),
             identity: Joi.object().keys({
               title: Joi.string().valid(CIVILITY_OPTIONS),
               firstname: Joi.string().allow('', null),

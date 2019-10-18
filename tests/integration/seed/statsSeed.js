@@ -6,6 +6,7 @@ const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
 const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { COMPANY_CONTRACT } = require('../../../src/helpers/constants');
 
 const sectorList = [{
   _id: new ObjectID(),
@@ -13,6 +14,7 @@ const sectorList = [{
 
 const contractList = [{
   _id: new ObjectID(),
+  status: COMPANY_CONTRACT,
 }];
 
 const userList = [

@@ -12,6 +12,7 @@ const Customer = require('../models/Customer');
 const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const EventHelper = require('./events');
+const CustomerHelper = require('./customers');
 const GDriveStorageHelper = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
@@ -89,6 +90,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   }
 
   await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
+  await CustomerHelper.unassignReferentOnContractEnd(contract);
   await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
   await EventHelper.updateAbsencesOnContractEnd(contract.user, contract.endDate, credentials);
 

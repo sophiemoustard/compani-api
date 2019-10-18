@@ -21,6 +21,7 @@ const FUNDING_NATURES = [FIXED, HOURLY];
 
 const CustomerSchema = mongoose.Schema({
   driveFolder: driveResourceSchemaDefinition,
+  referent: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   email: { type: String, lowercase: true, trim: true },
   identity: {
     type: mongoose.Schema(identitySchemaDefinition, { _id: false }),
