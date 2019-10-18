@@ -3,12 +3,14 @@ const expect = require('expect');
 const flat = require('flat');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
+const Event = require('../../../src/models/Event');
 const CustomerHelper = require('../../../src/helpers/customers');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const EventsHelper = require('../../../src/helpers/events');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const cloneDeep = require('lodash/cloneDeep');
+const moment = require('moment');
 
 require('sinon-mongoose');
 
@@ -316,13 +318,16 @@ describe('getCustomer', () => {
 describe('updateCustomer', () => {
   let CustomerMock;
   let generateRum;
+  let EventMock;
   beforeEach(() => {
     CustomerMock = sinon.mock(Customer);
     generateRum = sinon.stub(CustomerHelper, 'generateRum');
+    EventMock = sinon.mock(Event);
   });
   afterEach(() => {
     CustomerMock.restore();
     generateRum.restore();
+    EventMock.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -518,6 +523,102 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
+    CustomerMock.verify();
+    sinon.assert.notCalled(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('should update events if primaryAddress is changed', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = {
+      contact: {
+        primaryAddress: {
+          fullAddress: '27 rue des renaudes 75017 Paris',
+        },
+      },
+    };
+    const customer = {
+      contact: {
+        primaryAddress: {
+          fullAddress: '37 rue Ponthieu 75008 Paris',
+        },
+      },
+    };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.contact.primaryAddress.fullAddress = '27 rue des renaudes 75017 Paris';
+
+    EventMock.expects('updateMany')
+      .withExactArgs(
+        { 'address.fullAddress': customer.contact.primaryAddress.fullAddress, startDate: { $gte: moment().startOf('day') } },
+        { $set: { address: payload.contact.primaryAddress } },
+        { new: true }
+      )
+      .chain('lean')
+      .once();
+
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    EventMock.verify();
+    CustomerMock.verify();
+    sinon.assert.notCalled(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('should update events if secondaryAddress is changed', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = {
+      contact: {
+        secondaryAddress: {
+          fullAddress: '27 rue des renaudes 75017 Paris',
+        },
+      },
+    };
+    const customer = {
+      contact: {
+        secondaryAddress: {
+          fullAddress: '37 rue Ponthieu 75008 Paris',
+        },
+      },
+    };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.contact.secondaryAddress.fullAddress = '27 rue des renaudes 75017 Paris';
+
+    EventMock.expects('updateMany')
+      .withExactArgs(
+        { 'address.fullAddress': customer.contact.secondaryAddress.fullAddress, startDate: { $gte: moment().startOf('day') } },
+        { $set: { address: payload.contact.secondaryAddress } },
+        { new: true }
+      )
+      .chain('lean')
+      .once();
+
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    EventMock.verify();
     CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);

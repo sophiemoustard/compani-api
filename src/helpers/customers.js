@@ -139,14 +139,14 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     } else {
       payload = { $set: flat(customerPayload, { safe: true }) };
     }
-  } else if (customerPayload.contact.primaryAddress || customerPayload.contact.secondaryAddress) {
+  } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
     const addressField = customerPayload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
     const customer = await Customer.findById(customerId).lean();
     await Event.updateMany(
       { 'address.fullAddress': customer.contact[addressField].fullAddress, startDate: { $gte: moment().startOf('day') } },
       { $set: { address: customerPayload.contact[addressField] } },
       { new: true }
-    );
+    ).lean();
     payload = { $set: flat(customerPayload, { safe: true }) };
   } else {
     payload = { $set: flat(customerPayload, { safe: true }) };
