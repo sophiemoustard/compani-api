@@ -15,6 +15,7 @@ const { createFolder } = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
+const { subscriptionsAccepted, populateSubscriptionsServices } = require('../helpers/subscriptions');
 const User = require('../models/User');
 const Role = require('../models/Role');
 const Task = require('../models/Task');
@@ -131,14 +132,19 @@ const activeList = async (req) => {
 const show = async (req) => {
   try {
     let user = await User.findOne({ _id: req.params._id })
-      .populate('customers')
+      .populate({ path: 'customers', populate: { path: 'subscriptions.service' } })
       .populate('contracts')
       .populate({ path: 'procedure.task', select: 'name _id' });
     if (!user) return Boom.notFound(translate[language].userNotFound);
 
     user = user.toObject();
-    if (user.role && user.role.rights.length > 0) {
+    if (user.role && user.role.rights.length) {
       user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
+    }
+
+    if (user.customers.length) {
+      user.customers[0] = populateSubscriptionsServices(user.customers[0]);
+      user.customers[0] = subscriptionsAccepted(user.customers[0]);
     }
 
     return {
