@@ -3,12 +3,14 @@ const expect = require('expect');
 const flat = require('flat');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
+const Event = require('../../../src/models/Event');
 const CustomerHelper = require('../../../src/helpers/customers');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const EventsHelper = require('../../../src/helpers/events');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const cloneDeep = require('lodash/cloneDeep');
+const moment = require('moment');
 
 require('sinon-mongoose');
 
@@ -316,13 +318,16 @@ describe('getCustomer', () => {
 describe('updateCustomer', () => {
   let CustomerMock;
   let generateRum;
+  let updateMany;
   beforeEach(() => {
     CustomerMock = sinon.mock(Customer);
     generateRum = sinon.stub(CustomerHelper, 'generateRum');
+    updateMany = sinon.stub(Event, 'updateMany');
   });
   afterEach(() => {
     CustomerMock.restore();
     generateRum.restore();
+    updateMany.restore();
   });
 
   it('should unset the referent of a customer', async () => {
@@ -346,6 +351,7 @@ describe('updateCustomer', () => {
 
     CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(updateMany);
     expect(result).toBe(customerResult);
   });
 
@@ -397,6 +403,7 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
     CustomerMock.verify();
+    sinon.assert.notCalled(updateMany);
     sinon.assert.calledOnce(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -442,6 +449,7 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
     CustomerMock.verify();
+    sinon.assert.notCalled(updateMany);
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -483,6 +491,7 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
     CustomerMock.verify();
+    sinon.assert.notCalled(updateMany);
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -519,6 +528,181 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
     CustomerMock.verify();
+    sinon.assert.notCalled(updateMany);
+    sinon.assert.notCalled(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('should update events if primaryAddress is changed', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = {
+      contact: {
+        primaryAddress: {
+          fullAddress: '27 rue des renaudes 75017 Paris',
+        },
+      },
+    };
+    const customer = {
+      contact: {
+        primaryAddress: {
+          fullAddress: '37 rue Ponthieu 75008 Paris',
+        },
+      },
+    };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.contact.primaryAddress.fullAddress = '27 rue des renaudes 75017 Paris';
+
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    sinon.assert.calledWith(
+      updateMany,
+      { 'address.fullAddress': customer.contact.primaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+      { $set: { address: payload.contact.primaryAddress } },
+      { new: true }
+    );
+    CustomerMock.verify();
+    sinon.assert.notCalled(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('should update events if secondaryAddress is changed', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = {
+      contact: {
+        secondaryAddress: {
+          fullAddress: '27 rue des renaudes 75017 Paris',
+        },
+      },
+    };
+    const customer = {
+      contact: {
+        secondaryAddress: {
+          fullAddress: '37 rue Ponthieu 75008 Paris',
+        },
+      },
+    };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.contact.secondaryAddress.fullAddress = '27 rue des renaudes 75017 Paris';
+
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    sinon.assert.calledWith(
+      updateMany,
+      { 'address.fullAddress': customer.contact.secondaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+      { $set: { address: payload.contact.secondaryAddress } },
+      { new: true }
+    );
+    CustomerMock.verify();
+    sinon.assert.notCalled(generateRum);
+    expect(result).toBe(customerResult);
+  });
+
+  it('shouldn\'t update events if secondaryAddress is created', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = {
+      contact: {
+        secondaryAddress: {
+          fullAddress: '27 rue des renaudes 75017 Paris',
+        },
+      },
+    };
+    const customer = {
+      contact: {
+        primaryAddress: {
+          fullAddress: '37 rue Ponthieu 75008 Paris',
+        },
+      },
+    };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.contact.secondaryAddress = { fullAddress: '27 rue des renaudes 75017 Paris' };
+
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    CustomerMock.verify();
+    sinon.assert.notCalled(generateRum);
+    sinon.assert.notCalled(updateMany);
+    expect(result).toBe(customerResult);
+  });
+
+  it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = {
+      contact: {
+        secondaryAddress: {
+          fullAddress: '',
+        },
+      },
+    };
+    const customer = {
+      contact: {
+        secondaryAddress: {
+          fullAddress: '37 rue Ponthieu 75008 Paris',
+        },
+        primaryAddress: {
+          fullAddress: '46 rue Barrault 75013 Paris',
+        },
+      },
+    };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    const customerResult = cloneDeep(customer);
+    customerResult.contact.secondaryAddress = { fullAddress: '' };
+
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .chain('lean')
+      .once()
+      .returns(customerResult);
+
+    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    sinon.assert.calledWith(
+      updateMany,
+      { 'address.fullAddress': customer.contact.secondaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+      { $set: { address: customer.contact.primaryAddress } },
+      { new: true }
+    );
+    CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });
@@ -549,6 +733,7 @@ describe('updateCustomer', () => {
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
     CustomerMock.verify();
+    sinon.assert.notCalled(updateMany);
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
   });

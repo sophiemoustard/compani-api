@@ -3,9 +3,11 @@ const Boom = require('boom');
 const crypto = require('crypto');
 const moment = require('moment');
 const has = require('lodash/has');
+const get = require('lodash/get');
 const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
+const Event = require('../models/Event');
 const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
@@ -138,10 +140,26 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     } else {
       payload = { $set: flat(customerPayload, { safe: true }) };
     }
+  } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
+    const addressField = customerPayload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
+    const customer = await Customer.findById(customerId).lean();
+    const customerHasAddress = customer.contact[addressField] && customer.contact[addressField].fullAddress;
+    const noSecondaryAddressInPayload = has(customerPayload, 'contact.secondaryAddress') &&
+      get(customerPayload, 'contact.secondaryAddress.fullAddress') === '';
+    if (customerHasAddress) {
+      const setAddressToEventPayload = noSecondaryAddressInPayload ?
+        { $set: { address: customer.contact.primaryAddress } } :
+        { $set: { address: customerPayload.contact[addressField] } };
+      await Event.updateMany(
+        { 'address.fullAddress': customer.contact[addressField].fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+        setAddressToEventPayload,
+        { new: true }
+      );
+    }
+    payload = { $set: flat(customerPayload, { safe: true }) };
   } else {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
-
   return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 
