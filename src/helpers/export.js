@@ -9,7 +9,7 @@ const {
   ABSENCE_TYPE_LIST,
   ABSENCE_NATURE_LIST,
   HOURLY,
-  CIVILITY_LIST
+  CIVILITY_LIST,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const Bill = require('../models/Bill');

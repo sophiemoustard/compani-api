@@ -136,6 +136,7 @@ module.exports = {
     return {
       [this.INVOICED_AND_PAID]: 'Facturée & payée',
       [this.INVOICED_AND_NOT_PAID]: 'Facturée & non payée',
+      [this.NOT_INVOICED_AND_NOT_PAID]: 'Non facturée & non payée',
     };
   },
   get CANCELLATION_REASON_LIST() {
