@@ -90,7 +90,11 @@ exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules,
 exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
 
 exports.getEventList = rules => Event.find(rules)
-  .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company picture' })
+  .populate({
+    path: 'auxiliary',
+    select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
+    populate: { path: 'sector' },
+  })
   .populate({
     path: 'customer',
     select: 'identity subscriptions contact',
@@ -320,9 +324,11 @@ exports.getAbsences = async (auxiliaryId, maxEndDate) => Event.find({
   endDate: { $gt: maxEndDate },
 });
 
-exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
-  {
-    $match: {
+exports.getEventsToPay = async (start, end, auxiliaries) => {
+  const rules = [
+    { startDate: { $lt: end } },
+    { endDate: { $gt: start } },
+    {
       $or: [
         {
           status: COMPANY_CONTRACT,
@@ -333,106 +339,105 @@ exports.getEventsToPay = async (start, end, auxiliaries) => Event.aggregate([
               { isCancelled: { $exists: false } },
               { 'cancel.condition': INVOICED_AND_PAID },
             ],
-          },
-          {
-            $or: [
-              { startDate: { $gte: start, $lt: end } },
-              { endDate: { $gt: start, $lte: end } },
-              { endDate: { $gte: end }, startDate: { $lte: start } },
-            ],
           }],
-          auxiliary: { $in: auxiliaries },
         },
-        {
-          type: INTERNAL_HOUR,
-          auxiliary: { $in: auxiliaries },
-          $or: [
-            { startDate: { $gte: start, $lt: end } },
-            { endDate: { $gt: start, $lte: end } },
-            { endDate: { $gte: end }, startDate: { $lte: start } },
-          ],
-        },
+        { type: { $in: [INTERNAL_HOUR, ABSENCE] } },
       ],
     },
-  },
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'auxiliary',
-      foreignField: '_id',
-      as: 'auxiliary',
-    },
-  },
-  { $unwind: { path: '$auxiliary' } },
-  {
-    $lookup: {
-      from: 'customers',
-      localField: 'customer',
-      foreignField: '_id',
-      as: 'customer',
-    },
-  },
-  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      subscription: {
-        $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$$ROOT.subscription'] } },
+    { auxiliary: { $in: auxiliaries } },
+  ];
+
+  const match = [
+    { $match: { $and: rules } },
+    {
+      $lookup: {
+        from: 'customers',
+        localField: 'customer',
+        foreignField: '_id',
+        as: 'customer',
       },
     },
-  },
-  { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
-  {
-    $lookup: {
-      from: 'services',
-      localField: 'subscription.service',
-      foreignField: '_id',
-      as: 'subscription.service',
-    },
-  },
-  { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      hasFixedService: {
-        $cond: {
-          if: { $and: [{ $eq: ['$type', 'intervention'] }, { $eq: ['$subscription.service.nature', 'fixed'] }] },
-          then: true,
-          else: false,
+    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        subscription: {
+          $filter: { input: '$customer.subscriptions', as: 'sub', cond: { $eq: ['$$sub._id', '$$ROOT.subscription'] } },
         },
       },
     },
-  },
-  {
-    $project: {
-      auxiliary: { _id: 1, administrative: { transportInvoice: 1 } },
-      customer: { contact: 1 },
-      startDate: 1,
-      endDate: 1,
-      subscription: { service: 1 },
-      type: 1,
-      address: 1,
-      hasFixedService: 1,
-    },
-  },
-  {
-    $group: {
-      _id: {
-        aux: '$auxiliary._id',
-        year: { $year: '$startDate' },
-        month: { $month: '$startDate' },
-        week: { $week: '$startDate' },
-        day: { $dayOfWeek: '$startDate' },
+    { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'subscription.service',
+        foreignField: '_id',
+        as: 'subscription.service',
       },
-      eventsPerDay: { $push: '$$ROOT' },
-      auxiliary: { $addToSet: '$auxiliary' },
     },
-  },
-  {
-    $group: {
-      _id: '$_id.aux',
-      events: { $push: '$eventsPerDay' },
+    { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        hasFixedService: {
+          $cond: {
+            if: { $and: [{ $eq: ['$type', 'intervention'] }, { $eq: ['$subscription.service.nature', 'fixed'] }] },
+            then: true,
+            else: false,
+          },
+        },
+      },
     },
-  },
-]);
+  ];
+
+  const group = [
+    {
+      $group: {
+        _id: {
+          aux: '$auxiliary',
+          year: { $year: '$startDate' },
+          month: { $month: '$startDate' },
+          week: { $week: '$startDate' },
+          day: { $dayOfWeek: '$startDate' },
+        },
+        eventsPerDay: { $push: { $cond: [{ $in: ['$type', ['internalHour', 'intervention']] }, '$$ROOT', null] } },
+        absences: { $push: { $cond: [{ $eq: ['$type', 'absence'] }, '$$ROOT', null] } },
+        auxiliary: { $first: '$auxiliary' },
+      },
+    },
+    {
+      $project: {
+        auxiliary: 1,
+        absences: { $filter: { input: '$absences', as: 'event', cond: { $ne: ['$$event', null] } } },
+        eventsPerDay: { $filter: { input: '$eventsPerDay', as: 'event', cond: { $ne: ['$$event', null] } } },
+      },
+    },
+    {
+      $group: {
+        _id: { auxiliary: '$auxiliary' },
+        auxiliary: { $first: '$auxiliary' },
+        events: { $push: '$eventsPerDay' },
+        absences: { $push: '$absences' },
+      },
+    },
+    {
+      $project: {
+        auxiliary: 1,
+        events: 1,
+        absences: {
+          $reduce: {
+            input: '$absences',
+            initialValue: [],
+            in: { $setUnion: ['$$value', '$$this'] },
+          },
+        },
+      },
+    },
+  ];
+
+  return Event.aggregate([
+    ...match,
+    ...group,
+  ]);
+};
 
 exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
   {

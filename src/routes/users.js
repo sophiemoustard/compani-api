@@ -8,7 +8,6 @@ const {
   create,
   list,
   activeList,
-  activeListForCustomer,
   show,
   update,
   remove,
@@ -23,7 +22,7 @@ const {
   uploadImage,
   createDriveFolder,
 } = require('../controllers/userController');
-
+const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -66,7 +65,6 @@ exports.plugin = {
         auth: { scope: ['users:edit'] },
         validate: {
           payload: Joi.object().keys({
-            mobilePhone: Joi.string(),
             sector: Joi.objectId(),
             local: {
               email: Joi.string().email().required(),
@@ -77,14 +75,14 @@ exports.plugin = {
               link: Joi.string(),
             }),
             identity: Joi.object().keys({
-              firstname: Joi.string(),
+              firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
-              title: Joi.string(),
+              title: Joi.string().valid(CIVILITY_OPTIONS),
             }),
             contact: Joi.object().keys({
+              phone: Joi.string().allow('', null),
               address: {
                 street: Joi.string().required(),
-                additionalAddress: Joi.string().allow('', null),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string().required(),
@@ -158,7 +156,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             _id: Joi.objectId(),
-            mobilePhone: Joi.string(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
@@ -178,7 +175,7 @@ exports.plugin = {
             }),
             mentor: Joi.string().allow('', null),
             identity: Joi.object().keys({
-              firstname: Joi.string(),
+              firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               nationality: Joi.string(),
               birthDate: Joi.date(),
@@ -188,9 +185,9 @@ exports.plugin = {
               socialSecurityNumber: Joi.number(),
             }),
             contact: Joi.object().keys({
+              phone: Joi.string().allow('', null),
               address: {
                 street: Joi.string().required(),
-                additionalAddress: Joi.string().allow('', null),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),

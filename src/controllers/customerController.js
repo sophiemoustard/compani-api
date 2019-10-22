@@ -11,7 +11,7 @@ const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
 const { populateSubscriptionsServices } = require('../helpers/subscriptions');
-const { generateRum } = require('../helpers/generateRum');
+const { generateRum } = require('../helpers/customers');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/eSign');
@@ -23,6 +23,7 @@ const {
   getCustomers,
   getCustomersWithCustomerContractSubscriptions,
   getCustomer,
+  updateCustomer,
 } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
 
@@ -148,25 +149,7 @@ const remove = async (req) => {
 
 const update = async (req) => {
   try {
-    let customerUpdated;
-    if (req.payload.payment && req.payload.payment.iban) {
-      const customer = await Customer.findById(req.params._id);
-      // if the user updates its RIB, we should generate a new mandate.
-      if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== req.payload.payment.iban) {
-        const mandate = { rum: await generateRum() };
-        req.payload.payment.bic = null;
-        customerUpdated = await Customer.findOneAndUpdate(
-          { _id: req.params._id },
-          { $set: flat(req.payload, { safe: true }), $push: { 'payment.mandates': mandate } },
-          { new: true, runValidators: true }
-        );
-      } else {
-        customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
-      }
-    } else {
-      customerUpdated = await Customer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload, { safe: true }) }, { new: true });
-    }
-
+    const customerUpdated = await updateCustomer(req.params._id, req.payload);
     if (!customerUpdated) {
       return Boom.notFound(translate[language].customerNotFound);
     }

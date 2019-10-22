@@ -7,7 +7,7 @@ const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
-const { HOURLY, THIRD_PARTY } = require('./constants');
+const { HOURLY, THIRD_PARTY, CIVILITY_LIST } = require('./constants');
 
 exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
 
@@ -160,8 +160,8 @@ exports.formatAndCreateBills = async (number, groupByCustomerBills) => {
 };
 
 const formatCustomerName = customer => (customer.identity.firstname
-  ? `${customer.identity.title} ${customer.identity.firstname} ${customer.identity.lastname}`
-  : `${customer.identity.title} ${customer.identity.lastname}`);
+  ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
+  : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
 
 exports.getUnitInclTaxes = (bill, subscription) => {
   if (!bill.client) return subscription.unitInclTaxes;
@@ -231,7 +231,7 @@ exports.formatPDF = (bill, company) => {
     date: moment(bill.date).format('DD/MM/YYYY'),
     formattedEvents: [],
     recipient: {
-      address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.address', {}),
+      address: bill.client ? get(bill, 'client.address', {}) : get(bill, 'customer.contact.primaryAddress', {}),
       name: bill.client ? bill.client.name : formatCustomerName(bill.customer),
     },
     forTpp: !!bill.client,
@@ -246,7 +246,10 @@ exports.formatPDF = (bill, company) => {
   return {
     bill: {
       number: bill.number,
-      customer: bill.customer,
+      customer: {
+        identity: { ...get(bill, 'customer.identity'), title: CIVILITY_LIST[get(bill, 'customer.identity.title')] },
+        contact: get(bill, 'customer.contact'),
+      },
       ...computedData,
       company,
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',

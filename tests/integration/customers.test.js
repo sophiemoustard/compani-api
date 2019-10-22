@@ -1,6 +1,5 @@
 const path = require('path');
 const expect = require('expect');
-const faker = require('faker');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const sinon = require('sinon');
@@ -39,12 +38,17 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   const payload = {
-    identity: { lastname: faker.name.lastName() },
+    identity: { title: 'mr', lastname: 'leboncoin' },
     contact: {
-      address: {
-        street: faker.address.streetAddress(),
-        zipCode: faker.address.zipCode(),
-        city: faker.address.city(),
+      primaryAddress: {
+        street: '37 rue de Ponthieu',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      secondaryAddress: {
+        street: '27 rue des Renaudes',
+        zipCode: '75017',
+        city: 'Paris',
       },
     },
   };
@@ -59,14 +63,20 @@ describe('CUSTOMERS ROUTES', () => {
           'x-access-token': adminToken,
         },
       });
+
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
         identity: { lastname: payload.identity.lastname },
         contact: {
-          address: {
-            street: payload.contact.address.street,
-            zipCode: payload.contact.address.zipCode,
-            city: payload.contact.address.city,
+          primaryAddress: {
+            street: payload.contact.primaryAddress.street,
+            zipCode: payload.contact.primaryAddress.zipCode,
+            city: payload.contact.primaryAddress.city,
+          },
+          secondaryAddress: {
+            street: payload.contact.secondaryAddress.street,
+            zipCode: payload.contact.secondaryAddress.zipCode,
+            city: payload.contact.secondaryAddress.city,
           },
         },
       });
@@ -77,7 +87,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(customers).toHaveLength(customersList.length + 1);
     });
 
-    const missingParams = ['identity.lastname', 'contact.address.street', 'contact.address.zipCode', 'contact.address.city'];
+    const missingParams = ['identity.lastname', 'contact.primaryAddress.street', 'contact.primaryAddress.zipCode', 'contact.primaryAddress.city'];
     missingParams.forEach((paramPath) => {
       it(`should return a 400 error if missing '${paramPath}' parameter`, async () => {
         const res = await app.inject({
@@ -271,8 +281,8 @@ describe('CUSTOMERS ROUTES', () => {
   describe('PUT /customers/{id}', () => {
     const updatePayload = {
       identity: {
-        firstname: faker.name.firstName(),
-        lastname: faker.name.lastName(),
+        firstname: 'seloger',
+        lastname: 'pap',
       },
     };
 
@@ -705,9 +715,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     it('should update customer mandate', async () => {
       const customer = customersList[1];
       const mandate = customer.payment.mandates[0];
-      const payload = {
-        signedAt: faker.date.past(1),
-      };
+      const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
@@ -724,9 +732,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     it('should return 404 if customer not found', async () => {
       const invalidId = new ObjectID().toHexString();
       const mandate = customersList[1].payment.mandates[0];
-      const payload = {
-        signedAt: faker.date.past(1),
-      };
+      const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
@@ -741,9 +747,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     it('should return 404 if mandate not found', async () => {
       const invalidId = new ObjectID().toHexString();
       const customer = customersList[1];
-      const payload = {
-        signedAt: faker.date.past(1),
-      };
+      const payload = { signedAt: '2019-09-09T00:00:00' };
 
       const result = await app.inject({
         method: 'PUT',
@@ -817,7 +821,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
         email: 'test@test.com',
       },
       fields: {
-        title: 'Mme',
+        title: 'mrs',
         firstname: 'Test',
         lastname: 'Test',
         address: '15 rue du test',
@@ -1092,9 +1096,9 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
           estimatedWeeklyVolume: 10,
         }],
         helper: {
-          firstname: faker.name.firstName(),
-          lastname: faker.name.lastName(),
-          title: 'Mme',
+          firstname: 'Emmanuel',
+          lastname: 'Magellan',
+          title: 'mrs',
         },
       };
 
@@ -1123,9 +1127,9 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         url: `/customers/${helper.customers[0].toHexString()}/subscriptionshistory`,
         payload: {
           helper: {
-            firstname: faker.name.firstName(),
-            lastname: faker.name.lastName(),
-            title: 'Mme',
+            firstname: 'Emmanuel',
+            lastname: 'Magellan',
+            title: 'mrs',
           },
         },
         headers: { 'x-access-token': helperToken },
@@ -1167,9 +1171,9 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
           estimatedWeeklyVolume: 10,
         }],
         helper: {
-          firstname: faker.name.firstName(),
-          lastname: faker.name.lastName(),
-          title: 'Mme',
+          firstname: 'Emmanuel',
+          lastname: 'Magellan',
+          title: 'mrs',
         },
       };
 
@@ -1197,7 +1201,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
         helper: {
           firstname: 'Lana',
           lastname: 'Wachowski',
-          title: 'Mme',
+          title: 'mrs',
         },
       };
       const roles = [

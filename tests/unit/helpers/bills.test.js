@@ -793,8 +793,8 @@ describe('formatPDF', () => {
         service: { name: 'Temps de qualité - autonomie' },
       }],
       customer: {
-        identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
-        contact: { address: { fullAddress: 'La ruche' } },
+        identity: { title: 'mr', firstname: 'Donald', lastname: 'Duck' },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
       },
       netInclTaxes: 1074,
       date: '2019-04-30T21:59:59.999Z',
@@ -804,14 +804,14 @@ describe('formatPDF', () => {
       bill: {
         number: '12345',
         customer: {
-          identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
-          contact: { address: { fullAddress: 'La ruche' } },
+          identity: { title: 'M.', firstname: 'Donald', lastname: 'Duck' },
+          contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         formattedSubs: [{
           vat: '5,5',
         }],
         recipient: {
-          name: 'M Donald Duck',
+          name: 'M. Donald Duck',
           address: { fullAddress: 'La ruche' },
         },
         netInclTaxes: '1 074,00 €',
@@ -864,8 +864,8 @@ describe('formatPDF', () => {
         service: { name: 'Temps de qualité - autonomie' },
       }],
       customer: {
-        identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
-        contact: { address: { fullAddress: 'La ruche' } },
+        identity: { title: 'mr', firstname: 'Donald', lastname: 'Duck' },
+        contact: { primaryAddress: { fullAddress: 'La ruche' } },
       },
       client: {
         name: 'tpp',
@@ -880,8 +880,8 @@ describe('formatPDF', () => {
       bill: {
         number: '12345',
         customer: {
-          identity: { title: 'M', firstname: 'Donald', lastname: 'Duck' },
-          contact: { address: { fullAddress: 'La ruche' } },
+          identity: { title: 'M.', firstname: 'Donald', lastname: 'Duck' },
+          contact: { primaryAddress: { fullAddress: 'La ruche' } },
         },
         formattedSubs: [{
           vat: '5,5',

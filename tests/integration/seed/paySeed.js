@@ -104,13 +104,13 @@ const event = {
 const customer = {
   _id: customerId,
   identity: {
-    title: 'M',
+    title: 'mr',
     firstname: 'Toto',
     lastname: 'Tata',
   },
   sectors: ['1e*'],
   contact: {
-    address: {
+    primaryAddress: {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75',
     },

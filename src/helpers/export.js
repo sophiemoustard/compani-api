@@ -9,6 +9,7 @@ const {
   ABSENCE_TYPE_LIST,
   ABSENCE_NATURE_LIST,
   HOURLY,
+  CIVILITY_LIST,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const Bill = require('../models/Bill');
@@ -70,11 +71,11 @@ exports.exportWorkingEventsHistory = async (startDate, endDate) => {
       UtilsHelper.formatFloatForExport(moment(event.endDate).diff(event.startDate, 'h', true)),
       repetition || '',
       get(event.sector, 'name') || '',
-      get(event, 'auxiliary.identity.title', ''),
+      CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
       get(event, 'auxiliary.identity.firstname', ''),
       get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
       event.auxiliary ? 'Non' : 'Oui',
-      get(event, 'customer.identity.title', ''),
+      CIVILITY_LIST[get(event, 'customer.identity.title')] || '',
       get(event, 'customer.identity.lastname', '').toUpperCase(),
       get(event, 'customer.identity.firstname', ''),
       event.misc || '',
@@ -114,7 +115,7 @@ exports.exportAbsencesHistory = async (startDate, endDate) => {
       moment(event.startDate).format(datetimeFormat),
       moment(event.endDate).format(datetimeFormat),
       get(event.sector, 'name') || '',
-      get(event, 'auxiliary.identity.title', ''),
+      CIVILITY_LIST[get(event, 'auxiliary.identity.title')] || '',
       get(event, 'auxiliary.identity.firstname', ''),
       get(event, 'auxiliary.identity.lastname', '').toUpperCase(),
       event.misc || '',
@@ -158,7 +159,7 @@ const formatRowCommonsForExport = (document) => {
     document.number || '',
     document.date ? moment(document.date).format('DD/MM/YYYY') : '',
     customerId ? customerId.toHexString() : '',
-    customerIdentity.title || '',
+    CIVILITY_LIST[customerIdentity.title] || '',
     (customerIdentity.lastname || '').toUpperCase(),
     customerIdentity.firstname || '',
   ];
@@ -271,7 +272,7 @@ exports.exportContractHistory = async (startDate, endDate) => {
       if (version.startDate && moment(version.startDate).isBetween(startDate, endDate, null, '[]')) {
         rows.push([
           i === 0 ? 'Contrat' : 'Avenant',
-          identity.title || '',
+          CIVILITY_LIST[identity.title] || '',
           identity.firstname || '',
           identity.lastname || '',
           version.startDate ? moment(version.startDate).format('DD/MM/YYYY') : '',
@@ -334,11 +335,11 @@ exports.exportCustomers = async () => {
     const firstIntervention = get(cus, 'firstIntervention.startDate');
 
     const cells = [
-      get(cus, 'identity.title') || '',
+      CIVILITY_LIST[get(cus, 'identity.title')] || '',
       lastname ? lastname.toUpperCase() : '',
       get(cus, 'identity.firstname') || '',
       birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
-      get(cus, 'contact.address.fullAddress') || '',
+      get(cus, 'contact.primaryAddress.fullAddress') || '',
       firstIntervention ? moment(firstIntervention).format('DD/MM/YYYY') : '',
       get(cus, 'followUp.environment') || '',
       get(cus, 'followUp.objectives') || '',
@@ -391,12 +392,12 @@ exports.exportAuxiliaries = async () => {
     const birthDate = get(aux, 'identity.birthDate');
     const address = get(aux, 'contact.address.fullAddress');
     const birthCountry = get(aux, 'identity.birthCountry');
-    const { contracts, inactivityDate, createdAt, mobilePhone } = aux;
+    const { contracts, inactivityDate, createdAt } = aux;
 
     data.push([
       get(aux, 'local.email') || '',
       get(aux, 'sector.name') || '',
-      get(aux, 'identity.title') || '',
+      CIVILITY_LIST[get(aux, 'identity.title')] || '',
       lastname ? lastname.toUpperCase() : '',
       get(aux, 'identity.firstname') || '',
       birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
@@ -406,7 +407,7 @@ exports.exportAuxiliaries = async () => {
       nationality ? nationalities[nationality] : '',
       get(aux, 'identity.socialSecurityNumber') || '',
       address || '',
-      mobilePhone || '',
+      get(aux, 'contact.phone') || '',
       contracts ? contracts.length : 0,
       inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
       createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
@@ -437,7 +438,7 @@ exports.exportHelpers = async () => {
       get(hel, 'local.email', ''),
       get(hel, 'identity.lastname', '').toUpperCase(),
       get(hel, 'identity.firstname', ''),
-      get(customer, 'identity.title', ''),
+      CIVILITY_LIST[get(customer, 'identity.title')] || '',
       get(customer, 'identity.lastname', '').toUpperCase(),
       get(customer, 'identity.firstname', ''),
       hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);

@@ -1,8 +1,13 @@
 const flat = require('flat');
 const Boom = require('boom');
+const crypto = require('crypto');
+const moment = require('moment');
+const has = require('lodash/has');
+const get = require('lodash/get');
 const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
+const Event = require('../models/Event');
 const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
 const translate = require('../helpers/translate');
@@ -10,6 +15,7 @@ const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
+const Counter = require('../models/Rum');
 
 const { language } = translate;
 
@@ -77,6 +83,7 @@ exports.getCustomer = async (customerId) => {
     .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
     .populate('fundings.thirdPartyPayer')
     .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
   if (!customer) return null;
 
@@ -92,6 +99,68 @@ exports.getCustomer = async (customerId) => {
   }
 
   return customer;
+};
+
+exports.generateRum = async () => {
+  const query = {
+    prefix: `R${moment().format('YYMM')}`,
+  };
+  const payload = { seq: 1 };
+  const number = await Counter.findOneAndUpdate(
+    query,
+    { $inc: payload },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+
+  const len = 20;
+  const random = crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len).toUpperCase();
+
+  return `${number.prefix}${number.seq.toString().padStart(5, '0')}${random}`;
+};
+
+exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
+  { referent: contract.user },
+  { $unset: { referent: '' } }
+);
+
+exports.updateCustomer = async (customerId, customerPayload) => {
+  let payload;
+  if (customerPayload.referent === '') {
+    payload = { $unset: { referent: '' } };
+  } else if (has(customerPayload, 'payment.iban')) {
+    const customer = await Customer.findById(customerId).lean();
+    // if the user updates its RIB, we should generate a new mandate.
+    if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerPayload.payment.iban) {
+      const mandate = { rum: await exports.generateRum() };
+      payload = {
+        $set: flat(customerPayload, { safe: true }),
+        $push: { 'payment.mandates': mandate },
+        $unset: { 'payment.bic': '' },
+      };
+    } else {
+      payload = { $set: flat(customerPayload, { safe: true }) };
+    }
+  } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
+    const addressField = customerPayload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
+    const customer = await Customer.findById(customerId).lean();
+    const customerHasAddress = customer.contact[addressField] && customer.contact[addressField].fullAddress;
+    const noSecondaryAddressInPayload = has(customerPayload, 'contact.secondaryAddress') &&
+      get(customerPayload, 'contact.secondaryAddress.fullAddress') === '';
+    if (customerHasAddress) {
+      const setAddressToEventPayload = noSecondaryAddressInPayload ?
+        { $set: { address: customer.contact.primaryAddress } } :
+        { $set: { address: customerPayload.contact[addressField] } };
+      await Event.updateMany(
+        { 'address.fullAddress': customer.contact[addressField].fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+        setAddressToEventPayload,
+        { new: true }
+      );
+    }
+    payload = { $set: flat(customerPayload, { safe: true }) };
+  } else {
+    payload = { $set: flat(customerPayload, { safe: true }) };
+  }
+  return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {

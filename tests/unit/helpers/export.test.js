@@ -26,7 +26,7 @@ describe('exportWorkingEventsHistory', () => {
       },
       customer: {
         identity: {
-          title: 'Mme',
+          title: 'mrs',
           firstname: 'Mimi',
           lastname: 'Mathy',
         },
@@ -52,7 +52,7 @@ describe('exportWorkingEventsHistory', () => {
       sector: { name: 'Etoiles - 75' },
       customer: {
         identity: {
-          title: 'M',
+          title: 'mr',
           firstname: 'Bojack',
           lastname: 'Horseman',
         },
@@ -89,7 +89,7 @@ describe('exportWorkingEventsHistory', () => {
     expect(exportArray).toEqual([
       header,
       ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', '', 'Jean-Claude', 'VAN DAMME', 'Non', 'Mme', 'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '', '', '', 'Oui', 'M', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
+      ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '', '', '', 'Oui', 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
     ]);
   });
 });
@@ -164,7 +164,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       customer: {
         _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
         identity: {
-          title: 'Mme',
+          title: 'mrs',
           firstname: 'Mimi',
           lastname: 'Mathy',
         },
@@ -183,7 +183,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       customer: {
         _id: ObjectID('5c35b5eb1a6fb02397363eb1'),
         identity: {
-          title: 'M',
+          title: 'mr',
           firstname: 'Bojack',
           lastname: 'Horseman',
         },
@@ -308,7 +308,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
     expect(exportArray).toEqual([
       header,
       ['Facture', 'FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
-      ['Facture', 'FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
+      ['Facture', 'FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M.', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
       ['Avoir', 'F1501231', '21/05/2019', '5d761a8f6f6cba0d259b17eb', '', 'BINKS', 'Jar jar', '5d761ad7ffd1dc0d39dadd7e', 'SW', 'F-18.5', 'F-8.5', 'Temps de qualité - autonomie'],
       ['Avoir', 'F6473250', '25/05/2019', '5d761a8f6f8eba0d259b173f', '', 'R2D2', '', '', '', 'F-10.5', 'F-5.5', 'Temps de qualité - autonomie'],
     ]);
@@ -360,13 +360,13 @@ describe('exportContractHistory', () => {
   it('should return an array with the header and 2 rows', async () => {
     const contracts = [
       {
-        user: { identity: { title: 'M', lastname: 'Patate' } },
+        user: { identity: { title: 'mr', lastname: 'Patate' } },
         versions: [
           { startDate: '2019-10-10T00:00:00', weeklyHours: 12, grossHourlyRate: 10.45 },
         ],
       },
       {
-        user: { identity: { title: 'Mme', firstname: 'Patate' } },
+        user: { identity: { title: 'mrs', firstname: 'Patate' } },
         versions: [
           { startDate: '2019-09-08T00:00:00', endDate: '2019-10-07T00:00:00', weeklyHours: 10, grossHourlyRate: 10 },
           { startDate: '2019-10-08T00:00:00', endDate: '2019-11-07T00:00:00', weeklyHours: 14, grossHourlyRate: 2 },
@@ -380,7 +380,7 @@ describe('exportContractHistory', () => {
     const result = await ExportHelper.exportContractHistory(startDate, endDate);
     expect(result).toEqual([
       ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
-      ['Contrat', 'M', '', 'Patate', '10/10/2019', '', '10,45', 12],
+      ['Contrat', 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
       ['Avenant', 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
   });
@@ -422,8 +422,8 @@ describe('exportCustomers', () => {
   it('should return customer info', async () => {
     const customers = [{
       email: 'papi@mamie.pp',
-      identity: { lastname: 'Papi', firstname: 'Grand Père', title: 'M', birthDate: '1919-12-12T00:00:00.000+00:00' },
-      contact: { address: { fullAddress: '9 rue du paradis 70015 Paris' } },
+      identity: { lastname: 'Papi', firstname: 'Grand Père', title: 'mr', birthDate: '1919-12-12T00:00:00.000+00:00' },
+      contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
       followUp: { misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
       firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
       payment: {
@@ -452,7 +452,7 @@ describe('exportCustomers', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject([
-      'M',
+      'M.',
       'PAPI',
       'Grand Père',
       '12/12/1919',
@@ -538,7 +538,7 @@ describe('exportAuxiliaries', () => {
     const auxiliaries = [
       {
         local: { email: 'aide@sos.io' },
-        mobilePhone: '0123456789',
+        contact: { phone: '0123456789' },
         inactivityDate: '2019-02-01T09:38:18.653Z',
         createdAt: '2019-02-01T09:38:18.653Z',
       },
@@ -587,7 +587,7 @@ describe('exportAuxiliaries', () => {
     const auxiliaries = [
       {
         identity: {
-          title: 'M',
+          title: 'mr',
           firstname: 'Super',
           lastname: 'Mario',
           birthDate: '1994-02-07T09:38:18.653Z',
@@ -609,7 +609,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', 'M', 'MARIO', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', '', 'M.', 'MARIO', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
   });
 
   it('should return auxiliary contracts count', async () => {
@@ -720,7 +720,7 @@ describe('exportHelpers', () => {
 
     const helpers = [
       {
-        customers: [{ identity: { title: 'M', lastname: 'Patate' } }],
+        customers: [{ identity: { title: 'mr', lastname: 'Patate' } }],
       },
     ];
     UserModel.expects('find')
@@ -733,6 +733,6 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', 'M', 'PATATE', '', '']);
+    expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '']);
   });
 });

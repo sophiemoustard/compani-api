@@ -33,6 +33,7 @@ const {
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 const { getCustomer, authorizeCustomerDelete } = require('./preHandlers/customers');
+const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -44,13 +45,14 @@ exports.plugin = {
         auth: { scope: ['customers:create'] },
         validate: {
           payload: Joi.object().keys({
+            referent: Joi.objectId().allow(null, ''),
             identity: Joi.object().keys({
-              title: Joi.string(),
+              title: Joi.string().valid(CIVILITY_OPTIONS).required(),
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string().required(),
             }).min(1),
             contact: Joi.object().keys({
-              address: {
+              primaryAddress: {
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
@@ -58,6 +60,16 @@ exports.plugin = {
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
+                },
+              },
+              secondaryAddress: {
+                street: Joi.string().allow('', null),
+                zipCode: Joi.string().allow('', null),
+                city: Joi.string().allow('', null),
+                fullAddress: Joi.string().allow('', null),
+                location: {
+                  type: Joi.string().allow('', null),
+                  coordinates: Joi.array().allow([], null),
                 },
               },
             }).required(),
@@ -77,9 +89,9 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            _id: Joi.objectId(),
+            referent: Joi.objectId().allow(null, ''),
             identity: Joi.object().keys({
-              title: Joi.string(),
+              title: Joi.string().valid(CIVILITY_OPTIONS),
               firstname: Joi.string().allow('', null),
               lastname: Joi.string(),
               birthDate: Joi.date(),
@@ -87,15 +99,24 @@ exports.plugin = {
             email: Joi.string().email(),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: {
+              primaryAddress: {
                 street: Joi.string().required(),
-                additionalAddress: Joi.string().allow('', null),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),
                 location: {
                   type: Joi.string(),
                   coordinates: Joi.array(),
+                },
+              },
+              secondaryAddress: {
+                street: Joi.string().allow('', null),
+                zipCode: Joi.string().allow('', null),
+                city: Joi.string().allow('', null),
+                fullAddress: Joi.string().allow('', null),
+                location: {
+                  type: Joi.string().allow('', null),
+                  coordinates: Joi.array().allow([], null),
                 },
               },
               accessCodes: Joi.string().allow('', null),

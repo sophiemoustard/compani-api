@@ -78,7 +78,7 @@
   {{#if creditNote.subscription}}
   <div class="wrapper">
     <p>Prestations réalisées chez {{ creditNote.customer.identity.title }} {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }},
-      <span class="capitalize">{{ creditNote.customer.contact.address.fullAddress }}.</span></p>
+      <span class="capitalize">{{ creditNote.customer.contact.primaryAddress.fullAddress }}.</span></p>
     <table class="subscriptions">
       <thead>
         <tr>
@@ -118,7 +118,7 @@
   </div>
   <br/>
   <p>Prestations annulées chez {{ creditNote.customer.identity.title }} {{ creditNote.customer.identity.firstname }} {{ creditNote.customer.identity.lastname }},
-    <span class="capitalize">{{ creditNote.customer.contact.address.fullAddress }}.</span></p>
+    <span class="capitalize">{{ creditNote.customer.contact.primaryAddress.fullAddress }}.</span></p>
   <div class="wrapper">
     <table class="events">
       <thead>

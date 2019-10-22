@@ -1,7 +1,7 @@
 const Boom = require('boom');
 const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
-const Pay = require('../models/Pay');
+const { createPayList } = require('../helpers/pay');
 
 const { language } = translate;
 
@@ -21,16 +21,7 @@ const draftPayList = async (req) => {
 
 const createList = async (req) => {
   try {
-    const promises = [];
-    for (const pay of req.payload) {
-      promises.push((new Pay({
-        ...pay,
-        ...(pay.surchargedAndNotExemptDetails && { surchargedAndNotExemptDetails: Object.values(pay.surchargedAndNotExemptDetails) }),
-        ...(pay.surchargedAndExemptDetails && { surchargedAndExemptDetails: Object.values(pay.surchargedAndExemptDetails) }),
-      })).save());
-    }
-
-    await Promise.all(promises);
+    await createPayList(req.payload);
 
     return { message: translate[language].payListCreated };
   } catch (e) {

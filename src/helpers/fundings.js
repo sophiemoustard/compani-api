@@ -4,7 +4,7 @@ const get = require('lodash/get');
 const Customer = require('../models/Customer');
 const { populateServices } = require('./subscriptions');
 const UtilsHelper = require('./utils');
-const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES } = require('./constants');
+const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES, CIVILITY_LIST } = require('./constants');
 const CustomerRepository = require('../repositories/CustomerRepository');
 
 exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
@@ -66,7 +66,7 @@ exports.exportFundings = async () => {
     const fundInfo = [];
     if (cus.identity) {
       fundInfo.push(
-        get(cus, 'identity.title', ''),
+        CIVILITY_LIST[get(cus, 'identity.title')] || '',
         get(cus, 'identity.lastname', '').toUpperCase(),
         get(cus, 'identity.firstname', '')
       );

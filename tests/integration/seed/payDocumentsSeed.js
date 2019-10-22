@@ -1,6 +1,5 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
-const faker = require('faker');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
 const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
@@ -18,17 +17,17 @@ const payDocumentsList = [{
   _id: new ObjectID(),
   nature: PAYSLIP,
   date: new Date('2019-01-01'),
-  file: { driveId: faker.random.alphaNumeric(8), link: faker.internet.url() },
+  file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
 }, {
   _id: new ObjectID(),
   nature: CERTIFICATE,
   date: new Date('2019-01-02'),
-  file: { driveId: faker.random.alphaNumeric(8), link: faker.internet.url() },
+  file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
 }, {
   _id: new ObjectID(),
   nature: OTHER,
   date: new Date('2019-01-03'),
-  file: { driveId: faker.random.alphaNumeric(8), link: faker.internet.url() },
+  file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
 }, {
   _id: new ObjectID(),
   nature: OTHER,

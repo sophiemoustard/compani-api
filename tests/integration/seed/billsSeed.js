@@ -52,12 +52,12 @@ const billCustomerList = [
     _id: new ObjectID(),
     email: 'tito@ty.com',
     identity: {
-      title: 'M',
+      title: 'mr',
       firstname: 'Egan',
       lastname: 'Bernal',
     },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
@@ -90,7 +90,7 @@ const billCustomerList = [
     _id: new ObjectID(),
     email: 'fake@test.com',
     identity: {
-      title: 'M',
+      title: 'mr',
       firstname: 'Romain',
       lastname: 'Bardet',
     },

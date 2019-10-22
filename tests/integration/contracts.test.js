@@ -142,7 +142,7 @@ describe('CONTRACTS ROUTES', () => {
           startDate: '2019-01-19T15:46:30.636Z',
           signature: {
             templateId: '0987654321',
-            title: 'Test',
+            title: 'mrs',
             signers: [{
               id: new ObjectID(),
               name: 'Toto',

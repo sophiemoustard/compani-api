@@ -42,6 +42,17 @@ module.exports = {
   // COMPANY THIRD PARTY PAYERS
   BILLING_INDIRECT: 'indirect',
   BILLING_DIRECT: 'direct',
+  // CUSTOMER
+  MISTER: 'mr',
+  MRS: 'mrs',
+  COUPLE: 'couple',
+  get CIVILITY_LIST() {
+    return {
+      [this.MISTER]: 'M.',
+      [this.MRS]: 'Mme',
+      [this.COUPLE]: 'Mme et M.',
+    };
+  },
   // CUSTOMER FUNDINGS
   MONTHLY: 'monthly',
   ONCE: 'once',
@@ -125,6 +136,7 @@ module.exports = {
     return {
       [this.INVOICED_AND_PAID]: 'Facturée & payée',
       [this.INVOICED_AND_NOT_PAID]: 'Facturée & non payée',
+      [this.NOT_INVOICED_AND_NOT_PAID]: 'Non facturée & non payée',
     };
   },
   get CANCELLATION_REASON_LIST() {

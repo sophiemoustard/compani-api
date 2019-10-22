@@ -12,8 +12,7 @@ const Event = require('./Event');
 const User = require('./User');
 const Drive = require('./Google/Drive');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const locationSchemaDefinition = require('./schemaDefinitions/location');
-const identitySchemaDefinition = require('./schemaDefinitions/identity');
+const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
 
@@ -22,6 +21,7 @@ const FUNDING_NATURES = [FIXED, HOURLY];
 
 const CustomerSchema = mongoose.Schema({
   driveFolder: driveResourceSchemaDefinition,
+  referent: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   email: { type: String, lowercase: true, trim: true },
   identity: {
     type: mongoose.Schema(identitySchemaDefinition, { _id: false }),
@@ -29,11 +29,8 @@ const CustomerSchema = mongoose.Schema({
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
-    address: {
-      ...addressSchemaDefinition,
-      additionalAddress: String,
-      location: locationSchemaDefinition,
-    },
+    primaryAddress: addressSchemaDefinition,
+    secondaryAddress: addressSchemaDefinition,
     phone: String,
     accessCodes: String,
   },

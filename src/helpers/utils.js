@@ -1,6 +1,7 @@
 const moment = require('moment-timezone');
 const _ = require('lodash');
 const Intl = require('intl');
+const { CIVILITY_LIST } = require('./constants');
 
 exports.clean = (obj) => {
   for (const k in obj) {
@@ -70,7 +71,7 @@ exports.getFullTitleFromIdentity = (identity) => {
 
   const lastname = identity.lastname || '';
   let fullTitle = [
-    identity.title || '',
+    CIVILITY_LIST[identity.title] || '',
     identity.firstname || '',
     lastname.toUpperCase(),
   ];

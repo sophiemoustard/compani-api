@@ -1,9 +1,10 @@
+const moment = require('moment');
 const Contract = require('../models/Contract');
 const { COMPANY_CONTRACT } = require('../helpers/constants');
 
-exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate([
+exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contract.aggregate([
   { $match: { ...contractRules } },
-  { $group: { _id: '$user' } },
+  { $group: { _id: '$user', contracts: { $push: '$$ROOT' } } },
   {
     $lookup: {
       from: 'users',
@@ -23,23 +24,49 @@ exports.getAuxiliariesFromContracts = async contractRules => Contract.aggregate(
   },
   { $unwind: { path: '$auxiliary.sector' } },
   {
-    $lookup: {
-      from: 'contracts',
-      localField: 'auxiliary.contracts',
-      foreignField: '_id',
-      as: 'auxiliary.contracts',
-    },
-  },
-  {
     $project: {
       _id: 1,
       identity: { firstname: '$auxiliary.identity.firstname', lastname: '$auxiliary.identity.lastname' },
       sector: '$auxiliary.sector',
-      contracts: '$auxiliary.contracts',
+      contracts: '$contracts',
       contact: '$auxiliary.contact',
       administrative: { mutualFund: '$auxiliary.administrative.mutualFund', transportInvoice: '$auxiliary.administrative.transportInvoice' },
     },
   },
+  {
+    $lookup: {
+      from: payCollection,
+      as: 'pay',
+      let: { auxiliaryId: '$_id', month: moment(end).format('MM-YYYY') },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$month', '$$month'] }],
+            },
+          },
+        },
+      ],
+    },
+  },
+  { $match: { pay: { $size: 0 } } },
+  {
+    $lookup: {
+      from: 'pays',
+      as: 'prevPay',
+      let: { auxiliaryId: '$_id', month: moment(end).subtract(1, 'M').format('MM-YYYY') },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$month', '$$month'] }],
+            },
+          },
+        },
+      ],
+    },
+  },
+  { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
 ]);
 
 exports.getUserEndedCompanyContracts = async contractUserId => Contract.find(

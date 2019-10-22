@@ -66,12 +66,12 @@ const customersList = [
     _id: new ObjectID(),
     email: 'fake@test.com',
     identity: {
-      title: 'M',
+      title: 'mr',
       firstname: 'Romain',
       lastname: 'Bardet',
     },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
@@ -123,7 +123,7 @@ const customersList = [
       helper: {
         firstname: 'Vladimir',
         lastname: 'Poutine',
-        title: 'M',
+        title: 'mr',
       },
       approvalDate: '2018-01-01T10:00:00.000+01:00',
     }],
@@ -170,12 +170,12 @@ const customersList = [
     _id: new ObjectID(),
     email: 'tito@ty.com',
     identity: {
-      title: 'M',
+      title: 'mr',
       firstname: 'Egan',
       lastname: 'Bernal',
     },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
@@ -196,12 +196,12 @@ const customersList = [
     _id: new ObjectID(),
     email: 'toototjo@hfjld.io',
     identity: {
-      title: 'M',
+      title: 'mr',
       firstname: 'Julian',
       lastname: 'Alaphilippe',
     },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
@@ -222,13 +222,13 @@ const customersList = [
     _id: new ObjectID(),
     email: 'volgarr@theviking.io',
     identity: {
-      title: 'M',
+      title: 'mr',
       firstname: 'Volgarr',
       lastname: 'Theviking',
     },
     driveFolder: { driveId: '1234567890' },
     contact: {
-      address: {
+      primaryAddress: {
         fullAddress: 'Lyngsøvej 26, 8600 Silkeborg, Danemark',
         zipCode: '8600',
         city: 'Silkeborg',
