@@ -1548,7 +1548,6 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
       const customer = customersList[1];
       const payload = {
-        'Content-Type': 'application/pdf',
         fileName: 'mandat_signe',
         mandateId: customer.payment.mandates[0]._id.toHexString(),
         signedMandate: '',
@@ -1573,7 +1572,6 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
       const customer = customersList[0];
       const payload = {
-        'Content-Type': 'application/pdf',
         fileName: 'devis_signe',
         quoteId: customer.quotes[0]._id.toHexString(),
         signedQuote: '',
@@ -1598,7 +1596,6 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
       const customer = customersList[0];
       const payload = {
-        'Content-Type': 'application/pdf',
         fileName: 'financialCertificate',
         financialCertificates: '',
       };
@@ -1618,7 +1615,6 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
     describe('Other roles', () => {
       const payload = {
-        'Content-Type': 'application/pdf',
         fileName: 'financialCertificate',
         financialCertificates: '',
       };
