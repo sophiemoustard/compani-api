@@ -48,7 +48,7 @@ exports.getDraftFinalPay = async (query) => {
     status: COMPANY_CONTRACT,
     endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
   };
-  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, end, 'finalPays');
+  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, end, 'finalpays');
   if (auxiliaries.length === 0) return [];
 
   const [company, surcharges, distanceMatrix] = await Promise.all([
