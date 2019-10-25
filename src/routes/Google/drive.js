@@ -88,7 +88,6 @@ exports.plugin = {
           payload: Joi.object().keys({
             file: Joi.any().required(),
             fileName: Joi.string().required(),
-            'Content-Type': Joi.string().required(),
           }),
         },
       },
