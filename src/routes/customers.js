@@ -421,7 +421,6 @@ exports.plugin = {
             driveId: Joi.string().required(),
           },
           payload: Joi.object({
-            'Content-Type': Joi.string().required(),
             fileName: Joi.string().required(),
             signedQuote: Joi.any(),
             signedMandate: Joi.any(),
