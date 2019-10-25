@@ -56,9 +56,8 @@ const uploadFile = async (req) => {
       'quote',
     ];
     const keys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
-    if (keys.length === 0) {
-      Boom.forbidden('Upload not allowed');
-    }
+    if (keys.length === 0) return Boom.forbidden('Upload not allowed');
+
     const uploadedFile = await addFile({
       driveFolderId: req.params.driveId,
       name: req.payload.fileName || req.payload[keys[0]].hapi.filename,
