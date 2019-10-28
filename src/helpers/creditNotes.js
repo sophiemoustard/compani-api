@@ -66,6 +66,7 @@ exports.createCreditNotes = async (payload) => {
   }
 
   let creditNotes = [];
+  const promises = [];
   if (tppCreditNote && customerCreditNote) {
     customerCreditNote.linkedCreditNote = tppCreditNote._id;
     tppCreditNote.linkedCreditNote = customerCreditNote._id;
@@ -73,12 +74,13 @@ exports.createCreditNotes = async (payload) => {
   } else if (tppCreditNote) creditNotes = [tppCreditNote];
   else creditNotes = [customerCreditNote];
 
-  creditNotes = await CreditNote.insertMany(creditNotes);
+  promises.push(CreditNote.insertMany(creditNotes));
+  if (payload.events) promises.push(exports.updateEventAndFundingHistory(payload.events, false));
+  const [newCreditNotes] = await Promise.all(promises);
 
-  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false);
   await CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } });
 
-  return creditNotes;
+  return newCreditNotes;
 };
 
 exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
