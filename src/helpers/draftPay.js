@@ -349,7 +349,6 @@ exports.computeHoursWithPrevPayDiff = (hours, balance, prevPay) => {
     else computedHours[key] = hours[key];
   }
 
-
   return computedHours;
 };
 
@@ -401,7 +400,7 @@ exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
     if (prevPayDetail) {
       for (const plan of Object.keys(prevPayDetail)) {
         if (prevPayDetail[plan]) {
-          const surchargeKeys = Object.keys(omit(prevPayDetail[plan], ['planId', 'planName']));
+          const surchargeKeys = Object.keys(omit(prevPayDetail[plan], ['_id', 'planId', 'planName']));
           for (const surcharge of surchargeKeys) {
             if (details[plan] && details[plan][surcharge]) {
               details[plan][surcharge].hours -= prevPayDetail[plan][surcharge].hours;
