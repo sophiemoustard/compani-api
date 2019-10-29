@@ -74,13 +74,9 @@ exports.createCreditNotes = async (payload) => {
   } else if (tppCreditNote) creditNotes = [tppCreditNote];
   else creditNotes = [customerCreditNote];
 
-  promises.push(CreditNote.insertMany(creditNotes));
+  promises.push(CreditNote.insertMany(creditNotes), CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } }));
   if (payload.events) promises.push(exports.updateEventAndFundingHistory(payload.events, false));
-  const [newCreditNotes] = await Promise.all(promises);
-
-  await CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } });
-
-  return newCreditNotes;
+  return Promise.all(promises);
 };
 
 exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
