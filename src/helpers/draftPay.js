@@ -7,7 +7,6 @@ const omit = require('lodash/omit');
 const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const mapKeys = require('lodash/mapKeys');
-const uniq = require('lodash/uniq');
 const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
@@ -395,7 +394,7 @@ exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company
 exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
   let details = {};
   const prevPayDetail = mapKeys(prevPay[detailType], value => value.planId);
-  if (hours[detailType]) {
+  if (hours[detailType] && Object.keys(hours[detailType]).length) {
     details = cloneDeep(hours[detailType]);
     if (prevPayDetail) {
       for (const plan of Object.keys(prevPayDetail)) {
@@ -417,6 +416,8 @@ exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
   } else if (prevPayDetail) {
     details = cloneDeep(prevPayDetail);
     for (const plan of Object.keys(prevPayDetail)) {
+      delete details[plan].planId;
+      delete details[plan]._id;
       for (const surcharge of Object.keys(omit(prevPayDetail[plan], ['_id', 'planName', 'planId']))) {
         if (prevPayDetail[plan][surcharge]) details[plan][surcharge].hours = -prevPayDetail[plan][surcharge].hours;
       }
