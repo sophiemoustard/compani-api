@@ -310,47 +310,6 @@ const getContract = (contracts, endDate) => contracts.find((cont) => {
   return !cont.endDate || moment(cont.endDate).isAfter(endDate);
 });
 
-exports.computeDetail = (hours, prevPayDiff, detailType) => {
-  let details = {};
-  if (hours[detailType] && Object.keys(hours[detailType]).length > 0) {
-    details = cloneDeep(hours[detailType]);
-    if (prevPayDiff[detailType]) {
-      for (const plan of Object.keys(prevPayDiff[detailType])) {
-        const prevPayPlan = prevPayDiff[detailType][plan];
-        const currentPlan = hours[detailType][plan];
-        if (prevPayPlan) {
-          for (const surcharge of Object.keys(prevPayPlan)) {
-            if (currentPlan && currentPlan[surcharge]) {
-              details[plan][surcharge].hours += prevPayPlan[surcharge].hours;
-            } else {
-              if (!details[plan]) details[plan] = {};
-              details[plan][surcharge] = { ...prevPayPlan[surcharge] };
-            }
-          }
-        }
-      }
-    }
-  } else if (prevPayDiff) details = cloneDeep(prevPayDiff[detailType]);
-
-  return details;
-};
-
-exports.computeHoursWithPrevPayDiff = (hours, balance, prevPay) => {
-  const computedHours = {
-    hoursCounter: balance + prevPay.hoursCounter,
-    hoursBalance: balance + prevPay.diff.hoursBalance,
-    surchargedAndExemptDetails: exports.computeDetail(hours, prevPay.diff, 'surchargedAndExemptDetails'),
-    surchargedAndNotExemptDetails: exports.computeDetail(hours, prevPay.diff, 'surchargedAndNotExemptDetails'),
-  };
-  const keys = Object.keys({ ...omit(hours, 'paidKm', 'surchargedAndExemptDetails', 'surchargedAndNotExemptDetails') });
-  for (const key of keys) {
-    if (prevPay.diff[key]) computedHours[key] = hours[key] + prevPay.diff[key];
-    else computedHours[key] = hours[key];
-  }
-
-  return computedHours;
-};
-
 const genericData = query => ({
   overtimeHours: 0,
   additionalHours: 0,
@@ -366,9 +325,6 @@ exports.computePay = async (auxiliary, contract, eventsToPay, prevPay, company, 
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
   const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
-  const hoursIncludingPrevMonthDiff = prevPay
-    ? exports.computeHoursWithPrevPayDiff(hours, hoursBalance, prevPay)
-    : { ...hours, hoursBalance, hoursCounter: hoursBalance };
 
   return {
     ...genericData(query),
@@ -376,7 +332,9 @@ exports.computePay = async (auxiliary, contract, eventsToPay, prevPay, company, 
     auxiliary: { _id, identity, sector },
     startDate: moment(query.startDate).isBefore(contract.startDate) ? contract.startDate : query.startDate,
     contractHours: contractInfo.contractHours,
-    ...hoursIncludingPrevMonthDiff,
+    ...hours,
+    hoursBalance,
+    hoursCounter: prevPay ? prevPay.hoursCounter + prevPay.diff + hoursBalance : hoursBalance,
     mutual: !get(auxiliary, 'administrative.mutualFund.has'),
     transport: exports.getTransportRefund(auxiliary, company, contractInfo.workedDaysRatio, hours.paidKm),
     otherFees: (get(company, 'rhConfig.feeAmount') || 0) * contractInfo.workedDaysRatio,
@@ -391,42 +349,6 @@ exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company
   return exports.computePay(auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges);
 };
 
-exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
-  let details = {};
-  const prevPayDetail = mapKeys(prevPay[detailType], value => value.planId);
-  if (hours[detailType] && Object.keys(hours[detailType]).length) {
-    details = cloneDeep(hours[detailType]);
-    if (prevPayDetail) {
-      for (const plan of Object.keys(prevPayDetail)) {
-        if (prevPayDetail[plan]) {
-          const surchargeKeys = Object.keys(omit(prevPayDetail[plan], ['_id', 'planId', 'planName']));
-          for (const surcharge of surchargeKeys) {
-            if (details[plan] && details[plan][surcharge]) {
-              details[plan][surcharge].hours -= prevPayDetail[plan][surcharge].hours;
-            } else {
-              details[plan] = {
-                ...details[plan],
-                [surcharge]: { ...prevPayDetail[plan][surcharge], hours: -prevPayDetail[plan][surcharge].hours },
-              };
-            }
-          }
-        }
-      }
-    }
-  } else if (prevPayDetail) {
-    details = cloneDeep(prevPayDetail);
-    for (const plan of Object.keys(prevPayDetail)) {
-      delete details[plan].planId;
-      delete details[plan]._id;
-      for (const surcharge of Object.keys(omit(prevPayDetail[plan], ['_id', 'planName', 'planId']))) {
-        if (prevPayDetail[plan][surcharge]) details[plan][surcharge].hours = -prevPayDetail[plan][surcharge].hours;
-      }
-    }
-  }
-
-  return details;
-};
-
 exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, distanceMatrix, surcharges) => {
   const contract = auxiliary.contracts.find(cont => cont.status === COMPANY_CONTRACT && (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
   const contractInfo = exports.getContractMonthInfo(contract, query);
@@ -435,30 +357,11 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
 
   const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
 
-  let prevPayDiff = { auxiliary: auxiliary._id };
-  const keys = ['workedHours', 'notSurchargedAndNotExempt', 'surchargedAndNotExempt', 'notSurchargedAndExempt', 'surchargedAndExempt'];
-  if (!prevPay) {
-    prevPayDiff = {
-      ...prevPayDiff,
-      diff: { ...pick(hours, [...keys, 'surchargedAndExemptDetails', 'surchargedAndNotExemptDetails']), hoursBalance },
-      hoursCounter: hoursBalance,
-    };
-  } else {
-    prevPayDiff = {
-      ...prevPayDiff,
-      diff: {
-        hoursBalance: hoursBalance - prevPay.hoursBalance,
-        surchargedAndExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndExemptDetails'),
-        surchargedAndNotExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),
-      },
-      hoursCounter: prevPay.hoursCounter + (hoursBalance - prevPay.hoursBalance),
-    };
-    for (const key of keys) {
-      prevPayDiff.diff[key] = hours[key] - prevPay[key];
-    }
-  }
-
-  return prevPayDiff;
+  return {
+    auxiliary: auxiliary._id,
+    diff: prevPay ? hoursBalance - prevPay.hoursBalance : hoursBalance,
+    hoursCounter: prevPay ? prevPay.hoursCounter : 0,
+  };
 };
 
 exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, distanceMatrix) => {
