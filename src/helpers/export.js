@@ -424,16 +424,28 @@ const helperExportHeader = [
   'Bénéficiaire - Titre',
   'Bénéficiaire - Nom',
   'Bénéficiaire - Prénom',
+  'Bénéficiaire - Adresse principale',
+  'Bénéficiaire - Rue',
+  'Bénéficiaire - Code postal',
+  'Bénéficiaire - Ville',
   'Date de création',
+  'Statut',
 ];
 
 exports.exportHelpers = async () => {
   const role = await Role.findOne({ name: HELPER });
-  const helpers = await User.find({ role: role._id }).populate('customers');
+  const helpers = await User.find({ role: role._id }).populate({
+    path: 'customers',
+    populate: { path: 'firstIntervention', select: 'startDate' },
+  });
   const data = [helperExportHeader];
 
   for (const hel of helpers) {
     const customer = hel.customers && hel.customers[0];
+    const status = get(customer, 'firstIntervention', null)
+      ? 'Actif'
+      : 'Inactif';
+
     data.push([
       get(hel, 'local.email', ''),
       get(hel, 'identity.lastname', '').toUpperCase(),
@@ -441,7 +453,12 @@ exports.exportHelpers = async () => {
       CIVILITY_LIST[get(customer, 'identity.title')] || '',
       get(customer, 'identity.lastname', '').toUpperCase(),
       get(customer, 'identity.firstname', ''),
-      hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);
+      get(customer, 'contact.primaryAddress.fullAddress', ''),
+      get(customer, 'contact.primaryAddress.street', ''),
+      get(customer, 'contact.primaryAddress.zipCode', ''),
+      get(customer, 'contact.primaryAddress.city', ''),
+      hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '',
+      status]);
   }
 
   return data;
