@@ -694,7 +694,6 @@ describe('exportHelpers', () => {
       'Bénéficiaire - Titre',
       'Bénéficiaire - Nom',
       'Bénéficiaire - Prénom',
-      'Bénéficiaire - Adresse principale',
       'Bénéficiaire - Rue',
       'Bénéficiaire - Code postal',
       'Bénéficiaire - Ville',
@@ -724,7 +723,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '', '', '', '', '01/02/2019', 'Inactif']);
+    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '', '', '', '01/02/2019', 'Inactif']);
   });
 
   it('should return customer helper info', async () => {
@@ -757,6 +756,6 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '37 rue de Ponthieu 75008 Paris', '37 rue de Ponthieu', '75008', 'Paris', '', 'Actif']);
+    expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '37 rue de Ponthieu', '75008', 'Paris', '', 'Actif']);
   });
 });
