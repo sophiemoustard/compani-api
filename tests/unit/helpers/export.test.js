@@ -687,7 +687,20 @@ describe('exportHelpers', () => {
     const result = await ExportHelper.exportHelpers();
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Aidant - Nom', 'Aidant - Prénom', 'Bénéficiaire - Titre', 'Bénéficiaire - Nom', 'Bénéficiaire - Prénom', 'Date de création']);
+    expect(result[0]).toMatchObject([
+      'Email',
+      'Aidant - Nom',
+      'Aidant - Prénom',
+      'Bénéficiaire - Titre',
+      'Bénéficiaire - Nom',
+      'Bénéficiaire - Prénom',
+      'Bénéficiaire - Adresse principale',
+      'Bénéficiaire - Rue',
+      'Bénéficiaire - Code postal',
+      'Bénéficiaire - Ville',
+      'Date de création',
+      'Statut',
+    ]);
   });
 
   it('should return helper info', async () => {
@@ -711,7 +724,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '01/02/2019']);
+    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '', '', '', '', '01/02/2019', 'Inactif']);
   });
 
   it('should return customer helper info', async () => {
@@ -720,7 +733,18 @@ describe('exportHelpers', () => {
 
     const helpers = [
       {
-        customers: [{ identity: { title: 'mr', lastname: 'Patate' } }],
+        customers: [{
+          firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
+          identity: { title: 'mr', lastname: 'Patate' },
+          contact: {
+            primaryAddress: {
+              fullAddress: '37 rue de Ponthieu 75008 Paris',
+              street: '37 rue de Ponthieu',
+              zipCode: '75008',
+              city: 'Paris',
+            },
+          },
+        }],
       },
     ];
     UserModel.expects('find')
@@ -733,6 +757,6 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '']);
+    expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '37 rue de Ponthieu 75008 Paris', '37 rue de Ponthieu', '75008', 'Paris', '', 'Actif']);
   });
 });
