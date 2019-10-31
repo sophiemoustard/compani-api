@@ -443,7 +443,7 @@ describe('updateVersion', () => {
         {
           $set: flat({ 'versions.0': { ...versionToUpdate, signature: { eversignId: '1234567890' } } }),
           $push: { 'versions.0.auxiliaryArchives': 'toto' },
-          $unset: flat({ 'versions.0': { auxiliaryDoc: '' } }),
+          $unset: flat({ 'versions.0': { auxiliaryDoc: '', signature: { signedBy: '' } } }),
         }
       )
       .chain('lean')
