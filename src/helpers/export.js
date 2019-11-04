@@ -427,8 +427,8 @@ const helperExportHeader = [
   'Bénéficiaire - Rue',
   'Bénéficiaire - Code postal',
   'Bénéficiaire - Ville',
+  'Bénéficiaire - Statut',
   'Date de création',
-  'Statut',
 ];
 
 exports.exportHelpers = async () => {
@@ -455,8 +455,9 @@ exports.exportHelpers = async () => {
       get(customer, 'contact.primaryAddress.street', ''),
       get(customer, 'contact.primaryAddress.zipCode', ''),
       get(customer, 'contact.primaryAddress.city', ''),
+      status,
       hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '',
-      status]);
+    ]);
   }
 
   return data;
