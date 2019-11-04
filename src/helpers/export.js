@@ -338,6 +338,7 @@ exports.exportCustomers = async () => {
     const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
     const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
     const firstIntervention = get(cus, 'firstIntervention.startDate');
+
     const cells = [
       CIVILITY_LIST[get(cus, 'identity.title')] || '',
       lastname ? lastname.toUpperCase() : '',
