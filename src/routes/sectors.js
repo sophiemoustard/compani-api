@@ -53,7 +53,6 @@ exports.plugin = {
         validate: {
           query: Joi.object().keys({
             name: Joi.string(),
-            company: Joi.objectId(),
           }),
         },
       },

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Boom = require('boom');
 const User = require('./User');
 
 const SectorSchema = mongoose.Schema({
@@ -8,6 +9,11 @@ const SectorSchema = mongoose.Schema({
   timestamps: true,
 });
 
+function validateQuery() {
+  const query = this.getQuery();
+  if (!query.company) throw Boom.badRequest();
+}
+
 const countAuxiliaries = async (docs) => {
   if (docs.length > 0) {
     for (const sector of docs) {
@@ -16,6 +22,7 @@ const countAuxiliaries = async (docs) => {
   }
 };
 
+SectorSchema.pre('find', validateQuery);
 SectorSchema.post('find', countAuxiliaries);
 
 module.exports = mongoose.model('Sector', SectorSchema);
