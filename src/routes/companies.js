@@ -10,6 +10,7 @@ const {
   updateInternalHour,
   getInternalHours,
   removeInternalHour,
+  createCompany,
 } = require('../controllers/companyController');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
@@ -40,6 +41,7 @@ exports.plugin = {
             }),
             ics: Joi.string(),
             rcs: Joi.string(),
+            rna: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
             rhConfig: Joi.object().keys({
@@ -124,6 +126,22 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             default: Joi.boolean(),
+          }),
+        },
+      },
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/',
+      handler: createCompany,
+      options: {
+        auth: { scope: ['config:edit'] },
+        validate: {
+          payload: Joi.object().keys({
+            name: Joi.string().required(),
+            userId: Joi.objectId(),
+            type: Joi.string(),
           }),
         },
       },

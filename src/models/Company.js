@@ -11,14 +11,16 @@ const CompanySchema = mongoose.Schema({
   tradeName: String,
   address: addressSchemaDefinition,
   rcs: String,
+  rna: String,
   ics: String,
   iban: String,
   bic: String,
+  type: { type: String, default: 'company' },
   folderId: String,
   directDebitsFolderId: String,
   rhConfig: {
-    contractWithCompany: { grossHourlyRate: Number },
-    contractWithCustomer: { grossHourlyRate: Number },
+    contractWithCompany: { grossHourlyRate: { type: Number, default: 10.43 } },
+    contractWithCustomer: { grossHourlyRate: { type: Number, default: 10.43 } },
     feeAmount: Number,
     amountPerKm: Number,
     transportSubs: [{

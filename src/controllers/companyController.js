@@ -1,9 +1,12 @@
 const Boom = require('boom');
 const flat = require('flat');
+const { ObjectID } = require('mongodb');
+const omit = require('lodash/omit');
 
 const translate = require('../helpers/translate');
 const { addFile } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
+const User = require('../models/User');
 const drive = require('../models/Google/Drive');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
 const { updateEventsInternalHourType } = require('../helpers/events');
@@ -195,6 +198,34 @@ const removeInternalHour = async (req) => {
   }
 };
 
+const createCompany = async (req) => {
+  try {
+    const promises = [];
+    const payload = omit(req.payload, 'userId');
+    const newCompany = new Company(payload);
+    newCompany.rhConfig.transportSubs.push({
+      _id: new ObjectID(),
+      department: '75',
+      price: '75.2',
+    });
+
+    if (req.payload.userId) {
+      const user = await User.findOne(ObjectID(req.payload.userId));
+      console.log('user', user);
+      user.company = newCompany._id;
+      promises.push(user.save());
+    }
+
+    promises.push(newCompany.save());
+
+    await Promise.all(promises);
+    return { message: translate[language].companyCreated };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
   uploadFile,
@@ -202,4 +233,5 @@ module.exports = {
   updateInternalHour,
   getInternalHours,
   removeInternalHour,
+  createCompany,
 };
