@@ -9,9 +9,16 @@ const SectorSchema = mongoose.Schema({
   timestamps: true,
 });
 
-function validateQuery() {
+function validateQuery(next) {
   const query = this.getQuery();
-  if (!query.company) throw Boom.badRequest();
+  if (!query.company) next(Boom.badRequest());
+  next();
+}
+
+function validatePayload(next) {
+  const sector = this;
+  if (!sector.company) next(Boom.badRequest());
+  next();
 }
 
 const countAuxiliaries = async (docs) => {
@@ -23,6 +30,7 @@ const countAuxiliaries = async (docs) => {
 };
 
 SectorSchema.pre('find', validateQuery);
+SectorSchema.pre('save', validatePayload);
 SectorSchema.post('find', countAuxiliaries);
 
 module.exports = mongoose.model('Sector', SectorSchema);

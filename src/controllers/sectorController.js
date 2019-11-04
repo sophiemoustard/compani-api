@@ -23,7 +23,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const sector = new Sector(req.payload);
+    const sector = new Sector({ ...req.payload, company: get(req, 'auth.credentials.company._id') });
     await sector.save();
 
     return {

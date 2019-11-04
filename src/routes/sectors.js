@@ -21,7 +21,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            company: Joi.objectId().required(),
           }),
         },
       },
