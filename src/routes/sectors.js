@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-
+const { authorizeSectorUpdate, getSector } = require('./preHandlers/sectors');
 const {
   create,
   update,
@@ -40,6 +40,10 @@ exports.plugin = {
             name: Joi.string(),
           }),
         },
+        pre: [
+          { method: getSector, assign: 'sector' },
+          { method: authorizeSectorUpdate },
+        ],
       },
       handler: update,
     });
@@ -68,6 +72,10 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
+        pre: [
+          { method: getSector, assign: 'sector' },
+          { method: authorizeSectorUpdate },
+        ],
       },
       handler: remove,
     });
