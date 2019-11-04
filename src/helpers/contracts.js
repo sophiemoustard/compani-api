@@ -154,6 +154,7 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
     set.signature = { eversignId: doc.data.document_hash };
+    unset.signature = { signedBy: '' };
   } else {
     unset.signature = '';
   }
