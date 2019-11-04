@@ -39,11 +39,10 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const creditNotes = await createCreditNotes(req.payload);
+    await createCreditNotes(req.payload);
 
     return {
       message: translate[language].creditNoteCreated,
-      data: { creditNotes },
     };
   } catch (e) {
     req.log('error', e);
