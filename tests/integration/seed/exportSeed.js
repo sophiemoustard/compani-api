@@ -10,7 +10,7 @@ const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
-const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentification, authCompany } = require('./authentificationSeed');
 const {
   PAYMENT,
   REFUND,
@@ -23,6 +23,7 @@ const {
 const sector = {
   _id: new ObjectID(),
   name: 'Etoile',
+  company: authCompany._id,
 };
 
 const auxiliary = {
