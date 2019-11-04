@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const Service = require('../../../src/models/Service');
 const Company = require('../../../src/models/Company');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, HOURLY, FIXED } = require('../../../src/helpers/constants');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { populateDBForAuthentication } = require('./authenticationSeed');
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
@@ -65,7 +65,7 @@ const populateDB = async () => {
   await Service.deleteMany({});
   await Company.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new Company(company)).save();
   await Service.insertMany(servicesList);
 };

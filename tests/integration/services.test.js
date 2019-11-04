@@ -4,7 +4,7 @@ const { servicesList, populateDB } = require('./seed/servicesSeed');
 const Service = require('../../src/models/Service');
 const app = require('../../server');
 const { CUSTOMER_CONTRACT, HOURLY } = require('../../src/helpers/constants');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

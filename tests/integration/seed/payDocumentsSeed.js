@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
 const { PAYSLIP, CERTIFICATE, OTHER } = require('../../../src/helpers/constants');
 
 const payDocumentUser = {
@@ -38,7 +38,7 @@ const populateDB = async () => {
   await User.deleteMany({});
   await PayDocument.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
 
   await (new User(payDocumentUser)).save();
   await PayDocument.insertMany(payDocumentsList);

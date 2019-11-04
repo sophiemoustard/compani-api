@@ -7,7 +7,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, billUserList, billsList, billCustomerList } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const Bill = require('../../src/models/Bill');
 
 describe('NODE ENV', () => {

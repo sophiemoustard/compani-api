@@ -4,7 +4,7 @@ const app = require('../../server');
 const CreditNote = require('../../src/models/CreditNote');
 const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent, creditNoteUserList } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

@@ -5,12 +5,12 @@ const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
-const { rolesList, populateDBForAuthentification, authCompany } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const { COMPANY_CONTRACT } = require('../../../src/helpers/constants');
 
 const sectorList = [{
   _id: new ObjectID(),
-  company: authCompany._id
+  company: authCompany._id,
 }];
 
 const contractList = [{
@@ -75,7 +75,7 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await Contract.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   for (const user of userList) {
     await new User(user).save();
   }

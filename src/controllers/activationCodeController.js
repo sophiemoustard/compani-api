@@ -1,7 +1,7 @@
 const randomize = require('randomatic');
 const Boom = require('boom');
 
-const { encode } = require('../helpers/authentification');
+const { encode } = require('../helpers/authentication');
 const ActivationCode = require('../models/ActivationCode');
 const translate = require('../helpers/translate');
 

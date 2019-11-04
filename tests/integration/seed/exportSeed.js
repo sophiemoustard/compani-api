@@ -10,7 +10,7 @@ const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
-const { rolesList, populateDBForAuthentification, authCompany } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const {
   PAYMENT,
   REFUND,
@@ -370,7 +370,7 @@ const populateEvents = async () => {
   await Customer.deleteMany();
   await Sector.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Event.insertMany(eventList);
   await new User(auxiliary).save();
   await new Sector(sector).save();
@@ -382,7 +382,7 @@ const populateBills = async () => {
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Bill.insertMany(billsList);
   await new Customer(customer).save();
   await new ThirdPartyPayer(thirdPartyPayer).save();
@@ -393,7 +393,7 @@ const populatePayment = async () => {
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Payment.insertMany(paymentsList);
   await new Customer(customer).save();
   await new ThirdPartyPayer(thirdPartyPayer).save();
@@ -403,7 +403,7 @@ const populateService = async () => {
   await Service.deleteMany();
   await Company.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new Company(company)).save();
   await Service.insertMany(serviceList);
 };
@@ -414,7 +414,7 @@ const populateCustomer = async () => {
   await Service.deleteMany();
   await Company.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new Company(company)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(serviceList);
@@ -422,7 +422,7 @@ const populateCustomer = async () => {
 };
 
 const populateUser = async () => {
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
 };
 
 const populatePay = async () => {
@@ -430,7 +430,7 @@ const populatePay = async () => {
   await FinalPay.deleteMany();
   await User.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Pay.insertMany(payList);
   await FinalPay.insertMany(finalPayList);
   await new User(auxiliary).save();

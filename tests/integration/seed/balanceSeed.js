@@ -8,7 +8,7 @@ const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
 
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
@@ -212,7 +212,7 @@ const populateDB = async () => {
   await Bill.deleteMany({});
   await User.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
 
   await (new Company(company)).save();
   await (new ThirdPartyPayer(balanceThirdPartyPayer)).save();

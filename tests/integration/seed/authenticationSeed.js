@@ -239,7 +239,7 @@ const userList = [
   },
 ];
 
-const populateDBForAuthentification = async () => {
+const populateDBForAuthentication = async () => {
   await Role.deleteMany({});
   await Right.deleteMany({});
   await User.deleteMany({});
@@ -280,7 +280,7 @@ module.exports = {
   rolesList,
   rightsList,
   userList,
-  populateDBForAuthentification,
+  populateDBForAuthentication,
   getUser,
   getToken,
   getTokenByCredentials,
