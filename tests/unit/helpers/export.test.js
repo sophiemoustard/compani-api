@@ -413,9 +413,9 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse',
-      '1ère intervention', 'Environnement', 'Objectifs', 'Autres', 'Nom associé au compte bancaire', 'IBAN', 'BIC',
-      'RUM', 'Date de signature du mandat', 'Nombre de souscriptions', 'Souscriptions', 'Nombre de financements',
-      'Date de création']);
+      '1ère intervention', 'Auxiliaire référent', 'Environnement', 'Objectifs', 'Autres',
+      'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombre de souscriptions',
+      'Souscriptions', 'Nombre de financements', 'Date de création']);
     CustomerModel.verify();
   });
 
@@ -426,6 +426,12 @@ describe('exportCustomers', () => {
       contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
       followUp: { misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
       firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
+      referent: {
+        identity: {
+          firstname: 'Toto',
+          lastname: 'Test',
+        },
+      },
       payment: {
         bankAccountOwner: 'Lui',
         iban: 'Boom Ba Da Boom',
@@ -458,6 +464,7 @@ describe('exportCustomers', () => {
       '12/12/1919',
       '9 rue du paradis 70015 Paris',
       '08/08/2019',
+      'Toto Test',
       'Père Castor',
       'Savate et charentaises',
       'Lala',
@@ -487,7 +494,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
     CustomerModel.verify();
   });
 });
