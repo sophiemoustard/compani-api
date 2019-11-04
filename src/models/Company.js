@@ -8,6 +8,7 @@ const COMPANY_BILLING_PERIODS = [MONTH, TWO_WEEKS];
 
 const CompanySchema = mongoose.Schema({
   name: { type: String, unique: true },
+  tradeName: { type: String, unique: true },
   address: addressSchemaDefinition,
   rcs: String,
   ics: String,
