@@ -5,11 +5,12 @@ const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
-const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentification, authCompany } = require('./authentificationSeed');
 const { COMPANY_CONTRACT } = require('../../../src/helpers/constants');
 
 const sectorList = [{
   _id: new ObjectID(),
+  company: authCompany._id
 }];
 
 const contractList = [{
