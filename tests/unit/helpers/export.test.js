@@ -516,6 +516,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return csv header', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -528,7 +529,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Email', 'Équipe', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
@@ -537,6 +538,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary info', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -556,7 +558,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -564,6 +566,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary sector', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -578,7 +581,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -586,6 +589,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary identity', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -612,7 +616,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -620,6 +624,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary contracts count', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -634,7 +639,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -642,6 +647,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary address', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -656,7 +662,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();

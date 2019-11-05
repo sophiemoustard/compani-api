@@ -4,6 +4,7 @@ const memoize = require('lodash/memoize');
 const Role = require('../../../src/models/Role');
 const Right = require('../../../src/models/Right');
 const User = require('../../../src/models/User');
+const Company = require('../../../src/models/Company');
 const app = require('../../../server');
 
 const rightsList = [
@@ -189,6 +190,12 @@ const rolesList = [
   },
 ];
 
+const authCompany = {
+  _id: new ObjectID(),
+  name: 'Test SAS',
+  tradeName: 'Test',
+};
+
 const userList = [
   {
     _id: new ObjectID(),
@@ -196,6 +203,7 @@ const userList = [
     refreshToken: uuidv4(),
     local: { email: 'admin@alenvi.io', password: '123456' },
     role: rolesList.find(role => role.name === 'admin')._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -203,6 +211,7 @@ const userList = [
     local: { email: 'coach@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'coach')._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -210,6 +219,7 @@ const userList = [
     local: { email: 'auxiliary@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'auxiliary')._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -217,6 +227,7 @@ const userList = [
     local: { email: 'planning-referent@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'planningReferent')._id,
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -224,6 +235,7 @@ const userList = [
     local: { email: 'helper@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
+    company: authCompany._id,
   },
 ];
 
@@ -231,6 +243,8 @@ const populateDBForAuthentification = async () => {
   await Role.deleteMany({});
   await Right.deleteMany({});
   await User.deleteMany({});
+  await Company.deleteMany({});
+  await new Company(authCompany).save();
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
   for (let i = 0; i < userList.length; i++) {
@@ -270,4 +284,5 @@ module.exports = {
   getUser,
   getToken,
   getTokenByCredentials,
+  authCompany,
 };

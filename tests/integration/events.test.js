@@ -117,7 +117,7 @@ describe('EVENTS ROUTES', () => {
           name: 'helper\'s customer',
           expectedCode: 200,
           url: `/events?customer=${customerAuxiliary._id.toHexString()}`,
-          customCredentials: helpersCustomer.local,
+          customCredentials: { ...helpersCustomer.local },
         },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'coach', expectedCode: 200 },

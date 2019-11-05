@@ -386,10 +386,12 @@ const auxiliaryExportHeader = [
   'Date de création',
 ];
 
-exports.exportAuxiliaries = async () => {
+exports.exportAuxiliaries = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
   const roleIds = roles.map(role => role._id);
-  const auxiliaries = await User.find({ role: { $in: roleIds } }).populate('sector');
+  const auxiliaries = await User
+    .find({ role: { $in: roleIds } })
+    .populate({ path: 'sector', match: { company: credentials.company._id } });
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {

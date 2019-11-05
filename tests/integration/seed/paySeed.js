@@ -1,15 +1,13 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
-
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
-const Company = require('../../../src/models/Company');
 const Sector = require('../../../src/models/Sector');
 const Pay = require('../../../src/models/Pay');
-const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentification, authCompany } = require('./authentificationSeed');
 
 const contractId1 = new ObjectID();
 const contractId2 = new ObjectID();
@@ -18,7 +16,6 @@ const auxiliaryId2 = new ObjectID();
 const customerId = new ObjectID();
 const subscriptionId = new ObjectID();
 const serviceId = new ObjectID();
-const companyId = new ObjectID();
 const sectorId = new ObjectID();
 
 const user = {
@@ -133,7 +130,7 @@ const customer = {
 const service = {
   _id: serviceId,
   type: 'contract_with_company',
-  company: companyId,
+  company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',
@@ -143,20 +140,11 @@ const service = {
   nature: 'hourly',
 };
 
-const company = {
-  _id: companyId,
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-    transportSubs: [{ department: '75', price: 20 }],
-  },
+const sector = {
+  name: 'Toto',
+  _id: sectorId,
+  company: authCompany._id,
 };
-
-const sector = { name: 'Toto', _id: sectorId };
 
 const populateDB = async () => {
   await User.deleteMany({});
@@ -164,7 +152,6 @@ const populateDB = async () => {
   await Service.deleteMany({});
   await Contract.deleteMany({});
   await Event.deleteMany({});
-  await Company.deleteMany({});
   await Sector.deleteMany({});
   await Pay.deleteMany({});
 
@@ -176,7 +163,6 @@ const populateDB = async () => {
   await (new Service(service)).save();
   await (new Event(event)).save();
   await Contract.insertMany(contracts);
-  await (new Company(company)).save();
   await (new Sector(sector)).save();
 };
 
