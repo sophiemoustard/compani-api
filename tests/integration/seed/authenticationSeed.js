@@ -3,9 +3,16 @@ const uuidv4 = require('uuid/v4');
 const memoize = require('lodash/memoize');
 const Role = require('../../../src/models/Role');
 const Right = require('../../../src/models/Right');
+const Company = require('../../../src/models/Company');
 const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
 const app = require('../../../server');
+
+const authCompany = {
+  _id: new ObjectID(),
+  name: 'Test SAS',
+  tradeName: 'Test',
+};
 
 const rightsList = [
   {
@@ -242,11 +249,13 @@ const userList = [
 const populateDBForAuthentication = async () => {
   await Role.deleteMany({});
   await Right.deleteMany({});
+  await Company.deleteMany({});
   await User.deleteMany({});
   await Company.deleteMany({});
   await new Company(authCompany).save();
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
+  await new Company(authCompany).save();
   for (let i = 0; i < userList.length; i++) {
     await (new User(userList[i]).save());
   }
