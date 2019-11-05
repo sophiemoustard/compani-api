@@ -30,7 +30,7 @@ const countAuxiliaries = async (docs) => {
 };
 
 SectorSchema.pre('find', validateQuery);
-SectorSchema.pre('save', validatePayload);
+SectorSchema.pre('validate', validatePayload);
 SectorSchema.post('find', countAuxiliaries);
 
 module.exports = mongoose.model('Sector', SectorSchema);
