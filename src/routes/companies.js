@@ -13,6 +13,7 @@ const {
   createCompany,
 } = require('../controllers/companyController');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
+const { authorizeCompanyUpdate } = require('./preHandlers/companies');
 
 exports.plugin = {
   name: 'routes-companies',
@@ -94,6 +95,7 @@ exports.plugin = {
             }),
           }),
         },
+        pre: [{ method: authorizeCompanyUpdate }],
       },
       handler: update,
     });
