@@ -14,7 +14,7 @@ const CompanySchema = mongoose.Schema({
   rcs: String,
   rna: String,
   ics: String,
-  iban: String,
+  iban: String, 
   bic: String,
   type: { type: String, enum: COMPANY_TYPES, default: TYPE_COMPANY },
   folderId: String,
