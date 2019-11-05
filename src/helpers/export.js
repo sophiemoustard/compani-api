@@ -1,5 +1,6 @@
 const moment = require('moment');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -304,6 +305,7 @@ const customerExportHeader = [
   'Date de naissance',
   'Adresse',
   '1ère intervention',
+  'Auxiliaire référent',
   'Environnement',
   'Objectifs',
   'Autres',
@@ -318,10 +320,13 @@ const customerExportHeader = [
   'Date de création',
 ];
 
+const formatIdentity = person => `${person.firstname} ${person.lastname}`;
+
 exports.exportCustomers = async () => {
   const customers = await Customer.find()
     .populate('subscriptions.service')
     .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'referent', select: 'identity.firstname identity.lastname' })
     .lean();
   const rows = [customerExportHeader];
 
@@ -341,6 +346,7 @@ exports.exportCustomers = async () => {
       birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
       get(cus, 'contact.primaryAddress.fullAddress') || '',
       firstIntervention ? moment(firstIntervention).format('DD/MM/YYYY') : '',
+      has(cus, 'referent.identity') ? formatIdentity(get(cus, 'referent.identity')) : '',
       get(cus, 'followUp.environment') || '',
       get(cus, 'followUp.objectives') || '',
       get(cus, 'followUp.misc') || '',
