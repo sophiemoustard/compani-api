@@ -12,8 +12,8 @@ const emailCompany = {
 
 const emailUser = {
   _id: new ObjectID(),
-  identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
-  local: { email: 'helper_for_customer_creditnote@alenvi.io', password: '123456' },
+  identity: { firstname: 'emailUser', lastname: 'Test' },
+  local: { email: 'email_user@alenvi.io', password: '123456' },
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'admin')._id,
   company: emailCompany._id,
