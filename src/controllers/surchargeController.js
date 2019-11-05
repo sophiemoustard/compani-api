@@ -7,7 +7,9 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const surcharges = await Surcharge.find(req.query);
+    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) throw Boom.forbidden();
+    const query = { company: req.auth.credentials.company._id };
+    const surcharges = await Surcharge.find(query);
 
     return {
       message: surcharges.length === 0 ? translate[language].surchargesNotFound : translate[language].surchargesFound,
@@ -21,6 +23,8 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
+    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) throw Boom.forbidden();
+    req.payload.company = req.auth.credentials.company._id;
     const surcharge = new Surcharge(req.payload);
     await surcharge.save();
 
