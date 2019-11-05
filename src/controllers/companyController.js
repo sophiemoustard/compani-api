@@ -4,7 +4,7 @@ const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 
 const translate = require('../helpers/translate');
-const { addFile } = require('../helpers/gdriveStorage');
+const { addFile, createFolderForCompany } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
 const User = require('../models/User');
 const drive = require('../models/Google/Drive');
@@ -216,6 +216,8 @@ const createCompany = async (req) => {
       promises.push(user.save());
     }
 
+    const { folder } = await createFolderForCompany(newCompany.name);
+    newCompany.folderId = folder.id;
     promises.push(newCompany.save());
 
     await Promise.all(promises);
