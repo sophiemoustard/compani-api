@@ -7,7 +7,9 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const services = await Service.find(req.query).populate('versions.surcharge').lean();
+    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) throw Boom.forbidden();
+    const query = { company: req.auth.credentials.company._id };
+    const services = await Service.find(query).populate('versions.surcharge').lean();
     return {
       message: services.length === 0 ? translate[language].servicesNotFound : translate[language].servicesFound,
       data: { services },
@@ -20,6 +22,8 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
+    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) throw Boom.forbidden();
+    req.payload.company = req.auth.credentials.company._id;
     const service = new Service(req.payload);
     await service.save();
 
@@ -68,5 +72,5 @@ module.exports = {
   list,
   create,
   update,
-  remove
+  remove,
 };
