@@ -141,7 +141,7 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             userId: Joi.objectId(),
-            type: Joi.string(),
+            type: Joi.string().required(),
           }),
         },
       },
