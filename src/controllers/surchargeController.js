@@ -24,8 +24,11 @@ const list = async (req) => {
 const create = async (req) => {
   try {
     if (!(req.auth.credentials.company && req.auth.credentials.company._id)) throw Boom.forbidden();
-    req.payload.company = req.auth.credentials.company._id;
-    const surcharge = new Surcharge(req.payload);
+    const payload = {
+      ...req.payload,
+      company: req.auth.credentials.company._id,
+    };    
+    const surcharge = new Surcharge(payload);
     await surcharge.save();
 
     return {

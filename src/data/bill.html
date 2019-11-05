@@ -64,7 +64,7 @@
     {{ bill.company.name }}<br />
     {{ bill.company.address.street }}<br />
     {{ bill.company.address.zipCode }} {{ bill.company.address.city }}<br />
-    {{#if bill.company.type === "company"}}
+    {{#if bill.company.rcs }}
     RCS : {{ bill.company.rcs }}
     {{else}}
     RNA : {{ bill.company.rna }}

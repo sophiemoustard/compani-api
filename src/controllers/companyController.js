@@ -198,23 +198,11 @@ const removeInternalHour = async (req) => {
   }
 };
 
-const createCompany = async (req) => {
+const create = async (req) => {
   try {
     const promises = [];
     const payload = omit(req.payload, 'userId');
     const newCompany = new Company(payload);
-    newCompany.rhConfig.transportSubs.push({
-      _id: new ObjectID(),
-      department: '75',
-      price: '75.2',
-    });
-
-    if (req.payload.userId) {
-      const user = await User.findOne(ObjectID(req.payload.userId));
-      console.log('user', user);
-      user.company = newCompany._id;
-      promises.push(user.save());
-    }
 
     const { folder } = await createFolderForCompany(newCompany.name);
     newCompany.folderId = folder.id;
@@ -224,7 +212,7 @@ const createCompany = async (req) => {
     return { message: translate[language].companyCreated };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -235,5 +223,5 @@ module.exports = {
   updateInternalHour,
   getInternalHours,
   removeInternalHour,
-  createCompany,
+  create,
 };

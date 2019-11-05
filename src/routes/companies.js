@@ -10,7 +10,7 @@ const {
   updateInternalHour,
   getInternalHours,
   removeInternalHour,
-  createCompany,
+  create,
 } = require('../controllers/companyController');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 const { authorizeCompanyUpdate } = require('./preHandlers/companies');
@@ -136,13 +136,12 @@ exports.plugin = {
     server.route({
       method: 'POST',
       path: '/',
-      handler: createCompany,
+      handler: create,
       options: {
         auth: { scope: ['config:edit'] },
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            userId: Joi.objectId(),
             type: Joi.string().required(),
           }),
         },

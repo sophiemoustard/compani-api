@@ -40,14 +40,10 @@ exports.createFolderForCompany = async (companyName) => {
     folder: true,
   });
 
-  if (!folder) {
-    throw Boom.failedDependency('Google drive folder creation failed.');
-  }
+  if (!folder) throw Boom.failedDependency('Google drive folder creation failed.');
 
   const folderLink = await Gdrive.getFileById({ fileId: folder.id });
-  if (!folderLink) {
-    throw Boom.notFound('Google drive folder not found.');
-  }
+  if (!folderLink) throw Boom.notFound('Google drive folder not found.');
 
   return { folder, folderLink };
 };
