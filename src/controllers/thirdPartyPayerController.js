@@ -8,12 +8,17 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    const thirdPartyPayer = new ThirdPartyPayer(req.payload);
+    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) return Boom.forbidden();
+    const payload = {
+      ...req.payload,
+      company: req.auth.credentials.company._id,
+    };
+    const thirdPartyPayer = new ThirdPartyPayer(payload);
     await thirdPartyPayer.save();
 
     return {
       message: translate[language].thirdPartyPayerCreated,
-      data: { thirdPartyPayer }
+      data: { thirdPartyPayer },
     };
   } catch (e) {
     req.log('error', e);
@@ -23,10 +28,14 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const thirdPartyPayers = await ThirdPartyPayer.find(req.query).lean();
+    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) return Boom.forbidden();
+
+    const thirdPartyPayers = await ThirdPartyPayer.find({ company: req.auth.credentials.company._id }).lean();
 
     return {
-      message: thirdPartyPayers.length === 0 ? translate[language].thirdPartyPayersNotFound : translate[language].thirdPartyPayersFound,
+      message: thirdPartyPayers.length === 0
+        ? translate[language].thirdPartyPayersNotFound
+        : translate[language].thirdPartyPayersFound,
       data: { thirdPartyPayers },
     };
   } catch (e) {
@@ -43,7 +52,7 @@ const updateById = async (req) => {
     }
     return {
       message: translate[language].thirdPartyPayersUpdated,
-      data: { thirdPartyPayer: updatedThirdPartyPayer }
+      data: { thirdPartyPayer: updatedThirdPartyPayer },
     };
   } catch (e) {
     req.log('error', e);
@@ -57,7 +66,7 @@ const removeById = async (req) => {
     if (!deletedThirdPartyPayer) {
       return Boom.notFound(translate[language].thirdPartyPayersNotFound);
     }
-    return { message: translate[language].deletedThirdPartyPayer };
+    return { message: translate[language].thirdPartyPayerDeleted };
   } catch (e) {
     req.log('error', e);
     return Boom.badImplementation(e);
@@ -68,5 +77,5 @@ module.exports = {
   create,
   list,
   updateById,
-  removeById
+  removeById,
 };
