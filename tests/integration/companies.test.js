@@ -37,11 +37,10 @@ describe('COMPANIES ROUTES', () => {
       });
 
       it('should return 404 if no company found', async () => {
-        const invalidId = authCompany._id.toHexString();
+        const invalidId = new ObjectID();
         const payload = {
           name: 'Alenvi Alenvi',
         };
-        await Company.deleteMany({});
         const response = await app.inject({
           method: 'PUT',
           url: `/companies/${invalidId}`,
