@@ -199,7 +199,7 @@ const create = async (req) => {
   try {
     const newCompany = new Company(req.payload);
 
-    const { folder } = await createFolderForCompany(newCompany.name);
+    const folder = await createFolderForCompany(newCompany.name);
     newCompany.folderId = folder.id;
     await newCompany.save();
 

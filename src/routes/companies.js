@@ -59,9 +59,6 @@ exports.plugin = {
               transportSubs: [Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
-              }), Joi.object().keys({
-                subId: Joi.objectId().required(),
-                price: Joi.number(),
               })],
               templates: {
                 contractWithCompany: {
@@ -165,42 +162,10 @@ exports.plugin = {
               transportSubs: [Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
-              }).required().min(1),
-              Joi.object().keys({
-                subId: Joi.objectId().required(),
-                price: Joi.number(),
-              })],
-              templates: {
-                contractWithCompany: {
-                  driveId: Joi.string(),
-                  link: Joi.string(),
-                },
-                contractWithCompanyVersion: {
-                  driveId: Joi.string(),
-                  link: Joi.string(),
-                },
-                contractWithCustomer: {
-                  driveId: Joi.string(),
-                  link: Joi.string(),
-                },
-                contractWithCustomerVersion: {
-                  driveId: Joi.string(),
-                  link: Joi.string(),
-                },
-              },
+              }).required().min(1)],
             }).required(),
             customersConfig: Joi.object().keys({
               billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
-              templates: {
-                debitMandate: {
-                  driveId: Joi.string(),
-                  link: Joi.string(),
-                },
-                quote: {
-                  driveId: Joi.string(),
-                  link: Joi.string(),
-                },
-              },
             }),
           }),
         },
