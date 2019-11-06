@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+const { authorizeThirdPartyPayersUpdate } = require('./preHandlers/thirdPartyPayers');
 const {
   create,
   list,
@@ -32,7 +33,6 @@ exports.plugin = {
             email: Joi.string().email(),
             unitTTCRate: Joi.number(),
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
-            company: Joi.objectId().required(),
           }),
         },
       },
@@ -44,11 +44,6 @@ exports.plugin = {
       handler: list,
       options: {
         auth: { scope: ['config:read'] },
-        validate: {
-          query: {
-            company: Joi.objectId(),
-          },
-        },
       },
     });
 
@@ -75,6 +70,7 @@ exports.plugin = {
             billingMode: Joi.string().valid(BILLING_DIRECT, BILLING_INDIRECT),
           }),
         },
+        pre: [{ method: authorizeThirdPartyPayersUpdate }],
       },
     });
 
@@ -89,6 +85,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeThirdPartyPayersUpdate }],
       },
     });
   },

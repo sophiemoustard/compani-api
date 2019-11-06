@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Company = require('../../../src/models/Company');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { populateDBForAuthentification, authCompany } = require('./authentificationSeed');
 
 const tppCompany = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
@@ -24,12 +24,20 @@ const thirdPartyPayersList = [
   {
     _id: new ObjectID(),
     name: 'Toto',
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
     name: 'Tata',
+    company: authCompany._id,
   },
 ];
+
+const thirdPartyPayerFromOtherCompany =   {
+  _id: new ObjectID(),
+  name: 'Tutu',
+  company: tppCompany._id,
+};
 
 const populateDB = async () => {
   await ThirdPartyPayer.deleteMany({});
@@ -37,7 +45,8 @@ const populateDB = async () => {
 
   await populateDBForAuthentification();
   await ThirdPartyPayer.insertMany(thirdPartyPayersList);
+  await ThirdPartyPayer.insertMany([thirdPartyPayerFromOtherCompany]);
   await new Company(tppCompany).save();
 };
 
-module.exports = { thirdPartyPayersList, populateDB, tppCompany };
+module.exports = { thirdPartyPayersList, populateDB, tppCompany, thirdPartyPayerFromOtherCompany };
