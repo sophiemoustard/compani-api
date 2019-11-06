@@ -4,7 +4,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Sector = require('../../src/models/Sector');
 const { populateDB, sectorsList, sectorCompany } = require('./seed/sectorsSeed');
-const { getToken, rolesList, userList } = require('./seed/authentificationSeed');
+const { getToken, rolesList, userList } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

@@ -4,7 +4,7 @@ const {
   customerList,
   populateDB,
 } = require('./seed/statsSeed');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 
 describe('GET /stats/customer-follow-up', () => {
   let adminToken = null;

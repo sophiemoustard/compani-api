@@ -8,7 +8,7 @@ const { PAYMENT, REFUND } = require('../../src/helpers/constants');
 const translate = require('../../src/helpers/translate');
 const Payment = require('../../src/models/Payment');
 const Drive = require('../../src/models/Google/Drive');
-const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 const { language } = translate;
 

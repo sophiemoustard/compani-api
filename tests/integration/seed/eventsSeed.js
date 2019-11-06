@@ -8,7 +8,7 @@ const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const EventHistory = require('../../../src/models/EventHistory');
 const Sector = require('../../../src/models/Sector');
-const { rolesList, populateDBForAuthentification, authCompany } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const app = require('../../../server');
 
 const auxiliaryId = new ObjectID();
@@ -189,7 +189,7 @@ const populateDB = async () => {
   await EventHistory.deleteMany({});
   await Sector.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Event.insertMany(eventsList);
   await Contract.insertMany(contracts);
   await (new Sector(sector)).save();

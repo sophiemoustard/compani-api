@@ -48,8 +48,23 @@ const completeEventRepScriptEmail = async (nb, repIds = null) => {
   return mailInfo;
 };
 
+const helperWelcomeEmail = async (receiver, company) => {
+  const companyName = company.tradeName || company.name;
+  const mailOptions = {
+    from: `Compani <${SENDER_MAIL}>`,
+    to: receiver.email,
+    subject: `${companyName} - Bienvenue dans votre espace Compani`,
+    html: EmailOptionsHelper.welcomeEmailContent(receiver, companyName),
+  };
+
+  return process.env.NODE_ENV !== 'test'
+    ? NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
+    : NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+};
+
 module.exports = {
   billAlertEmail,
   completeBillScriptEmail,
   completeEventRepScriptEmail,
+  helperWelcomeEmail,
 };

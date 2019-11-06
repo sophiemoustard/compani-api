@@ -1,7 +1,7 @@
 const expect = require('expect');
 const { populateDB, distanceMatrixList } = require('./seed/distanceMatrixSeed');
 const app = require('../../server');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

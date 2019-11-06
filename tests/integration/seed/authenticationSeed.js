@@ -7,6 +7,12 @@ const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
 const app = require('../../../server');
 
+const authCompany = {
+  _id: new ObjectID(),
+  name: 'Test SAS',
+  tradeName: 'Test',
+};
+
 const rightsList = [
   {
     _id: new ObjectID(),
@@ -190,12 +196,6 @@ const rolesList = [
   },
 ];
 
-const authCompany = {
-  _id: new ObjectID(),
-  name: 'Test SAS',
-  tradeName: 'Test',
-};
-
 const userList = [
   {
     _id: new ObjectID(),
@@ -239,14 +239,14 @@ const userList = [
   },
 ];
 
-const populateDBForAuthentification = async () => {
+const populateDBForAuthentication = async () => {
   await Role.deleteMany({});
   await Right.deleteMany({});
-  await User.deleteMany({});
   await Company.deleteMany({});
-  await new Company(authCompany).save();
+  await User.deleteMany({});
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
+  await new Company(authCompany).save();
   for (let i = 0; i < userList.length; i++) {
     await (new User(userList[i]).save());
   }
@@ -280,7 +280,7 @@ module.exports = {
   rolesList,
   rightsList,
   userList,
-  populateDBForAuthentification,
+  populateDBForAuthentication,
   getUser,
   getToken,
   getTokenByCredentials,

@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const User = require('../../../src/models/User');
-const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication } = require('./authenticationSeed');
 
 const auxiliary = {
   _id: new ObjectID(),
@@ -15,7 +15,7 @@ const auxiliary = {
 const populateDB = async () => {
   await User.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new User(auxiliary)).save();
 };
 

@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const { populateDB } = require('./seed/finalPaySeed');
 const app = require('../../server');
 const FinalPay = require('../../src/models/FinalPay');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

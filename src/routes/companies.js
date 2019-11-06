@@ -27,6 +27,7 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string(),
+            tradeName: Joi.string(),
             address: Joi.object().keys({
               street: Joi.string().required(),
               zipCode: Joi.string().required(),

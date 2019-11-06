@@ -4,8 +4,8 @@ const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
-const { rolesList, getUser } = require('./authentificationSeed');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, getUser } = require('./authenticationSeed');
+const { populateDBForAuthentication } = require('./authenticationSeed');
 
 const contractCustomer = {
   _id: new ObjectID(),
@@ -170,7 +170,7 @@ const populateDB = async () => {
   await Customer.deleteMany({});
   await Event.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await new User(contractUser).save();
   await new Customer(contractCustomer).save();
   await Contract.insertMany(contractsList);

@@ -8,7 +8,7 @@ const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
-const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -139,7 +139,7 @@ const populateDB = async () => {
   await CreditNoteNumber.deleteMany({});
   await User.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await new Event(creditNoteEvent).save();
   await new Customer(creditNoteCustomer).save();
   await new Service(creditNoteService).save();

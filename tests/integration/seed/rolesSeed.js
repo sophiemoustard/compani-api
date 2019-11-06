@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { populateDBForAuthentication } = require('./authenticationSeed');
 const Role = require('../../../src/models/Role');
 const Right = require('../../../src/models/Right');
 
@@ -81,7 +81,7 @@ const populateDB = async () => {
   await Role.deleteMany({});
   await Right.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
 };

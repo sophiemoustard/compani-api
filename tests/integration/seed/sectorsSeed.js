@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const Sector = require('../../../src/models/Sector');
 const Company = require('../../../src/models/Company');
-const { populateDBForAuthentification, authCompany } = require('./authentificationSeed');
+const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const sectorCompany = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
@@ -43,7 +43,7 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await Company.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Sector.insertMany(sectorsList);
   await (new Company(sectorCompany)).save();
 };

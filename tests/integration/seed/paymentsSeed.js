@@ -8,7 +8,7 @@ const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Company = require('../../../src/models/Company');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
-const { populateDBForAuthentification, userList, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, userList, rolesList } = require('./authenticationSeed');
 
 const paymentTppList = [
   {
@@ -149,7 +149,7 @@ const populateDB = async () => {
   await Customer.deleteMany({});
   await User.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
@@ -163,7 +163,7 @@ const populateDBWithCompany = async () => {
   await Customer.deleteMany({});
   await Company.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);

@@ -9,7 +9,7 @@ const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
 const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
-const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
 
 const subId = new ObjectID();
 
@@ -307,7 +307,7 @@ const populateDB = async () => {
   await QuoteNumber.deleteMany({});
   await User.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new Company(customerCompany)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);

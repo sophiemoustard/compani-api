@@ -7,7 +7,7 @@ const sinon = require('sinon');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const DriveHelper = require('../../src/helpers/drive');
 const { generateFormData } = require('./utils');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 const { auxiliary, populateDB } = require('./seed/driveSeed');
 const app = require('../../server');
 

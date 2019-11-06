@@ -8,7 +8,7 @@ const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const FinalPay = require('../../../src/models/FinalPay');
-const { rolesList, populateDBForAuthentification, authCompany } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
@@ -128,7 +128,7 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await FinalPay.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new User(user)).save();
   await (new User(auxiliary)).save();
   await (new Customer(customer)).save();

@@ -13,7 +13,7 @@ const {
   userPayload,
   populateDB,
 } = require('./seed/usersSeed');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
