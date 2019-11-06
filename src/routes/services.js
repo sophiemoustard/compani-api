@@ -13,6 +13,8 @@ const {
   remove,
 } = require('../controllers/serviceController');
 
+const { authorizeServicesUpdate } = require('./preHandlers/services');
+
 exports.plugin = {
   name: 'routes-services',
   register: async (server) => {
@@ -25,7 +27,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(CONTRACT_STATUS),
-            company: Joi.objectId().required(),
             versions: Joi.array().items({
               defaultUnitAmount: Joi.number().required(),
               name: Joi.string().required(),
@@ -45,9 +46,6 @@ exports.plugin = {
       handler: list,
       options: {
         auth: { scope: ['config:read'] },
-        validate: {
-          query: { company: Joi.objectId() },
-        },
       },
     });
 
@@ -62,6 +60,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeServicesUpdate }],
       },
     });
 
@@ -84,6 +83,7 @@ exports.plugin = {
             exemptFromCharges: Joi.boolean(),
           }),
         },
+        pre: [{ method: authorizeServicesUpdate }],
       },
     });
   },

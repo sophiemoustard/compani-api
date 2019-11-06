@@ -3,6 +3,8 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+const { COMPANY_TYPES } = require('../models/Company');
+
 const {
   update,
   uploadFile,
@@ -10,8 +12,10 @@ const {
   updateInternalHour,
   getInternalHours,
   removeInternalHour,
+  create,
 } = require('../controllers/companyController');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
+const { authorizeCompanyUpdate, companyExists } = require('./preHandlers/companies');
 
 exports.plugin = {
   name: 'routes-companies',
@@ -40,6 +44,7 @@ exports.plugin = {
             }),
             ics: Joi.string(),
             rcs: Joi.string(),
+            rna: Joi.string(),
             iban: Joi.string(),
             bic: Joi.string(),
             rhConfig: Joi.object().keys({
@@ -92,6 +97,10 @@ exports.plugin = {
             }),
           }),
         },
+        pre: [
+          { method: companyExists },
+          { method: authorizeCompanyUpdate },
+        ],
       },
       handler: update,
     });
@@ -124,6 +133,43 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             default: Joi.boolean(),
+          }),
+        },
+      },
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/',
+      handler: create,
+      options: {
+        auth: { scope: ['config:edit'] },
+        validate: {
+          payload: Joi.object().keys({
+            name: Joi.string().required(),
+            type: Joi.string().valid(COMPANY_TYPES).required(),
+            rcs: Joi.string(),
+            rna: Joi.string(),
+            ics: Joi.string(),
+            iban: Joi.string(),
+            bic: Joi.string(),
+            rhConfig: Joi.object().keys({
+              contractWithCompany: Joi.object().keys({
+                grossHourlyRate: Joi.number(),
+              }),
+              contractWithCustomer: Joi.object().keys({
+                grossHourlyRate: Joi.number(),
+              }),
+              feeAmount: Joi.number(),
+              amountPerKm: Joi.number(),
+              transportSubs: [Joi.array().items({
+                department: Joi.string(),
+                price: Joi.number(),
+              }).required().min(1)],
+            }).required(),
+            customersConfig: Joi.object().keys({
+              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
+            }),
           }),
         },
       },

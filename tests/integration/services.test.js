@@ -1,10 +1,10 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { servicesList, populateDB } = require('./seed/servicesSeed');
+const { servicesList, serviceFromOtherCompany, populateDB } = require('./seed/servicesSeed');
 const Service = require('../../src/models/Service');
 const app = require('../../server');
 const { CUSTOMER_CONTRACT, HOURLY } = require('../../src/helpers/constants');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -21,7 +21,6 @@ describe('SERVICES ROUTES', () => {
 
   describe('POST /services', () => {
     const payload = {
-      company: new ObjectID(),
       type: CUSTOMER_CONTRACT,
       versions: [{
         name: 'Service',
@@ -39,21 +38,16 @@ describe('SERVICES ROUTES', () => {
         headers: { 'x-access-token': authToken },
         payload,
       });
+
       expect(response.statusCode).toBe(200);
-      const services = await Service.find();
+      const services = await Service.find({ company: authCompany._id });
       expect(services.length).toEqual(servicesList.length + 1);
+      expect(response.result.data.service.company).toEqual(authCompany._id);
     });
 
     const missingParams = [
       {
         paramName: 'type',
-        payload: { ...payload },
-        remove() {
-          delete this.payload[this.paramName];
-        },
-      },
-      {
-        paramName: 'company',
         payload: { ...payload },
         remove() {
           delete this.payload[this.paramName];
@@ -197,6 +191,23 @@ describe('SERVICES ROUTES', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 error if user is not from the same company', async () => {
+      const payload = {
+        defaultUnitAmount: 15,
+        name: 'Service bis',
+        startDate: '2019-01-16 17:58:15.519',
+        vat: 12,
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('DELETE /services/:id', () => {
@@ -208,7 +219,7 @@ describe('SERVICES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const services = await Service.find();
+      const services = await Service.find({ company: authCompany._id });
       expect(services.length).toBe(servicesList.length - 1);
     });
 
@@ -218,6 +229,16 @@ describe('SERVICES ROUTES', () => {
         url: `/services/${servicesList[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
         credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(403);

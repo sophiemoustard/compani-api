@@ -8,7 +8,7 @@ const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
@@ -201,6 +201,7 @@ const balanceUserList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [balanceCustomerList[0]._id],
+    company: authCompany._id,
   },
 ];
 

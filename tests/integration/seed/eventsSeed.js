@@ -49,6 +49,7 @@ const eventAuxiliary = {
   role: rolesList[1]._id,
   contracts: [contracts[0]._id],
   sector: sector._id,
+  company: authCompany._id,
 };
 
 const thirdPartyPayer = {

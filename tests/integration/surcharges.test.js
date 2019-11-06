@@ -1,10 +1,10 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 
-const { surchargesList, populateDB } = require('./seed/surchargesSeed');
+const { surchargesList, populateDB, surchargeFromOtherCompany } = require('./seed/surchargesSeed');
 const Surcharge = require('../../src/models/Surcharge');
 const app = require('../../server');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -21,7 +21,6 @@ describe('SURCHARGES ROUTES', () => {
 
   describe('POST /surcharges', () => {
     const payload = {
-      company: new ObjectID(),
       name: 'Chasse aux monstres automnaux',
       saturday: 35,
       sunday: 30,
@@ -44,12 +43,12 @@ describe('SURCHARGES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const surcharges = await Surcharge.find();
+      const surcharges = await Surcharge.find({ company: authCompany._id });
       expect(surcharges.length).toEqual(surchargesList.length + 1);
+      expect(response.result.data.surcharge.company).toEqual(authCompany._id);
     });
     it('should not create a new surcharge if there is no name', async () => {
       const falsyPayload = {
-        company: new ObjectID(),
         saturday: 35,
         sunday: 30,
         publicHoliday: 16,
@@ -70,7 +69,7 @@ describe('SURCHARGES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const surcharges = await Surcharge.find();
+      const surcharges = await Surcharge.find({ company: authCompany._id });
       expect(surcharges.length).toEqual(surchargesList.length);
     });
 
@@ -88,7 +87,7 @@ describe('SURCHARGES ROUTES', () => {
   });
 
   describe('GET /surcharges', () => {
-    it('should return surcharges', async () => {
+    it('should return only the surcharges from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/surcharges',
@@ -164,6 +163,17 @@ describe('SURCHARGES ROUTES', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 error if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/surcharges/${surchargeFromOtherCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('DELETE /surcharges/:id', () => {
@@ -175,7 +185,7 @@ describe('SURCHARGES ROUTES', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const surcharges = await Surcharge.find();
+      const surcharges = await Surcharge.find({ company: authCompany._id });
       expect(surcharges.length).toBe(surchargesList.length - 1);
     });
 
@@ -185,6 +195,16 @@ describe('SURCHARGES ROUTES', () => {
         url: `/surcharges/${surchargesList[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
         credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/surcharges/${surchargeFromOtherCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(403);

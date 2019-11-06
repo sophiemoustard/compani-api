@@ -2,7 +2,7 @@ const Boom = require('boom');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
-const { addFile } = require('../helpers/gdriveStorage');
+const { addFile, createFolderForCompany } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
 const drive = require('../models/Google/Drive');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
@@ -195,6 +195,24 @@ const removeInternalHour = async (req) => {
   }
 };
 
+const create = async (req) => {
+  try {
+    const newCompany = new Company(req.payload);
+
+    const folder = await createFolderForCompany(newCompany.name);
+    newCompany.folderId = folder.id;
+    await newCompany.save();
+
+    return {
+      message: translate[language].companyCreated,
+      data: { company: newCompany },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
   uploadFile,
@@ -202,4 +220,5 @@ module.exports = {
   updateInternalHour,
   getInternalHours,
   removeInternalHour,
+  create,
 };
