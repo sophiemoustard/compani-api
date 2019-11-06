@@ -9,7 +9,7 @@ const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
 const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const subId = new ObjectID();
 
@@ -246,6 +246,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[0]._id],
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -254,6 +255,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[1]._id],
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -262,6 +264,7 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[3]._id],
+    company: authCompany._id,
   },
 ];
 

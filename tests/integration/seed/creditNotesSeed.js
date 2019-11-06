@@ -8,7 +8,7 @@ const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
@@ -75,12 +75,14 @@ const creditNoteUserList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [creditNoteCustomer._id],
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io', password: '123456' },
     role: rolesList.find(role => role.name === 'auxiliary')._id,
+    company: authCompany._id,
   },
 ];
 
