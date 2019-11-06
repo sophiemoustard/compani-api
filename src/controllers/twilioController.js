@@ -1,12 +1,13 @@
 const Boom = require('boom');
+const TwilioHelper = require('../helpers/twilio');
 const translate = require('../helpers/translate');
-const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 const { language } = translate;
 
 const send = async (req) => {
   try {
-    const sms = await twilio.messages.create(req.payload);
+    const { to, from, body } = req.payload;
+    const sms = await TwilioHelper.sendMessage(to, from, body);
     return {
       message: translate[language].smsSent,
       data: { sms },
