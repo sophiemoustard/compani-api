@@ -244,7 +244,6 @@ const populateDBForAuthentication = async () => {
   await Right.deleteMany({});
   await Company.deleteMany({});
   await User.deleteMany({});
-  await Company.deleteMany({});
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
   await new Company(authCompany).save();
