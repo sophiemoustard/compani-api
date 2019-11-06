@@ -200,16 +200,17 @@ const removeInternalHour = async (req) => {
 
 const create = async (req) => {
   try {
-    const promises = [];
     const payload = omit(req.payload, 'userId');
     const newCompany = new Company(payload);
 
     const { folder } = await createFolderForCompany(newCompany.name);
     newCompany.folderId = folder.id;
-    promises.push(newCompany.save());
+    await newCompany.save();
 
-    await Promise.all(promises);
-    return { message: translate[language].companyCreated };
+    return {
+      message: translate[language].companyCreated,
+      data: newCompany,
+    };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
-const { MONTH, TWO_WEEKS, TYPE_COMPANY, TYPE_ASSOCIATION } = require('../helpers/constants');
+const { MONTH, TWO_WEEKS, COMPANY, ASSOCIATION } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 
 const COMPANY_BILLING_PERIODS = [MONTH, TWO_WEEKS];
-const COMPANY_TYPES = [TYPE_COMPANY, TYPE_ASSOCIATION];
+const COMPANY_TYPES = [COMPANY, ASSOCIATION];
 
 const CompanySchema = mongoose.Schema({
   name: { type: String, unique: true },
@@ -16,7 +16,7 @@ const CompanySchema = mongoose.Schema({
   ics: String,
   iban: String,
   bic: String,
-  type: { type: String, enum: COMPANY_TYPES, default: TYPE_COMPANY },
+  type: { type: String, enum: COMPANY_TYPES, default: COMPANY },
   folderId: String,
   directDebitsFolderId: String,
   rhConfig: {

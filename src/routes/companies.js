@@ -143,6 +143,60 @@ exports.plugin = {
           payload: Joi.object().keys({
             name: Joi.string().required(),
             type: Joi.string().required(),
+            rcs: Joi.string(),
+            rna: Joi.string(),
+            ics: Joi.string(),
+            iban: Joi.string(),
+            bic: Joi.string(),
+            rhConfig: Joi.object().keys({
+              contractWithCompany: Joi.object().keys({
+                grossHourlyRate: Joi.number().required(),
+              }).required(),
+              contractWithCustomer: Joi.object().keys({
+                grossHourlyRate: Joi.number().required(),
+              }).required(),
+              feeAmount: Joi.number(),
+              amountPerKm: Joi.number(),
+              transportSubs: [Joi.array().items({
+                department: Joi.string(),
+                price: Joi.number(),
+              }).required().min(1),
+              Joi.object().keys({
+                subId: Joi.objectId().required(),
+                price: Joi.number(),
+              })],
+              templates: {
+                contractWithCompany: {
+                  driveId: Joi.string(),
+                  link: Joi.string(),
+                },
+                contractWithCompanyVersion: {
+                  driveId: Joi.string(),
+                  link: Joi.string(),
+                },
+                contractWithCustomer: {
+                  driveId: Joi.string(),
+                  link: Joi.string(),
+                },
+                contractWithCustomerVersion: {
+                  driveId: Joi.string(),
+                  link: Joi.string(),
+                },
+              },
+            }).required(),
+            customersConfig: Joi.object().keys({
+              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
+              templates: {
+                debitMandate: {
+                  driveId: Joi.string(),
+                  link: Joi.string(),
+                },
+                quote: {
+                  driveId: Joi.string(),
+                  link: Joi.string(),
+                },
+              },
+            }),
           }),
         },
       },

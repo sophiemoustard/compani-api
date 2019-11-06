@@ -65,7 +65,7 @@
       {{ creditNote.company.address.zipCode }} {{ creditNote.company.address.city }}<br />
       {{#if creditNote.company.rcs }}
       RCS : {{ creditNote.company.rcs }}</br>
-      {{else}}
+      {{else if bill.company.rna}}
       RNA : {{ creditNote.company.rna }}</br>
       {{/if}}
     </div>

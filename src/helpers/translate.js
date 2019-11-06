@@ -278,7 +278,7 @@ module.exports = {
     fileCreated: 'Fichier créé.',
     uploadNotAllowed: 'Téléchargement non autorisé.',
     /* Company */
-    companyCreated: 'Entreprise crée.',
+    companyCreated: 'Entreprise créée.',
     companyNotFound: 'Entreprise non trouvée.',
     companyExists: 'Entreprise déjà existante.',
     companyInternalHourCreated: 'Heure interne de l\'entreprise créée.',

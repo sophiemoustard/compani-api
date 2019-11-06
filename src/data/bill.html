@@ -66,7 +66,7 @@
     {{ bill.company.address.zipCode }} {{ bill.company.address.city }}<br />
     {{#if bill.company.rcs }}
     RCS : {{ bill.company.rcs }}
-    {{else}}
+    {{else if bill.company.rna}}
     RNA : {{ bill.company.rna }}
     {{/if}}
   </div>
