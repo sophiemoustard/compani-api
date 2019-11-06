@@ -20,8 +20,8 @@ const CompanySchema = mongoose.Schema({
   folderId: String,
   directDebitsFolderId: String,
   rhConfig: {
-    contractWithCompany: { grossHourlyRate: Number },
-    contractWithCustomer: { grossHourlyRate: Number },
+    contractWithCompany: { grossHourlyRate: { type: Number, default: 0 } },
+    contractWithCustomer: { grossHourlyRate: { type: Number, default: 0 } },
     feeAmount: Number,
     amountPerKm: Number,
     transportSubs: [{

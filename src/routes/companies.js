@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { COMPANY, ASSOCIATION } = require('../helpers/constants');
+const { COMPANY, ASSOCIATION, COMPANY_TYPES } = require('../helpers/constants');
 
 const {
   update,
@@ -147,7 +147,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            type: Joi.string().valid([COMPANY, ASSOCIATION]).required(),
+            type: Joi.string().valid(COMPANY_TYPES).required(),
             rcs: Joi.string(),
             rna: Joi.string(),
             ics: Joi.string(),
@@ -155,11 +155,11 @@ exports.plugin = {
             bic: Joi.string(),
             rhConfig: Joi.object().keys({
               contractWithCompany: Joi.object().keys({
-                grossHourlyRate: Joi.number().required(),
-              }).required(),
+                grossHourlyRate: Joi.number(),
+              }),
               contractWithCustomer: Joi.object().keys({
-                grossHourlyRate: Joi.number().required(),
-              }).required(),
+                grossHourlyRate: Joi.number(),
+              }),
               feeAmount: Joi.number(),
               amountPerKm: Joi.number(),
               transportSubs: [Joi.array().items({

@@ -205,7 +205,7 @@ const create = async (req) => {
 
     return {
       message: translate[language].companyCreated,
-      data: newCompany,
+      data: { company: newCompany },
     };
   } catch (e) {
     req.log('error', e);
