@@ -2,7 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const { getToken, populateDBForAuthentification } = require('./seed/authentificationSeed');
+const { getToken, populateDBForAuthentification } = require('./seed/authenticationSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
 describe('NODE ENV', () => {
