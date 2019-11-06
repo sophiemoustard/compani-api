@@ -59,6 +59,9 @@ exports.plugin = {
               transportSubs: [Joi.array().items({
                 department: Joi.string(),
                 price: Joi.number(),
+              }), Joi.object().keys({
+                subId: Joi.objectId().required(),
+                price: Joi.number(),
               })],
               templates: {
                 contractWithCompany: {
