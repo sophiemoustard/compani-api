@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { COMPANY, ASSOCIATION, COMPANY_TYPES } = require('../helpers/constants');
+const { COMPANY_TYPES } = require('../models/Company');
 
 const {
   update,

@@ -53,3 +53,4 @@ const CompanySchema = mongoose.Schema({
 
 module.exports = mongoose.model('Company', CompanySchema);
 module.exports.COMPANY_BILLING_PERIODS = COMPANY_BILLING_PERIODS;
+module.exports.COMPANY_TYPES = COMPANY_TYPES;
