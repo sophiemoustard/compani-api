@@ -136,16 +136,18 @@ describe('exportAbsencesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     getAbsencesForExport.returns([]);
-    const exportArray = await ExportHelper.exportAbsencesHistory(null, null);
+    const exportArray = await ExportHelper.exportAbsencesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     getAbsencesForExport.returns(events);
 
-    const exportArray = await ExportHelper.exportAbsencesHistory(null, null);
+    const exportArray = await ExportHelper.exportAbsencesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,
