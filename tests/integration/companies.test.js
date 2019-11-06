@@ -36,7 +36,7 @@ describe('COMPANIES ROUTES', () => {
         expect(response.result.data.company.name).toEqual(payload.name);
       });
 
-      it('should return 403 if no company found', async () => {
+      it('should return 404 if no company found', async () => {
         const invalidId = authCompany._id.toHexString();
         const payload = {
           name: 'Alenvi Alenvi',
@@ -49,7 +49,7 @@ describe('COMPANIES ROUTES', () => {
           payload,
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(404);
       });
 
       it('should return 403 if not the same ids', async () => {
