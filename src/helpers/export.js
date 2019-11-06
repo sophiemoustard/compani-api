@@ -223,7 +223,8 @@ const formatCreditNotesForExport = (creditNotes) => {
   return rows;
 };
 
-exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
+exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credentials) => {
+
   const query = {
     date: { $lte: endDate, $gte: startDate },
   };
@@ -231,7 +232,7 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
   const bills = await Bill.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client' })
+    .populate({ path: 'client', match: { company: credentials.company._id } })
     .lean();
 
   const creditNotes = await CreditNote.find(query)

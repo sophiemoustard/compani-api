@@ -8,11 +8,12 @@ const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  company: authCompany._id,
 };
 
 const creditNoteService = {

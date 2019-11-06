@@ -8,7 +8,6 @@ const { language } = translate;
 
 const create = async (req) => {
   try {
-    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) return Boom.forbidden();
     const payload = {
       ...req.payload,
       company: req.auth.credentials.company._id,
@@ -28,8 +27,6 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) return Boom.forbidden();
-
     const thirdPartyPayers = await ThirdPartyPayer.find({ company: req.auth.credentials.company._id }).lean();
 
     return {
@@ -46,7 +43,7 @@ const list = async (req) => {
 
 const updateById = async (req) => {
   try {
-    const updatedThirdPartyPayer = await ThirdPartyPayer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+    const updatedThirdPartyPayer = await ThirdPartyPayer.findOneAndUpdate({ _id: req.params._id, company: req.auth.credentials.company._id }, { $set: flat(req.payload) }, { new: true });
     if (!updatedThirdPartyPayer) {
       return Boom.notFound(translate[language].thirdPartyPayersNotFound);
     }
@@ -62,7 +59,7 @@ const updateById = async (req) => {
 
 const removeById = async (req) => {
   try {
-    const deletedThirdPartyPayer = await ThirdPartyPayer.findByIdAndRemove(req.params._id);
+    const deletedThirdPartyPayer = await ThirdPartyPayer.findByIdAndRemove({ _id: req.params._id, company: req.auth.credentials.company._id });
     if (!deletedThirdPartyPayer) {
       return Boom.notFound(translate[language].thirdPartyPayersNotFound);
     }

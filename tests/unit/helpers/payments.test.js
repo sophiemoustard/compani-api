@@ -100,7 +100,8 @@ describe('exportPaymentsHistory', () => {
       .chain('lean')
       .once()
       .returns([]);
-    const exportArray = await payments.exportPaymentsHistory(null, null);
+    const credentials = { company: new ObjectID() };
+    const exportArray = await payments.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
   });
@@ -113,7 +114,8 @@ describe('exportPaymentsHistory', () => {
       .chain('lean')
       .once()
       .returns(paymentsList);
-    const exportArray = await payments.exportPaymentsHistory(null, null);
+    const credentials = { company: new ObjectID() };
+    const exportArray = await payments.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,

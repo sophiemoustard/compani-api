@@ -8,16 +8,18 @@ const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Company = require('../../../src/models/Company');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, userList, rolesList } = require('./authenticationSeed');
+const { populateDBForAuthentication, userList, rolesList, authCompany } = require('./authenticationSeed');
 
 const paymentTppList = [
   {
     _id: new ObjectID(),
     name: 'Toto',
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
     name: 'Tata',
+    company: authCompany._id,
   },
 ];
 
@@ -140,6 +142,7 @@ const paymentUser = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'helper')._id,
   customers: [paymentCustomerList[0]._id],
+  company: authCompany._id,
 };
 
 const populateDB = async () => {

@@ -254,9 +254,10 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
+    const credentials = { company: new ObjectID() };
     mockBill.expects('find').chain('lean').returns([]);
     mockCreditNote.expects('find').chain('lean').returns([]);
-    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null);
+    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
 
@@ -265,12 +266,13 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
+    const credentials = { company: new ObjectID() };
     mockBill.expects('find').chain('lean').returns([{}]);
     mockCreditNote.expects('find').chain('lean').returns([{}]);
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
-    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null);
+    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,
@@ -298,10 +300,12 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .once()
       .returns(creditNotes);
 
+    const credentials = { company: new ObjectID() };
+
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
-    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null);
+    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     sinon.assert.callCount(formatPriceStub, 3);
     sinon.assert.callCount(formatFloatForExportStub, 8);

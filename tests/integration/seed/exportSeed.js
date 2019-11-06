@@ -74,6 +74,7 @@ const serviceList = [
 
 const customerThirdPartyPayer = {
   _id: new ObjectID(),
+  company: authCompany._id,
 };
 
 const subscriptionId = new ObjectID();
@@ -138,6 +139,7 @@ const customersList = [
 const thirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  company: authCompany._id,
 };
 
 const eventList = [

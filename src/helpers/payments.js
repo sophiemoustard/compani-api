@@ -135,7 +135,8 @@ const paymentExportHeader = [
   'Montant TTC en €',
 ];
 
-exports.exportPaymentsHistory = async (startDate, endDate) => {
+exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
+
   const query = {
     date: { $lte: endDate, $gte: startDate },
   };
@@ -143,7 +144,7 @@ exports.exportPaymentsHistory = async (startDate, endDate) => {
   const payments = await Payment.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client' })
+    .populate({ path: 'client', match: { company: credentials.company._id } })
     .lean();
 
   const rows = [paymentExportHeader];

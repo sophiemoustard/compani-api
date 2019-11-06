@@ -7,7 +7,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const { populateDB, billUserList, billsList, billCustomerList } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const Bill = require('../../src/models/Bill');
 
 describe('NODE ENV', () => {
@@ -255,6 +255,7 @@ describe('BILL ROUTES - POST /bills', () => {
               thirdPartyPayer: {
                 _id: '5ccbfcf3d6eaa746a3c34cdc',
                 name: 'Toto',
+                company: authCompany._id,
                 __v: 0,
                 createdAt: '2019-05-03T08:33:56.156Z',
                 updatedAt: '2019-05-03T08:33:56.156Z',

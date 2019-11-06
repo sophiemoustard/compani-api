@@ -79,10 +79,10 @@ const exportHistory = async (req, h) => {
         exportArray = await exportWorkingEventsHistory(startDate, endDate);
         break;
       case BILL:
-        exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate);
+        exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate, req.auth.credentials);
         break;
       case PAYMENT:
-        exportArray = await exportPaymentsHistory(startDate, endDate);
+        exportArray = await exportPaymentsHistory(startDate, endDate, req.auth.credentials);
         break;
       case ABSENCE:
         exportArray = await exportAbsencesHistory(startDate, endDate);

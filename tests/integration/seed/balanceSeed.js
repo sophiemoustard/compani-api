@@ -8,11 +8,12 @@ const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  company: authCompany._id,
 };
 
 const company = {
