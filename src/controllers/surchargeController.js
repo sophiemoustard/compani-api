@@ -7,7 +7,6 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) throw Boom.forbidden();
     const query = { company: req.auth.credentials.company._id };
     const surcharges = await Surcharge.find(query);
 
@@ -23,7 +22,6 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    if (!(req.auth.credentials.company && req.auth.credentials.company._id)) throw Boom.forbidden();
     const payload = {
       ...req.payload,
       company: req.auth.credentials.company._id,
