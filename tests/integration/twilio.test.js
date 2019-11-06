@@ -2,7 +2,11 @@ const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
+<<<<<<< HEAD
 const { getToken, populateDBForAuthentication } = require('./seed/authenticationSeed');
+=======
+const { getToken, populateDBForAuthentification } = require('./seed/authenticationSeed');
+>>>>>>> COM-785 fix bug test
 const TwilioHelper = require('../../src/helpers/twilio');
 
 describe('NODE ENV', () => {
