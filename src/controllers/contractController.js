@@ -21,7 +21,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const contracts = await getContractList(req.query);
+    const contracts = await getContractList(req.query, req.auth.credentials);
 
     const message = contracts.length ? translate[language].contractsFound : translate[language].contractsNotFound;
 

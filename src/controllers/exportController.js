@@ -85,7 +85,7 @@ const exportHistory = async (req, h) => {
         exportArray = await exportPaymentsHistory(startDate, endDate);
         break;
       case ABSENCE:
-        exportArray = await exportAbsencesHistory(startDate, endDate);
+        exportArray = await exportAbsencesHistory(startDate, endDate, req.auth.credentials);
         break;
       case PAY:
         exportArray = await exportPayAndFinalPayHistory(startDate, endDate, req.auth.credentials);

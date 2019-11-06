@@ -104,8 +104,8 @@ const absenceExportHeader = [
   'Divers',
 ];
 
-exports.exportAbsencesHistory = async (startDate, endDate) => {
-  const events = await EventRepository.getAbsencesForExport(startDate, endDate);
+exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
+  const events = await EventRepository.getAbsencesForExport(startDate, endDate, credentials);
 
   const rows = [absenceExportHeader];
   for (const event of events) {
