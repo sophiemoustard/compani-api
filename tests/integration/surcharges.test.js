@@ -164,13 +164,12 @@ describe('SURCHARGES ROUTES', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 403 error if user is not form the same company', async () => {
+    it('should return a 403 error if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/surcharges/${surchargeFromOtherCompany._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
         payload,
-        credentials: { scope: ['Test'] },
       });
 
       expect(response.statusCode).toBe(403);
@@ -206,7 +205,6 @@ describe('SURCHARGES ROUTES', () => {
         method: 'DELETE',
         url: `/surcharges/${surchargeFromOtherCompany._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
-        credentials: { scope: ['Test'] },
       });
 
       expect(response.statusCode).toBe(403);

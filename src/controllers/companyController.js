@@ -1,12 +1,9 @@
 const Boom = require('boom');
 const flat = require('flat');
-const { ObjectID } = require('mongodb');
-const omit = require('lodash/omit');
 
 const translate = require('../helpers/translate');
 const { addFile, createFolderForCompany } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
-const User = require('../models/User');
 const drive = require('../models/Google/Drive');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
 const { updateEventsInternalHourType } = require('../helpers/events');
@@ -200,8 +197,7 @@ const removeInternalHour = async (req) => {
 
 const create = async (req) => {
   try {
-    const payload = omit(req.payload, 'userId');
-    const newCompany = new Company(payload);
+    const newCompany = new Company(req.payload);
 
     const { folder } = await createFolderForCompany(newCompany.name);
     newCompany.folderId = folder.id;

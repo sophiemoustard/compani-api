@@ -204,7 +204,6 @@ describe('SERVICES ROUTES', () => {
         url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
         payload,
-        credentials: { scope: ['Test'] },
       });
 
       expect(response.statusCode).toBe(403);
@@ -235,12 +234,11 @@ describe('SERVICES ROUTES', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('should return a 404 error if user is not from the same company', async () => {
+    it('should return a 403 error if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'DELETE',
         url: `/services/${serviceFromOtherCompany._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
-        credentials: { scope: ['Test'] },
       });
 
       expect(response.statusCode).toBe(403);

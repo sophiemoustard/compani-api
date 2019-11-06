@@ -3,6 +3,8 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+const { COMPANY, ASSOCIATION } = require('../helpers/constants');
+
 const {
   update,
   uploadFile,
@@ -145,7 +147,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            type: Joi.string().required(),
+            type: Joi.string().valid([COMPANY, ASSOCIATION]).required(),
             rcs: Joi.string(),
             rna: Joi.string(),
             ics: Joi.string(),
