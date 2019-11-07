@@ -13,6 +13,7 @@ const { populateDBForAuthentication, rolesList, authCompany } = require('./authe
 const creditNoteThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  company: authCompany._id,
 };
 
 const creditNoteService = {
@@ -117,6 +118,7 @@ const creditNotesList = [
     startDate: moment().startOf('month').toDate(),
     endDate: moment().set('date', 15).toDate(),
     customer: creditNoteCustomer._id,
+    thirdPartyPayer: creditNoteThirdPartyPayer._id,
     exclTaxes: 100,
     inclTaxes: 112,
     events: [{

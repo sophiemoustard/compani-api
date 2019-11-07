@@ -13,6 +13,7 @@ const { populateDBForAuthentication, rolesList, authCompany } = require('./authe
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  company: authCompany._id,
 };
 
 const company = {

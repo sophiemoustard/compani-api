@@ -1,8 +1,10 @@
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
 const Bill = require('../../../src/models/Bill');
+const CreditNote = require('../../../src/models/CreditNote');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Payment = require('../../../src/models/Payment');
@@ -74,6 +76,7 @@ const serviceList = [
 
 const customerThirdPartyPayer = {
   _id: new ObjectID(),
+  company: authCompany._id,
 };
 
 const subscriptionId = new ObjectID();
@@ -138,6 +141,7 @@ const customersList = [
 const thirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  company: authCompany._id,
 };
 
 const eventList = [
@@ -364,6 +368,26 @@ const finalPayList = [
   },
 ];
 
+const creditNotesList = [
+  {
+    _id: new ObjectID(),
+    date: '2019-05-28',
+    startDate: '2019-05-27',
+    endDate: '2019-11-25',
+    customer: customer._id,
+    thirdPartyPayer: customerThirdPartyPayer._id,
+    exclTaxes: 100,
+    inclTaxes: 112,
+    events: [{
+      eventId: new ObjectID(),
+      startDate: '2019-01-16T10:30:19.543Z',
+      endDate: '2019-01-16T12:30:21.653Z',
+      auxiliary: new ObjectID(),
+    }],
+    origin: 'compani',
+  },
+];
+
 const populateEvents = async () => {
   await Event.deleteMany();
   await User.deleteMany();
@@ -377,13 +401,15 @@ const populateEvents = async () => {
   await new Customer(customer).save();
 };
 
-const populateBills = async () => {
+const populateBillsAndCreditNotes = async () => {
   await Bill.deleteMany();
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
+  await CreditNote.deleteMany();
 
   await populateDBForAuthentication();
   await Bill.insertMany(billsList);
+  await CreditNote.insertMany(creditNotesList);
   await new Customer(customer).save();
   await new ThirdPartyPayer(thirdPartyPayer).save();
 };
@@ -438,7 +464,7 @@ const populatePay = async () => {
 
 module.exports = {
   populateEvents,
-  populateBills,
+  populateBillsAndCreditNotes,
   populatePayment,
   populatePay,
   paymentsList,

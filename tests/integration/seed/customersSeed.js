@@ -34,7 +34,7 @@ const customerServiceList = [
   {
     _id: new ObjectID(),
     type: COMPANY_CONTRACT,
-    company: customerCompany._id,
+    company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
@@ -46,7 +46,7 @@ const customerServiceList = [
   {
     _id: new ObjectID(),
     type: CUSTOMER_CONTRACT,
-    company: customerCompany._id,
+    company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
@@ -59,6 +59,7 @@ const customerServiceList = [
 
 const customerThirdPartyPayer = {
   _id: new ObjectID('62400565f8fd3555379720c9'),
+  company: authCompany._id,
 };
 
 const customersList = [
@@ -241,6 +242,7 @@ const customersList = [
 const userList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
@@ -250,6 +252,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     identity: { firstname: 'HelperForCustomer2', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer2@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
@@ -259,6 +262,7 @@ const userList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     identity: { firstname: 'HelperForCustomer4', lastname: 'Test' },
     local: { email: 'helper_for_customer_customer4@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),

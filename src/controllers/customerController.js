@@ -102,7 +102,7 @@ const listWithCustomerContractSubscriptions = async (req) => {
 
 const show = async (req) => {
   try {
-    const customer = await getCustomer(req.params._id);
+    const customer = await getCustomer(req.params._id, req.auth.credentials);
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     return {
@@ -587,7 +587,10 @@ const createFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       }
-    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
+    )
+      .populate('subscriptions.service')
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
@@ -622,7 +625,10 @@ const updateFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       }
-    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
+    )
+      .populate('subscriptions.service')
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
@@ -651,7 +657,9 @@ const removeFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       }
-    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer');
+    )
+      .populate('subscriptions.service')
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } });
 
     return {
       message: translate[language].customerFundingRemoved,

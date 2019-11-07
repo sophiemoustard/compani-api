@@ -223,7 +223,7 @@ const formatCreditNotesForExport = (creditNotes) => {
   return rows;
 };
 
-exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
+exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credentials) => {
   const query = {
     date: { $lte: endDate, $gte: startDate },
   };
@@ -231,13 +231,13 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
   const bills = await Bill.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client' })
+    .populate({ path: 'client', match: { company: get(credentials, 'company._id', null) } })
     .lean();
 
   const creditNotes = await CreditNote.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'thirdPartyPayer' })
+    .populate({ path: 'thirdPartyPayer' , match: { company: get(credentials, 'company._id', null) } })
     .lean();
 
   const rows = [billAndCreditNoteExportHeader];
@@ -393,7 +393,7 @@ exports.exportAuxiliaries = async (credentials) => {
   const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
     .find({ role: { $in: roleIds } })
-    .populate({ path: 'sector', match: { company: credentials.company._id } });
+    .populate({ path: 'sector', match: { company: get(credentials, 'company._id', null) } });
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {

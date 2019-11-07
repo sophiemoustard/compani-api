@@ -1,3 +1,4 @@
+const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
@@ -263,7 +264,9 @@ describe('getCustomer', () => {
       .chain('lean')
       .once()
       .returns(null);
-    const result = await CustomerHelper.getCustomer(customerId);
+
+    const credentials = { company: new ObjectID() };
+    const result = await CustomerHelper.getCustomer(customerId, credentials);
 
     CustomerMock.verify();
     expect(result).toBeNull();
@@ -283,7 +286,8 @@ describe('getCustomer', () => {
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
-    const result = await CustomerHelper.getCustomer(customerId);
+    const credentials = { company: new ObjectID() };
+    const result = await CustomerHelper.getCustomer(customerId, credentials);
 
     CustomerMock.verify();
     expect(result).toEqual({ identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true });
@@ -306,7 +310,8 @@ describe('getCustomer', () => {
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
     populateFundings.returnsArg(0);
 
-    await CustomerHelper.getCustomer(customerId);
+    const credentials = { company: new ObjectID() };
+    await CustomerHelper.getCustomer(customerId, credentials);
 
     CustomerMock.verify();
     sinon.assert.calledOnce(populateSubscriptionsServices);

@@ -14,10 +14,12 @@ const paymentTppList = [
   {
     _id: new ObjectID(),
     name: 'Toto',
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
     name: 'Tata',
+    company: authCompany._id,
   },
 ];
 
