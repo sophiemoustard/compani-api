@@ -415,7 +415,7 @@ describe('exportCustomers', () => {
     expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse',
       '1ère intervention', 'Auxiliaire référent', 'Environnement', 'Objectifs', 'Autres',
       'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombre de souscriptions',
-      'Souscriptions', 'Nombre de financements', 'Date de création']);
+      'Souscriptions', 'Nombre de financements', 'Date de création', 'Statut']);
     CustomerModel.verify();
   });
 
@@ -477,6 +477,7 @@ describe('exportCustomers', () => {
       'Au service de sa majesté\r\n Service public\r\n Service civique',
       2,
       '12/12/2012',
+      'Actif',
     ]);
     CustomerModel.verify();
   });
@@ -494,7 +495,7 @@ describe('exportCustomers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', '']);
     CustomerModel.verify();
   });
 });

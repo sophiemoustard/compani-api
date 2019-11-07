@@ -318,6 +318,7 @@ const customerExportHeader = [
   'Souscriptions',
   'Nombre de financements',
   'Date de création',
+  'Statut',
 ];
 
 const formatIdentity = person => `${person.firstname} ${person.lastname}`;
@@ -338,6 +339,12 @@ exports.exportCustomers = async () => {
     const signedAt = lastMandate.signedAt ? moment(lastMandate.signedAt).format('DD/MM/YYYY') : '';
     const subscriptionsCount = get(cus, 'subscriptions.length') || 0;
     const firstIntervention = get(cus, 'firstIntervention.startDate');
+    let status;
+    if (Object.keys(cus).length > 0) {
+      status = firstIntervention ? 'Actif' : 'Inactif';
+    } else {
+      status = '';
+    }
 
     const cells = [
       CIVILITY_LIST[get(cus, 'identity.title')] || '',
@@ -359,6 +366,7 @@ exports.exportCustomers = async () => {
       subscriptionsCount ? getServicesNameList(cus.subscriptions) : '',
       get(cus, 'fundings.length') || 0,
       cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '',
+      status,
     ];
 
     rows.push(cells);
