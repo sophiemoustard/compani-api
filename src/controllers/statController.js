@@ -8,7 +8,7 @@ const messages = translate[translate.language];
 
 exports.getCustomerFollowUp = async (req) => {
   try {
-    let followUp = await getCustomerFollowUp(req.query.customer);
+    let followUp = await getCustomerFollowUp(req.query.customer, req.auth.credentials);
     if (followUp.length === 0) {
       return {
         message: messages.statsNotFound,

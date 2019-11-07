@@ -415,7 +415,8 @@ describe('exportCustomers', () => {
       .once()
       .returns(customers);
 
-    const result = await ExportHelper.exportCustomers();
+    const credentials = {};
+    const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse',
@@ -459,7 +460,8 @@ describe('exportCustomers', () => {
       .once()
       .returns(customers);
 
-    const result = await ExportHelper.exportCustomers();
+    const credentials = {};
+    const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -497,7 +499,8 @@ describe('exportCustomers', () => {
       .once()
       .returns(customers);
 
-    const result = await ExportHelper.exportCustomers();
+    const credentials = {};
+    const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();

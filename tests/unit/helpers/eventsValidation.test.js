@@ -98,7 +98,8 @@ describe('checkContracts', () => {
     const user = { _id: event.auxiliary };
 
     hasConflicts.returns(false);
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const credentials = {};
+    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
 
     expect(result).toBeFalsy();
   });
@@ -139,7 +140,8 @@ describe('checkContracts', () => {
 
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const credentials = {};
+    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
     expect(result).toBeFalsy();
   });
 
@@ -180,7 +182,8 @@ describe('checkContracts', () => {
 
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const credentials = {};
+    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
 
     expect(result).toBeTruthy();
   });
@@ -223,7 +226,8 @@ describe('checkContracts', () => {
 
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const credentials = {};
+    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
 
     expect(result).toBeFalsy();
   });
@@ -266,7 +270,8 @@ describe('checkContracts', () => {
 
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const credentials = {};
+    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
 
     expect(result).toBeTruthy();
   });
@@ -308,7 +313,8 @@ describe('checkContracts', () => {
 
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const credentials = {};
+    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
 
     expect(result).toBeFalsy();
   });
@@ -345,7 +351,8 @@ describe('checkContracts', () => {
 
     const user = { _id: event.auxiliary, contracts: [contract], sector: sectorId };
 
-    const result = await EventsValidationHelper.checkContracts(event, user);
+    const credentials = {};
+    const result = await EventsValidationHelper.checkContracts(event, user, credentials);
 
     expect(result).toBeFalsy();
   });
@@ -451,7 +458,8 @@ describe('isCreationAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
     };
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const credentials = {};
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -466,7 +474,8 @@ describe('isCreationAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const credentials = {};
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -481,7 +490,8 @@ describe('isCreationAllowed', () => {
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const credentials = {};
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeTruthy();
@@ -507,12 +517,13 @@ describe('isCreationAllowed', () => {
       .once()
       .returns(user);
     checkContracts.returns(false);
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const credentials = {};
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWith(checkContracts, event, user);
+    sinon.assert.calledWith(checkContracts, event, user, credentials);
   });
 
   it('should return false as event is not absence and has conflicts', async () => {
@@ -534,12 +545,13 @@ describe('isCreationAllowed', () => {
       .returns(user);
     checkContracts.returns(true);
     hasConflicts.returns(true);
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const credentials = {};
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user);
+    sinon.assert.calledWith(checkContracts, event, user, credentials);
   });
 
   it('should return false if auxiliary sector is not event sector', async () => {
@@ -561,12 +573,13 @@ describe('isCreationAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const credentials = {};
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user);
+    sinon.assert.calledWith(checkContracts, event, user, credentials);
   });
 
   it('should return true', async () => {
@@ -589,12 +602,13 @@ describe('isCreationAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const result = await EventsValidationHelper.isCreationAllowed(event);
+    const credentials = {};
+    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
 
     UserModel.verify();
     expect(result).toBeTruthy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user);
+    sinon.assert.calledWith(checkContracts, event, user, credentials);
   });
 });
 
@@ -627,7 +641,8 @@ describe('isEditionAllowed', () => {
       type: INTERVENTION,
       isBilled: true,
     };
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -647,7 +662,8 @@ describe('isEditionAllowed', () => {
       auxiliary: new ObjectID(),
       type: ABSENCE,
     };
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -669,7 +685,8 @@ describe('isEditionAllowed', () => {
       type: INTERVENTION,
       isBilled: true,
     };
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -689,7 +706,8 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: ABSENCE,
     };
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -709,7 +727,8 @@ describe('isEditionAllowed', () => {
       auxiliary: auxiliaryId,
       type: INTERVENTION,
     };
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeTruthy();
@@ -739,7 +758,8 @@ describe('isEditionAllowed', () => {
       .once()
       .returns(user);
     checkContracts.returns(false);
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -770,7 +790,8 @@ describe('isEditionAllowed', () => {
       .returns(user);
     checkContracts.returns(true);
     hasConflicts.returns(true);
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -802,7 +823,8 @@ describe('isEditionAllowed', () => {
       .once()
       .returns(user);
     checkContracts.returns(true);
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeTruthy();
@@ -835,7 +857,8 @@ describe('isEditionAllowed', () => {
       .returns(user);
     hasConflicts.returns(true);
     checkContracts.returns(true);
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -863,7 +886,8 @@ describe('isEditionAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeFalsy();
@@ -894,7 +918,8 @@ describe('isEditionAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload);
+    const credentials = {};
+    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
 
     UserModel.verify();
     expect(result).toBeTruthy();

@@ -29,9 +29,9 @@ exports.getCustomersWithBilledEvents = async () => {
   return EventRepository.getCustomerWithBilledEvents(query);
 };
 
-exports.getCustomers = async (query) => {
+exports.getCustomers = async (query, credentials) => {
   const customers = await Customer.find(query)
-    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .populate({ path: 'subscriptions.service', match: { company: get(credentials, 'company._id', null) }, populate: { path: 'versions.surcharge' } })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
 
@@ -45,9 +45,9 @@ exports.getCustomers = async (query) => {
   return customers;
 };
 
-exports.getCustomersWithSubscriptions = async (query) => {
+exports.getCustomersWithSubscriptions = async (query, credentials) => {
   const customers = await Customer.find(query)
-    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .populate({ path: 'subscriptions.service', match: { company: get(credentials, 'company._id', null) }, populate: { path: 'versions.surcharge' } })
     .lean();
 
   if (customers.length === 0) return [];
@@ -59,14 +59,14 @@ exports.getCustomersWithSubscriptions = async (query) => {
   return customers;
 };
 
-exports.getCustomersWithCustomerContractSubscriptions = async () => {
+exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
   if (customerContractServices.length === 0) return [];
 
   const ids = customerContractServices.map(service => service._id);
   const customers = await Customer
     .find({ 'subscriptions.service': { $in: ids } })
-    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .populate({ path: 'subscriptions.service', match: { company: get(credentials, 'company._id', null) }, populate: { path: 'versions.surcharge' } })
     .lean();
   if (customers.length === 0) return [];
 
@@ -80,7 +80,7 @@ exports.getCustomersWithCustomerContractSubscriptions = async () => {
 
 exports.getCustomer = async (customerId, credentials) => {
   let customer = await Customer.findOne({ _id: customerId })
-    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .populate({ path: 'subscriptions.service', match: { company: get(credentials, 'company._id', null) }, populate: { path: 'versions.surcharge' } })
     .populate({ path: 'fundings.thirdPartyPayer', match: { company: get(credentials, 'company._id', null) } })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })

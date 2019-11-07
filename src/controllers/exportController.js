@@ -47,13 +47,13 @@ const exportData = async (req, h) => {
         data = await exportFundings();
         break;
       case CUSTOMER:
-        data = await exportCustomers();
+        data = await exportCustomers(req.auth.credentials);
         break;
       case SUBSCRIPTION:
-        data = await exportSubscriptions();
+        data = await exportSubscriptions(req.auth.credentials);
         break;
       case SERVICE:
-        data = await exportServices();
+        data = await exportServices(req.auth.credentials);
         break;
     }
 

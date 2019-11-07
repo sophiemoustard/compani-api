@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const Customer = require('../models/Customer');
 
-exports.getCustomerFollowUp = async (customerId) => {
+exports.getCustomerFollowUp = async (customerId, credentials) => {
   const now = new Date();
 
   const aggregateHourlySubscriptions = [

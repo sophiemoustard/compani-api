@@ -99,7 +99,7 @@ exports.getEventList = (rules, credentials) => Event.find(rules)
   .populate({
     path: 'customer',
     select: 'identity subscriptions contact',
-    populate: { path: 'subscriptions.service' },
+    populate: { path: 'subscriptions.service', match: { company: credentials.company._id } },
   })
   .lean();
 

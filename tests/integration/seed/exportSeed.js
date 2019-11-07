@@ -53,7 +53,7 @@ const serviceList = [
   {
     _id: new ObjectID(),
     type: COMPANY_CONTRACT,
-    company: company._id,
+    company: authCompany._id,
     versions: [{
       name: 'Service 1',
       startDate: '2019-01-16 17:58:15.519',
@@ -63,7 +63,7 @@ const serviceList = [
   {
     _id: new ObjectID(),
     type: CUSTOMER_CONTRACT,
-    company: company._id,
+    company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',

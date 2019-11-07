@@ -20,7 +20,7 @@ const list = async (req) => {
     if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
     const creditNotes = await CreditNote.find(query)
-      .populate({ path: 'customer', select: '_id identity subscriptions', populate: { path: 'subscriptions.service' } })
+      .populate({ path: 'customer', select: '_id identity subscriptions', populate: { path: 'subscriptions.service', match: { company: get(req, 'auth.credentials.company._id', null) } } })
       .populate({ path: 'thirdPartyPayer', select: '_id name', match: { company: get(req, 'auth.credentials.company._id', null) } })
       .lean();
 
@@ -91,7 +91,7 @@ const remove = async (req) => {
 const generateCreditNotePdf = async (req, h) => {
   try {
     const creditNote = await CreditNote.findOne({ _id: req.params._id })
-      .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service' } })
+      .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service', match: { company: get(req, 'auth.credentials.company._id', null) } } })
       .populate({ path: 'thirdPartyPayer', select: '_id name address', match: { company: get(req, 'auth.credentials.company._id', null) } })
       .populate({ path: 'events.auxiliary', select: 'identity' })
       .lean();
