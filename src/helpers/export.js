@@ -318,6 +318,7 @@ const customerExportHeader = [
   'Souscriptions',
   'Nombre de financements',
   'Date de création',
+  'Statut',
 ];
 
 const formatIdentity = person => `${person.firstname} ${person.lastname}`;
@@ -359,6 +360,7 @@ exports.exportCustomers = async () => {
       subscriptionsCount ? getServicesNameList(cus.subscriptions) : '',
       get(cus, 'fundings.length') || 0,
       cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '',
+      firstIntervention ? 'Actif' : 'Inactif',
     ];
 
     rows.push(cells);
