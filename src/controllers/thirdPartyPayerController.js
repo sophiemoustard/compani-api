@@ -60,7 +60,7 @@ const updateById = async (req) => {
 
 const removeById = async (req) => {
   try {
-    const deletedThirdPartyPayer = await ThirdPartyPayer.findByIdAndRemove({ _id: req.params._id });
+    const deletedThirdPartyPayer = await ThirdPartyPayer.findByIdAndRemove(req.params._id);
     if (!deletedThirdPartyPayer) {
       return Boom.notFound(translate[language].thirdPartyPayersNotFound);
     }
