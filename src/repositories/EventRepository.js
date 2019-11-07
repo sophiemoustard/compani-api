@@ -230,7 +230,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate) => {
   ]);
 };
 
-exports.getAbsencesForExport = async (startDate, endDate) => {
+exports.getAbsencesForExport = async (startDate, endDate, credentials) => {
   const query = {
     type: ABSENCE,
     $or: [
@@ -243,7 +243,7 @@ exports.getAbsencesForExport = async (startDate, endDate) => {
   return Event.find(query)
     .sort({ startDate: 'desc' })
     .populate({ path: 'auxiliary', select: 'identity' })
-    .populate({ path: 'sector' })
+    .populate({ path: 'sector', match: { company: credentials.company._id } })
     .lean();
 };
 
