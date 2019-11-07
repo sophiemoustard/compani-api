@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const flat = require('flat');
 
+const get = require('lodash/get');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const translate = require('../helpers/translate');
 
@@ -10,7 +11,7 @@ const create = async (req) => {
   try {
     const payload = {
       ...req.payload,
-      company: req.auth.credentials.company._id,
+      company: get(req, 'auth.credentials.company._id', null),
     };
     const thirdPartyPayer = new ThirdPartyPayer(payload);
     await thirdPartyPayer.save();
@@ -27,7 +28,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const thirdPartyPayers = await ThirdPartyPayer.find({ company: req.auth.credentials.company._id }).lean();
+    const thirdPartyPayers = await ThirdPartyPayer.find({ company: get(req, 'auth.credentials.company._id', null) }).lean();
 
     return {
       message: thirdPartyPayers.length === 0
@@ -43,7 +44,7 @@ const list = async (req) => {
 
 const updateById = async (req) => {
   try {
-    const updatedThirdPartyPayer = await ThirdPartyPayer.findOneAndUpdate({ _id: req.params._id, company: req.auth.credentials.company._id }, { $set: flat(req.payload) }, { new: true });
+    const updatedThirdPartyPayer = await ThirdPartyPayer.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
     if (!updatedThirdPartyPayer) {
       return Boom.notFound(translate[language].thirdPartyPayersNotFound);
     }
@@ -59,7 +60,7 @@ const updateById = async (req) => {
 
 const removeById = async (req) => {
   try {
-    const deletedThirdPartyPayer = await ThirdPartyPayer.findByIdAndRemove({ _id: req.params._id, company: req.auth.credentials.company._id });
+    const deletedThirdPartyPayer = await ThirdPartyPayer.findByIdAndRemove({ _id: req.params._id });
     if (!deletedThirdPartyPayer) {
       return Boom.notFound(translate[language].thirdPartyPayersNotFound);
     }

@@ -81,7 +81,7 @@ exports.getCustomersWithCustomerContractSubscriptions = async () => {
 exports.getCustomer = async (customerId, credentials) => {
   let customer = await Customer.findOne({ _id: customerId })
     .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-    .populate({ path: 'fundings.thirdPartyPayer', match: { company: credentials.company._id } })
+    .populate({ path: 'fundings.thirdPartyPayer', match: { company: get(credentials, 'company._id', null) } })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated

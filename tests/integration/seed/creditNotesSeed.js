@@ -76,12 +76,14 @@ const creditNoteUserList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [creditNoteCustomer._id],
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io', password: '123456' },
     role: rolesList.find(role => role.name === 'auxiliary')._id,
+    company: authCompany._id,
   },
 ];
 
@@ -116,6 +118,7 @@ const creditNotesList = [
     startDate: moment().startOf('month').toDate(),
     endDate: moment().set('date', 15).toDate(),
     customer: creditNoteCustomer._id,
+    thirdPartyPayer: creditNoteThirdPartyPayer._id,
     exclTaxes: 100,
     inclTaxes: 112,
     events: [{

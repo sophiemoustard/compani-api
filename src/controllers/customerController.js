@@ -589,7 +589,7 @@ const createFunding = async (req) => {
       }
     )
       .populate('subscriptions.service')
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: req.auth.credentials.company._id } })
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
@@ -627,7 +627,7 @@ const updateFunding = async (req) => {
       }
     )
       .populate('subscriptions.service')
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: req.auth.credentials.company._id } })
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
@@ -659,7 +659,7 @@ const removeFunding = async (req) => {
       }
     )
       .populate('subscriptions.service')
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: req.auth.credentials.company._id } });
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } });
 
     return {
       message: translate[language].customerFundingRemoved,

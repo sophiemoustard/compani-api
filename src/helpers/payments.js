@@ -144,7 +144,7 @@ exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
   const payments = await Payment.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client', match: { company: credentials.company._id } })
+    .populate({ path: 'client', match: { company: get(credentials, 'company._id', null) } })
     .lean();
 
   const rows = [paymentExportHeader];

@@ -326,7 +326,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
         url: `/bills/${billsList[0]._id}/pdfs`,
         headers: { 'x-access-token': authToken },
       });
-
+      
       expect(response.statusCode).toBe(200);
     });
   });

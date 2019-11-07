@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const pickBy = require('lodash/pickBy');
+const get = require('lodash/get');
 const flat = require('flat');
 const Role = require('../models/Role');
 const User = require('../models/User');
@@ -27,7 +28,7 @@ exports.getUsers = async (query, credentials) => {
     .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate({ path: 'role', select: 'name' })
     .populate('contracts')
-    .populate({ path: 'sector', match: { company: credentials.company._id } });
+    .populate({ path: 'sector', match: { company: get(credentials, 'company._id', null) } });
 };
 
 const saveCertificateDriveId = async (userId, fileInfo) => {

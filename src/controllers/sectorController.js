@@ -7,7 +7,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = { ...req.query, company: get(req, 'auth.credentials.company._id') };
+    const query = { ...req.query, company: get(req, 'auth.credentials.company._id', null) };
     if (req.query.name) query.name = { $regex: new RegExp(`^${req.query.name}$`), $options: 'i' };
     const sectors = await Sector.find(query).lean();
 
@@ -23,7 +23,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const sector = new Sector({ ...req.payload, company: get(req, 'auth.credentials.company._id') });
+    const sector = new Sector({ ...req.payload, company: get(req, 'auth.credentials.company._id', null) });
     await sector.save();
 
     return {

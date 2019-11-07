@@ -104,7 +104,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name', match: { company: credentials.company._id } }, { path: 'contracts' }],
+      populate: [{ path: 'sector', select: 'name', match: { company: get(credentials, 'company._id', null) } }, { path: 'contracts' }],
     })
     .lean();
 
@@ -113,7 +113,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name', match: { company: credentials.company._id } }, { path: 'contracts' }],
+      populate: [{ path: 'sector', select: 'name', match: { company: get(credentials, 'company._id', null) } }, { path: 'contracts' }],
     })
     .lean();
 

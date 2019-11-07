@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
+const get = require('lodash/get');
 const Event = require('../models/Event');
 const {
   INTERNAL_HOUR,
@@ -93,7 +94,7 @@ exports.getEventList = (rules, credentials) => Event.find(rules)
   .populate({
     path: 'auxiliary',
     select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
-    populate: { path: 'sector', match: { company: credentials.company._id } },
+    populate: { path: 'sector', match: { company: get(credentials, 'company._id', null) } },
   })
   .populate({
     path: 'customer',
