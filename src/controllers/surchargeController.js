@@ -25,7 +25,7 @@ const create = async (req) => {
     const payload = {
       ...req.payload,
       company: req.auth.credentials.company._id,
-    };    
+    };
     const surcharge = new Surcharge(payload);
     await surcharge.save();
 

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Boom = require('boom');
 const User = require('./User');
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 
 const SectorSchema = mongoose.Schema({
   name: String,
@@ -8,18 +8,6 @@ const SectorSchema = mongoose.Schema({
 }, {
   timestamps: true,
 });
-
-function validateQuery(next) {
-  const query = this.getQuery();
-  if (!query.company) next(Boom.badRequest());
-  next();
-}
-
-function validatePayload(next) {
-  const sector = this;
-  if (!sector.company) next(Boom.badRequest());
-  next();
-}
 
 const countAuxiliaries = async (docs) => {
   if (docs.length > 0) {

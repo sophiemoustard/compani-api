@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Boom = require('boom');
 
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const Customer = require('./Customer');
@@ -16,18 +16,6 @@ const ThirdPartyPayerSchema = mongoose.Schema({
   },
   company: { type: mongoose.Schema.Types.ObjectId },
 }, { timestamps: true });
-
-function validateQuery(next) {
-  const query = this.getQuery();
-  if (!query.company) next(Boom.badRequest());
-  next();
-}
-
-function validatePayload(next) {
-  const thidPartyPayer = this;
-  if (!thidPartyPayer.company) next(Boom.badRequest());
-  next();
-}
 
 const countFundings = async (docs) => {
   if (docs.length > 0) {

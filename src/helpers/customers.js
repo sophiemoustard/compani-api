@@ -34,7 +34,7 @@ exports.getCustomers = async (query, credentials) => {
     .populate({
       path: 'subscriptions.service',
       match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge' },
+      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
     })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
@@ -54,7 +54,7 @@ exports.getCustomersWithSubscriptions = async (query, credentials) => {
     .populate({
       path: 'subscriptions.service',
       match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge' },
+      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
     })
     .lean();
 
@@ -77,7 +77,7 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
     .populate({
       path: 'subscriptions.service',
       match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge' },
+      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
     })
     .lean();
   if (customers.length === 0) return [];
@@ -95,7 +95,7 @@ exports.getCustomer = async (customerId, credentials) => {
     .populate({
       path: 'subscriptions.service',
       match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge' },
+      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
     })
     .populate({ path: 'fundings.thirdPartyPayer', match: { company: get(credentials, 'company._id', null) } })
     .populate({ path: 'firstIntervention', select: 'startDate' })

@@ -7,7 +7,7 @@ const { language } = translate;
 
 const draftPayList = async (req) => {
   try {
-    const draftPay = await getDraftPay(req.query);
+    const draftPay = await getDraftPay(req.query, req.auth.credentials);
 
     return {
       message: translate[language].draftPay,

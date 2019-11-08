@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 
 const Service = require('../models/Service');
 const translate = require('../helpers/translate');
@@ -7,8 +8,11 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = { company: req.auth.credentials.company._id };
-    const services = await Service.find(query).populate('versions.surcharge').lean();
+    const companyId = get(req, 'auth.credentials.company._id', null);
+    const query = { company: companyId };
+    const services = await Service.find(query)
+      .populate({ path: 'versions.surcharge', match: { company: companyId } })
+      .lean();
     return {
       message: services.length === 0 ? translate[language].servicesNotFound : translate[language].servicesFound,
       data: { services },

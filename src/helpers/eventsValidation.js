@@ -36,7 +36,7 @@ exports.checkContracts = async (event, user, credentials) => {
       .populate({
         path: 'subscriptions.service',
         match: { company: _.get(credentials, 'company._id', null) },
-        populate: { path: 'versions.surcharge' },
+        populate: { path: 'versions.surcharge', match: { company: _.get(credentials, 'company._id', null) } },
       })
       .lean();
     customer = populateSubscriptionsServices(customer);
