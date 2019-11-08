@@ -167,6 +167,7 @@ const update = async (req) => {
 
 const updateSubscription = async (req) => {
   try {
+    const companyId = _.get(req, 'auth.credentials.company._id', null);
     const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
       { $push: { 'subscriptions.$.versions': req.payload } },
@@ -178,8 +179,8 @@ const updateSubscription = async (req) => {
     )
       .populate({
         path: 'subscriptions.service',
-        match: { company: _.get(req, 'auth.credentials.company._id', null) },
-        populate: { path: 'versions.surcharge', match: { company: _.get(req.auth.credentials, 'company._id', null) } },
+        match: { company: companyId },
+        populate: { path: 'versions.surcharge', match: { company: companyId } },
       })
       .lean();
 
@@ -202,6 +203,7 @@ const updateSubscription = async (req) => {
 
 const addSubscription = async (req) => {
   try {
+    const companyId = _.get(req, 'auth.credentials.company._id', null);
     const serviceId = req.payload.service;
     const subscribedService = await Service.findOne({ _id: serviceId });
 
@@ -224,8 +226,8 @@ const addSubscription = async (req) => {
     )
       .populate({
         path: 'subscriptions.service',
-        match: { company: _.get(req, 'auth.credentials.company._id', null) },
-        populate: { path: 'versions.surcharge', match: { company: _.get(req.auth.credentials, 'company._id', null) } },
+        match: { company: companyId },
+        populate: { path: 'versions.surcharge', match: { company: companyId } },
       })
       .lean();
 
