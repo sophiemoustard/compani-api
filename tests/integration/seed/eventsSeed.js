@@ -59,6 +59,7 @@ const thirdPartyPayer = {
 
 const service = {
   _id: new ObjectID('5d3b239ce9e4352ef86e773b'),
+  company: authCompany._id,
   versions: [
     { _id: new ObjectID() },
   ],

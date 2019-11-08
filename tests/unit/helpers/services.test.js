@@ -1,6 +1,7 @@
 const expect = require('expect');
 const sinon = require('sinon');
 
+const { ObjectID } = require('mongodb');
 const ServiceHelper = require('../../../src/helpers/services');
 const Service = require('../../../src/models/Service');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT, HOURLY, FIXED } = require('../../../src/helpers/constants');
@@ -9,31 +10,32 @@ const UtilsHelper = require('../../../src/helpers/utils.js');
 require('sinon-mongoose');
 
 describe('exportServices', () => {
-  let ServcieModel;
+  let ServiceModel;
   let getLastVersion;
   let formatFloatForExport;
   beforeEach(() => {
-    ServcieModel = sinon.mock(Service);
+    ServiceModel = sinon.mock(Service);
     getLastVersion = sinon.stub(UtilsHelper, 'getLastVersion').callsFake(v => v[0]);
     formatFloatForExport = sinon.stub(UtilsHelper, 'formatFloatForExport');
     formatFloatForExport.callsFake(float => (float != null ? `F-${float}` : ''));
   });
   afterEach(() => {
-    ServcieModel.restore();
+    ServiceModel.restore();
     getLastVersion.restore();
     formatFloatForExport.restore();
   });
 
   it('should return csv header', async () => {
     const services = [];
-    ServcieModel.expects('find')
-      .withExactArgs()
+    const credentials = { company: { _id: new ObjectID() } };
+    ServiceModel.expects('find')
+      .withExactArgs({ company: credentials.company._id })
       .chain('populate')
       .chain('populate')
       .once()
       .returns(services);
 
-    const result = await ServiceHelper.exportServices();
+    const result = await ServiceHelper.exportServices(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Nature', 'Type', 'Entrepise', 'Nom', 'Montant unitaire par défaut', 'TVA (%)', 'Plan de majoration', 'Date de début', 'Date de creation', 'Date de mise a jour']);
@@ -65,13 +67,15 @@ describe('exportServices', () => {
         createdAt: '2019-01-21T09:38:18.653Z',
       },
     ];
-    ServcieModel.expects('find')
-      .withExactArgs()
+    const credentials = { company: { _id: new ObjectID() } };
+    ServiceModel.expects('find')
+      .withExactArgs({ company: credentials.company._id })
       .chain('populate')
       .chain('populate')
       .once()
       .returns(services);
-    const result = await ServiceHelper.exportServices();
+
+    const result = await ServiceHelper.exportServices(credentials);
 
     sinon.assert.calledTwice(getLastVersion);
     sinon.assert.callCount(formatFloatForExport, 4);

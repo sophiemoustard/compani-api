@@ -33,6 +33,7 @@ const userList = [
 const serviceList = [{
   _id: new ObjectID(),
   nature: 'hourly',
+  company: authCompany._id,
 }];
 
 const customerList = [

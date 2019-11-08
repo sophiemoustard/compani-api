@@ -19,7 +19,7 @@ const creditNoteThirdPartyPayer = {
 const creditNoteService = {
   _id: new ObjectID(),
   type: COMPANY_CONTRACT,
-  company: new ObjectID(),
+  company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',

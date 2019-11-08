@@ -31,7 +31,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customers = await getCustomers(req.query);
+    const customers = await getCustomers(req.query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -46,7 +46,7 @@ const list = async (req) => {
 const listWithSubscriptions = async (req) => {
   try {
     const query = { ...req.query, subscriptions: { $exists: true, $ne: { $size: 0 } } };
-    const customers = await getCustomersWithSubscriptions(query);
+    const customers = await getCustomersWithSubscriptions(query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -88,7 +88,7 @@ const listWithBilledEvents = async (req) => {
 
 const listWithCustomerContractSubscriptions = async (req) => {
   try {
-    const customers = await getCustomersWithCustomerContractSubscriptions();
+    const customers = await getCustomersWithCustomerContractSubscriptions(req.auth.credentials);
 
     return {
       message: translate[language].customersFound,
@@ -177,7 +177,7 @@ const updateSubscription = async (req) => {
           autopopulate: false,
         }
       )
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) }, populate: { path: 'versions.surcharge' } })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
@@ -220,7 +220,7 @@ const addSubscription = async (req) => {
           autopopulate: false,
         }
       )
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) }, populate: { path: 'versions.surcharge' } })
       .lean();
 
     const { subscriptions } = populateSubscriptionsServices(updatedCustomer);
@@ -588,7 +588,7 @@ const createFunding = async (req) => {
         autopopulate: false,
       }
     )
-      .populate('subscriptions.service')
+      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
       .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
       .lean();
 
@@ -626,7 +626,7 @@ const updateFunding = async (req) => {
         autopopulate: false,
       }
     )
-      .populate('subscriptions.service')
+      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
       .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
       .lean();
 
@@ -658,8 +658,9 @@ const removeFunding = async (req) => {
         autopopulate: false,
       }
     )
-      .populate('subscriptions.service')
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } });
+      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .lean();
 
     return {
       message: translate[language].customerFundingRemoved,
