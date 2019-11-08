@@ -68,7 +68,9 @@ exports.getCustomersWithSubscriptions = async (query, credentials) => {
 };
 
 exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
-  const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT }).lean();
+  const companyId = get(credentials, 'company._id', null);
+  const query = { type: CUSTOMER_CONTRACT, company: companyId };
+  const customerContractServices = await Service.find(query).lean();
   if (customerContractServices.length === 0) return [];
 
   const ids = customerContractServices.map(service => service._id);
@@ -76,8 +78,8 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
     .find({ 'subscriptions.service': { $in: ids } })
     .populate({
       path: 'subscriptions.service',
-      match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
+      match: { company: companyId },
+      populate: { path: 'versions.surcharge', match: { company: companyId } },
     })
     .lean();
   if (customers.length === 0) return [];
