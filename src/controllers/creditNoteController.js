@@ -19,20 +19,14 @@ const list = async (req) => {
     const query = rest;
     if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
+    const companyId = get(req, 'auth.credentials.company._id', null);
     const creditNotes = await CreditNote.find(query)
       .populate({
         path: 'customer',
         select: '_id identity subscriptions',
-        populate: {
-          path: 'subscriptions.service',
-          match: { company: get(req, 'auth.credentials.company._id', null) },
-        },
+        populate: { path: 'subscriptions.service', match: { company: companyId } },
       })
-      .populate({
-        path: 'thirdPartyPayer',
-        select: '_id name',
-        match: { company: get(req, 'auth.credentials.company._id', null) }
-      })
+      .populate({ path: 'thirdPartyPayer', select: '_id name', match: { company: companyId } })
       .lean();
 
     for (let i = 0, l = creditNotes.length; i < l; i++) {
