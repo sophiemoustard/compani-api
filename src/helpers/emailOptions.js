@@ -29,10 +29,10 @@ const forgetPasswordEmail = resetPassword => (
     L'équipe Compani</p>`
 );
 
-const billEmail = async () => {
+const billEmail = async (companyName) => {
   const content = await fsPromises.readFile(path.join(__dirname, '../data/emails/billDispatch.html'), 'utf8');
   const template = handlebars.compile(content);
-  return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents` });
+  return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents`, companyName });
 };
 
 const completeBillScriptEmailBody = (sentNb, emails) => {

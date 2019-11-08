@@ -82,7 +82,7 @@ exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
       _id: 0,
       bills: 1,
       customer: { _id: 1, identity: 1 },
-      helpers: { identity: 1, local: 1 },
+      helpers: { identity: 1, local: 1, company: 1 },
     },
   },
 ]);
