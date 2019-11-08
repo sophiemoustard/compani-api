@@ -8,7 +8,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const companyId = get(req, 'req.auth.credentials.company._id', null);
+    const companyId = get(req, 'auth.credentials.company._id', null);
     const query = { company: companyId };
     const services = await Service.find(query)
       .populate({ path: 'versions.surcharge', match: { company: companyId } })
