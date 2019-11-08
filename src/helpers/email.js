@@ -4,7 +4,7 @@ const EmailOptionsHelper = require('./emailOptions');
 const { SENDER_MAIL } = require('./constants');
 
 const billAlertEmail = async (receiver, company) => {
-  const companyName = company.tradeName || company.name;
+  const companyName = company.tradeName;
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
