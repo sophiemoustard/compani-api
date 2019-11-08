@@ -129,6 +129,7 @@ const paymentsList = [
 const company = {
   _id: new ObjectID(),
   name: 'Alenvi',
+  tradeName: 'TT',
   iban: 'paiement',
   bic: 'money',
   ics: 'kesako',

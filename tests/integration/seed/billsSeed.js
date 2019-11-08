@@ -15,6 +15,7 @@ const { populateDBForAuthentication, rolesList, authCompany } = require('./authe
 const billThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  tradeName: 'To',
   company: authCompany._id,
 };
 

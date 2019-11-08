@@ -16,6 +16,7 @@ const subId = new ObjectID();
 const customerCompany = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
   name: 'Test',
+  tradeName: 'To',
   rhConfig: {
     internalHours: [
       { name: 'Formation', default: true, _id: new ObjectID() },
@@ -248,7 +249,6 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[0]._id],
-    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -258,7 +258,6 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[1]._id],
-    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
@@ -268,7 +267,6 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[3]._id],
-    company: authCompany._id,
   },
 ];
 

@@ -1,5 +1,4 @@
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -47,6 +46,7 @@ const customer = {
 const company = {
   _id: new ObjectID(),
   name: 'Test',
+  tradeName: 'TT',
 };
 
 const serviceList = [
