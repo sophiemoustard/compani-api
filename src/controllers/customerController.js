@@ -167,17 +167,20 @@ const update = async (req) => {
 
 const updateSubscription = async (req) => {
   try {
-    const customer = await Customer
-      .findOneAndUpdate(
-        { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
-        { $push: { 'subscriptions.$.versions': req.payload } },
-        {
-          new: true,
-          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-          autopopulate: false,
-        }
-      )
-      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) }, populate: { path: 'versions.surcharge' } })
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
+      { $push: { 'subscriptions.$.versions': req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+        autopopulate: false,
+      }
+    )
+      .populate({
+        path: 'subscriptions.service',
+        match: { company: _.get(req, 'auth.credentials.company._id', null) },
+        populate: { path: 'versions.surcharge', match: { company: _.get(req.auth.credentials, 'company._id', null) } },
+      })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
@@ -210,17 +213,20 @@ const addSubscription = async (req) => {
       if (isServiceAlreadySubscribed) return Boom.conflict(translate[language].serviceAlreadySubscribed);
     }
 
-    const updatedCustomer = await Customer
-      .findOneAndUpdate(
-        { _id: req.params._id },
-        { $push: { subscriptions: req.payload } },
-        {
-          new: true,
-          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-          autopopulate: false,
-        }
-      )
-      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) }, populate: { path: 'versions.surcharge' } })
+    const updatedCustomer = await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { subscriptions: req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+        autopopulate: false,
+      }
+    )
+      .populate({
+        path: 'subscriptions.service',
+        match: { company: _.get(req, 'auth.credentials.company._id', null) },
+        populate: { path: 'versions.surcharge', match: { company: _.get(req.auth.credentials, 'company._id', null) } },
+      })
       .lean();
 
     const { subscriptions } = populateSubscriptionsServices(updatedCustomer);
