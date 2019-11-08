@@ -8,6 +8,7 @@ const { rolesList, populateDBForAuthentication } = require('./authenticationSeed
 const company = {
   _id: new ObjectID(),
   name: 'Testtoto',
+  tradeName: 'TT',
   rhConfig: {
     internalHours: [
       { name: 'Formation', default: true, _id: new ObjectID() },

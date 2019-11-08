@@ -8,6 +8,7 @@ const { populateDBForAuthentication, authCompany } = require('./authenticationSe
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
   name: 'Test',
+  tradeName: 'TT',
   rhConfig: {
     internalHours: [
       { name: 'Formation', default: true, _id: new ObjectID() },
@@ -61,7 +62,7 @@ const servicesList = [
   },
 ];
 
-const serviceFromOtherCompany =   {
+const serviceFromOtherCompany = {
   _id: new ObjectID(),
   type: COMPANY_CONTRACT,
   company: company._id,

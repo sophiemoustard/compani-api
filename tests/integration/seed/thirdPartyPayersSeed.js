@@ -6,6 +6,7 @@ const { populateDBForAuthentication, authCompany } = require('./authenticationSe
 const tppCompany = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
   name: 'Test',
+  tradeName: 'TT',
   rhConfig: {
     internalHours: [
       { name: 'Formation', default: true, _id: new ObjectID() },
@@ -33,7 +34,7 @@ const thirdPartyPayersList = [
   },
 ];
 
-const thirdPartyPayerFromOtherCompany =   {
+const thirdPartyPayerFromOtherCompany = {
   _id: new ObjectID(),
   name: 'Tutu',
   company: tppCompany._id,

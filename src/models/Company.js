@@ -8,8 +8,8 @@ const COMPANY_BILLING_PERIODS = [MONTH, TWO_WEEKS];
 const COMPANY_TYPES = [COMPANY, ASSOCIATION];
 
 const CompanySchema = mongoose.Schema({
-  name: { type: String, unique: true },
-  tradeName: String,
+  name: { type: String, unique: true, required: true },
+  tradeName: { type: String, maxLength: 11, required: true },
   address: addressSchemaDefinition,
   rcs: String,
   rna: String,

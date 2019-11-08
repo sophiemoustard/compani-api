@@ -147,6 +147,7 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
+            tradeName: Joi.string().max(11).required(),
             type: Joi.string().valid(COMPANY_TYPES).required(),
             rcs: Joi.string(),
             rna: Joi.string(),
