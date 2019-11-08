@@ -13,13 +13,13 @@ const { populateDBForAuthentication, rolesList, authCompany } = require('./authe
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
-  tradeName: 'To',
   company: authCompany._id,
 };
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
   name: 'Test',
+  tradeName: 'To',
   rhConfig: {
     internalHours: [
       { name: 'Formation', default: true, _id: new ObjectID() },
