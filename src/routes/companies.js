@@ -31,7 +31,7 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string(),
-            tradeName: Joi.string(),
+            tradeName: Joi.string().allow('', null),
             address: Joi.object().keys({
               street: Joi.string().required(),
               zipCode: Joi.string().required(),
