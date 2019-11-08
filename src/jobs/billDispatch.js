@@ -11,7 +11,7 @@ const billDispatch = {
     const errors = [];
     const results = [];
     const billsAndHelpers = await BillRepository.findBillsAndHelpersByCustomer();
-    const companies = await Company.find();
+    const companies = await Company.find().lean();
     if (billsAndHelpers.length) {
       for (let i = 0, l = billsAndHelpers.length; i < l; i += BATCH_SIZE) {
         const billsAndHelpersChunk = billsAndHelpers.slice(i, i + BATCH_SIZE);
