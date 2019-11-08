@@ -77,7 +77,7 @@ describe('formatSubscriptionData', () => {
         },
       ],
     }));
-    sinon.assert.calledWith(getMatchingVersionStub, bill.startDate, bill.subscription.service, 'startDate');
+    sinon.assert.calledWith(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
     getMatchingVersionStub.restore();
   });
 });

@@ -31,7 +31,7 @@ exports.populateFundings = (funding, customer) => {
   if (!funding) return false;
 
   const sub = customer.subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
-  if (sub.service.versions) {
+  if (get(sub, 'service.versions')) {
     funding.subscription = { ...sub, service: populateServices(sub.service) };
   } else {
     funding.subscription = { ...sub };
