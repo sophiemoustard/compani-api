@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 require('sinon-mongoose');
 
 const Bill = require('../../../src/models/Bill');
+const Company = require('../../../src/models/Company');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const EmailHelper = require('../../../src/helpers/email');
 const billDispatch = require('../../../src/jobs/billDispatch');
@@ -11,6 +12,7 @@ const billDispatch = require('../../../src/jobs/billDispatch');
 
 describe('method', () => {
   let BillMock;
+  let CompanyMock;
   let findBillsAndHelpersByCustomerStub;
   let billAlertEmailStub;
   let completeBillScriptEmailStub;
@@ -20,6 +22,7 @@ describe('method', () => {
 
   beforeEach(() => {
     BillMock = sinon.mock(Bill);
+    CompanyMock = sinon.mock(Company);
     findBillsAndHelpersByCustomerStub = sinon.stub(BillRepository, 'findBillsAndHelpersByCustomer');
     billAlertEmailStub = sinon.stub(EmailHelper, 'billAlertEmail');
     completeBillScriptEmailStub = sinon.stub(EmailHelper, 'completeBillScriptEmail');
@@ -29,6 +32,7 @@ describe('method', () => {
 
   afterEach(() => {
     BillMock.restore();
+    CompanyMock.restore();
     findBillsAndHelpersByCustomerStub.restore();
     billAlertEmailStub.restore();
     completeBillScriptEmailStub.restore();
@@ -71,11 +75,15 @@ describe('method', () => {
     const billsIds = [new ObjectID()];
     const error = new Error('Test error.');
     const customers = [{
-      helpers: [{ local: { email: 'leroi@lion.com' } }, { local: { email: 'rox@rouky.com' } }],
+      helpers: [{ local: { email: 'leroi@lion.com' }, company: new ObjectID() }, { local: { email: 'rox@rouky.com' }, company: new ObjectID() }],
       bills: [{ _id: billsIds[0] }],
     }];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
+    CompanyMock
+      .expects('findById')
+      .twice()
+      .returns({ tradeName: 'Alenvi' });
 
     billAlertEmailStub
       .onFirstCall()
@@ -87,12 +95,12 @@ describe('method', () => {
       .expects('updateMany')
       .never();
 
-
     await billDispatch.method(server);
     expect(billAlertEmailStub.callCount).toBe(2);
     expect(billAlertEmailStub.getCall(0).calledWithExactly('leroi@lion.com'));
     expect(billAlertEmailStub.getCall(1).calledWithExactly('rox@rouky.com'));
     BillMock.verify();
+    CompanyMock.verify();
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
     sinon.assert.calledWith(billDispatchOnCompleteStub, server, [], ['leroi@lion.com', 'rox@rouky.com']);
     serverLogStub.restore();
