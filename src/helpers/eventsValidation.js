@@ -33,7 +33,11 @@ exports.checkContracts = async (event, user, credentials) => {
   if (event.type === INTERVENTION) {
     let customer = await Customer
       .findOne({ _id: event.customer })
-      .populate({ path: 'subscriptions.service', match: { company: _.get(credentials, 'company._id', null) }, populate: { path: 'versions.surcharge' } })
+      .populate({
+        path: 'subscriptions.service',
+        match: { company: _.get(credentials, 'company._id', null) },
+        populate: { path: 'versions.surcharge' },
+      })
       .lean();
     customer = populateSubscriptionsServices(customer);
 
