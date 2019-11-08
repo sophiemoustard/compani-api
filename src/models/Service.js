@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Boom = require('boom');
 
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 const { FIXED, HOURLY } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('./Contract');
 const Customer = require('./Customer');
@@ -22,17 +22,6 @@ const ServiceSchema = mongoose.Schema({
   }],
 }, { timestamps: true });
 
-function validateQuery(next) {
-  const query = this.getQuery();
-  if (!query.company) next(Boom.badRequest());
-  next();
-}
-
-function validatePayload(next) {
-  const service = this;
-  if (!service.company) next(Boom.badRequest());
-  next();
-}
 const countServiceUsage = async (docs) => {
   if (docs.length > 0) {
     for (const service of docs) {

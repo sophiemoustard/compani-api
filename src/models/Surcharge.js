@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 
 const SurchargeSchema = mongoose.Schema({
   name: String,
@@ -15,5 +16,8 @@ const SurchargeSchema = mongoose.Schema({
   customEndTime: String,
   company: mongoose.Schema.Types.ObjectId,
 }, { timestamps: true });
+
+SurchargeSchema.pre('validate', validatePayload);
+SurchargeSchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('Surcharge', SurchargeSchema);
