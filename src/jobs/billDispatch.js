@@ -11,6 +11,7 @@ const billDispatch = {
     const errors = [];
     const results = [];
     const billsAndHelpers = await BillRepository.findBillsAndHelpersByCustomer();
+    const companies = await Company.find();
     if (billsAndHelpers.length) {
       for (let i = 0, l = billsAndHelpers.length; i < l; i += BATCH_SIZE) {
         const billsAndHelpersChunk = billsAndHelpers.slice(i, i + BATCH_SIZE);
@@ -22,7 +23,7 @@ const billDispatch = {
         const requests = data.helpers.map(async (helper) => {
           try {
             if (helper.local && helper.local.email) {
-              const company = await Company.findById(helper.company);
+              const company = companies.find(comp => comp._id.toHexString() === helper.company.toHexString());
               return EmailHelper.billAlertEmail(helper.local.email, company);
             }
           } catch (e) {

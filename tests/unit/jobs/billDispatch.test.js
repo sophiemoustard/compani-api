@@ -43,12 +43,17 @@ describe('method', () => {
   it('should email a bill to customers helpers', async () => {
     const server = 'server';
     const billsIds = [new ObjectID()];
+    const companyId = new ObjectID();
     const customers = [{
-      helpers: [{ local: { email: 'leroi@lion.com' } }, { local: { email: 'rox@rouky.com' } }],
+      helpers: [{ local: { email: 'leroi@lion.com' }, company: companyId }, { local: { email: 'rox@rouky.com' }, company: companyId }],
       bills: [{ _id: billsIds[0] }],
     }];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
+    CompanyMock
+      .expects('find')
+      .once()
+      .returns([{ tradeName: 'Alenvi', _id: companyId }]);
 
     billAlertEmailStub
       .onFirstCall()
@@ -74,16 +79,17 @@ describe('method', () => {
     const serverLogStub = sinon.stub(server, 'log');
     const billsIds = [new ObjectID()];
     const error = new Error('Test error.');
+    const companyId = new ObjectID();
     const customers = [{
-      helpers: [{ local: { email: 'leroi@lion.com' }, company: new ObjectID() }, { local: { email: 'rox@rouky.com' }, company: new ObjectID() }],
+      helpers: [{ local: { email: 'leroi@lion.com' }, company: companyId }, { local: { email: 'rox@rouky.com' }, company: companyId }],
       bills: [{ _id: billsIds[0] }],
     }];
 
     findBillsAndHelpersByCustomerStub.returns(customers);
     CompanyMock
-      .expects('findById')
-      .twice()
-      .returns({ tradeName: 'Alenvi' });
+      .expects('find')
+      .once()
+      .returns([{ tradeName: 'Alenvi', _id: companyId }]);
 
     billAlertEmailStub
       .onFirstCall()
