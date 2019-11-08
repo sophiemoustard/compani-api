@@ -23,7 +23,7 @@ exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
     contract.status === COMPANY_CONTRACT &&
       moment(contract.startDate).isSameOrBefore(day, 'd') && (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
 
-exports.checkContracts = async (event, user) => {
+exports.checkContracts = async (event, user, credentials) => {
   if (!user.contracts || user.contracts.length === 0) return false;
 
   // If the event is an intervention :
@@ -33,7 +33,11 @@ exports.checkContracts = async (event, user) => {
   if (event.type === INTERVENTION) {
     let customer = await Customer
       .findOne({ _id: event.customer })
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .populate({
+        path: 'subscriptions.service',
+        match: { company: _.get(credentials, 'company._id', null) },
+        populate: { path: 'versions.surcharge', match: { company: _.get(credentials, 'company._id', null) } },
+      })
       .lean();
     customer = populateSubscriptionsServices(customer);
 
@@ -76,12 +80,12 @@ const eventHasAuxiliarySector = (event, user) => event.sector === user.sector.to
 const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString();
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
-exports.isCreationAllowed = async (event) => {
+exports.isCreationAllowed = async (event, credentials) => {
   if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
   if (!event.auxiliary) return event.type === INTERVENTION;
 
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
-  if (!await exports.checkContracts(event, user)) return false;
+  if (!await exports.checkContracts(event, user, credentials)) return false;
 
   if (!(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event)) return false;
 
@@ -90,7 +94,7 @@ exports.isCreationAllowed = async (event) => {
   return true;
 };
 
-exports.isEditionAllowed = async (eventFromDB, payload) => {
+exports.isEditionAllowed = async (eventFromDB, payload, credentials) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
@@ -102,7 +106,7 @@ exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (!event.auxiliary) return event.type === INTERVENTION;
 
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
-  if (!await exports.checkContracts(event, user)) return false;
+  if (!await exports.checkContracts(event, user, credentials)) return false;
 
   if (!(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled && (await exports.hasConflicts(event))) return false;
 

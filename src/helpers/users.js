@@ -1,21 +1,16 @@
 const Boom = require('boom');
-const get = require('lodash/get');
-const has = require('lodash/has');
 const pickBy = require('lodash/pickBy');
-const moment = require('moment');
+const get = require('lodash/get');
 const flat = require('flat');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const drive = require('../models/Google/Drive');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
-const { nationalities } = require('../data/nationalities.js');
-const { countries } = require('../data/countries');
-const { HELPER, AUXILIARY, PLANNING_REFERENT } = require('./constants.js');
 
 const { language } = translate;
 
-exports.getUsers = async (query) => {
+exports.getUsers = async (query, credentials) => {
   if (query.role) {
     if (Array.isArray(query.role)) {
       query.role = await Role.find({ name: { $in: query.role } }, { _id: 1 }).lean();
@@ -33,7 +28,7 @@ exports.getUsers = async (query) => {
     .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate({ path: 'role', select: 'name' })
     .populate('contracts')
-    .populate('sector');
+    .populate({ path: 'sector', match: { company: get(credentials, 'company._id', null) } });
 };
 
 const saveCertificateDriveId = async (userId, fileInfo) => {

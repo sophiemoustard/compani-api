@@ -10,16 +10,18 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const BillNumber = require('../../../src/models/BillNumber');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const billThirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  company: authCompany._id,
 };
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
   name: 'Test',
+  tradeName: 'To',
   rhConfig: {
     internalHours: [
       { name: 'Formation', default: true, _id: new ObjectID() },
@@ -126,12 +128,14 @@ const billUserList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [billCustomerList[0]._id],
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io', password: '123456' },
     role: rolesList.find(role => role.name === 'auxiliary')._id,
+    company: authCompany._id,
   },
 ];
 
@@ -249,7 +253,7 @@ const populateDB = async () => {
   await BillNumber.deleteMany({});
   await User.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new Company(company)).save();
   await (new ThirdPartyPayer(billThirdPartyPayer)).save();
   await new Service(billService).save();

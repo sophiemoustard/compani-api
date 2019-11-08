@@ -417,7 +417,6 @@ exports.plugin = {
             ...driveUploadKeys.reduce((obj, key) => Object.assign(obj, { [key]: Joi.any() }), {}),
             date: Joi.date(),
             fileName: Joi.string().required(),
-            'Content-Type': Joi.string().required(),
           })
             .or([driveUploadKeys]),
           params: {

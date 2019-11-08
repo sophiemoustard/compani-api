@@ -1,5 +1,6 @@
 const Boom = require('boom');
 
+const get = require('lodash/get');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
@@ -18,9 +19,14 @@ const list = async (req) => {
     const query = rest;
     if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
+    const companyId = get(req, 'auth.credentials.company._id', null);
     const creditNotes = await CreditNote.find(query)
-      .populate({ path: 'customer', select: '_id identity subscriptions', populate: { path: 'subscriptions.service' } })
-      .populate({ path: 'thirdPartyPayer', select: '_id name' })
+      .populate({
+        path: 'customer',
+        select: '_id identity subscriptions',
+        populate: { path: 'subscriptions.service', match: { company: companyId } },
+      })
+      .populate({ path: 'thirdPartyPayer', select: '_id name', match: { company: companyId } })
       .lean();
 
     for (let i = 0, l = creditNotes.length; i < l; i++) {
@@ -39,11 +45,10 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const creditNotes = await createCreditNotes(req.payload);
+    await createCreditNotes(req.payload);
 
     return {
       message: translate[language].creditNoteCreated,
-      data: { creditNotes },
     };
   } catch (e) {
     req.log('error', e);
@@ -91,8 +96,19 @@ const remove = async (req) => {
 const generateCreditNotePdf = async (req, h) => {
   try {
     const creditNote = await CreditNote.findOne({ _id: req.params._id })
-      .populate({ path: 'customer', select: '_id identity contact subscriptions', populate: { path: 'subscriptions.service' } })
-      .populate({ path: 'thirdPartyPayer', select: '_id name address' })
+      .populate({
+        path: 'customer',
+        select: '_id identity contact subscriptions',
+        populate: {
+          path: 'subscriptions.service',
+          match: { company: get(req, 'auth.credentials.company._id', null) },
+        },
+      })
+      .populate({
+        path: 'thirdPartyPayer',
+        select: '_id name address',
+        match: { company: get(req, 'auth.credentials.company._id', null) },
+      })
       .populate({ path: 'events.auxiliary', select: 'identity' })
       .lean();
 

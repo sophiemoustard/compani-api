@@ -3,7 +3,7 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const EventHistory = require('../../../src/models/EventHistory');
-const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const user = {
   _id: new ObjectID(),
@@ -21,6 +21,7 @@ const eventHistoryAuxiliary = {
 
 const sector = {
   _id: new ObjectID(),
+  company: authCompany._id,
 };
 
 const customer = {
@@ -84,7 +85,7 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await EventHistory.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
 
   await EventHistory.insertMany(eventHistoryList);
   await (new User(user)).save();

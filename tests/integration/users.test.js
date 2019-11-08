@@ -13,7 +13,7 @@ const {
   userPayload,
   populateDB,
 } = require('./seed/usersSeed');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
@@ -766,7 +766,6 @@ describe('USERS ROUTES', () => {
       docPayload = {
         mutualFund: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         fileName: 'mutual_fund_doc',
-        'Content-Type': 'application/pdf',
       };
       form = generateFormData(docPayload);
       addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({ id: 'qwerty' });
@@ -801,7 +800,7 @@ describe('USERS ROUTES', () => {
         sinon.assert.calledWith(getFileStub, { fileId: 'qwerty' });
       });
 
-      const wrongParams = ['mutualFund', 'fileName', 'Content-Type'];
+      const wrongParams = ['mutualFund', 'fileName'];
       wrongParams.forEach((param) => {
         it(`should return a 400 error if missing '${param}' parameter`, async () => {
           form = generateFormData(omit(docPayload, param));

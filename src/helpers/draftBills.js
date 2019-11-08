@@ -83,9 +83,9 @@ exports.getSurchargedPrice = (event, eventSurcharges, price) => {
   return coef * price;
 };
 
-exports.getExclTaxes = (inclTaxes, vat) => inclTaxes / (1 + (vat / 100));
+exports.getExclTaxes = (inclTaxes, vat) => (vat ? inclTaxes / (1 + (vat / 100)) : inclTaxes);
 
-exports.getInclTaxes = (exclTaxes, vat) => exclTaxes * (1 + (vat / 100));
+exports.getInclTaxes = (exclTaxes, vat) => (vat ? exclTaxes * (1 + (vat / 100)) : exclTaxes);
 
 exports.getThirdPartyPayerPrice = (time, fundingExclTaxes, customerParticipationRate) =>
   (time / 60) * fundingExclTaxes * (1 - (customerParticipationRate / 100));
@@ -283,7 +283,7 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
     endDate: moment(endDate, 'YYYYMMDD').toDate(),
     unitExclTaxes: exports.getExclTaxes(unitTTCRate, serviceMatchingVersion.vat),
     unitInclTaxes: unitTTCRate,
-    vat: serviceMatchingVersion.vat,
+    vat: serviceMatchingVersion.vat || 0,
   };
 
   const result = {};

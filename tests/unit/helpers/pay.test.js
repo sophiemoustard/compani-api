@@ -73,7 +73,7 @@ describe('formatSurchargedDetailsForExport', () => {
   });
 });
 
-describe('exportPayHistory', () => {
+describe('exportPayAndFinalPayHistory', () => {
   const header = [
     'Titre',
     'Prénom',
@@ -229,6 +229,7 @@ describe('exportPayHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
+    const credentials = { company: 'qwertyuiop' };
     PayMock.expects('find')
       .chain('sort')
       .chain('populate')
@@ -241,12 +242,13 @@ describe('exportPayHistory', () => {
       .chain('lean')
       .once()
       .returns([]);
-    const exportArray = await PayHelper.exportPayAndFinalPayHistory(null, null);
+    const exportArray = await PayHelper.exportPayAndFinalPayHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
+    const credentials = { company: 'qwertyuiop' };
     PayMock.expects('find')
       .chain('sort')
       .chain('populate')
@@ -262,7 +264,7 @@ describe('exportPayHistory', () => {
     formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
     formatSurchargedDetailsForExport.returnsArg(0);
 
-    const exportArray = await PayHelper.exportPayAndFinalPayHistory(null, null);
+    const exportArray = await PayHelper.exportPayAndFinalPayHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,

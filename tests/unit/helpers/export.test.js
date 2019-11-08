@@ -136,16 +136,18 @@ describe('exportAbsencesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     getAbsencesForExport.returns([]);
-    const exportArray = await ExportHelper.exportAbsencesHistory(null, null);
+    const exportArray = await ExportHelper.exportAbsencesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
   });
 
   it('should return an array with the header and 2 rows', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     getAbsencesForExport.returns(events);
 
-    const exportArray = await ExportHelper.exportAbsencesHistory(null, null);
+    const exportArray = await ExportHelper.exportAbsencesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,
@@ -254,9 +256,10 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
+    const credentials = { company: new ObjectID() };
     mockBill.expects('find').chain('lean').returns([]);
     mockCreditNote.expects('find').chain('lean').returns([]);
-    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null);
+    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
 
@@ -265,12 +268,13 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
+    const credentials = { company: new ObjectID() };
     mockBill.expects('find').chain('lean').returns([{}]);
     mockCreditNote.expects('find').chain('lean').returns([{}]);
 
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
-    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null);
+    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,
@@ -298,10 +302,12 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .once()
       .returns(creditNotes);
 
+    const credentials = { company: new ObjectID() };
+
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
-    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null);
+    const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     sinon.assert.callCount(formatPriceStub, 3);
     sinon.assert.callCount(formatFloatForExportStub, 8);
@@ -409,13 +415,14 @@ describe('exportCustomers', () => {
       .once()
       .returns(customers);
 
-    const result = await ExportHelper.exportCustomers();
+    const credentials = {};
+    const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prenom', 'Date de naissance', 'Adresse',
-      '1ère intervention', 'Environnement', 'Objectifs', 'Autres', 'Nom associé au compte bancaire', 'IBAN', 'BIC',
-      'RUM', 'Date de signature du mandat', 'Nombre de souscriptions', 'Souscriptions', 'Nombre de financements',
-      'Date de création']);
+      '1ère intervention', 'Auxiliaire référent', 'Environnement', 'Objectifs', 'Autres',
+      'Nom associé au compte bancaire', 'IBAN', 'BIC', 'RUM', 'Date de signature du mandat', 'Nombre de souscriptions',
+      'Souscriptions', 'Nombre de financements', 'Date de création', 'Statut']);
     CustomerModel.verify();
   });
 
@@ -426,6 +433,12 @@ describe('exportCustomers', () => {
       contact: { primaryAddress: { fullAddress: '9 rue du paradis 70015 Paris' } },
       followUp: { misc: 'Lala', objectives: 'Savate et charentaises', environment: 'Père Castor' },
       firstIntervention: { _id: new ObjectID(), startDate: '2019-08-08T10:00:00' },
+      referent: {
+        identity: {
+          firstname: 'Toto',
+          lastname: 'Test',
+        },
+      },
       payment: {
         bankAccountOwner: 'Lui',
         iban: 'Boom Ba Da Boom',
@@ -447,7 +460,8 @@ describe('exportCustomers', () => {
       .once()
       .returns(customers);
 
-    const result = await ExportHelper.exportCustomers();
+    const credentials = {};
+    const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -458,6 +472,7 @@ describe('exportCustomers', () => {
       '12/12/1919',
       '9 rue du paradis 70015 Paris',
       '08/08/2019',
+      'Toto Test',
       'Père Castor',
       'Savate et charentaises',
       'Lala',
@@ -470,6 +485,7 @@ describe('exportCustomers', () => {
       'Au service de sa majesté\r\n Service public\r\n Service civique',
       2,
       '12/12/2012',
+      'Actif',
     ]);
     CustomerModel.verify();
   });
@@ -483,11 +499,12 @@ describe('exportCustomers', () => {
       .once()
       .returns(customers);
 
-    const result = await ExportHelper.exportCustomers();
+    const credentials = {};
+    const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '']);
+    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '', 0, '', 'Inactif']);
     CustomerModel.verify();
   });
 });
@@ -509,6 +526,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return csv header', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -521,7 +539,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Email', 'Équipe', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
@@ -530,6 +548,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary info', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -549,7 +568,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -557,6 +576,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary sector', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -571,7 +591,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -579,6 +599,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary identity', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -605,7 +626,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -613,6 +634,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary contracts count', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -627,7 +649,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -635,6 +657,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary address', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -649,7 +672,7 @@ describe('exportAuxiliaries', () => {
       .once()
       .returns(auxiliaries);
 
-    const result = await ExportHelper.exportAuxiliaries();
+    const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -687,7 +710,21 @@ describe('exportHelpers', () => {
     const result = await ExportHelper.exportHelpers();
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Aidant - Nom', 'Aidant - Prénom', 'Bénéficiaire - Titre', 'Bénéficiaire - Nom', 'Bénéficiaire - Prénom', 'Date de création']);
+    expect(result[0]).toMatchObject([
+      'Email',
+      'Aidant - Nom',
+      'Aidant - Prénom',
+      'Bénéficiaire - Titre',
+      'Bénéficiaire - Nom',
+      'Bénéficiaire - Prénom',
+      'Bénéficiaire - Rue',
+      'Bénéficiaire - Code postal',
+      'Bénéficiaire - Ville',
+      'Bénéficiaire - Statut',
+      'Date de création',
+    ]);
+
+    UserModel.verify();
   });
 
   it('should return helper info', async () => {
@@ -711,7 +748,7 @@ describe('exportHelpers', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '01/02/2019']);
+    expect(result[1]).toMatchObject(['aide@sos.io', 'JE', 'suis', '', '', '', '', '', '', 'Inactif', '01/02/2019']);
   });
 
   it('should return customer helper info', async () => {
@@ -720,7 +757,18 @@ describe('exportHelpers', () => {
 
     const helpers = [
       {
-        customers: [{ identity: { title: 'mr', lastname: 'Patate' } }],
+        customers: [{
+          firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
+          identity: { title: 'mr', lastname: 'Patate' },
+          contact: {
+            primaryAddress: {
+              fullAddress: '37 rue de Ponthieu 75008 Paris',
+              street: '37 rue de Ponthieu',
+              zipCode: '75008',
+              city: 'Paris',
+            },
+          },
+        }],
       },
     ];
     UserModel.expects('find')
@@ -731,8 +779,9 @@ describe('exportHelpers', () => {
 
     const result = await ExportHelper.exportHelpers();
 
+    UserModel.verify();
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '']);
+    expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '37 rue de Ponthieu', '75008', 'Paris', 'Actif', '']);
   });
 });

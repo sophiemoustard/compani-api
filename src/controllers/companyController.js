@@ -2,7 +2,7 @@ const Boom = require('boom');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
-const { addFile } = require('../helpers/gdriveStorage');
+const { addFile, createFolderForCompany } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
 const drive = require('../models/Google/Drive');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
@@ -56,9 +56,8 @@ const uploadFile = async (req) => {
       'quote',
     ];
     const keys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
-    if (keys.length === 0) {
-      Boom.forbidden('Upload not allowed');
-    }
+    if (keys.length === 0) return Boom.forbidden('Upload not allowed');
+
     const uploadedFile = await addFile({
       driveFolderId: req.params.driveId,
       name: req.payload.fileName || req.payload[keys[0]].hapi.filename,
@@ -196,6 +195,24 @@ const removeInternalHour = async (req) => {
   }
 };
 
+const create = async (req) => {
+  try {
+    const newCompany = new Company(req.payload);
+
+    const folder = await createFolderForCompany(newCompany.name);
+    newCompany.folderId = folder.id;
+    await newCompany.save();
+
+    return {
+      message: translate[language].companyCreated,
+      data: { company: newCompany },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
   uploadFile,
@@ -203,4 +220,5 @@ module.exports = {
   updateInternalHour,
   getInternalHours,
   removeInternalHour,
+  create,
 };

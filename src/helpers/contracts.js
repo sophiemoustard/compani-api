@@ -20,7 +20,7 @@ const ESignHelper = require('../helpers/eSign');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 
-exports.getContractList = async (query) => {
+exports.getContractList = async (query, credentials) => {
   const rules = [];
   if (query.startDate && query.endDate) {
     rules.push({
@@ -38,7 +38,11 @@ exports.getContractList = async (query) => {
 
   return Contract
     .find(params)
-    .populate({ path: 'user', select: 'identity administrative.driveFolder sector contact local', populate: { path: 'sector', select: 'name' } })
+    .populate({
+      path: 'user',
+      select: 'identity administrative.driveFolder sector contact local',
+      populate: { path: 'sector', match: { company: credentials.company._id }, select: 'name' },
+    })
     .populate({ path: 'customer', select: 'identity driveFolder' })
     .lean();
 };
@@ -154,6 +158,7 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
     set.signature = { eversignId: doc.data.document_hash };
+    unset.signature = { signedBy: '' };
   } else {
     unset.signature = '';
   }

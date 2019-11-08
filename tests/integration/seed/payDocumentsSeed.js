@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const PayDocument = require('../../../src/models/PayDocument');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentification, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 const { PAYSLIP, CERTIFICATE, OTHER } = require('../../../src/helpers/constants');
 
 const payDocumentUser = {
@@ -11,6 +11,7 @@ const payDocumentUser = {
   local: { email: 'paydocumentauxiliary@alenvi.io', password: '123456' },
   role: rolesList[1]._id,
   refreshToken: uuidv4(),
+  company: authCompany._id,
 };
 
 const payDocumentsList = [{
@@ -38,7 +39,7 @@ const populateDB = async () => {
   await User.deleteMany({});
   await PayDocument.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
 
   await (new User(payDocumentUser)).save();
   await PayDocument.insertMany(payDocumentsList);

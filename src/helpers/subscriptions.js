@@ -1,10 +1,16 @@
 const moment = require('moment');
-const _ = require('lodash');
+const pickBy = require('lodash/pickBy');
+const get = require('lodash/get');
+const pick = require('lodash/pick');
+const map = require('lodash/map');
+const isEqual = require('lodash/isEqual');
 const Customer = require('../models/Customer');
 const UtilsHelper = require('../helpers/utils');
 const { CIVILITY_LIST } = require('./constants');
 
 exports.populateServices = (service) => {
+  if (!service || service.version) return;
+
   const currentVersion = [...service.versions]
     .filter(version => moment(version.startDate).isSameOrBefore(new Date(), 'days'))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
@@ -32,18 +38,17 @@ exports.populateSubscriptionsServices = (customer) => {
 exports.subscriptionsAccepted = (customer) => {
   if (customer.subscriptions && customer.subscriptions.length > 0) {
     if (customer.subscriptionsHistory && customer.subscriptionsHistory.length > 0) {
-      const subscriptions = _.map(customer.subscriptions, (subscription) => {
-        const { service } = subscription;
+      const subscriptions = map(customer.subscriptions, (subscription) => {
         const lastVersion = [...subscription.versions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-        const version = _.pickBy(_.pick(lastVersion, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays']));
+        const version = pickBy(pick(lastVersion, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays']));
 
-        return { service: service.name, ...version };
+        return { service: get(subscription, 'service.name'), ...version };
       });
 
       const lastSubscriptionHistory = [...customer.subscriptionsHistory].sort((a, b) => new Date(b.approvalDate) - new Date(a.approvalDate))[0];
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
-        .map(sub => _.pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service']));
-      customer.subscriptionsAccepted = _.isEqual(subscriptions, lastSubscriptions);
+        .map(sub => pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service']));
+      customer.subscriptionsAccepted = isEqual(subscriptions, lastSubscriptions);
     } else {
       customer.subscriptionsAccepted = false;
     }
@@ -62,8 +67,10 @@ const subscriptionExportHeader = [
   'Dont dimanches',
 ];
 
-exports.exportSubscriptions = async () => {
-  const customers = await Customer.find({ subscriptions: { $exists: true, $not: { $size: 0 } } }).populate('subscriptions.service');
+exports.exportSubscriptions = async (credentials) => {
+  const customers = await Customer
+    .find({ subscriptions: { $exists: true, $not: { $size: 0 } } })
+    .populate({ path: 'subscriptions.service', match: { company: get(credentials, 'company._id', null) } });
   const data = [subscriptionExportHeader];
 
   for (const cus of customers) {
@@ -71,9 +78,9 @@ exports.exportSubscriptions = async () => {
       const subInfo = [];
       if (cus.identity) {
         subInfo.push(
-          CIVILITY_LIST[_.get(cus, 'identity.title')] || '',
-          _.get(cus, 'identity.lastname', '').toUpperCase(),
-          _.get(cus, 'identity.firstname', '')
+          CIVILITY_LIST[get(cus, 'identity.title')] || '',
+          get(cus, 'identity.lastname', '').toUpperCase(),
+          get(cus, 'identity.firstname', '')
         );
       } else subInfo.push('', '', '');
 

@@ -188,7 +188,8 @@ describe('exportSubscriptions', () => {
       .once()
       .returns(customers);
 
-    const result = await SubscriptionsHelper.exportSubscriptions();
+    const credentials = {};
+    const result = await SubscriptionsHelper.exportSubscriptions(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prénom', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']);
@@ -210,7 +211,8 @@ describe('exportSubscriptions', () => {
       .once()
       .returns(customers);
 
-    const result = await SubscriptionsHelper.exportSubscriptions();
+    const credentials = {};
+    const result = await SubscriptionsHelper.exportSubscriptions(credentials);
 
     sinon.assert.calledTwice(getLastVersion);
     sinon.assert.calledTwice(formatFloatForExport);

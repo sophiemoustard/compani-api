@@ -3,6 +3,7 @@ const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
 const Bill = require('../../../src/models/Bill');
+const CreditNote = require('../../../src/models/CreditNote');
 const Service = require('../../../src/models/Service');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Payment = require('../../../src/models/Payment');
@@ -10,7 +11,7 @@ const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
-const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const {
   PAYMENT,
   REFUND,
@@ -23,6 +24,7 @@ const {
 const sector = {
   _id: new ObjectID(),
   name: 'Etoile',
+  company: authCompany._id,
 };
 
 const auxiliary = {
@@ -44,13 +46,14 @@ const customer = {
 const company = {
   _id: new ObjectID(),
   name: 'Test',
+  tradeName: 'TT',
 };
 
 const serviceList = [
   {
     _id: new ObjectID(),
     type: COMPANY_CONTRACT,
-    company: company._id,
+    company: authCompany._id,
     versions: [{
       name: 'Service 1',
       startDate: '2019-01-16 17:58:15.519',
@@ -60,7 +63,7 @@ const serviceList = [
   {
     _id: new ObjectID(),
     type: CUSTOMER_CONTRACT,
-    company: company._id,
+    company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
@@ -73,6 +76,7 @@ const serviceList = [
 
 const customerThirdPartyPayer = {
   _id: new ObjectID(),
+  company: authCompany._id,
 };
 
 const subscriptionId = new ObjectID();
@@ -137,6 +141,7 @@ const customersList = [
 const thirdPartyPayer = {
   _id: new ObjectID(),
   name: 'Toto',
+  company: authCompany._id,
 };
 
 const eventList = [
@@ -363,26 +368,48 @@ const finalPayList = [
   },
 ];
 
+const creditNotesList = [
+  {
+    _id: new ObjectID(),
+    date: '2019-05-28',
+    startDate: '2019-05-27',
+    endDate: '2019-11-25',
+    customer: customer._id,
+    thirdPartyPayer: customerThirdPartyPayer._id,
+    exclTaxes: 100,
+    inclTaxes: 112,
+    events: [{
+      eventId: new ObjectID(),
+      startDate: '2019-01-16T10:30:19.543Z',
+      endDate: '2019-01-16T12:30:21.653Z',
+      auxiliary: new ObjectID(),
+    }],
+    origin: 'compani',
+  },
+];
+
 const populateEvents = async () => {
   await Event.deleteMany();
   await User.deleteMany();
   await Customer.deleteMany();
   await Sector.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Event.insertMany(eventList);
   await new User(auxiliary).save();
   await new Sector(sector).save();
   await new Customer(customer).save();
 };
 
-const populateBills = async () => {
+const populateBillsAndCreditNotes = async () => {
   await Bill.deleteMany();
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
+  await CreditNote.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Bill.insertMany(billsList);
+  await CreditNote.insertMany(creditNotesList);
   await new Customer(customer).save();
   await new ThirdPartyPayer(thirdPartyPayer).save();
 };
@@ -392,7 +419,7 @@ const populatePayment = async () => {
   await Customer.deleteMany();
   await ThirdPartyPayer.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Payment.insertMany(paymentsList);
   await new Customer(customer).save();
   await new ThirdPartyPayer(thirdPartyPayer).save();
@@ -402,7 +429,7 @@ const populateService = async () => {
   await Service.deleteMany();
   await Company.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new Company(company)).save();
   await Service.insertMany(serviceList);
 };
@@ -413,7 +440,7 @@ const populateCustomer = async () => {
   await Service.deleteMany();
   await Company.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new Company(company)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(serviceList);
@@ -421,7 +448,7 @@ const populateCustomer = async () => {
 };
 
 const populateUser = async () => {
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
 };
 
 const populatePay = async () => {
@@ -429,7 +456,7 @@ const populatePay = async () => {
   await FinalPay.deleteMany();
   await User.deleteMany();
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Pay.insertMany(payList);
   await FinalPay.insertMany(finalPayList);
   await new User(auxiliary).save();
@@ -437,7 +464,7 @@ const populatePay = async () => {
 
 module.exports = {
   populateEvents,
-  populateBills,
+  populateBillsAndCreditNotes,
   populatePayment,
   populatePay,
   paymentsList,

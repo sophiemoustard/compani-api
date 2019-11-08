@@ -39,6 +39,8 @@ module.exports = {
   PLANNING_VIEW_END_HOUR: 22,
   // COMPANY
   MAX_INTERNAL_HOURS_NUMBER: 9,
+  COMPANY: 'company',
+  ASSOCIATION: 'association',
   // COMPANY THIRD PARTY PAYERS
   BILLING_INDIRECT: 'indirect',
   BILLING_DIRECT: 'direct',

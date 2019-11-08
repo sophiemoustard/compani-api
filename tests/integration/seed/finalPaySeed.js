@@ -6,17 +6,15 @@ const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
-const Company = require('../../../src/models/Company');
 const Sector = require('../../../src/models/Sector');
 const FinalPay = require('../../../src/models/FinalPay');
-const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
 const customerId = new ObjectID();
 const subscriptionId = new ObjectID();
 const serviceId = new ObjectID();
-const companyId = new ObjectID();
 const sectorId = new ObjectID();
 
 const user = {
@@ -105,7 +103,7 @@ const customer = {
 const service = {
   _id: serviceId,
   type: 'contract_with_company',
-  company: companyId,
+  company: authCompany._id,
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',
@@ -115,20 +113,11 @@ const service = {
   nature: 'hourly',
 };
 
-const company = {
-  _id: companyId,
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-    transportSubs: [{ department: '75', price: 20 }],
-  },
+const sector = {
+  name: 'Toto',
+  _id: sectorId,
+  company: authCompany._id,
 };
-
-const sector = { name: 'Toto', _id: sectorId };
 
 const populateDB = async () => {
   await User.deleteMany({});
@@ -136,18 +125,16 @@ const populateDB = async () => {
   await Service.deleteMany({});
   await Contract.deleteMany({});
   await Event.deleteMany({});
-  await Company.deleteMany({});
   await Sector.deleteMany({});
   await FinalPay.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await (new User(user)).save();
   await (new User(auxiliary)).save();
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
   await (new Contract(contract)).save();
-  await (new Company(company)).save();
   await (new Sector(sector)).save();
 };
 

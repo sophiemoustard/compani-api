@@ -8,16 +8,18 @@ const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Company = require('../../../src/models/Company');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
-const { populateDBForAuthentification, userList, rolesList } = require('./authentificationSeed');
+const { populateDBForAuthentication, userList, rolesList, authCompany } = require('./authenticationSeed');
 
 const paymentTppList = [
   {
     _id: new ObjectID(),
     name: 'Toto',
+    company: authCompany._id,
   },
   {
     _id: new ObjectID(),
     name: 'Tata',
+    company: authCompany._id,
   },
 ];
 
@@ -127,6 +129,7 @@ const paymentsList = [
 const company = {
   _id: new ObjectID(),
   name: 'Alenvi',
+  tradeName: 'TT',
   iban: 'paiement',
   bic: 'money',
   ics: 'kesako',
@@ -140,6 +143,7 @@ const paymentUser = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'helper')._id,
   customers: [paymentCustomerList[0]._id],
+  company: authCompany._id,
 };
 
 const populateDB = async () => {
@@ -149,7 +153,7 @@ const populateDB = async () => {
   await Customer.deleteMany({});
   await User.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
@@ -163,7 +167,7 @@ const populateDBWithCompany = async () => {
   await Customer.deleteMany({});
   await Company.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);

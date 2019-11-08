@@ -1,5 +1,6 @@
 const moment = require('moment');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -103,8 +104,8 @@ const absenceExportHeader = [
   'Divers',
 ];
 
-exports.exportAbsencesHistory = async (startDate, endDate) => {
-  const events = await EventRepository.getAbsencesForExport(startDate, endDate);
+exports.exportAbsencesHistory = async (startDate, endDate, credentials) => {
+  const events = await EventRepository.getAbsencesForExport(startDate, endDate, credentials);
 
   const rows = [absenceExportHeader];
   for (const event of events) {
@@ -222,7 +223,7 @@ const formatCreditNotesForExport = (creditNotes) => {
   return rows;
 };
 
-exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
+exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credentials) => {
   const query = {
     date: { $lte: endDate, $gte: startDate },
   };
@@ -230,13 +231,13 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate) => {
   const bills = await Bill.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client' })
+    .populate({ path: 'client', match: { company: get(credentials, 'company._id', null) } })
     .lean();
 
   const creditNotes = await CreditNote.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'thirdPartyPayer' })
+    .populate({ path: 'thirdPartyPayer' , match: { company: get(credentials, 'company._id', null) } })
     .lean();
 
   const rows = [billAndCreditNoteExportHeader];
@@ -304,6 +305,7 @@ const customerExportHeader = [
   'Date de naissance',
   'Adresse',
   '1ère intervention',
+  'Auxiliaire référent',
   'Environnement',
   'Objectifs',
   'Autres',
@@ -316,12 +318,16 @@ const customerExportHeader = [
   'Souscriptions',
   'Nombre de financements',
   'Date de création',
+  'Statut',
 ];
 
-exports.exportCustomers = async () => {
+const formatIdentity = person => `${person.firstname} ${person.lastname}`;
+
+exports.exportCustomers = async (credentials) => {
   const customers = await Customer.find()
-    .populate('subscriptions.service')
+    .populate({ path: 'subscriptions.service', match: { company: get(credentials, 'company._id', null) } })
     .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'referent', select: 'identity.firstname identity.lastname' })
     .lean();
   const rows = [customerExportHeader];
 
@@ -341,6 +347,7 @@ exports.exportCustomers = async () => {
       birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
       get(cus, 'contact.primaryAddress.fullAddress') || '',
       firstIntervention ? moment(firstIntervention).format('DD/MM/YYYY') : '',
+      has(cus, 'referent.identity') ? formatIdentity(get(cus, 'referent.identity')) : '',
       get(cus, 'followUp.environment') || '',
       get(cus, 'followUp.objectives') || '',
       get(cus, 'followUp.misc') || '',
@@ -353,6 +360,7 @@ exports.exportCustomers = async () => {
       subscriptionsCount ? getServicesNameList(cus.subscriptions) : '',
       get(cus, 'fundings.length') || 0,
       cus.createdAt ? moment(cus.createdAt).format('DD/MM/YYYY') : '',
+      firstIntervention ? 'Actif' : 'Inactif',
     ];
 
     rows.push(cells);
@@ -380,10 +388,12 @@ const auxiliaryExportHeader = [
   'Date de création',
 ];
 
-exports.exportAuxiliaries = async () => {
+exports.exportAuxiliaries = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
   const roleIds = roles.map(role => role._id);
-  const auxiliaries = await User.find({ role: { $in: roleIds } }).populate('sector');
+  const auxiliaries = await User
+    .find({ role: { $in: roleIds } })
+    .populate({ path: 'sector', match: { company: get(credentials, 'company._id', null) } });
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {
@@ -424,16 +434,27 @@ const helperExportHeader = [
   'Bénéficiaire - Titre',
   'Bénéficiaire - Nom',
   'Bénéficiaire - Prénom',
+  'Bénéficiaire - Rue',
+  'Bénéficiaire - Code postal',
+  'Bénéficiaire - Ville',
+  'Bénéficiaire - Statut',
   'Date de création',
 ];
 
 exports.exportHelpers = async () => {
   const role = await Role.findOne({ name: HELPER });
-  const helpers = await User.find({ role: role._id }).populate('customers');
+  const helpers = await User.find({ role: role._id }).populate({
+    path: 'customers',
+    populate: { path: 'firstIntervention', select: 'startDate' },
+  });
   const data = [helperExportHeader];
 
   for (const hel of helpers) {
     const customer = hel.customers && hel.customers[0];
+    const status = get(customer, 'firstIntervention', null)
+      ? 'Actif'
+      : 'Inactif';
+
     data.push([
       get(hel, 'local.email', ''),
       get(hel, 'identity.lastname', '').toUpperCase(),
@@ -441,7 +462,12 @@ exports.exportHelpers = async () => {
       CIVILITY_LIST[get(customer, 'identity.title')] || '',
       get(customer, 'identity.lastname', '').toUpperCase(),
       get(customer, 'identity.firstname', ''),
-      hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '']);
+      get(customer, 'contact.primaryAddress.street', ''),
+      get(customer, 'contact.primaryAddress.zipCode', ''),
+      get(customer, 'contact.primaryAddress.city', ''),
+      status,
+      hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '',
+    ]);
   }
 
   return data;

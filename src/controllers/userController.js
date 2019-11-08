@@ -10,7 +10,7 @@ const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/roles');
 const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
-const { encode } = require('../helpers/authentification');
+const { encode } = require('../helpers/authentication');
 const { createFolder } = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
@@ -86,7 +86,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const users = await getUsers(req.query);
+    const users = await getUsers(req.query, req.auth.credentials);
     if (users.length === 0) {
       return {
         message: translate[language].usersNotFound,
@@ -107,7 +107,7 @@ const list = async (req) => {
 
 const activeList = async (req) => {
   try {
-    const users = await getUsers(req.query);
+    const users = await getUsers(req.query, req.auth.credentials);
     if (users.length === 0) {
       return {
         message: translate[language].usersNotFound,

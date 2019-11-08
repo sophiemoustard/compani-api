@@ -3,11 +3,12 @@ const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
 const Task = require('../../../src/models/Task');
-const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication } = require('./authenticationSeed');
 
 const company = {
   _id: new ObjectID(),
   name: 'Testtoto',
+  tradeName: 'TT',
   rhConfig: {
     internalHours: [
       { name: 'Formation', default: true, _id: new ObjectID() },
@@ -101,7 +102,7 @@ const populateDB = async () => {
   await Company.deleteMany({});
   await Task.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   for (const user of userList) {
     await new User(user).save();
   }

@@ -3,12 +3,13 @@ const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
 const { SENDER_MAIL } = require('./constants');
 
-const billAlertEmail = async (receiver) => {
+const billAlertEmail = async (receiver, company) => {
+  const companyName = company.tradeName;
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
-    subject: 'Nouvelle facture Alenvi',
-    html: await EmailOptionsHelper.billEmail(),
+    subject: `Nouvelle facture ${companyName}`,
+    html: await EmailOptionsHelper.billEmail(companyName),
   };
 
   const mailInfo = process.env.NODE_ENV === 'production'
@@ -48,8 +49,23 @@ const completeEventRepScriptEmail = async (nb, repIds = null) => {
   return mailInfo;
 };
 
+const helperWelcomeEmail = async (receiver, company) => {
+  const companyName = company.tradeName || company.name;
+  const mailOptions = {
+    from: `Compani <${SENDER_MAIL}>`,
+    to: receiver.email,
+    subject: `${companyName} - Bienvenue dans votre espace Compani`,
+    html: EmailOptionsHelper.welcomeEmailContent(receiver, companyName),
+  };
+
+  return process.env.NODE_ENV !== 'test'
+    ? NodemailerHelper.sendinBlueTransporter.sendMail(mailOptions)
+    : NodemailerHelper.testTransporter(await nodemailer.createTestAccount()).sendMail(mailOptions);
+};
+
 module.exports = {
   billAlertEmail,
   completeBillScriptEmail,
   completeEventRepScriptEmail,
+  helperWelcomeEmail,
 };

@@ -31,7 +31,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customers = await getCustomers(req.query);
+    const customers = await getCustomers(req.query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -46,7 +46,7 @@ const list = async (req) => {
 const listWithSubscriptions = async (req) => {
   try {
     const query = { ...req.query, subscriptions: { $exists: true, $ne: { $size: 0 } } };
-    const customers = await getCustomersWithSubscriptions(query);
+    const customers = await getCustomersWithSubscriptions(query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -88,7 +88,7 @@ const listWithBilledEvents = async (req) => {
 
 const listWithCustomerContractSubscriptions = async (req) => {
   try {
-    const customers = await getCustomersWithCustomerContractSubscriptions();
+    const customers = await getCustomersWithCustomerContractSubscriptions(req.auth.credentials);
 
     return {
       message: translate[language].customersFound,
@@ -102,7 +102,7 @@ const listWithCustomerContractSubscriptions = async (req) => {
 
 const show = async (req) => {
   try {
-    const customer = await getCustomer(req.params._id);
+    const customer = await getCustomer(req.params._id, req.auth.credentials);
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     return {
@@ -167,17 +167,21 @@ const update = async (req) => {
 
 const updateSubscription = async (req) => {
   try {
-    const customer = await Customer
-      .findOneAndUpdate(
-        { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
-        { $push: { 'subscriptions.$.versions': req.payload } },
-        {
-          new: true,
-          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-          autopopulate: false,
-        }
-      )
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    const companyId = _.get(req, 'auth.credentials.company._id', null);
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
+      { $push: { 'subscriptions.$.versions': req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+        autopopulate: false,
+      }
+    )
+      .populate({
+        path: 'subscriptions.service',
+        match: { company: companyId },
+        populate: { path: 'versions.surcharge', match: { company: companyId } },
+      })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
@@ -199,6 +203,7 @@ const updateSubscription = async (req) => {
 
 const addSubscription = async (req) => {
   try {
+    const companyId = _.get(req, 'auth.credentials.company._id', null);
     const serviceId = req.payload.service;
     const subscribedService = await Service.findOne({ _id: serviceId });
 
@@ -210,17 +215,20 @@ const addSubscription = async (req) => {
       if (isServiceAlreadySubscribed) return Boom.conflict(translate[language].serviceAlreadySubscribed);
     }
 
-    const updatedCustomer = await Customer
-      .findOneAndUpdate(
-        { _id: req.params._id },
-        { $push: { subscriptions: req.payload } },
-        {
-          new: true,
-          select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-          autopopulate: false,
-        }
-      )
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    const updatedCustomer = await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { subscriptions: req.payload } },
+      {
+        new: true,
+        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
+        autopopulate: false,
+      }
+    )
+      .populate({
+        path: 'subscriptions.service',
+        match: { company: companyId },
+        populate: { path: 'versions.surcharge', match: { company: companyId } },
+      })
       .lean();
 
     const { subscriptions } = populateSubscriptionsServices(updatedCustomer);
@@ -587,7 +595,10 @@ const createFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       }
-    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
+    )
+      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
@@ -622,7 +633,10 @@ const updateFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       }
-    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer').lean();
+    )
+      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
 
@@ -651,7 +665,10 @@ const removeFunding = async (req) => {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
         autopopulate: false,
       }
-    ).populate('subscriptions.service').populate('fundings.thirdPartyPayer');
+    )
+      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .lean();
 
     return {
       message: translate[language].customerFundingRemoved,

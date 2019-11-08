@@ -3,7 +3,7 @@ const expect = require('expect');
 const app = require('../../server');
 const { populateDB, activationCode, activationCodeUser } = require('./seed/activationCodeSeed');
 const ActivationCode = require('../../src/models/ActivationCode');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

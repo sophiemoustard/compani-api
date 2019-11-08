@@ -1,3 +1,4 @@
+const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
 const expect = require('expect');
 const flat = require('flat');
@@ -71,6 +72,7 @@ describe('getCustomers', () => {
 
   it('should return empty array if no customer', async () => {
     const query = { role: 'qwertyuiop' };
+    const credentials = {};
     CustomerMock.expects('find')
       .withExactArgs(query)
       .chain('populate')
@@ -78,7 +80,7 @@ describe('getCustomers', () => {
       .chain('lean')
       .once()
       .returns([]);
-    const result = await CustomerHelper.getCustomers(query);
+    const result = await CustomerHelper.getCustomers(query, credentials);
 
     CustomerMock.verify();
     expect(result).toEqual([]);
@@ -86,6 +88,7 @@ describe('getCustomers', () => {
 
   it('should return customers', async () => {
     const query = { role: 'qwertyuiop' };
+    const credentials = {};
     const customers = [
       { identity: { firstname: 'Emmanuel' } },
       { identity: { firstname: 'Brigitte' } },
@@ -100,7 +103,7 @@ describe('getCustomers', () => {
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
-    const result = await CustomerHelper.getCustomers(query);
+    const result = await CustomerHelper.getCustomers(query, credentials);
 
     CustomerMock.verify();
     expect(result).toEqual([
@@ -126,13 +129,14 @@ describe('getCustomersWithSubscriptions', () => {
 
   it('should return empty array if no customer', async () => {
     const query = { role: 'qwertyuiop' };
+    const credentials = {};
     CustomerMock.expects('find')
       .withExactArgs(query)
       .chain('populate')
       .chain('lean')
       .once()
       .returns([]);
-    const result = await CustomerHelper.getCustomersWithSubscriptions(query);
+    const result = await CustomerHelper.getCustomersWithSubscriptions(query, credentials);
 
     CustomerMock.verify();
     expect(result).toEqual([]);
@@ -140,6 +144,7 @@ describe('getCustomersWithSubscriptions', () => {
 
   it('should return customers', async () => {
     const query = { role: 'qwertyuiop' };
+    const credentials = {};
     const customers = [
       { identity: { firstname: 'Emmanuel' } },
       { identity: { firstname: 'Brigitte' } },
@@ -152,7 +157,7 @@ describe('getCustomersWithSubscriptions', () => {
       .returns(customers);
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
 
-    const result = await CustomerHelper.getCustomersWithSubscriptions(query);
+    const result = await CustomerHelper.getCustomersWithSubscriptions(query, credentials);
 
     CustomerMock.verify();
     expect(result).toEqual([
@@ -183,7 +188,8 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
 
   it('should return empty array if no service', async () => {
     ServiceMock.expects('find').chain('lean').once().returns([]);
-    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions();
+    const credentials = {};
+    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     CustomerMock.verify();
     ServiceMock.verify();
@@ -192,6 +198,7 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
 
   it('should return empty array if no customer', async () => {
     const services = [{ _id: '1234567890', nature: 'fixed' }];
+    const credentials = {};
     ServiceMock.expects('find').chain('lean').once().returns(services);
     CustomerMock.expects('find')
       .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] } })
@@ -199,7 +206,7 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
       .chain('lean')
       .once()
       .returns([]);
-    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions();
+    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     CustomerMock.verify();
     ServiceMock.verify();
@@ -221,8 +228,9 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
       .returns(customers);
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
+    const credentials = {};
 
-    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions();
+    const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     CustomerMock.verify();
     ServiceMock.verify();
@@ -263,7 +271,9 @@ describe('getCustomer', () => {
       .chain('lean')
       .once()
       .returns(null);
-    const result = await CustomerHelper.getCustomer(customerId);
+
+    const credentials = { company: new ObjectID() };
+    const result = await CustomerHelper.getCustomer(customerId, credentials);
 
     CustomerMock.verify();
     expect(result).toBeNull();
@@ -283,7 +293,8 @@ describe('getCustomer', () => {
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
-    const result = await CustomerHelper.getCustomer(customerId);
+    const credentials = { company: new ObjectID() };
+    const result = await CustomerHelper.getCustomer(customerId, credentials);
 
     CustomerMock.verify();
     expect(result).toEqual({ identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true });
@@ -306,7 +317,8 @@ describe('getCustomer', () => {
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
     populateFundings.returnsArg(0);
 
-    await CustomerHelper.getCustomer(customerId);
+    const credentials = { company: new ObjectID() };
+    await CustomerHelper.getCustomer(customerId, credentials);
 
     CustomerMock.verify();
     sinon.assert.calledOnce(populateSubscriptionsServices);

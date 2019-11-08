@@ -38,7 +38,7 @@ const exportData = async (req, h) => {
     let data;
     switch (type) {
       case AUXILIARY:
-        data = await exportAuxiliaries();
+        data = await exportAuxiliaries(req.auth.credentials);
         break;
       case HELPER:
         data = await exportHelpers();
@@ -47,13 +47,13 @@ const exportData = async (req, h) => {
         data = await exportFundings();
         break;
       case CUSTOMER:
-        data = await exportCustomers();
+        data = await exportCustomers(req.auth.credentials);
         break;
       case SUBSCRIPTION:
-        data = await exportSubscriptions();
+        data = await exportSubscriptions(req.auth.credentials);
         break;
       case SERVICE:
-        data = await exportServices();
+        data = await exportServices(req.auth.credentials);
         break;
     }
 
@@ -79,16 +79,16 @@ const exportHistory = async (req, h) => {
         exportArray = await exportWorkingEventsHistory(startDate, endDate);
         break;
       case BILL:
-        exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate);
+        exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate, req.auth.credentials);
         break;
       case PAYMENT:
-        exportArray = await exportPaymentsHistory(startDate, endDate);
+        exportArray = await exportPaymentsHistory(startDate, endDate, req.auth.credentials);
         break;
       case ABSENCE:
-        exportArray = await exportAbsencesHistory(startDate, endDate);
+        exportArray = await exportAbsencesHistory(startDate, endDate, req.auth.credentials);
         break;
       case PAY:
-        exportArray = await exportPayAndFinalPayHistory(startDate, endDate);
+        exportArray = await exportPayAndFinalPayHistory(startDate, endDate, req.auth.credentials);
         break;
       case CONTRACT:
         exportArray = await exportContractHistory(startDate, endDate);

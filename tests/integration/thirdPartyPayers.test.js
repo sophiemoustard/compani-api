@@ -1,9 +1,11 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { thirdPartyPayersList, populateDB, tppCompany } = require('./seed/thirdPartyPayersSeed');
+
+const omit = require('lodash/omit');
+const { thirdPartyPayersList, populateDB, thirdPartyPayerFromOtherCompany } = require('./seed/thirdPartyPayersSeed');
 const ThirdPartyPayer = require('../../src/models/ThirdPartyPayer');
 const app = require('../../server');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -30,7 +32,6 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       email: 'test@test.com',
       unitTTCRate: 75,
       billingMode: 'direct',
-      company: tppCompany._id,
     };
 
     it('should create a new third party payer', async () => {
@@ -45,37 +46,20 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.thirdPartyPayer).toMatchObject(payload);
-      const thirdPartyPayers = await ThirdPartyPayer.find().lean();
+      const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
       expect(thirdPartyPayers.length).toBe(initialThirdPartyPayerNumber + 1);
     });
-    const missingParams = [
-      {
-        paramName: 'name',
-        payload: { ...payload },
-        update() {
-          delete this.payload[this.paramName];
-        },
-      },
-      {
-        paramName: 'company',
-        payload: { ...payload },
-        update() {
-          delete this.payload[this.paramName];
-        },
-      },
-    ];
-    missingParams.forEach((test) => {
-      it(`should return a 400 error if '${test.paramName}' params is missing`, async () => {
-        test.update();
-        const response = await app.inject({
-          method: 'POST',
-          url: '/thirdpartypayers',
-          headers: { 'x-access-token': authToken },
-          payload: test.payload,
-        });
 
-        expect(response.statusCode).toBe(400);
+    it('should return a 400 error if name params is missing', async () => {
+      const payloadWithoutName = omit(payload, 'name');
+      const response = await app.inject({
+        method: 'POST',
+        url: '/thirdpartypayers',
+        headers: { 'x-access-token': authToken },
+        payload: payloadWithoutName,
       });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('should return a 403 error if user does not have right', async () => {
@@ -175,6 +159,17 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 error if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/thirdpartypayers/${thirdPartyPayerFromOtherCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('DELETE /thirdpartypayers/:id', () => {
@@ -185,7 +180,7 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(200);
-      const thirdPartyPayers = await ThirdPartyPayer.find().lean();
+      const thirdPartyPayers = await ThirdPartyPayer.find({ company: authCompany._id }).lean();
       expect(thirdPartyPayers.length).toBe(thirdPartyPayersList.length - 1);
     });
 
@@ -204,6 +199,16 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
         url: `/thirdpartypayers/${thirdPartyPayersList[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
         credentials: { scope: ['Test'] },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/thirdpartypayers/${thirdPartyPayerFromOtherCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(403);

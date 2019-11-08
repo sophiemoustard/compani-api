@@ -4,7 +4,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Sector = require('../../src/models/Sector');
 const { populateDB, sectorsList, sectorCompany } = require('./seed/sectorsSeed');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken, rolesList, userList } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -23,9 +23,11 @@ describe('SECTORS ROUTES', () => {
       });
 
       it('should create a new company sector', async () => {
-        const initialSectorNumber = sectorsList.length;
+        const roleAdmin = rolesList.find(r => r.name === 'admin');
+        const admin = userList.find(u => u.role.toHexString() === roleAdmin._id.toHexString());
+        const initialSectorNumber = sectorsList.filter(s => s.company.toHexString() === admin.company.toHexString()).length;
 
-        const payload = { name: 'Test3', company: sectorCompany._id };
+        const payload = { name: 'Test3' };
         const response = await app.inject({
           method: 'POST',
           url: '/sectors',
@@ -34,24 +36,13 @@ describe('SECTORS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const sectors = await Sector.find();
+        expect(response.result.data.sector.company).toEqual(admin.company);
+        const sectors = await Sector.find({ company: admin.company.toHexString() });
         expect(sectors.length).toEqual(initialSectorNumber + 1);
       });
 
       it("should return a 400 error if 'name' params is missing", async () => {
         const payload = { company: sectorCompany._id };
-        const response = await app.inject({
-          method: 'POST',
-          url: '/sectors',
-          headers: { 'x-access-token': authToken },
-          payload,
-        });
-
-        expect(response.statusCode).toBe(400);
-      });
-
-      it("should return a 400 error if 'companyId' params is missing", async () => {
-        const payload = { name: 'Test3' };
         const response = await app.inject({
           method: 'POST',
           url: '/sectors',
@@ -95,7 +86,9 @@ describe('SECTORS ROUTES', () => {
       });
 
       it('should get sectors', async () => {
-        const sectorNumber = sectorsList.length;
+        const roleAdmin = rolesList.find(r => r.name === 'admin');
+        const admin = userList.find(u => u.role.toHexString() === roleAdmin._id.toHexString());
+        const sectorNumber = sectorsList.filter(s => s.company.toHexString() === admin.company.toHexString()).length;
 
         const response = await app.inject({
           method: 'GET',
@@ -205,6 +198,17 @@ describe('SECTORS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(200);
+      });
+
+      it('should return 403 if not in same comapny', async () => {
+        const sector = sectorsList[1];
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/sectors/${sector._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(403);
       });
       it('should return a 404 error if sector does not exist', async () => {
         const response = await app.inject({

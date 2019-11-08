@@ -14,11 +14,13 @@ const validate = async (decoded) => {
 
     const customersScopes = user.customers ? user.customers.map(id => `customer-${id.toHexString()}`) : [];
 
+    if (!user.company) return { isValid: false };
+
     const credentials = {
       _id: decoded._id,
       identity: user.identity || null,
       email: user.local && user.local.email ? user.local.email : null,
-      company: user.company || null,
+      company: user.company,
       sector: user.sector ? user.sector.toHexString() : null,
       scope: [`user-${decoded._id}`, user.role.name, ...rights, ...customersScopes],
     };

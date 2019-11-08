@@ -64,7 +64,11 @@
     {{ bill.company.name }}<br />
     {{ bill.company.address.street }}<br />
     {{ bill.company.address.zipCode }} {{ bill.company.address.city }}<br />
+    {{#if bill.company.rcs }}
     RCS : {{ bill.company.rcs }}
+    {{else if bill.company.rna}}
+    RNA : {{ bill.company.rna }}
+    {{/if}}
   </div>
   <div class="recipient">
     <span>{{ bill.recipient.name }}</span><br />

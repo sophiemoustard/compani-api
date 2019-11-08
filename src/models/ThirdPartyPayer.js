@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 const { BILLING_DIRECT, BILLING_INDIRECT } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const Customer = require('./Customer');
@@ -25,6 +26,8 @@ const countFundings = async (docs) => {
   }
 };
 
+ThirdPartyPayerSchema.pre('validate', validatePayload);
+ThirdPartyPayerSchema.pre('find', validateQuery);
 ThirdPartyPayerSchema.post('find', countFundings);
 
 module.exports = mongoose.model('ThirdPartyPayer', ThirdPartyPayerSchema);

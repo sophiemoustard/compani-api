@@ -1,6 +1,6 @@
 const { ObjectID } = require('mongodb');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { populateDBForAuthentication } = require('./authenticationSeed');
 
 const distanceMatrixList = [
   {
@@ -32,7 +32,7 @@ const distanceMatrixList = [
 const populateDB = async () => {
   await DistanceMatrix.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await DistanceMatrix.insertMany(distanceMatrixList);
 };
 

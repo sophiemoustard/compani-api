@@ -1,5 +1,7 @@
 const Boom = require('boom');
 const moment = require('moment');
+
+const get = require('lodash/get');
 const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
 const Company = require('../models/Company');
@@ -55,7 +57,11 @@ const list = async (req) => {
     const query = rest;
     if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
-    const bills = await Bill.find(query).populate({ path: 'client', select: '_id name' });
+    const bills = await Bill.find(query).populate({
+      path: 'client',
+      select: '_id name',
+      match: { company: get(req, 'auth.credentials.company._id', null) },
+    });
 
     if (!bills) return Boom.notFound(translate[language].billsNotFound);
 
@@ -72,11 +78,10 @@ const list = async (req) => {
 const generateBillPdf = async (req, h) => {
   try {
     const bill = await Bill.findOne({ _id: req.params._id, origin: COMPANI })
-      .populate({ path: 'client', select: '_id name address' })
+      .populate({ path: 'client', select: '_id name address', match: { company: get(req, 'auth.credentials.company._id', null) } })
       .populate({ path: 'customer', select: '_id identity contact fundings' })
       .populate({ path: 'subscriptions.events.auxiliary', select: 'identity' })
       .lean();
-
     if (!bill) throw Boom.notFound('Bill not found');
     if (bill.origin !== COMPANI) return Boom.badRequest(translate[language].billNotCompani);
 

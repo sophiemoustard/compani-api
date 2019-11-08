@@ -4,7 +4,7 @@ const app = require('../../server');
 const CreditNote = require('../../src/models/CreditNote');
 const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent, creditNoteUserList } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials } = require('./seed/authentificationSeed');
+const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -60,7 +60,6 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.creditNotes.length).toEqual(2);
       const creditNotes = await CreditNote.find();
       expect(creditNotes.filter(cn => cn.linkedCreditNote)).toBeDefined();
       expect(creditNotes.filter(cn => cn.linkedCreditNote).length).toEqual(2);
@@ -77,7 +76,6 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.result.data.creditNotes[0].number).toBeDefined();
       const creditNotes = await CreditNote.find();
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
     });

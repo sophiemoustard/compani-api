@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const flat = require('flat');
 
+const get = require('lodash/get');
 const Payment = require('../models/Payment');
 const { getDateQuery } = require('../helpers/utils');
 const { savePayments, formatPayment } = require('../helpers/payments');
@@ -15,7 +16,7 @@ const list = async (req) => {
     if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
 
     const payments = await Payment.find(query)
-      .populate({ path: 'client', select: '_id name' })
+      .populate({ path: 'client', select: '_id name', match: { company: get(req, 'auth.credentials.company._id', null) } })
       .populate({ path: 'customer', select: '_id identity' });
 
     return {

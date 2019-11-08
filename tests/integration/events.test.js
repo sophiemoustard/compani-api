@@ -13,7 +13,7 @@ const {
   helpersCustomer,
   getUserToken,
 } = require('./seed/eventsSeed');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../src/helpers/constants');
 
@@ -117,7 +117,7 @@ describe('EVENTS ROUTES', () => {
           name: 'helper\'s customer',
           expectedCode: 200,
           url: `/events?customer=${customerAuxiliary._id.toHexString()}`,
-          customCredentials: helpersCustomer.local,
+          customCredentials: { ...helpersCustomer.local },
         },
         { name: 'auxiliary', expectedCode: 200 },
         { name: 'coach', expectedCode: 200 },

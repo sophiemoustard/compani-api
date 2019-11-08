@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const fsPromises = fs.promises;
 
-const welcomeEmailContent = receiver => (
+const welcomeEmailContent = (receiver, companyName) => (
   `<p>Bonjour,</p>
   <p>Votre espace Compani vous permettra de suivre au quotidien le planning des interventions des auxiliaires d’envie chez votre proche, ainsi 
   que les éléments de facturation. Si ça n’est pas déjà fait, nous vous remercions également de finaliser votre souscription en remplissant la page 
@@ -17,8 +17,7 @@ const welcomeEmailContent = receiver => (
   </ul>
   <p>Nous vous recommandons de modifier votre mot de passe lors de votre première connexion.</p>
   <p>Bien cordialement,</p>
-  <p>L'équipe Alenvi</p>
-  <img src="https://res.cloudinary.com/alenvi/image/upload/c_scale,w_183/v1507124345/images/business/alenvi_logo_complet_full.png" alt="Logo Alenvi">`
+  <p>L'équipe ${companyName}</p>`
 );
 
 const forgetPasswordEmail = resetPassword => (
@@ -30,10 +29,10 @@ const forgetPasswordEmail = resetPassword => (
     L'équipe Compani</p>`
 );
 
-const billEmail = async () => {
+const billEmail = async (companyName) => {
   const content = await fsPromises.readFile(path.join(__dirname, '../data/emails/billDispatch.html'), 'utf8');
   const template = handlebars.compile(content);
-  return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents` });
+  return template({ billLink: `${process.env.WEBSITE_HOSTNAME}/customers/documents`, companyName });
 };
 
 const completeBillScriptEmailBody = (sentNb, emails) => {

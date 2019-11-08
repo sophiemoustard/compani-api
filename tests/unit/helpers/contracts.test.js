@@ -28,6 +28,7 @@ describe('getContractList', () => {
   });
 
   it('should return contract list', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     const query = { user: '1234567890' };
     ContractMock.expects('find')
       .withExactArgs({ $and: [{ user: '1234567890' }] })
@@ -36,12 +37,13 @@ describe('getContractList', () => {
       .chain('lean')
       .returns(contracts);
 
-    const result = await ContractHelper.getContractList(query);
+    const result = await ContractHelper.getContractList(query, credentials);
     expect(result).toEqual(contracts);
     ContractMock.verify();
   });
 
   it('should format query with dates', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     const query = { startDate: '2019-09-09T00:00:00', endDate: '2019-09-09T00:00:00' };
     ContractMock.expects('find')
       .withExactArgs({
@@ -57,7 +59,7 @@ describe('getContractList', () => {
       .chain('lean')
       .returns(contracts);
 
-    const result = await ContractHelper.getContractList(query);
+    const result = await ContractHelper.getContractList(query, credentials);
     expect(result).toEqual(contracts);
     ContractMock.verify();
   });
@@ -443,7 +445,7 @@ describe('updateVersion', () => {
         {
           $set: flat({ 'versions.0': { ...versionToUpdate, signature: { eversignId: '1234567890' } } }),
           $push: { 'versions.0.auxiliaryArchives': 'toto' },
-          $unset: flat({ 'versions.0': { auxiliaryDoc: '' } }),
+          $unset: flat({ 'versions.0': { auxiliaryDoc: '', signature: { signedBy: '' } } }),
         }
       )
       .chain('lean')

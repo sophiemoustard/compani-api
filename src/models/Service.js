@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 const { FIXED, HOURLY } = require('../helpers/constants');
 const { CONTRACT_STATUS } = require('./Contract');
 const Customer = require('./Customer');
@@ -29,6 +30,8 @@ const countServiceUsage = async (docs) => {
   }
 };
 
+ServiceSchema.pre('find', validateQuery);
+ServiceSchema.pre('validate', validatePayload);
 ServiceSchema.post('find', countServiceUsage);
 
 module.exports = mongoose.model('Service', ServiceSchema);

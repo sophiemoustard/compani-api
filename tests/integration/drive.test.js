@@ -7,7 +7,7 @@ const sinon = require('sinon');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const DriveHelper = require('../../src/helpers/drive');
 const { generateFormData } = require('./utils');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 const { auxiliary, populateDB } = require('./seed/driveSeed');
 const app = require('../../server');
 
@@ -42,7 +42,6 @@ describe('DRIVE ROUTES', () => {
         const payload = {
           file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           fileName: 'absence',
-          'Content-Type': 'application/pdf',
         };
         const form = generateFormData(payload);
         const response = await app.inject({
@@ -59,17 +58,16 @@ describe('DRIVE ROUTES', () => {
             link: 'http://test.com/file.pdf',
           },
         });
-        sinon.assert.calledWith(uploadFileSpy, userFolderId, sinon.match({ fileName: 'absence', 'Content-Type': 'application/pdf' }));
+        sinon.assert.calledWith(uploadFileSpy, userFolderId, sinon.match({ fileName: 'absence' }));
         sinon.assert.calledOnce(addFileStub);
       });
 
-      const missingParams = ['file', 'Content-Type', 'fileName'];
+      const missingParams = ['file', 'fileName'];
       missingParams.forEach((param) => {
         it(`should return a 400 error if '${param}' params is missing`, async () => {
           const payload = {
             file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
             fileName: 'absence',
-            'Content-Type': 'application/pdf',
           };
           const form = generateFormData(omit(payload, param));
           const response = await app.inject({

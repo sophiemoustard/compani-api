@@ -10,6 +10,8 @@ const {
   remove,
 } = require('../controllers/surchargeController');
 
+const { authorizeSurchargesUpdate } = require('./preHandlers/surcharges');
+
 exports.plugin = {
   name: 'routes-surcharges',
   register: async (server) => {
@@ -33,7 +35,6 @@ exports.plugin = {
             custom: Joi.number().allow('', null),
             customStartTime: Joi.string().allow('', null).when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
             customEndTime: Joi.string().allow('', null).when('customs', { is: Joi.number().allow('', null), then: Joi.required() }),
-            company: Joi.required(),
           }),
         },
       },
@@ -45,11 +46,6 @@ exports.plugin = {
       handler: list,
       options: {
         auth: { scope: ['config:edit'] },
-        validate: {
-          query: {
-            company: Joi.objectId(),
-          },
-        },
       },
     });
 
@@ -64,6 +60,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeSurchargesUpdate }],
       },
     });
 
@@ -92,6 +89,7 @@ exports.plugin = {
             customEndTime: Joi.string().allow('', null).default('').when('custom', { is: Joi.number(), then: Joi.required() }),
           }),
         },
+        pre: [{ method: authorizeSurchargesUpdate }],
       },
     });
   },

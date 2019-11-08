@@ -1,11 +1,12 @@
 const { ObjectID } = require('mongodb');
 const Sector = require('../../../src/models/Sector');
 const Company = require('../../../src/models/Company');
-const { populateDBForAuthentification } = require('./authentificationSeed');
+const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const sectorCompany = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
   name: 'Test',
+  tradeName: 'TT',
   rhConfig: {
     internalHours: [
       { name: 'Formation', default: true, _id: new ObjectID() },
@@ -24,12 +25,17 @@ const sectorsList = [
   {
     _id: new ObjectID(),
     name: 'Test',
-    companyId: sectorCompany._id,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    name: 'Test',
+    company: sectorCompany._id,
   },
   {
     _id: new ObjectID(),
     name: 'Test2',
-    companyId: sectorCompany._id,
+    company: sectorCompany._id,
   },
 ];
 
@@ -38,7 +44,7 @@ const populateDB = async () => {
   await Sector.deleteMany({});
   await Company.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Sector.insertMany(sectorsList);
   await (new Company(sectorCompany)).save();
 };

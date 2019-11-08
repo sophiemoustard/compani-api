@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
+const get = require('lodash/get');
 const Event = require('../models/Event');
 const {
   INTERNAL_HOUR,
@@ -89,16 +90,16 @@ exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules,
 
 exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
 
-exports.getEventList = rules => Event.find(rules)
+exports.getEventList = (rules, credentials) => Event.find(rules)
   .populate({
     path: 'auxiliary',
     select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
-    populate: { path: 'sector' },
+    populate: { path: 'sector', match: { company: get(credentials, 'company._id', null) } },
   })
   .populate({
     path: 'customer',
     select: 'identity subscriptions contact',
-    populate: { path: 'subscriptions.service' },
+    populate: { path: 'subscriptions.service', match: { company: credentials.company._id } },
   })
   .lean();
 
@@ -230,7 +231,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate) => {
   ]);
 };
 
-exports.getAbsencesForExport = async (startDate, endDate) => {
+exports.getAbsencesForExport = async (startDate, endDate, credentials) => {
   const query = {
     type: ABSENCE,
     $or: [
@@ -243,7 +244,7 @@ exports.getAbsencesForExport = async (startDate, endDate) => {
   return Event.find(query)
     .sort({ startDate: 'desc' })
     .populate({ path: 'auxiliary', select: 'identity' })
-    .populate({ path: 'sector' })
+    .populate({ path: 'sector', match: { company: credentials.company._id } })
     .lean();
 };
 

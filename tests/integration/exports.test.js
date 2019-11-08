@@ -8,10 +8,10 @@ const {
   FUNDING,
   SUBSCRIPTION,
 } = require('../../src/helpers/constants');
-const { getToken } = require('./seed/authentificationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 const {
   populateEvents,
-  populateBills,
+  populateBillsAndCreditNotes,
   populatePayment,
   populatePay,
   paymentsList,
@@ -72,7 +72,7 @@ describe('EXPORTS ROUTES', () => {
 
   describe('GET /exports/bill/history', () => {
     describe('Admin', () => {
-      beforeEach(populateBills);
+      beforeEach(populateBillsAndCreditNotes);
       beforeEach(async () => {
         adminToken = await getToken('admin');
       });
@@ -85,7 +85,7 @@ describe('EXPORTS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(2);
+        expect(response.result.split('\r\n').length).toBe(3);
       });
     });
 

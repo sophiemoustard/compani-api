@@ -27,7 +27,7 @@ const list = async (req) => {
     } else if (groupBy === AUXILIARY) {
       events = await getEventsGroupedByAuxiliaries(query);
     } else {
-      events = await getEventList(query);
+      events = await getEventList(query, req.auth.credentials);
       events = await populateEvents(events);
     }
 
@@ -89,7 +89,7 @@ const update = async (req) => {
       throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
     }
 
-    if (!(await isEditionAllowed(event, payload))) return Boom.badData();
+    if (!(await isEditionAllowed(event, payload, req.auth.credentials))) return Boom.badData();
 
     event = await updateEvent(event, payload, auth.credentials);
 

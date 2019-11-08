@@ -8,8 +8,7 @@ const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const EventHistory = require('../../../src/models/EventHistory');
 const Sector = require('../../../src/models/Sector');
-const Company = require('../../../src/models/Company');
-const { rolesList, populateDBForAuthentification } = require('./authentificationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const app = require('../../../server');
 
 const auxiliaryId = new ObjectID();
@@ -35,27 +34,10 @@ const contracts = [{
   }],
 }];
 
-const company = {
-  _id: new ObjectID(),
-  name: 'Testtoto',
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-  },
-  iban: 'FR3514508000505917721779B12',
-  bic: 'RTYUIKJHBFRG',
-  ics: '12345678',
-  directDebitsFolderId: '1234567890',
-};
-
 const sector = {
   _id: new ObjectID(),
   name: 'Paris',
-  company: company._id,
+  company: authCompany._id,
 };
 
 const eventAuxiliary = {
@@ -67,14 +49,17 @@ const eventAuxiliary = {
   role: rolesList[1]._id,
   contracts: [contracts[0]._id],
   sector: sector._id,
+  company: authCompany._id,
 };
 
 const thirdPartyPayer = {
   _id: new ObjectID('62400565f8fd3555379720c9'),
+  company: authCompany._id,
 };
 
 const service = {
   _id: new ObjectID('5d3b239ce9e4352ef86e773b'),
+  company: authCompany._id,
   versions: [
     { _id: new ObjectID() },
   ],
@@ -95,6 +80,7 @@ const helpersCustomer = {
   refreshToken: uuidv4(),
   customers: [customerAuxiliary._id],
   role: rolesList[4]._id,
+  company: authCompany._id,
 };
 
 const eventsList = [
@@ -205,12 +191,10 @@ const populateDB = async () => {
   await Service.deleteMany({});
   await EventHistory.deleteMany({});
   await Sector.deleteMany({});
-  await Company.deleteMany({});
 
-  await populateDBForAuthentification();
+  await populateDBForAuthentication();
   await Event.insertMany(eventsList);
   await Contract.insertMany(contracts);
-  await (new Company(company)).save();
   await (new Sector(sector)).save();
   await (new User(eventAuxiliary)).save();
   await (new User(helpersCustomer)).save();

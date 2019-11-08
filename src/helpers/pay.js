@@ -93,7 +93,7 @@ const getHiringDate = (contracts) => {
   return contracts.map(contract => contract.startDate).sort((a, b) => new Date(a) - new Date(b))[0];
 };
 
-exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
+exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) => {
   const query = {
     endDate: { $lte: moment(endDate).endOf('M').toDate() },
     startDate: { $gte: moment(startDate).startOf('M').toDate() },
@@ -101,12 +101,20 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate) => {
 
   const pays = await Pay.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity sector contracts', populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }] })
+    .populate({
+      path: 'auxiliary',
+      select: 'identity sector contracts',
+      populate: [{ path: 'sector', select: 'name', match: { company: get(credentials, 'company._id', null) } }, { path: 'contracts' }],
+    })
     .lean();
 
   const finalPays = await FinalPay.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity sector contracts', populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }] })
+    .populate({
+      path: 'auxiliary',
+      select: 'identity sector contracts',
+      populate: [{ path: 'sector', select: 'name', match: { company: get(credentials, 'company._id', null) } }, { path: 'contracts' }],
+    })
     .lean();
 
   const rows = [payExportHeader];
