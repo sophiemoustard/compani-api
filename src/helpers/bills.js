@@ -16,7 +16,7 @@ exports.formatSubscriptionData = (bill) => {
     eventId: ev.event,
     ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
   }));
-  const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.startDate, bill.subscription.service, 'startDate');
+  const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.endDate, bill.subscription.service, 'startDate');
 
   return {
     ...bill,
@@ -186,7 +186,7 @@ exports.formatBillSubscriptionsForPdf = (bill) => {
     const formattedSub = {
       unitInclTaxes: UtilsHelper.formatPrice(exports.getUnitInclTaxes(bill, sub)),
       inclTaxes: UtilsHelper.formatPrice(sub.inclTaxes),
-      vat: sub.vat.toString().replace(/\./g, ','),
+      vat: sub.vat ? sub.vat.toString().replace(/\./g, ',') : 0,
       service: sub.service.name,
     };
     if (sub.service.nature === HOURLY) {
