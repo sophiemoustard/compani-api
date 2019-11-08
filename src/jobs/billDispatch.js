@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Bill = require('../models/Bill');
+const Company = require('../models/Company');
 const BillRepository = require('../repositories/BillRepository');
 const EmailHelper = require('../helpers/email');
 
@@ -18,10 +19,11 @@ const billDispatch = {
           billsIds: billsAndHelpersChunk.reduce((acc, cus) => [...acc, ...cus.bills], []).map(bill => bill._id),
         };
 
-        const requests = data.helpers.map((helper) => {
+        const requests = data.helpers.map(async (helper) => {
           try {
             if (helper.local && helper.local.email) {
-              return EmailHelper.billAlertEmail(helper.local.email);
+              const company = await Company.findById(helper.company);
+              return EmailHelper.billAlertEmail(helper.local.email, company);
             }
           } catch (e) {
             server.log(['error', 'cron', 'jobs'], e);

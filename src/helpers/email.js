@@ -3,12 +3,13 @@ const NodemailerHelper = require('./nodemailer');
 const EmailOptionsHelper = require('./emailOptions');
 const { SENDER_MAIL } = require('./constants');
 
-const billAlertEmail = async (receiver) => {
+const billAlertEmail = async (receiver, company) => {
+  const companyName = company.tradeName || company.name;
   const mailOptions = {
     from: `Compani <${SENDER_MAIL}>`,
     to: receiver,
-    subject: 'Nouvelle facture Alenvi',
-    html: await EmailOptionsHelper.billEmail(),
+    subject: `Nouvelle facture ${companyName}`,
+    html: await EmailOptionsHelper.billEmail(companyName),
   };
 
   const mailInfo = process.env.NODE_ENV === 'production'
