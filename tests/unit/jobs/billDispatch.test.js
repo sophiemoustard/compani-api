@@ -52,6 +52,7 @@ describe('method', () => {
     findBillsAndHelpersByCustomerStub.returns(customers);
     CompanyMock
       .expects('find')
+      .chain('lean')
       .once()
       .returns([{ tradeName: 'Alenvi', _id: companyId }]);
 
@@ -88,6 +89,7 @@ describe('method', () => {
     findBillsAndHelpersByCustomerStub.returns(customers);
     CompanyMock
       .expects('find')
+      .chain('lean')
       .once()
       .returns([{ tradeName: 'Alenvi', _id: companyId }]);
 
