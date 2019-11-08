@@ -3,10 +3,6 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const setWith = require('lodash/setWith');
 const clone = require('lodash/clone');
-const omit = require('lodash/omit');
-const pick = require('lodash/pick');
-const cloneDeep = require('lodash/cloneDeep');
-const mapKeys = require('lodash/mapKeys');
 const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
@@ -383,7 +379,7 @@ exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, distanceMat
   return prevPayDiff;
 };
 
-exports.getDraftPay = async (query) => {
+exports.getDraftPay = async (query, credentials) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
   const contractRules = {
@@ -396,7 +392,7 @@ exports.getDraftPay = async (query) => {
 
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne().lean(),
-    Surcharge.find().lean(),
+    Surcharge.find({ company: get(credentials, 'company._id', null) }).lean(),
     DistanceMatrix.find().lean(),
   ]);
 

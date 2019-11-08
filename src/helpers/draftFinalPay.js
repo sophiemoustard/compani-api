@@ -1,4 +1,5 @@
 const moment = require('moment');
+const get = require('lodash/get');
 const { COMPANY_CONTRACT, WEEKS_PER_MONTH } = require('./constants');
 const Company = require('../models/Company');
 const Surcharge = require('../models/Surcharge');
@@ -41,7 +42,7 @@ exports.getDraftFinalPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, co
   };
 };
 
-exports.getDraftFinalPay = async (query) => {
+exports.getDraftFinalPay = async (query, credentials) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
   const contractRules = {
@@ -53,7 +54,7 @@ exports.getDraftFinalPay = async (query) => {
 
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne().lean(),
-    Surcharge.find().lean(),
+    Surcharge.find({ company: get(credentials, 'company._id', null) }).lean(),
     DistanceMatrix.find().lean(),
   ]);
 
