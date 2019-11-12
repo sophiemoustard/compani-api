@@ -1,10 +1,11 @@
-const moment = require('../extensions/moment');
 const mongoose = require('mongoose');
+const moment = require('../extensions/moment');
+const get = require('lodash/get');
 const EventRepository = require('../repositories/EventRepository');
 const Surcharge = require('../models/Surcharge');
 const ThirdPartyPayer = require('../models/ThirdPartyPayer');
 const FundingHistory = require('../models/FundingHistory');
-const { HOURLY, MONTHLY, ONCE, FIXED } = require('./constants');
+const { HOURLY, MONTHLY, ONCE, FIXED, BILLING_DIRECT } = require('./constants');
 const utils = require('./utils');
 const SurchargesHelper = require('./surcharges');
 
@@ -31,12 +32,14 @@ exports.populateSurcharge = async (subscription) => {
  * Funding version frequency = ONCE : there is only ONE history
  * Funding version frequency = MONTHLY : there is one history PER MONTH
  */
-exports.populateFundings = async (fundings, endDate) => {
+exports.populateFundings = async (fundings, endDate, thirdPartyPayersList) => {
+  const populatedFundings = [];
   for (let i = 0, l = fundings.length; i < l; i++) {
-    fundings[i] = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
-    const tpp = await ThirdPartyPayer.findOne({ _id: fundings[i].thirdPartyPayer }).lean();
-    if (tpp) fundings[i].thirdPartyPayer = tpp;
+    const tpp = thirdPartyPayersList.find(tppTmp => tppTmp._id === fundings[i].thirdPartyPayer);
+    if (!tpp || tpp.billingMode !== BILLING_DIRECT) continue;
 
+    fundings[i] = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
+    fundings[i].thirdPartyPayer = tpp;
     if (fundings[i].frequency !== MONTHLY) {
       const history = await FundingHistory.findOne({ fundingId: fundings[i]._id }).lean();
       if (history) fundings[i].history = history;
@@ -56,8 +59,9 @@ exports.populateFundings = async (fundings, endDate) => {
         });
       }
     }
+    populatedFundings.push(fundings[i]);
   }
-  return fundings;
+  return populatedFundings;
 };
 
 exports.getMatchingFunding = (date, fundings) => {
@@ -304,8 +308,9 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
   return result;
 };
 
-exports.getDraftBillsList = async (dates, billingStartDate, customerId = null) => {
+exports.getDraftBillsList = async (dates, billingStartDate, customerId = null, credentials = null) => {
   const eventsToBill = await EventRepository.getEventsToBill(dates, customerId);
+  const thirdPartyPayersList = await ThirdPartyPayer.find({ company: get(credentials, 'company._id', null) }).lean();
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const customerDraftBills = [];
@@ -314,7 +319,7 @@ exports.getDraftBillsList = async (dates, billingStartDate, customerId = null) =
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await exports.populateSurcharge(eventsBySubscriptions[k].subscription);
       let { fundings } = eventsBySubscriptions[k];
-      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate) : null;
+      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList) : null;
 
       const draftBills = exports.getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, billingStartDate, dates.endDate);
       if (draftBills.customer) customerDraftBills.push(draftBills.customer);
