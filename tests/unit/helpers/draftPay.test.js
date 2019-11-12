@@ -1223,7 +1223,7 @@ describe('getDraftPayByAuxiliary', () => {
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const prevPay = { hoursCounter: 10, diff: 2 };
+    const prevPay = { hoursCounter: 10, diff: { hoursBalance: 2 } };
     const computedPay = {
       contractHours: 150,
       workedHours: 138,
@@ -1240,7 +1240,7 @@ describe('getDraftPayByAuxiliary', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
-      diff: 2,
+      diff: { hoursBalance: 2 },
       previousMonthHoursCounter: 10,
       auxiliaryId: '1234567890',
       auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
@@ -1264,6 +1264,96 @@ describe('getDraftPayByAuxiliary', () => {
     );
   });
 });
+
+describe('computePrevPayDiff', () => {
+  it('should compute previous pay if hours and prevPay are defined', () => {
+    const hours = {
+      surchargedAndExemptDetails: {
+        qwertyuiop: {
+          evenings: { hours: 23 },
+          saturdays: { hours: 23 },
+        },
+        asdfghjkl: { christmas: { hours: 5 } },
+      },
+    };
+    const prevPay = {
+      surchargedAndExemptDetails: [
+        {
+          planId: 'qwertyuiop',
+          evenings: { hours: 2 },
+          sundays: { hours: 3 },
+        },
+        { planId: 'zxcvbnm', evenings: { hours: 4 } },
+      ],
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: 21 },
+        saturdays: { hours: 23 },
+        sundays: { hours: -3 },
+      },
+      asdfghjkl: { christmas: { hours: 5 } },
+      zxcvbnm: { evenings: { hours: -4 } },
+    });
+  });
+
+  it('should compute previous pay if hours is defined but not prevPay', () => {
+    const hours = {
+      surchargedAndExemptDetails: {
+        qwertyuiop: {
+          evenings: { hours: 23 },
+          saturdays: { hours: 23 },
+        },
+        asdfghjkl: { christmas: { hours: 5 } },
+      },
+    };
+    const prevPay = {
+      surchargedAndExemptDetails: [],
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: 23 },
+        saturdays: { hours: 23 },
+      },
+      asdfghjkl: { christmas: { hours: 5 } },
+    });
+  });
+
+  it('should compute previous pay if prevPay is defined but not hours', () => {
+    const hours = {};
+    const prevPay = {
+      surchargedAndExemptDetails: [
+        {
+          planId: 'qwertyuiop',
+          evenings: { hours: 2 },
+          sundays: { hours: 3 },
+        },
+        { planId: 'zxcvbnm', evenings: { hours: 4 } },
+      ],
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: -2 },
+        sundays: { hours: -3 },
+      },
+      zxcvbnm: { evenings: { hours: -4 } },
+    });
+  });
+});
+
+describe('computePrevPayDiff', () => {});
 
 describe('getPreviousMonthPay', () => {
   const auxiliaryId = new ObjectID();
@@ -1343,6 +1433,9 @@ describe('getDraftPay', () => {
   it('should return an empty array if no auxiliary', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     getAuxiliariesToPay.returns([]);
+    companyMock.expects('findOne').chain('lean').returns({});
+    surchargeMock.expects('find').chain('lean').returns([]);
+    distanceMatrixMock.expects('find').chain('lean').returns([]);
     const result = await DraftPayHelper.getDraftPay([], [], query);
 
     sinon.assert.notCalled(getPreviousMonthPay);
