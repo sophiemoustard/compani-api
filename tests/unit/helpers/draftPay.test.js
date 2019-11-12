@@ -1112,7 +1112,7 @@ describe('getPayFromAbsences', () => {
   });
 });
 
-describe('computePay', () => {
+describe('computeMonthBalance', () => {
   let getPayFromEvents;
   let getPayFromAbsences;
   let getContractMonthInfo;
@@ -1142,44 +1142,34 @@ describe('computePay', () => {
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const prevPay = { hoursCounter: 10, diff: 2 };
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
     getPayFromAbsences.returns(16);
     getContractMonthInfo.returns({ contractHours: 150, workedDaysRatio: 0.8 });
     getTransportRefund.returns(26.54);
 
-    const result = await DraftPayHelper.computePay(auxiliary, contract, events, prevPay, company, query, [], []);
+    const result = await DraftPayHelper.computeMonthBalance(auxiliary, contract, events, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
-      auxiliaryId: '1234567890',
-      auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
-      startDate: '2019-05-13T00:00:00',
-      endDate: '2019-05-31T23:59:59',
-      month: '05-2019',
       contractHours: 150,
       workedHours: 138,
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 4,
-      hoursCounter: 16,
-      overtimeHours: 0,
-      additionalHours: 0,
-      mutual: false,
       transport: 26.54,
       otherFees: 29.6,
-      bonus: 0,
+      hoursToWork: 134,
     });
   });
 });
 
 describe('getDraftPayByAuxiliary', () => {
-  let computePay;
+  let computeMonthBalance;
   beforeEach(() => {
-    computePay = sinon.stub(DraftPayHelper, 'computePay');
+    computeMonthBalance = sinon.stub(DraftPayHelper, 'computeMonthBalance');
   });
   afterEach(() => {
-    computePay.restore();
+    computeMonthBalance.restore();
   });
 
   it('should not return draft pay as auxiliary does not have company contracts', async () => {
@@ -1233,36 +1223,40 @@ describe('getDraftPayByAuxiliary', () => {
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const prevPay = { hoursCounter: 10, diff: { hoursBalance: 2 } };
+    const prevPay = { hoursCounter: 10, diff: 2 };
     const computedPay = {
-      auxiliaryId: '1234567890',
-      auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
-      startDate: '2019-05-13T00:00:00',
-      endDate: '2019-05-31T23:59:59',
-      month: '05-2019',
       contractHours: 150,
       workedHours: 138,
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 6,
       hoursCounter: 16,
-      overtimeHours: 0,
-      additionalHours: 0,
-      mutual: false,
       transport: 26.54,
       otherFees: 29.6,
       bonus: 0,
     };
-    computePay.returns(computedPay);
+    computeMonthBalance.returns(computedPay);
     const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, prevPay, company, query, [], []);
     expect(result).toBeDefined();
-    expect(result).toEqual(computedPay);
+    expect(result).toEqual({
+      ...computedPay,
+      diff: 2,
+      previousMonthHoursCounter: 10,
+      auxiliaryId: '1234567890',
+      auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
+      startDate: '2019-05-13T00:00:00',
+      endDate: '2019-05-31T23:59:59',
+      month: '05-2019',
+      mutual: false,
+      hoursCounter: 18,
+      overtimeHours: 0,
+      additionalHours: 0,
+    });
     sinon.assert.calledWith(
-      computePay,
+      computeMonthBalance,
       auxiliary,
       { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
       events,
-      prevPay,
       company,
       query,
       [],
