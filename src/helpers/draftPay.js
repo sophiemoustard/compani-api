@@ -320,16 +320,21 @@ exports.computePay = async (auxiliary, contract, eventsToPay, prevPay, company, 
   const contractInfo = exports.getContractMonthInfo(contract, query);
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
-  const hoursBalance = hours.workedHours - Math.max(contractInfo.contractHours - absencesHours, 0);
+  const hoursToWork = Math.max(contractInfo.contractHours - absencesHours, 0);
+  const hoursBalance = hours.workedHours - hoursToWork;
 
+  console.log(auxiliary.identity.lastname, auxiliary.identity.firstname, prevPay.diff);
   return {
     ...genericData(query),
     auxiliaryId: auxiliary._id,
     auxiliary: { _id, identity, sector },
     startDate: moment(query.startDate).isBefore(contract.startDate) ? contract.startDate : query.startDate,
     contractHours: contractInfo.contractHours,
+    hoursToWork,
     ...hours,
+    diff: prevPay.diff,
     hoursBalance,
+    previousMonthHoursCounter: prevPay.hoursCounter,
     hoursCounter: prevPay ? prevPay.hoursCounter + prevPay.diff + hoursBalance : hoursBalance,
     mutual: !get(auxiliary, 'administrative.mutualFund.has'),
     transport: exports.getTransportRefund(auxiliary, company, contractInfo.workedDaysRatio, hours.paidKm),
