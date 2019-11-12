@@ -5,9 +5,10 @@ const UtilsHelper = require('./utils');
 const { CONTRACT_STATUS_LIST, SERVICE_NATURES } = require('./constants.js');
 
 exports.exportServices = async (credentials) => {
-  const services = await Service.find({ company: get(credentials, 'company._id', null) })
+  const companyId = get(credentials, 'company._id', null);
+  const services = await Service.find({ company: companyId })
     .populate('company')
-    .populate('versions.surcharge');
+    .populate({ path: 'versions.surcharge', match: { company: companyId } });
   const data = [['Nature', 'Type', 'Entrepise', 'Nom', 'Montant unitaire par défaut', 'TVA (%)', 'Plan de majoration',
     'Date de début', 'Date de creation', 'Date de mise a jour']];
   for (const service of services) {

@@ -49,6 +49,11 @@ const company = {
   tradeName: 'TT',
 };
 
+const surcharge = {
+  _id: new ObjectID(),
+  name: 'test',
+};
+
 const serviceList = [
   {
     _id: new ObjectID(),
@@ -56,6 +61,7 @@ const serviceList = [
     company: authCompany._id,
     versions: [{
       name: 'Service 1',
+      surcharge: surcharge._id,
       startDate: '2019-01-16 17:58:15.519',
     }],
     nature: HOURLY,
@@ -67,6 +73,7 @@ const serviceList = [
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
+      surcharge: surcharge._id,
       startDate: '2019-01-18 19:58:15.519',
       vat: 12,
     }],
