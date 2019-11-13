@@ -1011,9 +1011,10 @@ describe('deleteEvents', () => {
 
 describe('updateEventsInternalHourType', () => {
   it('should update internal hours events', async () => {
-    const internalHour = { _id: new ObjectID(), name: 'Test', default: false };
+    const internalHour = { _id: new ObjectID() };
+    const defaultInternalHour = { _id: new ObjectID(), name: 'Default', default: true };
     const updateManyMock = sinon.mock(Event);
-    const eventsStartDate = new Date();
+    const eventsStartDate = '2019-01-21T09:30:00';
 
     updateManyMock
       .expects('updateMany')
@@ -1023,10 +1024,10 @@ describe('updateEventsInternalHourType', () => {
           'internalHour._id': internalHour._id,
           startDate: { $gte: eventsStartDate },
         },
-        { $set: flat({ internalHour: omit(internalHour, '_id') }) }
+        { $set: flat({ internalHour: omit(defaultInternalHour, '_id') }) }
       );
 
-    await EventHelper.updateEventsInternalHourType(eventsStartDate, internalHour._id, internalHour);
+    await EventHelper.updateEventsInternalHourType('2019-01-21T09:30:00', internalHour._id, defaultInternalHour);
 
     updateManyMock.verify();
     updateManyMock.restore();
