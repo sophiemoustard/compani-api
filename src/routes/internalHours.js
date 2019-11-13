@@ -38,7 +38,6 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            name: Joi.string(),
             default: Joi.boolean(),
           }),
         },

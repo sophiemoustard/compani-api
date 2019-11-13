@@ -2,7 +2,6 @@ const Boom = require('boom');
 const get = require('lodash/get');
 
 const InternalHour = require('../models/InternalHour');
-const EventHelper = require('../helpers/events');
 const InternalHourHelper = require('../helpers/internalHours');
 const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
 const translate = require('../helpers/translate');
@@ -37,10 +36,6 @@ const update = async (req) => {
     const updatedInternalHour = await InternalHour.findOneAndUpdate({ _id: internalHourId }, { $set: req.payload }, { new: true });
 
     if (!updatedInternalHour) return Boom.notFound(translate[language].companyInternalHourNotFound);
-
-    if (req.payload.name) {
-      await EventHelper.updateEventsInternalHourType(new Date(), internalHourId, updatedInternalHour);
-    }
 
     return {
       message: translate[language].companyInternalHourUpdated,

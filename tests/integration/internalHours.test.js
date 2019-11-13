@@ -158,8 +158,7 @@ describe('INTERNAL HOURS ROUTES', () => {
 
       it('should update an internal hour', async () => {
         const internalHour = authInternalHoursList[0];
-        const payload = { name: 'SuperTest' };
-        const updateEventsInternalHourTypeStub = sinon.stub(EventsHelper, 'updateEventsInternalHourType');
+        const payload = { default: false };
 
         const response = await app.inject({
           method: 'PUT',
@@ -170,11 +169,10 @@ describe('INTERNAL HOURS ROUTES', () => {
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.internalHour).toMatchObject(payload);
-        sinon.assert.calledOnce(updateEventsInternalHourTypeStub);
       });
 
       it('should return a 404 error if internalHour does not exist', async () => {
-        const payload = { name: 'SuperTest' };
+        const payload = { default: false };
         const response = await app.inject({
           method: 'PUT',
           url: `/internalhours/${new ObjectID().toHexString()}`,
@@ -187,7 +185,7 @@ describe('INTERNAL HOURS ROUTES', () => {
 
       it('should return a 403 error if internal hour company is not from user company', async () => {
         const internalHour = internalHoursList[0];
-        const payload = { name: 'SuperTest' };
+        const payload = { default: false };
         const response = await app.inject({
           method: 'PUT',
           url: `/internalhours/${internalHour._id.toHexString()}`,
@@ -233,6 +231,8 @@ describe('INTERNAL HOURS ROUTES', () => {
 
       it('should delete an internal hour', async () => {
         const internalHour = authInternalHoursList[1];
+        const defaultInternalHour = authInternalHoursList.find(ih => ih.default);
+        const updateEventsInternalHourTypeStub = sinon.stub(EventsHelper, 'updateEventsInternalHourType');
 
         const response = await app.inject({
           method: 'DELETE',
@@ -240,6 +240,7 @@ describe('INTERNAL HOURS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(200);
+        sinon.assert.calledWith(updateEventsInternalHourTypeStub, sinon.match.date, internalHour._id, sinon.match(defaultInternalHour));
       });
 
       it('should return 403 if default internal hour', async () => {
