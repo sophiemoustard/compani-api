@@ -55,14 +55,11 @@ describe('populateSurcharge', () => {
 });
 
 describe('populateFundings', () => {
-  let ThirdPartyPayerMock = null;
   let FundingHistoryMock = null;
   beforeEach(() => {
-    ThirdPartyPayerMock = sinon.mock(ThirdPartyPayer);
     FundingHistoryMock = sinon.mock(FundingHistory);
   });
   afterEach(() => {
-    ThirdPartyPayerMock.restore();
     FundingHistoryMock.restore();
   });
 
@@ -91,13 +88,12 @@ describe('populateFundings', () => {
     expect(result[0].thirdPartyPayer._id).toEqual(tppId);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     mergeLastVersionWithBaseObjectStub.restore();
-    ThirdPartyPayerMock.verify();
     FundingHistoryMock.verify();
   });
 
   it('should populate funding history with once frequency and history', async () => {
     const fundingId = new ObjectID();
-    const tppId = new ObjectID();  
+    const tppId = new ObjectID();
     const fundings = [{
       _id: new ObjectID(),
       thirdPartyPayer: tppId,
@@ -121,7 +117,6 @@ describe('populateFundings', () => {
     expect(result[0].history).toMatchObject({ careHours: 4, fundingId });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     mergeLastVersionWithBaseObjectStub.restore();
-    ThirdPartyPayerMock.verify();
     FundingHistoryMock.verify();
   });
 
@@ -150,7 +145,6 @@ describe('populateFundings', () => {
     expect(result[0].history).toMatchObject({ careHours: 0, amountTTC: 0, fundingId });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     mergeLastVersionWithBaseObjectStub.restore();
-    ThirdPartyPayerMock.verify();
     FundingHistoryMock.verify();
   });
 
@@ -185,36 +179,25 @@ describe('populateFundings', () => {
     expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     mergeLastVersionWithBaseObjectStub.restore();
-    ThirdPartyPayerMock.verify();
     FundingHistoryMock.verify();
   });
   it('shouldn\'t populate third party payer funding if billing mode is indirect', async () => {
     const tppDirectId = new ObjectID();
     const tppIndirectId = new ObjectID();
     const fundings = [
-      { thirdPartyPayer: tppDirectId, _id: new ObjectID(), versions: [] },
       { thirdPartyPayer: tppIndirectId, _id: new ObjectID(), versions: [] },
     ];
-    const tpps = [{ _id: tppDirectId, billingMode: BILLING_DIRECT }, { _id: tppDirectId, billingMode: BILLING_INDIRECT }];
+    const tpps = [{ _id: tppDirectId, billingMode: BILLING_INDIRECT }];
     const funding = { ...omit(fundings[0], ['versions']) };
-    console.log(funding);
-    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
 
-    FundingHistoryMock
-      .expects('findOne')
-      .withArgs({ fundingId: fundings[0]._id })
-      .chain('lean')
-      .resolves(null);
+    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps);
 
     expect(result).toBeDefined();
-    expect(result[0].thirdPartyPayer).toBeDefined();
-    expect(result[0].thirdPartyPayer._id).toEqual(tppDirectId);
+    expect(result).toEqual([]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
     mergeLastVersionWithBaseObjectStub.restore();
-    ThirdPartyPayerMock.verify();
-    FundingHistoryMock.verify();
   });
 });
 
@@ -864,7 +847,7 @@ describe('getDraftBillsList', () => {
       .resolves(null);
 
     const credentials = { company: { _id: companyId } };
-    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, null, credentials);
+    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
     expect(result).toEqual([]);
     ThirdPartyPayerMock.verify();
@@ -915,7 +898,7 @@ describe('getDraftBillsList', () => {
       .resolves(null);
 
     const credentials = { company: { _id: companyId } };
-    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, null, credentials);
+    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
     expect(result).toEqual([
       {
@@ -992,7 +975,7 @@ describe('getDraftBillsList', () => {
       .resolves(null);
 
     const credentials = { company: { _id: companyId } };
-    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, null, credentials);
+    const result = await DraftBillsHelper.getDraftBillsList(dates, billingStartDate, credentials, null);
 
     expect(result).toEqual([
       {

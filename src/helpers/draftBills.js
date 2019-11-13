@@ -35,31 +35,32 @@ exports.populateSurcharge = async (subscription) => {
 exports.populateFundings = async (fundings, endDate, tppList) => {
   const populatedFundings = [];
   for (let i = 0, l = fundings.length; i < l; i++) {
-    fundings[i] = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
-    const tpp = tppList.find(tppTmp => tppTmp._id.toHexString() === fundings[i].thirdPartyPayer.toHexString());
+    let funding = fundings[i];
+    funding = utils.mergeLastVersionWithBaseObject(funding, 'createdAt');
+    const tpp = tppList.find(tppTmp => tppTmp._id.toHexString() === funding.thirdPartyPayer.toHexString());
     if (!tpp || tpp.billingMode !== BILLING_DIRECT) continue;
 
-    fundings[i].thirdPartyPayer = tpp;
-    if (fundings[i].frequency !== MONTHLY) {
-      const history = await FundingHistory.findOne({ fundingId: fundings[i]._id }).lean();
-      if (history) fundings[i].history = history;
+    funding.thirdPartyPayer = tpp;
+    if (funding.frequency !== MONTHLY) {
+      const history = await FundingHistory.findOne({ fundingId: funding._id }).lean();
+      if (history) funding.history = history;
       else {
-        fundings[i].history = { careHours: 0, amountTTC: 0, fundingId: fundings[i]._id };
+        funding.history = { careHours: 0, amountTTC: 0, fundingId: funding._id };
       }
     } else {
-      const history = await FundingHistory.find({ fundingId: fundings[i]._id });
-      if (history) fundings[i].history = history;
-      if (history.length === 0 || !history) fundings[i].history = [];
+      const history = await FundingHistory.find({ fundingId: funding._id });
+      if (history) funding.history = history;
+      if (history.length === 0 || !history) funding.history = [];
       if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {
-        fundings[i].history.push({
+        funding.history.push({
           careHours: 0,
           amountTTC: 0,
-          fundingId: fundings[i]._id,
+          fundingId: funding._id,
           month: moment(endDate).format('MM/YYYY'),
         });
       }
     }
-    populatedFundings.push(fundings[i]);
+    populatedFundings.push(funding);
   }
   return populatedFundings;
 };
@@ -308,7 +309,7 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
   return result;
 };
 
-exports.getDraftBillsList = async (dates, billingStartDate, customerId = null, credentials = null) => {
+exports.getDraftBillsList = async (dates, billingStartDate, credentials, customerId = null) => {
   const eventsToBill = await EventRepository.getEventsToBill(dates, customerId);
   const thirdPartyPayersList = await ThirdPartyPayer.find({ company: get(credentials, 'company._id', null) }).lean();
   const draftBillsList = [];
