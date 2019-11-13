@@ -50,18 +50,20 @@ describe('THIRD PARTY PAYERS ROUTES', () => {
       expect(thirdPartyPayers.length).toBe(initialThirdPartyPayerNumber + 1);
     });
 
-    it('should return a 400 error if name params is missing', async () => {
-      const payloadWithoutName = omit(payload, 'name');
-      const response = await app.inject({
-        method: 'POST',
-        url: '/thirdpartypayers',
-        headers: { 'x-access-token': authToken },
-        payload: payloadWithoutName,
+    const missingParams = ['name', 'billingMode'];
+    missingParams.forEach((param) => {
+      it(`should return a 400 error if ${param} params is missing`, async () => {
+        const payloadWithoutParam = omit(payload, param);
+        const response = await app.inject({
+          method: 'POST',
+          url: '/thirdpartypayers',
+          headers: { 'x-access-token': authToken },
+          payload: payloadWithoutParam,
+        });
+
+        expect(response.statusCode).toBe(400);
       });
-
-      expect(response.statusCode).toBe(400);
     });
-
     it('should return a 403 error if user does not have right', async () => {
       const response = await app.inject({
         method: 'POST',

@@ -32,11 +32,11 @@ exports.populateSurcharge = async (subscription) => {
  * Funding version frequency = ONCE : there is only ONE history
  * Funding version frequency = MONTHLY : there is one history PER MONTH
  */
-exports.populateFundings = async (fundings, endDate, thirdPartyPayersList) => {
+exports.populateFundings = async (fundings, endDate, tppList) => {
   const populatedFundings = [];
   for (let i = 0, l = fundings.length; i < l; i++) {
     fundings[i] = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
-    const tpp = thirdPartyPayersList.find(tppTmp => tppTmp._id === fundings[i].thirdPartyPayer);
+    const tpp = tppList.find(tppTmp => tppTmp._id.toHexString() === fundings[i].thirdPartyPayer.toHexString());
     if (!tpp || tpp.billingMode !== BILLING_DIRECT) continue;
 
     fundings[i].thirdPartyPayer = tpp;
