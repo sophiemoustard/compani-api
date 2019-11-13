@@ -35,8 +35,7 @@ exports.populateSurcharge = async (subscription) => {
 exports.populateFundings = async (fundings, endDate, tppList) => {
   const populatedFundings = [];
   for (let i = 0, l = fundings.length; i < l; i++) {
-    let funding = fundings[i];
-    funding = utils.mergeLastVersionWithBaseObject(funding, 'createdAt');
+    const funding = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
     const tpp = tppList.find(tppTmp => tppTmp._id.toHexString() === funding.thirdPartyPayer.toHexString());
     if (!tpp || tpp.billingMode !== BILLING_DIRECT) continue;
 

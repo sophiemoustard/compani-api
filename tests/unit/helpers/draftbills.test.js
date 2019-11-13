@@ -182,12 +182,11 @@ describe('populateFundings', () => {
     FundingHistoryMock.verify();
   });
   it('shouldn\'t populate third party payer funding if billing mode is indirect', async () => {
-    const tppDirectId = new ObjectID();
     const tppIndirectId = new ObjectID();
     const fundings = [
       { thirdPartyPayer: tppIndirectId, _id: new ObjectID(), versions: [] },
     ];
-    const tpps = [{ _id: tppDirectId, billingMode: BILLING_INDIRECT }];
+    const tpps = [{ _id: tppIndirectId, billingMode: BILLING_INDIRECT }];
     const funding = { ...omit(fundings[0], ['versions']) };
 
     const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
