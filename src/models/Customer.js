@@ -29,7 +29,10 @@ const CustomerSchema = mongoose.Schema({
   },
   contracts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contract' }],
   contact: {
-    primaryAddress: addressSchemaDefinition,
+    primaryAddress: {
+      type: mongoose.Schema(addressSchemaDefinition, { _id: false }),
+      required: true,
+    },
     secondaryAddress: addressSchemaDefinition,
     phone: String,
     accessCodes: String,
