@@ -41,7 +41,7 @@ const update = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].companyExists);
     }
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -78,7 +78,7 @@ const uploadFile = async (req) => {
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -106,7 +106,7 @@ const addInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -139,7 +139,7 @@ const updateInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -161,7 +161,7 @@ const getInternalHours = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -191,7 +191,7 @@ const removeInternalHour = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

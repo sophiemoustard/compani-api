@@ -16,7 +16,7 @@ const createActivationCode = async (req) => {
     return { message: translate[language].activationCodeCreated, data: { activationData } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(translate[language].unexpectedBehavior);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(translate[language].unexpectedBehavior);
   }
 };
 
@@ -36,7 +36,7 @@ const checkActivationCode = async (req) => {
     return { message: translate[language].activationCodeValidated, data: { activationData, token } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(translate[language].unexpectedBehavior);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(translate[language].unexpectedBehavior);
   }
 };
 

@@ -11,11 +11,11 @@ const show = async (req) => {
     if (docRaw.data.error) return Boom.notFound(translate[language].documentNotFound);
     return {
       message: translate[language].documentFound,
-      data: { document: docRaw.data }
+      data: { document: docRaw.data },
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

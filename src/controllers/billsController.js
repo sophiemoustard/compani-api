@@ -28,7 +28,7 @@ const draftBillsList = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -47,7 +47,7 @@ const createBills = async (req) => {
     return { message: translate[language].billsCreated };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -71,7 +71,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

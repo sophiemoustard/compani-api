@@ -11,7 +11,7 @@ const sendWelcome = async (req) => {
     return { message: translate[language].emailSent, data: { mailInfo } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

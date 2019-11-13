@@ -13,7 +13,7 @@ const deleteImage = async (req) => {
     return { message: translate[language].fileDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -22,20 +22,20 @@ const uploadImage = async (req) => {
     const pictureUploaded = await cloudinary.addImage({
       file: req.payload.picture,
       role: req.payload.role || AUXILIARY,
-      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`
+      public_id: `${req.payload.fileName}-${moment().format('YYYY_MM_DD_HH_mm_ss')}`,
     });
 
     return {
       message: translate[language].fileCreated,
-      data: { picture: pictureUploaded }
+      data: { picture: pictureUploaded },
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
 module.exports = {
   deleteImage,
-  uploadImage
+  uploadImage,
 };
