@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const Boom = require('boom');
-
+const get = require('lodash/get');
+const has = require('lodash/has');
 const {
   MONTHLY,
   ONCE,
@@ -133,6 +134,17 @@ async function removeCustomer(next) {
   }
 }
 
+function validateAddress(next) {
+  const { $set, $unset } = this.getUpdate();
+  const setPrimaryAddressToNull = has($set, 'contact.primaryAddress') &&
+    (!get($set, 'contact.primaryAddress') || !get($set, 'contact.primaryAddress.fullAddress'));
+  const unsetPrimaryAddress = has($unset, 'contact.primaryAddress') &&
+    (!get($unset, 'contact.primaryAddress') || !get($unset, 'contact.primaryAddress.fullAddress'));
+  if (setPrimaryAddressToNull || unsetPrimaryAddress) throw Boom.badRequest('PrimaryAddress is required');
+
+  next();
+}
+
 CustomerSchema.virtual('firstIntervention', {
   ref: 'Event',
   localField: '_id',
@@ -142,6 +154,7 @@ CustomerSchema.virtual('firstIntervention', {
 });
 
 CustomerSchema.pre('remove', removeCustomer);
+CustomerSchema.pre('findOneAndUpdate', validateAddress);
 CustomerSchema.post('findOne', countSubscriptionUsage);
 
 CustomerSchema.plugin(mongooseLeanVirtuals);
