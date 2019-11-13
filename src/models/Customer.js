@@ -20,7 +20,7 @@ const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
 
 const CustomerSchema = mongoose.Schema({
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   driveFolder: driveResourceSchemaDefinition,
   referent: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   email: { type: String, lowercase: true, trim: true },
