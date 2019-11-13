@@ -123,7 +123,6 @@ const activeList = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    if (Boom.isBoom(e)) return e;
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
