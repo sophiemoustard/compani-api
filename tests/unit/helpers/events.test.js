@@ -2,6 +2,8 @@ const expect = require('expect');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const flat = require('flat');
+const omit = require('lodash/omit');
 const Event = require('../../../src/models/Event');
 const Repetition = require('../../../src/models/Repetition');
 const EventHelper = require('../../../src/helpers/events');
@@ -1004,5 +1006,29 @@ describe('deleteEvents', () => {
 
       expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
     });
+  });
+});
+
+describe('updateEventsInternalHourType', () => {
+  it('should update internal hours events', async () => {
+    const internalHour = { _id: new ObjectID(), name: 'Test', default: false };
+    const updateManyMock = sinon.mock(Event);
+    const eventsStartDate = new Date();
+
+    updateManyMock
+      .expects('updateMany')
+      .withArgs(
+        {
+          type: INTERNAL_HOUR,
+          'internalHour._id': internalHour._id,
+          startDate: { $gte: eventsStartDate },
+        },
+        { $set: flat({ internalHour: omit(internalHour, '_id') }) }
+      );
+
+    await EventHelper.updateEventsInternalHourType(eventsStartDate, internalHour._id, internalHour);
+
+    updateManyMock.verify();
+    updateManyMock.restore();
   });
 });

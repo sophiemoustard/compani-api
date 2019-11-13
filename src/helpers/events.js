@@ -3,6 +3,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const momentRange = require('moment-range');
 const { ObjectID } = require('mongodb');
+const flat = require('flat');
 const {
   INTERVENTION,
   INTERNAL_HOUR,
@@ -123,16 +124,15 @@ exports.populateEvents = async (events) => {
   return populatedEvents;
 };
 
-exports.updateEventsInternalHourType = async (oldInternalHourId, newInternalHour) => {
-  const payload = { internalHour: newInternalHour };
-  await Event.update(
+exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, updatedInternalHour) => {
+  const payload = { internalHour: { ...updatedInternalHour } };
+  return Event.updateMany(
     {
       type: INTERNAL_HOUR,
       'internalHour._id': oldInternalHourId,
-      startDate: { $gte: moment().toDate() },
+      startDate: { $gte: eventsStartDate },
     },
-    { $set: payload },
-    { multi: true }
+    { $set: flat(_.omit(payload, 'internalHour._id')) }
   );
 };
 
