@@ -115,4 +115,8 @@ exports.routes = [
     plugin: require('./stats'),
     routes: { prefix: '/stats' },
   },
+  {
+    plugin: require('./internalHours'),
+    routes: { prefix: '/internalhours' },
+  },
 ];
