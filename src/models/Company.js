@@ -34,10 +34,6 @@ const CompanySchema = mongoose.Schema({
       contractWithCustomer: driveResourceSchemaDefinition,
       contractWithCustomerVersion: driveResourceSchemaDefinition,
     },
-    internalHours: [{
-      name: String,
-      default: { type: Boolean, default: false },
-    }],
   },
   customersConfig: {
     billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS },
