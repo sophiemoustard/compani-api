@@ -117,9 +117,12 @@ const show = async (req) => {
 
 const create = async (req) => {
   try {
+    const companyId = _.get(req, 'auth.credentials.company._id', null);
+    if (!companyId) return Boom.forbidden();
     const mandate = { rum: await generateRum() };
     const payload = {
       ...req.payload,
+      company: companyId,
       payment: { mandates: [mandate] },
     };
     const newCustomer = new Customer(payload);
