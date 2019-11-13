@@ -37,10 +37,10 @@ exports.plugin = {
               zipCode: Joi.string().required(),
               city: Joi.string().required(),
               fullAddress: Joi.string(),
-              location: {
+              location: Joi.object().keys({
                 type: Joi.string(),
                 coordinates: Joi.array(),
-              },
+              }),
             }),
             ics: Joi.string(),
             rcs: Joi.string(),
@@ -48,12 +48,12 @@ exports.plugin = {
             iban: Joi.string(),
             bic: Joi.string(),
             rhConfig: Joi.object().keys({
-              contractWithCompany: {
+              contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
-              },
-              contractWithCustomer: {
+              }),
+              contractWithCustomer: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
-              },
+              }),
               feeAmount: Joi.number(),
               amountPerKm: Joi.number(),
               transportSubs: [Joi.array().items({
@@ -63,37 +63,37 @@ exports.plugin = {
                 subId: Joi.objectId().required(),
                 price: Joi.number(),
               })],
-              templates: {
-                contractWithCompany: {
+              templates: Joi.object().keys({
+                contractWithCompany: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-                contractWithCompanyVersion: {
+                }),
+                contractWithCompanyVersion: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-                contractWithCustomer: {
+                }),
+                contractWithCustomer: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-                contractWithCustomerVersion: {
+                }),
+                contractWithCustomerVersion: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-              },
+                }),
+              }),
             }),
             customersConfig: Joi.object().keys({
               billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
-              templates: {
-                debitMandate: {
+              templates: Joi.object().keys({
+                debitMandate: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-                quote: {
+                }),
+                quote: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-              },
+                }),
+              }),
             }),
           }),
         },
