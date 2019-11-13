@@ -44,6 +44,14 @@ const customerList = [
       service: serviceList[0]._id,
     }],
     identity: { lastname: 'Giscard d\'Estaing' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0612345678',
+    },
   },
 ];
 
