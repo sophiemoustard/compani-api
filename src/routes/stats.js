@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { getCustomerFollowUp } = require('../controllers/statController');
+const { getCustomerFollowUp, getFundingMonitoring } = require('../controllers/statController');
 
 exports.plugin = {
   name: 'routes-stats',
@@ -20,6 +20,20 @@ exports.plugin = {
         },
       },
       handler: getCustomerFollowUp,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/customer-fundings-monitoring/{_id}',
+      options: {
+        auth: { scope: ['customers:read'] },
+        validate: {
+          query: {
+            params: { _id: Joi.string().required() },
+          },
+        },
+      },
+      handler: getFundingMonitoring,
     });
   },
 };

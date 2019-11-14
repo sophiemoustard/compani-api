@@ -3,6 +3,7 @@ const translate = require('../helpers/translate');
 
 const User = require('../models/User');
 const { getCustomerFollowUp } = require('../repositories/CompanyRepository');
+const { getFundingMonitoring } = require('../repositories/StatRepository');
 
 const messages = translate[translate.language];
 
@@ -26,4 +27,9 @@ exports.getCustomerFollowUp = async (req) => {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
+};
+
+exports.getFundingMonitoring = async (req) => {
+  const res = getFundingMonitoring(req.params._id);
+  return res;
 };
