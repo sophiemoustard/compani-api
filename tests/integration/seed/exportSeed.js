@@ -41,6 +41,14 @@ const customer = {
   subscriptions: [
     { _id: new ObjectID() },
   ],
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
 };
 
 const company = {
@@ -97,6 +105,14 @@ const customersList = [
       firstname: 'Romain',
       lastname: 'Bardet',
     },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0612345678',
+    },
     subscriptions: [
       {
         _id: subscriptionId,
@@ -133,6 +149,14 @@ const customersList = [
       firstname: 'Egan',
       lastname: 'Bernal',
     },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0612345678',
+    },
   },
   {
     _id: new ObjectID(),
@@ -141,6 +165,14 @@ const customersList = [
       title: 'mr',
       firstname: 'Julian',
       lastname: 'Alaphilippe',
+    },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0612345678',
     },
   },
 ];

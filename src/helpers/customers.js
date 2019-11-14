@@ -178,6 +178,7 @@ exports.updateCustomer = async (customerId, customerPayload) => {
   } else {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
+
   return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 

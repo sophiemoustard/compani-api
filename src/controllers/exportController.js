@@ -62,7 +62,7 @@ const exportData = async (req, h) => {
     return h.file(csv, { confine: false });
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -100,7 +100,7 @@ const exportHistory = async (req, h) => {
     return h.file(csv, { confine: false });
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

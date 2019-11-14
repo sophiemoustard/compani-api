@@ -119,6 +119,14 @@ const balanceCustomerList = [
       firstname: 'Romain',
       lastname: 'Bardet',
     },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0612345678',
+    },
     subscriptions: [
       {
         _id: new ObjectID(),

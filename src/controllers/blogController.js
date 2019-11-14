@@ -11,7 +11,7 @@ const getRssFeeds = async (req) => {
     return { message: translate[language].blogGetRssFeedsOk, data: feeds };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

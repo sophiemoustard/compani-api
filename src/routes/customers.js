@@ -52,26 +52,26 @@ exports.plugin = {
               lastname: Joi.string().required(),
             }).min(1),
             contact: Joi.object().keys({
-              primaryAddress: {
+              primaryAddress: Joi.object().keys({
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                },
-              },
-              secondaryAddress: {
+                }),
+              }),
+              secondaryAddress: Joi.object().keys({
                 street: Joi.string().allow('', null),
                 zipCode: Joi.string().allow('', null),
                 city: Joi.string().allow('', null),
                 fullAddress: Joi.string().allow('', null),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string().allow('', null),
                   coordinates: Joi.array().allow([], null),
-                },
-              },
+                }),
+              }),
             }).required(),
           }),
         },
@@ -99,26 +99,26 @@ exports.plugin = {
             email: Joi.string().email(),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              primaryAddress: {
+              primaryAddress: Joi.object().keys({
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                },
-              },
-              secondaryAddress: {
+                }),
+              }),
+              secondaryAddress: Joi.object().keys({
                 street: Joi.string().allow('', null),
                 zipCode: Joi.string().allow('', null),
                 city: Joi.string().allow('', null),
                 fullAddress: Joi.string().allow('', null),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string().allow('', null),
                   coordinates: Joi.array().allow([], null),
-                },
-              },
+                }),
+              }),
               accessCodes: Joi.string().allow('', null),
             }),
             followUp: Joi.object().keys({
