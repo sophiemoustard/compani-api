@@ -26,6 +26,7 @@ const paymentTppList = [
 const paymentCustomerList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'tito@ty.com',
     identity: {
       title: 'mr',
@@ -64,6 +65,7 @@ const paymentCustomerList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'fake@test.com',
     identity: {
       title: 'mr',

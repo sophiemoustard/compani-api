@@ -52,6 +52,7 @@ const billService = {
 const billCustomerList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'tito@ty.com',
     identity: {
       title: 'mr',
@@ -90,6 +91,7 @@ const billCustomerList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'fake@test.com',
     identity: {
       title: 'mr',

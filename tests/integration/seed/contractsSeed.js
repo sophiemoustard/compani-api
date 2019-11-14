@@ -9,6 +9,7 @@ const { populateDBForAuthentication } = require('./authenticationSeed');
 
 const contractCustomer = {
   _id: new ObjectID(),
+  company: new ObjectID(),
   email: 'fake@test.com',
   identity: {
     title: 'mr',

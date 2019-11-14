@@ -37,6 +37,7 @@ const auxiliary = {
 
 const customer = {
   _id: new ObjectID(),
+  company: authCompany._id,
   identity: { firstname: 'Lola', lastname: 'Lili' },
   subscriptions: [
     { _id: new ObjectID() },
@@ -91,6 +92,7 @@ const subscriptionId = new ObjectID();
 const customersList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'fake@test.com',
     identity: {
       title: 'mr',
@@ -127,6 +129,7 @@ const customersList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'tito@ty.com',
     identity: {
       title: 'mr',
@@ -136,6 +139,7 @@ const customersList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'toototjo@hfjld.io',
     identity: {
       title: 'mr',
