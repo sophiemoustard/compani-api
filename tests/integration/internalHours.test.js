@@ -96,14 +96,14 @@ describe('INTERNAL HOURS ROUTES', () => {
     });
   });
 
-  describe('GET /sectors', () => {
+  describe('GET /internalhours', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('admin');
       });
 
-      it('should get sectors (company A)', async () => {
+      it('should get internal hours (company A)', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/internalhours',
@@ -114,7 +114,7 @@ describe('INTERNAL HOURS ROUTES', () => {
         expect(response.result.data.internalHours.length).toEqual(authInternalHoursList.length);
       });
 
-      it('should get sectors (company B)', async () => {
+      it('should get internal hours (company B)', async () => {
         authToken = await getTokenByCredentials(internalHourUser.local);
         const response = await app.inject({
           method: 'GET',
