@@ -61,7 +61,7 @@ describe('PAY ROUTES - POST /pay', () => {
     auxiliary: new ObjectID(),
     startDate: '2019-04-30T22:00:00',
     endDate: '2019-05-28T14:34:04',
-    month: 'mai',
+    month: '05-2019',
     contractHours: 38.97,
     workedHours: 2,
     surchargedAndNotExemptDetails: {},
@@ -78,6 +78,23 @@ describe('PAY ROUTES - POST /pay', () => {
     transport: 0,
     otherFees: 0,
     bonus: 0,
+    hoursToWork: 10,
+    previousMonthHoursCounter: -2,
+    diff: {
+      hoursBalance: 20,
+      notSurchargedAndExempt: 20,
+      notSurchargedAndNotExempt: 20,
+      surchargedAndExempt: 20,
+      surchargedAndExemptDetails: {},
+      surchargedAndNotExempt: 20,
+      surchargedAndNotExemptDetails: {
+        [new ObjectID()]: {
+          planName: 'Toto',
+          custom: { hours: 20, percentage: 10 },
+        },
+      },
+      workedHours: 20,
+    },
   }];
 
   describe('Admin', () => {

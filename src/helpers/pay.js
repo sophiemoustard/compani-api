@@ -21,11 +21,14 @@ exports.formatPay = (draftPay) => {
   const keys = [
     'surchargedAndNotExemptDetails',
     'surchargedAndExemptDetails',
-    'diff.surchargedAndNotExemptDetails',
-    'diff.surchargedAndExemptDetails',
   ];
   for (const key of keys) {
-    if (draftPay[key]) payload[key] = formatSurchargeDetail(draftPay[key]);
+    if (draftPay[key]) {
+      payload[key] = formatSurchargeDetail(draftPay[key]);
+    }
+    if (draftPay.diff[key]) {
+      payload.diff[key] = formatSurchargeDetail(draftPay.diff[key]);
+    }
   }
 
   return payload;
