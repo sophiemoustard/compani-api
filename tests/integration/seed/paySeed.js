@@ -101,6 +101,7 @@ const event = {
 
 const customer = {
   _id: customerId,
+  company: authCompany._id,
   identity: {
     title: 'mr',
     firstname: 'Toto',

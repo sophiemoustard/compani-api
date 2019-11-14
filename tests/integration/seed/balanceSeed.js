@@ -38,7 +38,7 @@ const customerServiceList = [
   {
     _id: new ObjectID(),
     type: COMPANY_CONTRACT,
-    company: company._id,
+    company: authCompany._id,
     versions: [{
       defaultUnitAmount: 12,
       name: 'Service 1',
@@ -50,7 +50,7 @@ const customerServiceList = [
   {
     _id: new ObjectID(),
     type: CUSTOMER_CONTRACT,
-    company: company._id,
+    company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
       name: 'Service 2',
@@ -64,6 +64,7 @@ const customerServiceList = [
 const balanceCustomerList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'tito@ty.com',
     identity: {
       title: 'mr',
@@ -113,6 +114,7 @@ const balanceCustomerList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'fake@test.com',
     identity: {
       title: 'mr',

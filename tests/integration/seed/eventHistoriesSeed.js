@@ -26,6 +26,7 @@ const sector = {
 
 const customer = {
   _id: new ObjectID(),
+  company: authCompany._id,
   identity: { firstname: 'Julian', lastname: 'Alaphilippe' },
   contact: {
     primaryAddress: {

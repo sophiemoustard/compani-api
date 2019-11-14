@@ -39,6 +39,7 @@ const serviceList = [{
 const customerList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     subscriptions: [{
       _id: new ObjectID(),
       service: serviceList[0]._id,
