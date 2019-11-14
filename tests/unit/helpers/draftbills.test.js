@@ -97,7 +97,8 @@ describe('populateFundings', () => {
     const fundings = [{
       _id: new ObjectID(),
       thirdPartyPayer: tppId,
-      versions: [{ frequency: 'once', _id: fundingId }],
+      frequency: 'once',
+      versions: [{ _id: fundingId }],
     }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
@@ -126,7 +127,8 @@ describe('populateFundings', () => {
     const fundings = [{
       _id: fundingId,
       thirdPartyPayer: tppId,
-      versions: [{ frequency: 'once', _id: fundingId }],
+      frequency: 'once',
+      versions: [{ _id: fundingId }],
     }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
@@ -154,7 +156,8 @@ describe('populateFundings', () => {
     const fundings = [{
       _id: fundingId,
       thirdPartyPayer: tppId,
-      versions: [{ frequency: 'monthly', _id: fundingId }],
+      frequency: 'monthly',
+      versions: [{ _id: fundingId }],
     }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const returnedHistories = [
