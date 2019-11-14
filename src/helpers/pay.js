@@ -1,7 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
-
+const cloneDeep = require('lodash/cloneDeep');
 const Pay = require('../models/Pay');
 const FinalPay = require('../models/FinalPay');
 const utils = require('./utils');
@@ -17,12 +17,15 @@ const formatSurchargeDetail = (detail) => {
 };
 
 exports.formatPay = (draftPay) => {
-  const payload = { ...draftPay };
-  if (draftPay.surchargedAndNotExemptDetails) {
-    payload.surchargedAndNotExemptDetails = formatSurchargeDetail(draftPay.surchargedAndNotExemptDetails);
-  }
-  if (draftPay.surchargedAndExemptDetails) {
-    payload.surchargedAndExemptDetails = formatSurchargeDetail(draftPay.surchargedAndExemptDetails);
+  const payload = cloneDeep(draftPay);
+  const keys = [
+    'surchargedAndNotExemptDetails',
+    'surchargedAndExemptDetails',
+    'diff.surchargedAndNotExemptDetails',
+    'diff.surchargedAndExemptDetails',
+  ];
+  for (const key of keys) {
+    if (draftPay[key]) payload[key] = formatSurchargeDetail(draftPay[key]);
   }
 
   return payload;

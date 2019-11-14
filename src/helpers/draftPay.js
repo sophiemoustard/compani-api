@@ -364,6 +364,7 @@ exports.computePrevPayDetailDiff = (hours, prevPay, detailType) => {
     for (const plan of Object.keys(prevPayDetail)) {
       if (prevPayDetail[plan]) {
         const surchargeKeys = Object.keys(omit(prevPayDetail[plan], ['_id', 'planId', 'planName']));
+        if (!details[plan]) details[plan] = { planName: prevPayDetail[plan].planName };
         for (const surcharge of surchargeKeys) {
           if (details[plan] && details[plan][surcharge]) {
             details[plan][surcharge].hours -= prevPayDetail[plan][surcharge].hours;
@@ -387,7 +388,7 @@ const getDiff = (prevPay, hours, key) => {
   else if (hours[key]) diff = hours[key];
   else diff = 0;
 
-  return Math.round(diff * 1000) / 1000;
+  return Math.round(diff * 100) / 100;
 };
 
 exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, distanceMatrix, surcharges) => {
