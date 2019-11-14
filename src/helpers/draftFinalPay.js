@@ -31,10 +31,17 @@ exports.getContractMonthInfo = (contract, query) => {
 exports.getDraftFinalPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
   const { contracts } = auxiliary;
   const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
-  const pay = await DraftPayHelper.computePay(auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges);
+
+  const monthBalance = await DraftPayHelper.computeMonthBalance(auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges);
+  const hoursCounter = prevPay ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance : monthBalance.hoursBalance;
 
   return {
-    ...pay,
+    ...DraftPayHelper.genericData(query, auxiliary),
+    ...monthBalance,
+    hoursCounter,
+    mutual: !get(auxiliary, 'administrative.mutualFund.has'),
+    diff: prevPay.diff,
+    previousMonthHoursCounter: prevPay.hoursCounter,
     endDate: contract.endDate,
     endReason: contract.endReason,
     endNotificationDate: contract.endNotificationDate,

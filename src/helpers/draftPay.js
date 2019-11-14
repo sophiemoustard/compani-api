@@ -326,7 +326,7 @@ exports.computeMonthBalance = async (auxiliary, contract, eventsToPay, company, 
   };
 };
 
-const genericData = (query, { _id, identity, sector }) => ({
+exports.genericData = (query, { _id, identity, sector }) => ({
   auxiliaryId: _id,
   auxiliary: { _id, identity, sector },
   overtimeHours: 0,
@@ -345,7 +345,7 @@ exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company
   const hoursCounter = prevPay ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance : monthBalance.hoursBalance;
 
   return {
-    ...genericData(query, auxiliary),
+    ...exports.genericData(query, auxiliary),
     startDate: moment(query.startDate).isBefore(contract.startDate) ? contract.startDate : query.startDate,
     ...monthBalance,
     hoursCounter,
