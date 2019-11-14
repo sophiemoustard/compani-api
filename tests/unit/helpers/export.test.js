@@ -865,6 +865,7 @@ describe('exportPayAndFinalPayHistory', () => {
     'Motif',
     'Fin',
     'Heures contrat',
+    'Heures à travailler',
     'Heures travaillées',
     'Dont exo non majo',
     'Dont exo et majo',
@@ -873,6 +874,7 @@ describe('exportPayAndFinalPayHistory', () => {
     'Dont non exo et majo',
     'Détails des majo non exo',
     'Solde heures',
+    'Dont diff mois précédent',
     'Compteur',
     'Heures sup à payer',
     'Heures comp à payer',
@@ -907,6 +909,19 @@ describe('exportPayAndFinalPayHistory', () => {
       transport: 37.6,
       otherFees: 18,
       bonus: 0,
+      _id: new ObjectID(),
+      diff: {
+        hoursBalance: 8,
+        notSurchargedAndNotExempt: 2,
+        notSurchargedAndExempt: 2,
+        surchargedAndExempt: 2,
+        surchargedAndExemptDetails: [],
+        surchargedAndNotExempt: 2,
+        surchargedAndNotExemptDetails: [],
+        workedHours: 0,
+      },
+      hoursToWork: 30,
+      month: '01-2019',
     },
     {
       auxiliary: {
@@ -931,6 +946,17 @@ describe('exportPayAndFinalPayHistory', () => {
       transport: 47.6,
       otherFees: 20,
       bonus: 100,
+      diff: {
+        hoursBalance: 8,
+        notSurchargedAndNotExempt: 2,
+        notSurchargedAndExempt: 2,
+        surchargedAndExempt: 2,
+        surchargedAndExemptDetails: [],
+        surchargedAndNotExempt: 2,
+        surchargedAndNotExemptDetails: [],
+        workedHours: 0,
+      },
+      hoursToWork: 20,
     },
   ];
   const finalPays = [
@@ -961,6 +987,17 @@ describe('exportPayAndFinalPayHistory', () => {
       otherFees: 18,
       bonus: 0,
       compensation: 156,
+      diff: {
+        hoursBalance: 8,
+        notSurchargedAndNotExempt: 2,
+        notSurchargedAndExempt: 2,
+        surchargedAndExempt: 2,
+        surchargedAndExemptDetails: [],
+        surchargedAndNotExempt: 2,
+        surchargedAndNotExemptDetails: [],
+        workedHours: 0,
+      },
+      hoursToWork: 20,
     },
     {
       auxiliary: {
@@ -989,6 +1026,17 @@ describe('exportPayAndFinalPayHistory', () => {
       otherFees: 20,
       bonus: 100,
       compensation: 0,
+      diff: {
+        hoursBalance: 8,
+        notSurchargedAndNotExempt: 2,
+        notSurchargedAndExempt: 2,
+        surchargedAndExempt: 2,
+        surchargedAndExemptDetails: [],
+        surchargedAndNotExempt: 2,
+        surchargedAndNotExemptDetails: [],
+        workedHours: 0,
+      },
+      hoursToWork: 20,
     },
   ];
   let PayMock;
@@ -1048,11 +1096,11 @@ describe('exportPayAndFinalPayHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
-      ['', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
-      ['M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '0,00', '0,00', '0,00', 'details 2', '0,00', '0,00', 'details 1', '-77,94', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
-      ['', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '0,00', '0,00', '0,00', 'details 4', '0,00', '0,00', 'details 3', '-97,94', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      ['Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94', '30,00', '0,00', '2,00', '2,00', 'details 2', '2,00', '2,00', 'details 1', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
+      ['', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '20,00', '0,00', '2,00', '2,00', 'details 4', '2,00', '2,00', 'details 3', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      ['M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '20,00', '0,00', '2,00', '2,00', 'details 2', '2,00', '2,00', 'details 1', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
+      ['', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '20,00', '0,00', '2,00', '2,00', 'details 4', '2,00', '2,00', 'details 3', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
     ]);
-    sinon.assert.callCount(formatFloatForExportStub, 53);
+    sinon.assert.callCount(formatFloatForExportStub, 61);
   });
 });

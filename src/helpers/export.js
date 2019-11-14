@@ -491,6 +491,7 @@ const payExportHeader = [
   'Motif',
   'Fin',
   'Heures contrat',
+  'Heures à travailler',
   'Heures travaillées',
   'Dont exo non majo',
   'Dont exo et majo',
@@ -499,6 +500,7 @@ const payExportHeader = [
   'Dont non exo et majo',
   'Détails des majo non exo',
   'Solde heures',
+  'Dont diff mois précédent',
   'Compteur',
   'Heures sup à payer',
   'Heures comp à payer',
@@ -536,18 +538,26 @@ exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
   return formattedPlans.join('\r\n\r\n');
 };
 
+exports.formatHoursWithDiff = (pay, key) => {
+  let hours = pay[key];
+  if (pay.diff[key]) hours += pay.diff[key];
+
+  return UtilsHelper.formatFloatForExport(hours);
+};
+
 exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) => {
   const query = {
     endDate: { $lte: moment(endDate).endOf('M').toDate() },
     startDate: { $gte: moment(startDate).startOf('M').toDate() },
   };
+  const companyId = get(credentials, 'company._id', null);
 
   const pays = await Pay.find(query)
     .sort({ startDate: 'desc' })
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name', match: { company: get(credentials, 'company._id', null) } }, { path: 'contracts' }],
+      populate: [{ path: 'sector', select: 'name', match: { company: companyId } }, { path: 'contracts' }],
     })
     .lean();
 
@@ -556,7 +566,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name', match: { company: get(credentials, 'company._id', null) } }, { path: 'contracts' }],
+      populate: [{ path: 'sector', select: 'name', match: { company: companyId } }, { path: 'contracts' }],
     })
     .lean();
 
@@ -575,14 +585,16 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
       pay.endReason ? END_CONTRACT_REASONS[pay.endReason] : '',
       moment(pay.endDate).format('DD/MM/YYYY'),
       UtilsHelper.formatFloatForExport(pay.contractHours),
-      UtilsHelper.formatFloatForExport(pay.workedHours),
-      UtilsHelper.formatFloatForExport(pay.notSurchargedAndExempt),
-      UtilsHelper.formatFloatForExport(pay.surchargedAndExempt),
+      UtilsHelper.formatFloatForExport(pay.hoursToWork),
+      exports.formatHoursWithDiff(pay, 'workedHours'),
+      exports.formatHoursWithDiff(pay, 'notSurchargedAndExempt'),
+      exports.formatHoursWithDiff(pay, 'surchargedAndExempt'),
       exports.formatSurchargedDetailsForExport(pay.surchargedAndExemptDetails),
-      UtilsHelper.formatFloatForExport(pay.notSurchargedAndNotExempt),
-      UtilsHelper.formatFloatForExport(pay.surchargedAndNotExempt),
+      exports.formatHoursWithDiff(pay, 'notSurchargedAndNotExempt'),
+      exports.formatHoursWithDiff(pay, 'surchargedAndNotExempt'),
       exports.formatSurchargedDetailsForExport(pay.surchargedAndNotExemptDetails),
-      UtilsHelper.formatFloatForExport(pay.hoursBalance),
+      exports.formatHoursWithDiff(pay, 'hoursBalance'),
+      get(pay, 'diff.hoursBalance') ? UtilsHelper.formatFloatForExport(pay.diff.hoursBalance) : '0,00',
       UtilsHelper.formatFloatForExport(pay.hoursCounter),
       UtilsHelper.formatFloatForExport(pay.overtimeHours),
       UtilsHelper.formatFloatForExport(pay.additionalHours),
