@@ -52,10 +52,7 @@ const EventSchema = mongoose.Schema({
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   subscription: { type: mongoose.Schema.Types.ObjectId },
-  internalHour: {
-    name: String,
-    _id: { type: mongoose.Schema.Types.ObjectId },
-  },
+  internalHour: { type: mongoose.Schema.Types.ObjectId, ref: 'InternalHour' },
   absence: { type: String, enum: ABSENCE_TYPES },
   absenceNature: { type: String, enum: ABSENCE_NATURES },
   address: addressSchemaDefinition,

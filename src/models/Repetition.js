@@ -13,10 +13,7 @@ const RepetitionSchema = mongoose.Schema({
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   subscription: { type: mongoose.Schema.Types.ObjectId },
-  internalHour: {
-    name: String,
-    _id: { type: mongoose.Schema.Types.ObjectId },
-  },
+  internalHour: { type: mongoose.Schema.Types.ObjectId, ref: 'InternalHour' },
   address: addressSchemaDefinition,
   misc: String,
   attachment: driveResourceSchemaDefinition,

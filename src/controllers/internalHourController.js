@@ -11,9 +11,9 @@ const { language } = translate;
 const create = async (req) => {
   try {
     const companyId = get(req, 'auth.credentials.company._id', null);
-    const companyInternalHours = await InternalHour.find({ company: companyId }).lean();
+    const companyInternalHoursCount = await InternalHour.countDocuments({ company: companyId });
 
-    if (companyInternalHours.length >= MAX_INTERNAL_HOURS_NUMBER) {
+    if (companyInternalHoursCount >= MAX_INTERNAL_HOURS_NUMBER) {
       return Boom.forbidden(translate[language].companyInternalHourCreationNotAllowed);
     }
 
@@ -32,8 +32,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const internalHourId = req.params._id;
-    const updatedInternalHour = await InternalHour.findOneAndUpdate({ _id: internalHourId }, { $set: req.payload }, { new: true });
+    const updatedInternalHour = await InternalHour.findOneAndUpdate({ _id: req.params._id }, { $set: req.payload }, { new: true });
 
     if (!updatedInternalHour) return Boom.notFound(translate[language].companyInternalHourNotFound);
 
@@ -50,7 +49,7 @@ const update = async (req) => {
 const list = async (req) => {
   try {
     const query = { ...req.query, company: get(req, 'auth.credentials.company._id', null) };
-    const internalHours = await InternalHour.find(query);
+    const internalHours = await InternalHour.find(query).lean();
 
     return {
       message: translate[language].companyInternalHoursFound,
@@ -70,9 +69,7 @@ const remove = async (req) => {
 
     await InternalHourHelper.removeInternalHour(internalHour);
 
-    return {
-      message: translate[language].companyInternalHourRemoved,
-    };
+    return { message: translate[language].companyInternalHourRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

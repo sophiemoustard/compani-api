@@ -59,11 +59,7 @@ exports.plugin = {
             sector: Joi.objectId().required(),
             misc: Joi.string().allow(null, '').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
-            internalHour: Joi.object().keys({
-              name: Joi.string(),
-              _id: Joi.objectId(),
-              default: Joi.boolean(),
-            }).when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
+            internalHour: Joi.objectId().when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
             absence: Joi.string().valid(ABSENCE_TYPES)
               .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() })
               .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
@@ -148,7 +144,7 @@ exports.plugin = {
               },
             }),
             subscription: Joi.objectId(),
-            internalHour: Joi.object(),
+            internalHour: Joi.objectId(),
             absence: Joi.string().valid(ABSENCE_TYPES).when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
             absenceNature: Joi.string().valid(ABSENCE_NATURES),
             attachment: Joi.object().keys({

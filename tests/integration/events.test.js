@@ -277,11 +277,7 @@ describe('EVENTS ROUTES', () => {
             zipCode: '92160',
             city: 'Antony',
           },
-          internalHour: {
-            name: 'Formation',
-            _id: new ObjectID('5cf7defc3d14e9701967acf7'),
-            default: false,
-          },
+          internalHour: new ObjectID('5cf7defc3d14e9701967acf7'),
         };
 
         const response = await app.inject({
