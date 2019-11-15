@@ -49,6 +49,7 @@ describe('getMonthBusinessDaysCount', () => {
     DraftPayHelper.getMonthBusinessDaysCount(new Date('2019/05/18'));
 
     mock.restore();
+    mock.verify();
   });
 });
 
@@ -80,6 +81,7 @@ describe('getContractMonthInfo', () => {
     expect(result.contractHours).toBe(26);
     expect(result.workedDaysRatio).toBeDefined();
     expect(result.workedDaysRatio).toBe(1 / 4);
+    mock.verify();
   });
 
   it('Case 2. One version and sunday included', () => {
@@ -96,6 +98,7 @@ describe('getContractMonthInfo', () => {
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
+    mock.verify();
   });
 
   it('Case 3. Multiple versions', () => {
@@ -112,6 +115,7 @@ describe('getContractMonthInfo', () => {
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
+    mock.verify();
   });
 });
 
@@ -1353,8 +1357,6 @@ describe('computePrevPayDiff', () => {
   });
 });
 
-describe('computePrevPayDiff', () => {});
-
 describe('getPreviousMonthPay', () => {
   const auxiliaryId = new ObjectID();
   let getEventsToPay;
@@ -1441,6 +1443,9 @@ describe('getDraftPay', () => {
     sinon.assert.notCalled(getPreviousMonthPay);
     expect(result).toBeDefined();
     expect(result).toEqual([]);
+    companyMock.verify();
+    surchargeMock.verify();
+    distanceMatrixMock.verify();
   });
 
   it('should return draft pay', async () => {

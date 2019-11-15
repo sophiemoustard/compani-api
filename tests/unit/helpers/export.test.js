@@ -392,6 +392,7 @@ describe('exportContractHistory', () => {
       ['Contrat', 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
       ['Avenant', 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
+    contractMock.verify();
   });
 });
 
@@ -1110,6 +1111,8 @@ describe('exportPayAndFinalPayHistory', () => {
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
+    PayMock.verify();
+    FinalPayMock.verify();
   });
 
   it('should return an array with the header and 2 rows', async () => {
@@ -1139,5 +1142,7 @@ describe('exportPayAndFinalPayHistory', () => {
       ['', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00', 'surchargedAndNotExemptDetails', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
     ]);
     sinon.assert.callCount(formatFloatForExportStub, 61);
+    PayMock.verify();
+    FinalPayMock.verify();
   });
 });
