@@ -1,10 +1,7 @@
-const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const Pay = require('../models/Pay');
-const utils = require('./utils');
-const { SURCHARGES } = require('./constants');
 
-const formatSurchargeDetail = (detail) => {
+exports.formatSurchargeDetail = (detail) => {
   const surchargeDetail = [];
   for (const key of Object.keys(detail)) {
     surchargeDetail.push({ ...detail[key], planId: key });
@@ -21,10 +18,10 @@ exports.formatPay = (draftPay) => {
   ];
   for (const key of keys) {
     if (draftPay[key]) {
-      payload[key] = formatSurchargeDetail(draftPay[key]);
+      payload[key] = exports.formatSurchargeDetail(draftPay[key]);
     }
-    if (draftPay.diff[key]) {
-      payload.diff[key] = formatSurchargeDetail(draftPay.diff[key]);
+    if (draftPay.diff && draftPay.diff[key]) {
+      payload.diff[key] = exports.formatSurchargeDetail(draftPay.diff[key]);
     }
   }
 

@@ -110,7 +110,7 @@ describe('getContractMonthInfo', () => {
     };
     const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
     mock.expects('getBusinessDaysCountBetweenTwoDates').twice();
-    mock.expects('getMonthBusinessDaysCount').twice();
+    mock.expects('getMonthBusinessDaysCount').once();
 
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
