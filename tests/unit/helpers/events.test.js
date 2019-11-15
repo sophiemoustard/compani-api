@@ -72,7 +72,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -118,7 +118,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -132,7 +132,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -153,7 +153,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -192,11 +192,12 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateEvent,
       eventId,
       { ...payload, isCancelled: false },
-      { cancel: '' }
+      { cancel: '' },
+      credentials
     );
     sinon.assert.notCalled(updateRepetition);
   });
@@ -216,11 +217,12 @@ describe('updateEvent', () => {
 
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateEvent,
       eventId,
       { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
-      { cancel: '' }
+      { cancel: '' },
+      credentials
     );
     sinon.assert.notCalled(updateRepetition);
   });
@@ -235,11 +237,12 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.notCalled(updateRepetition);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateEvent,
       eventId,
       payload,
-      { auxiliary: '' }
+      { auxiliary: '' },
+      credentials
     );
   });
 });
@@ -662,7 +665,7 @@ describe('updateAbsencesOnContractEnd', () => {
 });
 
 describe('createEvent', () => {
-  let save;
+  let createMock;
   let isCreationAllowed;
   let hasConflicts;
   let createEventHistoryOnCreate;
@@ -671,8 +674,9 @@ describe('createEvent', () => {
   let getEvent;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
+  const credentials = { _id: 'qwertyuiop' };
   beforeEach(() => {
-    save = sinon.stub(Event.prototype, 'save');
+    createMock = sinon.mock(Event);
     isCreationAllowed = sinon.stub(EventsValidationHelper, 'isCreationAllowed');
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     createEventHistoryOnCreate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnCreate');
@@ -683,7 +687,7 @@ describe('createEvent', () => {
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
-    save.restore();
+    createMock.restore();
     isCreationAllowed.restore();
     hasConflicts.restore();
     createEventHistoryOnCreate.restore();
@@ -708,12 +712,13 @@ describe('createEvent', () => {
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
+    createMock.expects('create').returns(newEvent);
 
-    await EventHelper.createEvent({}, {});
+    await EventHelper.createEvent({}, credentials);
 
     sinon.assert.called(createEventHistoryOnCreate);
-    sinon.assert.called(save);
-    sinon.assert.calledWith(getEvent);
+    createMock.verify();
+    sinon.assert.calledWithExactly(getEvent, newEvent._id, credentials);
     sinon.assert.notCalled(createRepetitions);
     sinon.assert.called(populateEventSubscription);
   });
@@ -724,13 +729,14 @@ describe('createEvent', () => {
 
     isCreationAllowed.returns(true);
     hasConflicts.returns(false);
+    createMock.expects('create').returns(newEvent);
     getEvent.returns(newEvent);
 
-    await EventHelper.createEvent(payload, {});
+    await EventHelper.createEvent(payload, credentials);
 
     sinon.assert.called(createEventHistoryOnCreate);
-    sinon.assert.called(save);
-    sinon.assert.called(getEvent);
+    createMock.verify();
+    sinon.assert.calledWithExactly(getEvent, newEvent._id, credentials);
     sinon.assert.called(createRepetitions);
     sinon.assert.called(populateEventSubscription);
   });
@@ -738,7 +744,6 @@ describe('createEvent', () => {
   it('should unassign intervention and delete other event in conflict on absence creation', async () => {
     const eventId = new ObjectID();
     const auxiliaryId = new ObjectID();
-    const credentials = { _id: 'asdfghjkl' };
     const payload = {
       type: ABSENCE,
       startDate: '2019-03-20T10:00:00',
@@ -749,22 +754,23 @@ describe('createEvent', () => {
     const newEvent = new Event({ ...payload, auxiliary: { _id: auxiliaryId } });
 
     isCreationAllowed.returns(true);
+    createMock.expects('create').returns(newEvent);
     getEvent.returns(newEvent);
 
     await EventHelper.createEvent(payload, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       deleteConflictInternalHoursAndUnavailabilities,
       { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
       auxiliaryId.toHexString(),
       eventId.toHexString(),
-      { _id: 'asdfghjkl' }
+      credentials
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
       auxiliaryId.toHexString(),
-      { _id: 'asdfghjkl' }
+      credentials
     );
   });
 });
@@ -790,8 +796,8 @@ describe('deleteConflictInternalHoursAndUnavailabilities', () => {
     getEventsInConflicts.returns(events);
     await EventHelper.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, absenceId, credentials);
 
-    getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absenceId);
-    sinon.assert.calledWith(deleteEvents, events, credentials);
+    getEventsInConflicts.calledWithExactly(dates, auxiliaryId, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absenceId);
+    sinon.assert.calledWithExactly(deleteEvents, events, credentials);
   });
 });
 

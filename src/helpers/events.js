@@ -35,9 +35,8 @@ exports.createEvent = async (payload, credentials) => {
     event.repetition.frequency = NEVER;
   }
 
-  event = new Event(event);
-  await event.save();
-  event = await EventRepository.getEvent(event._id);
+  event = await Event.create(event);
+  event = await EventRepository.getEvent(event._id, credentials);
 
   if (payload.type === ABSENCE) {
     const { startDate, endDate, auxiliary, _id } = event;
@@ -161,7 +160,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload);
 
   const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
-  let unset;
+  let unset = null;
   let set = eventPayload;
   if (!eventPayload.isCancelled && event.isCancelled) {
     set = { ...set, isCancelled: false };
@@ -173,7 +172,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
 
   if (!eventPayload.auxiliary) unset = { ...unset, auxiliary: '' };
 
-  event = await EventRepository.updateEvent(event._id, set, unset);
+  event = await EventRepository.updateEvent(event._id, set, unset, credentials);
 
   if (event.type === ABSENCE) {
     const { startDate, endDate, auxiliary, _id } = event;
