@@ -240,7 +240,7 @@ describe('INTERNAL HOURS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(200);
-        sinon.assert.calledWith(updateEventsInternalHourTypeStub, sinon.match.date, internalHour._id, sinon.match(defaultInternalHour));
+        sinon.assert.calledWith(updateEventsInternalHourTypeStub, sinon.match.date, internalHour._id, defaultInternalHour._id);
       });
 
       it('should return 403 if default internal hour', async () => {

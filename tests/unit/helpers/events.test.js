@@ -1031,7 +1031,7 @@ describe('updateEventsInternalHourType', () => {
         { $set: { internalHour: defaultInternalHourId } }
       );
 
-    await EventHelper.updateEventsInternalHourType('2019-01-21T09:30:00', internalHour._id, defaultInternalHourId);
+    await EventHelper.updateEventsInternalHourType(eventsStartDate, internalHour._id, defaultInternalHourId);
 
     updateManyMock.verify();
     updateManyMock.restore();
