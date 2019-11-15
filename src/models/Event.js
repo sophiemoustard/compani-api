@@ -46,18 +46,18 @@ const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK, EV
 
 const EventSchema = mongoose.Schema({
   type: { type: String, enum: EVENT_TYPES },
-  startDate: Date,
-  endDate: Date,
+  startDate: { type: Date, required: true },
+  endDate: { type: Date, required: true },
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
-  subscription: { type: mongoose.Schema.Types.ObjectId },
-  internalHour: { type: mongoose.Schema.Types.ObjectId, ref: 'InternalHour' },
-  absence: { type: String, enum: ABSENCE_TYPES },
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: () => this.type === INTERVENTION },
+  subscription: { type: mongoose.Schema.Types.ObjectId, required: () => this.type === INTERVENTION },
+  internalHour: { type: mongoose.Schema.Types.ObjectId, ref: 'InternalHour', required: () => this.type === INTERNAL_HOUR },
+  absence: { type: String, enum: ABSENCE_TYPES, required: () => this.type === ABSENCE },
   absenceNature: { type: String, enum: ABSENCE_NATURES },
   address: addressSchemaDefinition,
   misc: String,
-  attachment: driveResourceSchemaDefinition,
+  attachment: { type: mongoose.Schema(driveResourceSchemaDefinition), required: () => this.absence === ILLNESS || this.absence === WORK_ACCIDENT },
   repetition: {
     frequency: { type: String, enum: REPETITION_FREQUENCIES },
     parentId: { type: mongoose.Schema.Types.ObjectId },
@@ -79,7 +79,7 @@ const EventSchema = mongoose.Schema({
     careHours: Number,
     surcharges: billEventSurchargesSchemaDefinition,
   },
-  status: { type: String, enum: CONTRACT_STATUS },
+  status: { type: String, enum: CONTRACT_STATUS, required: () => this.type === INTERVENTION },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Event', EventSchema);
