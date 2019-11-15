@@ -17,7 +17,7 @@ exports.getFundingMonitoring = async customerId => Customer.aggregate([
               startDate: { $lte: moment().endOf('month').toDate() },
               $or: [
                 { endDate: { $exists: false } },
-                { endDate: { $gte: moment().subtract(2, 'month').endOf('month').toDate() } },
+                { endDate: { $gte: moment().startOf('month').toDate() } },
               ],
             },
           },
@@ -26,6 +26,14 @@ exports.getFundingMonitoring = async customerId => Customer.aggregate([
     },
   },
   { $unwind: { path: '$fundings' } },
+  {
+    $lookup: {
+      from: 'thirdpartypayers',
+      localField: 'fundings.thirdPartyPayer',
+      foreignField: '_id',
+      as: 'fundings.thirdPartyPayer',
+    },
+  },
   {
     $lookup: {
       from: 'events',
@@ -38,15 +46,19 @@ exports.getFundingMonitoring = async customerId => Customer.aggregate([
   {
     $match: {
       'events.startDate': {
-        $gte: moment().subtract(2, 'month').endOf('month').toDate(),
+        $gt: moment()
+          .subtract(2, 'month')
+          .endOf('month')
+          .endOf('day')
+          .toDate(),
         $lte: moment().endOf('month').toDate(),
       },
     },
   },
   {
     $group: {
-      _id: { $dateToString: { format: '%Y-%m', date: '$events.startDate' } },
-      events: { $push: { funding: '$fundings', event: '$events' } },
+      _id: { funding: '$fundings' },
+      events: { $push: '$events' },
     },
   },
 ]);

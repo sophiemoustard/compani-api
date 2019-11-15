@@ -68,18 +68,11 @@ describe('GET /stats/customer-fundings-monitoring', () => {
         headers: { 'x-access-token': adminToken },
       });
 
-      const currentMonth = moment().format('YYYY-MM');
-      const previousMonth = moment().subtract(1, 'months').format('YYYY-MM');
-
       expect(res.statusCode).toBe(200);
-      expect(res.result[currentMonth]).toBeDefined();
-      expect(res.result[currentMonth][customerList[0].fundings[0].versions[0]._id]).toBeDefined();
-      expect(res.result[currentMonth][customerList[0].fundings[0].versions[0]._id].possibleCareHours).toBe(40);
-      expect(res.result[currentMonth][customerList[0].fundings[0].versions[0]._id].careHours).toBe(6);
-      expect(res.result[previousMonth]).toBeDefined();
-      expect(res.result[previousMonth][customerList[0].fundings[0].versions[0]._id]).toBeDefined();
-      expect(res.result[previousMonth][customerList[0].fundings[0].versions[0]._id].possibleCareHours).toBe(40);
-      expect(res.result[previousMonth][customerList[0].fundings[0].versions[0]._id].careHours).toBe(4);
+      expect(res.result[0]).toBeDefined();
+      expect(res.result[0].possibleCareHours).toBe(40);
+      expect(res.result[0].currentMonth).toBe(6);
+      expect(res.result[0].prevMonth).toBe(4);
     });
   });
 

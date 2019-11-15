@@ -31,33 +31,35 @@ exports.getCustomerFollowUp = async (req) => {
 };
 
 exports.getFundingMonitoring = async (req) => {
-  const eventsWithFundingsTwoPreviousMonths = await getFundingMonitoring(req.params._id);
-  const careHoursByMonth = {};
+  try {
+    const eventsWithFundingsTwoPreviousMonths = await getFundingMonitoring(req.params._id);
+    const careHours = [];
 
-  eventsWithFundingsTwoPreviousMonths.forEach((month) => {
-    const careHoursByVersion = {};
+    eventsWithFundingsTwoPreviousMonths.forEach((fundingAndMonth) => {
+      const { funding } = fundingAndMonth._id;
+      const fundingInfo = { funding: funding.thirdPartyPayer[0].name };
 
-    month.events.forEach((eventAndFunding) => {
-      const { funding, event } = eventAndFunding;
-      const versionsForDayOfEvent = funding.versions
-        .filter(vers => moment(vers.startDate).isSameOrBefore(moment(event.startDate).endOf('day'))
-        && (!vers.endDate || moment(vers.endDate).isSameOrAfter(moment(event.startDate).startOf('day'))))
-        .sort((a, b) => moment(a.createdAt).diff(b.createdAt));
+      fundingAndMonth.events.forEach((event) => {
+        const prevOrCurrentMonth = moment().month() === moment(event.startDate).month() ? 'currentMonth' : 'prevMonth';
 
-      const version = versionsForDayOfEvent.find(vers => vers.careDays.indexOf(moment(event.startDate).day()) > -1);
-      if (!version) return;
+        const versionsForDayOfEvent = funding.versions
+          .filter(vers => moment(vers.startDate).isSameOrBefore(moment(event.startDate).endOf('day'))
+          && (!vers.endDate || moment(vers.endDate).isSameOrAfter(moment(event.startDate).startOf('day'))))
+          .sort((a, b) => moment(a.createdAt).diff(b.createdAt));
 
-      if (careHoursByVersion[version._id]) {
-        careHoursByVersion[version._id].careHours += moment(event.endDate).diff(event.startDate, 'h', true);
-      } else {
-        careHoursByVersion[version._id] = {
-          careHours: moment(event.endDate).diff(event.startDate, 'h', true),
-          possibleCareHours: version.careHours,
-        };
-      }
+        const version = versionsForDayOfEvent.find(vers => vers.careDays.indexOf(moment(event.startDate).day()) > -1);
+        if (!version) return;
+        fundingInfo.possibleCareHours = version.careHours;
+        if (!fundingInfo[prevOrCurrentMonth]) fundingInfo[prevOrCurrentMonth] = 0;
+
+        fundingInfo[prevOrCurrentMonth] += moment(event.endDate).diff(event.startDate, 'h', true);
+      });
+      careHours.push(fundingInfo);
     });
-    careHoursByMonth[month._id] = careHoursByVersion;
-  });
-  // return eventsWithFundingsTwoPreviousMonths;
-  return careHoursByMonth;
+
+    return careHours;
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
 };

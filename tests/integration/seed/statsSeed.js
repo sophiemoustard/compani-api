@@ -40,8 +40,10 @@ const serviceList = [{
 
 const subscriptionId = new ObjectID();
 
+const tppId = new ObjectID();
 const tppList = [{
-  _id: new ObjectID(),
+  _id: tppId,
+  name: 'tiers payeur',
   company: authCompany._id,
 }];
 
@@ -57,7 +59,7 @@ const customerList = [
       nature: HOURLY,
       frequency: MONTHLY,
       subscription: subscriptionId,
-      ThirdPartyPayer: tppList[0]._id,
+      thirdPartyPayer: tppId,
       versions: [{
         _id: new ObjectID(),
         startDate: moment().startOf('month').subtract(2, 'months'),
