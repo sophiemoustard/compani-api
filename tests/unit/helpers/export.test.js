@@ -789,23 +789,54 @@ describe('exportHelpers', () => {
   });
 });
 describe('formatSurchargedDetailsForExport', () => {
-  const fullPlan = {
-    planName: 'Full plan',
-    saturday: { percentage: 20, hours: 1.12543 },
-    sunday: { percentage: 30, hours: 2.2 },
-    publicHoliday: { percentage: 25, hours: 3 },
-    twentyFifthOfDecember: { percentage: 35, hours: 4 },
-    firstOfMay: { percentage: 32, hours: 5 },
-    evening: { percentage: 15, hours: 6 },
-    custom: { percentage: 5, hours: 7 },
-  };
   const emptyPlan = { planName: 'Empty plan' };
   const unknownPlan = { planName: 'Unknown plan', helloWorld: { percentage: 7, hours: 10 } };
-  const smallPlan = {
-    planName: 'Small plan',
-    sunday: { percentage: 28, hours: 11 },
-    evening: { percentage: 17, hours: 12 },
-    custom: { percentage: 8, hours: 13 },
+  const onePlan = {
+    plan: [{
+      planName: 'Small plan',
+      sunday: { percentage: 28, hours: 11 },
+      evening: { percentage: 17, hours: 12 },
+      custom: { percentage: 8, hours: 13 },
+    }],
+  };
+  const onePlanWithDiff = {
+    plan: [{
+      planName: 'Small plan',
+      sunday: { percentage: 28, hours: 11 },
+      evening: { percentage: 17, hours: 12 },
+      custom: { percentage: 8, hours: 13 },
+    }],
+    diff: {
+      plan: [{
+        planName: 'Full plan',
+        saturday: { percentage: 20, hours: 1.12543 },
+        sunday: { percentage: 30, hours: 2.2 },
+        publicHoliday: { percentage: 25, hours: 3 },
+        twentyFifthOfDecember: { percentage: 35, hours: 4 },
+      }],
+    },
+  };
+  const multiplePlans = {
+    plan: [
+      {
+        planName: 'Small plan',
+        sunday: { percentage: 28, hours: 11 },
+        evening: { percentage: 17, hours: 12 },
+        custom: { percentage: 8, hours: 13 },
+      },
+      { planName: 'Unknown plan', helloWorld: { percentage: 7, hours: 10 } },
+      { planName: 'Empty plan' },
+      {
+        planName: 'Full plan',
+        saturday: { percentage: 20, hours: 1.12543 },
+        sunday: { percentage: 30, hours: 2.2 },
+        publicHoliday: { percentage: 25, hours: 3 },
+        twentyFifthOfDecember: { percentage: 35, hours: 4 },
+        firstOfMay: { percentage: 32, hours: 5 },
+        evening: { percentage: 15, hours: 6 },
+        custom: { percentage: 5, hours: 7 },
+      },
+    ],
   };
 
   let formatFloatForExportStub;
@@ -841,13 +872,19 @@ describe('formatSurchargedDetailsForExport', () => {
   });
 
   it('should returns a plan\'s details if one is provided', () => {
-    const result = ExportHelper.formatSurchargedDetailsForExport([smallPlan]);
+    const result = ExportHelper.formatSurchargedDetailsForExport(onePlan, 'plan');
     sinon.assert.callCount(formatFloatForExportStub, 3);
     expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h');
   });
 
+  it('should returns a plan\'s detailswithDiff', () => {
+    const result = ExportHelper.formatSurchargedDetailsForExport(onePlanWithDiff, 'plan');
+    sinon.assert.callCount(formatFloatForExportStub, 7);
+    expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h\r\n\r\nFull plan (M-1)\r\nSamedi, 20%, 1.13h\r\nDimanche, 30%, 2.20h\r\nJours fériés, 25%, 3.00h\r\n25 décembre, 35%, 4.00h');
+  });
+
   it('should returns all the details if several plans are provided', () => {
-    const result = ExportHelper.formatSurchargedDetailsForExport([smallPlan, emptyPlan, fullPlan, unknownPlan]);
+    const result = ExportHelper.formatSurchargedDetailsForExport(multiplePlans, 'plan');
     sinon.assert.callCount(formatFloatForExportStub, 10);
     expect(result).toBe('Small plan\r\nDimanche, 28%, 11.00h\r\nSoirée, 17%, 12.00h\r\nPersonnalisée, 8%, 13.00h\r\n\r\nFull plan\r\nSamedi, 20%, 1.13h\r\nDimanche, 30%, 2.20h\r\nJours fériés, 25%, 3.00h\r\n25 décembre, 35%, 4.00h\r\n1er mai, 32%, 5.00h\r\nSoirée, 15%, 6.00h\r\nPersonnalisée, 5%, 7.00h');
   });
@@ -1090,16 +1127,16 @@ describe('exportPayAndFinalPayHistory', () => {
       .once()
       .returns(finalPays);
     formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
-    formatSurchargedDetailsForExport.returnsArg(0);
+    formatSurchargedDetailsForExport.returnsArg(1);
 
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,
-      ['Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94', '30,00', '0,00', '2,00', '2,00', 'details 2', '2,00', '2,00', 'details 1', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
-      ['', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '20,00', '0,00', '2,00', '2,00', 'details 4', '2,00', '2,00', 'details 3', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
-      ['M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '20,00', '0,00', '2,00', '2,00', 'details 2', '2,00', '2,00', 'details 1', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
-      ['', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '20,00', '0,00', '2,00', '2,00', 'details 4', '2,00', '2,00', 'details 3', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      ['Mme', 'Tata', 'TOTO', 'Test', '04/05/2019', '01/05/2019', '', '', '31/05/2019', '77,94', '30,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00', 'surchargedAndNotExemptDetails', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '0,00'],
+      ['', 'Titi', 'TUTU', 'Autre test', '', '01/05/2019', '', '', '31/05/2019', '97,94', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00', 'surchargedAndNotExemptDetails', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+      ['M.', 'Tata', 'TOTO', 'Test', '04/03/2019', '01/05/2019', '31/05/2019', 'Démission', '31/05/2019', '77,94', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00', 'surchargedAndNotExemptDetails', '-69,94', '8,00', '-77,94', '0,00', '0,00', 'Oui', '37,60', '18,00', '0,00', '156,00'],
+      ['', 'Titi', 'TUTU', 'Autre test', '19/01/2019', '01/05/2019', '31/05/2019', 'Mutation', '31/05/2019', '97,94', '20,00', '0,00', '2,00', '2,00', 'surchargedAndExemptDetails', '2,00', '2,00', 'surchargedAndNotExemptDetails', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
     ]);
     sinon.assert.callCount(formatFloatForExportStub, 61);
   });

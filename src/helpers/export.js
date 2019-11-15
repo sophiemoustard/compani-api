@@ -518,21 +518,33 @@ const getHiringDate = (contracts) => {
   return contracts.map(contract => contract.startDate).sort((a, b) => new Date(a) - new Date(b))[0];
 };
 
-exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
-  if (!surchargedDetails) return '';
+const formatLines = (surchargedPlanDetails, planName) => {
+  const surcharges = Object.entries(pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
+  if (surcharges.length === 0) return;
+
+  const lines = [planName];
+  for (const [surchageKey, surcharge] of surcharges) {
+    lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, ${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
+  }
+
+  return lines.join('\r\n');
+};
+
+exports.formatSurchargedDetailsForExport = (pay, key) => {
+  if (!pay || (!pay[key] && (!pay.diff || !pay.diff[key]))) return '';
 
   const formattedPlans = [];
-
-  for (const surchargedPlanDetails of surchargedDetails) {
-    const surchages = Object.entries(pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
-    if (surchages.length === 0) continue;
-
-    const lines = [surchargedPlanDetails.planName];
-
-    for (const [surchageKey, surcharge] of surchages) {
-      lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, ${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
+  if (pay[key]) {
+    for (const surchargedPlanDetails of pay[key]) {
+      const lines = formatLines(surchargedPlanDetails, surchargedPlanDetails.planName);
+      if (lines) formattedPlans.push(lines);
     }
-    formattedPlans.push(lines.join('\r\n'));
+  }
+  if (pay.diff && pay.diff[key]) {
+    for (const surchargedPlanDetails of pay.diff[key]) {
+      const lines = formatLines(surchargedPlanDetails, `${surchargedPlanDetails.planName} (M-1)`)
+      if (lines) formattedPlans.push(lines);
+    }
   }
 
   return formattedPlans.join('\r\n\r\n');
@@ -540,7 +552,7 @@ exports.formatSurchargedDetailsForExport = (surchargedDetails) => {
 
 exports.formatHoursWithDiff = (pay, key) => {
   let hours = pay[key];
-  if (pay.diff[key]) hours += pay.diff[key];
+  if (pay.diff && pay.diff[key]) hours += pay.diff[key];
 
   return UtilsHelper.formatFloatForExport(hours);
 };
@@ -589,10 +601,10 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
       exports.formatHoursWithDiff(pay, 'workedHours'),
       exports.formatHoursWithDiff(pay, 'notSurchargedAndExempt'),
       exports.formatHoursWithDiff(pay, 'surchargedAndExempt'),
-      exports.formatSurchargedDetailsForExport(pay.surchargedAndExemptDetails),
+      exports.formatSurchargedDetailsForExport(pay, 'surchargedAndExemptDetails'),
       exports.formatHoursWithDiff(pay, 'notSurchargedAndNotExempt'),
       exports.formatHoursWithDiff(pay, 'surchargedAndNotExempt'),
-      exports.formatSurchargedDetailsForExport(pay.surchargedAndNotExemptDetails),
+      exports.formatSurchargedDetailsForExport(pay, 'surchargedAndNotExemptDetails'),
       exports.formatHoursWithDiff(pay, 'hoursBalance'),
       get(pay, 'diff.hoursBalance') ? UtilsHelper.formatFloatForExport(pay.diff.hoursBalance) : '0,00',
       UtilsHelper.formatFloatForExport(pay.hoursCounter),
