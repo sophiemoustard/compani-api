@@ -57,7 +57,7 @@ const EventSchema = mongoose.Schema({
   absenceNature: { type: String, enum: ABSENCE_NATURES },
   address: addressSchemaDefinition,
   misc: String,
-  attachment: { type: mongoose.Schema(driveResourceSchemaDefinition), required: () => this.absence === ILLNESS || this.absence === WORK_ACCIDENT },
+  attachment: { type: mongoose.Schema(driveResourceSchemaDefinition, { _id: false }), required: () => this.absence === ILLNESS || this.absence === WORK_ACCIDENT },
   repetition: {
     frequency: { type: String, enum: REPETITION_FREQUENCIES },
     parentId: { type: mongoose.Schema.Types.ObjectId },
