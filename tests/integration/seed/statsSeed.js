@@ -36,6 +36,11 @@ const serviceList = [{
   _id: new ObjectID(),
   nature: 'hourly',
   company: authCompany._id,
+  versions: [
+    {
+      name: 'Autonomie',
+    },
+  ],
 }];
 
 const subscriptionId = new ObjectID();

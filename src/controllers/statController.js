@@ -35,24 +35,31 @@ exports.getFundingMonitoring = async (req) => {
     const eventsWithFundingsTwoPreviousMonths = await getFundingMonitoring(req.params._id);
     const careHours = [];
 
-    eventsWithFundingsTwoPreviousMonths.forEach((fundingAndMonth) => {
-      const { funding } = fundingAndMonth._id;
-      const fundingInfo = { funding: funding.thirdPartyPayer[0].name };
+    eventsWithFundingsTwoPreviousMonths.forEach((fundingAndEvents) => {
+      const funding = fundingAndEvents._id;
+      const { eventsByMonth } = fundingAndEvents;
 
-      fundingAndMonth.events.forEach((event) => {
-        const prevOrCurrentMonth = moment().month() === moment(event.startDate).month() ? 'currentMonth' : 'prevMonth';
+      const fundingInfo = { service: funding.service.versions[0].name, funding: funding.thirdPartyPayer.name };
 
-        const versionsForDayOfEvent = funding.versions
-          .filter(vers => moment(vers.startDate).isSameOrBefore(moment(event.startDate).endOf('day'))
-          && (!vers.endDate || moment(vers.endDate).isSameOrAfter(moment(event.startDate).startOf('day'))))
+      eventsByMonth.forEach((month) => {
+        const { date } = month;
+        fundingInfo[date] = 0;
+        const endOfMonth = moment(date).endOf('month').toDate();
+        const beginningOfMonth = moment(date).startOf('month').toDate();
+
+        const possibleVersionsForMonth = funding.versions
+          .filter(vers => moment(vers.startDate).isSameOrBefore(endOfMonth)
+            && (!vers.endDate || moment(vers.endDate).isSameOrAfter(beginningOfMonth)))
           .sort((a, b) => moment(a.createdAt).diff(b.createdAt));
 
-        const version = versionsForDayOfEvent.find(vers => vers.careDays.indexOf(moment(event.startDate).day()) > -1);
-        if (!version) return;
+        if (!possibleVersionsForMonth.length) return;
+        const version = possibleVersionsForMonth[funding.versions.length - 1];
         fundingInfo.possibleCareHours = version.careHours;
-        if (!fundingInfo[prevOrCurrentMonth]) fundingInfo[prevOrCurrentMonth] = 0;
 
-        fundingInfo[prevOrCurrentMonth] += moment(event.endDate).diff(event.startDate, 'h', true);
+        month.events.forEach((event) => {
+          if (version.careDays.indexOf(moment(event.startDate).day()) < 0) return;
+          fundingInfo[date] += moment(event.endDate).diff(event.startDate, 'h', true);
+        });
       });
       careHours.push(fundingInfo);
     });
