@@ -69,8 +69,8 @@ const subscriptionExportHeader = [
 
 exports.exportSubscriptions = async (credentials) => {
   const customers = await Customer
-    .find({ subscriptions: { $exists: true, $not: { $size: 0 } } })
-    .populate({ path: 'subscriptions.service', match: { company: get(credentials, 'company._id', null) } });
+    .find({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: get(credentials, 'company._id', null) })
+    .populate({ path: 'subscriptions.service' });
   const data = [subscriptionExportHeader];
 
   for (const cus of customers) {

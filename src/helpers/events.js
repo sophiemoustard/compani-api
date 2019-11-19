@@ -32,7 +32,6 @@ exports.createEvent = async (payload, credentials) => {
   if (!(await EventsValidationHelper.isCreationAllowed(payload, credentials))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
-
   let event = { ...payload };
   const isRepeatedEvent = isRepetition(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await EventsValidationHelper.hasConflicts(event)) {
@@ -49,7 +48,6 @@ exports.createEvent = async (payload, credentials) => {
     await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliary._id.toHexString(), _id.toHexString(), credentials);
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
-
   if (isRepeatedEvent) await EventsRepetitionHelper.createRepetitions(event, payload);
 
   return exports.populateEventSubscription(event);

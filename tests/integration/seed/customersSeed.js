@@ -13,24 +13,6 @@ const { populateDBForAuthentication, rolesList, authCompany } = require('./authe
 
 const subId = new ObjectID();
 
-const customerCompany = {
-  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
-  name: 'Test',
-  tradeName: 'To',
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-  },
-  iban: 'FR3514508000505917721779B12',
-  bic: 'RTYUIKJHBFRG',
-  ics: '12345678',
-  directDebitsFolderId: '1234567890',
-};
-
 const customerServiceList = [
   {
     _id: new ObjectID(),
@@ -277,6 +259,7 @@ const userList = [
 const eventList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     isBilled: true,
     customer: customersList[0]._id,
     type: 'intervention',
@@ -287,6 +270,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
     status: 'contract_with_company',
@@ -319,7 +303,6 @@ const populateDB = async () => {
   await User.deleteMany({});
 
   await populateDBForAuthentication();
-  await (new Company(customerCompany)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);
   await Customer.insertMany(customersList);

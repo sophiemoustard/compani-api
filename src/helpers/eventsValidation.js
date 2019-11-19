@@ -32,11 +32,10 @@ exports.checkContracts = async (event, user, credentials) => {
   //   should have an active subscription
   if (event.type === INTERVENTION) {
     let customer = await Customer
-      .findOne({ _id: event.customer })
+      .findOne({ _id: event.customer, company: _.get(credentials, 'company._id') })
       .populate({
         path: 'subscriptions.service',
-        match: { company: _.get(credentials, 'company._id', null) },
-        populate: { path: 'versions.surcharge', match: { company: _.get(credentials, 'company._id', null) } },
+        populate: { path: 'versions.surcharge' },
       })
       .lean();
     customer = populateSubscriptionsServices(customer);
@@ -83,7 +82,6 @@ const isRepetition = event => event.repetition && event.repetition.frequency && 
 exports.isCreationAllowed = async (event, credentials) => {
   if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
   if (!event.auxiliary) return event.type === INTERVENTION;
-
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!await exports.checkContracts(event, user, credentials)) return false;
 

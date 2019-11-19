@@ -19,9 +19,15 @@ const Counter = require('../models/Rum');
 
 const { language } = translate;
 
-exports.getCustomerBySector = async (startDate, endDate, sector) => {
-  const query = EventsHelper.getListQuery({ startDate, endDate, type: INTERVENTION, sector });
-  return EventRepository.getCustomersFromEvent(query);
+exports.getCustomerBySector = async (query, credentials) => {
+  const queryCustomer = EventsHelper.getListQuery({
+    startDate: query.startDate,
+    endDate: query.endDate,
+    type: INTERVENTION,
+    sector: query.sector,
+  });
+  const companyId = get(credentials, 'company._id', null);
+  return EventRepository.getCustomersFromEvent({ ...queryCustomer, company: companyId });
 };
 
 exports.getCustomersWithBilledEvents = async () => {
@@ -30,11 +36,10 @@ exports.getCustomersWithBilledEvents = async () => {
 };
 
 exports.getCustomers = async (query, credentials) => {
-  const customers = await Customer.find(query)
+  const customers = await Customer.find({ ...query, company: get(credentials, 'company._id', null) })
     .populate({
       path: 'subscriptions.service',
-      match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
+      populate: { path: 'versions.surcharge' },
     })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
@@ -50,11 +55,10 @@ exports.getCustomers = async (query, credentials) => {
 };
 
 exports.getCustomersWithSubscriptions = async (query, credentials) => {
-  const customers = await Customer.find(query)
+  const customers = await Customer.find({ ...query, company: get(credentials, 'company._id', null) })
     .populate({
       path: 'subscriptions.service',
-      match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
+      populate: { path: 'versions.surcharge' },
     })
     .lean();
 
@@ -69,13 +73,14 @@ exports.getCustomersWithSubscriptions = async (query, credentials) => {
 
 exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
+  console.log(companyId);
   const query = { type: CUSTOMER_CONTRACT, company: companyId };
   const customerContractServices = await Service.find(query).lean();
   if (customerContractServices.length === 0) return [];
 
   const ids = customerContractServices.map(service => service._id);
   const customers = await Customer
-    .find({ 'subscriptions.service': { $in: ids } })
+    .find({ 'subscriptions.service': { $in: ids }, company: companyId })
     .populate({
       path: 'subscriptions.service',
       match: { company: companyId },
@@ -93,13 +98,13 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
 };
 
 exports.getCustomer = async (customerId, credentials) => {
-  let customer = await Customer.findOne({ _id: customerId })
+  let customer = await Customer.findOne({ _id: customerId, company: get(credentials, 'company._id', null) })
     .populate({
       path: 'subscriptions.service',
       match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
+      populate: { path: 'versions.surcharge' },
     })
-    .populate({ path: 'fundings.thirdPartyPayer', match: { company: get(credentials, 'company._id', null) } })
+    .populate({ path: 'fundings.thirdPartyPayer' })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
@@ -141,12 +146,13 @@ exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
   { $unset: { referent: '' } }
 );
 
-exports.updateCustomer = async (customerId, customerPayload) => {
+exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   let payload;
+  const companyId = get(credentials, 'company._id');
   if (customerPayload.referent === '') {
     payload = { $unset: { referent: '' } };
   } else if (has(customerPayload, 'payment.iban')) {
-    const customer = await Customer.findById(customerId).lean();
+    const customer = await Customer.findOne({ _id: customerId, company: companyId }).lean();
     // if the user updates its RIB, we should generate a new mandate.
     if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerPayload.payment.iban) {
       const mandate = { rum: await exports.generateRum() };
@@ -160,7 +166,7 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     }
   } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
     const addressField = customerPayload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
-    const customer = await Customer.findById(customerId).lean();
+    const customer = await Customer.findOne({ _id: customerId, company: companyId }).lean();
     const customerHasAddress = customer.contact[addressField] && customer.contact[addressField].fullAddress;
     const noSecondaryAddressInPayload = has(customerPayload, 'contact.secondaryAddress') &&
       get(customerPayload, 'contact.secondaryAddress.fullAddress') === '';
@@ -179,7 +185,7 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
-  return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
+  return Customer.findOneAndUpdate({ _id: customerId, company: companyId }, payload, { new: true }).lean();
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {

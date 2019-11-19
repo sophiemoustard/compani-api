@@ -68,6 +68,7 @@ const listForCreditNotes = async (req) => {
 const create = async (req) => {
   try {
     const { payload, auth } = req;
+    console.log('oui');
     const event = await createEvent(payload, auth.credentials);
 
     return {

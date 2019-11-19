@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const flat = require('flat');
 const crypto = require('crypto');
+const get = require('lodash/get');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
 const Customer = require('../models/Customer');
@@ -35,7 +36,8 @@ const list = async (req) => {
 const create = async (req) => {
   try {
     const { payload } = req;
-    const contract = await createContract(payload);
+    const { credentials } = req.auth;
+    const contract = await createContract(payload, credentials);
 
     return {
       message: translate[language].contractCreated,
@@ -68,7 +70,7 @@ const remove = async (req) => {
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
-    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer }, { $pull: { contracts: contract._id } });
+    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer, company: get(req, 'auth.credentials.company._id') }, { $pull: { contracts: contract._id } });
 
     return {
       message: translate[language].contractDeleted,
@@ -119,6 +121,7 @@ const removeContractVersion = async (req) => {
 
 const uploadFile = async (req) => {
   try {
+    const { credentials } = req.auth;
     const allowedFields = ['signedContract', 'signedVersion'];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) return Boom.forbidden(translate[language].uploadNotAllowed);
@@ -132,7 +135,7 @@ const uploadFile = async (req) => {
     };
     const version = { customer: payload.customer, contractId: params._id, _id: payload.versionId, status: payload.status };
 
-    const uploadedFile = await createAndSaveFile(version, fileInfo);
+    const uploadedFile = await createAndSaveFile(version, fileInfo, credentials);
 
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {

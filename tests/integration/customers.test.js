@@ -21,7 +21,7 @@ const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const User = require('../../src/models/User');
 const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const FileHelper = require('../../src/helpers/file');
 
 describe('NODE ENV', () => {
@@ -66,6 +66,7 @@ describe('CUSTOMERS ROUTES', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
+        company: authCompany._id,
         identity: { lastname: payload.identity.lastname },
         contact: {
           primaryAddress: {
@@ -83,7 +84,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customer.payment.mandates).toBeDefined();
       expect(res.result.data.customer.payment.mandates.length).toEqual(1);
       expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
-      const customers = await Customer.find({});
+      const customers = await Customer.find({ company: authCompany._id });
       expect(customers).toHaveLength(customersList.length + 1);
     });
 
@@ -165,7 +166,7 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers/billed-events',
         headers: { 'x-access-token': adminToken },
       });
-
+      console.log(res.result.data);
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
       expect(res.result.data.customers[0].subscriptions).toBeDefined();
@@ -337,7 +338,7 @@ describe('CUSTOMERS ROUTES', () => {
           lastname: updatePayload.identity.lastname,
         }),
       }));
-      const updatedCustomer = await Customer.findById(customersList[0]._id);
+      const updatedCustomer = await Customer.findOne({ _id: customersList[0]._id, company: authCompany._id });
       expect(updatedCustomer).toEqual(expect.objectContaining({
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
@@ -439,7 +440,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       sinon.assert.calledWith(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
       deleteFileStub.restore();
-      const customers = await Customer.find().lean();
+      const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(customers.length).toBe(customersList.length - 1);
       const helper = await User.findById(userList[2]._id).lean();
       expect(helper).toBeNull();
@@ -899,7 +900,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
         embeddedUrl: expect.any(String),
       }));
-      const customer = await Customer.findById(customerId);
+      const customer = await Customer.findOne({ _id: customerId, company: authCompany._id });
       expect(customer.payment.mandates[0].everSignId).toBeDefined();
     });
 
@@ -1063,7 +1064,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      const customer = await Customer.findById(customersList[0]._id);
+      const customer = await Customer.findOne({ _id: customersList[0]._id, company: authCompany._id });
       expect(customer.quotes.length).toBe(customersList[0].quotes.length - 1);
     });
     it('should return a 404 error if user is not found', async () => {
