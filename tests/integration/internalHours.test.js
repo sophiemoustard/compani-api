@@ -1,16 +1,16 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
-const sinon = require('sinon');
 
 const app = require('../../server');
 const InternalHour = require('../../src/models/InternalHour');
-const EventsHelper = require('../../src/helpers/events');
+const Event = require('../../src/models/Event');
 const {
   populateDB,
   internalHoursList,
   authInternalHoursList,
-  internalHourUser,
+  internalHourUsers,
+  internalHoursCompany,
 } = require('./seed/internalHoursSeed');
 const { getToken, authCompany, getTokenByCredentials } = require('./seed/authenticationSeed');
 
@@ -115,7 +115,7 @@ describe('INTERNAL HOURS ROUTES', () => {
       });
 
       it('should get internal hours (company B)', async () => {
-        authToken = await getTokenByCredentials(internalHourUser.local);
+        authToken = await getTokenByCredentials(internalHourUsers[0].local);
         const response = await app.inject({
           method: 'GET',
           url: '/internalhours',
@@ -226,18 +226,28 @@ describe('INTERNAL HOURS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getTokenByCredentials(internalHourUsers[0].local);
       });
 
       it('should delete an internal hour', async () => {
-        const internalHour = authInternalHoursList[1];
+        const internalHour = internalHoursList[1];
+        const defaultInternalHour = internalHoursList[0];
+        const initialInternalHourEventsCount = await Event.countDocuments({ internalHour: internalHour._id });
+        const initialDefaultInternalHourEventsCount = await Event.countDocuments({ internalHour: defaultInternalHour._id });
 
         const response = await app.inject({
           method: 'DELETE',
           url: `/internalhours/${internalHour._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
+
         expect(response.statusCode).toBe(200);
+        const internalHoursCount = await InternalHour.countDocuments({ company: internalHoursCompany._id });
+        expect(internalHoursCount).toBe(internalHoursList.length - 1);
+        const deletedInternalHourEventsCount = await Event.countDocuments({ internalHour: internalHour._id });
+        expect(deletedInternalHourEventsCount).toBe(0);
+        const defaultInternalHourEventsCount = await Event.countDocuments({ internalHour: defaultInternalHour._id });
+        expect(defaultInternalHourEventsCount).toBe(initialDefaultInternalHourEventsCount + initialInternalHourEventsCount);
       });
 
       it('should return 403 if default internal hour', async () => {
@@ -248,6 +258,7 @@ describe('INTERNAL HOURS ROUTES', () => {
           url: `/internalhours/${internalHour._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
+
         expect(response.statusCode).toBe(403);
       });
 
@@ -259,6 +270,7 @@ describe('INTERNAL HOURS ROUTES', () => {
           url: `/internalhours/${internalHour._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
+
         expect(response.statusCode).toBe(403);
       });
 
@@ -268,6 +280,7 @@ describe('INTERNAL HOURS ROUTES', () => {
           url: `/internalhours/${new ObjectID().toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
+
         expect(response.statusCode).toBe(404);
       });
     });

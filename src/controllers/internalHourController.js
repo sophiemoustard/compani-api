@@ -66,7 +66,7 @@ const remove = async (req) => {
     const { internalHour } = req.pre;
     if (internalHour.default) return Boom.forbidden(translate[language].companyInternalHourDeletionNotAllowed);
 
-    await InternalHourHelper.removeInternalHour(internalHour);
+    await InternalHourHelper.removeInternalHour(internalHour, new Date());
 
     return { message: translate[language].companyInternalHourRemoved };
   } catch (e) {
