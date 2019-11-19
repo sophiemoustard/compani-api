@@ -48,8 +48,8 @@ describe('getMonthBusinessDaysCount', () => {
     mock.expects('getBusinessDaysCountBetweenTwoDates').once();
     DraftPayHelper.getMonthBusinessDaysCount(new Date('2019/05/18'));
 
-    mock.restore();
     mock.verify();
+    mock.restore();
   });
 });
 
