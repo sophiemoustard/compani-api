@@ -73,7 +73,7 @@ exports.getCustomersWithSubscriptions = async (query, credentials) => {
 
 exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  console.log(companyId);
+
   const query = { type: CUSTOMER_CONTRACT, company: companyId };
   const customerContractServices = await Service.find(query).lean();
   if (customerContractServices.length === 0) return [];
@@ -98,7 +98,7 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
 };
 
 exports.getCustomer = async (customerId, credentials) => {
-  let customer = await Customer.findOne({ _id: customerId, company: get(credentials, 'company._id', null) })
+  let customer = await Customer.findById(customerId)
     .populate({
       path: 'subscriptions.service',
       match: { company: get(credentials, 'company._id', null) },
@@ -148,11 +148,10 @@ exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
 
 exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   let payload;
-  const companyId = get(credentials, 'company._id');
   if (customerPayload.referent === '') {
     payload = { $unset: { referent: '' } };
   } else if (has(customerPayload, 'payment.iban')) {
-    const customer = await Customer.findOne({ _id: customerId, company: companyId }).lean();
+    const customer = await Customer.findById(customerId).lean();
     // if the user updates its RIB, we should generate a new mandate.
     if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerPayload.payment.iban) {
       const mandate = { rum: await exports.generateRum() };
@@ -166,7 +165,7 @@ exports.updateCustomer = async (customerId, customerPayload, credentials) => {
     }
   } else if (has(customerPayload, 'contact.primaryAddress') || has(customerPayload, 'contact.secondaryAddress')) {
     const addressField = customerPayload.contact.primaryAddress ? 'primaryAddress' : 'secondaryAddress';
-    const customer = await Customer.findOne({ _id: customerId, company: companyId }).lean();
+    const customer = await Customer.findById(customerId).lean();
     const customerHasAddress = customer.contact[addressField] && customer.contact[addressField].fullAddress;
     const noSecondaryAddressInPayload = has(customerPayload, 'contact.secondaryAddress') &&
       get(customerPayload, 'contact.secondaryAddress.fullAddress') === '';
@@ -185,7 +184,7 @@ exports.updateCustomer = async (customerId, customerPayload, credentials) => {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
-  return Customer.findOneAndUpdate({ _id: customerId, company: companyId }, payload, { new: true }).lean();
+  return Customer.findByIdAndUpdate(customerId, payload, { new: true }).lean();
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {

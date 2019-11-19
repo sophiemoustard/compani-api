@@ -66,7 +66,7 @@ exports.createContract = async (contractPayload, credentials) => {
   const newContract = await Contract.create(newContractPayload);
 
   await User.findOneAndUpdate({ _id: newContract.user }, { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' } });
-  if (newContract.customer) await Customer.findOneAndUpdate({ _id: newContract.customer, company: get(credentials, 'company._id', null) }, { $push: { contracts: newContract._id } });
+  if (newContract.customer) await Customer.findByIdAndUpdate({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
 
   return newContract;
 };
@@ -221,9 +221,9 @@ exports.deleteVersion = async (contractId, versionId) => {
   if (customerDriveId) GDriveStorageHelper.deleteFile(customerDriveId);
 };
 
-exports.createAndSaveFile = async (version, fileInfo, credentials) => {
+exports.createAndSaveFile = async (version, fileInfo) => {
   if (version.status === CUSTOMER_CONTRACT) {
-    const customer = await Customer.findOne({ _id: version.customer, company: get(credentials, 'company._id', null) }).lean();
+    const customer = await Customer.findById({ _id: version.customer }).lean();
     fileInfo.customerDriveId = customer.driveFolder.driveId;
   }
   const payload = await exports.uploadFile(fileInfo, version.status);

@@ -30,7 +30,6 @@ const countServiceUsage = async (docs) => {
   }
 };
 
-ServiceSchema.pre('findOne', validateQuery);
 ServiceSchema.pre('find', validateQuery);
 ServiceSchema.pre('validate', validatePayload);
 ServiceSchema.post('find', countServiceUsage);

@@ -54,11 +54,8 @@ describe('getCustomersWithBilledEvents', () => {
   });
 
   it('should return customer by sector', async () => {
-    const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
-
-    await CustomerHelper.getCustomersWithBilledEvents(credentials);
-    sinon.assert.calledWith(getCustomerWithBilledEvents, { isBilled: true, type: 'intervention', company: companyId });
+    await CustomerHelper.getCustomersWithBilledEvents();
+    sinon.assert.calledWith(getCustomerWithBilledEvents, { isBilled: true, type: 'intervention' });
   });
 });
 
@@ -198,8 +195,9 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
   });
 
   it('should return empty array if no service', async () => {
+    const companyId = new ObjectID();
     ServiceMock.expects('find').chain('lean').once().returns([]);
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     CustomerMock.verify();
@@ -208,11 +206,12 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
   });
 
   it('should return empty array if no customer', async () => {
-    const services = [{ _id: '1234567890', nature: 'fixed' }];
-    const credentials = {};
+    const companyId = new ObjectID();
+    const services = [{ _id: '1234567890', nature: 'fixed', company: companyId }];
+    const credentials = { company: { _id: companyId } };
     ServiceMock.expects('find').chain('lean').once().returns(services);
     CustomerMock.expects('find')
-      .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] } })
+      .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] }, company: companyId })
       .chain('populate')
       .chain('lean')
       .once()
@@ -233,14 +232,14 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
     const services = [{ _id: '1234567890', nature: 'fixed' }];
     ServiceMock.expects('find').chain('lean').once().returns(services);
     CustomerMock.expects('find')
-      .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] } })
+      .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] }, company: companyId })
       .chain('populate')
       .chain('lean')
       .once()
       .returns(customers);
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
 
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
@@ -389,6 +388,7 @@ describe('updateCustomer', () => {
 
   it('should generate a new mandate', async () => {
     const customerId = 'qwertyuiop';
+    const companyId = new ObjectID();
     const customer = {
       payment: {
         bankAccountNumber: '',
@@ -403,8 +403,8 @@ describe('updateCustomer', () => {
       },
     };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
+    CustomerMock.expects('findOne')
+      .withExactArgs({ _id: customerId, company: companyId })
       .chain('lean')
       .once()
       .returns(customer);
@@ -420,7 +420,7 @@ describe('updateCustomer', () => {
     };
     CustomerMock.expects('findOneAndUpdate')
       .withExactArgs(
-        { _id: customerId },
+        { _id: customerId, company: companyId },
         {
           $set: flat(payload, { safe: true }),
           $push: { 'payment.mandates': { rum: mandate } },
@@ -432,7 +432,8 @@ describe('updateCustomer', () => {
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const credentials = { company: { _id: companyId } };
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
@@ -442,6 +443,7 @@ describe('updateCustomer', () => {
 
   it('shouldn\'t generate a new mandate (update bic)', async () => {
     const customerId = 'qwertyuiop';
+    const companyId = new ObjectID();
     const customer = {
       payment: {
         bankAccountNumber: '',
@@ -457,8 +459,8 @@ describe('updateCustomer', () => {
       },
     };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
+    CustomerMock.expects('findOne')
+      .withExactArgs({ _id: customerId, company: companyId })
       .chain('lean')
       .once()
       .returns(customer);
@@ -473,12 +475,13 @@ describe('updateCustomer', () => {
     };
 
     CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .withExactArgs({ _id: customerId, company: companyId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const credentials = { company: { _id: companyId } };
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
@@ -488,6 +491,7 @@ describe('updateCustomer', () => {
 
   it('shouldn\'t generate a new mandate (update name)', async () => {
     const customerId = 'qwertyuiop';
+    const companyId = new ObjectID();
     const customer = {
       payment: {
         bankAccountNumber: '',
@@ -510,17 +514,19 @@ describe('updateCustomer', () => {
         mandates: [],
       },
     };
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
+    CustomerMock.expects('findOne')
+      .withExactArgs({ _id: customerId, company: companyId })
       .chain('lean')
       .once()
       .returns(customer);
     CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .withExactArgs({ _id: customerId, company: companyId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')
       .once()
       .returns(customerResult);
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    const credentials = { company: { _id: companyId } };
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
@@ -530,6 +536,7 @@ describe('updateCustomer', () => {
 
   it('shouldn\'t generate a new mandate (create iban)', async () => {
     const customerId = 'qwertyuiop';
+    const companyId = new ObjectID();
     const customer = {
       payment: {
         bankAccountNumber: '',
@@ -544,20 +551,21 @@ describe('updateCustomer', () => {
       },
     };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
+    CustomerMock.expects('findOne')
+      .withExactArgs({ _id: customerId, company: companyId })
       .chain('lean')
       .once()
       .returns(customer);
     const customerResult = cloneDeep(customer);
     customerResult.payment.iban = 'FR4717569000303461796573B36';
     CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .withExactArgs({ _id: customerId, company: companyId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const credentials = { company: { _id: companyId } };
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
@@ -630,7 +638,7 @@ describe('updateCustomer', () => {
     };
     const companyId = new ObjectID();
 
-    CustomerMock.expects('findById')
+    CustomerMock.expects('findOne')
       .withExactArgs({ _id: customerId, company: companyId })
       .chain('lean')
       .once()
@@ -660,6 +668,7 @@ describe('updateCustomer', () => {
 
   it('shouldn\'t update events if secondaryAddress is created', async () => {
     const customerId = 'qwertyuiop';
+    const companyId = new ObjectID();
     const payload = {
       contact: {
         secondaryAddress: {
@@ -675,8 +684,8 @@ describe('updateCustomer', () => {
       },
     };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
+    CustomerMock.expects('findOne')
+      .withExactArgs({ _id: customerId, company: companyId })
       .chain('lean')
       .once()
       .returns(customer);
@@ -684,12 +693,13 @@ describe('updateCustomer', () => {
     customerResult.contact.secondaryAddress = { fullAddress: '27 rue des renaudes 75017 Paris' };
 
     CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .withExactArgs({ _id: customerId, company: companyId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const credentials = { company: { _id: companyId } };
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(generateRum);
@@ -699,6 +709,7 @@ describe('updateCustomer', () => {
 
   it('should update events with primaryAddress if secondaryAddress is deleted', async () => {
     const customerId = 'qwertyuiop';
+    const companyId = new ObjectID();
     const payload = {
       contact: {
         secondaryAddress: {
@@ -717,8 +728,8 @@ describe('updateCustomer', () => {
       },
     };
 
-    CustomerMock.expects('findById')
-      .withExactArgs(customerId)
+    CustomerMock.expects('findOne')
+      .withExactArgs({ _id: customerId, company: companyId })
       .chain('lean')
       .once()
       .returns(customer);
@@ -726,12 +737,13 @@ describe('updateCustomer', () => {
     customerResult.contact.secondaryAddress = { fullAddress: '' };
 
     CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .withExactArgs({ _id: customerId, company: companyId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')
       .once()
       .returns(customerResult);
 
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+    const credentials = { company: { _id: companyId } };
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     sinon.assert.calledWith(
       updateMany,
@@ -746,6 +758,7 @@ describe('updateCustomer', () => {
 
   it('should update a customer', async () => {
     const customerId = 'qwertyuiop';
+    const companyId = new ObjectID();
     const customer = {
       identity: {
         firstname: 'Jake',
@@ -763,11 +776,13 @@ describe('updateCustomer', () => {
     customerResult.identity.firstname = 'Raymond';
     customerResult.identity.lastname = 'Holt';
     CustomerMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: customerId }, { $set: flat(payload, { safe: true }) }, { new: true })
+      .withExactArgs({ _id: customerId, company: companyId }, { $set: flat(payload, { safe: true }) }, { new: true })
       .chain('lean')
       .once()
       .returns(customerResult);
-    const result = await CustomerHelper.updateCustomer(customerId, payload);
+
+    const credentials = { company: { _id: companyId } };
+    const result = await CustomerHelper.updateCustomer(customerId, payload, credentials);
 
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);

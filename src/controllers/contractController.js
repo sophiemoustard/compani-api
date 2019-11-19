@@ -70,7 +70,7 @@ const remove = async (req) => {
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
-    if (contract.customer) await Customer.findOneAndUpdate({ _id: contract.customer, company: get(req, 'auth.credentials.company._id') }, { $pull: { contracts: contract._id } });
+    if (contract.customer) await Customer.findbyIdAndUpdate(contract.customer, { $pull: { contracts: contract._id } });
 
     return {
       message: translate[language].contractDeleted,
@@ -121,7 +121,6 @@ const removeContractVersion = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const { credentials } = req.auth;
     const allowedFields = ['signedContract', 'signedVersion'];
     const administrativeKeys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
     if (administrativeKeys.length === 0) return Boom.forbidden(translate[language].uploadNotAllowed);
@@ -135,7 +134,7 @@ const uploadFile = async (req) => {
     };
     const version = { customer: payload.customer, contractId: params._id, _id: payload.versionId, status: payload.status };
 
-    const uploadedFile = await createAndSaveFile(version, fileInfo, credentials);
+    const uploadedFile = await createAndSaveFile(version, fileInfo);
 
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
