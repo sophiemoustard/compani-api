@@ -26,9 +26,9 @@ const {
   exportCustomers,
   exportAuxiliaries,
   exportHelpers,
+  exportPayAndFinalPayHistory,
 } = require('../helpers/export');
 const { exportPaymentsHistory } = require('../helpers/payments');
-const { exportPayAndFinalPayHistory } = require('../helpers/pay');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {

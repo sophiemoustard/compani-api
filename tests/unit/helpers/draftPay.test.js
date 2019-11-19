@@ -48,6 +48,7 @@ describe('getMonthBusinessDaysCount', () => {
     mock.expects('getBusinessDaysCountBetweenTwoDates').once();
     DraftPayHelper.getMonthBusinessDaysCount(new Date('2019/05/18'));
 
+    mock.verify();
     mock.restore();
   });
 });
@@ -80,6 +81,7 @@ describe('getContractMonthInfo', () => {
     expect(result.contractHours).toBe(26);
     expect(result.workedDaysRatio).toBeDefined();
     expect(result.workedDaysRatio).toBe(1 / 4);
+    mock.verify();
   });
 
   it('Case 2. One version and sunday included', () => {
@@ -96,6 +98,7 @@ describe('getContractMonthInfo', () => {
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
+    mock.verify();
   });
 
   it('Case 3. Multiple versions', () => {
@@ -107,11 +110,12 @@ describe('getContractMonthInfo', () => {
     };
     const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
     mock.expects('getBusinessDaysCountBetweenTwoDates').twice();
-    mock.expects('getMonthBusinessDaysCount').twice();
+    mock.expects('getMonthBusinessDaysCount').once();
 
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
+    mock.verify();
   });
 });
 
@@ -1112,7 +1116,7 @@ describe('getPayFromAbsences', () => {
   });
 });
 
-describe('computePay', () => {
+describe('computeMonthBalance', () => {
   let getPayFromEvents;
   let getPayFromAbsences;
   let getContractMonthInfo;
@@ -1142,44 +1146,34 @@ describe('computePay', () => {
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
     const company = { rhConfig: { feeAmount: 37 } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const prevPay = { hoursCounter: 10, diff: 2 };
 
     getPayFromEvents.returns({ workedHours: 138, notSurchargedAndNotExempt: 15, surchargedAndNotExempt: 9 });
     getPayFromAbsences.returns(16);
     getContractMonthInfo.returns({ contractHours: 150, workedDaysRatio: 0.8 });
     getTransportRefund.returns(26.54);
 
-    const result = await DraftPayHelper.computePay(auxiliary, contract, events, prevPay, company, query, [], []);
+    const result = await DraftPayHelper.computeMonthBalance(auxiliary, contract, events, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
-      auxiliaryId: '1234567890',
-      auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
-      startDate: '2019-05-13T00:00:00',
-      endDate: '2019-05-31T23:59:59',
-      month: '05-2019',
       contractHours: 150,
       workedHours: 138,
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 4,
-      hoursCounter: 16,
-      overtimeHours: 0,
-      additionalHours: 0,
-      mutual: false,
       transport: 26.54,
       otherFees: 29.6,
-      bonus: 0,
+      hoursToWork: 134,
     });
   });
 });
 
 describe('getDraftPayByAuxiliary', () => {
-  let computePay;
+  let computeMonthBalance;
   beforeEach(() => {
-    computePay = sinon.stub(DraftPayHelper, 'computePay');
+    computeMonthBalance = sinon.stub(DraftPayHelper, 'computeMonthBalance');
   });
   afterEach(() => {
-    computePay.restore();
+    computeMonthBalance.restore();
   });
 
   it('should not return draft pay as auxiliary does not have company contracts', async () => {
@@ -1235,39 +1229,131 @@ describe('getDraftPayByAuxiliary', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = { hoursCounter: 10, diff: { hoursBalance: 2 } };
     const computedPay = {
-      auxiliaryId: '1234567890',
-      auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
-      startDate: '2019-05-13T00:00:00',
-      endDate: '2019-05-31T23:59:59',
-      month: '05-2019',
       contractHours: 150,
       workedHours: 138,
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,
       hoursBalance: 6,
       hoursCounter: 16,
-      overtimeHours: 0,
-      additionalHours: 0,
-      mutual: false,
       transport: 26.54,
       otherFees: 29.6,
       bonus: 0,
     };
-    computePay.returns(computedPay);
+    computeMonthBalance.returns(computedPay);
     const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, prevPay, company, query, [], []);
     expect(result).toBeDefined();
-    expect(result).toEqual(computedPay);
+    expect(result).toEqual({
+      ...computedPay,
+      diff: { hoursBalance: 2 },
+      previousMonthHoursCounter: 10,
+      auxiliaryId: '1234567890',
+      auxiliary: { _id: '1234567890', identity: { firstname: 'Hugo', lastname: 'Lloris' }, sector: { name: 'La ruche' } },
+      startDate: '2019-05-13T00:00:00',
+      endDate: '2019-05-31T23:59:59',
+      month: '05-2019',
+      mutual: false,
+      hoursCounter: 18,
+      overtimeHours: 0,
+      additionalHours: 0,
+    });
     sinon.assert.calledWith(
-      computePay,
+      computeMonthBalance,
       auxiliary,
       { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
       events,
-      prevPay,
       company,
       query,
       [],
       []
     );
+  });
+});
+
+describe('computePrevPayDiff', () => {
+  it('should compute previous pay if hours and prevPay are defined', () => {
+    const hours = {
+      surchargedAndExemptDetails: {
+        qwertyuiop: {
+          evenings: { hours: 23 },
+          saturdays: { hours: 23 },
+        },
+        asdfghjkl: { christmas: { hours: 5 } },
+      },
+    };
+    const prevPay = {
+      surchargedAndExemptDetails: [
+        {
+          planId: 'qwertyuiop',
+          evenings: { hours: 2 },
+          sundays: { hours: 3 },
+        },
+        { planId: 'zxcvbnm', evenings: { hours: 4 } },
+      ],
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: 21 },
+        saturdays: { hours: 23 },
+        sundays: { hours: -3 },
+      },
+      asdfghjkl: { christmas: { hours: 5 } },
+      zxcvbnm: { evenings: { hours: -4 } },
+    });
+  });
+
+  it('should compute previous pay if hours is defined but not prevPay', () => {
+    const hours = {
+      surchargedAndExemptDetails: {
+        qwertyuiop: {
+          evenings: { hours: 23 },
+          saturdays: { hours: 23 },
+        },
+        asdfghjkl: { christmas: { hours: 5 } },
+      },
+    };
+    const prevPay = {
+      surchargedAndExemptDetails: [],
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: 23 },
+        saturdays: { hours: 23 },
+      },
+      asdfghjkl: { christmas: { hours: 5 } },
+    });
+  });
+
+  it('should compute previous pay if prevPay is defined but not hours', () => {
+    const hours = {};
+    const prevPay = {
+      surchargedAndExemptDetails: [
+        {
+          planId: 'qwertyuiop',
+          evenings: { hours: 2 },
+          sundays: { hours: 3 },
+        },
+        { planId: 'zxcvbnm', evenings: { hours: 4 } },
+      ],
+    };
+    const detailType = 'surchargedAndExemptDetails';
+
+    const result = DraftPayHelper.computePrevPayDetailDiff(hours, prevPay, detailType);
+
+    expect(result).toEqual({
+      qwertyuiop: {
+        evenings: { hours: -2 },
+        sundays: { hours: -3 },
+      },
+      zxcvbnm: { evenings: { hours: -4 } },
+    });
   });
 });
 
@@ -1349,11 +1435,17 @@ describe('getDraftPay', () => {
   it('should return an empty array if no auxiliary', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     getAuxiliariesToPay.returns([]);
+    companyMock.expects('findOne').chain('lean').returns({});
+    surchargeMock.expects('find').chain('lean').returns([]);
+    distanceMatrixMock.expects('find').chain('lean').returns([]);
     const result = await DraftPayHelper.getDraftPay([], [], query);
 
     sinon.assert.notCalled(getPreviousMonthPay);
     expect(result).toBeDefined();
     expect(result).toEqual([]);
+    companyMock.verify();
+    surchargeMock.verify();
+    distanceMatrixMock.verify();
   });
 
   it('should return draft pay', async () => {
