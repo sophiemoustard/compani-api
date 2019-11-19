@@ -7,8 +7,8 @@ const UtilsHelper = require('./utils');
 const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES, CIVILITY_LIST } = require('./constants');
 const CustomerRepository = require('../repositories/CustomerRepository');
 
-exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
-  const customer = await Customer.findOne({ _id: customerId }).lean();
+exports.checkSubscriptionFunding = async (customerId, companyId, checkedFunding) => {
+  const customer = await Customer.findOne({ _id: customerId, company: companyId }).lean();
   if (!customer) return Boom.notFound('Error while checking subscription funding: customer not found.');
 
   if (!customer.fundings || customer.fundings.length === 0) return true;

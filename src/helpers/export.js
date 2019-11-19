@@ -324,8 +324,8 @@ const customerExportHeader = [
 const formatIdentity = person => `${person.firstname} ${person.lastname}`;
 
 exports.exportCustomers = async (credentials) => {
-  const customers = await Customer.find()
-    .populate({ path: 'subscriptions.service', match: { company: get(credentials, 'company._id', null) } })
+  const customers = await Customer.find({ company: get(credentials, 'company._id', null) })
+    .populate({ path: 'subscriptions.service' })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .populate({ path: 'referent', select: 'identity.firstname identity.lastname' })
     .lean();

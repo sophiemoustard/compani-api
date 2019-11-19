@@ -34,6 +34,7 @@ const {
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 const { getCustomer, authorizeCustomerDelete } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
+const { authorizeCustomerUpdate } = require('./preHandlers/customers');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -133,6 +134,7 @@ exports.plugin = {
             }),
           }),
         },
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: update,
     });
@@ -217,6 +219,7 @@ exports.plugin = {
         pre: [
           { method: getCustomer, assign: 'customer' },
           { method: authorizeCustomerDelete },
+          { method: authorizeCustomerUpdate },
         ],
       },
       handler: remove,
@@ -260,6 +263,7 @@ exports.plugin = {
             sundays: Joi.number(),
           },
         },
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateSubscription,
     });
@@ -275,6 +279,7 @@ exports.plugin = {
             subscriptionId: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: removeSubscription,
     });
@@ -304,6 +309,7 @@ exports.plugin = {
             mandateId: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateMandate,
     });
@@ -381,6 +387,7 @@ exports.plugin = {
             quoteId: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: removeCustomerQuote,
     });
@@ -451,6 +458,7 @@ exports.plugin = {
             }),
           }),
         },
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateCertificates,
     });
@@ -552,6 +560,7 @@ exports.plugin = {
             customerParticipationRate: Joi.number().default(0),
           }),
         },
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateFunding,
     });
@@ -567,6 +576,7 @@ exports.plugin = {
             fundingId: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: removeFunding,
     });

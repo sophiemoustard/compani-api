@@ -407,15 +407,16 @@ describe('exportCustomers', () => {
 
   it('should return csv header', async () => {
     const customers = [];
+    const companyId = new ObjectID();
     CustomerModel.expects('find')
-      .withExactArgs()
+      .withExactArgs({ company: companyId })
       .chain('populate')
       .chain('populate')
       .chain('lean')
       .once()
       .returns(customers);
 
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
@@ -453,14 +454,14 @@ describe('exportCustomers', () => {
       fundings: [{ _id: 'toto' }, { _id: 'lala' }],
       createdAt: '2012-12-12T00:00:00.000+00:00',
     }];
+    const companyId = new ObjectID();
     CustomerModel.expects('find')
-      .withExactArgs()
+      .withExactArgs({ company: companyId })
       .chain('populate')
       .chain('lean')
       .once()
       .returns(customers);
-
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
@@ -492,14 +493,15 @@ describe('exportCustomers', () => {
 
   it('should return empty strings if missing data', async () => {
     const customers = [{}];
+    const companyId = new ObjectID();
     CustomerModel.expects('find')
-      .withExactArgs()
+      .withExactArgs({ company: companyId })
       .chain('populate')
       .chain('lean')
       .once()
       .returns(customers);
 
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
