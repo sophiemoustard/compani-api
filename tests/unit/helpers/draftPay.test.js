@@ -1269,7 +1269,7 @@ describe('getDraftPayByAuxiliary', () => {
   });
 });
 
-describe('computePrevPayDiff', () => {
+describe('computePrevPayDetailDiff', () => {
   it('should compute previous pay if hours and prevPay are defined', () => {
     const hours = {
       surchargedAndExemptDetails: {
@@ -1353,6 +1353,112 @@ describe('computePrevPayDiff', () => {
         sundays: { hours: -3 },
       },
       zxcvbnm: { evenings: { hours: -4 } },
+    });
+  });
+});
+
+describe('computePrevPayDiff', () => {
+  let getContractMonthInfo;
+  let getPayFromEvents;
+  let getPayFromAbsences;
+  let computePrevPayDetailDiff;
+  beforeEach(() => {
+    getContractMonthInfo = sinon.stub(DraftPayHelper, 'getContractMonthInfo');
+    getPayFromEvents = sinon.stub(DraftPayHelper, 'getPayFromEvents');
+    getPayFromAbsences = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
+    computePrevPayDetailDiff = sinon.stub(DraftPayHelper, 'computePrevPayDetailDiff');
+  });
+  afterEach(() => {
+    getContractMonthInfo.restore();
+    getPayFromEvents.restore();
+    getPayFromAbsences.restore();
+    computePrevPayDetailDiff.restore();
+  });
+
+  it('should return diff without prevPay', async () => {
+    const query = { startDate: '2019-09-01T00:00:00' };
+    const auxiliary = { _id: '1234567890', contracts: [{ status: 'contract_with_company' }] };
+    const events = [{ _id: new ObjectID() }];
+
+    getContractMonthInfo.returns({ contractHours: 34 });
+    getPayFromEvents.returns({
+      workedHours: 24,
+      notSurchargedAndNotExempt: 12,
+      surchargedAndNotExempt: 3,
+      surchargedAndNotExemptDetails: {},
+      notSurchargedAndExempt: 6,
+      surchargedAndExempt: 3,
+      surchargedAndExemptDetails: {},
+    });
+    getPayFromAbsences.returns(5);
+    computePrevPayDetailDiff.returnsArg(2);
+
+    const result = await DraftPayHelper.computePrevPayDiff(auxiliary, events, null, query, [], []);
+
+    expect(result).toEqual({
+      auxiliary: '1234567890',
+      diff: {
+        hoursToWork: 29,
+        workedHours: 24,
+        notSurchargedAndNotExempt: 12,
+        surchargedAndNotExempt: 3,
+        surchargedAndNotExemptDetails: 'surchargedAndNotExemptDetails',
+        notSurchargedAndExempt: 6,
+        surchargedAndExempt: 3,
+        surchargedAndExemptDetails: 'surchargedAndExemptDetails',
+        hoursBalance: -5,
+      },
+      hoursCounter: 0,
+    });
+  });
+
+  it('should return diff with prevPay', async () => {
+    const query = { startDate: '2019-09-01T00:00:00' };
+    const auxiliary = { _id: '1234567890', contracts: [{ status: 'contract_with_company' }] };
+    const events = [{ _id: new ObjectID() }];
+    const prevPay = {
+      contractHours: 34,
+      hoursToWork: 27,
+      workedHours: 26,
+      notSurchargedAndNotExempt: 12,
+      surchargedAndNotExempt: 2,
+      surchargedAndNotExemptDetails: {},
+      notSurchargedAndExempt: 8,
+      surchargedAndExempt: 4,
+      surchargedAndExemptDetails: {},
+      hoursBalance: -1,
+      hoursCounter: 3,
+    };
+
+    getContractMonthInfo.returns({ contractHours: 34 });
+    getPayFromEvents.returns({
+      workedHours: 24,
+      notSurchargedAndNotExempt: 12,
+      surchargedAndNotExempt: 3,
+      surchargedAndNotExemptDetails: {},
+      notSurchargedAndExempt: 6,
+      surchargedAndExempt: 3,
+      surchargedAndExemptDetails: {},
+    });
+    getPayFromAbsences.returns(5);
+    computePrevPayDetailDiff.returnsArg(2);
+
+    const result = await DraftPayHelper.computePrevPayDiff(auxiliary, events, prevPay, query, [], []);
+
+    expect(result).toEqual({
+      auxiliary: '1234567890',
+      diff: {
+        hoursToWork: 2,
+        workedHours: -2,
+        notSurchargedAndNotExempt: 0,
+        surchargedAndNotExempt: 1,
+        surchargedAndNotExemptDetails: 'surchargedAndNotExemptDetails',
+        notSurchargedAndExempt: -2,
+        surchargedAndExempt: -1,
+        surchargedAndExemptDetails: 'surchargedAndExemptDetails',
+        hoursBalance: -4,
+      },
+      hoursCounter: 3,
     });
   });
 });

@@ -597,7 +597,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
       pay.endReason ? END_CONTRACT_REASONS[pay.endReason] : '',
       moment(pay.endDate).format('DD/MM/YYYY'),
       UtilsHelper.formatFloatForExport(pay.contractHours),
-      UtilsHelper.formatFloatForExport(pay.hoursToWork),
+      exports.formatHoursWithDiff(pay, 'hoursToWork'),
       exports.formatHoursWithDiff(pay, 'workedHours'),
       exports.formatHoursWithDiff(pay, 'notSurchargedAndExempt'),
       exports.formatHoursWithDiff(pay, 'surchargedAndExempt'),

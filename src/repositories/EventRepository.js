@@ -231,14 +231,11 @@ exports.getWorkingEventsForExport = async (startDate, endDate) => {
   ]);
 };
 
-exports.getAbsencesForExport = async (startDate, endDate, credentials) => {
+exports.getAbsencesForExport = async (start, end, credentials) => {
   const query = {
     type: ABSENCE,
-    $or: [
-      { startDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $lte: endDate, $gte: startDate } },
-      { endDate: { $gte: endDate }, startDate: { $lte: startDate } },
-    ],
+    startDate: { $lt: end },
+    endDate: { $gt: start },
   };
 
   return Event.find(query)
