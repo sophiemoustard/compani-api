@@ -44,6 +44,7 @@ exports.getFundingsMonitoring = async (req) => {
         .toDate(),
       moment().endOf('month').toDate()
     );
+
     const statsOnCareHours = getStatsOnCareHours(eventsGroupedByFundings);
 
     return {

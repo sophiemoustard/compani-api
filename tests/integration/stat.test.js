@@ -72,10 +72,10 @@ describe('GET /stats/customer-fundings-monitoring', () => {
       const prevMonth = moment().subtract(1, 'month').format('YYYY-MM');
 
       expect(res.statusCode).toBe(200);
-      expect(res.result[0]).toBeDefined();
-      expect(res.result[0].plannedCareHours).toBe(40);
-      expect(res.result[0][currentMonth]).toBe(6);
-      expect(res.result[0][prevMonth]).toBe(4);
+      expect(res.result.data.stats[0]).toBeDefined();
+      expect(res.result.data.stats[0].plannedCareHours).toBe(40);
+      expect(res.result.data.stats[0][currentMonth]).toBe(6);
+      expect(res.result.data.stats[0][prevMonth]).toBe(4);
     });
   });
 
