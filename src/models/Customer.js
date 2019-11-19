@@ -155,7 +155,6 @@ CustomerSchema.virtual('firstIntervention', {
   options: { sort: { startDate: 1 } },
 });
 
-CustomerSchema.pre('findOne', validateQuery);
 CustomerSchema.pre('find', validateQuery);
 CustomerSchema.pre('validate', validatePayload);
 CustomerSchema.pre('remove', removeCustomer);

@@ -74,7 +74,7 @@ const listBySector = async (req) => {
 
 const listWithBilledEvents = async (req) => {
   try {
-    const customers = await getCustomersWithBilledEvents(req.auth.credentials);
+    const customers = await getCustomersWithBilledEvents();
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -173,7 +173,7 @@ const update = async (req) => {
 const updateSubscription = async (req) => {
   try {
     const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId, company: _.get(req, 'auth.credentials.company._id', null) },
+      { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
       { $push: { 'subscriptions.$.versions': req.payload } },
       {
         new: true,
@@ -208,18 +208,18 @@ const addSubscription = async (req) => {
   try {
     const companyId = _.get(req, 'auth.credentials.company._id', null);
     const serviceId = req.payload.service;
-    const subscribedService = await Service.findOne({ _id: serviceId, company: companyId });
+    const subscribedService = await Service.findById(serviceId);
 
     if (!subscribedService) return Boom.notFound(translate[language].serviceNotFound);
 
-    const customer = await Customer.findOne({ _id: req.params._id, company: companyId });
+    const customer = await Customer.findById(req.params._id);
     if (customer.subscriptions && customer.subscriptions.length > 0) {
       const isServiceAlreadySubscribed = customer.subscriptions.find(subscription => subscription.service.toHexString() === serviceId);
       if (isServiceAlreadySubscribed) return Boom.conflict(translate[language].serviceAlreadySubscribed);
     }
 
-    const updatedCustomer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, company: companyId },
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      { _id: req.params._id },
       { $push: { subscriptions: req.payload } },
       {
         new: true,
@@ -251,8 +251,8 @@ const addSubscription = async (req) => {
 
 const removeSubscription = async (req) => {
   try {
-    await Customer.findOneAndUpdate(
-      { _id: req.params._id, company: _.get(req, 'auth.credentials.company._id', null) },
+    await Customer.findByIdAndUpdate(
+      { _id: req.params._id },
       { $pull: { subscriptions: { _id: req.params.subscriptionId } } },
       {
         select: {
@@ -274,12 +274,10 @@ const removeSubscription = async (req) => {
 
 const getMandates = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id');
     const customer = await Customer.findOne(
       {
         _id: req.params._id,
         subscriptions: { $exists: true },
-        company: companyId,
       },
       { 'identity.firstname': 1, 'identity.lastname': 1, 'payment.mandates': 1 },
       { autopopulate: false }
@@ -306,7 +304,7 @@ const updateMandate = async (req) => {
   try {
     const payload = { 'payment.mandates.$': { ...req.payload } };
     const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'payment.mandates._id': req.params.mandateId, company: _.get(req, 'auth.credentials.company._id') },
+      { _id: req.params._id, 'payment.mandates._id': req.params.mandateId },
       { $set: flat(payload) },
       {
         new: true,
@@ -334,8 +332,7 @@ const updateMandate = async (req) => {
 
 const generateMandateSignatureRequest = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id');
-    const customer = await Customer.findOne({ _id: req.params._id, company: companyId });
+    const customer = await Customer.findById(req.params._id);
     if (!customer) return Boom.notFound();
 
     const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
@@ -368,9 +365,8 @@ const generateMandateSignatureRequest = async (req) => {
 
 const getCustomerQuotes = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
     const quotes = await Customer.findOne(
-      { _id: req.params._id, quotes: { $exists: true }, company: companyId },
+      { _id: req.params._id, quotes: { $exists: true } },
       {
         'identity.firstname': 1,
         'identity.lastname': 1,
@@ -394,13 +390,12 @@ const getCustomerQuotes = async (req) => {
 
 const createCustomerQuote = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
     const query = { quoteNumber: { prefix: `DEV${moment().format('MMYY')}` } };
     const payload = { quoteNumber: { seq: 1 } };
     const number = await QuoteNumber.findOneAndUpdate(flat(query), { $inc: flat(payload) }, { new: true, upsert: true, setDefaultsOnInsert: true });
     const quoteNumber = `${number.quoteNumber.prefix}-${number.quoteNumber.seq.toString().padStart(3, '0')}`;
     req.payload.quoteNumber = quoteNumber;
-    const newQuote = await Customer.findOneAndUpdate({ _id: req.params._id, company: companyId }, { $push: { quotes: req.payload } }, {
+    const newQuote = await Customer.findByIdAndUpdate({ _id: req.params._id }, { $push: { quotes: req.payload } }, {
       new: true,
       select: {
         'identity.firstname': 1,
@@ -424,9 +419,8 @@ const createCustomerQuote = async (req) => {
 
 const removeCustomerQuote = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id');
     const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'quotes._id': req.params.quoteId, company: companyId },
+      { _id: req.params._id, 'quotes._id': req.params.quoteId },
       { $pull: { quotes: { _id: req.params.quoteId } } },
       {
         select: { firstname: 1, lastname: 1, quotes: 1 },
@@ -447,9 +441,8 @@ const removeCustomerQuote = async (req) => {
 
 const createDriveFolder = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
-    const customer = await Customer.findOne(
-      { _id: req.params._id, company: companyId },
+    const customer = await Customer.findById(
+      { _id: req.params._id },
       { 'identity.firstname': 1, 'identity.lastname': 1 }
     );
 
@@ -480,8 +473,7 @@ const createDriveFolder = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
-    const customer = Customer.findOne({ _id: req.params._id, company: companyId });
+    const customer = Customer.findById(req.params._id);
     if (!customer) return Boom.forbidden();
 
     const allowedFields = ['financialCertificates'];
@@ -507,8 +499,8 @@ const uploadFile = async (req) => {
 
 const updateCertificates = async (req) => {
   try {
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, company: _.get(req, 'auth.credentials.company,._id') },
+    const customer = await Customer.findByIdAndUpdate(
+      { _id: req.params._id },
       { $pull: req.payload },
       {
         select: { firstname: 1, lastname: 1, financialCertificates: 1 },
@@ -531,8 +523,7 @@ const updateCertificates = async (req) => {
 
 const saveSignedMandate = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id');
-    const customer = await Customer.findOne({ _id: req.params._id, company: companyId });
+    const customer = await Customer.findById(req.params._id);
     if (!customer) {
       return Boom.notFound();
     }
@@ -574,8 +565,7 @@ const saveSignedMandate = async (req) => {
 
 const createHistorySubscription = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id');
-    const customer = await Customer.findOneAndUpdate({ _id: req.params._id, company: companyId }, { $push: { subscriptionsHistory: req.payload } }, {
+    const customer = await Customer.findByIdAndUpdate({ _id: req.params._id }, { $push: { subscriptionsHistory: req.payload } }, {
       new: true,
       select: {
         'identity.firstname': 1,
@@ -599,11 +589,10 @@ const createHistorySubscription = async (req) => {
 
 const createFunding = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id');
-    const check = await checkSubscriptionFunding(req.params._id, companyId, req.payload);
+    const check = await checkSubscriptionFunding(req.params._id, req.payload);
     if (!check) return Boom.conflict(translate[language].customerFundingConflict);
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, company: companyId },
+    const customer = await Customer.findByIdAndUpdate(
+      { _id: req.params._id },
       { $push: { fundings: req.payload } },
       {
         new: true,
@@ -641,7 +630,7 @@ const updateFunding = async (req) => {
       if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     }
     const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'fundings._id': req.params.fundingId, company: _.get(req, 'auth.credentials.company._id') },
+      { _id: req.params._id, 'fundings._id': req.params.fundingId },
       { $push: { 'fundings.$.versions': req.payload } },
       {
         new: true,
@@ -673,8 +662,8 @@ const updateFunding = async (req) => {
 
 const removeFunding = async (req) => {
   try {
-    await Customer.findOneAndUpdate(
-      { _id: req.params._id, company: _.get(req, 'auth.credentials.company._id', null) },
+    await Customer.findByIdAndUpdate(
+      { _id: req.params._id },
       { $pull: { fundings: { _id: req.params.fundingId } } },
       {
         select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },

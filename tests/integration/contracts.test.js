@@ -129,7 +129,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(response.result.data.contract).toBeDefined();
       const contracts = await Contract.find({});
       expect(contracts.length).toEqual(contractsList.length + 1);
-      const customer = await Customer.findOne({ _id: contractCustomer._id, company: authCompany._id });
+      const customer = await Customer.findById(contractCustomer._id);
       expect(customer).toBeDefined();
       expect(customer.contracts).toContainEqual(response.result.data.contract._id);
     });

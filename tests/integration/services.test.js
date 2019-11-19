@@ -143,7 +143,7 @@ describe('SERVICES ROUTES', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.service.versions).toBeDefined();
       expect(response.result.data.service.versions.length).toBe(servicesList[0].versions.length + 1);
-      const service = await Service.findOne(servicesList[0]._id);
+      const service = await Service.findOne({ _id: servicesList[0]._id, company: authCompany._id });
       expect(response.result.data.service.versions.length).toBe(service.versions.length);
     });
 

@@ -338,7 +338,7 @@ describe('CUSTOMERS ROUTES', () => {
           lastname: updatePayload.identity.lastname,
         }),
       }));
-      const updatedCustomer = await Customer.findOne({ _id: customersList[0]._id, company: authCompany._id });
+      const updatedCustomer = await Customer.findById(customersList[0]._id);
       expect(updatedCustomer).toEqual(expect.objectContaining({
         identity: expect.objectContaining({
           firstname: updatePayload.identity.firstname,
@@ -900,7 +900,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       expect(res.result.data.signatureRequest).toEqual(expect.objectContaining({
         embeddedUrl: expect.any(String),
       }));
-      const customer = await Customer.findOne({ _id: customerId, company: authCompany._id });
+      const customer = await Customer.findById(customerId);
       expect(customer.payment.mandates[0].everSignId).toBeDefined();
     });
 
@@ -1064,7 +1064,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      const customer = await Customer.findOne({ _id: customersList[0]._id, company: authCompany._id });
+      const customer = await Customer.findById(customersList[0]._id);
       expect(customer.quotes.length).toBe(customersList[0].quotes.length - 1);
     });
     it('should return a 404 error if user is not found', async () => {
