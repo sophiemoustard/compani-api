@@ -46,6 +46,25 @@ exports.getFundingMonitoring = async (customerId) => {
       },
     },
     { $unwind: { path: '$fundings.service' } },
+    {
+      $project: {
+        _id: 1,
+        subscriptions: {
+          _id: 1,
+        },
+        fundings: {
+          thirdPartyPayer: {
+            name: 1,
+          },
+          versions: 1,
+          service: {
+            versions: {
+              name: 1,
+            },
+          },
+        },
+      },
+    },
   ];
 
   const matchAndPopulateEvents = [
