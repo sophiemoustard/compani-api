@@ -3,7 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { getCustomerFollowUp, getFundingMonitoring } = require('../controllers/statController');
+const { getCustomerFollowUp, getFundingsMonitoring } = require('../controllers/statController');
 
 exports.plugin = {
   name: 'routes-stats',
@@ -33,7 +33,7 @@ exports.plugin = {
           },
         },
       },
-      handler: getFundingMonitoring,
+      handler: getFundingsMonitoring,
     });
   },
 };

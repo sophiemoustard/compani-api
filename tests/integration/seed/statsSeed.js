@@ -67,8 +67,8 @@ const customerList = [
       thirdPartyPayer: tppId,
       versions: [{
         _id: new ObjectID(),
-        startDate: moment().startOf('month').subtract(2, 'months'),
-        createdAt: moment().startOf('month').subtract(2, 'months'),
+        startDate: moment().startOf('month').subtract(2, 'months').toISOString(),
+        createdAt: moment().startOf('month').subtract(2, 'months').toISOString(),
         unitTTCRate: 20,
         customerParticipationRate: 60,
         careHours: 40,
@@ -119,12 +119,14 @@ const eventListForFundingsMonitoring = [
       .startOf('month')
       .add('15', 'days')
       .day(0)
-      .hour('12'),
+      .hour('12')
+      .toISOString(),
     endDate: moment()
       .startOf('month')
       .add('15', 'days')
       .day(0)
-      .hour('14'),
+      .hour('14')
+      .toISOString(),
   },
   {
     _id: new ObjectID(),
@@ -136,12 +138,14 @@ const eventListForFundingsMonitoring = [
       .startOf('month')
       .add('15', 'days')
       .day(2)
-      .hour('12'),
+      .hour('12')
+      .toISOString(),
     endDate: moment()
       .startOf('month')
       .add('15', 'days')
       .day(2)
-      .hour('15'),
+      .hour('15')
+      .toISOString(),
   },
   {
     _id: new ObjectID(),
@@ -153,12 +157,14 @@ const eventListForFundingsMonitoring = [
       .startOf('month')
       .add('15', 'days')
       .day(6)
-      .hour('8'),
+      .hour('8')
+      .toISOString(),
     endDate: moment()
       .startOf('month')
       .add('15', 'days')
       .day(6)
-      .hour('10'),
+      .hour('10')
+      .toISOString(),
   },
   {
     _id: new ObjectID(),
@@ -170,12 +176,14 @@ const eventListForFundingsMonitoring = [
       .startOf('month')
       .add('15', 'days')
       .day(0)
-      .hour('13'),
+      .hour('13')
+      .toISOString(),
     endDate: moment()
       .startOf('month')
       .add('15', 'days')
       .day(0)
-      .hour('14'),
+      .hour('14')
+      .toISOString(),
   },
   {
     _id: new ObjectID(),
@@ -188,13 +196,15 @@ const eventListForFundingsMonitoring = [
       .subtract(1, 'months')
       .add('15', 'days')
       .day(2)
-      .hour('10'),
+      .hour('10')
+      .toISOString(),
     endDate: moment()
       .startOf('month')
       .add('15', 'days')
       .subtract(1, 'months')
       .day(2)
-      .hour('14'),
+      .hour('14')
+      .toISOString(),
   },
 ];
 

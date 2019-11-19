@@ -73,7 +73,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result[0]).toBeDefined();
-      expect(res.result[0].possibleCareHours).toBe(40);
+      expect(res.result[0].plannedCareHours).toBe(40);
       expect(res.result[0][currentMonth]).toBe(6);
       expect(res.result[0][prevMonth]).toBe(4);
     });

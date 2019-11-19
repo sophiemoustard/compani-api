@@ -1,9 +1,8 @@
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
 const Customer = require('../models/Customer');
-const { HOURLY, MONTHLY } = require('../helpers/constants');
+const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID } = require('../helpers/constants');
 
-exports.getFundingMonitoring = async (customerId) => {
+exports.getEventsGroupedByFundings = async (customerId, fundingsMaxStartDate, fundingsMinEndDate, eventsMinStartDate, eventsMaxStartDate) => {
   const matchAndPopulateFundings = [
     {
       $match:
@@ -15,10 +14,10 @@ exports.getFundingMonitoring = async (customerId) => {
             nature: HOURLY,
             versions: {
               $elemMatch: {
-                startDate: { $lte: moment().endOf('month').toDate() },
+                startDate: { $lte: fundingsMaxStartDate },
                 $or: [
                   { endDate: { $exists: false } },
-                  { endDate: { $gte: moment().startOf('month').toDate() } },
+                  { endDate: { $gte: fundingsMinEndDate } },
                 ],
               },
             },
@@ -38,30 +37,12 @@ exports.getFundingMonitoring = async (customerId) => {
     { $unwind: { path: '$fundings.thirdPartyPayer' } },
     { $unwind: { path: '$subscriptions' } },
     {
-      $lookup: {
-        from: 'services',
-        localField: 'subscriptions.service',
-        foreignField: '_id',
-        as: 'fundings.service',
-      },
-    },
-    { $unwind: { path: '$fundings.service' } },
-    {
       $project: {
         _id: 1,
-        subscriptions: {
-          _id: 1,
-        },
+        subscriptions: { _id: 1 },
         fundings: {
-          thirdPartyPayer: {
-            name: 1,
-          },
+          thirdPartyPayer: { name: 1 },
           versions: 1,
-          service: {
-            versions: {
-              name: 1,
-            },
-          },
         },
       },
     },
@@ -72,10 +53,7 @@ exports.getFundingMonitoring = async (customerId) => {
       $lookup: {
         from: 'events',
         as: 'events',
-        let: {
-          subscriptionId: '$subscriptions._id',
-          customerId: '$_id',
-        },
+        let: { subscriptionId: '$subscriptions._id', customerId: '$_id' },
         pipeline: [
           {
             $match: {
@@ -85,15 +63,17 @@ exports.getFundingMonitoring = async (customerId) => {
                   { $eq: ['$subscription', '$$subscriptionId'] },
                   { $eq: ['$type', 'intervention'] },
                   {
-                    $gt: [
-                      '$startDate', moment()
-                        .subtract(2, 'month')
-                        .endOf('month')
-                        .endOf('day')
-                        .toDate(),
+                    $gt: ['$startDate', eventsMinStartDate],
+                  },
+                  { $lte: ['$startDate', eventsMaxStartDate] },
+                  {
+                    $or: [
+                      ['$isCancelled', false],
+                      ['$isCancelled', ['$exists', false]],
+                      ['$cancel.condition', INVOICED_AND_PAID],
+                      ['$cancel.condition', INVOICED_AND_NOT_PAID],
                     ],
                   },
-                  { $lte: ['$startDate', moment().endOf('month').toDate()] },
                 ],
               },
             },
