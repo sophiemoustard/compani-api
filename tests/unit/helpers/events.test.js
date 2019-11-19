@@ -885,155 +885,159 @@ describe('deleteEvents', () => {
     sinon.assert.callCount(createEventHistoryOnDelete, events.length);
     sinon.assert.calledWith(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
   });
+});
 
-  describe('isMiscOnlyUpdated', () => {
-    it('should return true if event misc field is the only one being updated (assigned intervention)', () => {
-      const event = {
-        status: INTERVENTION,
-        sector: new ObjectID(),
-        auxiliary: new ObjectID(),
-        subscription: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: event.sector.toHexString(),
-        auxiliary: event.auxiliary.toHexString(),
-        subscription: event.subscription.toHexString(),
-        misc: 'Test',
-      };
+describe('isMiscOnlyUpdated', () => {
+  it('should return true if event misc field is the only one being updated (assigned intervention)', () => {
+    const event = {
+      status: INTERVENTION,
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      subscription: event.subscription.toHexString(),
+      misc: 'Test',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+  });
 
-    it('should return true if event misc field is the only one being updated (unassigned intervention)', () => {
-      const event = {
-        status: INTERVENTION,
-        sector: new ObjectID(),
-        subscription: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-        misc: 'Test',
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: event.sector.toHexString(),
-        subscription: event.subscription.toHexString(),
-        misc: '',
-      };
+  it('should return true if event misc field is the only one being updated (unassigned intervention)', () => {
+    const event = {
+      status: INTERVENTION,
+      sector: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      misc: 'Test',
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: event.sector.toHexString(),
+      subscription: event.subscription.toHexString(),
+      misc: '',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+  });
 
-    it('should return true if event misc field is the only one being updated (unavailability)', () => {
-      const event = {
-        status: UNAVAILABILITY,
-        sector: new ObjectID(),
-        auxiliary: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-        misc: '',
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: event.sector.toHexString(),
-        auxiliary: event.auxiliary.toHexString(),
-        misc: 'Test',
-      };
+  it('should return true if event misc field is the only one being updated (unavailability)', () => {
+    const event = {
+      status: UNAVAILABILITY,
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      misc: '',
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      misc: 'Test',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+  });
 
-    it('should return false if event misc field is not the only one being updated (assigned intervention)', () => {
-      const event = {
-        status: INTERVENTION,
-        sector: new ObjectID(),
-        auxiliary: new ObjectID(),
-        subscription: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: event.sector.toHexString(),
-        auxiliary: new ObjectID().toHexString(),
-        subscription: event.subscription.toHexString(),
-        misc: 'Test',
-      };
+  it('should return false if event misc field is not the only one being updated (assigned intervention)', () => {
+    const event = {
+      status: INTERVENTION,
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: event.sector.toHexString(),
+      auxiliary: new ObjectID().toHexString(),
+      subscription: event.subscription.toHexString(),
+      misc: 'Test',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+  });
 
-    it('should return false if event misc field is not the only one being updated (unassigned intervention)', () => {
-      const event = {
-        status: INTERVENTION,
-        sector: new ObjectID(),
-        subscription: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-        misc: 'Test',
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: new ObjectID().toHexString(),
-        subscription: event.subscription.toHexString(),
-        misc: '',
-      };
+  it('should return false if event misc field is not the only one being updated (unassigned intervention)', () => {
+    const event = {
+      status: INTERVENTION,
+      sector: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      misc: 'Test',
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: new ObjectID().toHexString(),
+      subscription: event.subscription.toHexString(),
+      misc: '',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+  });
 
-    it('should return false if event misc field is not the only one being updated (unavailability)', () => {
-      const event = {
-        status: UNAVAILABILITY,
-        sector: new ObjectID(),
-        auxiliary: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-        misc: '',
-      };
-      const updatedEventPayload = {
-        ...event,
-        startDate: '2019-01-22T09:30:00',
-        endDate: '2019-01-22T11:30:00',
-        sector: event.sector.toHexString(),
-        auxiliary: event.auxiliary.toHexString(),
-        misc: 'Test',
-      };
+  it('should return false if event misc field is not the only one being updated (unavailability)', () => {
+    const event = {
+      status: UNAVAILABILITY,
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      misc: '',
+    };
+    const updatedEventPayload = {
+      ...event,
+      startDate: '2019-01-22T09:30:00',
+      endDate: '2019-01-22T11:30:00',
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      misc: 'Test',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
   });
 });
 
 describe('updateEventsInternalHourType', () => {
+  let updateMany;
+  beforeEach(() => {
+    updateMany = sinon.stub(Event, 'updateMany');
+  });
+  afterEach(() => {
+    updateMany.restore();
+  });
+
   it('should update internal hours events', async () => {
     const internalHour = { _id: new ObjectID() };
     const defaultInternalHourId = new ObjectID();
-    const updateManyMock = sinon.mock(Event);
     const eventsStartDate = '2019-01-21T09:30:00';
-
-    updateManyMock
-      .expects('updateMany')
-      .withArgs(
-        {
-          type: INTERNAL_HOUR,
-          internalHour: internalHour._id,
-          startDate: { $gte: eventsStartDate },
-        },
-        { $set: { internalHour: defaultInternalHourId } }
-      );
 
     await EventHelper.updateEventsInternalHourType(eventsStartDate, internalHour._id, defaultInternalHourId);
 
-    updateManyMock.verify();
-    updateManyMock.restore();
+    sinon.assert.calledOnce(updateMany);
+    sinon.assert.calledWith(
+      updateMany,
+      {
+        type: INTERNAL_HOUR,
+        internalHour: internalHour._id,
+        startDate: { $gte: eventsStartDate },
+      },
+      { $set: { internalHour: defaultInternalHourId } }
+    );
   });
 });

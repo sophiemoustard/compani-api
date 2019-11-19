@@ -231,8 +231,6 @@ describe('INTERNAL HOURS ROUTES', () => {
 
       it('should delete an internal hour', async () => {
         const internalHour = authInternalHoursList[1];
-        const defaultInternalHour = authInternalHoursList.find(ih => ih.default);
-        const updateEventsInternalHourTypeStub = sinon.stub(EventsHelper, 'updateEventsInternalHourType');
 
         const response = await app.inject({
           method: 'DELETE',
@@ -240,7 +238,6 @@ describe('INTERNAL HOURS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(200);
-        sinon.assert.calledWith(updateEventsInternalHourTypeStub, sinon.match.date, internalHour._id, defaultInternalHour._id);
       });
 
       it('should return 403 if default internal hour', async () => {
