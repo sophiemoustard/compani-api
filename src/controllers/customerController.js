@@ -153,7 +153,7 @@ const remove = async (req) => {
 
 const update = async (req) => {
   try {
-    const customerUpdated = await updateCustomer(req.params._id, req.payload, req.auth.credentials);
+    const customerUpdated = await updateCustomer(req.params._id, req.payload);
 
     if (!customerUpdated) {
       return Boom.notFound(translate[language].customerNotFound);

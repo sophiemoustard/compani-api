@@ -146,7 +146,7 @@ exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
   { $unset: { referent: '' } }
 );
 
-exports.updateCustomer = async (customerId, customerPayload, credentials) => {
+exports.updateCustomer = async (customerId, customerPayload) => {
   let payload;
   if (customerPayload.referent === '') {
     payload = { $unset: { referent: '' } };
