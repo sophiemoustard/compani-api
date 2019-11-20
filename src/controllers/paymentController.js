@@ -47,7 +47,7 @@ const create = async (req) => {
 
 const createList = async (req, h) => {
   try {
-    const payments = await savePayments(req.payload, req.auth.credentials.company);
+    const [payments] = await savePayments(req.payload, req.auth.credentials.company);
     return h.file(payments, { confine: false });
   } catch (e) {
     req.log('error', e);
