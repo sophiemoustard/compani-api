@@ -18,9 +18,12 @@ const surchargedDetails = [{
 }];
 
 const hoursBalanceDetails = {
+  absencesHours: { type: Number, required: true },
   hoursBalance: { type: Number, required: true },
+  internalHours: { type: Number, required: true },
   notSurchargedAndNotExempt: { type: Number, required: true },
   notSurchargedAndExempt: { type: Number, required: true },
+  paidTransportHours: { type: Number, required: true },
   surchargedAndExempt: { type: Number, required: true },
   surchargedAndExemptDetails: surchargedDetails,
   surchargedAndNotExempt: { type: Number, required: true },

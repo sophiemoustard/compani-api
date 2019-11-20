@@ -55,5 +55,5 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const query = { startDate: startDate.toDate(), endDate: endDate.toDate() };
   const detail = await DraftPayHelper.computeDraftPayByAuxiliary([auxiliary], query, credentials);
 
-  return detail;
+  return detail ? detail[0] : null;
 };

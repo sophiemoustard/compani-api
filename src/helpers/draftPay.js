@@ -412,7 +412,10 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
     auxiliary: auxiliary._id,
     diff: {
       hoursToWork: Math.round((prevPay ? hoursToWork - prevPay.hoursToWork : hoursToWork) * 100) / 100,
+      absencesHours: Math.round((prevPay ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100,
       workedHours: getDiff(prevPay, hours, 'workedHours'),
+      internalHours: getDiff(prevPay, hours, 'internalHours'),
+      paidTransportHours: getDiff(prevPay, hours, 'paidTransportHours'),
       notSurchargedAndNotExempt: getDiff(prevPay, hours, 'notSurchargedAndNotExempt'),
       surchargedAndNotExempt: getDiff(prevPay, hours, 'surchargedAndNotExempt'),
       surchargedAndNotExemptDetails: exports.computePrevPayDetailDiff(hours, prevPay, 'surchargedAndNotExemptDetails'),

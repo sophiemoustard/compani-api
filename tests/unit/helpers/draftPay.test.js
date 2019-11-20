@@ -1543,6 +1543,8 @@ describe('computePrevPayDiff', () => {
       notSurchargedAndExempt: 6,
       surchargedAndExempt: 3,
       surchargedAndExemptDetails: {},
+      internalHours: 0,
+      paidTransportHours: 0,
     });
     getPayFromAbsences.returns(5);
     computePrevPayDetailDiff.returnsArg(2);
@@ -1552,6 +1554,9 @@ describe('computePrevPayDiff', () => {
     expect(result).toEqual({
       auxiliary: '1234567890',
       diff: {
+        absencesHours: 5,
+        internalHours: 0,
+        paidTransportHours: 0,
         hoursToWork: 29,
         workedHours: 24,
         notSurchargedAndNotExempt: 12,
@@ -1582,6 +1587,9 @@ describe('computePrevPayDiff', () => {
       surchargedAndExemptDetails: {},
       hoursBalance: -1,
       hoursCounter: 3,
+      absencesHours: 0,
+      internalHours: 1,
+      paidTransportHours: 3,
     };
 
     getContractMonthInfo.returns({ contractHours: 34 });
@@ -1593,6 +1601,8 @@ describe('computePrevPayDiff', () => {
       notSurchargedAndExempt: 6,
       surchargedAndExempt: 3,
       surchargedAndExemptDetails: {},
+      internalHours: 2,
+      paidTransportHours: 4,
     });
     getPayFromAbsences.returns(5);
     computePrevPayDetailDiff.returnsArg(2);
@@ -1611,6 +1621,9 @@ describe('computePrevPayDiff', () => {
         surchargedAndExempt: -1,
         surchargedAndExemptDetails: 'surchargedAndExemptDetails',
         hoursBalance: -4,
+        internalHours: 1,
+        paidTransportHours: 1,
+        absencesHours: 5,
       },
       hoursCounter: 3,
     });
