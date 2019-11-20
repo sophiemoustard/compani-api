@@ -9,11 +9,13 @@ const app = require('../../server');
 const User = require('../../src/models/User');
 const Drive = require('../../src/models/Google/Drive');
 const {
-  userList,
+  usersSeedList,
   userPayload,
   populateDB,
+  isExistingRole,
+  isInList,
 } = require('./seed/usersSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, userList, getTokenByCredentials } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
@@ -206,6 +208,7 @@ describe('USERS ROUTES', () => {
         email: 'white@alenvi.io',
         password: '123456',
       };
+      await User.findOneAndUpdate({ 'local.email': 'white@alenvi.io' }, { $unset: { refreshToken: '' } });
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
@@ -221,25 +224,58 @@ describe('USERS ROUTES', () => {
       beforeEach(async () => {
         authToken = await getToken('admin');
       });
-      it('should get all users', async () => {
+
+      it('should get all users (company A)', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/users',
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users.length).toBeGreaterThan(0);
+        expect(res.result.data.users.length).toBe(userList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
       });
 
-      it('should get all coachs users', async () => {
+      it('should get all users (company B)', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(usersSeedList.length);
+        expect(res.result.data.users[0]).toHaveProperty('role');
+        expect(res.result.data.users[0].role._id.toHexString()).toEqual(expect.any(String));
+      });
+
+      it('should get all coachs users (company A)', async () => {
+        const coachUsers = userList.filter(u => isExistingRole(u.role, 'coach'));
+
         const res = await app.inject({
           method: 'GET',
           url: '/users?role=coach',
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(coachUsers.length);
+        expect(res.result.data.users[0]).toHaveProperty('role');
+        expect(res.result.data.users[0].role.name).toEqual('coach');
+      });
+
+      it('should get all coachs users (company B)', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+        const coachUsers = usersSeedList.filter(u => isExistingRole(u.role, 'coach'));
+
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users?role=coach',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(coachUsers.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.name).toEqual('coach');
       });
@@ -282,18 +318,51 @@ describe('USERS ROUTES', () => {
       beforeEach(async () => {
         authToken = await getToken('admin');
       });
-      it('should get all active users', async () => {
+
+      it('should get all active users (company A)', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/users/active',
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users[0]).toHaveProperty('isActive');
+        const activeUsers = userList.filter(u => isInList(res.result.data.users, u));
+        expect(res.result.data.users.length).toBe(activeUsers.length);
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({ isActive: true }),
+        ]));
         expect(res.result.data.users[0].isActive).toBeTruthy();
       });
 
-      it('should get all active auxiliary users', async () => {
+      it('should get all active users (company B)', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/active',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        const activeUsers = usersSeedList.filter(u => isInList(res.result.data.users, u));
+        expect(res.result.data.users.length).toBe(activeUsers.length);
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({ isActive: true }),
+        ]));
+        expect(res.result.data.users[0].isActive).toBeTruthy();
+      });
+
+      it('should get all active auxiliary users (company A)', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/active?role=auxiliary',
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        const activeUsers = userList.filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role, 'auxiliary'));
+        expect(res.result.data.users.length).toBe(activeUsers.length);
+      });
+
+      it('should get all active auxiliary users (company B)', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/users/active?role=auxiliary',
@@ -333,22 +402,23 @@ describe('USERS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin', usersSeedList);
       });
       it('should return user', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: `/users/${userList[0]._id.toHexString()}`,
+          url: `/users/${usersSeedList[0]._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.user).toBeDefined();
         expect(res.result.data.user).toEqual(expect.objectContaining({
           identity: expect.objectContaining({
-            firstname: userList[0].identity.firstname,
-            lastname: userList[0].identity.lastname,
+            firstname: usersSeedList[0].identity.firstname,
+            lastname: usersSeedList[0].identity.lastname,
           }),
-          local: expect.objectContaining({ email: userList[0].local.email }),
+          local: expect.objectContaining({ email: usersSeedList[0].local.email }),
           role: expect.objectContaining({ name: 'auxiliary' }),
         }));
       });
@@ -360,37 +430,49 @@ describe('USERS ROUTES', () => {
           url: `/users/${id}`,
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(404);
+      });
+
+      it('should return a 403 error if user is not from same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${userList[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
       });
     });
 
     describe('Other roles', () => {
+      it('should return user if it is me', async () => {
+        authToken = await getToken('auxiliary', usersSeedList);
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/users/${usersSeedList[0]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        {
-          name: 'self user',
-          expectedCode: 200,
-          customCredentials: { scope: [`user-${userList[0]._id.toHexString()}`] },
-        },
         { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
+          authToken = await getToken(role.name, usersSeedList);
+
+          const response = await app.inject({
             method: 'GET',
-            url: `/users/${userList[0]._id.toHexString()}`,
-          };
-
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-          }
-
-          const response = await app.inject(request);
+            url: `/users/${usersSeedList[1]._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
@@ -412,26 +494,26 @@ describe('USERS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin', usersSeedList);
       });
       it('should update the user', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/users/${userList[0]._id.toHexString()}`,
+          url: `/users/${usersSeedList[0]._id.toHexString()}`,
           payload: updatePayload,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.userUpdated).toBeDefined();
-        expect(res.result.data.userUpdated).toMatchObject({
-          _id: userList[0]._id,
+        expect(res.result.data.updatedUser).toBeDefined();
+        expect(res.result.data.updatedUser).toMatchObject({
+          _id: usersSeedList[0]._id,
           identity: expect.objectContaining({
             firstname: updatePayload.identity.firstname,
           }),
           local: expect.objectContaining({ email: updatePayload.local.email, password: expect.any(String) }),
           role: { _id: updatePayload.role },
         });
-        const updatedUser = await User.findById(res.result.data.userUpdated._id).populate({ path: 'role' });
+        const updatedUser = await User.findById(res.result.data.updatedUser._id).populate({ path: 'role' });
         expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
         expect(updatedUser.local.email).toBe(updatePayload.local.email);
         expect(updatedUser.role._id).toEqual(updatePayload.role);
@@ -450,32 +532,37 @@ describe('USERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      it('should update user if it is me', async () => {
+        authToken = await getToken('auxiliary', usersSeedList);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id.toHexString()}`,
+          payload: updatePayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        {
-          name: 'self user',
-          expectedCode: 200,
-          customCredentials: { scope: [`user-${userList[0]._id.toHexString()}`] },
-        },
         { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
-            method: 'PUT',
-            url: `/users/${userList[0]._id.toHexString()}`,
-            payload: updatePayload,
-          };
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-          }
+          authToken = await getToken(role.name);
 
-          const response = await app.inject(request);
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/users/${userList[1]._id.toHexString()}`,
+            payload: updatePayload,
+            headers: { 'x-access-token': authToken },
+          });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
@@ -487,12 +574,12 @@ describe('USERS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin', usersSeedList);
       });
       it('should delete a user by id', async () => {
         const res = await app.inject({
           method: 'DELETE',
-          url: `/users/${userList[3]._id}`,
+          url: `/users/${usersSeedList[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
@@ -516,6 +603,15 @@ describe('USERS ROUTES', () => {
         });
         expect(res.statusCode).toBe(400);
       });
+
+      it('should return a 403 error if user is not from same company', async () => {
+        const res = await app.inject({
+          method: 'DELETE',
+          url: `/users/${userList[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {
@@ -527,43 +623,16 @@ describe('USERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+          authToken = await getToken(role.name, usersSeedList);
           const response = await app.inject({
             method: 'DELETE',
-            url: `/users/${userList[3]._id}`,
+            url: `/users/${usersSeedList[0]._id}`,
             headers: { 'x-access-token': authToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
       });
-    });
-  });
-
-  describe('GET /users/presentation', () => {
-    beforeEach(populateDB);
-    it('should return users presentation by role', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users/presentation?role=auxiliary',
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
-    it('should return a 404 error if no user is found', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users/presentation',
-      });
-      expect(res.statusCode).toBe(404);
-    });
-
-    it('should return 404 error if role is not found', async () => {
-      const res = await app.inject({
-        method: 'GET',
-        url: '/users/presentation?role=RoleInexistant',
-      });
-      expect(res.statusCode).toBe(404);
     });
   });
 
@@ -574,7 +643,7 @@ describe('USERS ROUTES', () => {
         method: 'POST',
         url: '/users/refreshToken',
         payload: {
-          refreshToken: userList[1].refreshToken,
+          refreshToken: usersSeedList[1].refreshToken,
         },
       });
       expect(res.statusCode).toBe(200);
@@ -594,23 +663,24 @@ describe('USERS ROUTES', () => {
 
   describe('PUT /users/:id/certificates', () => {
     const updatePayload = {
-      'administrative.certificates': { driveId: userList[0].administrative.certificates.driveId },
+      'administrative.certificates': { driveId: usersSeedList[0].administrative.certificates.driveId },
     };
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin', usersSeedList);
       });
+
       it('should update user certificates', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/users/${userList[0]._id.toHexString()}/certificates`,
+          url: `/users/${usersSeedList[0]._id.toHexString()}/certificates`,
           payload: updatePayload,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.userUpdated.administrative.certificates.length)
-          .toBe(userList[0].administrative.certificates.length - 1);
+        expect(res.result.data.updatedUser.administrative.certificates.length)
+          .toBe(usersSeedList[0].administrative.certificates.length - 1);
       });
 
       it('should return a 404 error if no user found', async () => {
@@ -623,35 +693,48 @@ describe('USERS ROUTES', () => {
         });
         expect(res.statusCode).toBe(404);
       });
+
+      it('should return a 403 error if user is not from same company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userList[2]._id.toHexString()}/certificates`,
+          payload: updatePayload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {
+      it('should update user certificate if it is me', async () => {
+        authToken = await getToken('auxiliary', usersSeedList);
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/users/${usersSeedList[0]._id.toHexString()}/certificates`,
+          payload: updatePayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        {
-          name: 'self user',
-          expectedCode: 200,
-          customCredentials: { scope: [`user-${userList[0]._id.toHexString()}`] },
-        },
         { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
-            method: 'PUT',
-            url: `/users/${userList[0]._id.toHexString()}/certificates`,
-            payload: updatePayload,
-          };
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-          }
+          authToken = await getToken(role.name, usersSeedList);
 
-          const response = await app.inject(request);
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/users/${usersSeedList[1]._id.toHexString()}/certificates`,
+            payload: updatePayload,
+            headers: { 'x-access-token': authToken },
+          });
 
           expect(response.statusCode).toBe(role.expectedCode);
         });
@@ -660,25 +743,24 @@ describe('USERS ROUTES', () => {
   });
 
   describe('PUT /users/:id/tasks/:task_id', () => {
-    const taskPayload = {
-      isDone: true,
-      user_id: userList[0]._id.toHexString(),
-      task_id: userList[0].procedure[0].task,
-    };
+    const taskPayload = { isDone: true };
+    const userId = usersSeedList[0]._id.toHexString();
+    const taskId = usersSeedList[0].procedure[0].task;
+
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin', usersSeedList);
       });
       it('should update a user task', async () => {
         const res = await app.inject({
           method: 'PUT',
-          url: `/users/${taskPayload.user_id}/tasks/${taskPayload.task_id}`,
+          url: `/users/${userId}/tasks/${taskId}`,
           payload: taskPayload,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        const user = await User.findById(userList[0]._id, { procedure: 1 }).lean();
+        const user = await User.findById(usersSeedList[0]._id, { procedure: 1 }).lean();
         expect(user.procedure[0].check).toMatchObject({ isDone: true, at: expect.any(Date) });
       });
     });
@@ -692,10 +774,10 @@ describe('USERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+          authToken = await getToken(role.name, usersSeedList);
           const response = await app.inject({
             method: 'PUT',
-            url: `/users/${taskPayload.user_id}/tasks/${taskPayload.task_id}`,
+            url: `/users/${usersSeedList[1]._id.toHexString()}/tasks/${taskId}`,
             payload: taskPayload,
             headers: { 'x-access-token': authToken },
           });
@@ -710,17 +792,17 @@ describe('USERS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin', usersSeedList);
       });
       it('should return user tasks', async () => {
         const res = await app.inject({
           method: 'GET',
-          url: `/users/${userList[0]._id.toHexString()}/tasks`,
+          url: `/users/${usersSeedList[0]._id.toHexString()}/tasks`,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
         expect(res.result.data.user).toBeDefined();
-        expect(res.result.data.tasks.length).toBe(userList[0].procedure.length);
+        expect(res.result.data.tasks.length).toBe(usersSeedList[0].procedure.length);
       });
 
       it('should return a 404 error if no user found', async () => {
@@ -731,6 +813,15 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(404);
+      });
+
+      it('should return a 403 error if user not from same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/${userList[2]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
       });
     });
 
@@ -743,10 +834,10 @@ describe('USERS ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          authToken = await getToken(role.name);
+          authToken = await getToken(role.name, usersSeedList);
           const response = await app.inject({
             method: 'GET',
-            url: `/users/${userList[0]._id.toHexString()}/tasks`,
+            url: `/users/${usersSeedList[1]._id.toHexString()}/tasks`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -757,7 +848,7 @@ describe('USERS ROUTES', () => {
   });
 
   describe('POST /users/:id/gdrive/:drive_id/upload', () => {
-    const userFolderId = userList[0].administrative.driveFolder.driveId;
+    const userFolderId = usersSeedList[0].administrative.driveFolder.driveId;
     let docPayload;
     let form;
     let addFileStub;
@@ -779,19 +870,19 @@ describe('USERS ROUTES', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('admin', usersSeedList);
       });
       it('should add an administrative document for a user', async () => {
         const response = await app.inject({
           method: 'POST',
-          url: `/users/${userList[0]._id}/gdrive/${userFolderId}/upload`,
+          url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
           payload: await GetStream(form),
           headers: { ...form.getHeaders(), 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(200);
         expect(response.result.data.uploadedFile).toMatchObject({ id: 'qwerty' });
-        const user = await User.findById(userList[0]._id, { administrative: 1 }).lean();
+        const user = await User.findById(usersSeedList[0]._id, { administrative: 1 }).lean();
         expect(user.administrative.mutualFund).toMatchObject({
           driveId: 'qwerty',
           link: 'http://test.com/file.pdf',
@@ -800,13 +891,26 @@ describe('USERS ROUTES', () => {
         sinon.assert.calledWith(getFileStub, { fileId: 'qwerty' });
       });
 
+      it('should return a 403 error if user is not from same company', async () => {
+        authToken = await getToken('admin', usersSeedList);
+
+        const response = await app.inject({
+          method: 'POST',
+          url: `/users/${userList[2]._id}/gdrive/${new ObjectID()}/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+
       const wrongParams = ['mutualFund', 'fileName'];
       wrongParams.forEach((param) => {
         it(`should return a 400 error if missing '${param}' parameter`, async () => {
           form = generateFormData(omit(docPayload, param));
           const response = await app.inject({
             method: 'POST',
-            url: `/users/${userList[0]._id}/gdrive/${userFolderId}/upload`,
+            url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
             payload: await GetStream(form),
             headers: { ...form.getHeaders(), 'x-access-token': authToken },
           });
@@ -817,33 +921,36 @@ describe('USERS ROUTES', () => {
     });
 
     describe('Other roles', () => {
+      it('should add administrative document if it is me', async () => {
+        authToken = await getToken('auxiliary', usersSeedList);
+
+        const response = await app.inject({
+          method: 'POST',
+          url: `/users/${usersSeedList[0]._id}/gdrive/${userFolderId}/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
       const roles = [
         { name: 'helper', expectedCode: 403 },
         { name: 'auxiliary', expectedCode: 403 },
-        {
-          name: 'self user',
-          expectedCode: 200,
-          customCredentials: { scope: [`user-${userList[0]._id.toHexString()}`] },
-        },
         { name: 'coach', expectedCode: 200 },
       ];
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-          const request = {
-            method: 'POST',
-            url: `/users/${userList[0]._id}/gdrive/${userFolderId}/upload`,
-            payload: await GetStream(form),
-          };
-          if (!role.customCredentials) {
-            authToken = await getToken(role.name);
-            request.headers = { ...form.getHeaders(), 'x-access-token': authToken };
-          } else {
-            request.credentials = role.customCredentials;
-            request.headers = { ...form.getHeaders() };
-          }
+          authToken = await getToken(role.name, usersSeedList);
 
-          const response = await app.inject(request);
+          const response = await app.inject({
+            method: 'POST',
+            url: `/users/${usersSeedList[1]._id}/gdrive/${userFolderId}/upload`,
+            payload: await GetStream(form),
+            headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          });
+
           expect(response.statusCode).toBe(role.expectedCode);
         });
       });
