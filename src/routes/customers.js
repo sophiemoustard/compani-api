@@ -32,9 +32,8 @@ const {
   removeFunding,
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
-const { getCustomer, authorizeCustomerDelete } = require('./preHandlers/customers');
+const { getCustomer, authorizeCustomerDelete, authorizeCustomerGetAndUpdate } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { authorizeCustomerUpdate } = require('./preHandlers/customers');
 
 exports.plugin = {
   name: 'routes-customers',
@@ -134,7 +133,7 @@ exports.plugin = {
             }),
           }),
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: update,
     });
@@ -217,9 +216,9 @@ exports.plugin = {
           params: { _id: Joi.objectId().required() },
         },
         pre: [
+          { method: authorizeCustomerGetAndUpdate },
           { method: getCustomer, assign: 'customer' },
           { method: authorizeCustomerDelete },
-          { method: authorizeCustomerUpdate },
         ],
       },
       handler: remove,
@@ -263,7 +262,7 @@ exports.plugin = {
             sundays: Joi.number(),
           },
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: updateSubscription,
     });
@@ -279,7 +278,7 @@ exports.plugin = {
             subscriptionId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: removeSubscription,
     });
@@ -309,7 +308,7 @@ exports.plugin = {
             mandateId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: updateMandate,
     });
@@ -387,7 +386,7 @@ exports.plugin = {
             quoteId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: removeCustomerQuote,
     });
@@ -458,7 +457,7 @@ exports.plugin = {
             }),
           }),
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: updateCertificates,
     });
@@ -560,7 +559,7 @@ exports.plugin = {
             customerParticipationRate: Joi.number().default(0),
           }),
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: updateFunding,
     });
@@ -576,7 +575,7 @@ exports.plugin = {
             fundingId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerUpdate }],
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: removeFunding,
     });

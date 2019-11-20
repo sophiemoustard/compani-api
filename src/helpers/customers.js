@@ -97,11 +97,10 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   return customers;
 };
 
-exports.getCustomer = async (customerId, credentials) => {
-  let customer = await Customer.findById(customerId)
+exports.getCustomer = async (customerId) => {
+  let customer = await Customer.findOne({ _id: customerId })
     .populate({
       path: 'subscriptions.service',
-      match: { company: get(credentials, 'company._id', null) },
       populate: { path: 'versions.surcharge' },
     })
     .populate({ path: 'fundings.thirdPartyPayer' })
@@ -184,7 +183,7 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
-  return Customer.findByIdAndUpdate(customerId, payload, { new: true }).lean();
+  return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {

@@ -166,7 +166,6 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers/billed-events',
         headers: { 'x-access-token': adminToken },
       });
-      console.log(res.result.data);
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
       expect(res.result.data.customers[0].subscriptions).toBeDefined();

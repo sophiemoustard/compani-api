@@ -21,7 +21,7 @@ exports.getCustomer = async (req) => {
   }
 };
 
-exports.authorizeCustomerUpdate = async (req) => {
+exports.authorizeCustomerGetAndUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (!companyId) throw Boom.forbidden();
   const customer = await Customer.findById(req.params._id).lean();
