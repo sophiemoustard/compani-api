@@ -1,12 +1,15 @@
 const Boom = require('boom');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const flat = require('flat');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const Task = require('../models/Task');
 const drive = require('../models/Google/Drive');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
+const RolesHelper = require('./roles');
 
 const { language } = translate;
 
@@ -20,7 +23,10 @@ exports.getUsers = async (query, credentials) => {
     if (!query.role) throw Boom.notFound(translate[language].roleNotFound);
   }
 
+  const companyId = get(credentials, 'company._id', null);
+  query.company = companyId;
   const params = pickBy(query);
+
   return User
     .find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
@@ -28,7 +34,7 @@ exports.getUsers = async (query, credentials) => {
     .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate({ path: 'role', select: 'name' })
     .populate('contracts')
-    .populate({ path: 'sector', match: { company: get(credentials, 'company._id', null) } });
+    .populate({ path: 'sector', match: { company: companyId } });
 };
 
 const saveCertificateDriveId = async (userId, fileInfo) => {
@@ -67,4 +73,38 @@ exports.createAndSaveFile = async (administrativeKey, params, payload) => {
   }
 
   return uploadedFile;
+};
+
+exports.createUser = async (userPayload, credentials, refreshToken) => {
+  const user = await User.create({ ...userPayload, company: get(credentials, 'company._id', null), refreshToken });
+  const tasks = await Task.find({});
+  const taskIds = tasks.map(task => ({ task: task._id }));
+  const populatedUser = await User.findOneAndUpdate({ _id: user._id }, { $push: { procedure: { $each: taskIds } } }, { new: true });
+  populatedUser.role.rights = RolesHelper.populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
+  const payload = {
+    _id: populatedUser._id.toHexString(),
+    role: populatedUser.role,
+  };
+  return pickBy(payload);
+};
+
+exports.updateUser = async (userId, userPayload) => {
+  const options = { new: true };
+  let update;
+
+  if (has(userPayload, 'administrative.certificates')) {
+    update = { $pull: userPayload };
+  } else {
+    update = { $set: flat(userPayload) };
+    options.runValidators = true;
+  }
+
+  const updatedUser = await User.findOneAndUpdate({ _id: userId }, update, options);
+  if (!updatedUser) return Boom.notFound(translate[language].userNotFound);
+
+  if (updatedUser.role && updatedUser.role.rights.length > 0) {
+    updatedUser.role.rights = RolesHelper.populateRole(updatedUser.role.rights, { onlyGrantedRights: true });
+  }
+
+  return updatedUser;
 };

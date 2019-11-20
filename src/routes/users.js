@@ -11,7 +11,6 @@ const {
   show,
   update,
   remove,
-  getPresentation,
   refreshToken,
   forgotPassword,
   checkResetPasswordToken,
@@ -23,6 +22,7 @@ const {
   createDriveFolder,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
+const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -98,7 +98,6 @@ exports.plugin = {
               }),
             }),
             customers: Joi.array(),
-            company: Joi.objectId().required(),
           }).required(),
         },
       },
@@ -144,6 +143,10 @@ exports.plugin = {
       path: '/{_id}',
       options: {
         auth: { scope: ['users:edit', 'user-{params._id}'] },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdate },
+        ],
       },
       handler: show,
     });
@@ -270,6 +273,10 @@ exports.plugin = {
             isConfirmed: Joi.boolean(),
           }).required(),
         },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdate },
+        ],
       },
       handler: update,
     });
@@ -284,32 +291,37 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
           payload: Joi.object().keys({
-            _id: Joi.objectId(),
             'administrative.certificates': Joi.object().keys({
               driveId: Joi.string(),
             }),
           }),
         },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdate },
+        ],
       },
       handler: updateCertificates,
     });
 
     server.route({
       method: 'PUT',
-      path: '/{user_id}/tasks/{task_id}',
+      path: '/{_id}/tasks/{task_id}',
       options: {
         auth: { scope: ['users:edit'] },
         validate: {
           params: {
-            user_id: Joi.objectId(),
+            _id: Joi.objectId(),
             task_id: Joi.objectId(),
           },
           payload: Joi.object().keys({
             isDone: Joi.boolean(),
-            user_id: Joi.objectId(),
-            task_id: Joi.objectId(),
           }),
         },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdate },
+        ],
       },
       handler: updateTask,
     });
@@ -324,6 +336,10 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
         },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdate },
+        ],
       },
       handler: getUserTasks,
     });
@@ -338,23 +354,12 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
         },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdate },
+        ],
       },
       handler: remove,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/presentation',
-      options: {
-        validate: {
-          query: Joi.object().keys({
-            role: [Joi.string(), Joi.array()],
-            location: [Joi.string(), Joi.array()],
-          }),
-        },
-        auth: false,
-      },
-      handler: getPresentation,
     });
 
     server.route({
@@ -424,6 +429,10 @@ exports.plugin = {
             driveId: Joi.string().required(),
           },
         },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdate },
+        ],
       },
     });
 
