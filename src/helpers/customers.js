@@ -26,13 +26,14 @@ exports.getCustomerBySector = async (query, credentials) => {
     type: INTERVENTION,
     sector: query.sector,
   });
-  const companyId = get(credentials, 'company._id', null);
-  return EventRepository.getCustomersFromEvent({ ...queryCustomer, company: companyId });
+  return EventRepository.getCustomersFromEvent({ ...queryCustomer }, get(credentials, 'company._id', null));
 };
 
-exports.getCustomersWithBilledEvents = async () => {
+exports.getCustomersWithBilledEvents = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const query = { isBilled: true, type: INTERVENTION };
-  return EventRepository.getCustomerWithBilledEvents(query);
+
+  return EventRepository.getCustomerWithBilledEvents(query, companyId);
 };
 
 exports.getCustomers = async (query, credentials) => {
@@ -54,8 +55,8 @@ exports.getCustomers = async (query, credentials) => {
   return customers;
 };
 
-exports.getCustomersWithSubscriptions = async (query, credentials) => {
-  const customers = await Customer.find({ ...query, company: get(credentials, 'company._id', null) })
+exports.getCustomersWithSubscriptions = async (query) => {
+  const customers = await Customer.find(query)
     .populate({
       path: 'subscriptions.service',
       populate: { path: 'versions.surcharge' },

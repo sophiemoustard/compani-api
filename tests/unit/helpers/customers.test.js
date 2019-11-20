@@ -40,7 +40,7 @@ describe('getCustomerBySector', () => {
     const queryBySector = { ...query, endDate, sector };
     await CustomerHelper.getCustomerBySector(queryBySector, credentials);
     sinon.assert.calledWith(getListQuery, { startDate, endDate, sector, type: 'intervention' });
-    sinon.assert.calledWith(getCustomersFromEvent, { ...query, company: companyId });
+    sinon.assert.calledWith(getCustomersFromEvent, { ...query }, companyId);
   });
 });
 

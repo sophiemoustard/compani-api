@@ -45,8 +45,12 @@ const list = async (req) => {
 
 const listWithSubscriptions = async (req) => {
   try {
-    const query = { ...req.query, subscriptions: { $exists: true, $ne: { $size: 0 } } };
-    const customers = await getCustomersWithSubscriptions(query, req.auth.credentials);
+    const query = {
+      ...req.query,
+      subscriptions: { $exists: true, $ne: { $size: 0 } },
+      company: _.get(req, 'auth.credentials.company._id', null),
+    };
+    const customers = await getCustomersWithSubscriptions(query);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -74,7 +78,8 @@ const listBySector = async (req) => {
 
 const listWithBilledEvents = async (req) => {
   try {
-    const customers = await getCustomersWithBilledEvents();
+    const credentials = _.get(req, 'auth.credentials', {});
+    const customers = await getCustomersWithBilledEvents(credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -442,9 +447,8 @@ const createDriveFolder = async (req) => {
   try {
     const customer = await Customer.findOne(
       { _id: req.params._id },
-      { 'identity.firstname': 1, 'identity.lastname': 1 }
+      { 'identity.firstname': 1, 'identity.lastname': 1, company: 1 }
     );
-
     if (customer.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID;
       const { folder, folderLink } = await createFolder(customer.identity, parentFolderId);

@@ -203,6 +203,7 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: show,
     });
@@ -293,6 +294,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: getMandates,
     });
@@ -405,6 +407,7 @@ exports.plugin = {
             parentFolderId: Joi.string(),
           }),
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: createDriveFolder,
     });
@@ -473,6 +476,7 @@ exports.plugin = {
             mandateId: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: saveSignedMandate,
     });
