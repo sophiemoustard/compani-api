@@ -7,11 +7,6 @@ const company = {
   name: 'Test',
   tradeName: 'TT',
   rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
     feeAmount: 12,
   },
   iban: 'FR3514508000505917721779B12',

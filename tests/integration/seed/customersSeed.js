@@ -282,6 +282,8 @@ const eventList = [
     type: 'intervention',
     bills: {},
     subscription: subId,
+    startDate: '2019-01-16T14:30:19.543Z',
+    endDate: '2019-01-16T15:30:21.653Z',
   },
   {
     _id: new ObjectID(),

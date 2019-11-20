@@ -49,6 +49,15 @@ const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
   },
   { $unwind: { path: '$subscription.service', preserveNullAndEmptyArrays: true } },
   {
+    $lookup: {
+      from: 'internalhours',
+      localField: 'internalHour',
+      foreignField: '_id',
+      as: 'internalHour',
+    },
+  },
+  { $unwind: { path: '$internalHour', preserveNullAndEmptyArrays: true } },
+  {
     $project: {
       _id: 1,
       customer: { _id: 1, identity: 1, contact: 1 },
@@ -90,18 +99,25 @@ exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules,
 
 exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
 
-exports.getEventList = (rules, credentials) => Event.find(rules)
-  .populate({
-    path: 'auxiliary',
-    select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
-    populate: { path: 'sector', match: { company: get(credentials, 'company._id', null) } },
-  })
-  .populate({
-    path: 'customer',
-    select: 'identity subscriptions contact',
-    populate: { path: 'subscriptions.service', match: { company: credentials.company._id } },
-  })
-  .lean();
+exports.getEventList = (rules, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  return Event.find(rules)
+    .populate({
+      path: 'auxiliary',
+      select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
+      populate: { path: 'sector', match: { company: companyId } },
+    })
+    .populate({
+      path: 'customer',
+      select: 'identity subscriptions contact',
+      populate: { path: 'subscriptions.service', match: { company: companyId } },
+    })
+    .populate({
+      path: 'internalHour',
+      match: { company: companyId },
+    })
+    .lean();
+};
 
 exports.getEventsInConflicts = async (dates, auxiliary, types, eventId) => {
   const rules = {
@@ -136,12 +152,13 @@ exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, type) =
   return Event.find(query);
 };
 
-exports.getEvent = async event => Event.findOne({ _id: event._id })
+exports.getEvent = async (eventId, credentials) => Event.findOne({ _id: eventId })
   .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
   .populate({ path: 'customer', select: 'identity subscriptions contact' })
+  .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
   .lean();
 
-exports.updateEvent = async (eventId, set, unset) => Event
+exports.updateEvent = async (eventId, set, unset, credentials) => Event
   .findOneAndUpdate(
     { _id: eventId },
     { $set: set, ...(unset && { $unset: unset }) },
@@ -150,6 +167,7 @@ exports.updateEvent = async (eventId, set, unset) => Event
     path: 'auxiliary',
     select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
   }).populate({ path: 'customer', select: 'identity subscriptions contact' })
+  .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
   .lean();
 
 exports.getWorkingEventsForExport = async (startDate, endDate) => {
@@ -210,6 +228,15 @@ exports.getWorkingEventsForExport = async (startDate, endDate) => {
       },
     },
     { $unwind: { path: '$sector' } },
+    {
+      $lookup: {
+        from: 'internalhours',
+        localField: 'internalHour',
+        foreignField: '_id',
+        as: 'internalHour',
+      },
+    },
+    { $unwind: { path: '$internalHour', preserveNullAndEmptyArrays: true } },
     {
       $project: {
         customer: { identity: 1 },
