@@ -44,7 +44,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedService = await Service.findOneAndUpdate({ _id: req.params._id, company: get(req, 'auth.credentials.company._id', null) }, { $push: { versions: req.payload } }, { new: true });
+    const updatedService = await Service.findByIdAndUpdate({ _id: req.params._id, company: get(req, 'auth.credentials.company._id', null) }, { $push: { versions: req.payload } }, { new: true });
     if (!updatedService) return Boom.notFound(translate[language].serviceNotFound);
 
     return {
@@ -59,8 +59,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const service = await Service.findOneAndRemove({ _id: req.params._id, company: get(req, 'auth.credentials.company._id', null) });
-
+    const service = await Service.findByIdAndRemove(req.params._id);
     if (!service) return Boom.notFound(translate[language].serviceNotFound);
 
     return {

@@ -12,7 +12,7 @@ const Event = require('../../src/models/Event');
 const { populateDB, contractsList, contractUser, contractCustomer, contractEvents } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
-const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getUser } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -129,7 +129,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(response.result.data.contract).toBeDefined();
       const contracts = await Contract.find({});
       expect(contracts.length).toEqual(contractsList.length + 1);
-      const customer = await Customer.findById(contractCustomer._id);
+      const customer = await Customer.findOne({ _id: contractCustomer._id });
       expect(customer).toBeDefined();
       expect(customer.contracts).toContainEqual(response.result.data.contract._id);
     });

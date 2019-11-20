@@ -165,7 +165,6 @@ describe('createContract', () => {
 
   it('should create a new customer contract', async () => {
     const newCustomerContractPayload = { ...newCompanyContractPayload, customer: new ObjectID() };
-    const companyId = new ObjectID();
     getUserEndedCompanyContractsStub.returns([]);
     ContractMock
       .expects('create')
@@ -177,11 +176,10 @@ describe('createContract', () => {
       .once();
     CustomerMock
       .expects('findOneAndUpdate')
-      .withArgs({ _id: newCustomerContractPayload.customer, company: companyId }, { $push: { contracts: newCustomerContractPayload._id } })
+      .withArgs({ _id: newCustomerContractPayload.customer }, { $push: { contracts: newCustomerContractPayload._id } })
       .once();
 
-    const credentials = { company: { _id: companyId } };
-    const result = await ContractHelper.createContract(newCustomerContractPayload, credentials);
+    const result = await ContractHelper.createContract(newCustomerContractPayload);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
     ContractMock.verify();
