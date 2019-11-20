@@ -185,7 +185,6 @@ const remove = async (req) => {
 
 const updateTask = async (req) => {
   try {
-    console.log('DEH');
     req.payload.at = Date.now();
     const tasks = await User
       .findOneAndUpdate(
