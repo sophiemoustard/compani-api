@@ -40,14 +40,8 @@ exports.createEvent = async (payload, credentials) => {
     event.repetition.frequency = NEVER;
   }
 
-<<<<<<< HEAD
   event = await Event.create(event);
   event = await EventRepository.getEvent(event._id, credentials);
-=======
-  event = new Event(event);
-  await event.save();
-  event = await EventRepository.getEvent(event._id);
->>>>>>> COM-805 clean
 
   if (payload.type === ABSENCE) {
     const { startDate, endDate, auxiliary, _id } = event;
