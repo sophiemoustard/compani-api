@@ -6,6 +6,7 @@ const { payValidation } = require('../../validations/pay');
 const {
   draftPayList,
   createList,
+  getHoursBalanceDetails,
 } = require('../controllers/payController');
 
 exports.plugin = {
@@ -38,6 +39,21 @@ exports.plugin = {
         },
       },
       handler: createList,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/hours-balance-details',
+      options: {
+        auth: { scope: ['pay:edit', 'user-{query.auxiliary}'] },
+        validate: {
+          query: {
+            auxiliary: Joi.objectId().required(),
+            month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
+          },
+        },
+      },
+      handler: getHoursBalanceDetails,
     });
   },
 };
