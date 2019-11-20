@@ -1,11 +1,9 @@
 const Boom = require('boom');
-const moment = require('moment');
 
 const translate = require('../helpers/translate');
 const User = require('../models/User');
 const { getCustomerFollowUp } = require('../repositories/CompanyRepository');
-const { getEventsGroupedByFundings } = require('../repositories/StatRepository');
-const { getStatsOnCareHours } = require('../helpers/stats');
+const { getCustomerFundingsMonitoring } = require('../helpers/stats');
 
 const messages = translate[translate.language];
 
@@ -31,25 +29,13 @@ exports.getCustomerFollowUp = async (req) => {
   }
 };
 
-exports.getFundingsMonitoring = async (req) => {
+exports.getCustomerFundingsMonitoring = async (req) => {
   try {
-    const eventsGroupedByFundings = await getEventsGroupedByFundings(
-      req.params._id,
-      moment().endOf('month').toDate(),
-      moment().startOf('month').toDate(),
-      moment()
-        .subtract(2, 'month')
-        .endOf('month')
-        .endOf('day')
-        .toDate(),
-      moment().endOf('month').toDate()
-    );
-
-    const statsOnCareHours = getStatsOnCareHours(eventsGroupedByFundings);
+    const customerfundingsMonitoring = await getCustomerFundingsMonitoring(req.params._id);
 
     return {
       message: messages.statsFound,
-      data: { stats: statsOnCareHours },
+      data: customerfundingsMonitoring,
     };
   } catch (e) {
     req.log('error', e);

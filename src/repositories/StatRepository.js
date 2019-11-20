@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 const Customer = require('../models/Customer');
 const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID } = require('../helpers/constants');
 
-exports.getEventsGroupedByFundings = async (customerId, fundingsMaxStartDate, fundingsMinEndDate, eventsMinStartDate, eventsMaxStartDate) => {
+exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate) => {
   const matchAndPopulateFundings = [
     {
       $match:
@@ -14,10 +14,10 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsMaxStartDate, fu
             nature: HOURLY,
             versions: {
               $elemMatch: {
-                startDate: { $lte: fundingsMaxStartDate },
+                startDate: { $lte: fundingsDate.maxStartDate },
                 $or: [
                   { endDate: { $exists: false } },
-                  { endDate: { $gte: fundingsMinEndDate } },
+                  { endDate: { $gte: fundingsDate.minEndDate } },
                 ],
               },
             },
@@ -53,7 +53,10 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsMaxStartDate, fu
       $lookup: {
         from: 'events',
         as: 'events',
-        let: { subscriptionId: '$subscriptions._id', customerId: '$_id' },
+        let: {
+          subscriptionId: '$subscriptions._id',
+          customerId: '$_id',
+        },
         pipeline: [
           {
             $match: {
@@ -63,9 +66,9 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsMaxStartDate, fu
                   { $eq: ['$subscription', '$$subscriptionId'] },
                   { $eq: ['$type', 'intervention'] },
                   {
-                    $gt: ['$startDate', eventsMinStartDate],
+                    $gt: ['$startDate', eventsDate.minStartDate],
                   },
-                  { $lte: ['$startDate', eventsMaxStartDate] },
+                  { $lte: ['$startDate', eventsDate.maxStartDate] },
                   {
                     $or: [
                       ['$isCancelled', false],
