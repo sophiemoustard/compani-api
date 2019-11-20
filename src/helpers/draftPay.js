@@ -20,6 +20,7 @@ const {
   DAILY,
   COMPANY_CONTRACT,
   WEEKS_PER_MONTH,
+  INTERNAL_HOUR,
 } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
@@ -95,11 +96,12 @@ exports.getSurchargeDetails = (surchargedHours, surcharge, surchargeKey, details
   return details;
 };
 
-exports.applySurcharge = (paidHours, surcharge, surchargeKey, details, paidDistance) => ({
+exports.applySurcharge = (paidHours, surcharge, surchargeKey, details, paidTransport) => ({
   surcharged: paidHours,
   notSurcharged: 0,
   details: exports.getSurchargeDetails(paidHours, surcharge, surchargeKey, details),
-  paidKm: paidDistance,
+  paidKm: paidTransport.distance,
+  paidTransportHours: paidTransport.duration / 60,
 });
 
 exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) => {
@@ -110,15 +112,15 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
 
   const paidHours = (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60;
   if (twentyFifthOfDecember && twentyFifthOfDecember > 0 && moment(event.startDate).format('DD/MM') === '25/12') {
-    return exports.applySurcharge(paidHours, surcharge, 'twentyFifthOfDecember', surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, surcharge, 'twentyFifthOfDecember', surchargeDetails, paidTransport);
   } else if (firstOfMay && firstOfMay > 0 && moment(event.startDate).format('DD/MM') === '01/05') {
-    return exports.applySurcharge(paidHours, surcharge, 'firstOfMay', surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, surcharge, 'firstOfMay', surchargeDetails, paidTransport);
   } else if (publicHoliday && publicHoliday > 0 && moment(event.startDate).startOf('d').isHoliday()) {
-    return exports.applySurcharge(paidHours, surcharge, 'publicHoliday', surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, surcharge, 'publicHoliday', surchargeDetails, paidTransport);
   } else if (saturday && saturday > 0 && moment(event.startDate).isoWeekday() === 6) {
-    return exports.applySurcharge(paidHours, surcharge, 'saturday', surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, surcharge, 'saturday', surchargeDetails, paidTransport);
   } else if (sunday && sunday > 0 && moment(event.startDate).isoWeekday() === 7) {
-    return exports.applySurcharge(paidHours, surcharge, 'sunday', surchargeDetails, paidTransport.distance);
+    return exports.applySurcharge(paidHours, surcharge, 'sunday', surchargeDetails, paidTransport);
   }
 
   let totalSurchargedHours = 0;
@@ -139,6 +141,7 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
     notSurcharged: paidHours - totalSurchargedHours,
     details,
     paidKm: paidTransport.distance,
+    paidTransportHours: paidTransport.duration / 60,
   };
 };
 
@@ -190,6 +193,7 @@ exports.getEventHours = async (event, prevEvent, service, details, distanceMatri
       notSurcharged: (moment(event.endDate).diff(event.startDate, 'm') + paidTransport.duration) / 60,
       details: { ...details },
       paidKm: paidTransport.distance,
+      paidTransportHours: paidTransport.duration / 60,
     };
   }
 
@@ -222,6 +226,7 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
 
 exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges, query) => {
   let workedHours = 0;
+  let internalHours = 0;
   let notSurchargedAndNotExempt = 0;
   let surchargedAndNotExempt = 0;
   let notSurchargedAndExempt = 0;
@@ -229,6 +234,7 @@ exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges,
   let surchargedAndNotExemptDetails = {};
   let surchargedAndExemptDetails = {};
   let paidKm = 0;
+  let paidTransportHours = 0;
   for (const eventsPerDay of events) {
     const sortedEvents = [...eventsPerDay].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
@@ -254,6 +260,7 @@ exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges,
         surchargedAndExemptDetails = hours.details;
         workedHours += hours.surcharged + hours.notSurcharged;
         paidKm += hours.paidKm;
+        paidTransportHours += hours.paidTransportHours;
       } else {
         const hours = await exports.getEventHours(paidEvent, (i !== 0) && sortedEvents[i - 1], service, surchargedAndNotExemptDetails, distanceMatrix);
         surchargedAndNotExempt += hours.surcharged;
@@ -261,6 +268,8 @@ exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges,
         surchargedAndNotExemptDetails = hours.details;
         workedHours += hours.surcharged + hours.notSurcharged;
         paidKm += hours.paidKm;
+        paidTransportHours += hours.paidTransportHours;
+        if (paidEvent.type === INTERNAL_HOUR) internalHours += hours.surcharged + hours.notSurcharged;
       }
     }
   }
@@ -274,6 +283,8 @@ exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges,
     surchargedAndExempt,
     surchargedAndExemptDetails,
     paidKm,
+    internalHours,
+    paidTransportHours,
   };
 };
 
