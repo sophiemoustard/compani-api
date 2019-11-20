@@ -1309,6 +1309,7 @@ describe('computeMonthBalance', () => {
     expect(result).toBeDefined();
     expect(result).toEqual({
       contractHours: 150,
+      absencesHours: 16,
       workedHours: 138,
       notSurchargedAndNotExempt: 15,
       surchargedAndNotExempt: 9,

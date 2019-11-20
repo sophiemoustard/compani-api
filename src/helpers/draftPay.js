@@ -325,6 +325,7 @@ exports.computeMonthBalance = async (auxiliary, contract, eventsToPay, company, 
 
   return {
     contractHours: contractInfo.contractHours,
+    absencesHours,
     hoursToWork,
     ...hours,
     hoursBalance,
