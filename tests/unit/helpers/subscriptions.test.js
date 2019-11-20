@@ -182,13 +182,14 @@ describe('exportSubscriptions', () => {
 
   it('should return csv header', async () => {
     const customers = [];
+    const companyId = new ObjectID();
     CustomerModel.expects('find')
-      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } } })
+      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
       .chain('populate')
       .once()
       .returns(customers);
 
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await SubscriptionsHelper.exportSubscriptions(credentials);
 
     expect(result).toBeDefined();
@@ -205,13 +206,14 @@ describe('exportSubscriptions', () => {
         }],
       },
     ];
+    const companyId = new ObjectID();
     CustomerModel.expects('find')
-      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } } })
+      .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
       .chain('populate')
       .once()
       .returns(customers);
 
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await SubscriptionsHelper.exportSubscriptions(credentials);
 
     sinon.assert.calledTwice(getLastVersion);
