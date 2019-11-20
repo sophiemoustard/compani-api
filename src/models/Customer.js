@@ -91,8 +91,8 @@ const CustomerSchema = mongoose.Schema({
     nature: { type: String, enum: FUNDING_NATURES },
     subscription: { type: mongoose.Schema.Types.ObjectId },
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
+    frequency: { type: String, enum: FUNDING_FREQUENCIES },
     versions: [{
-      frequency: { type: String, enum: FUNDING_FREQUENCIES },
       amountTTC: Number,
       unitTTCRate: Number,
       careHours: Number,

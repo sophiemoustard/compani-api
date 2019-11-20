@@ -1,12 +1,15 @@
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
+const cloneDeep = require('lodash/cloneDeep');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT } = require('../../../src/helpers/constants');
+const { COMPANY_CONTRACT, HOURLY, MONTHLY } = require('../../../src/helpers/constants');
 
 const sectorList = [{
   _id: new ObjectID(),
@@ -34,6 +37,20 @@ const serviceList = [{
   _id: new ObjectID(),
   nature: 'hourly',
   company: authCompany._id,
+  versions: [
+    {
+      name: 'Autonomie',
+    },
+  ],
+}];
+
+const subscriptionId = new ObjectID();
+
+const tppId = new ObjectID();
+const tppList = [{
+  _id: tppId,
+  name: 'tiers payeur',
+  company: authCompany._id,
 }];
 
 const customerList = [
@@ -41,8 +58,23 @@ const customerList = [
     _id: new ObjectID(),
     company: authCompany._id,
     subscriptions: [{
-      _id: new ObjectID(),
+      _id: subscriptionId,
       service: serviceList[0]._id,
+    }],
+    fundings: [{
+      nature: HOURLY,
+      frequency: MONTHLY,
+      subscription: subscriptionId,
+      thirdPartyPayer: tppId,
+      versions: [{
+        _id: new ObjectID(),
+        startDate: moment().startOf('month').subtract(2, 'months').toISOString(),
+        createdAt: moment().startOf('month').subtract(2, 'months').toISOString(),
+        unitTTCRate: 20,
+        customerParticipationRate: 60,
+        careHours: 40,
+        careDays: [0, 1, 2, 3, 4],
+      }],
     }],
     identity: { lastname: 'Giscard d\'Estaing' },
     contact: {
@@ -56,12 +88,12 @@ const customerList = [
   },
 ];
 
-const eventList = [
+const eventListForFollowUp = [
   {
     _id: new ObjectID(),
     type: 'intervention',
     customer: customerList[0]._id,
-    subscription: customerList[0].subscriptions[0]._id,
+    subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T08:00:00.000+00:00',
     endDate: '2019-07-01T09:00:00.000+00:00',
@@ -70,20 +102,88 @@ const eventList = [
     _id: new ObjectID(),
     type: 'intervention',
     customer: customerList[0]._id,
-    subscription: customerList[0].subscriptions[0]._id,
+    subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
     endDate: '2019-07-02T10:30:00.000+00:00',
   },
 ];
 
+const mondayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(1);
+const tuesdayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(2);
+const saturdayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(6);
+
+const tuesdayOfPreviousMonth = moment()
+  .startOf('month')
+  .subtract(1, 'months')
+  .add('15', 'days')
+  .day(2);
+
+const eventListForFundingsMonitoring = [
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    customer: customerList[0]._id,
+    subscription: subscriptionId,
+    auxiliary: userList[0]._id,
+    startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toISOString(),
+    endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toISOString(),
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    customer: customerList[0]._id,
+    subscription: subscriptionId,
+    auxiliary: userList[0]._id,
+    startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toISOString(),
+    endDate: cloneDeep(tuesdayOfCurrentMonth).hour('15').toISOString(),
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    customer: customerList[0]._id,
+    subscription: subscriptionId,
+    auxiliary: userList[0]._id,
+    startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toISOString(),
+    endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toISOString(),
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    customer: customerList[0]._id,
+    subscription: subscriptionId,
+    auxiliary: userList[0]._id,
+    startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toISOString(),
+    endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toISOString(),
+  },
+  {
+    _id: new ObjectID(),
+    type: 'intervention',
+    customer: customerList[0]._id,
+    subscription: subscriptionId,
+    auxiliary: userList[0]._id,
+    startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toISOString(),
+    endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toISOString(),
+  },
+];
+
+const populateDBWithEventsForFollowup = async () => {
+  await Event.deleteMany({});
+  await Event.insertMany(eventListForFollowUp);
+};
+
+const populateDBWithEventsForFundingsMonitoring = async () => {
+  await Event.deleteMany({});
+  await Event.insertMany(eventListForFundingsMonitoring);
+};
+
 const populateDB = async () => {
   await User.deleteMany({});
   await Customer.deleteMany({});
   await Service.deleteMany({});
-  await Event.deleteMany({});
   await Sector.deleteMany({});
   await Contract.deleteMany({});
+  await ThirdPartyPayer.deleteMany({});
 
   await populateDBForAuthentication();
   for (const user of userList) {
@@ -91,12 +191,14 @@ const populateDB = async () => {
   }
   await Customer.insertMany(customerList);
   await Service.insertMany(serviceList);
-  await Event.insertMany(eventList);
   await Sector.insertMany(sectorList);
   await Contract.insertMany(contractList);
+  await ThirdPartyPayer.insertMany(tppList);
 };
 
 module.exports = {
   customerList,
   populateDB,
+  populateDBWithEventsForFollowup,
+  populateDBWithEventsForFundingsMonitoring,
 };
