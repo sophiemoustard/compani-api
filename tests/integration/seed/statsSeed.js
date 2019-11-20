@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
+const cloneDeep = require('lodash/cloneDeep');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
@@ -108,6 +109,16 @@ const eventListForFollowUp = [
   },
 ];
 
+const mondayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(1);
+const tuesdayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(2);
+const saturdayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(6);
+
+const tuesdayOfPreviousMonth = moment()
+  .startOf('month')
+  .subtract(1, 'months')
+  .add('15', 'days')
+  .day(2);
+
 const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
@@ -115,18 +126,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .day(0)
-      .hour('12')
-      .toISOString(),
-    endDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .day(0)
-      .hour('14')
-      .toISOString(),
+    startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toISOString(),
+    endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toISOString(),
   },
   {
     _id: new ObjectID(),
@@ -134,18 +135,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .day(2)
-      .hour('12')
-      .toISOString(),
-    endDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .day(2)
-      .hour('15')
-      .toISOString(),
+    startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toISOString(),
+    endDate: cloneDeep(tuesdayOfCurrentMonth).hour('15').toISOString(),
   },
   {
     _id: new ObjectID(),
@@ -153,18 +144,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .day(6)
-      .hour('8')
-      .toISOString(),
-    endDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .day(6)
-      .hour('10')
-      .toISOString(),
+    startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toISOString(),
+    endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toISOString(),
   },
   {
     _id: new ObjectID(),
@@ -172,18 +153,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .day(0)
-      .hour('13')
-      .toISOString(),
-    endDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .day(0)
-      .hour('14')
-      .toISOString(),
+    startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toISOString(),
+    endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toISOString(),
   },
   {
     _id: new ObjectID(),
@@ -191,20 +162,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: moment()
-      .startOf('month')
-      .subtract(1, 'months')
-      .add('15', 'days')
-      .day(2)
-      .hour('10')
-      .toISOString(),
-    endDate: moment()
-      .startOf('month')
-      .add('15', 'days')
-      .subtract(1, 'months')
-      .day(2)
-      .hour('14')
-      .toISOString(),
+    startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toISOString(),
+    endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toISOString(),
   },
 ];
 

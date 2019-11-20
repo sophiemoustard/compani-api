@@ -31,11 +31,11 @@ exports.getCustomerFollowUp = async (req) => {
 
 exports.getCustomerFundingsMonitoring = async (req) => {
   try {
-    const customerfundingsMonitoring = await getCustomerFundingsMonitoring(req.params._id);
+    const customerFundingsMonitoring = await getCustomerFundingsMonitoring(req.params._id);
 
     return {
       message: messages.statsFound,
-      data: customerfundingsMonitoring,
+      data: { customerFundingsMonitoring },
     };
   } catch (e) {
     req.log('error', e);
