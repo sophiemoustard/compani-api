@@ -88,3 +88,8 @@ exports.formatFloatForExport = (number) => {
 
 exports.formatArrayOrStringQueryParam = (param, keyName) =>
   (Array.isArray(param) ? param.map(id => ({ [keyName]: id })) : [{ [keyName]: param }]);
+
+exports.capitalize = (s) => {
+  if (typeof s !== 'string') return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};

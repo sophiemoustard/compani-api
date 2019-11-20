@@ -45,7 +45,7 @@ exports.createPayList = async (payToCreate) => {
   await Pay.insertMany(list);
 };
 
-exports.hoursBalanceDetail = async (auxiliaryId, month) => {
+exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
   if (pay) return pay;
 
@@ -53,21 +53,7 @@ exports.hoursBalanceDetail = async (auxiliaryId, month) => {
   const startDate = moment(month, 'MM-YYYY').startOf('M');
   const endDate = moment(month, 'MM-YYYY').endOf('M');
   const query = { startDate: startDate.toDate(), endDate: endDate.toDate() };
-  const prevMonthQuery = {
-    startDate: startDate.subtract(1, 'M').toDate(),
-    endDate: endDate.subtract(1, 'M').toDate(),
-  };
-  const [eventsToPay, prevMonthEventsToPay, prevPay, company, distanceMatrix, surcharges] = await Promise.all([
-    EventRepository.getEventsToPay(query.startDate, query.endDate, [new ObjectID(auxiliaryId)]),
-    EventRepository.getEventsToPay(prevMonthQuery.startDate, prevMonthQuery.endDate, [new ObjectID(auxiliaryId)]),
-    Pay.findOne({ auxiliary: auxiliaryId, month: moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY') }).lean(),
-    Company.findOne({ _id: auxiliary.company }).lean(),
-    Surcharge.find({ company: auxiliary.company }).lean(),
-    DistanceMatrix.find().lean(),
-  ]);
-
-  const prevPayDiff = await DraftPayHelper.computePrevPayDiff(auxiliary, prevMonthEventsToPay[0], prevPay, prevMonthQuery, distanceMatrix, surcharges);
-  const detail = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, eventsToPay[0], prevPayDiff, company, query, distanceMatrix, surcharges);
+  const detail = await DraftPayHelper.computeDraftPayByAuxiliary([auxiliary], query, credentials);
 
   return detail;
 };

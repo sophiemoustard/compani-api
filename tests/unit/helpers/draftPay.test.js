@@ -222,11 +222,17 @@ describe('applySurcharge', () => {
 
   it('should apply surcharge', () => {
     getSurchargeDetails.returns({});
-    const result = DraftPayHelper.applySurcharge(2.8, 'Luigi', 10, {}, 10);
+    const result = DraftPayHelper.applySurcharge(2.8, 'Luigi', 10, {}, { duration: 30, distance: 10 });
 
     sinon.assert.called(getSurchargeDetails);
     expect(result).toBeDefined();
-    expect(result).toEqual({ surcharged: 2.8, notSurcharged: 0, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 2.8,
+      notSurcharged: 0,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
   });
 });
 
@@ -245,11 +251,11 @@ describe('getSurchargeSplit', () => {
   it('should apply 25th of december surcharge', () => {
     event = { startDate: '2019-12-25T09:00:00', endDate: '2019-12-25T11:00:00' };
     surcharge = { twentyFifthOfDecember: 20 };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
+    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10 });
+    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
   });
 
   it('should not apply 25th of december surcharge', () => {
@@ -258,17 +264,23 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 0,
+      notSurcharged: 2.5,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
   });
 
   it('should apply 1st of May surcharge', () => {
     event = { startDate: '2019-05-01T09:00:00', endDate: '2019-05-01T11:00:00' };
     surcharge = { firstOfMay: 20 };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
+    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10 });
+    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
   });
 
   it('should not apply 1st of May surcharge', () => {
@@ -277,17 +289,23 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 0,
+      notSurcharged: 2.5,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
   });
 
   it('should apply holiday surcharge', () => {
     event = { startDate: '2019-05-08T09:00:00', endDate: '2019-05-08T11:00:00' };
     surcharge = { publicHoliday: 20 };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
+    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10 });
+    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
   });
 
   it('should not apply holiday surcharge', () => {
@@ -296,17 +314,23 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 0,
+      notSurcharged: 2.5,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
   });
 
   it('should apply saturday surcharge', () => {
     event = { startDate: '2019-04-27T09:00:00', endDate: '2019-04-27T11:00:00' };
     surcharge = { saturday: 20 };
-    applySurcharge.returns({ surcharged: 2.5, paidKm: 10 });
+    applySurcharge.returns({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.called(applySurcharge);
-    expect(result).toEqual({ surcharged: 2.5, paidKm: 10 });
+    expect(result).toEqual({ surcharged: 2.5, paidKm: 10, paidTransportHours: 0.5 });
   });
 
   it('should not apply saturday surcharge', () => {
@@ -315,7 +339,13 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 0,
+      notSurcharged: 2.5,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
   });
 
   it('should apply sunday surcharge', () => {
@@ -334,7 +364,13 @@ describe('getSurchargeSplit', () => {
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
     sinon.assert.notCalled(applySurcharge);
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 0,
+      notSurcharged: 2.5,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
   });
 
   it('should apply evening surcharge', () => {
@@ -348,7 +384,13 @@ describe('getSurchargeSplit', () => {
 
     sinon.assert.called(computeCustomSurcharge);
     sinon.assert.called(getSurchargeDetails);
-    expect(result).toEqual({ surcharged: 2, notSurcharged: 0.5, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 2,
+      notSurcharged: 0.5,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
     computeCustomSurcharge.restore();
     getSurchargeDetails.restore();
   });
@@ -364,7 +406,13 @@ describe('getSurchargeSplit', () => {
 
     sinon.assert.called(computeCustomSurcharge);
     sinon.assert.called(getSurchargeDetails);
-    expect(result).toEqual({ surcharged: 2, notSurcharged: 0.5, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 2,
+      notSurcharged: 0.5,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
     computeCustomSurcharge.restore();
     getSurchargeDetails.restore();
   });
@@ -374,7 +422,13 @@ describe('getSurchargeSplit', () => {
     surcharge = { saturday: 10 };
     const result = DraftPayHelper.getSurchargeSplit(event, surcharge, {}, paidTransport);
 
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 10 });
+    expect(result).toEqual({
+      surcharged: 0,
+      notSurcharged: 2.5,
+      details: {},
+      paidKm: 10,
+      paidTransportHours: 0.5,
+    });
   });
 });
 
@@ -666,7 +720,13 @@ describe('getEventHours', () => {
 
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
+    expect(result).toEqual({
+      surcharged: 0,
+      notSurcharged: 2.5,
+      details: {},
+      paidKm: 12,
+      paidTransportHours: 0.5,
+    });
     sinon.assert.notCalled(getSurchargeSplit);
   });
 
@@ -676,18 +736,24 @@ describe('getEventHours', () => {
 
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
-    expect(result).toEqual({ surcharged: 0, notSurcharged: 2.5, details: {}, paidKm: 12 });
+    expect(result).toEqual({
+      surcharged: 0,
+      notSurcharged: 2.5,
+      details: {},
+      paidKm: 12,
+      paidTransportHours: 0.5,
+    });
     sinon.assert.notCalled(getSurchargeSplit);
   });
 
   it('should call getSurchargeSplit if hourly service with surcharge', async () => {
     const service = { surcharge: { sunday: 10 }, nature: 'hourly' };
     getPaidTransportInfo.returns({ distance: 12, duration: 30 });
-    getSurchargeSplit.returns({ surcharged: 10, notSurcharged: 2.5 });
+    getSurchargeSplit.returns({ surcharged: 10, notSurcharged: 2.5, paidTransportHours: 0.5 });
 
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
-    expect(result).toEqual({ surcharged: 10, notSurcharged: 2.5 });
+    expect(result).toEqual({ surcharged: 10, notSurcharged: 2.5, paidTransportHours: 0.5 });
     sinon.assert.calledWith(getSurchargeSplit, event, { sunday: 10 }, details, { distance: 12, duration: 30 });
   });
 });
@@ -780,7 +846,6 @@ describe('getPayFromEvents', () => {
     getMatchingVersion = sinon.stub(UtilsHelper, 'getMatchingVersion');
     getEventHours = sinon.stub(DraftPayHelper, 'getEventHours');
   });
-
   afterEach(() => {
     getMatchingVersion.restore();
     getEventHours.restore();
@@ -791,6 +856,8 @@ describe('getPayFromEvents', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual({
+      internalHours: 0,
+      paidTransportHours: 0,
       workedHours: 0,
       notSurchargedAndNotExempt: 0,
       surchargedAndNotExempt: 0,
@@ -832,6 +899,8 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: {},
       surchargedAndExemptDetails: {},
       paidKm: 0,
+      internalHours: 0,
+      paidTransportHours: 0,
     });
     sinon.assert.notCalled(getMatchingVersion);
     sinon.assert.notCalled(getEventHours);
@@ -872,7 +941,7 @@ describe('getPayFromEvents', () => {
     );
   });
 
-  it('should return pay for exempted from charge service', async () => {
+  it('should return pay for event exempted from charge service', async () => {
     const surchargeId = new ObjectID();
     const events = [
       [{
@@ -895,7 +964,13 @@ describe('getPayFromEvents', () => {
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
     getMatchingVersion.returns({ startDate: '2019-02-22T00:00:00', surcharge: surchargeId, exemptFromCharges: true });
-    getEventHours.returns({ surcharged: 2, notSurcharged: 5, details: { sunday: 10 }, paidKm: 5.8 });
+    getEventHours.returns({
+      surcharged: 2,
+      notSurcharged: 5,
+      details: { sunday: 10 },
+      paidKm: 5.8,
+      paidTransportHours: 2,
+    });
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
 
     expect(result).toBeDefined();
@@ -908,6 +983,8 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: {},
       surchargedAndExemptDetails: { sunday: 10 },
       paidKm: 5.8,
+      internalHours: 0,
+      paidTransportHours: 2,
     });
     sinon.assert.calledWith(
       getEventHours,
@@ -942,7 +1019,13 @@ describe('getPayFromEvents', () => {
     const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
 
     getMatchingVersion.returns({ startDate: '2019-02-22T00:00:00', surcharge: surchargeId, exemptFromCharges: false });
-    getEventHours.returns({ surcharged: 2, notSurcharged: 5, details: { sunday: 10 }, paidKm: 5.8 });
+    getEventHours.returns({
+      surcharged: 2,
+      notSurcharged: 5,
+      details: { sunday: 10 },
+      paidKm: 5.8,
+      paidTransportHours: 3,
+    });
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
 
     expect(result).toBeDefined();
@@ -955,6 +1038,8 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: { sunday: 10 },
       surchargedAndExemptDetails: {},
       paidKm: 5.8,
+      paidTransportHours: 3,
+      internalHours: 0,
     });
     sinon.assert.calledWith(
       getEventHours,
@@ -964,6 +1049,54 @@ describe('getPayFromEvents', () => {
       {},
       []
     );
+  });
+
+  it('should return pay for internal hour', async () => {
+    const surchargeId = new ObjectID();
+    const events = [
+      [{
+        startDate: '2019-07-12T09:00:00',
+        endDate: '2019-07-01T11:00:00',
+        type: 'internalHour',
+      }],
+    ];
+    const surcharges = [
+      { _id: surchargeId, sunday: 10 },
+      { _id: new ObjectID(), sunday: 14 },
+    ];
+    const query = { startDate: '2019-07-01T00:00:00', endDate: '2019-07-31T23:59:59' };
+
+    getEventHours.returns({
+      surcharged: 0,
+      notSurcharged: 5,
+      details: {},
+      paidKm: 5.8,
+      paidTransportHours: 2,
+    });
+    const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({
+      workedHours: 5,
+      notSurchargedAndNotExempt: 5,
+      surchargedAndNotExempt: 0,
+      notSurchargedAndExempt: 0,
+      surchargedAndExempt: 0,
+      surchargedAndNotExemptDetails: {},
+      surchargedAndExemptDetails: {},
+      paidKm: 5.8,
+      internalHours: 5,
+      paidTransportHours: 2,
+    });
+    sinon.assert.calledWith(
+      getEventHours,
+      { ...events[0][0], auxiliary },
+      false,
+      null,
+      {},
+      []
+    );
+    sinon.assert.notCalled(getMatchingVersion);
   });
 
   it('should return pay from multiple events', async () => {
@@ -1015,9 +1148,27 @@ describe('getPayFromEvents', () => {
     getMatchingVersion.onCall(0).returns({ exemptFromCharges: false });
     getMatchingVersion.onCall(1).returns({ exemptFromCharges: true });
     getMatchingVersion.onCall(2).returns({ exemptFromCharges: true });
-    getEventHours.onCall(0).returns({ surcharged: 2, notSurcharged: 5, details: {}, paidKm: 5.8 });
-    getEventHours.onCall(1).returns({ surcharged: 4, notSurcharged: 0, details: {}, paidKm: 3.2 });
-    getEventHours.onCall(2).returns({ surcharged: 2, notSurcharged: 5, details: {}, paidKm: 0 });
+    getEventHours.onCall(0).returns({
+      surcharged: 2,
+      notSurcharged: 5,
+      details: {},
+      paidKm: 5.8,
+      paidTransportHours: 3,
+    });
+    getEventHours.onCall(1).returns({
+      surcharged: 4,
+      notSurcharged: 0,
+      details: {},
+      paidKm: 3.2,
+      paidTransportHours: 0,
+    });
+    getEventHours.onCall(2).returns({
+      surcharged: 2,
+      notSurcharged: 5,
+      details: {},
+      paidKm: 0,
+      paidTransportHours: 1,
+    });
 
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
 
@@ -1031,6 +1182,8 @@ describe('getPayFromEvents', () => {
       surchargedAndNotExemptDetails: {},
       surchargedAndExemptDetails: {},
       paidKm: 9,
+      internalHours: 0,
+      paidTransportHours: 4,
     });
   });
 });
@@ -1167,7 +1320,7 @@ describe('computeMonthBalance', () => {
   });
 });
 
-describe('getDraftPayByAuxiliary', () => {
+describe('computeAuxiliaryDraftPay', () => {
   let computeMonthBalance;
   beforeEach(() => {
     computeMonthBalance = sinon.stub(DraftPayHelper, 'computeMonthBalance');
@@ -1191,7 +1344,7 @@ describe('getDraftPayByAuxiliary', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = {};
 
-    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, prevPay, company, query, [], []);
+    const result = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, events, prevPay, company, query, [], []);
     expect(result).not.toBeDefined();
   });
 
@@ -1210,7 +1363,7 @@ describe('getDraftPayByAuxiliary', () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const prevPay = {};
 
-    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, prevPay, company, query, [], []);
+    const result = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, events, prevPay, company, query, [], []);
     expect(result).not.toBeDefined();
   });
 
@@ -1240,7 +1393,7 @@ describe('getDraftPayByAuxiliary', () => {
       bonus: 0,
     };
     computeMonthBalance.returns(computedPay);
-    const result = await DraftPayHelper.getDraftPayByAuxiliary(auxiliary, events, prevPay, company, query, [], []);
+    const result = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, events, prevPay, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
       ...computedPay,
@@ -1509,44 +1662,41 @@ describe('getPreviousMonthPay', () => {
   });
 });
 
-describe('getDraftPay', () => {
-  let getAuxiliariesToPay;
+describe('computeDraftPayByAuxiliary', () => {
   let getEventsToPay;
   let companyMock;
   let surchargeMock;
   let distanceMatrixMock;
   let getPreviousMonthPay;
-  let getDraftPayByAuxiliary;
+  let computeAuxiliaryDraftPay;
 
   beforeEach(() => {
-    getAuxiliariesToPay = sinon.stub(ContractRepository, 'getAuxiliariesToPay');
     getEventsToPay = sinon.stub(EventRepository, 'getEventsToPay');
     companyMock = sinon.mock(Company);
     surchargeMock = sinon.mock(Surcharge);
     distanceMatrixMock = sinon.mock(DistanceMatrix);
     getPreviousMonthPay = sinon.stub(DraftPayHelper, 'getPreviousMonthPay');
-    getDraftPayByAuxiliary = sinon.stub(DraftPayHelper, 'getDraftPayByAuxiliary');
+    computeAuxiliaryDraftPay = sinon.stub(DraftPayHelper, 'computeAuxiliaryDraftPay');
   });
 
   afterEach(() => {
-    getAuxiliariesToPay.restore();
     getEventsToPay.restore();
     companyMock.restore();
     surchargeMock.restore();
     distanceMatrixMock.restore();
     getPreviousMonthPay.restore();
-    getDraftPayByAuxiliary.restore();
+    computeAuxiliaryDraftPay.restore();
   });
 
   it('should return an empty array if no auxiliary', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    getAuxiliariesToPay.returns([]);
     companyMock.expects('findOne').chain('lean').returns({});
     surchargeMock.expects('find').chain('lean').returns([]);
     distanceMatrixMock.expects('find').chain('lean').returns([]);
-    const result = await DraftPayHelper.getDraftPay([], [], query);
+    const result = await DraftPayHelper.computeDraftPayByAuxiliary([], query, credentials);
 
-    sinon.assert.notCalled(getPreviousMonthPay);
+    sinon.assert.calledOnce(getPreviousMonthPay);
     expect(result).toBeDefined();
     expect(result).toEqual([]);
     companyMock.verify();
@@ -1554,7 +1704,8 @@ describe('getDraftPay', () => {
     distanceMatrixMock.verify();
   });
 
-  it('should return draft pay', async () => {
+  it('should return draft pay by auxiliary', async () => {
+    const credentials = { company: 'qwertyuiop' };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaryId = new ObjectID();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
@@ -1575,14 +1726,13 @@ describe('getDraftPay', () => {
       { auxiliary: new ObjectID(), hoursCounter: 25, diff: -3 },
     ];
 
-    getAuxiliariesToPay.returns(auxiliaries);
     getEventsToPay.returns(payData);
     getPreviousMonthPay.returns(prevPay);
     companyMock.expects('findOne').chain('lean').returns({});
     surchargeMock.expects('find').chain('lean').returns([]);
     distanceMatrixMock.expects('find').chain('lean').returns([]);
-    getDraftPayByAuxiliary.returns({ hoursBalance: 120 });
-    const result = await DraftPayHelper.getDraftPay(query);
+    computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
+    const result = await DraftPayHelper.computeDraftPayByAuxiliary(auxiliaries, query, credentials);
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
@@ -1590,7 +1740,7 @@ describe('getDraftPay', () => {
     surchargeMock.verify();
     distanceMatrixMock.verify();
     sinon.assert.calledWith(
-      getDraftPayByAuxiliary,
+      computeAuxiliaryDraftPay,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
       {
         events: [{ _id: auxiliaryId, events: [{ startDate: '2019-05-03T10:00:00' }] }],
@@ -1602,6 +1752,79 @@ describe('getDraftPay', () => {
       { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' },
       [],
       []
+    );
+  });
+});
+
+describe('getAuxiliariesToPay', () => {
+  let getAuxiliariesToPay;
+  beforeEach(() => {
+    getAuxiliariesToPay = sinon.stub(ContractRepository, 'getAuxiliariesToPay');
+  });
+  afterEach(() => {
+    getAuxiliariesToPay.restore();
+  });
+
+  it('should return auxiliaries', async () => {
+    const end = '2019-05-31T23:59:59';
+    const auxiliaries = [{ _id: new ObjectID(), sector: { name: 'Abeilles' } }];
+
+    getAuxiliariesToPay.returns(auxiliaries);
+    const result = await DraftPayHelper.getAuxiliariesToPay(end);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual(auxiliaries);
+    sinon.assert.calledWith(
+      getAuxiliariesToPay,
+      {
+        status: 'contract_with_company',
+        startDate: { $lte: end },
+        $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
+      },
+      end,
+      'pays'
+    );
+  });
+});
+
+describe('getDraftPay', () => {
+  let getAuxiliariesToPay;
+  let computeDraftPayByAuxiliary;
+
+  beforeEach(() => {
+    getAuxiliariesToPay = sinon.stub(DraftPayHelper, 'getAuxiliariesToPay');
+    computeDraftPayByAuxiliary = sinon.stub(DraftPayHelper, 'computeDraftPayByAuxiliary');
+  });
+
+  afterEach(() => {
+    getAuxiliariesToPay.restore();
+    computeDraftPayByAuxiliary.restore();
+  });
+
+  it('should return an empty array if no auxiliary', async () => {
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const credentials = { company: '1234567890' };
+    getAuxiliariesToPay.returns([]);
+    const result = await DraftPayHelper.getDraftPay(query, credentials);
+
+    expect(result).toEqual([]);
+    sinon.assert.calledWith(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate());
+    sinon.assert.notCalled(computeDraftPayByAuxiliary);
+  });
+
+  it('should return draft pay', async () => {
+    const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const auxiliaries = [{ _id: new ObjectID(), sector: { name: 'Abeilles' } }];
+    const credentials = { company: '1234567890' };
+    getAuxiliariesToPay.returns(auxiliaries);
+    await DraftPayHelper.getDraftPay(query, credentials);
+
+    sinon.assert.calledWith(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate());
+    sinon.assert.calledWith(
+      computeDraftPayByAuxiliary,
+      auxiliaries,
+      { startDate: moment(query.startDate).startOf('d').toDate(), endDate: moment(query.endDate).endOf('d').toDate() },
+      credentials
     );
   });
 });

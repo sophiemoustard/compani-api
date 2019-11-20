@@ -224,17 +224,35 @@ exports.getTransportRefund = (auxiliary, company, workedDaysRatio, paidKm) => {
   return 0;
 };
 
+const paidHoursFromHours = {
+  workedHours: 0,
+  internalHours: 0,
+  notSurchargedAndNotExempt: 0,
+  surchargedAndNotExempt: 0,
+  notSurchargedAndExempt: 0,
+  surchargedAndExempt: 0,
+  surchargedAndNotExemptDetails: {},
+  surchargedAndExemptDetails: {},
+  paidKm: 0,
+  paidTransportHours: 0,
+};
+
+const incrementHours = (total, hours, surchargedKey) => {
+  const notSurchargedKey = `not${UtilsHelper.capitalize(surchargedKey)}`;
+
+  return {
+    ...total,
+    [surchargedKey]: total[surchargedKey] + hours.surcharged,
+    [notSurchargedKey]: total[notSurchargedKey] + hours.notSurcharged,
+    [`${surchargedKey}Details`]: hours.details,
+    workedHours: total.workedHours + hours.surcharged + hours.notSurcharged,
+    paidKm: total.paidKm + hours.paidKm,
+    paidTransportHours: total.paidTransportHours + hours.paidTransportHours,
+  };
+};
+
 exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges, query) => {
-  let workedHours = 0;
-  let internalHours = 0;
-  let notSurchargedAndNotExempt = 0;
-  let surchargedAndNotExempt = 0;
-  let notSurchargedAndExempt = 0;
-  let surchargedAndExempt = 0;
-  let surchargedAndNotExemptDetails = {};
-  let surchargedAndExemptDetails = {};
-  let paidKm = 0;
-  let paidTransportHours = 0;
+  let paidHours = cloneDeep(paidHoursFromHours);
   for (const eventsPerDay of events) {
     const sortedEvents = [...eventsPerDay].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
     for (let i = 0, l = sortedEvents.length; i < l; i++) {
@@ -250,42 +268,20 @@ exports.getPayFromEvents = async (events, auxiliary, distanceMatrix, surcharges,
         if (paidEvent.hasFixedService) continue; // Fixed services are included manually in bonus
 
         service = UtilsHelper.getMatchingVersion(paidEvent.startDate, paidEvent.subscription.service, 'startDate');
-        service.surcharge = service.surcharge ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null : null;
+        service.surcharge = service.surcharge
+          ? surcharges.find(sur => sur._id.toHexString() === service.surcharge.toHexString()) || null
+          : null;
       }
 
-      if (service && service.exemptFromCharges) {
-        const hours = await exports.getEventHours(paidEvent, (i !== 0) && sortedEvents[i - 1], service, surchargedAndExemptDetails, distanceMatrix);
-        surchargedAndExempt += hours.surcharged;
-        notSurchargedAndExempt += hours.notSurcharged;
-        surchargedAndExemptDetails = hours.details;
-        workedHours += hours.surcharged + hours.notSurcharged;
-        paidKm += hours.paidKm;
-        paidTransportHours += hours.paidTransportHours;
-      } else {
-        const hours = await exports.getEventHours(paidEvent, (i !== 0) && sortedEvents[i - 1], service, surchargedAndNotExemptDetails, distanceMatrix);
-        surchargedAndNotExempt += hours.surcharged;
-        notSurchargedAndNotExempt += hours.notSurcharged;
-        surchargedAndNotExemptDetails = hours.details;
-        workedHours += hours.surcharged + hours.notSurcharged;
-        paidKm += hours.paidKm;
-        paidTransportHours += hours.paidTransportHours;
-        if (paidEvent.type === INTERNAL_HOUR) internalHours += hours.surcharged + hours.notSurcharged;
-      }
+      const prevEvent = (i !== 0) && sortedEvents[i - 1];
+      const surchargedKey = service && service.exemptFromCharges ? 'surchargedAndExempt' : 'surchargedAndNotExempt';
+      const hours = await exports.getEventHours(paidEvent, prevEvent, service, paidHours[`${surchargedKey}Details`], distanceMatrix);
+      paidHours = incrementHours(paidHours, hours, surchargedKey);
+      if (paidEvent.type === INTERNAL_HOUR) paidHours.internalHours += hours.surcharged + hours.notSurcharged;
     }
   }
 
-  return {
-    workedHours,
-    notSurchargedAndNotExempt,
-    surchargedAndNotExempt,
-    surchargedAndNotExemptDetails,
-    notSurchargedAndExempt,
-    surchargedAndExempt,
-    surchargedAndExemptDetails,
-    paidKm,
-    internalHours,
-    paidTransportHours,
-  };
+  return paidHours;
 };
 
 exports.getPayFromAbsences = (absences, contract, query) => {
@@ -347,7 +343,7 @@ exports.genericData = (query, { _id, identity, sector }) => ({
   month: moment(query.startDate).format('MM-YYYY'),
 });
 
-exports.getDraftPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
+exports.computeAuxiliaryDraftPay = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
   const { contracts } = auxiliary;
   const contract = getContract(contracts, query.endDate);
   if (!contract) return;
@@ -446,25 +442,16 @@ exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, distanceMat
   return prevPayDiff;
 };
 
-exports.getDraftPay = async (query, credentials) => {
-  const start = moment(query.startDate).startOf('d').toDate();
-  const end = moment(query.endDate).endOf('d').toDate();
-  const contractRules = {
-    status: COMPANY_CONTRACT,
-    startDate: { $lte: end },
-    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
-  };
-
+exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const [auxiliaries, company, surcharges, distanceMatrix] = await Promise.all([
-    ContractRepository.getAuxiliariesToPay(contractRules, end, 'pays'),
+  const { startDate, endDate } = query;
+  const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne({ _id: companyId }).lean(),
     Surcharge.find({ company: companyId }).lean(),
     DistanceMatrix.find().lean(),
   ]);
-  if (auxiliaries.length === 0) return [];
 
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id));
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id));
   const prevPayList = await exports.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix);
 
   const draftPay = [];
@@ -473,9 +460,29 @@ exports.getDraftPay = async (query, credentials) => {
       eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString())
       || { absences: [], events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxiliary._id.toHexString());
-    const draft = await exports.getDraftPayByAuxiliary(auxiliary, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
+    const draft = await exports.computeAuxiliaryDraftPay(auxiliary, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
     if (draft) draftPay.push(draft);
   }
 
   return draftPay;
+};
+
+exports.getAuxiliariesToPay = async (end) => {
+  const contractRules = {
+    status: COMPANY_CONTRACT,
+    startDate: { $lte: end },
+    $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
+  };
+
+  return ContractRepository.getAuxiliariesToPay(contractRules, end, 'pays');
+};
+
+exports.getDraftPay = async (query, credentials) => {
+  const startDate = moment(query.startDate).startOf('d').toDate();
+  const endDate = moment(query.endDate).endOf('d').toDate();
+
+  const auxiliaries = await exports.getAuxiliariesToPay(endDate);
+  if (auxiliaries.length === 0) return [];
+
+  return exports.computeDraftPayByAuxiliary(auxiliaries, { startDate, endDate }, credentials);
 };

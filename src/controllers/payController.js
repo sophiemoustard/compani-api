@@ -32,7 +32,8 @@ const createList = async (req) => {
 
 const getHoursBalanceDetails = async (req) => {
   try {
-    const detail = await hoursBalanceDetail(req.query.auxiliary, req.query.month);
+    const { query, auth } = req;
+    const detail = await hoursBalanceDetail(query.auxiliary, query.month, auth.credentials);
 
     return {
       message: translate[language].hoursBalanceDetail,
