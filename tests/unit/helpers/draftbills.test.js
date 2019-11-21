@@ -55,12 +55,15 @@ describe('populateSurcharge', () => {
 });
 
 describe('populateFundings', () => {
-  let FundingHistoryMock = null;
+  let FundingHistoryMock;
+  let mergeLastVersionWithBaseObjectStub;
   beforeEach(() => {
     FundingHistoryMock = sinon.mock(FundingHistory);
+    mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject');
   });
   afterEach(() => {
     FundingHistoryMock.restore();
+    mergeLastVersionWithBaseObjectStub.restore();
   });
 
   it('should return empty array if input empty', async () => {
@@ -73,7 +76,7 @@ describe('populateFundings', () => {
     const fundings = [{ thirdPartyPayer: tppId, _id: new ObjectID(), versions: [] }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...omit(fundings[0], ['versions']) };
-    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
+    mergeLastVersionWithBaseObjectStub.returns(funding);
 
     FundingHistoryMock
       .expects('findOne')
@@ -87,7 +90,6 @@ describe('populateFundings', () => {
     expect(result[0].thirdPartyPayer).toBeDefined();
     expect(result[0].thirdPartyPayer._id).toEqual(tppId);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    mergeLastVersionWithBaseObjectStub.restore();
     FundingHistoryMock.verify();
   });
 
@@ -103,7 +105,7 @@ describe('populateFundings', () => {
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
     const returnedHistory = { careHours: 4, fundingId };
-    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
+    mergeLastVersionWithBaseObjectStub.returns(funding);
 
     FundingHistoryMock
       .expects('findOne')
@@ -115,9 +117,8 @@ describe('populateFundings', () => {
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
-    expect(result[0].history).toMatchObject({ careHours: 4, fundingId });
+    expect(result[0].history).toMatchObject([{ careHours: 4, fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    mergeLastVersionWithBaseObjectStub.restore();
     FundingHistoryMock.verify();
   });
 
@@ -132,8 +133,7 @@ describe('populateFundings', () => {
     }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
-    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
-
+    mergeLastVersionWithBaseObjectStub.returns(funding);
     FundingHistoryMock
       .expects('findOne')
       .withArgs({ fundingId: fundings[0]._id })
@@ -144,9 +144,8 @@ describe('populateFundings', () => {
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
-    expect(result[0].history).toMatchObject({ careHours: 0, amountTTC: 0, fundingId });
+    expect(result[0].history).toMatchObject([{ careHours: 0, amountTTC: 0, fundingId }]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    mergeLastVersionWithBaseObjectStub.restore();
     FundingHistoryMock.verify();
   });
 
@@ -165,7 +164,7 @@ describe('populateFundings', () => {
       { careHours: 5, fundingId, month: '02/2019' },
     ];
     const funding = { ...fundings[0].versions[0], ...omit(fundings[0], ['versions']) };
-    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
+    mergeLastVersionWithBaseObjectStub.returns(funding);
 
     FundingHistoryMock
       .expects('find')
@@ -181,9 +180,9 @@ describe('populateFundings', () => {
     expect(addedHistory).toBeDefined();
     expect(addedHistory).toMatchObject({ careHours: 0, amountTTC: 0, fundingId, month: '03/2019' });
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    mergeLastVersionWithBaseObjectStub.restore();
     FundingHistoryMock.verify();
   });
+
   it('shouldn\'t populate third party payer funding if billing mode is indirect', async () => {
     const tppIndirectId = new ObjectID();
     const fundings = [
@@ -191,15 +190,13 @@ describe('populateFundings', () => {
     ];
     const tpps = [{ _id: tppIndirectId, billingMode: BILLING_INDIRECT }];
     const funding = { ...omit(fundings[0], ['versions']) };
-
-    const mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject').returns(funding);
+    mergeLastVersionWithBaseObjectStub.returns(funding);
 
     const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps);
 
     expect(result).toBeDefined();
     expect(result).toEqual([]);
     sinon.assert.called(mergeLastVersionWithBaseObjectStub);
-    mergeLastVersionWithBaseObjectStub.restore();
   });
 });
 
@@ -270,7 +267,7 @@ describe('getThirdPartyPayerPrice', () => {
 describe('getMatchingHistory', () => {
   it('should return history for once frequency', () => {
     const fundingId = new ObjectID();
-    const funding = { _id: fundingId, frequency: 'once', history: { fundingId, careHours: 2 } };
+    const funding = { _id: fundingId, frequency: 'once', history: [{ fundingId, careHours: 2 }] };
     const result = DraftBillsHelper.getMatchingHistory({}, funding);
     expect(result).toBeDefined();
     expect(result.fundingId).toEqual(fundingId);
@@ -398,7 +395,7 @@ describe('getFixedFundingSplit', () => {
 
   it('Case 1. Event fully invoiced to TPP', () => {
     const funding = {
-      history: { amountTTC: 10 },
+      history: [{ amountTTC: 10 }],
       amountTTC: 100,
       thirdPartyPayer: { _id: new ObjectID() },
     };
@@ -415,7 +412,7 @@ describe('getFixedFundingSplit', () => {
 
   it('Case 2. Event partially invoiced to TPP', () => {
     const funding = {
-      history: { amountTTC: 79 },
+      history: [{ amountTTC: 79 }],
       amountTTC: 100,
       thirdPartyPayer: { _id: new ObjectID() },
     };

@@ -42,10 +42,8 @@ exports.populateFundings = async (fundings, endDate, tppList) => {
     funding.thirdPartyPayer = tpp;
     if (funding.frequency !== MONTHLY) {
       const history = await FundingHistory.findOne({ fundingId: funding._id }).lean();
-      if (history) funding.history = history;
-      else {
-        funding.history = { careHours: 0, amountTTC: 0, fundingId: funding._id };
-      }
+      if (history) funding.history = [history];
+      else funding.history = [{ careHours: 0, amountTTC: 0, fundingId: funding._id }];
     } else {
       const history = await FundingHistory.find({ fundingId: funding._id });
       if (history) funding.history = history;
@@ -95,7 +93,7 @@ exports.getThirdPartyPayerPrice = (time, fundingExclTaxes, customerParticipation
   (time / 60) * fundingExclTaxes * (1 - (customerParticipationRate / 100));
 
 exports.getMatchingHistory = (event, funding) => {
-  if (funding.frequency === ONCE) return funding.history;
+  if (funding.frequency === ONCE) return funding.history[0];
 
   let history = funding.history.find(his => his.month === moment(event.startDate).format('MM/YYYY'));
   if (history) return history;
@@ -147,13 +145,14 @@ exports.getHourlyFundingSplit = (event, funding, service, price) => {
  */
 exports.getFixedFundingSplit = (event, funding, service, price) => {
   let thirdPartyPayerPrice = 0;
-  if (funding.history && funding.history.amountTTC < funding.amountTTC) {
-    if (funding.history.amountTTC + (price * (1 + (service.vat / 100))) < funding.amountTTC) {
+  if (funding.history && funding.history[0].amountTTC < funding.amountTTC) {
+    const history = funding.history[0];
+    if (history.amountTTC + (price * (1 + (service.vat / 100))) < funding.amountTTC) {
       thirdPartyPayerPrice = price;
-      funding.history.amountTTC += thirdPartyPayerPrice * (1 + (service.vat / 100));
+      history.amountTTC += thirdPartyPayerPrice * (1 + (service.vat / 100));
     } else {
-      thirdPartyPayerPrice = exports.getExclTaxes(funding.amountTTC - funding.history.amountTTC, service.vat);
-      funding.history.amountTTC = funding.amountTTC;
+      thirdPartyPayerPrice = exports.getExclTaxes(funding.amountTTC - history.amountTTC, service.vat);
+      history.amountTTC = funding.amountTTC;
     }
   }
 
