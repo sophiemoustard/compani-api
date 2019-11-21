@@ -20,10 +20,7 @@ describe('ACTIVATION CODE ROUTES', () => {
 
   describe('POST /activation', () => {
     it('should create an activation code', async () => {
-      const payload = {
-        userEmail: 'toto@test.com',
-        newUserId: activationCodeUser._id,
-      };
+      const payload = { user: activationCodeUser._id };
       const res = await app.inject({
         method: 'POST',
         url: '/activation',
@@ -36,39 +33,21 @@ describe('ACTIVATION CODE ROUTES', () => {
       expect(res.result.data.activationData).toEqual(expect.objectContaining({
         _id: expect.any(Object),
         firstSMS: expect.any(Date),
-        newUserId: payload.newUserId,
-        userEmail: payload.userEmail,
+        user: payload.user,
       }));
       const codeData = await ActivationCode.findById(res.result.data.activationData._id);
       expect(codeData).toEqual(expect.objectContaining({
         firstSMS: expect.any(Date),
-        newUserId: payload.newUserId,
-        userEmail: payload.userEmail,
+        user: payload.user,
       }));
     });
 
-    it("should return a 400 error if 'userEmail' parameter is missing", async () => {
-      const payload = { newUserId: activationCodeUser._id };
+    it("should return a 400 error if 'user' is missing", async () => {
       const res = await app.inject({
         method: 'POST',
         url: '/activation',
-        payload,
-        headers: {
-          'x-access-token': token,
-        },
-      });
-      expect(res.statusCode).toBe(400);
-    });
-
-    it("should return a 400 error if 'newUserId' is missing", async () => {
-      const payload = { userEmail: 'toto@test.com' };
-      const res = await app.inject({
-        method: 'POST',
-        url: '/activation',
-        payload,
-        headers: {
-          'x-access-token': token,
-        },
+        payload: {},
+        headers: { 'x-access-token': token },
       });
       expect(res.statusCode).toBe(400);
     });
@@ -89,8 +68,7 @@ describe('ACTIVATION CODE ROUTES', () => {
         activationData: expect.objectContaining({
           _id: activationCode._id,
           firstSMS: expect.any(Date),
-          userEmail: activationCode.userEmail,
-          newUserId: activationCode.newUserId,
+          user: activationCode.user._id,
         }),
       }));
     });

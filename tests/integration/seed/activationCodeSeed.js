@@ -9,8 +9,7 @@ const activationCode = {
   _id: new ObjectID(),
   firstSMS: Date.now(),
   code: '1234',
-  userEmail: 'toto@tt.com',
-  newUserId: new ObjectID(),
+  user: new ObjectID(),
 };
 
 const activationCodeUser = {
