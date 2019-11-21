@@ -5,6 +5,7 @@ const { ObjectID } = require('mongodb');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const UtilsHelper = require('../../../src/helpers/utils');
+const ContractHelper = require('../../../src/helpers/contracts');
 const Company = require('../../../src/models/Company');
 const Surcharge = require('../../../src/models/Surcharge');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
@@ -13,109 +14,39 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 
 require('sinon-mongoose');
 
-describe('getBusinessDaysCountBetweenTwoDates', () => {
-  it('Case 1. No sundays nor holidays in range', () => {
-    const start = new Date('2019/05/21');
-    const end = new Date('2019/05/23');
-    const result = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(start, end);
-
-    expect(result).toBeDefined();
-    expect(result).toBe(3);
-  });
-
-  it('Case 2. Sundays in range', () => {
-    const start = new Date('2019/05/18');
-    const end = new Date('2019/05/23');
-    const result = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(start, end);
-
-    expect(result).toBeDefined();
-    expect(result).toBe(5);
-  });
-
-  it('Case 3. Holidays in range', () => {
-    const start = new Date('2019/05/07');
-    const end = new Date('2019/05/09');
-    const result = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(start, end);
-
-    expect(result).toBeDefined();
-    expect(result).toBe(2);
-  });
-});
-
-describe('getMonthBusinessDaysCount', () => {
-  it('should call getBusinessDaysCountBetweenTwoDates', () => {
-    const mock = sinon.mock(DraftPayHelper);
-    mock.expects('getBusinessDaysCountBetweenTwoDates').once();
-    DraftPayHelper.getMonthBusinessDaysCount(new Date('2019/05/18'));
-
-    mock.verify();
-    mock.restore();
-  });
-});
-
 describe('getContractMonthInfo', () => {
-  let mock;
+  let getBusinessDaysCountBetweenTwoDates;
+  let getContractInfo;
   beforeEach(() => {
-    mock = sinon.mock(DraftPayHelper);
+    getBusinessDaysCountBetweenTwoDates = sinon.stub(UtilsHelper, 'getBusinessDaysCountBetweenTwoDates');
+    getContractInfo = sinon.stub(ContractHelper, 'getContractInfo');
   });
-
   afterEach(() => {
-    mock.restore();
+    getBusinessDaysCountBetweenTwoDates.restore();
+    getContractInfo.restore();
   });
 
-  it('Case 1. One version no sunday', () => {
-    const contract = {
-      versions: [
-        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
-      ],
-    };
+  it('should get contract month info', () => {
+    const versions = [
+      { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+      { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+    ];
+    const contract = { versions };
     const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
-    mock.expects('getBusinessDaysCountBetweenTwoDates').once().withArgs(moment('2019-05-06'), moment('2019-05-10')).returns(4);
-    mock.expects('getMonthBusinessDaysCount').once().withArgs('2019-05-06').returns(16);
+    getBusinessDaysCountBetweenTwoDates.returns(4);
+    getContractInfo.returns({ contractHours: 24, workedDaysRatio: 1 / 4 });
 
     const result = DraftPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
-    expect(result.contractHours).toBeDefined();
-    expect(result.contractHours).toBe(26);
-    expect(result.workedDaysRatio).toBeDefined();
+    expect(result.contractHours).toBe(104);
     expect(result.workedDaysRatio).toBe(1 / 4);
-    mock.verify();
-  });
-
-  it('Case 2. One version and sunday included', () => {
-    const contract = {
-      versions: [
-        { startDate: '2019-01-01', endDate: '2019-05-03', weeklyHours: 18 },
-        { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
-      ],
-    };
-    const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
-    mock.expects('getBusinessDaysCountBetweenTwoDates').once().withArgs(moment('2019-05-04').startOf('d'), moment('2019-05-10'));
-    mock.expects('getMonthBusinessDaysCount').once().withArgs('2019-05-04');
-
-    const result = DraftPayHelper.getContractMonthInfo(contract, query);
-
-    expect(result).toBeDefined();
-    mock.verify();
-  });
-
-  it('Case 3. Multiple versions', () => {
-    const contract = {
-      versions: [
-        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
-      ],
-    };
-    const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
-    mock.expects('getBusinessDaysCountBetweenTwoDates').twice();
-    mock.expects('getMonthBusinessDaysCount').once();
-
-    const result = DraftPayHelper.getContractMonthInfo(contract, query);
-
-    expect(result).toBeDefined();
-    mock.verify();
+    sinon.assert.calledWith(
+      getBusinessDaysCountBetweenTwoDates,
+      moment('2019-05-06').startOf('M').toDate(),
+      moment('2019-05-06').endOf('M').toDate()
+    );
+    sinon.assert.calledWith(getContractInfo, versions, query, 4);
   });
 });
 
@@ -1193,7 +1124,6 @@ describe('getPayFromAbsences', () => {
   beforeEach(() => {
     getMatchingVersion = sinon.stub(UtilsHelper, 'getMatchingVersion');
   });
-
   afterEach(() => {
     getMatchingVersion.restore();
   });
@@ -1269,7 +1199,7 @@ describe('getPayFromAbsences', () => {
   });
 });
 
-describe('computeMonthBalance', () => {
+describe('computeBalance', () => {
   let getPayFromEvents;
   let getPayFromAbsences;
   let getContractMonthInfo;
@@ -1305,7 +1235,7 @@ describe('computeMonthBalance', () => {
     getContractMonthInfo.returns({ contractHours: 150, workedDaysRatio: 0.8 });
     getTransportRefund.returns(26.54);
 
-    const result = await DraftPayHelper.computeMonthBalance(auxiliary, contract, events, company, query, [], []);
+    const result = await DraftPayHelper.computeBalance(auxiliary, contract, events, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
       contractHours: 150,
@@ -1322,12 +1252,12 @@ describe('computeMonthBalance', () => {
 });
 
 describe('computeAuxiliaryDraftPay', () => {
-  let computeMonthBalance;
+  let computeBalance;
   beforeEach(() => {
-    computeMonthBalance = sinon.stub(DraftPayHelper, 'computeMonthBalance');
+    computeBalance = sinon.stub(DraftPayHelper, 'computeBalance');
   });
   afterEach(() => {
-    computeMonthBalance.restore();
+    computeBalance.restore();
   });
 
   it('should not return draft pay as auxiliary does not have company contracts', async () => {
@@ -1393,7 +1323,7 @@ describe('computeAuxiliaryDraftPay', () => {
       otherFees: 29.6,
       bonus: 0,
     };
-    computeMonthBalance.returns(computedPay);
+    computeBalance.returns(computedPay);
     const result = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, events, prevPay, company, query, [], []);
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -1411,7 +1341,7 @@ describe('computeAuxiliaryDraftPay', () => {
       additionalHours: 0,
     });
     sinon.assert.calledWith(
-      computeMonthBalance,
+      computeBalance,
       auxiliary,
       { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
       events,
@@ -1683,7 +1613,6 @@ describe('computeDraftPayByAuxiliary', () => {
   let distanceMatrixMock;
   let getPreviousMonthPay;
   let computeAuxiliaryDraftPay;
-
   beforeEach(() => {
     getEventsToPay = sinon.stub(EventRepository, 'getEventsToPay');
     companyMock = sinon.mock(Company);
@@ -1692,7 +1621,6 @@ describe('computeDraftPayByAuxiliary', () => {
     getPreviousMonthPay = sinon.stub(DraftPayHelper, 'getPreviousMonthPay');
     computeAuxiliaryDraftPay = sinon.stub(DraftPayHelper, 'computeAuxiliaryDraftPay');
   });
-
   afterEach(() => {
     getEventsToPay.restore();
     companyMock.restore();
@@ -1804,12 +1732,10 @@ describe('getAuxiliariesToPay', () => {
 describe('getDraftPay', () => {
   let getAuxiliariesToPay;
   let computeDraftPayByAuxiliary;
-
   beforeEach(() => {
     getAuxiliariesToPay = sinon.stub(DraftPayHelper, 'getAuxiliariesToPay');
     computeDraftPayByAuxiliary = sinon.stub(DraftPayHelper, 'computeDraftPayByAuxiliary');
   });
-
   afterEach(() => {
     getAuxiliariesToPay.restore();
     computeDraftPayByAuxiliary.restore();

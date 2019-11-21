@@ -13,10 +13,11 @@ const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const EventHelper = require('./events');
 const CustomerHelper = require('./customers');
+const UtilsHelper = require('./utils');
 const GDriveStorageHelper = require('./gdriveStorage');
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, WEEKS_PER_MONTH } = require('./constants');
 const { createAndReadFile } = require('./file');
-const ESignHelper = require('../helpers/eSign');
+const ESignHelper = require('./eSign');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 
@@ -291,4 +292,23 @@ exports.saveCompletedContract = async (everSignDoc) => {
     { $set: flat({ 'versions.$': payload }) },
     { new: true }
   );
+};
+
+exports.getContractInfo = (versions, query, businessDaysTotal) => {
+  let contractHours = 0;
+  let workedDays = 0;
+  for (const version of versions) {
+    const startDate = moment(version.startDate).isBefore(query.startDate)
+      ? moment(query.startDate).toDate()
+      : moment(version.startDate).startOf('d').toDate();
+    const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
+      ? moment(version.endDate).endOf('d').toDate()
+      : moment(query.endDate).toDate();
+    const businessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
+
+    workedDays += businessDays;
+    contractHours += version.weeklyHours * (businessDays / businessDaysTotal);
+  }
+
+  return { contractHours, workedDaysRatio: workedDays / businessDaysTotal };
 };

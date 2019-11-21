@@ -242,3 +242,32 @@ describe('formatFloatForExport', () => {
     });
   });
 });
+
+describe('getBusinessDaysCountBetweenTwoDates', () => {
+  it('Case 1. No sundays nor holidays in range', () => {
+    const start = new Date('2019/05/21');
+    const end = new Date('2019/05/23');
+    const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(3);
+  });
+
+  it('Case 2. Sundays in range', () => {
+    const start = new Date('2019/05/18');
+    const end = new Date('2019/05/23');
+    const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(5);
+  });
+
+  it('Case 3. Holidays in range', () => {
+    const start = new Date('2019/05/07');
+    const end = new Date('2019/05/09');
+    const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toBe(2);
+  });
+});

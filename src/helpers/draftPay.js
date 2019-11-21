@@ -19,45 +19,29 @@ const {
   INTERVENTION,
   DAILY,
   COMPANY_CONTRACT,
-  WEEKS_PER_MONTH,
   INTERNAL_HOUR,
+  WEEKS_PER_MONTH,
 } = require('./constants');
 const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
+const ContractHelper = require('./contracts');
 
-exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
-  let count = 0;
-  if (moment(end).isBefore(start)) return count;
+exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
+  const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
+  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate);
 
-  const range = Array.from(moment().range(start, end).by('days'));
-  for (const day of range) {
-    if (day.startOf('d').isBusinessDay()) count += 1; // startOf('day') is necessery to check fr holidays in business day
-  }
-
-  return count;
-};
-
-exports.getMonthBusinessDaysCount = start =>
-  exports.getBusinessDaysCountBetweenTwoDates(moment(start).startOf('M').toDate(), moment(start).endOf('M'));
+  return isStartedOnEndDate && !isEndedOnStartDate;
+});
 
 exports.getContractMonthInfo = (contract, query) => {
-  const versions = contract.versions.filter(ver =>
-    (moment(ver.startDate).isSameOrBefore(query.endDate) && (!ver.endDate || moment(ver.endDate).isSameOrAfter(query.startDate))));
-  const monthBusinessDays = exports.getMonthBusinessDaysCount(query.startDate);
+  const start = moment(query.startDate).startOf('M').toDate();
+  const end = moment(query.startDate).endOf('M').toDate();
+  const monthBusinessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+  const versions = exports.getMatchingVersionsList(contract.versions || [], query);
 
-  let contractHours = 0;
-  let workedDays = 0;
-  for (const version of versions) {
-    const startDate = moment(version.startDate).isBefore(query.startDate) ? moment(query.startDate) : moment(version.startDate).startOf('d');
-    const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
-      ? moment(version.endDate).endOf('d')
-      : moment(query.endDate);
-    const businessDays = exports.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
-    workedDays += businessDays;
-    contractHours += version.weeklyHours * (businessDays / monthBusinessDays) * WEEKS_PER_MONTH;
-  }
+  const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);
 
-  return { contractHours, workedDaysRatio: workedDays / monthBusinessDays };
+  return { contractHours: info.contractHours * WEEKS_PER_MONTH, workedDaysRatio: info.workedDaysRatio };
 };
 
 /**
@@ -306,7 +290,7 @@ exports.getPayFromAbsences = (absences, contract, query) => {
   return hours;
 };
 
-const getContract = (contracts, endDate) => contracts.find((cont) => {
+exports.getContract = (contracts, endDate) => contracts.find((cont) => {
   const isCompanyContract = cont.status === COMPANY_CONTRACT;
   if (!isCompanyContract) return false;
 
@@ -316,7 +300,7 @@ const getContract = (contracts, endDate) => contracts.find((cont) => {
   return !cont.endDate || moment(cont.endDate).isAfter(endDate);
 });
 
-exports.computeMonthBalance = async (auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges) => {
+exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges) => {
   const contractInfo = exports.getContractMonthInfo(contract, query);
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
@@ -346,10 +330,10 @@ exports.genericData = (query, { _id, identity, sector }) => ({
 
 exports.computeAuxiliaryDraftPay = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
   const { contracts } = auxiliary;
-  const contract = getContract(contracts, query.endDate);
+  const contract = exports.getContract(contracts, query.endDate);
   if (!contract) return;
 
-  const monthBalance = await exports.computeMonthBalance(auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges);
+  const monthBalance = await exports.computeBalance(auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges);
   const hoursCounter = prevPay ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance : monthBalance.hoursBalance;
 
   return {
