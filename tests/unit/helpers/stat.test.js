@@ -35,7 +35,7 @@ describe('getCustomerFundingsMonitoring', () => {
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
 
-  it('should not return empty array if no events', async () => {
+  it('should return info if no events', async () => {
     const customerId = new ObjectID();
 
     getEventsGroupedByFundingsStub.returns([{
