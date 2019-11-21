@@ -242,6 +242,7 @@ exports.plugin = {
             }),
           },
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: addSubscription,
     });
@@ -336,6 +337,7 @@ exports.plugin = {
             redirectDecline: Joi.string(),
           },
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: generateMandateSignatureRequest,
     });
@@ -350,6 +352,7 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: getCustomerQuotes,
     });
@@ -373,6 +376,7 @@ exports.plugin = {
             })).required(),
           }),
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: createCustomerQuote,
     });
@@ -444,6 +448,7 @@ exports.plugin = {
             ),
           }).or('signedQuote', 'signedMandate', 'financialCertificates'),
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
     });
 
@@ -506,6 +511,7 @@ exports.plugin = {
             }).required(),
           }),
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: createHistorySubscription,
     });
@@ -536,6 +542,7 @@ exports.plugin = {
             })),
           }),
         },
+        pre: [{ method: authorizeCustomerGetAndUpdate }],
       },
       handler: createFunding,
     });

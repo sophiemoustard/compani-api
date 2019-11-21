@@ -12,6 +12,8 @@ const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('..
 const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const subId = new ObjectID();
+const otherCompanyId = new ObjectID();
+const otherCompanyCustomerId = new ObjectID();
 
 const customerServiceList = [
   {
@@ -224,6 +226,110 @@ const customersList = [
       phone: '0612345678',
     },
   },
+  {
+    company: otherCompanyId,
+    _id: otherCompanyCustomerId,
+    name: 'notFromCompany',
+    email: 'test@test.io',
+    identity: {
+      title: 'mr',
+      firstname: 'test',
+      lastname: 'test',
+    },
+    driveFolder: { driveId: '09876543' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de Ponthieu 75018 Paris',
+        zipCode: '75018',
+        city: 'Paris',
+      },
+      phone: '0698765432',
+    },
+    subscriptions: [
+      {
+        _id: new ObjectID(),
+        service: customerServiceList[0]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      },
+      {
+        _id: new ObjectID(),
+        service: customerServiceList[1]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      },
+    ],
+    subscriptionsHistory: [{
+      subscriptions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        service: 'Service 1',
+      }, {
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        service: 'Service 2',
+      }],
+      helper: {
+        firstname: 'Vladimir',
+        lastname: 'Poutine',
+        title: 'mr',
+      },
+      approvalDate: '2018-01-01T10:00:00.000+01:00',
+    }],
+    payment: {
+      bankAccountOwner: 'David gaudu',
+      iban: '',
+      bic: '',
+      mandates: [
+        {
+          _id: new ObjectID(),
+          rum: 'R012345678903456789',
+        },
+      ],
+    },
+    quotes: [{
+      _id: new ObjectID(),
+      subscriptions: [{
+        serviceName: 'Test',
+        unitTTCRate: 23,
+        estimatedWeeklyVolume: 3,
+      }, {
+        serviceName: 'Test2',
+        unitTTCRate: 30,
+        estimatedWeeklyVolume: 10,
+      }],
+    }],
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayer._id,
+        subscription: subId,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
+          frequency: ONCE,
+          endDate: moment.utc().add(6, 'months').toDate(),
+          effectiveDate: moment.utc().toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        }],
+      },
+    ],
+  },
 ];
 
 const userList = [
@@ -253,6 +359,15 @@ const userList = [
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[3]._id],
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Test' },
+    local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: otherCompanyCustomerId,
   },
 ];
 
@@ -291,6 +406,26 @@ const eventList = [
       careHours: 2,
     },
   },
+  {
+    _id: new ObjectID(),
+    company: otherCompanyId,
+    isBilled: true,
+    customer: otherCompanyCustomerId,
+    type: 'intervention',
+    bills: {
+      thirdPartyPayer: new ObjectID(),
+      inclTaxesCustomer: 20,
+      exclTaxesCustomer: 15,
+      inclTaxesTpp: 10,
+      exclTaxesTpp: 5,
+      fundingId: new ObjectID(),
+      nature: 'hourly',
+      careHours: 2,
+    },
+    subscription: new ObjectID(),
+    startDate: '2019-01-16T14:30:19.543Z',
+    endDate: '2019-01-16T15:30:21.653Z',
+  },
 ];
 
 const populateDB = async () => {
@@ -318,4 +453,6 @@ module.exports = {
   populateDB,
   customerServiceList,
   customerThirdPartyPayer,
+  otherCompanyId,
+  otherCompanyCustomerId,
 };
