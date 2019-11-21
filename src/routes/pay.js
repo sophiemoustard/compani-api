@@ -45,7 +45,7 @@ exports.plugin = {
       method: 'GET',
       path: '/hours-balance-details',
       options: {
-        auth: { scope: ['pay:edit', 'user-{query.auxiliary}'] },
+        auth: { scope: ['events:read'] },
         validate: {
           query: {
             auxiliary: Joi.objectId().required(),

@@ -1,13 +1,8 @@
 const cloneDeep = require('lodash/cloneDeep');
-const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Pay = require('../models/Pay');
 const User = require('../models/User');
-const Company = require('../models/Company');
-const Surcharge = require('../models/Surcharge');
-const DistanceMatrix = require('../models/DistanceMatrix');
 const DraftPayHelper = require('./draftPay');
-const EventRepository = require('../repositories/EventRepository');
 
 exports.formatSurchargeDetail = (detail) => {
   const surchargeDetail = [];

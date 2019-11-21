@@ -5,6 +5,9 @@ const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const Repetition = require('../../../src/models/Repetition');
 const EventHelper = require('../../../src/helpers/events');
+const PayHelper = require('../../../src/helpers/pay');
+const ContractHelper = require('../../../src/helpers/contracts');
+const UtilsHelper = require('../../../src/helpers/utils');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
@@ -1039,5 +1042,41 @@ describe('updateEventsInternalHourType', () => {
       },
       { $set: { internalHour: defaultInternalHourId } }
     );
+  });
+});
+
+describe('getContractWeekInfo', () => {
+  let getBusinessDaysCountBetweenTwoDates;
+  let getContractInfo;
+  beforeEach(() => {
+    getBusinessDaysCountBetweenTwoDates = sinon.stub(UtilsHelper, 'getBusinessDaysCountBetweenTwoDates');
+    getContractInfo = sinon.stub(ContractHelper, 'getContractInfo');
+  });
+  afterEach(() => {
+    getBusinessDaysCountBetweenTwoDates.restore();
+    getContractInfo.restore();
+  });
+
+  it('should get contract week info', () => {
+    const versions = [
+      { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+      { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+    ];
+    const contract = { versions };
+    const query = { startDate: '2019-11-20T00:00:00', endDate: '2019-11-22T00:00:00' };
+    getBusinessDaysCountBetweenTwoDates.returns(4);
+    getContractInfo.returns({ contractHours: 26, workedDaysRatio: 1 / 4 });
+
+    const result = EventHelper.getContractWeekInfo(contract, query);
+
+    expect(result).toBeDefined();
+    expect(result.contractHours).toBe(26);
+    expect(result.workedDaysRatio).toBe(1 / 4);
+    sinon.assert.calledWith(
+      getBusinessDaysCountBetweenTwoDates,
+      moment('2019-11-20').startOf('w').toDate(),
+      moment('2019-11-20').endOf('w').toDate()
+    );
+    sinon.assert.calledWith(getContractInfo, versions, query, 4);
   });
 });

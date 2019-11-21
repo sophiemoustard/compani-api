@@ -386,16 +386,16 @@ const getDiff = (prevPay, hours, key) => {
 exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, distanceMatrix, surcharges) => {
   const contract = auxiliary.contracts.find(cont => cont.status === COMPANY_CONTRACT &&
     (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
-  const contractInfo = exports.getContractMonthInfo(contract, query);
+  const contractHours = prevPay ? prevPay.contractHours : exports.getContractMonthInfo(contract, query).contractHours;
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
-  const hoursToWork = Math.max(contractInfo.contractHours - absencesHours, 0);
+  const hoursToWork = Math.max(contractHours - absencesHours, 0);
   const hoursBalance = hours.workedHours - hoursToWork;
 
   return {
     auxiliary: auxiliary._id,
     diff: {
-      hoursToWork: Math.round((prevPay ? hoursToWork - prevPay.hoursToWork : hoursToWork) * 100) / 100,
+      hoursToWork: Math.round((prevPay ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100,
       absencesHours: Math.round((prevPay ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100,
       workedHours: getDiff(prevPay, hours, 'workedHours'),
       internalHours: getDiff(prevPay, hours, 'internalHours'),

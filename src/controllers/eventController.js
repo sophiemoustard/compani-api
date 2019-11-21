@@ -8,6 +8,7 @@ const {
   updateEvent,
   createEvent,
   deleteEvent,
+  workingStats,
 } = require('../helpers/events');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
 const { deleteRepetition } = require('../helpers/eventsRepetition');
@@ -131,6 +132,21 @@ const removeRepetition = async (req) => {
   }
 };
 
+const getWorkingStats = async (req) => {
+  try {
+    const { query, auth } = req;
+    const stats = await workingStats(query, auth.credentials);
+
+    return {
+      message: translate[language].hoursBalanceDetail,
+      data: { workingStats: stats },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
   create,
@@ -138,4 +154,5 @@ module.exports = {
   remove,
   removeRepetition,
   listForCreditNotes,
+  getWorkingStats,
 };

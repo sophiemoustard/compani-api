@@ -1487,7 +1487,7 @@ describe('computePrevPayDiff', () => {
         absencesHours: 5,
         internalHours: 0,
         paidTransportHours: 0,
-        hoursToWork: 29,
+        hoursToWork: 5,
         workedHours: 24,
         notSurchargedAndNotExempt: 12,
         surchargedAndNotExempt: 3,
@@ -1507,7 +1507,6 @@ describe('computePrevPayDiff', () => {
     const events = [{ _id: new ObjectID() }];
     const prevPay = {
       contractHours: 34,
-      hoursToWork: 27,
       workedHours: 26,
       notSurchargedAndNotExempt: 12,
       surchargedAndNotExempt: 2,
@@ -1522,7 +1521,6 @@ describe('computePrevPayDiff', () => {
       paidTransportHours: 3,
     };
 
-    getContractMonthInfo.returns({ contractHours: 34 });
     getPayFromEvents.returns({
       workedHours: 24,
       notSurchargedAndNotExempt: 12,
@@ -1542,7 +1540,7 @@ describe('computePrevPayDiff', () => {
     expect(result).toEqual({
       auxiliary: '1234567890',
       diff: {
-        hoursToWork: 2,
+        hoursToWork: 5,
         workedHours: -2,
         notSurchargedAndNotExempt: 0,
         surchargedAndNotExempt: 1,

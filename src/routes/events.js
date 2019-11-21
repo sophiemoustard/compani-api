@@ -9,6 +9,7 @@ const {
   remove,
   removeRepetition,
   listForCreditNotes,
+  getWorkingStats,
 } = require('../controllers/eventController');
 const {
   INTERNAL_HOUR,
@@ -212,6 +213,22 @@ exports.plugin = {
         ],
       },
       handler: removeRepetition,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/working-stats',
+      handler: getWorkingStats,
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: {
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+            auxiliary: [Joi.objectId().required(), Joi.array().items(Joi.objectId()).required()],
+          },
+        },
+      },
     });
   },
 };
