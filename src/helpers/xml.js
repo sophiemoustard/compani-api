@@ -14,9 +14,9 @@ const createDocument = () => ({
     '@xsi:schemaLocation': 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02 pain.008.001.02.xsd',
     CstmrDrctDbtInitn: {
       GrpHdr: {},
-      PmtInf: []
-    }
-  }
+      PmtInf: [],
+    },
+  },
 });
 
 const generateSEPAHeader = data => ({
@@ -29,11 +29,11 @@ const generateSEPAHeader = data => ({
     Id: {
       OrgId: {
         Othr: {
-          Id: removeSpaces(data.ics)
-        }
-      }
-    }
-  }
+          Id: removeSpaces(data.ics),
+        },
+      },
+    },
+  },
 });
 
 const generatePaymentInfo = data => ({
@@ -43,27 +43,27 @@ const generatePaymentInfo = data => ({
   CtrlSum: getFixedNumber(data.sum, 2),
   PmtTpInf: {
     SvcLvl: {
-      Cd: 'SEPA'
+      Cd: 'SEPA',
     },
     LclInstrm: {
-      Cd: 'CORE'
+      Cd: 'CORE',
     },
-    SeqTp: data.sequenceType
+    SeqTp: data.sequenceType,
   },
   ReqdColltnDt: moment(data.collectionDate).format('YYYY-MM-DD'),
   Cdtr: {
-    Nm: data.creditor.name
+    Nm: data.creditor.name,
   },
   CdtrAcct: {
     Id: {
-      IBAN: removeSpaces(data.creditor.iban)
+      IBAN: removeSpaces(data.creditor.iban),
     },
-    Ccy: 'EUR'
+    Ccy: 'EUR',
   },
   CdtrAgt: {
     FinInstnId: {
-      BIC: removeSpaces(data.creditor.bic)
-    }
+      BIC: removeSpaces(data.creditor.bic),
+    },
   },
   ChrgBr: 'SLEV',
   CdtrSchmeId: {
@@ -72,13 +72,13 @@ const generatePaymentInfo = data => ({
         Othr: {
           Id: removeSpaces(data.creditor.ics),
           SchmeNm: {
-            Prtry: 'SEPA'
-          }
-        }
-      }
-    }
+            Prtry: 'SEPA',
+          },
+        },
+      },
+    },
   },
-  DrctDbtTxInf: []
+  DrctDbtTxInf: [],
 });
 
 const addTransactionInfo = (paymentInfoObj, data) => {
@@ -87,27 +87,27 @@ const addTransactionInfo = (paymentInfoObj, data) => {
     paymentInfoObj.DrctDbtTxInf.push({
       PmtId: {
         InstrId: transaction.number,
-        EndToEndId: transaction._id.toHexString()
+        EndToEndId: transaction._id.toHexString(),
       },
       InstdAmt: {
         '@Ccy': 'EUR',
-        '#text': getFixedNumber(transaction.netInclTaxes, 2)
+        '#text': getFixedNumber(transaction.netInclTaxes, 2),
       },
       DrctDbtTx: {
         MndtRltdInf: {
           MndtId: lastMandate.rum,
           DtOfSgntr: moment(lastMandate.signedAt).format('YYYY-MM-DD'),
-        }
+        },
       },
       DbtrAgt: {
         FinInstnId: {
-          BIC: removeSpaces(transaction.customerInfo.payment.bic)
-        }
+          BIC: removeSpaces(transaction.customerInfo.payment.bic),
+        },
       },
-      Dbtr: { Nm: transaction.customerInfo.payment.bankAccountOwner },
+      Dbtr: { Nm: transaction.customerInfo.payment.bankAccountOwner.trim() },
       DbtrAcct: {
-        Id: { IBAN: removeSpaces(transaction.customerInfo.payment.iban) }
-      }
+        Id: { IBAN: removeSpaces(transaction.customerInfo.payment.iban) },
+      },
     });
   }
 
@@ -142,5 +142,5 @@ module.exports = {
   generateSEPAHeader,
   generatePaymentInfo,
   addTransactionInfo,
-  generateSEPAXml
+  generateSEPAXml,
 };
