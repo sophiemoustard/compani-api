@@ -135,7 +135,6 @@ const paymentExportHeader = [
 ];
 
 exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
-
   const query = {
     date: { $lte: endDate, $gte: startDate },
   };

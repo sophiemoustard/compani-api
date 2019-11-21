@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const flat = require('flat');
-const _ = require('lodash');
+const get = require('lodash/get');
+const pick = require('lodash/pick');
 const moment = require('moment');
 const path = require('path');
 const os = require('os');
@@ -31,7 +32,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customers = await getCustomers(req.query, req.auth.credentials);
+    const customers = await getCustomers({ ...req.query, company: get(req, 'auth.credentials.company._id', null) });
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -48,7 +49,7 @@ const listWithSubscriptions = async (req) => {
     const query = {
       ...req.query,
       subscriptions: { $exists: true, $ne: { $size: 0 } },
-      company: _.get(req, 'auth.credentials.company._id', null),
+      company: get(req, 'auth.credentials.company._id', null),
     };
     const customers = await getCustomersWithSubscriptions(query);
 
@@ -78,7 +79,7 @@ const listBySector = async (req) => {
 
 const listWithBilledEvents = async (req) => {
   try {
-    const credentials = _.get(req, 'auth.credentials', {});
+    const credentials = get(req, 'auth.credentials', {});
     const customers = await getCustomersWithBilledEvents(credentials);
 
     return {
@@ -122,7 +123,7 @@ const show = async (req) => {
 
 const create = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
+    const companyId = get(req, 'auth.credentials.company._id', null);
     if (!companyId) return Boom.forbidden();
     const mandate = { rum: await generateRum() };
     const payload = {
@@ -196,7 +197,7 @@ const updateSubscription = async (req) => {
     return {
       message: translate[language].customerSubscriptionUpdated,
       data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         subscriptions,
       },
     };
@@ -208,7 +209,7 @@ const updateSubscription = async (req) => {
 
 const addSubscription = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
+    const companyId = get(req, 'auth.credentials.company._id', null);
     const serviceId = req.payload.service;
     const subscribedService = await Service.findOne({ _id: serviceId });
 
@@ -241,7 +242,7 @@ const addSubscription = async (req) => {
     return {
       message: translate[language].customerSubscriptionAdded,
       data: {
-        customer: _.pick(updatedCustomer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(updatedCustomer, ['_id', 'identity.lastname', 'identity.firstname']),
         subscriptions,
       },
     };
@@ -292,7 +293,7 @@ const getMandates = async (req) => {
     return {
       message: translate[language].customerMandatesFound,
       data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         mandates: customer.payment.mandates,
       },
     };
@@ -322,7 +323,7 @@ const updateMandate = async (req) => {
     return {
       message: translate[language].customerMandateUpdated,
       data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         mandates: customer.payment.mandates,
       },
     };
@@ -380,7 +381,7 @@ const getCustomerQuotes = async (req) => {
     return {
       message: translate[language].customerQuotesFound,
       data: {
-        user: _.pick(quotes, ['_id', 'identity']),
+        user: pick(quotes, ['_id', 'identity']),
         quotes: quotes.quotes,
       },
     };
@@ -409,7 +410,7 @@ const createCustomerQuote = async (req) => {
     return {
       message: translate[language].customerQuoteAdded,
       data: {
-        user: _.pick(newQuote, ['_id', 'identity']),
+        user: pick(newQuote, ['_id', 'identity']),
         quote: newQuote.quotes.find(quote => quoteNumber === quote.quoteNumber),
       },
     };
@@ -553,7 +554,7 @@ const saveSignedMandate = async (req) => {
     return {
       message: translate[language].signedDocumentSaved,
       data: {
-        user: _.pick(customer, ['_id', 'identity']),
+        user: pick(customer, ['_id', 'identity']),
         mandate: customer.payment.mandates.find(mandate => req.params.mandateId === mandate._id.toHexString()),
       },
     };
@@ -577,7 +578,7 @@ const createHistorySubscription = async (req) => {
     return {
       message: translate[language].customerSubscriptionHistoryAdded,
       data: {
-        customer: _.pick(customer, ['_id', 'identity']),
+        customer: pick(customer, ['_id', 'identity']),
         subscriptionHistory: customer.subscriptionsHistory.find(sub => moment(sub.approvalDate).isSame(moment(), 'day')),
       },
     };
@@ -612,7 +613,7 @@ const createFunding = async (req) => {
     return {
       message: translate[language].customerFundingCreated,
       data: {
-        customer: _.pick(customer, ['_id', 'identity']),
+        customer: pick(customer, ['_id', 'identity']),
         funding,
       },
     };
@@ -638,8 +639,8 @@ const updateFunding = async (req) => {
         autopopulate: false,
       }
     )
-      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'subscriptions.service' })
+      .populate({ path: 'fundings.thirdPartyPayer' })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
@@ -650,7 +651,7 @@ const updateFunding = async (req) => {
     return {
       message: translate[language].customerFundingUpdated,
       data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         funding,
       },
     };
@@ -670,8 +671,8 @@ const removeFunding = async (req) => {
         autopopulate: false,
       }
     )
-      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'subscriptions.service' })
+      .populate({ path: 'fundings.thirdPartyPayer' })
       .lean();
 
     return {

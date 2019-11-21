@@ -36,8 +36,8 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
   return EventRepository.getCustomerWithBilledEvents(query, companyId);
 };
 
-exports.getCustomers = async (query, credentials) => {
-  const customers = await Customer.find({ ...query, company: get(credentials, 'company._id', null) })
+exports.getCustomers = async (query) => {
+  const customers = await Customer.find(query)
     .populate({
       path: 'subscriptions.service',
       populate: { path: 'versions.surcharge' },
@@ -74,7 +74,6 @@ exports.getCustomersWithSubscriptions = async (query) => {
 
 exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-
   const query = { type: CUSTOMER_CONTRACT, company: companyId };
   const customerContractServices = await Service.find(query).lean();
   if (customerContractServices.length === 0) return [];
