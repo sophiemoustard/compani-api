@@ -1382,35 +1382,6 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 404 error if user does not exist', async () => {
-      const invalidId = new ObjectID().toHexString();
-      const payload = {
-        subscriptions: [{
-          service: 'TestTest',
-          unitTTCRate: 23,
-          estimatedWeeklyVolume: 3,
-        }, {
-          service: 'TestTest2',
-          unitTTCRate: 30,
-          estimatedWeeklyVolume: 10,
-        }],
-        helper: {
-          firstname: 'Emmanuel',
-          lastname: 'Magellan',
-          title: 'mrs',
-        },
-      };
-
-      const res = await app.inject({
-        method: 'POST',
-        url: `/customers/${invalidId}/subscriptionshistory`,
-        payload,
-        headers: { 'x-access-token': helperToken },
-      });
-
-      expect(res.statusCode).toBe(404);
-    });
-
     it('should return a 403 error if user is not from the same company', async () => {
       const payload = {
         subscriptions: [{
