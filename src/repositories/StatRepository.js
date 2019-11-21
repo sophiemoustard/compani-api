@@ -26,6 +26,7 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
       },
     },
     { $unwind: { path: '$fundings' } },
+    { $match: { 'fundings.frequency': MONTHLY, 'fundings.nature': HOURLY } },
     {
       $lookup: {
         from: 'thirdpartypayers',
@@ -84,7 +85,7 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
         ],
       },
     },
-    { $unwind: { path: '$events' } },
+    { $unwind: { path: '$events', preserveNullAndEmptyArrays: true } },
   ];
 
   const group = [

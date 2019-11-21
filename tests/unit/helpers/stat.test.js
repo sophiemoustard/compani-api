@@ -26,12 +26,40 @@ describe('getCustomerFundingsMonitoring', () => {
     getEventsGroupedByFundingsStub.restore();
   });
 
-  it('should return empty array if no events', async () => {
+  it('should return empty array if no fundings', async () => {
     const customerId = new ObjectID();
 
     getEventsGroupedByFundingsStub.returns([]);
     const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId);
     expect(fundingsMonitoring).toEqual([]);
+    sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
+  });
+
+  it('should not return empty array if no events', async () => {
+    const customerId = new ObjectID();
+
+    getEventsGroupedByFundingsStub.returns([{
+      _id: {
+        thirdPartyPayer: { name: 'Tiers payeur' },
+        versions: [
+          {
+            careDays: [0, 1, 2, 3, 4, 5, 6, 7],
+            startDate: '2019-09-30T23:00:00.000Z',
+            careHours: 5,
+            createdAt: '2019-10-01T14:06:16.089Z',
+          },
+        ],
+      },
+      eventsByMonth: [{ date: null, events: [] }],
+    }]);
+    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId);
+
+    expect(fundingsMonitoring).toEqual([{
+      thirdPartyPayer: 'Tiers payeur',
+      '2019-11': 0,
+      plannedCareHours: 5,
+      '2019-10': 0,
+    }]);
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
 
@@ -95,7 +123,7 @@ describe('getCustomerFundingsMonitoring', () => {
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
 
-  it('should return 0 for previous month if funding starts on current month', async () => {
+  it('should return -1 for previous month if funding starts on current month', async () => {
     const eventsGroupedByFundings = [{
       _id: {
         thirdPartyPayer: { name: 'Tiers payeur' },
@@ -150,7 +178,7 @@ describe('getCustomerFundingsMonitoring', () => {
       thirdPartyPayer: 'Tiers payeur',
       '2019-11': 6,
       plannedCareHours: 5,
-      '2019-10': 0,
+      '2019-10': -1,
     }]);
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });

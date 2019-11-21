@@ -9,7 +9,7 @@ const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT, HOURLY, MONTHLY } = require('../../../src/helpers/constants');
+const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED } = require('../../../src/helpers/constants');
 
 const sectorList = [{
   _id: new ObjectID(),
@@ -63,6 +63,36 @@ const customerList = [
     }],
     fundings: [{
       nature: HOURLY,
+      frequency: MONTHLY,
+      subscription: subscriptionId,
+      thirdPartyPayer: tppId,
+      versions: [{
+        _id: new ObjectID(),
+        startDate: moment().startOf('month').subtract(2, 'months').toISOString(),
+        createdAt: moment().startOf('month').subtract(2, 'months').toISOString(),
+        unitTTCRate: 20,
+        customerParticipationRate: 60,
+        careHours: 40,
+        careDays: [0, 1, 2, 3, 4],
+      }],
+    },
+    {
+      nature: HOURLY,
+      frequency: ONCE,
+      subscription: subscriptionId,
+      thirdPartyPayer: tppId,
+      versions: [{
+        _id: new ObjectID(),
+        startDate: moment().startOf('month').subtract(2, 'months').toISOString(),
+        createdAt: moment().startOf('month').subtract(2, 'months').toISOString(),
+        unitTTCRate: 20,
+        customerParticipationRate: 60,
+        careHours: 40,
+        careDays: [0, 1, 2, 3, 4],
+      }],
+    },
+    {
+      nature: FIXED,
       frequency: MONTHLY,
       subscription: subscriptionId,
       thirdPartyPayer: tppId,
