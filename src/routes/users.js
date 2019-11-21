@@ -447,9 +447,12 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             parentFolderId: Joi.string(),
-            _id: Joi.objectId(),
           }),
         },
+        pre: [
+          { method: getUser, assign: 'user' },
+          { method: authorizeUserUpdate },
+        ],
       },
       handler: createDriveFolder,
     });

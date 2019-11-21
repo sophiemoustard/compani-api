@@ -946,9 +946,80 @@ describe('USERS ROUTES', () => {
 
           const response = await app.inject({
             method: 'POST',
-            url: `/users/${usersSeedList[1]._id}/gdrive/${userFolderId}/upload`,
+            url: `/users/${usersSeedList[1]._id}/gdrive/${usersSeedList[1].administrative.driveFolder}/upload`,
             payload: await GetStream(form),
             headers: { ...form.getHeaders(), 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('POST /users/:id/drivefolder', () => {
+    let createFolderStub;
+    const folderPayload = { parentFolderId: '0987654321' };
+
+    beforeEach(() => {
+      createFolderStub = sinon.stub(GdriveStorage, 'createFolder').returns({ folder: { id: '1234567890', webViewLink: 'http://test.com' } });
+    });
+
+    afterEach(() => {
+      createFolderStub.restore();
+    });
+
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin', usersSeedList);
+      });
+
+      it('should create a drive folder for a user', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
+          payload: folderPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.updatedUser).toBeDefined();
+        expect(response.result.data.updatedUser.administrative.driveFolder)
+          .toMatchObject({ driveId: '1234567890', link: 'http://test.com' });
+        sinon.assert.calledWithExactly(createFolderStub, sinon.match(usersSeedList[0].identity), folderPayload.parentFolderId);
+      });
+    });
+
+    describe('Other roles', () => {
+      it('should create a drive folder if it is me', async () => {
+        authToken = await getToken('auxiliary', usersSeedList);
+
+        const response = await app.inject({
+          method: 'POST',
+          url: `/users/${usersSeedList[0]._id.toHexString()}/drivefolder`,
+          payload: folderPayload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+      });
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name, usersSeedList);
+
+          const response = await app.inject({
+            method: 'POST',
+            url: `/users/${usersSeedList[1]._id.toHexString()}/drivefolder`,
+            payload: folderPayload,
+            headers: { 'x-access-token': authToken },
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

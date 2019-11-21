@@ -10,7 +10,7 @@ const { populateRole } = require('../helpers/roles');
 const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentication');
-const { createFolder } = require('../helpers/gdriveStorage');
+const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const UsersHelper = require('../helpers/users');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
@@ -363,18 +363,18 @@ const uploadImage = async (req) => {
 
 const createDriveFolder = async (req) => {
   try {
-    const user = await User.findOne({ _id: req.params._id });
+    const { user } = req.pre;
     let updatedUser;
 
     if (user.identity.firstname && user.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID;
-      const { folder, folderLink } = await createFolder(user.identity, parentFolderId);
+      const { folder } = await GdriveStorageHelper.createFolder(user.identity, parentFolderId);
 
       const folderPayload = {};
       folderPayload.administrative = user.administrative || { driveFolder: {} };
       folderPayload.administrative.driveFolder = {
         driveId: folder.id,
-        link: folderLink.webViewLink,
+        link: folder.webViewLink,
       };
 
       updatedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: folderPayload }, { new: true, autopopulate: false });
