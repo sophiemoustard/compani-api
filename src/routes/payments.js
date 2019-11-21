@@ -64,7 +64,7 @@ exports.plugin = {
             nature: Joi.string().valid(PAYMENT_NATURES).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
             rum: Joi.string().required(),
-          })),
+          })).min(1).required(),
         },
       },
       handler: createList,

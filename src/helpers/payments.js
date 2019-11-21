@@ -117,8 +117,7 @@ exports.savePayments = async (payload, company) => {
     promises.push(savedPayment.save());
   }
 
-  await Promise.all(promises);
-  return generateXML(firstPayments, recurPayments, company);
+  return Promise.all([generateXML(firstPayments, recurPayments, company), ...promises]);
 };
 
 const paymentExportHeader = [
@@ -136,7 +135,6 @@ const paymentExportHeader = [
 ];
 
 exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
-
   const query = {
     date: { $lte: endDate, $gte: startDate },
   };
