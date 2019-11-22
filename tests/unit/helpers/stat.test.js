@@ -39,73 +39,52 @@ describe('getCustomerFundingsMonitoring', () => {
     const customerId = new ObjectID();
 
     getEventsGroupedByFundingsStub.returns([{
-      _id: {
-        thirdPartyPayer: { name: 'Tiers payeur' },
-        versions: [
-          {
-            careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-            startDate: '2019-09-30T23:00:00.000Z',
-            careHours: 5,
-            createdAt: '2019-10-01T14:06:16.089Z',
-          },
-        ],
-      },
-      eventsByMonth: [{ date: null, events: [] }],
+      thirdPartyPayer: { name: 'Tiers payeur' },
+      careDays: [0, 1, 2, 3, 4, 5, 6, 7],
+      startDate: '2019-09-30T23:00:00.000Z',
+      careHours: 5,
+      createdAt: '2019-10-01T14:06:16.089Z',
+      prevMonthEvents: [],
+      currentMonthEvents: [],
     }]);
     const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId);
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
-      '2019-11': 0,
+      currentMonth: 0,
       plannedCareHours: 5,
-      '2019-10': 0,
+      prevMonth: 0,
     }]);
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
 
   it('should return stats on care hours', async () => {
     const eventsGroupedByFundings = [{
-      _id: {
-        thirdPartyPayer: { name: 'Tiers payeur' },
-        versions: [
-          {
-            careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-            startDate: '2019-09-30T23:00:00.000Z',
-            careHours: 5,
-            createdAt: '2019-10-01T14:06:16.089Z',
-          },
-        ],
-      },
-      eventsByMonth: [
+      thirdPartyPayer: { name: 'Tiers payeur' },
+      careDays: [0, 1, 2, 3, 4, 5, 6, 7],
+      startDate: '2019-09-30T23:00:00.000Z',
+      careHours: 5,
+      createdAt: '2019-10-01T14:06:16.089Z',
+      currentMonthEvents: [
         {
-          date: '2019-11',
-          events: [
-            {
-              type: 'intervention',
-              startDate: '2019-11-10T14:00:18.653Z',
-              endDate: '2019-11-10T16:00:18.653Z',
-            },
-            {
-              type: 'intervention',
-              startDate: '2019-11-10T11:00:18.653Z',
-              endDate: '2019-11-10T15:00:18.653Z',
-            },
-          ],
+          startDate: '2019-11-10T14:00:18.653Z',
+          endDate: '2019-11-10T16:00:18.653Z',
         },
         {
-          date: '2019-10',
-          events: [
-            {
-              type: 'intervention',
-              startDate: '2019-10-10T10:00:18.653Z',
-              endDate: '2019-10-10T12:00:18.653Z',
-            },
-            {
-              type: 'intervention',
-              startDate: '2019-10-10T09:00:18.653Z',
-              endDate: '2019-10-10T10:30:18.653Z',
-            },
-          ],
+          startDate: '2019-11-10T11:00:18.653Z',
+          endDate: '2019-11-10T15:00:18.653Z',
+        },
+      ],
+      prevMonthEvents: [
+        {
+          type: 'intervention',
+          startDate: '2019-10-10T10:00:18.653Z',
+          endDate: '2019-10-10T12:00:18.653Z',
+        },
+        {
+          type: 'intervention',
+          startDate: '2019-10-10T09:00:18.653Z',
+          endDate: '2019-10-10T10:30:18.653Z',
         },
       ],
     }];
@@ -116,56 +95,42 @@ describe('getCustomerFundingsMonitoring', () => {
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
-      '2019-11': 6,
+      currentMonth: 6,
       plannedCareHours: 5,
-      '2019-10': 3.5,
+      prevMonth: 3.5,
     }]);
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
 
   it('should return -1 for previous month if funding starts on current month', async () => {
     const eventsGroupedByFundings = [{
-      _id: {
-        thirdPartyPayer: { name: 'Tiers payeur' },
-        versions: [
-          {
-            careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-            startDate: '2019-10-31T23:00:00.000Z',
-            careHours: 5,
-            createdAt: '2019-10-01T14:06:16.089Z',
-          },
-        ],
-      },
-      eventsByMonth: [
+      thirdPartyPayer: { name: 'Tiers payeur' },
+      careDays: [0, 1, 2, 3, 4, 5, 6, 7],
+      startDate: '2019-10-31T23:00:00.000Z',
+      careHours: 5,
+      createdAt: '2019-10-01T14:06:16.089Z',
+      currentMonthEvents: [
         {
-          date: '2019-11',
-          events: [
-            {
-              type: 'intervention',
-              startDate: '2019-11-10T14:00:18.653Z',
-              endDate: '2019-11-10T16:00:18.653Z',
-            },
-            {
-              type: 'intervention',
-              startDate: '2019-11-10T11:00:18.653Z',
-              endDate: '2019-11-10T15:00:18.653Z',
-            },
-          ],
+          type: 'intervention',
+          startDate: '2019-11-10T14:00:18.653Z',
+          endDate: '2019-11-10T16:00:18.653Z',
         },
         {
-          date: '2019-10',
-          events: [
-            {
-              type: 'intervention',
-              startDate: '2019-10-10T10:00:18.653Z',
-              endDate: '2019-10-10T12:00:18.653Z',
-            },
-            {
-              type: 'intervention',
-              startDate: '2019-10-10T09:00:18.653Z',
-              endDate: '2019-10-10T10:30:18.653Z',
-            },
-          ],
+          type: 'intervention',
+          startDate: '2019-11-10T11:00:18.653Z',
+          endDate: '2019-11-10T15:00:18.653Z',
+        },
+      ],
+      prevMonthEvents: [
+        {
+          type: 'intervention',
+          startDate: '2019-10-10T10:00:18.653Z',
+          endDate: '2019-10-10T12:00:18.653Z',
+        },
+        {
+          type: 'intervention',
+          startDate: '2019-10-10T09:00:18.653Z',
+          endDate: '2019-10-10T10:30:18.653Z',
         },
       ],
     }];
@@ -176,9 +141,9 @@ describe('getCustomerFundingsMonitoring', () => {
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
-      '2019-11': 6,
+      currentMonth: 6,
       plannedCareHours: 5,
-      '2019-10': -1,
+      prevMonth: -1,
     }]);
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
