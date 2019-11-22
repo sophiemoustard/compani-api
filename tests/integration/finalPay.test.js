@@ -85,6 +85,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
     paidTransportHours: 3,
     internalHours: 9,
     absencesHours: 5,
+    holidaysHours: 7,
     diff: {
       hoursBalance: 20,
       notSurchargedAndExempt: 20,
