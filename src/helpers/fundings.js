@@ -9,7 +9,7 @@ const CustomerRepository = require('../repositories/CustomerRepository');
 
 exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   const customer = await Customer.findOne({ _id: customerId }).lean();
-  if (!customer) return Boom.notFound('Error while checking subscription funding: customer not found.');
+  if (!customer) throw Boom.notFound('Error while checking subscription funding: customer not found.');
 
   if (!customer.fundings || customer.fundings.length === 0) return true;
 

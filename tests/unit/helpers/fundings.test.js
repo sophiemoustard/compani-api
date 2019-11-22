@@ -1,5 +1,6 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
+const Boom = require('boom');
 const sinon = require('sinon');
 const UtilsHelper = require('../../../src/helpers/utils');
 const FundingsHelper = require('../../../src/helpers/fundings');
@@ -139,6 +140,35 @@ describe('checkSubscriptionFunding', () => {
     CustomerModel.restore();
   });
 
+  it('should return an error if customer does not exists', async () => {
+    try {
+      const customerId = new ObjectID();
+      CustomerModel.expects('findOne')
+        .withExactArgs({ _id: customerId })
+        .chain('lean')
+        .once()
+        .returns(null);
+
+      await FundingsHelper.checkSubscriptionFunding(customerId, checkedFundings);
+    } catch (e) {
+      expect(e).toEqual(Boom.notFound('Error while checking subscription funding: customer not found.'));
+    }
+  });
+
+  it('should return true if customer does not have fundings', async () => {
+    const customerId = new ObjectID();
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({});
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFundings);
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
+  });
+
   it('should return true if customer does not have fundings', async () => {
     const customerId = new ObjectID();
     CustomerModel.expects('findOne')
@@ -153,36 +183,29 @@ describe('checkSubscriptionFunding', () => {
     CustomerModel.verify();
   });
 
-  it('should return true if checkedFundings does not have careDays in common with other fundings', async () => {
+  it('should return true if the only fundings customer has is the one being updated', async () => {
     const customerId = new ObjectID();
     CustomerModel.expects('findOne')
       .withExactArgs({ _id: customerId })
       .chain('lean')
       .once()
-      .returns({ fundings: [] });
+      .returns({ fundings: [checkedFundings] });
 
-    const res = await FundingsHelper.checkSubscriptionFunding(customerId, {});
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFundings);
 
     expect(res).toBe(true);
     CustomerModel.verify();
   });
 
-  it('should return true if checkedFundings startDate is after other fundings endDate', async () => {
+  it('should return true if checkedFundings does not have careDays in common with the other funding', async () => {
     const customerId = new ObjectID();
     const fundings = [
       {
         _id: new ObjectID(),
         subscription: checkedFundingsSubscriptionId,
-        careDays: [0, 1, 2, 3],
+        careDays: [4, 5],
         startDate: '2018-10-01',
         endDate: '2018-12-01',
-      },
-      {
-        _id: new ObjectID(),
-        subscription: checkedFundingsSubscriptionId,
-        careDays: [0, 1, 2, 3],
-        startDate: '2019-01-01',
-        endDate: '2019-02-20',
       },
     ];
     CustomerModel.expects('findOne')
@@ -197,7 +220,30 @@ describe('checkSubscriptionFunding', () => {
     CustomerModel.verify();
   });
 
-  it('should return true if checkedFundings endDate is before other fundings startDate', async () => {
+  it('should return true if checkedFundings startDate is after the other funding endDate', async () => {
+    const customerId = new ObjectID();
+    const fundings = [
+      {
+        _id: new ObjectID(),
+        subscription: checkedFundingsSubscriptionId,
+        careDays: [0, 1, 2, 3],
+        startDate: '2018-10-01',
+        endDate: '2018-12-01',
+      },
+    ];
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({ fundings });
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, {});
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
+  });
+
+  it('should return true if checkedFundings endDate is before the other funding startDate', async () => {
     const customerId = new ObjectID();
     const fundings = [
       {
@@ -206,13 +252,6 @@ describe('checkSubscriptionFunding', () => {
         careDays: [0, 1, 2, 3],
         startDate: '2019-11-03',
         endDate: '2019-12-01',
-      },
-      {
-        _id: new ObjectID(),
-        subscription: checkedFundingsSubscriptionId,
-        careDays: [0, 1, 2, 3],
-        startDate: '2020-01-01',
-        endDate: '2020-02-20',
       },
     ];
     CustomerModel.expects('findOne')
@@ -237,13 +276,6 @@ describe('checkSubscriptionFunding', () => {
         startDate: '2018-11-03',
         endDate: '2019-10-22',
       },
-      {
-        _id: new ObjectID(),
-        subscription: new ObjectID(),
-        careDays: [0, 1, 2, 3],
-        startDate: '2019-11-01',
-        endDate: '2020-02-20',
-      },
     ];
     CustomerModel.expects('findOne')
       .withExactArgs({ _id: customerId })
@@ -267,12 +299,35 @@ describe('checkSubscriptionFunding', () => {
         startDate: '2018-11-03',
         endDate: '2019-10-22',
       },
+    ];
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({ fundings });
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, {});
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
+  });
+
+  it('should return false if one of the fundings have a conflict with checked fundings', async () => {
+    const customerId = new ObjectID();
+    const fundings = [
       {
         _id: new ObjectID(),
         subscription: checkedFundingsSubscriptionId,
         careDays: [0, 1, 2, 3],
-        startDate: '2019-11-01',
-        endDate: '2020-02-20',
+        startDate: '2018-11-03',
+        endDate: '2019-10-22',
+      },
+      {
+        _id: new ObjectID(),
+        subscription: checkedFundingsSubscriptionId,
+        careDays: [0, 1, 2, 3],
+        startDate: '2018-10-01',
+        endDate: '2018-12-01',
       },
     ];
     CustomerModel.expects('findOne')
