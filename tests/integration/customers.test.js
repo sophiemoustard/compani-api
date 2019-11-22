@@ -56,7 +56,7 @@ describe('CUSTOMERS ROUTES', () => {
 
   describe('POST /customers', () => {
     it('should create a new customer', async () => {
-      const customersBefore = await customersList.map(customer => customer.company === authCompany._id);
+      const customersBefore = await customersList.filter(customer => customer.company === authCompany._id);
       const res = await app.inject({
         method: 'POST',
         url: '/customers',
@@ -486,7 +486,7 @@ describe('CUSTOMERS ROUTES', () => {
   describe('DELETE /customers/{id}', () => {
     it('should delete a customer without interventions', async () => {
       const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
-      const customersBefore = await customersList.map(customer => customer.company === authCompany._id);
+      const customersBefore = await customersList.filter(customer => customer.company === authCompany._id);
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[3]._id.toHexString()}`,
