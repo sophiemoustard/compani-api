@@ -334,7 +334,9 @@ exports.computeAuxiliaryDraftPay = async (auxiliary, eventsToPay, prevPay, compa
   if (!contract) return;
 
   const monthBalance = await exports.computeBalance(auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges);
-  const hoursCounter = prevPay ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance : monthBalance.hoursBalance;
+  const hoursCounter = prevPay
+    ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance
+    : monthBalance.hoursBalance;
 
   return {
     ...exports.genericData(query, auxiliary),

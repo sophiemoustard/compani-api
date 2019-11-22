@@ -291,7 +291,7 @@ exports.deleteEvents = async (events, credentials) => {
 
 exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
   const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
-  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate);
+  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrBefore(query.startDate);
 
   return isStartedOnEndDate && !isEndedOnStartDate;
 });
@@ -304,6 +304,16 @@ exports.getContractWeekInfo = (contract, query) => {
 
   return ContractHelper.getContractInfo(versions, query, weekBusinessDays);
 };
+
+exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
+  const isCompanyContract = cont.status === COMPANY_CONTRACT;
+  if (!isCompanyContract) return false;
+
+  const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
+  if (!contractStarted) return false;
+
+  return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
+});
 
 exports.workingStats = async (query) => {
   const ids = Array.isArray(query.auxiliary) ? query.auxiliary.map(id => new ObjectID(id)) : [new ObjectID(query.auxiliary)];
@@ -320,7 +330,7 @@ exports.workingStats = async (query) => {
       || { absences: [], events: [] };
     const { contracts } = auxiliary;
     if (!contracts || !contracts.length) continue;
-    const contract = DraftPayHelper.getContract(contracts, query.endDate);
+    const contract = exports.getContract(contracts, query.startDate, query.endDate);
     if (!contract) continue;
 
     const contractInfo = exports.getContractWeekInfo(contract, query);
