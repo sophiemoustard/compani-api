@@ -336,7 +336,7 @@ exports.workingStats = async (query) => {
     const contractInfo = exports.getContractWeekInfo(contract, query);
     const hours = await DraftPayHelper.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, [], query);
     const absencesHours = DraftPayHelper.getPayFromAbsences(eventsToPay.absences, contract, query);
-    const hoursToWork = Math.max(contractInfo.contractHours - absencesHours, 0);
+    const hoursToWork = Math.max(contractInfo.contractHours - contractInfo.holidaysHours - absencesHours, 0);
     workingStats[auxiliary._id] = { workedHours: hours.workedHours, hoursToWork };
   }
 

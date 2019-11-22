@@ -102,7 +102,7 @@ exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
 
   const range = Array.from(moment().range(start, end).by('days'));
   for (const day of range) {
-    if (day.startOf('d').isHoliday()) holidays += 1; // startOf('day') is necessery to check fr holidays in business day
+    if (day.startOf('d').isHoliday() && day.day() !== 0) holidays += 1; // startOf('day') is necessery to check fr holidays in business day
     else if (day.day() !== 0) businessDays += 1;
     else sundays += 1;
   }

@@ -41,7 +41,11 @@ exports.getContractMonthInfo = (contract, query) => {
 
   const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);
 
-  return { contractHours: info.contractHours * WEEKS_PER_MONTH, workedDaysRatio: info.workedDaysRatio };
+  return {
+    contractHours: info.contractHours * WEEKS_PER_MONTH,
+    workedDaysRatio: info.workedDaysRatio,
+    holidaysHours: info.holidaysHours,
+  };
 };
 
 /**
@@ -304,11 +308,12 @@ exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query
   const contractInfo = exports.getContractMonthInfo(contract, query);
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
-  const hoursToWork = Math.max(contractInfo.contractHours - absencesHours, 0);
+  const hoursToWork = Math.max(contractInfo.contractHours - contractInfo.holidaysHours - absencesHours, 0);
   const hoursBalance = hours.workedHours - hoursToWork;
 
   return {
     contractHours: contractInfo.contractHours,
+    holidaysHours: contractInfo.holidaysHours,
     absencesHours,
     hoursToWork,
     ...hours,
