@@ -291,7 +291,7 @@ exports.deleteEvents = async (events, credentials) => {
 exports.getContractWeekInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('w').toDate();
   const end = moment(query.startDate).endOf('w').toDate();
-  const weekRatio = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+  const weekRatio = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
   const versions = ContractHelper.getMatchingVersionsList(contract.versions || [], query);
 
   return ContractHelper.getContractInfo(versions, query, weekRatio);

@@ -243,11 +243,11 @@ describe('formatFloatForExport', () => {
   });
 });
 
-describe('getBusinessDaysCountBetweenTwoDates', () => {
+describe('getDaysRatioBetweenTwoDates', () => {
   it('Case 1. No sundays nor holidays in range', () => {
     const start = new Date('2019/05/21');
     const end = new Date('2019/05/23');
-    const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ holidays: 0, sundays: 0, businessDays: 3 });
@@ -256,7 +256,7 @@ describe('getBusinessDaysCountBetweenTwoDates', () => {
   it('Case 2. Sundays in range', () => {
     const start = new Date('2019/05/18');
     const end = new Date('2019/05/23');
-    const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ holidays: 0, sundays: 1, businessDays: 5 });
@@ -265,7 +265,7 @@ describe('getBusinessDaysCountBetweenTwoDates', () => {
   it('Case 3. Holidays in range', () => {
     const start = new Date('2019/05/07');
     const end = new Date('2019/05/09');
-    const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ holidays: 1, sundays: 0, businessDays: 2 });

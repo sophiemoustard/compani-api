@@ -620,12 +620,12 @@ describe('deleteVersion', () => {
 });
 
 describe('getContractInfo', () => {
-  let getBusinessDaysCountBetweenTwoDates;
+  let getDaysRatioBetweenTwoDates;
   beforeEach(() => {
-    getBusinessDaysCountBetweenTwoDates = sinon.stub(UtilsHelper, 'getBusinessDaysCountBetweenTwoDates');
+    getDaysRatioBetweenTwoDates = sinon.stub(UtilsHelper, 'getDaysRatioBetweenTwoDates');
   });
   afterEach(() => {
-    getBusinessDaysCountBetweenTwoDates.restore();
+    getDaysRatioBetweenTwoDates.restore();
   });
 
   it('Case 1. One version no sunday', () => {
@@ -633,7 +633,7 @@ describe('getContractInfo', () => {
       { endDate: '', startDate: '2019-05-04', weeklyHours: 20 },
     ];
     const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
-    getBusinessDaysCountBetweenTwoDates.returns({ businessDays: 4, sundays: 0, holidays: 0 });
+    getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 0, holidays: 0 });
 
     const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
 
@@ -642,7 +642,7 @@ describe('getContractInfo', () => {
     expect(result.workedDaysRatio).toBe(0.4);
     expect(result.holidaysHours).toBe(0);
     sinon.assert.calledWith(
-      getBusinessDaysCountBetweenTwoDates,
+      getDaysRatioBetweenTwoDates,
       moment('2019-05-06').toDate(),
       moment('2019-05-10').toDate()
     );
@@ -653,13 +653,13 @@ describe('getContractInfo', () => {
       { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
     ];
     const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
-    getBusinessDaysCountBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
+    getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
 
     const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
 
     expect(result).toBeDefined();
     sinon.assert.calledWith(
-      getBusinessDaysCountBetweenTwoDates,
+      getDaysRatioBetweenTwoDates,
       moment('2019-05-04').startOf('d').toDate(),
       moment('2019-05-10').toDate()
     );
@@ -671,11 +671,11 @@ describe('getContractInfo', () => {
       { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
     ];
     const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
-    getBusinessDaysCountBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
+    getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
 
     const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
 
     expect(result).toBeDefined();
-    sinon.assert.calledTwice(getBusinessDaysCountBetweenTwoDates);
+    sinon.assert.calledTwice(getDaysRatioBetweenTwoDates);
   });
 });

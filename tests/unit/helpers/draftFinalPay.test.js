@@ -16,14 +16,14 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 require('sinon-mongoose');
 
 describe('getContractMonthInfo', () => {
-  let getBusinessDaysCountBetweenTwoDates;
+  let getDaysRatioBetweenTwoDates;
   let getContractInfo;
   beforeEach(() => {
-    getBusinessDaysCountBetweenTwoDates = sinon.stub(UtilsHelper, 'getBusinessDaysCountBetweenTwoDates');
+    getDaysRatioBetweenTwoDates = sinon.stub(UtilsHelper, 'getDaysRatioBetweenTwoDates');
     getContractInfo = sinon.stub(ContractHelper, 'getContractInfo');
   });
   afterEach(() => {
-    getBusinessDaysCountBetweenTwoDates.restore();
+    getDaysRatioBetweenTwoDates.restore();
     getContractInfo.restore();
   });
 
@@ -34,7 +34,7 @@ describe('getContractMonthInfo', () => {
     ];
     const contract = { versions, endDate: '2019-05-16' };
     const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
-    getBusinessDaysCountBetweenTwoDates.returns(4);
+    getDaysRatioBetweenTwoDates.returns(4);
     getContractInfo.returns({ contractHours: 12, workedDaysRatio: 1 / 4 });
 
     const result = DraftFinalPayHelper.getContractMonthInfo(contract, query);
@@ -43,7 +43,7 @@ describe('getContractMonthInfo', () => {
     expect(result.contractHours).toBe(52);
     expect(result.workedDaysRatio).toBe(1 / 4);
     sinon.assert.calledWith(
-      getBusinessDaysCountBetweenTwoDates,
+      getDaysRatioBetweenTwoDates,
       moment('2019-05-06').startOf('M').toDate(),
       moment('2019-05-06').endOf('M').toDate()
     );

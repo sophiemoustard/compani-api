@@ -15,7 +15,7 @@ exports.getContractMonthInfo = (contract, query) => {
   const end = moment(query.startDate).endOf('M').toDate();
   const versions = contract.versions.filter(ver =>
     (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate)));
-  const monthBusinessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+  const monthBusinessDays = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
 
   const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);
 

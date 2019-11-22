@@ -29,7 +29,7 @@ const ContractHelper = require('./contracts');
 exports.getContractMonthInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('M').toDate();
   const end = moment(query.startDate).endOf('M').toDate();
-  const monthBusinessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+  const monthBusinessDays = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
   const versions = ContractHelper.getMatchingVersionsList(contract.versions || [], query);
 
   const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);

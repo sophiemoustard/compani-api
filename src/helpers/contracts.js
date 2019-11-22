@@ -15,7 +15,7 @@ const EventHelper = require('./events');
 const CustomerHelper = require('./customers');
 const UtilsHelper = require('./utils');
 const GDriveStorageHelper = require('./gdriveStorage');
-const { CUSTOMER_CONTRACT, COMPANY_CONTRACT, WEEKS_PER_MONTH } = require('./constants');
+const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('./eSign');
 const EventRepository = require('../repositories/EventRepository');
@@ -298,6 +298,7 @@ exports.getContractInfo = (versions, query, monthRatio) => {
   let contractHours = 0;
   let workedDays = 0;
   let holidaysHours = 0;
+  const monthDays = monthRatio.businessDays + monthRatio.holidays;
   for (const version of versions) {
     const startDate = moment(version.startDate).isBefore(query.startDate)
       ? moment(query.startDate).toDate()
@@ -305,14 +306,14 @@ exports.getContractInfo = (versions, query, monthRatio) => {
     const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
       ? moment(version.endDate).endOf('d').toDate()
       : moment(query.endDate).toDate();
-    const ratio = UtilsHelper.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
+    const ratio = UtilsHelper.getDaysRatioBetweenTwoDates(startDate, endDate);
 
     workedDays += ratio.businessDays;
-    contractHours += version.weeklyHours * ((ratio.businessDays + ratio.holidays) / (monthRatio.businessDays + monthRatio.holidays));
+    contractHours += version.weeklyHours * ((ratio.businessDays + ratio.holidays) / monthDays);
     holidaysHours += (version.weeklyHours / 6) * ratio.holidays;
   }
 
-  return { contractHours, holidaysHours, workedDaysRatio: workedDays / (monthRatio.businessDays + monthRatio.holidays) };
+  return { contractHours, holidaysHours, workedDaysRatio: workedDays / monthDays };
 };
 
 exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {

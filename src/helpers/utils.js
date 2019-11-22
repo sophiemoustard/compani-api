@@ -94,7 +94,7 @@ exports.capitalize = (s) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
+exports.getDaysRatioBetweenTwoDates = (start, end) => {
   let holidays = 0;
   let sundays = 0;
   let businessDays = 0;

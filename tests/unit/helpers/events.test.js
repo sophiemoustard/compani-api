@@ -1046,16 +1046,16 @@ describe('updateEventsInternalHourType', () => {
 });
 
 describe('getContractWeekInfo', () => {
-  let getBusinessDaysCountBetweenTwoDates;
+  let getDaysRatioBetweenTwoDates;
   let getContractInfo;
   let getMatchingVersionsList;
   beforeEach(() => {
-    getBusinessDaysCountBetweenTwoDates = sinon.stub(UtilsHelper, 'getBusinessDaysCountBetweenTwoDates');
+    getDaysRatioBetweenTwoDates = sinon.stub(UtilsHelper, 'getDaysRatioBetweenTwoDates');
     getContractInfo = sinon.stub(ContractHelper, 'getContractInfo');
     getMatchingVersionsList = sinon.stub(ContractHelper, 'getMatchingVersionsList');
   });
   afterEach(() => {
-    getBusinessDaysCountBetweenTwoDates.restore();
+    getDaysRatioBetweenTwoDates.restore();
     getContractInfo.restore();
     getMatchingVersionsList.restore();
   });
@@ -1067,7 +1067,7 @@ describe('getContractWeekInfo', () => {
     ];
     const contract = { versions };
     const query = { startDate: '2019-11-20T00:00:00', endDate: '2019-11-22T00:00:00' };
-    getBusinessDaysCountBetweenTwoDates.returns(4);
+    getDaysRatioBetweenTwoDates.returns(4);
     getContractInfo.returns({ contractHours: 26, workedDaysRatio: 1 / 4 });
     getMatchingVersionsList.returns(versions[1]);
 
@@ -1077,7 +1077,7 @@ describe('getContractWeekInfo', () => {
     expect(result.contractHours).toBe(26);
     expect(result.workedDaysRatio).toBe(1 / 4);
     sinon.assert.calledWith(
-      getBusinessDaysCountBetweenTwoDates,
+      getDaysRatioBetweenTwoDates,
       moment('2019-11-20').startOf('w').toDate(),
       moment('2019-11-20').endOf('w').toDate()
     );
