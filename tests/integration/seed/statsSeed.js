@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const moment = require('moment');
+const moment = require('../../../src/extensions/moment');
 const cloneDeep = require('lodash/cloneDeep');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -139,15 +139,37 @@ const eventListForFollowUp = [
   },
 ];
 
-const mondayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(1);
-const tuesdayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(2);
-const saturdayOfCurrentMonth = moment().startOf('month').add('15', 'days').day(6);
+const dayOfCurrentMonth = (day) => {
+  const startOfMonth = moment().startOf('month');
+  if (!moment(startOfMonth)
+    .add('7', 'days')
+    .day(day).startOf('d')
+    .isHoliday()) return moment(startOfMonth).add('7', 'days').day(day);
+  if (!moment(startOfMonth)
+    .add('14', 'days')
+    .day(day).startOf('d')
+    .isHoliday()) return moment(startOfMonth).add('14', 'days').day(day);
+  return moment(startOfMonth).add('21', 'days').day(day);
+};
 
-const tuesdayOfPreviousMonth = moment()
-  .startOf('month')
-  .subtract(1, 'months')
-  .add('15', 'days')
-  .day(2);
+const mondayOfCurrentMonth = dayOfCurrentMonth(1);
+const tuesdayOfCurrentMonth = dayOfCurrentMonth(2);
+const saturdayOfCurrentMonth = dayOfCurrentMonth(0);
+
+const dayOfPreviousMonth = (day) => {
+  const startOfMonth = moment().subtract(1, 'month').startOf('month');
+  if (!moment(startOfMonth)
+    .add('7', 'days')
+    .day(day).startOf('d')
+    .isHoliday()) return moment(startOfMonth).add('7', 'days').day(day);
+  if (!moment(startOfMonth)
+    .add('14', 'days')
+    .day(day).startOf('d')
+    .isHoliday()) return moment(startOfMonth).add('14', 'days').day(day);
+  return moment(startOfMonth).add('21', 'days').day(day);
+};
+
+const tuesdayOfPreviousMonth = dayOfPreviousMonth(2);
 
 const eventListForFundingsMonitoring = [
   {

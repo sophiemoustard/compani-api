@@ -1,7 +1,7 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
-const moment = require('moment');
+const moment = require('../../../src/extensions/moment');
 const StatsHelper = require('../../../src/helpers/stats');
 const StatRepository = require('../../../src/repositories/StatRepository');
 

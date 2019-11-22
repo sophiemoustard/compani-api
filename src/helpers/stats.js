@@ -1,4 +1,4 @@
-const moment = require('moment');
+const moment = require('../extensions/moment');
 const StatRepository = require('../repositories/StatRepository');
 
 const isHoliday = day => moment(day).startOf('d').isHoliday();
