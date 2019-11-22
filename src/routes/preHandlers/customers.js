@@ -8,7 +8,6 @@ const { language } = translate;
 exports.getCustomer = async (req) => {
   try {
     const companyId = get(req, 'auth.credentials.company._id', null);
-    if (!companyId) throw Boom.forbidden();
     const customer = await Customer.findById(req.params._id).populate({ path: 'firstIntervention', select: 'startDate' });
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
@@ -23,7 +22,6 @@ exports.getCustomer = async (req) => {
 
 exports.authorizeCustomerGetAndUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  if (!companyId) throw Boom.forbidden();
   const customer = await Customer.findById(req.params._id).lean();
   if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 

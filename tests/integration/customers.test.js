@@ -56,7 +56,7 @@ describe('CUSTOMERS ROUTES', () => {
 
   describe('POST /customers', () => {
     it('should create a new customer', async () => {
-      const customersBefore = await Customer.find({ company: authCompany._id });
+      const customersBefore = await customersList.map(customer => customer.company === authCompany._id);
       const res = await app.inject({
         method: 'POST',
         url: '/customers',
@@ -86,7 +86,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customer.payment.mandates).toBeDefined();
       expect(res.result.data.customer.payment.mandates.length).toEqual(1);
       expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
-      const customers = await Customer.find({ company: authCompany._id });
+      const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(customers).toHaveLength(customersBefore.length + 1);
     });
 
@@ -136,7 +136,7 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      const customers = await Customer.find({ company: authCompany._id });
+      const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(res.result.data.customers).toHaveLength(customers.length);
     });
 
@@ -486,7 +486,7 @@ describe('CUSTOMERS ROUTES', () => {
   describe('DELETE /customers/{id}', () => {
     it('should delete a customer without interventions', async () => {
       const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
-      const customersBefore = await Customer.find({ company: authCompany._id });
+      const customersBefore = await customersList.map(customer => customer.company === authCompany._id);
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[3]._id.toHexString()}`,
