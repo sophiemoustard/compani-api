@@ -1,8 +1,10 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const sinon = require('sinon');
 const UtilsHelper = require('../../../src/helpers/utils');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
+const Customer = require('../../../src/models/Customer');
 
 require('sinon-mongoose');
 
@@ -115,5 +117,173 @@ describe('exportFundings', () => {
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['', '', '', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', 'F-12', 'F-14', 'F-3',
       'Mardi Vendredi Samedi ', 'F-90']);
+  });
+});
+
+describe('checkSubscriptionFunding', () => {
+  const checkedFundingsSubscriptionId = new ObjectID();
+  const checkedFundings = {
+    _id: new ObjectID(),
+    subscription: checkedFundingsSubscriptionId,
+    careDays: [0, 1, 2],
+    startDate: '2019-10-01',
+    endDate: '2019-11-02',
+  };
+
+  let CustomerModel;
+  beforeEach(() => {
+    CustomerModel = sinon.mock(Customer);
+  });
+
+  afterEach(() => {
+    CustomerModel.restore();
+  });
+
+  it('should return true if customer does not have fundings', async () => {
+    const customerId = new ObjectID();
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({ fundings: [] });
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, checkedFundings);
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
+  });
+
+  it('should return true if checkedFundings does not have careDays in common with other fundings', async () => {
+    const customerId = new ObjectID();
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({ fundings: [] });
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, {});
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
+  });
+
+  it('should return true if checkedFundings startDate is after other fundings endDate', async () => {
+    const customerId = new ObjectID();
+    const fundings = [
+      {
+        _id: new ObjectID(),
+        subscription: checkedFundingsSubscriptionId,
+        careDays: [0, 1, 2, 3],
+        startDate: '2018-10-01',
+        endDate: '2018-12-01',
+      },
+      {
+        _id: new ObjectID(),
+        subscription: checkedFundingsSubscriptionId,
+        careDays: [0, 1, 2, 3],
+        startDate: '2019-01-01',
+        endDate: '2019-02-20',
+      },
+    ];
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({ fundings });
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, {});
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
+  });
+
+  it('should return true if checkedFundings endDate is before other fundings startDate', async () => {
+    const customerId = new ObjectID();
+    const fundings = [
+      {
+        _id: new ObjectID(),
+        subscription: checkedFundingsSubscriptionId,
+        careDays: [0, 1, 2, 3],
+        startDate: '2019-11-03',
+        endDate: '2019-12-01',
+      },
+      {
+        _id: new ObjectID(),
+        subscription: checkedFundingsSubscriptionId,
+        careDays: [0, 1, 2, 3],
+        startDate: '2020-01-01',
+        endDate: '2020-02-20',
+      },
+    ];
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({ fundings });
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, {});
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
+  });
+
+  it('should return true if checkedFundings and other fundings are not for the same subscription', async () => {
+    const customerId = new ObjectID();
+    const fundings = [
+      {
+        _id: new ObjectID(),
+        subscription: new ObjectID(),
+        careDays: [0, 1, 2, 3],
+        startDate: '2018-11-03',
+        endDate: '2019-10-22',
+      },
+      {
+        _id: new ObjectID(),
+        subscription: new ObjectID(),
+        careDays: [0, 1, 2, 3],
+        startDate: '2019-11-01',
+        endDate: '2020-02-20',
+      },
+    ];
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({ fundings });
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, {});
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
+  });
+
+  it('should return false if checkedFundings a careDays in common with other fundings are on the same period', async () => {
+    const customerId = new ObjectID();
+    const fundings = [
+      {
+        _id: new ObjectID(),
+        subscription: checkedFundingsSubscriptionId,
+        careDays: [0, 1, 2, 3],
+        startDate: '2018-11-03',
+        endDate: '2019-10-22',
+      },
+      {
+        _id: new ObjectID(),
+        subscription: checkedFundingsSubscriptionId,
+        careDays: [0, 1, 2, 3],
+        startDate: '2019-11-01',
+        endDate: '2020-02-20',
+      },
+    ];
+    CustomerModel.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns({ fundings });
+
+    const res = await FundingsHelper.checkSubscriptionFunding(customerId, {});
+
+    expect(res).toBe(true);
+    CustomerModel.verify();
   });
 });
