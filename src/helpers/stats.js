@@ -1,5 +1,19 @@
-const moment = require('moment');
+const moment = require('../extensions/moment');
 const StatRepository = require('../repositories/StatRepository');
+
+const isHoliday = day => moment(day).startOf('d').isHoliday();
+
+const isInCareDays = (careDays, day) => (careDays.includes(moment(day).isoWeekday() - 1) && !isHoliday(day))
+  || (careDays.includes(7) && isHoliday(day));
+
+const getMonthCareHours = (events, versionCareDays) => {
+  let monthCareHours = 0;
+  for (const event of events) {
+    if (!isInCareDays(versionCareDays, event.startDate)) continue;
+    monthCareHours += moment(event.endDate).diff(event.startDate, 'h', true);
+  }
+  return monthCareHours;
+};
 
 exports.getCustomerFundingsMonitoring = async (customerId) => {
   const fundingsDate = {
@@ -10,31 +24,18 @@ exports.getCustomerFundingsMonitoring = async (customerId) => {
     minStartDate: moment().subtract(2, 'month').endOf('month').toDate(),
     maxStartDate: moment().endOf('month').toDate(),
   };
-  const eventsGroupedByFundings = await StatRepository.getEventsGroupedByFundings(customerId, fundingsDate, eventsDate);
+  const startOfCurrentMonth = moment().startOf('month').toDate();
+  const eventsGroupedByFundings = await StatRepository.getEventsGroupedByFundings(customerId, fundingsDate, eventsDate, startOfCurrentMonth);
   const customerFundingsMonitoring = [];
 
-  for (const fundingAndEvents of eventsGroupedByFundings) {
-    const funding = fundingAndEvents._id;
-    const { eventsByMonth } = fundingAndEvents;
-
-    const fundingInfo = { thirdPartyPayer: funding.thirdPartyPayer.name };
-
-    for (const month of eventsByMonth) {
-      const { date } = month;
-      fundingInfo[date] = 0;
-
-      const versions = funding.versions.sort((a, b) => moment(a.createdAt).diff(b.createdAt));
-      const version = versions[0];
-
-      const fundingStartDate = versions[versions.length - 1].startDate;
-      fundingInfo.plannedCareHours = version.careHours;
-
-      for (const event of month.events) {
-        if (version.careDays.indexOf(moment(event.startDate).day()) < 0 || moment(fundingStartDate).isAfter(event.startDate)) continue;
-        fundingInfo[date] += moment(event.endDate).diff(event.startDate, 'h', true);
-      }
-    }
-    customerFundingsMonitoring.push(fundingInfo);
+  for (const funding of eventsGroupedByFundings) {
+    const isPrevMonthRelevant = moment(funding.startDate).isBefore(startOfCurrentMonth);
+    customerFundingsMonitoring.push({
+      thirdPartyPayer: funding.thirdPartyPayer.name,
+      plannedCareHours: funding.careHours,
+      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
+      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
+    });
   }
 
   return customerFundingsMonitoring;

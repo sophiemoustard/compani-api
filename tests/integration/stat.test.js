@@ -61,21 +61,29 @@ describe('GET /stats/customer-fundings-monitoring', () => {
     beforeEach(async () => {
       adminToken = await getToken('admin');
     });
+
     it('should get customer fundings monitoring', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-fundings-monitoring/${customerList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
-
-      const currentMonth = moment().format('YYYY-MM');
-      const prevMonth = moment().subtract(1, 'month').format('YYYY-MM');
-
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customerFundingsMonitoring[0]).toBeDefined();
       expect(res.result.data.customerFundingsMonitoring[0].plannedCareHours).toBe(40);
-      expect(res.result.data.customerFundingsMonitoring[0][currentMonth]).toBe(6);
-      expect(res.result.data.customerFundingsMonitoring[0][prevMonth]).toBe(4);
+      expect(res.result.data.customerFundingsMonitoring[0].currentMonthCareHours).toBe(6);
+      expect(res.result.data.customerFundingsMonitoring[0].prevMonthCareHours).toBe(4);
+    });
+
+    it('should get only hourly and monthly fundings', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-fundings-monitoring/${customerList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customerFundingsMonitoring.length).toBe(1);
     });
   });
 

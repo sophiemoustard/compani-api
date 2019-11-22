@@ -1,74 +1,61 @@
+const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Customer = require('../models/Customer');
-const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID } = require('../helpers/constants');
+const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, INTERVENTION } = require('../helpers/constants');
 
-exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate) => {
-  const matchAndPopulateFundings = [
-    {
-      $match:
-      {
-        _id: new ObjectID(customerId),
-        fundings: {
-          $elemMatch: {
-            frequency: MONTHLY,
-            nature: HOURLY,
-            versions: {
-              $elemMatch: {
-                startDate: { $lte: fundingsDate.maxStartDate },
-                $or: [
-                  { endDate: { $exists: false } },
-                  { endDate: { $gte: fundingsDate.minEndDate } },
-                ],
-              },
-            },
-          },
-        },
+exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, splitEventsDate) => {
+  const fundingsMatch = {
+    frequency: MONTHLY,
+    nature: HOURLY,
+    versions: {
+      $elemMatch: {
+        startDate: { $lte: fundingsDate.maxStartDate },
+        $or: [
+          { endDate: { $exists: false } },
+          { endDate: { $gte: fundingsDate.minEndDate } },
+        ],
       },
     },
+  };
+
+  const matchAndPopulateFundings = [
+    { $match: { _id: new ObjectID(customerId), fundings: { $elemMatch: fundingsMatch } } },
     { $unwind: { path: '$fundings' } },
+    { $replaceRoot: { newRoot: '$fundings' } },
+    { $match: fundingsMatch },
     {
       $lookup: {
         from: 'thirdpartypayers',
-        localField: 'fundings.thirdPartyPayer',
+        localField: 'thirdPartyPayer',
         foreignField: '_id',
-        as: 'fundings.thirdPartyPayer',
+        as: 'thirdPartyPayer',
       },
     },
-    { $unwind: { path: '$fundings.thirdPartyPayer' } },
-    { $unwind: { path: '$subscriptions' } },
-    {
-      $project: {
-        _id: 1,
-        subscriptions: { _id: 1 },
-        fundings: {
-          thirdPartyPayer: { name: 1 },
-          versions: 1,
-        },
-      },
-    },
+    { $unwind: { path: '$thirdPartyPayer' } },
+    { $addFields: { version: { $arrayElemAt: ['$versions', -1] } } },
   ];
 
-  const matchAndPopulateEvents = [
+  const matchEvents = [
     {
       $lookup: {
         from: 'events',
         as: 'events',
         let: {
-          subscriptionId: '$subscriptions._id',
-          customerId: '$_id',
+          subscriptionId: '$subscription',
+          fundingStartDate: '$version.startDate',
+          fundingEndDate: { $ifNull: ['$endDate', moment().endOf('month').toDate()] },
         },
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ['$customer', '$$customerId'] },
                   { $eq: ['$subscription', '$$subscriptionId'] },
-                  { $eq: ['$type', 'intervention'] },
-                  {
-                    $gt: ['$startDate', eventsDate.minStartDate],
-                  },
+                  { $eq: ['$type', INTERVENTION] },
+                  { $gt: ['$startDate', eventsDate.minStartDate] },
+                  { $gt: ['$startDate', '$$fundingStartDate'] },
                   { $lte: ['$startDate', eventsDate.maxStartDate] },
+                  { $lte: ['$startDate', '$$fundingEndDate'] },
                   {
                     $or: [
                       ['$isCancelled', false],
@@ -84,35 +71,32 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
         ],
       },
     },
-    { $unwind: { path: '$events' } },
   ];
 
-  const group = [
+  const formatFundings = [
     {
-      $group: {
-        _id: {
-          month: { $dateToString: { format: '%Y-%m', date: '$events.startDate' } },
-          funding: '$fundings',
-        },
-        events: { $push: '$events' },
+      $addFields: {
+        prevMonthEvents: { $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', splitEventsDate] } } },
+        currentMonthEvents: { $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', splitEventsDate] } } },
       },
     },
     {
-      $group: {
-        _id: '$_id.funding',
-        eventsByMonth: {
-          $push: {
-            date: '$_id.month',
-            events: '$events',
-          },
-        },
+      $project: {
+        thirdPartyPayer: { name: 1 },
+        subscription: 1,
+        startDate: '$version.startDate',
+        endDate: '$version.endDate',
+        careHours: '$version.careHours',
+        careDays: '$version.careDays',
+        prevMonthEvents: { startDate: 1, endDate: 1 },
+        currentMonthEvents: { startDate: 1, endDate: 1 },
       },
     },
   ];
 
   return Customer.aggregate([
     ...matchAndPopulateFundings,
-    ...matchAndPopulateEvents,
-    ...group,
+    ...matchEvents,
+    ...formatFundings,
   ]);
 };
