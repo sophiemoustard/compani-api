@@ -399,8 +399,8 @@ exports.exportAuxiliaries = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
   const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
-    .find({ role: { $in: roleIds } })
-    .populate({ path: 'sector', match: { company: get(credentials, 'company._id', null) } });
+    .find({ role: { $in: roleIds }, company: get(credentials, 'company._id', null) })
+    .populate('sector');
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {
@@ -542,7 +542,7 @@ exports.formatSurchargedDetailsForExport = (pay, key) => {
   }
   if (pay.diff && pay.diff[key]) {
     for (const surchargedPlanDetails of pay.diff[key]) {
-      const lines = formatLines(surchargedPlanDetails, `${surchargedPlanDetails.planName} (M-1)`)
+      const lines = formatLines(surchargedPlanDetails, `${surchargedPlanDetails.planName} (M-1)`);
       if (lines) formattedPlans.push(lines);
     }
   }
