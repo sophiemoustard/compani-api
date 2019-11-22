@@ -12,11 +12,16 @@ const {
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
 } = require('./constants');
-const Event = require('../models/Event');
-const Repetition = require('../models/Repetition');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
 const EventsRepetitionHelper = require('./eventsRepetition');
+const DraftPayHelper = require('./draftPay');
+const ContractHelper = require('./contracts');
+const UtilsHelper = require('./utils');
+const Event = require('../models/Event');
+const Repetition = require('../models/Repetition');
+const User = require('../models/User');
+const DistanceMatrix = require('../models/DistanceMatrix');
 const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
@@ -281,4 +286,49 @@ exports.deleteEvents = async (events, credentials) => {
 
   await Promise.all(promises);
   await Event.deleteMany({ _id: { $in: events.map(ev => ev._id) } });
+};
+
+
+exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
+  const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
+  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate);
+
+  return isStartedOnEndDate && !isEndedOnStartDate;
+});
+
+exports.getContractWeekInfo = (contract, query) => {
+  const start = moment(query.startDate).startOf('w').toDate();
+  const end = moment(query.startDate).endOf('w').toDate();
+  const weekBusinessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+  const versions = exports.getMatchingVersionsList(contract.versions || [], query);
+
+  return ContractHelper.getContractInfo(versions, query, weekBusinessDays);
+};
+
+exports.workingStats = async (query) => {
+  const ids = Array.isArray(query.auxiliary) ? query.auxiliary.map(id => new ObjectID(id)) : [new ObjectID(query.auxiliary)];
+  const auxiliaries = await User.find({ _id: { $in: ids } }).populate('contracts').lean();
+
+  const { startDate, endDate } = query;
+  const distanceMatrix = await DistanceMatrix.find().lean();
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id));
+
+  const workingStats = {};
+  for (const auxiliary of auxiliaries) {
+    const eventsToPay =
+      eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString())
+      || { absences: [], events: [] };
+    const { contracts } = auxiliary;
+    if (!contracts || !contracts.length) continue;
+    const contract = DraftPayHelper.getContract(contracts, query.endDate);
+    if (!contract) continue;
+
+    const contractInfo = exports.getContractWeekInfo(contract, query);
+    const hours = await DraftPayHelper.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, [], query);
+    const absencesHours = DraftPayHelper.getPayFromAbsences(eventsToPay.absences, contract, query);
+    const hoursToWork = Math.max(contractInfo.contractHours - absencesHours, 0);
+    workingStats[auxiliary._id] = { workedHours: hours.workedHours, hoursToWork };
+  }
+
+  return workingStats;
 };

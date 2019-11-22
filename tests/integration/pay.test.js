@@ -80,6 +80,9 @@ describe('PAY ROUTES - POST /pay', () => {
     bonus: 0,
     hoursToWork: 10,
     previousMonthHoursCounter: -2,
+    paidTransportHours: 3,
+    internalHours: 9,
+    absencesHours: 5,
     diff: {
       hoursBalance: 20,
       notSurchargedAndExempt: 20,
@@ -93,6 +96,9 @@ describe('PAY ROUTES - POST /pay', () => {
           custom: { hours: 20, percentage: 10 },
         },
       },
+      paidTransportHours: 3,
+      internalHours: 9,
+      absencesHours: 5,
       workedHours: 20,
     },
   }];

@@ -4,6 +4,8 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const DraftFinalPayHelper = require('../../../src/helpers/draftFinalPay');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
+const ContractHelper = require('../../../src/helpers/contracts');
+const UtilsHelper = require('../../../src/helpers/utils');
 const Company = require('../../../src/models/Company');
 const Surcharge = require('../../../src/models/Surcharge');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
@@ -15,89 +17,49 @@ require('sinon-mongoose');
 
 describe('getContractMonthInfo', () => {
   let getBusinessDaysCountBetweenTwoDates;
-  let getMonthBusinessDaysCount;
+  let getContractInfo;
   beforeEach(() => {
-    getBusinessDaysCountBetweenTwoDates = sinon.stub(DraftPayHelper, 'getBusinessDaysCountBetweenTwoDates');
-    getMonthBusinessDaysCount = sinon.stub(DraftPayHelper, 'getMonthBusinessDaysCount');
+    getBusinessDaysCountBetweenTwoDates = sinon.stub(UtilsHelper, 'getBusinessDaysCountBetweenTwoDates');
+    getContractInfo = sinon.stub(ContractHelper, 'getContractInfo');
   });
   afterEach(() => {
     getBusinessDaysCountBetweenTwoDates.restore();
-    getMonthBusinessDaysCount.restore();
+    getContractInfo.restore();
   });
 
-  it('Case 1. One version no sunday', () => {
-    const contract = {
-      versions: [
-        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
-      ],
-      endDate: '2019-05-16',
-    };
+  it('should get contract month info', () => {
+    const versions = [
+      { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+      { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
+    ];
+    const contract = { versions, endDate: '2019-05-16' };
     const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
     getBusinessDaysCountBetweenTwoDates.returns(4);
-    getMonthBusinessDaysCount.returns(16);
+    getContractInfo.returns({ contractHours: 12, workedDaysRatio: 1 / 4 });
 
     const result = DraftFinalPayHelper.getContractMonthInfo(contract, query);
 
     expect(result).toBeDefined();
-    expect(result.contractHours).toBeDefined();
-    expect(result.contractHours).toBe(26);
-    expect(result.workedDaysRatio).toBeDefined();
+    expect(result.contractHours).toBe(52);
     expect(result.workedDaysRatio).toBe(1 / 4);
-    sinon.assert.calledWith(getBusinessDaysCountBetweenTwoDates, moment('2019-05-06'), moment('2019-05-10'));
-    sinon.assert.calledWith(getMonthBusinessDaysCount, '2019-05-06');
-    sinon.assert.callCount(getBusinessDaysCountBetweenTwoDates, 1);
-    sinon.assert.callCount(getMonthBusinessDaysCount, 1);
-  });
-
-  it('Case 2. One version and sunday included', () => {
-    const contract = {
-      versions: [
-        { startDate: '2019-01-01', endDate: '2019-05-03', weeklyHours: 18 },
-        { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
-      ],
-      endDate: '2019-05-16',
-    };
-    const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
-    getBusinessDaysCountBetweenTwoDates.withArgs(moment('2019-05-04').startOf('d'), moment('2019-05-10'));
-
-
-    const result = DraftFinalPayHelper.getContractMonthInfo(contract, query);
-
-    expect(result).toBeDefined();
-    sinon.assert.calledWith(getBusinessDaysCountBetweenTwoDates, moment('2019-05-04').startOf('d'), moment('2019-05-10'));
-    sinon.assert.calledWith(getMonthBusinessDaysCount, '2019-05-04');
-    sinon.assert.callCount(getBusinessDaysCountBetweenTwoDates, 1);
-    sinon.assert.callCount(getMonthBusinessDaysCount, 1);
-  });
-
-  it('Case 3. Multiple versions', () => {
-    const contract = {
-      versions: [
-        { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-        { endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 },
-      ],
-      endDate: '2019-05-16',
-    };
-    const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
-
-    const result = DraftFinalPayHelper.getContractMonthInfo(contract, query);
-
-    expect(result).toBeDefined();
-    sinon.assert.callCount(getBusinessDaysCountBetweenTwoDates, 2);
-    sinon.assert.callCount(getMonthBusinessDaysCount, 1);
+    sinon.assert.calledWith(
+      getBusinessDaysCountBetweenTwoDates,
+      moment('2019-05-06').startOf('M').toDate(),
+      moment('2019-05-06').endOf('M').toDate()
+    );
+    sinon.assert.calledWith(getContractInfo, [{ endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 }], query, 4);
   });
 });
 
 describe('getDraftFinalPayByAuxiliary', () => {
-  let computeMonthBalance;
+  let computeBalance;
   let genericData;
   beforeEach(() => {
-    computeMonthBalance = sinon.stub(DraftPayHelper, 'computeMonthBalance');
+    computeBalance = sinon.stub(DraftPayHelper, 'computeBalance');
     genericData = sinon.stub(DraftPayHelper, 'genericData');
   });
   afterEach(() => {
-    computeMonthBalance.restore();
+    computeBalance.restore();
     genericData.restore();
   });
 
@@ -126,7 +88,7 @@ describe('getDraftFinalPayByAuxiliary', () => {
       transport: 26.54,
       otherFees: 29.6,
     };
-    computeMonthBalance.returns(computedPay);
+    computeBalance.returns(computedPay);
     genericData.returns({
       auxiliaryId: '1234567890',
       auxiliary: { _id: '1234567890' },

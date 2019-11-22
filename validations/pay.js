@@ -17,14 +17,18 @@ const surchargedDetailsValidation = Joi.object().required().pattern(Joi.string()
 });
 
 exports.payValidation = {
+  absencesHours: Joi.date().required(),
   additionalHours: Joi.number().required(),
   auxiliary: Joi.objectId().required(),
   bonus: Joi.number().required(),
   contractHours: Joi.number().required(),
   diff: Joi.object().keys({
+    absencesHours: Joi.date().required(),
     hoursBalance: Joi.number().required(),
+    internalHours: Joi.date().required(),
     notSurchargedAndExempt: Joi.number().required(),
     notSurchargedAndNotExempt: Joi.number().required(),
+    paidTransportHours: Joi.date().required(),
     surchargedAndExempt: Joi.number().required(),
     surchargedAndExemptDetails: surchargedDetailsValidation.required(),
     surchargedAndNotExempt: Joi.number().required(),
@@ -35,12 +39,14 @@ exports.payValidation = {
   hoursBalance: Joi.number().required(),
   hoursCounter: Joi.number().required(),
   hoursToWork: Joi.number().required(),
+  internalHours: Joi.date().required(),
   month: Joi.string().required(),
   mutual: Joi.boolean().required(),
   notSurchargedAndExempt: Joi.number().required(),
   notSurchargedAndNotExempt: Joi.number().required(),
   otherFees: Joi.number().required(),
   overtimeHours: Joi.number().required(),
+  paidTransportHours: Joi.date().required(),
   previousMonthHoursCounter: Joi.number().required(),
   startDate: Joi.date().required(),
   surchargedAndExempt: Joi.number().required(),

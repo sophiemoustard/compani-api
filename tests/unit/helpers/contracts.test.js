@@ -7,7 +7,9 @@ const cloneDeep = require('lodash/cloneDeep');
 const { ObjectID } = require('mongodb');
 const EventHelper = require('../../../src/helpers/events');
 const ContractHelper = require('../../../src/helpers/contracts');
+const UtilsHelper = require('../../../src/helpers/utils');
 const ESignHelper = require('../../../src/helpers/eSign');
+const CustomerHelper = require('../../../src/helpers/customers');
 const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const { RESIGNATION } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
@@ -206,6 +208,7 @@ describe('endContract', () => {
   let removeEventsExceptInterventionsOnContractEnd;
   let updateAbsencesOnContractEnd;
   let contractDoc;
+  let unassignReferentOnContractEnd;
   const payload = {
     endDate: moment('2018-12-03T23:00:00').toDate(),
     endNotificationDate: moment('2018-12-03T23:00:00').toDate(),
@@ -241,6 +244,7 @@ describe('endContract', () => {
     unassignInterventionsOnContractEnd = sinon.stub(EventHelper, 'unassignInterventionsOnContractEnd');
     removeEventsExceptInterventionsOnContractEnd = sinon.stub(EventHelper, 'removeEventsExceptInterventionsOnContractEnd');
     updateAbsencesOnContractEnd = sinon.stub(EventHelper, 'updateAbsencesOnContractEnd');
+    unassignReferentOnContractEnd = sinon.stub(CustomerHelper, 'unassignReferentOnContractEnd');
   });
   afterEach(() => {
     ContractFindOneStub.restore();
@@ -250,6 +254,7 @@ describe('endContract', () => {
     unassignInterventionsOnContractEnd.restore();
     removeEventsExceptInterventionsOnContractEnd.restore();
     updateAbsencesOnContractEnd.restore();
+    unassignReferentOnContractEnd.restore();
   });
 
   it('should end contract', async () => {
@@ -264,6 +269,7 @@ describe('endContract', () => {
     sinon.assert.calledWith(unassignInterventionsOnContractEnd);
     sinon.assert.called(removeEventsExceptInterventionsOnContractEnd);
     sinon.assert.called(updateAbsencesOnContractEnd);
+    sinon.assert.called(unassignReferentOnContractEnd);
     expect(result.toObject()).toMatchObject(updatedContract);
   });
 
@@ -610,5 +616,65 @@ describe('deleteVersion', () => {
     sinon.assert.calledWith(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
     sinon.assert.calledWith(updateOneCustomer, { _id: 'qwer' }, { $pull: { contracts: contractId } });
     sinon.assert.calledWith(deleteFile, '123456789');
+  });
+});
+
+describe('getContractInfo', () => {
+  let getBusinessDaysCountBetweenTwoDates;
+  beforeEach(() => {
+    getBusinessDaysCountBetweenTwoDates = sinon.stub(UtilsHelper, 'getBusinessDaysCountBetweenTwoDates');
+  });
+  afterEach(() => {
+    getBusinessDaysCountBetweenTwoDates.restore();
+  });
+
+  it('Case 1. One version no sunday', () => {
+    const versions = [
+      { endDate: '', startDate: '2019-05-04', weeklyHours: 20 },
+    ];
+    const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
+    getBusinessDaysCountBetweenTwoDates.returns(4);
+
+    const result = ContractHelper.getContractInfo(versions, query, 10);
+
+    expect(result).toBeDefined();
+    expect(result.contractHours).toBe(8);
+    expect(result.workedDaysRatio).toBe(0.4);
+    sinon.assert.calledWith(
+      getBusinessDaysCountBetweenTwoDates,
+      moment('2019-05-06').toDate(),
+      moment('2019-05-10').toDate()
+    );
+  });
+
+  it('Case 2. One version and sunday included', () => {
+    const versions = [
+      { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+    ];
+    const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
+    getBusinessDaysCountBetweenTwoDates.returns(4);
+
+    const result = ContractHelper.getContractInfo(versions, query, 10);
+
+    expect(result).toBeDefined();
+    sinon.assert.calledWith(
+      getBusinessDaysCountBetweenTwoDates,
+      moment('2019-05-04').startOf('d').toDate(),
+      moment('2019-05-10').toDate()
+    );
+  });
+
+  it('Case 3. Multiple versions', () => {
+    const versions = [
+      { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+      { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+    ];
+    const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
+    getBusinessDaysCountBetweenTwoDates.returns(4);
+
+    const result = ContractHelper.getContractInfo(versions, query, 10);
+
+    expect(result).toBeDefined();
+    sinon.assert.calledTwice(getBusinessDaysCountBetweenTwoDates);
   });
 });
