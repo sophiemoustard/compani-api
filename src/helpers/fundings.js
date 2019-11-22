@@ -22,9 +22,12 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
     .every((fund) => {
       const lastVersion = UtilsHelper.getLastVersion(fund.versions, 'createdAt');
 
-      return (!!lastVersion.endDate && moment(lastVersion.endDate).isBefore(checkedFunding.versions[0].startDate, 'day')) ||
-        (!!checkedFunding.versions[0].endDate && moment(lastVersion.startDate).isAfter(checkedFunding.versions[0].endDate, 'day')) ||
-        checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
+      const checkedFundingStartDateIsAfterFundingEndDate = !!lastVersion.endDate && moment(checkedFunding.versions[0].startDate).isAfter(lastVersion.endDate, 'day');
+      const hasCareDaysInCommon = checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
+      const checkedFundingEndDateIsBeforeFundingStartDate = !!checkedFunding.versions[0].endDate && moment(checkedFunding.versions[0].endDate).isBefore(lastVersion.startDate, 'day');
+
+      return checkedFundingStartDateIsAfterFundingEndDate || checkedFundingEndDateIsBeforeFundingStartDate
+      || !hasCareDaysInCommon;
     });
 };
 
