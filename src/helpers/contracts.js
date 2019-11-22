@@ -294,7 +294,7 @@ exports.saveCompletedContract = async (everSignDoc) => {
   );
 };
 
-exports.getContractInfo = (versions, query, businessDaysTotal) => {
+exports.getContractInfo = (versions, query, monthRatio) => {
   let contractHours = 0;
   let workedDays = 0;
   for (const version of versions) {
@@ -304,11 +304,11 @@ exports.getContractInfo = (versions, query, businessDaysTotal) => {
     const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
       ? moment(version.endDate).endOf('d').toDate()
       : moment(query.endDate).toDate();
-    const businessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
+    const ratio = UtilsHelper.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
 
-    workedDays += businessDays;
-    contractHours += version.weeklyHours * (businessDays / businessDaysTotal);
+    workedDays += ratio.businessDays;
+    contractHours += version.weeklyHours * (ratio.businessDays / (monthRatio.businessDays + monthRatio.holidays));
   }
 
-  return { contractHours, workedDaysRatio: workedDays / businessDaysTotal };
+  return { contractHours, workedDaysRatio: workedDays / (monthRatio.businessDays + monthRatio.holidays) };
 };

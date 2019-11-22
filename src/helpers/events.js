@@ -299,10 +299,10 @@ exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => 
 exports.getContractWeekInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('w').toDate();
   const end = moment(query.startDate).endOf('w').toDate();
-  const weekBusinessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
+  const weekRatio = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
   const versions = exports.getMatchingVersionsList(contract.versions || [], query);
 
-  return ContractHelper.getContractInfo(versions, query, weekBusinessDays);
+  return ContractHelper.getContractInfo(versions, query, weekRatio);
 };
 
 exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {

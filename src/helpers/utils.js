@@ -95,13 +95,17 @@ exports.capitalize = (s) => {
 };
 
 exports.getBusinessDaysCountBetweenTwoDates = (start, end) => {
-  let count = 0;
-  if (moment(end).isBefore(start)) return count;
+  let holidays = 0;
+  let sundays = 0;
+  let businessDays = 0;
+  if (moment(end).isBefore(start)) return { holidays, sundays, businessDays };
 
   const range = Array.from(moment().range(start, end).by('days'));
   for (const day of range) {
-    if (day.startOf('d').isBusinessDay()) count += 1; // startOf('day') is necessery to check fr holidays in business day
+    if (day.startOf('d').isHoliday()) holidays += 1; // startOf('day') is necessery to check fr holidays in business day
+    else if (day.day() !== 0) businessDays += 1;
+    else sundays += 1;
   }
 
-  return count;
+  return { holidays, sundays, businessDays };
 };
