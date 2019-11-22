@@ -79,7 +79,7 @@ const listBySector = async (req) => {
 
 const listWithBilledEvents = async (req) => {
   try {
-    const credentials = get(req, 'auth.credentials', {});
+    const { credentials } = req.auth;
     const customers = await getCustomersWithBilledEvents(credentials);
 
     return {
