@@ -101,7 +101,6 @@ exports.updateUser = async (userId, userPayload) => {
   }
 
   const updatedUser = await User.findOneAndUpdate({ _id: userId }, update, options);
-  if (!updatedUser) return Boom.notFound(translate[language].userNotFound);
 
   if (updatedUser.role && updatedUser.role.rights.length > 0) {
     updatedUser.role.rights = RolesHelper.populateRole(updatedUser.role.rights, { onlyGrantedRights: true });
