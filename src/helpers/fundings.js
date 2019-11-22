@@ -23,6 +23,7 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
       const lastVersion = UtilsHelper.getLastVersion(fund.versions, 'createdAt');
 
       return (!!lastVersion.endDate && moment(lastVersion.endDate).isBefore(checkedFunding.versions[0].startDate, 'day')) ||
+        (!!checkedFunding.versions[0].endDate && moment(lastVersion.startDate).isAfter(checkedFunding.versions[0].endDate, 'day')) ||
         checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
     });
 };
