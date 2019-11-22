@@ -1487,7 +1487,6 @@ describe('computePrevPayDiff', () => {
         absencesHours: 5,
         internalHours: 0,
         paidTransportHours: 0,
-        hoursToWork: 5,
         workedHours: 24,
         notSurchargedAndNotExempt: 12,
         surchargedAndNotExempt: 3,
@@ -1495,7 +1494,7 @@ describe('computePrevPayDiff', () => {
         notSurchargedAndExempt: 6,
         surchargedAndExempt: 3,
         surchargedAndExemptDetails: 'surchargedAndExemptDetails',
-        hoursBalance: -5,
+        hoursBalance: 29,
       },
       hoursCounter: 0,
     });
@@ -1532,7 +1531,7 @@ describe('computePrevPayDiff', () => {
       internalHours: 2,
       paidTransportHours: 4,
     });
-    getPayFromAbsences.returns(5);
+    getPayFromAbsences.returns(-2);
     computePrevPayDetailDiff.returnsArg(2);
 
     const result = await DraftPayHelper.computePrevPayDiff(auxiliary, events, prevPay, query, [], []);
@@ -1540,7 +1539,6 @@ describe('computePrevPayDiff', () => {
     expect(result).toEqual({
       auxiliary: '1234567890',
       diff: {
-        hoursToWork: 5,
         workedHours: -2,
         notSurchargedAndNotExempt: 0,
         surchargedAndNotExempt: 1,
@@ -1551,7 +1549,7 @@ describe('computePrevPayDiff', () => {
         hoursBalance: -4,
         internalHours: 1,
         paidTransportHours: 1,
-        absencesHours: 5,
+        absencesHours: -2,
       },
       hoursCounter: 3,
     });
