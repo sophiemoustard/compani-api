@@ -71,8 +71,8 @@ describe('GET /stats/customer-fundings-monitoring', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customerFundingsMonitoring[0]).toBeDefined();
       expect(res.result.data.customerFundingsMonitoring[0].plannedCareHours).toBe(40);
-      expect(res.result.data.customerFundingsMonitoring[0].currentMonth).toBe(6);
-      expect(res.result.data.customerFundingsMonitoring[0].prevMonth).toBe(4);
+      expect(res.result.data.customerFundingsMonitoring[0].currentMonthCareHours).toBe(6);
+      expect(res.result.data.customerFundingsMonitoring[0].prevMonthCareHours).toBe(4);
     });
 
     it('should get only hourly and monthly fundings', async () => {

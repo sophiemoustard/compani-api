@@ -33,14 +33,6 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     },
     { $unwind: { path: '$thirdPartyPayer' } },
     { $addFields: { version: { $arrayElemAt: ['$versions', -1] } } },
-    {
-      $addFields: {
-        startDate: '$version.startDate',
-        endDate: '$version.endDate',
-        careHours: '$version.careHours',
-        careDays: '$version.careDays',
-      },
-    },
   ];
 
   const matchEvents = [
@@ -50,8 +42,8 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
         as: 'events',
         let: {
           subscriptionId: '$subscription',
-          fundingStartDate: '$startDate',
-          fundingEndDate: { $ifNull: ['$endDate', moment().add(1, 'month').toDate()] },
+          fundingStartDate: '$version.startDate',
+          fundingEndDate: { $ifNull: ['$endDate', moment().endOf('month').toDate()] },
         },
         pipeline: [
           {
@@ -60,12 +52,8 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
                 $and: [
                   { $eq: ['$subscription', '$$subscriptionId'] },
                   { $eq: ['$type', INTERVENTION] },
-                  {
-                    $gt: ['$startDate', eventsDate.minStartDate],
-                  },
-                  {
-                    $gt: ['$startDate', '$$fundingStartDate'],
-                  },
+                  { $gt: ['$startDate', eventsDate.minStartDate] },
+                  { $gt: ['$startDate', '$$fundingStartDate'] },
                   { $lte: ['$startDate', eventsDate.maxStartDate] },
                   { $lte: ['$startDate', '$$fundingEndDate'] },
                   {
@@ -96,11 +84,10 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
       $project: {
         thirdPartyPayer: { name: 1 },
         subscription: 1,
-        startDate: 1,
-        endDate: 1,
-        careHours: 1,
-        careDays: 1,
-        events: 1,
+        startDate: '$version.startDate',
+        endDate: '$version.endDate',
+        careHours: '$version.careHours',
+        careDays: '$version.careDays',
         prevMonthEvents: { startDate: 1, endDate: 1 },
         currentMonthEvents: { startDate: 1, endDate: 1 },
       },

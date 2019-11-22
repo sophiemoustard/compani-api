@@ -68,8 +68,8 @@ const customerList = [
       thirdPartyPayer: tppId,
       versions: [{
         _id: new ObjectID(),
-        startDate: moment().startOf('month').subtract(2, 'months').toISOString(),
-        createdAt: moment().startOf('month').subtract(2, 'months').toISOString(),
+        startDate: moment().startOf('month').subtract(2, 'months').toDate(),
+        createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
         unitTTCRate: 20,
         customerParticipationRate: 60,
         careHours: 40,
@@ -83,8 +83,8 @@ const customerList = [
       thirdPartyPayer: tppId,
       versions: [{
         _id: new ObjectID(),
-        startDate: moment().startOf('month').subtract(2, 'months').toISOString(),
-        createdAt: moment().startOf('month').subtract(2, 'months').toISOString(),
+        startDate: moment().startOf('month').subtract(2, 'months').toDate(),
+        createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
         unitTTCRate: 20,
         customerParticipationRate: 60,
         careHours: 40,
@@ -98,8 +98,8 @@ const customerList = [
       thirdPartyPayer: tppId,
       versions: [{
         _id: new ObjectID(),
-        startDate: moment().startOf('month').subtract(2, 'months').toISOString(),
-        createdAt: moment().startOf('month').subtract(2, 'months').toISOString(),
+        startDate: moment().startOf('month').subtract(2, 'months').toDate(),
+        createdAt: moment().startOf('month').subtract(2, 'months').toDate(),
         unitTTCRate: 20,
         customerParticipationRate: 60,
         careHours: 40,
@@ -178,8 +178,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toISOString(),
-    endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toISOString(),
+    startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toDate(),
+    endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toDate(),
   },
   {
     _id: new ObjectID(),
@@ -187,8 +187,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toISOString(),
-    endDate: cloneDeep(tuesdayOfCurrentMonth).hour('15').toISOString(),
+    startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toDate(),
+    endDate: cloneDeep(tuesdayOfCurrentMonth).hour('15').toDate(),
   },
   {
     _id: new ObjectID(),
@@ -196,8 +196,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toISOString(),
-    endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toISOString(),
+    startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toDate(),
+    endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toDate(),
   },
   {
     _id: new ObjectID(),
@@ -205,8 +205,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toISOString(),
-    endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toISOString(),
+    startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toDate(),
+    endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toDate(),
   },
   {
     _id: new ObjectID(),
@@ -214,8 +214,8 @@ const eventListForFundingsMonitoring = [
     customer: customerList[0]._id,
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
-    startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toISOString(),
-    endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toISOString(),
+    startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toDate(),
+    endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toDate(),
   },
 ];
 

@@ -51,9 +51,9 @@ describe('getCustomerFundingsMonitoring', () => {
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
-      currentMonth: 0,
+      currentMonthCareHours: 0,
       plannedCareHours: 5,
-      prevMonth: 0,
+      prevMonthCareHours: 0,
     }]);
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
@@ -95,9 +95,9 @@ describe('getCustomerFundingsMonitoring', () => {
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
-      currentMonth: 6,
+      currentMonthCareHours: 6,
       plannedCareHours: 5,
-      prevMonth: 3.5,
+      prevMonthCareHours: 3.5,
     }]);
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
@@ -141,9 +141,9 @@ describe('getCustomerFundingsMonitoring', () => {
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
-      currentMonth: 6,
+      currentMonthCareHours: 6,
       plannedCareHours: 5,
-      prevMonth: -1,
+      prevMonthCareHours: -1,
     }]);
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });

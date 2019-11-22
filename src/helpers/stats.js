@@ -24,17 +24,17 @@ exports.getCustomerFundingsMonitoring = async (customerId) => {
     minStartDate: moment().subtract(2, 'month').endOf('month').toDate(),
     maxStartDate: moment().endOf('month').toDate(),
   };
-  const splitEventsDate = moment().startOf('month').toDate();
-  const eventsGroupedByFundings = await StatRepository.getEventsGroupedByFundings(customerId, fundingsDate, eventsDate, splitEventsDate);
+  const startOfCurrentMonth = moment().startOf('month').toDate();
+  const eventsGroupedByFundings = await StatRepository.getEventsGroupedByFundings(customerId, fundingsDate, eventsDate, startOfCurrentMonth);
   const customerFundingsMonitoring = [];
 
   for (const funding of eventsGroupedByFundings) {
-    const isPrevMonthRelevant = moment(funding.startDate).isBefore(splitEventsDate);
+    const isPrevMonthRelevant = moment(funding.startDate).isBefore(startOfCurrentMonth);
     customerFundingsMonitoring.push({
       thirdPartyPayer: funding.thirdPartyPayer.name,
       plannedCareHours: funding.careHours,
-      prevMonth: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
-      currentMonth: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
+      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
+      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
     });
   }
 
