@@ -2,6 +2,7 @@ const cloneDeep = require('lodash/cloneDeep');
 const get = require('lodash/get');
 const flatten = require('lodash/flatten');
 const keyBy = require('lodash/keyBy');
+const Boom = require('boom');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Pay = require('../models/Pay');
@@ -11,6 +12,7 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const DraftPayHelper = require('./draftPay');
 const EventRepository = require('../repositories/EventRepository');
+const { COMPANY_CONTRACT } = require('./constants');
 
 exports.formatSurchargeDetail = (detail) => {
   const surchargeDetail = [];
@@ -48,6 +50,16 @@ exports.createPayList = async (payToCreate) => {
   await Pay.insertMany(list);
 };
 
+exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
+  const isCompanyContract = cont.status === COMPANY_CONTRACT;
+  if (!isCompanyContract) return false;
+
+  const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
+  if (!contractStarted) return false;
+
+  return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
+});
+
 exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
   const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
@@ -60,7 +72,6 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
 
   const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const query = { startDate, endDate };
-  const detail = await DraftPayHelper.computeDraftPayByAuxiliary([auxiliary], query, credentials);
 
   const companyId = get(credentials, 'company._id', null);
   const [company, surcharges, distanceMatrix] = await Promise.all([
@@ -74,8 +85,12 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const draftPay = [];
   const auxEvents = auxiliaryEvents[0];
   const prevPay = prevPayList.length ? prevPayList[0] : null;
-  const draft = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
+  const { contracts } = auxiliary;
+  const contract = exports.getContract(contracts, startDate, endDate);
+  if (!contract) throw Boom.badRequest();
+
+  const draft = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, contract, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
   if (draft) draftPay.push(draft);
 
-  return detail ? { ...detail[0], customersCount } : null;
+  return draft ? { ...draft, customersCount } : null;
 };

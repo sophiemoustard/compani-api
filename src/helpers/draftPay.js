@@ -28,7 +28,7 @@ const ContractHelper = require('./contracts');
 
 exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
   const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
-  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate);
+  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrBefore(query.startDate);
 
   return isStartedOnEndDate && !isEndedOnStartDate;
 });
@@ -333,11 +333,7 @@ exports.genericData = (query, { _id, identity, sector }) => ({
   month: moment(query.startDate).format('MM-YYYY'),
 });
 
-exports.computeAuxiliaryDraftPay = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
-  const { contracts } = auxiliary;
-  const contract = exports.getContract(contracts, query.endDate);
-  if (!contract) return;
-
+exports.computeAuxiliaryDraftPay = async (auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
   const monthBalance = await exports.computeBalance(auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges);
   const hoursCounter = prevPay
     ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance
@@ -453,7 +449,10 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
       eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString())
       || { absences: [], events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxiliary._id.toHexString());
-    const draft = await exports.computeAuxiliaryDraftPay(auxiliary, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
+    const contract = exports.getContract(auxiliary.contracts, query.endDate);
+    if (!contract) continue;
+
+    const draft = await exports.computeAuxiliaryDraftPay(auxiliary, contract, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
     if (draft) draftPay.push(draft);
   }
 
