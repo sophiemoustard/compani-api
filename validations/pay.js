@@ -36,6 +36,7 @@ exports.payValidation = {
     workedHours: Joi.number().required(),
   }),
   endDate: Joi.date().required(),
+  holidaysHours: Joi.number().required(),
   hoursBalance: Joi.number().required(),
   hoursCounter: Joi.number().required(),
   hoursToWork: Joi.number().required(),

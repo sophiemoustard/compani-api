@@ -26,22 +26,19 @@ const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 const ContractHelper = require('./contracts');
 
-exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
-  const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
-  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate);
-
-  return isStartedOnEndDate && !isEndedOnStartDate;
-});
-
 exports.getContractMonthInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('M').toDate();
   const end = moment(query.startDate).endOf('M').toDate();
-  const monthBusinessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
-  const versions = exports.getMatchingVersionsList(contract.versions || [], query);
+  const monthBusinessDays = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+  const versions = ContractHelper.getMatchingVersionsList(contract.versions || [], query);
 
   const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);
 
-  return { contractHours: info.contractHours * WEEKS_PER_MONTH, workedDaysRatio: info.workedDaysRatio };
+  return {
+    contractHours: info.contractHours * WEEKS_PER_MONTH,
+    workedDaysRatio: info.workedDaysRatio,
+    holidaysHours: info.holidaysHours,
+  };
 };
 
 /**
@@ -304,11 +301,12 @@ exports.computeBalance = async (auxiliary, contract, eventsToPay, company, query
   const contractInfo = exports.getContractMonthInfo(contract, query);
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
-  const hoursToWork = Math.max(contractInfo.contractHours - absencesHours, 0);
+  const hoursToWork = Math.max(contractInfo.contractHours - contractInfo.holidaysHours - absencesHours, 0);
   const hoursBalance = hours.workedHours - hoursToWork;
 
   return {
     contractHours: contractInfo.contractHours,
+    holidaysHours: contractInfo.holidaysHours,
     absencesHours,
     hoursToWork,
     ...hours,
@@ -328,13 +326,11 @@ exports.genericData = (query, { _id, identity, sector }) => ({
   month: moment(query.startDate).format('MM-YYYY'),
 });
 
-exports.computeAuxiliaryDraftPay = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
-  const { contracts } = auxiliary;
-  const contract = exports.getContract(contracts, query.endDate);
-  if (!contract) return;
-
+exports.computeAuxiliaryDraftPay = async (auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
   const monthBalance = await exports.computeBalance(auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges);
-  const hoursCounter = prevPay ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance : monthBalance.hoursBalance;
+  const hoursCounter = prevPay
+    ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance
+    : monthBalance.hoursBalance;
 
   return {
     ...exports.genericData(query, auxiliary),
@@ -388,7 +384,7 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
     (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
-  const absenceDiff = Math.round((prevPay ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100;
+  const absenceDiff = Math.round((prevPay && prevPay.absencesHours ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100;
   const workedHoursDiff = getDiff(prevPay, hours, 'workedHours');
 
   return {
@@ -446,7 +442,10 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
       eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString())
       || { absences: [], events: [] };
     const prevPay = prevPayList.find(prev => prev.auxiliary.toHexString() === auxiliary._id.toHexString());
-    const draft = await exports.computeAuxiliaryDraftPay(auxiliary, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
+    const contract = exports.getContract(auxiliary.contracts, query.endDate);
+    if (!contract) continue;
+
+    const draft = await exports.computeAuxiliaryDraftPay(auxiliary, contract, auxEvents, prevPay, company, query, distanceMatrix, surcharges);
     if (draft) draftPay.push(draft);
   }
 

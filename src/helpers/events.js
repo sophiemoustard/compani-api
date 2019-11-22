@@ -288,22 +288,24 @@ exports.deleteEvents = async (events, credentials) => {
   await Event.deleteMany({ _id: { $in: events.map(ev => ev._id) } });
 };
 
-
-exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
-  const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
-  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate);
-
-  return isStartedOnEndDate && !isEndedOnStartDate;
-});
-
 exports.getContractWeekInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('w').toDate();
   const end = moment(query.startDate).endOf('w').toDate();
-  const weekBusinessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
-  const versions = exports.getMatchingVersionsList(contract.versions || [], query);
+  const weekRatio = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+  const versions = ContractHelper.getMatchingVersionsList(contract.versions || [], query);
 
-  return ContractHelper.getContractInfo(versions, query, weekBusinessDays);
+  return ContractHelper.getContractInfo(versions, query, weekRatio);
 };
+
+exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
+  const isCompanyContract = cont.status === COMPANY_CONTRACT;
+  if (!isCompanyContract) return false;
+
+  const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
+  if (!contractStarted) return false;
+
+  return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
+});
 
 exports.workingStats = async (query) => {
   const ids = Array.isArray(query.auxiliary) ? query.auxiliary.map(id => new ObjectID(id)) : [new ObjectID(query.auxiliary)];
@@ -320,13 +322,13 @@ exports.workingStats = async (query) => {
       || { absences: [], events: [] };
     const { contracts } = auxiliary;
     if (!contracts || !contracts.length) continue;
-    const contract = DraftPayHelper.getContract(contracts, query.endDate);
+    const contract = exports.getContract(contracts, query.startDate, query.endDate);
     if (!contract) continue;
 
     const contractInfo = exports.getContractWeekInfo(contract, query);
     const hours = await DraftPayHelper.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, [], query);
     const absencesHours = DraftPayHelper.getPayFromAbsences(eventsToPay.absences, contract, query);
-    const hoursToWork = Math.max(contractInfo.contractHours - absencesHours, 0);
+    const hoursToWork = Math.max(contractInfo.contractHours - contractInfo.holidaysHours - absencesHours, 0);
     workingStats[auxiliary._id] = { workedHours: hours.workedHours, hoursToWork };
   }
 
