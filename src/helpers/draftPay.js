@@ -391,7 +391,8 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
     (!cont.endDate || moment(cont.endDate).isAfter(query.endDate)));
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
-  const absenceDiff = Math.round((prevPay ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100;
+  const absenceDiff = Math.round((prevPay && prevPay.absencesHours ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100;
+  console.log(prevPay, hours.workedHours);
   const workedHoursDiff = getDiff(prevPay, hours, 'workedHours');
 
   return {
