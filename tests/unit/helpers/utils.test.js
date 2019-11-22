@@ -250,7 +250,7 @@ describe('getBusinessDaysCountBetweenTwoDates', () => {
     const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
 
     expect(result).toBeDefined();
-    expect(result).toBe(3);
+    expect(result).toEqual({ holidays: 0, sundays: 0, businessDays: 3 });
   });
 
   it('Case 2. Sundays in range', () => {
@@ -259,7 +259,7 @@ describe('getBusinessDaysCountBetweenTwoDates', () => {
     const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
 
     expect(result).toBeDefined();
-    expect(result).toBe(5);
+    expect(result).toEqual({ holidays: 0, sundays: 1, businessDays: 5 });
   });
 
   it('Case 3. Holidays in range', () => {
@@ -268,6 +268,6 @@ describe('getBusinessDaysCountBetweenTwoDates', () => {
     const result = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
 
     expect(result).toBeDefined();
-    expect(result).toBe(2);
+    expect(result).toEqual({ holidays: 1, sundays: 0, businessDays: 2 });
   });
 });

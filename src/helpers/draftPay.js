@@ -26,18 +26,11 @@ const DistanceMatrixHelper = require('./distanceMatrix');
 const UtilsHelper = require('./utils');
 const ContractHelper = require('./contracts');
 
-exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
-  const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
-  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrBefore(query.startDate);
-
-  return isStartedOnEndDate && !isEndedOnStartDate;
-});
-
 exports.getContractMonthInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('M').toDate();
   const end = moment(query.startDate).endOf('M').toDate();
   const monthBusinessDays = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
-  const versions = exports.getMatchingVersionsList(contract.versions || [], query);
+  const versions = ContractHelper.getMatchingVersionsList(contract.versions || [], query);
 
   const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);
 
@@ -392,7 +385,6 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
   const hours = await exports.getPayFromEvents(eventsToPay.events, auxiliary, distanceMatrix, surcharges, query);
   const absencesHours = exports.getPayFromAbsences(eventsToPay.absences, contract, query);
   const absenceDiff = Math.round((prevPay && prevPay.absencesHours ? absencesHours - prevPay.absencesHours : absencesHours) * 100) / 100;
-  console.log(prevPay, hours.workedHours);
   const workedHoursDiff = getDiff(prevPay, hours, 'workedHours');
 
   return {

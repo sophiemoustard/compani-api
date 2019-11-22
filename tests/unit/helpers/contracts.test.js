@@ -633,13 +633,14 @@ describe('getContractInfo', () => {
       { endDate: '', startDate: '2019-05-04', weeklyHours: 20 },
     ];
     const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
-    getBusinessDaysCountBetweenTwoDates.returns(4);
+    getBusinessDaysCountBetweenTwoDates.returns({ businessDays: 4, sundays: 0, holidays: 0 });
 
-    const result = ContractHelper.getContractInfo(versions, query, 10);
+    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
 
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(8);
     expect(result.workedDaysRatio).toBe(0.4);
+    expect(result.holidaysHours).toBe(0);
     sinon.assert.calledWith(
       getBusinessDaysCountBetweenTwoDates,
       moment('2019-05-06').toDate(),
@@ -652,9 +653,9 @@ describe('getContractInfo', () => {
       { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
     ];
     const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
-    getBusinessDaysCountBetweenTwoDates.returns(4);
+    getBusinessDaysCountBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
 
-    const result = ContractHelper.getContractInfo(versions, query, 10);
+    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
 
     expect(result).toBeDefined();
     sinon.assert.calledWith(
@@ -670,9 +671,9 @@ describe('getContractInfo', () => {
       { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
     ];
     const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
-    getBusinessDaysCountBetweenTwoDates.returns(4);
+    getBusinessDaysCountBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
 
-    const result = ContractHelper.getContractInfo(versions, query, 10);
+    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
 
     expect(result).toBeDefined();
     sinon.assert.calledTwice(getBusinessDaysCountBetweenTwoDates);

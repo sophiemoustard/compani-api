@@ -314,3 +314,10 @@ exports.getContractInfo = (versions, query, monthRatio) => {
 
   return { contractHours, holidaysHours, workedDaysRatio: workedDays / (monthRatio.businessDays + monthRatio.holidays) };
 };
+
+exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
+  const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
+  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrBefore(query.startDate);
+
+  return isStartedOnEndDate && !isEndedOnStartDate;
+});

@@ -288,19 +288,11 @@ exports.deleteEvents = async (events, credentials) => {
   await Event.deleteMany({ _id: { $in: events.map(ev => ev._id) } });
 };
 
-
-exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
-  const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
-  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrBefore(query.startDate);
-
-  return isStartedOnEndDate && !isEndedOnStartDate;
-});
-
 exports.getContractWeekInfo = (contract, query) => {
   const start = moment(query.startDate).startOf('w').toDate();
   const end = moment(query.startDate).endOf('w').toDate();
   const weekRatio = UtilsHelper.getBusinessDaysCountBetweenTwoDates(start, end);
-  const versions = exports.getMatchingVersionsList(contract.versions || [], query);
+  const versions = ContractHelper.getMatchingVersionsList(contract.versions || [], query);
 
   return ContractHelper.getContractInfo(versions, query, weekRatio);
 };
