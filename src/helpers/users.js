@@ -6,7 +6,6 @@ const flat = require('flat');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Task = require('../models/Task');
-const drive = require('../models/Google/Drive');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const RolesHelper = require('./roles');
@@ -37,7 +36,7 @@ exports.getUsers = async (query, credentials) => {
     .populate({ path: 'sector', match: { company: companyId } });
 };
 
-const saveCertificateDriveId = async (userId, fileInfo) => {
+exports.saveCertificateDriveId = async (userId, fileInfo) => {
   const payload = { 'administrative.certificates': fileInfo };
 
   await User.findOneAndUpdate(
@@ -47,7 +46,7 @@ const saveCertificateDriveId = async (userId, fileInfo) => {
   );
 };
 
-const saveFile = async (userId, administrativeKey, fileInfo) => {
+exports.saveFile = async (userId, administrativeKey, fileInfo) => {
   const payload = { administrative: { [administrativeKey]: fileInfo } };
 
   await User.findOneAndUpdate({ _id: userId }, { $set: flat(payload) }, { new: true, autopopulate: false });
@@ -60,15 +59,14 @@ exports.createAndSaveFile = async (administrativeKey, params, payload) => {
     type: payload['Content-Type'],
     body: payload[administrativeKey],
   });
-  const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
 
-  const file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
+  const file = { driveId: uploadedFile.id, link: uploadedFile.webViewLink };
   switch (administrativeKey) {
     case 'certificates':
-      await saveCertificateDriveId(params._id, file);
+      await exports.saveCertificateDriveId(params._id, file);
       break;
     default:
-      await saveFile(params._id, administrativeKey, file);
+      await exports.saveFile(params._id, administrativeKey, file);
       break;
   }
 
@@ -80,10 +78,13 @@ exports.createUser = async (userPayload, credentials, refreshToken) => {
   const tasks = await Task.find({});
   const taskIds = tasks.map(task => ({ task: task._id }));
   const populatedUser = await User.findOneAndUpdate({ _id: user._id }, { $push: { procedure: { $each: taskIds } } }, { new: true });
-  populatedUser.role.rights = RolesHelper.populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
+  const populatedRights = RolesHelper.populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
   const payload = {
     _id: populatedUser._id.toHexString(),
-    role: populatedUser.role,
+    role: {
+      ...populatedUser.role,
+      rights: populatedRights,
+    },
   };
   return pickBy(payload);
 };
