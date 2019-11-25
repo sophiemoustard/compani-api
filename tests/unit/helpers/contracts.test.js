@@ -285,7 +285,7 @@ describe('endContract', () => {
     sinon.assert.calledWith(
       UserfindOneAndUpdateStub,
       { _id: contractDoc.user },
-      { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } }
+      { $set: { inactivityDate: moment(payload.endDate).add('1', 'month').startOf('M').toDate() } }
     );
     expect(result.toObject()).toMatchObject(updatedContract);
   });
