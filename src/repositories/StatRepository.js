@@ -4,25 +4,44 @@ const Customer = require('../models/Customer');
 const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, INTERVENTION } = require('../helpers/constants');
 
 exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, splitEventsDate) => {
+  console.log(fundingsDate);
+  const versionMatch = {
+    startDate: { $lte: fundingsDate.maxStartDate },
+    $or: [
+      { endDate: { $exists: false } },
+      { endDate: { $gte: fundingsDate.minEndDate } },
+    ],
+  };
   const fundingsMatch = {
     frequency: MONTHLY,
     nature: HOURLY,
-    versions: {
-      $elemMatch: {
-        startDate: { $lte: fundingsDate.maxStartDate },
-        $or: [
-          { endDate: { $exists: false } },
-          { endDate: { $gte: fundingsDate.minEndDate } },
-        ],
-      },
-    },
   };
 
   const matchAndPopulateFundings = [
-    { $match: { _id: new ObjectID(customerId), fundings: { $elemMatch: fundingsMatch } } },
+    {
+      $match: {
+        _id: new ObjectID(customerId),
+        fundings: {
+          $elemMatch: {
+            ...fundingsMatch,
+            versions: { $elemMatch: versionMatch },
+          },
+        },
+      },
+    },
     { $unwind: { path: '$fundings' } },
     { $replaceRoot: { newRoot: '$fundings' } },
-    { $match: fundingsMatch },
+    { $addFields: { version: { $arrayElemAt: ['$versions', -1] } } },
+    {
+      $match: {
+        ...fundingsMatch,
+        'version.startDate': { $lte: fundingsDate.maxStartDate },
+        $or: [
+          { 'version.endDate': { $exists: false } },
+          { 'version.endDate': { $gte: fundingsDate.minEndDate } },
+        ],
+      },
+    },
     {
       $lookup: {
         from: 'thirdpartypayers',
@@ -32,7 +51,6 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
       },
     },
     { $unwind: { path: '$thirdPartyPayer' } },
-    { $addFields: { version: { $arrayElemAt: ['$versions', -1] } } },
   ];
 
   const matchEvents = [
