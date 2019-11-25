@@ -63,7 +63,8 @@ exports.populateFundings = async (fundings, endDate, tppList) => {
 };
 
 exports.getMatchingFunding = (date, fundings) => {
-  const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(date));
+  const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(date) &&
+    (!fund.endDate || moment(fund.endDate).isAfter(date)));
   if (moment(date).startOf('d').isHoliday()) return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
 
   return filteredByDateFundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
