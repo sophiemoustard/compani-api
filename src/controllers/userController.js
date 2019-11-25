@@ -117,7 +117,8 @@ const activeList = async (req) => {
 const show = async (req) => {
   try {
     let { user } = req.pre;
-    user
+
+    await user
       .populate('customers')
       .populate('contracts')
       .populate({ path: 'procedure.task', select: 'name _id' })
@@ -210,8 +211,6 @@ const getUserTasks = async (req) => {
       { _id: req.params._id, procedure: { $exists: true } },
       { identity: 1, procedure: 1 }
     ).populate({ path: 'procedure.task', select: 'name _id' });
-
-    if (!user) return Boom.notFound();
 
     return {
       message: translate[language].userTasksFound,
