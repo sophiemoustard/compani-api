@@ -308,8 +308,9 @@ exports.getContractInfo = (versions, query, monthRatio) => {
       : moment(query.endDate).toDate();
     const ratio = UtilsHelper.getDaysRatioBetweenTwoDates(startDate, endDate);
 
-    workedDays += ratio.businessDays;
-    contractHours += version.weeklyHours * ((ratio.businessDays + ratio.holidays) / monthDays);
+    const versionDays = ratio.businessDays + ratio.holidays;
+    workedDays += versionDays;
+    contractHours += version.weeklyHours * (versionDays / monthDays);
     holidaysHours += (version.weeklyHours / 6) * ratio.holidays;
   }
 
