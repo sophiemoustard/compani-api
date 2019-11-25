@@ -43,7 +43,7 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
         let: {
           subscriptionId: '$subscription',
           fundingStartDate: '$version.startDate',
-          fundingEndDate: { $ifNull: ['$endDate', moment().endOf('month').toDate()] },
+          fundingEndDate: { $ifNull: ['$version.endDate', moment().endOf('month').toDate()] },
         },
         pipeline: [
           {

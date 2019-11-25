@@ -9,7 +9,7 @@ const CustomerRepository = require('../repositories/CustomerRepository');
 
 exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   const customer = await Customer.findOne({ _id: customerId }).lean();
-  if (!customer) return Boom.notFound('Error while checking subscription funding: customer not found.');
+  if (!customer) throw Boom.notFound('Error while checking subscription funding: customer not found.');
 
   if (!customer.fundings || customer.fundings.length === 0) return true;
 
@@ -22,8 +22,13 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
     .every((fund) => {
       const lastVersion = UtilsHelper.getLastVersion(fund.versions, 'createdAt');
 
-      return (!!lastVersion.endDate && moment(lastVersion.endDate).isBefore(checkedFunding.versions[0].startDate, 'day')) ||
-        checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
+      const checkedFundingIsAfter = !!lastVersion.endDate &&
+        moment(checkedFunding.versions[0].startDate).isAfter(lastVersion.endDate, 'day');
+      const noCareDaysInCommon = checkedFunding.versions[0].careDays.every(day => !lastVersion.careDays.includes(day));
+      const checkedFundingIsBefore = !!checkedFunding.versions[0].endDate &&
+        moment(checkedFunding.versions[0].endDate).isBefore(lastVersion.startDate, 'day');
+
+      return checkedFundingIsAfter || checkedFundingIsBefore || noCareDaysInCommon;
     });
 };
 
