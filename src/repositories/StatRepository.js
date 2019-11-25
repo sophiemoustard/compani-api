@@ -4,7 +4,6 @@ const Customer = require('../models/Customer');
 const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, INTERVENTION } = require('../helpers/constants');
 
 exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, splitEventsDate) => {
-  console.log(fundingsDate);
   const versionMatch = {
     startDate: { $lte: fundingsDate.maxStartDate },
     $or: [
