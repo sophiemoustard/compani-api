@@ -158,7 +158,6 @@ exports.plugin = {
         auth: { scope: ['users:edit', 'user-{params._id}'] },
         validate: {
           payload: Joi.object().keys({
-            _id: Joi.objectId(),
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
@@ -446,7 +445,7 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
           payload: Joi.object().keys({
-            parentFolderId: Joi.string(),
+            parentFolderId: Joi.string().required(),
           }),
         },
         pre: [
