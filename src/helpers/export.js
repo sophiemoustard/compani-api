@@ -448,12 +448,14 @@ const helperExportHeader = [
   'Date de création',
 ];
 
-exports.exportHelpers = async () => {
+exports.exportHelpers = async (credentials) => {
   const role = await Role.findOne({ name: HELPER });
-  const helpers = await User.find({ role: role._id }).populate({
-    path: 'customers',
-    populate: { path: 'firstIntervention', select: 'startDate' },
-  });
+  const helpers = await User
+    .find({ role: role._id, company: get(credentials, 'company._id', null) })
+    .populate({
+      path: 'customers',
+      populate: { path: 'firstIntervention', select: 'startDate' },
+    });
   const data = [helperExportHeader];
 
   for (const hel of helpers) {

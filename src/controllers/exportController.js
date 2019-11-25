@@ -41,7 +41,7 @@ const exportData = async (req, h) => {
         data = await exportAuxiliaries(req.auth.credentials);
         break;
       case HELPER:
-        data = await exportHelpers();
+        data = await exportHelpers(req.auth.credentials);
         break;
       case FUNDING:
         data = await exportFundings();
