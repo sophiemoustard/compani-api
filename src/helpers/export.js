@@ -1,6 +1,7 @@
 const moment = require('moment');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const pick = require('lodash/pick');
 const {
   NEVER,
   EVENT_TYPE_LIST,
@@ -11,6 +12,11 @@ const {
   ABSENCE_NATURE_LIST,
   HOURLY,
   CIVILITY_LIST,
+  HELPER,
+  AUXILIARY,
+  PLANNING_REFERENT,
+  END_CONTRACT_REASONS,
+  SURCHARGES,
 } = require('./constants');
 const UtilsHelper = require('./utils');
 const Bill = require('../models/Bill');
@@ -19,10 +25,11 @@ const Contract = require('../models/Contract');
 const Customer = require('../models/Customer');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const Pay = require('../models/Pay');
+const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
 const { nationalities } = require('../data/nationalities.js');
 const { countries } = require('../data/countries');
-const { HELPER, AUXILIARY, PLANNING_REFERENT } = require('./constants.js');
 
 const workingEventExportHeader = [
   'Type',
@@ -237,7 +244,7 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credential
   const creditNotes = await CreditNote.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'thirdPartyPayer' , match: { company: get(credentials, 'company._id', null) } })
+    .populate({ path: 'thirdPartyPayer', match: { company: get(credentials, 'company._id', null) } })
     .lean();
 
   const rows = [billAndCreditNoteExportHeader];
@@ -471,4 +478,147 @@ exports.exportHelpers = async () => {
   }
 
   return data;
+};
+
+const payExportHeader = [
+  'Titre',
+  'Prénom',
+  'Nom',
+  'Equipe',
+  'Date d\'embauche',
+  'Début',
+  'Date de notif',
+  'Motif',
+  'Fin',
+  'Heures contrat',
+  'Heures à travailler',
+  'Heures travaillées',
+  'Dont exo non majo',
+  'Dont exo et majo',
+  'Détails des majo exo',
+  'Dont non exo et non majo',
+  'Dont non exo et majo',
+  'Détails des majo non exo',
+  'Solde heures',
+  'Dont diff mois précédent',
+  'Compteur',
+  'Heures sup à payer',
+  'Heures comp à payer',
+  'Mutuelle',
+  'Transport',
+  'Autres frais',
+  'Prime',
+  'Indemnité',
+];
+
+const getHiringDate = (contracts) => {
+  if (!contracts || contracts.length === 0) return;
+  if (contracts.length === 1) return contracts[0].startDate;
+
+  return contracts.map(contract => contract.startDate).sort((a, b) => new Date(a) - new Date(b))[0];
+};
+
+const formatLines = (surchargedPlanDetails, planName) => {
+  const surcharges = Object.entries(pick(surchargedPlanDetails, Object.keys(SURCHARGES)));
+  if (surcharges.length === 0) return;
+
+  const lines = [planName];
+  for (const [surchageKey, surcharge] of surcharges) {
+    lines.push(`${SURCHARGES[surchageKey]}, ${surcharge.percentage}%, ${UtilsHelper.formatFloatForExport(surcharge.hours)}h`);
+  }
+
+  return lines.join('\r\n');
+};
+
+exports.formatSurchargedDetailsForExport = (pay, key) => {
+  if (!pay || (!pay[key] && (!pay.diff || !pay.diff[key]))) return '';
+
+  const formattedPlans = [];
+  if (pay[key]) {
+    for (const surchargedPlanDetails of pay[key]) {
+      const lines = formatLines(surchargedPlanDetails, surchargedPlanDetails.planName);
+      if (lines) formattedPlans.push(lines);
+    }
+  }
+  if (pay.diff && pay.diff[key]) {
+    for (const surchargedPlanDetails of pay.diff[key]) {
+      const lines = formatLines(surchargedPlanDetails, `${surchargedPlanDetails.planName} (M-1)`)
+      if (lines) formattedPlans.push(lines);
+    }
+  }
+
+  return formattedPlans.join('\r\n\r\n');
+};
+
+exports.formatHoursWithDiff = (pay, key) => {
+  let hours = pay[key];
+  if (pay.diff && pay.diff[key]) hours += pay.diff[key];
+
+  return UtilsHelper.formatFloatForExport(hours);
+};
+
+exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) => {
+  const query = {
+    endDate: { $lte: moment(endDate).endOf('M').toDate() },
+    startDate: { $gte: moment(startDate).startOf('M').toDate() },
+  };
+  const companyId = get(credentials, 'company._id', null);
+
+  const pays = await Pay.find(query)
+    .sort({ startDate: 'desc' })
+    .populate({
+      path: 'auxiliary',
+      select: 'identity sector contracts',
+      populate: [{ path: 'sector', select: 'name', match: { company: companyId } }, { path: 'contracts' }],
+    })
+    .lean();
+
+  const finalPays = await FinalPay.find(query)
+    .sort({ startDate: 'desc' })
+    .populate({
+      path: 'auxiliary',
+      select: 'identity sector contracts',
+      populate: [{ path: 'sector', select: 'name', match: { company: companyId } }, { path: 'contracts' }],
+    })
+    .lean();
+
+  const rows = [payExportHeader];
+  const paysAndFinalPay = [...pays, ...finalPays];
+  for (const pay of paysAndFinalPay) {
+    const hiringDate = getHiringDate(pay.auxiliary.contracts);
+    const cells = [
+      CIVILITY_LIST[get(pay, 'auxiliary.identity.title')] || '',
+      get(pay, 'auxiliary.identity.firstname') || '',
+      get(pay, 'auxiliary.identity.lastname').toUpperCase() || '',
+      get(pay.auxiliary, 'sector.name') || '',
+      hiringDate ? moment(hiringDate).format('DD/MM/YYYY') : '',
+      moment(pay.startDate).format('DD/MM/YYYY'),
+      pay.endNotificationDate ? moment(pay.endNotificationDate).format('DD/MM/YYYY') : '',
+      pay.endReason ? END_CONTRACT_REASONS[pay.endReason] : '',
+      moment(pay.endDate).format('DD/MM/YYYY'),
+      UtilsHelper.formatFloatForExport(pay.contractHours),
+      exports.formatHoursWithDiff(pay, 'hoursToWork'),
+      exports.formatHoursWithDiff(pay, 'workedHours'),
+      exports.formatHoursWithDiff(pay, 'notSurchargedAndExempt'),
+      exports.formatHoursWithDiff(pay, 'surchargedAndExempt'),
+      exports.formatSurchargedDetailsForExport(pay, 'surchargedAndExemptDetails'),
+      exports.formatHoursWithDiff(pay, 'notSurchargedAndNotExempt'),
+      exports.formatHoursWithDiff(pay, 'surchargedAndNotExempt'),
+      exports.formatSurchargedDetailsForExport(pay, 'surchargedAndNotExemptDetails'),
+      exports.formatHoursWithDiff(pay, 'hoursBalance'),
+      get(pay, 'diff.hoursBalance') ? UtilsHelper.formatFloatForExport(pay.diff.hoursBalance) : '0,00',
+      UtilsHelper.formatFloatForExport(pay.hoursCounter),
+      UtilsHelper.formatFloatForExport(pay.overtimeHours),
+      UtilsHelper.formatFloatForExport(pay.additionalHours),
+      pay.mutual ? 'Oui' : 'Non',
+      UtilsHelper.formatFloatForExport(pay.transport),
+      UtilsHelper.formatFloatForExport(pay.otherFees),
+      UtilsHelper.formatFloatForExport(pay.bonus),
+      pay.compensation ? UtilsHelper.formatFloatForExport(pay.compensation) : '0,00',
+    ];
+
+    rows.push(cells);
+  }
+
+  return rows;
 };

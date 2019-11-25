@@ -88,3 +88,24 @@ exports.formatFloatForExport = (number) => {
 
 exports.formatArrayOrStringQueryParam = (param, keyName) =>
   (Array.isArray(param) ? param.map(id => ({ [keyName]: id })) : [{ [keyName]: param }]);
+
+exports.capitalize = (s) => {
+  if (typeof s !== 'string') return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
+exports.getDaysRatioBetweenTwoDates = (start, end) => {
+  let holidays = 0;
+  let sundays = 0;
+  let businessDays = 0;
+  if (moment(end).isBefore(start)) return { holidays, sundays, businessDays };
+
+  const range = Array.from(moment().range(start, end).by('days'));
+  for (const day of range) {
+    if (day.startOf('d').isHoliday() && day.day() !== 0) holidays += 1; // startOf('day') is necessery to check fr holidays in business day
+    else if (day.day() !== 0) businessDays += 1;
+    else sundays += 1;
+  }
+
+  return { holidays, sundays, businessDays };
+};

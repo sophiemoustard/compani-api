@@ -26,9 +26,9 @@ const {
   exportCustomers,
   exportAuxiliaries,
   exportHelpers,
+  exportPayAndFinalPayHistory,
 } = require('../helpers/export');
 const { exportPaymentsHistory } = require('../helpers/payments');
-const { exportPayAndFinalPayHistory } = require('../helpers/pay');
 const { exportToCsv } = require('../helpers/file');
 
 const exportData = async (req, h) => {
@@ -62,7 +62,7 @@ const exportData = async (req, h) => {
     return h.file(csv, { confine: false });
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -100,7 +100,7 @@ const exportHistory = async (req, h) => {
     return h.file(csv, { confine: false });
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

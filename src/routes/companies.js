@@ -8,10 +8,6 @@ const { COMPANY_TYPES } = require('../models/Company');
 const {
   update,
   uploadFile,
-  addInternalHour,
-  updateInternalHour,
-  getInternalHours,
-  removeInternalHour,
   create,
 } = require('../controllers/companyController');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
@@ -37,10 +33,10 @@ exports.plugin = {
               zipCode: Joi.string().required(),
               city: Joi.string().required(),
               fullAddress: Joi.string(),
-              location: {
+              location: Joi.object().keys({
                 type: Joi.string(),
                 coordinates: Joi.array(),
-              },
+              }),
             }),
             ics: Joi.string(),
             rcs: Joi.string(),
@@ -48,12 +44,12 @@ exports.plugin = {
             iban: Joi.string(),
             bic: Joi.string(),
             rhConfig: Joi.object().keys({
-              contractWithCompany: {
+              contractWithCompany: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
-              },
-              contractWithCustomer: {
+              }),
+              contractWithCustomer: Joi.object().keys({
                 grossHourlyRate: Joi.number(),
-              },
+              }),
               feeAmount: Joi.number(),
               amountPerKm: Joi.number(),
               transportSubs: [Joi.array().items({
@@ -63,37 +59,37 @@ exports.plugin = {
                 subId: Joi.objectId().required(),
                 price: Joi.number(),
               })],
-              templates: {
-                contractWithCompany: {
+              templates: Joi.object().keys({
+                contractWithCompany: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-                contractWithCompanyVersion: {
+                }),
+                contractWithCompanyVersion: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-                contractWithCustomer: {
+                }),
+                contractWithCustomer: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-                contractWithCustomerVersion: {
+                }),
+                contractWithCustomerVersion: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-              },
+                }),
+              }),
             }),
             customersConfig: Joi.object().keys({
               billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
-              templates: {
-                debitMandate: {
+              templates: Joi.object().keys({
+                debitMandate: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-                quote: {
+                }),
+                quote: Joi.object().keys({
                   driveId: Joi.string().allow(null),
                   link: Joi.string().allow(null),
-                },
-              },
+                }),
+              }),
             }),
           }),
         },
@@ -116,24 +112,6 @@ exports.plugin = {
           parse: true,
           allow: 'multipart/form-data',
           maxBytes: 5242880,
-        },
-      },
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/internalHours',
-      handler: addInternalHour,
-      options: {
-        auth: { scope: ['config:edit'] },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-          payload: Joi.object().keys({
-            name: Joi.string().required(),
-            default: Joi.boolean(),
-          }),
         },
       },
     });
@@ -172,52 +150,6 @@ exports.plugin = {
               billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
             }),
           }),
-        },
-      },
-    });
-
-    server.route({
-      method: 'PUT',
-      path: '/{_id}/internalHours/{internalHourId}',
-      handler: updateInternalHour,
-      options: {
-        auth: { scope: ['config:edit'] },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            internalHourId: Joi.objectId().required(),
-          },
-          payload: Joi.object().keys({
-            name: Joi.string(),
-            default: Joi.boolean(),
-          }),
-        },
-      },
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/{_id}/internalHours',
-      handler: getInternalHours,
-      options: {
-        auth: { scope: ['config:read'] },
-        validate: {
-          params: { _id: Joi.objectId().required() },
-        },
-      },
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}/internalHours/{internalHourId}',
-      handler: removeInternalHour,
-      options: {
-        auth: { scope: ['config:edit'] },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            internalHourId: Joi.objectId().required(),
-          },
         },
       },
     });

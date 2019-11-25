@@ -64,7 +64,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
     endDate: '2019-05-28T14:34:04.000Z',
     endReason: 'resignation',
     endNotificationDate: '2019-03-28T14:34:04.000Z',
-    month: 'mai',
+    month: '05-2019',
     contractHours: 38.97,
     workedHours: 2,
     surchargedAndNotExemptDetails: {},
@@ -82,6 +82,30 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
     otherFees: 0,
     bonus: 0,
     compensation: 0,
+    paidTransportHours: 3,
+    internalHours: 9,
+    absencesHours: 5,
+    holidaysHours: 7,
+    diff: {
+      hoursBalance: 20,
+      notSurchargedAndExempt: 20,
+      notSurchargedAndNotExempt: 20,
+      surchargedAndExempt: 20,
+      surchargedAndExemptDetails: {},
+      surchargedAndNotExempt: 20,
+      surchargedAndNotExemptDetails: {
+        [new ObjectID()]: {
+          planName: 'Toto',
+          custom: { hours: 20, percentage: 10 },
+        },
+      },
+      workedHours: 20,
+      paidTransportHours: 3,
+      internalHours: 9,
+      absencesHours: 5,
+    },
+    hoursToWork: 20,
+    previousMonthHoursCounter: 20,
   }];
 
   describe('Admin', () => {

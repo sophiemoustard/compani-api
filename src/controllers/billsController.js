@@ -20,7 +20,8 @@ const draftBillsList = async (req) => {
     const { startDate, endDate, billingStartDate, customer } = req.query;
     const dates = { endDate };
     if (startDate) dates.startDate = startDate;
-    const draftBills = await getDraftBillsList(dates, billingStartDate, customer);
+    const credentials = get(req, 'auth.credentials');
+    const draftBills = await getDraftBillsList(dates, billingStartDate, credentials, customer);
 
     return {
       message: translate[language].draftBills,
@@ -28,7 +29,7 @@ const draftBillsList = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -47,7 +48,7 @@ const createBills = async (req) => {
     return { message: translate[language].billsCreated };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -71,7 +72,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 

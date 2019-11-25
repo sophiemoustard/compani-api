@@ -5,6 +5,9 @@ const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const Repetition = require('../../../src/models/Repetition');
 const EventHelper = require('../../../src/helpers/events');
+const PayHelper = require('../../../src/helpers/pay');
+const ContractHelper = require('../../../src/helpers/contracts');
+const UtilsHelper = require('../../../src/helpers/utils');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
@@ -72,7 +75,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -118,7 +121,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -132,7 +135,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -153,7 +156,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -192,11 +195,12 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateEvent,
       eventId,
       { ...payload, isCancelled: false },
-      { cancel: '' }
+      { cancel: '' },
+      credentials
     );
     sinon.assert.notCalled(updateRepetition);
   });
@@ -216,11 +220,12 @@ describe('updateEvent', () => {
 
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateEvent,
       eventId,
       { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
-      { cancel: '' }
+      { cancel: '' },
+      credentials
     );
     sinon.assert.notCalled(updateRepetition);
   });
@@ -235,11 +240,12 @@ describe('updateEvent', () => {
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.notCalled(updateRepetition);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateEvent,
       eventId,
       payload,
-      { auxiliary: '' }
+      { auxiliary: '' },
+      credentials
     );
   });
 });
@@ -661,7 +667,7 @@ describe('updateAbsencesOnContractEnd', () => {
 });
 
 describe('createEvent', () => {
-  let save;
+  let createMock;
   let isCreationAllowed;
   let hasConflicts;
   let createEventHistoryOnCreate;
@@ -670,8 +676,9 @@ describe('createEvent', () => {
   let getEvent;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
+  const credentials = { _id: 'qwertyuiop' };
   beforeEach(() => {
-    save = sinon.stub(Event.prototype, 'save');
+    createMock = sinon.mock(Event);
     isCreationAllowed = sinon.stub(EventsValidationHelper, 'isCreationAllowed');
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
     createEventHistoryOnCreate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnCreate');
@@ -682,7 +689,7 @@ describe('createEvent', () => {
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
-    save.restore();
+    createMock.restore();
     isCreationAllowed.restore();
     hasConflicts.restore();
     createEventHistoryOnCreate.restore();
@@ -707,12 +714,13 @@ describe('createEvent', () => {
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
+    createMock.expects('create').returns(newEvent);
 
-    await EventHelper.createEvent({}, {});
+    await EventHelper.createEvent({}, credentials);
 
     sinon.assert.called(createEventHistoryOnCreate);
-    sinon.assert.called(save);
-    sinon.assert.calledWith(getEvent);
+    createMock.verify();
+    sinon.assert.calledWithExactly(getEvent, newEvent._id, credentials);
     sinon.assert.notCalled(createRepetitions);
     sinon.assert.called(populateEventSubscription);
   });
@@ -723,13 +731,14 @@ describe('createEvent', () => {
 
     isCreationAllowed.returns(true);
     hasConflicts.returns(false);
+    createMock.expects('create').returns(newEvent);
     getEvent.returns(newEvent);
 
-    await EventHelper.createEvent(payload, {});
+    await EventHelper.createEvent(payload, credentials);
 
     sinon.assert.called(createEventHistoryOnCreate);
-    sinon.assert.called(save);
-    sinon.assert.called(getEvent);
+    createMock.verify();
+    sinon.assert.calledWithExactly(getEvent, newEvent._id, credentials);
     sinon.assert.called(createRepetitions);
     sinon.assert.called(populateEventSubscription);
   });
@@ -737,7 +746,6 @@ describe('createEvent', () => {
   it('should unassign intervention and delete other event in conflict on absence creation', async () => {
     const eventId = new ObjectID();
     const auxiliaryId = new ObjectID();
-    const credentials = { _id: 'asdfghjkl' };
     const payload = {
       type: ABSENCE,
       startDate: '2019-03-20T10:00:00',
@@ -748,22 +756,23 @@ describe('createEvent', () => {
     const newEvent = new Event({ ...payload, auxiliary: { _id: auxiliaryId } });
 
     isCreationAllowed.returns(true);
+    createMock.expects('create').returns(newEvent);
     getEvent.returns(newEvent);
 
     await EventHelper.createEvent(payload, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       deleteConflictInternalHoursAndUnavailabilities,
       { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
       auxiliaryId.toHexString(),
       eventId.toHexString(),
-      { _id: 'asdfghjkl' }
+      credentials
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: new Date('2019-03-20T10:00:00'), endDate: new Date('2019-03-20T12:00:00') },
       auxiliaryId.toHexString(),
-      { _id: 'asdfghjkl' }
+      credentials
     );
   });
 });
@@ -789,8 +798,8 @@ describe('deleteConflictInternalHoursAndUnavailabilities', () => {
     getEventsInConflicts.returns(events);
     await EventHelper.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, absenceId, credentials);
 
-    getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absenceId);
-    sinon.assert.calledWith(deleteEvents, events, credentials);
+    getEventsInConflicts.calledWithExactly(dates, auxiliaryId, [INTERNAL_HOUR, ABSENCE, UNAVAILABILITY], absenceId);
+    sinon.assert.calledWithExactly(deleteEvents, events, credentials);
   });
 });
 
@@ -878,130 +887,199 @@ describe('deleteEvents', () => {
     sinon.assert.callCount(createEventHistoryOnDelete, events.length);
     sinon.assert.calledWith(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
   });
+});
 
-  describe('isMiscOnlyUpdated', () => {
-    it('should return true if event misc field is the only one being updated (assigned intervention)', () => {
-      const event = {
-        status: INTERVENTION,
-        sector: new ObjectID(),
-        auxiliary: new ObjectID(),
-        subscription: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: event.sector.toHexString(),
-        auxiliary: event.auxiliary.toHexString(),
-        subscription: event.subscription.toHexString(),
-        misc: 'Test',
-      };
+describe('isMiscOnlyUpdated', () => {
+  it('should return true if event misc field is the only one being updated (assigned intervention)', () => {
+    const event = {
+      status: INTERVENTION,
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      subscription: event.subscription.toHexString(),
+      misc: 'Test',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+  });
 
-    it('should return true if event misc field is the only one being updated (unassigned intervention)', () => {
-      const event = {
-        status: INTERVENTION,
-        sector: new ObjectID(),
-        subscription: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-        misc: 'Test',
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: event.sector.toHexString(),
-        subscription: event.subscription.toHexString(),
-        misc: '',
-      };
+  it('should return true if event misc field is the only one being updated (unassigned intervention)', () => {
+    const event = {
+      status: INTERVENTION,
+      sector: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      misc: 'Test',
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: event.sector.toHexString(),
+      subscription: event.subscription.toHexString(),
+      misc: '',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+  });
 
-    it('should return true if event misc field is the only one being updated (unavailability)', () => {
-      const event = {
-        status: UNAVAILABILITY,
-        sector: new ObjectID(),
-        auxiliary: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-        misc: '',
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: event.sector.toHexString(),
-        auxiliary: event.auxiliary.toHexString(),
-        misc: 'Test',
-      };
+  it('should return true if event misc field is the only one being updated (unavailability)', () => {
+    const event = {
+      status: UNAVAILABILITY,
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      misc: '',
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      misc: 'Test',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeTruthy();
+  });
 
-    it('should return false if event misc field is not the only one being updated (assigned intervention)', () => {
-      const event = {
-        status: INTERVENTION,
-        sector: new ObjectID(),
-        auxiliary: new ObjectID(),
-        subscription: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: event.sector.toHexString(),
-        auxiliary: new ObjectID().toHexString(),
-        subscription: event.subscription.toHexString(),
-        misc: 'Test',
-      };
+  it('should return false if event misc field is not the only one being updated (assigned intervention)', () => {
+    const event = {
+      status: INTERVENTION,
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: event.sector.toHexString(),
+      auxiliary: new ObjectID().toHexString(),
+      subscription: event.subscription.toHexString(),
+      misc: 'Test',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+  });
 
-    it('should return false if event misc field is not the only one being updated (unassigned intervention)', () => {
-      const event = {
-        status: INTERVENTION,
-        sector: new ObjectID(),
-        subscription: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-        misc: 'Test',
-      };
-      const updatedEventPayload = {
-        ...event,
-        sector: new ObjectID().toHexString(),
-        subscription: event.subscription.toHexString(),
-        misc: '',
-      };
+  it('should return false if event misc field is not the only one being updated (unassigned intervention)', () => {
+    const event = {
+      status: INTERVENTION,
+      sector: new ObjectID(),
+      subscription: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      misc: 'Test',
+    };
+    const updatedEventPayload = {
+      ...event,
+      sector: new ObjectID().toHexString(),
+      subscription: event.subscription.toHexString(),
+      misc: '',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+  });
 
-    it('should return false if event misc field is not the only one being updated (unavailability)', () => {
-      const event = {
-        status: UNAVAILABILITY,
-        sector: new ObjectID(),
-        auxiliary: new ObjectID(),
-        startDate: '2019-01-21T09:30:00',
-        endDate: '2019-01-21T11:30:00',
-        isCancelled: false,
-        misc: '',
-      };
-      const updatedEventPayload = {
-        ...event,
-        startDate: '2019-01-22T09:30:00',
-        endDate: '2019-01-22T11:30:00',
-        sector: event.sector.toHexString(),
-        auxiliary: event.auxiliary.toHexString(),
-        misc: 'Test',
-      };
+  it('should return false if event misc field is not the only one being updated (unavailability)', () => {
+    const event = {
+      status: UNAVAILABILITY,
+      sector: new ObjectID(),
+      auxiliary: new ObjectID(),
+      startDate: '2019-01-21T09:30:00',
+      endDate: '2019-01-21T11:30:00',
+      isCancelled: false,
+      misc: '',
+    };
+    const updatedEventPayload = {
+      ...event,
+      startDate: '2019-01-22T09:30:00',
+      endDate: '2019-01-22T11:30:00',
+      sector: event.sector.toHexString(),
+      auxiliary: event.auxiliary.toHexString(),
+      misc: 'Test',
+    };
 
-      expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
-    });
+    expect(EventHelper.isMiscOnlyUpdated(event, updatedEventPayload)).toBeFalsy();
+  });
+});
+
+describe('updateEventsInternalHourType', () => {
+  let updateMany;
+  beforeEach(() => {
+    updateMany = sinon.stub(Event, 'updateMany');
+  });
+  afterEach(() => {
+    updateMany.restore();
+  });
+
+  it('should update internal hours events', async () => {
+    const internalHour = { _id: new ObjectID() };
+    const defaultInternalHourId = new ObjectID();
+    const eventsStartDate = '2019-01-21T09:30:00';
+
+    await EventHelper.updateEventsInternalHourType(eventsStartDate, internalHour._id, defaultInternalHourId);
+
+    sinon.assert.calledOnce(updateMany);
+    sinon.assert.calledWith(
+      updateMany,
+      {
+        type: INTERNAL_HOUR,
+        internalHour: internalHour._id,
+        startDate: { $gte: eventsStartDate },
+      },
+      { $set: { internalHour: defaultInternalHourId } }
+    );
+  });
+});
+
+describe('getContractWeekInfo', () => {
+  let getDaysRatioBetweenTwoDates;
+  let getContractInfo;
+  let getMatchingVersionsList;
+  beforeEach(() => {
+    getDaysRatioBetweenTwoDates = sinon.stub(UtilsHelper, 'getDaysRatioBetweenTwoDates');
+    getContractInfo = sinon.stub(ContractHelper, 'getContractInfo');
+    getMatchingVersionsList = sinon.stub(ContractHelper, 'getMatchingVersionsList');
+  });
+  afterEach(() => {
+    getDaysRatioBetweenTwoDates.restore();
+    getContractInfo.restore();
+    getMatchingVersionsList.restore();
+  });
+
+  it('should get contract week info', () => {
+    const versions = [
+      { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
+      { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+    ];
+    const contract = { versions };
+    const query = { startDate: '2019-11-20T00:00:00', endDate: '2019-11-22T00:00:00' };
+    getDaysRatioBetweenTwoDates.returns(4);
+    getContractInfo.returns({ contractHours: 26, workedDaysRatio: 1 / 4 });
+    getMatchingVersionsList.returns(versions[1]);
+
+    const result = EventHelper.getContractWeekInfo(contract, query);
+
+    expect(result).toBeDefined();
+    expect(result.contractHours).toBe(26);
+    expect(result.workedDaysRatio).toBe(1 / 4);
+    sinon.assert.calledWith(
+      getDaysRatioBetweenTwoDates,
+      moment('2019-11-20').startOf('w').toDate(),
+      moment('2019-11-20').endOf('w').toDate()
+    );
+    sinon.assert.calledWith(getContractInfo, versions[1], query, 4);
   });
 });

@@ -52,6 +52,7 @@ const billService = {
 const billCustomerList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'tito@ty.com',
     identity: {
       title: 'mr',
@@ -90,11 +91,20 @@ const billCustomerList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'fake@test.com',
     identity: {
       title: 'mr',
       firstname: 'Romain',
       lastname: 'Bardet',
+    },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de ponthieu 75008 Paris',
+        zipCode: '75008',
+        city: 'Paris',
+      },
+      phone: '0612345678',
     },
     subscriptions: [
       {

@@ -9,7 +9,7 @@ const list = async (req) => {
   try {
     const { createdAt } = req.query;
     const query = getListQuery(req.query);
-    const eventHistories = await EventHistoryRepository.paginate(query, createdAt);
+    const eventHistories = await EventHistoryRepository.paginate(query, createdAt, req.auth.credentials);
 
     return {
       message: translate[language].eventHistoriesFound,

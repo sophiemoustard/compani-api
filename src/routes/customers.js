@@ -52,26 +52,26 @@ exports.plugin = {
               lastname: Joi.string().required(),
             }).min(1),
             contact: Joi.object().keys({
-              primaryAddress: {
+              primaryAddress: Joi.object().keys({
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                },
-              },
-              secondaryAddress: {
+                }),
+              }),
+              secondaryAddress: Joi.object().keys({
                 street: Joi.string().allow('', null),
                 zipCode: Joi.string().allow('', null),
                 city: Joi.string().allow('', null),
                 fullAddress: Joi.string().allow('', null),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string().allow('', null),
                   coordinates: Joi.array().allow([], null),
-                },
-              },
+                }),
+              }),
             }).required(),
           }),
         },
@@ -99,26 +99,26 @@ exports.plugin = {
             email: Joi.string().email(),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              primaryAddress: {
+              primaryAddress: Joi.object().keys({
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                },
-              },
-              secondaryAddress: {
+                }),
+              }),
+              secondaryAddress: Joi.object().keys({
                 street: Joi.string().allow('', null),
                 zipCode: Joi.string().allow('', null),
                 city: Joi.string().allow('', null),
                 fullAddress: Joi.string().allow('', null),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string().allow('', null),
                   coordinates: Joi.array().allow([], null),
-                },
-              },
+                }),
+              }),
               accessCodes: Joi.string().allow('', null),
             }),
             followUp: Joi.object().keys({
@@ -512,11 +512,11 @@ exports.plugin = {
             nature: Joi.string().valid(FUNDING_NATURES).required(),
             thirdPartyPayer: Joi.objectId().required(),
             subscription: Joi.objectId().required(),
+            frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
             versions: Joi.array().items(Joi.object().keys({
               folderNumber: Joi.string(),
               startDate: Joi.date().required(),
               endDate: Joi.date(),
-              frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
               amountTTC: Joi.number(),
               unitTTCRate: Joi.number(),
               careHours: Joi.number(),
@@ -544,7 +544,6 @@ exports.plugin = {
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),
-            frequency: Joi.string().valid(FUNDING_FREQUENCIES).required(),
             amountTTC: Joi.number(),
             unitTTCRate: Joi.number(),
             careHours: Joi.number(),

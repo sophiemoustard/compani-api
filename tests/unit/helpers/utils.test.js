@@ -50,7 +50,7 @@ describe('getLastVersion', () => {
 
 describe('mergeLastVersionWithBaseObject', () => {
   it('should merge last version of given object with that same object', () => {
-    const baseObj = { tpp: '123456', versions: [{ frequency: 'once', createdAt: moment().toISOString() }] };
+    const baseObj = { tpp: '123456', frequency: 'once', versions: [{ createdAt: moment().toISOString() }] };
     const getLastVersionStub = sinon.stub(UtilsHelper, 'getLastVersion');
 
     getLastVersionStub.returns(baseObj.versions[0]);
@@ -61,7 +61,7 @@ describe('mergeLastVersionWithBaseObject', () => {
   });
 
   it('should throw an error if last version cannot be found', () => {
-    const baseObj = { tpp: '123456', versions: [{ frequency: 'once', createdAt: moment().toISOString() }] };
+    const baseObj = { tpp: '123456', frequency: 'once', versions: [{ createdAt: moment().toISOString() }] };
     const getLastVersionStub = sinon.stub(UtilsHelper, 'getLastVersion').returns(null);
     expect(() => UtilsHelper.mergeLastVersionWithBaseObject(baseObj, 'createdAt')).toThrowError('Unable to find last version from base object !');
     getLastVersionStub.restore();
@@ -240,5 +240,34 @@ describe('formatFloatForExport', () => {
     it('should return an empty string on an invalid value', () => {
       expect(UtilsHelper.formatFloatForExport(param)).toBe('');
     });
+  });
+});
+
+describe('getDaysRatioBetweenTwoDates', () => {
+  it('Case 1. No sundays nor holidays in range', () => {
+    const start = new Date('2019/05/21');
+    const end = new Date('2019/05/23');
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ holidays: 0, sundays: 0, businessDays: 3 });
+  });
+
+  it('Case 2. Sundays in range', () => {
+    const start = new Date('2019/05/18');
+    const end = new Date('2019/05/23');
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ holidays: 0, sundays: 1, businessDays: 5 });
+  });
+
+  it('Case 3. Holidays in range', () => {
+    const start = new Date('2019/05/07');
+    const end = new Date('2019/05/09');
+    const result = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual({ holidays: 1, sundays: 0, businessDays: 2 });
   });
 });

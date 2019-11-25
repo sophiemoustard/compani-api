@@ -26,7 +26,16 @@ const sector = {
 
 const customer = {
   _id: new ObjectID(),
+  company: authCompany._id,
   identity: { firstname: 'Julian', lastname: 'Alaphilippe' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
 };
 
 const eventHistoryList = [

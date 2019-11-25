@@ -31,6 +31,7 @@ const creditNoteService = {
 
 const creditNoteCustomer = {
   _id: new ObjectID(),
+  company: authCompany._id,
   email: 'tito@ty.com',
   identity: {
     title: 'mr',

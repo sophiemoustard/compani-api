@@ -5,8 +5,6 @@ const translate = require('../helpers/translate');
 const { addFile, createFolderForCompany } = require('../helpers/gdriveStorage');
 const Company = require('../models/Company');
 const drive = require('../models/Google/Drive');
-const { MAX_INTERNAL_HOURS_NUMBER } = require('../helpers/constants');
-const { updateEventsInternalHourType } = require('../helpers/events');
 
 const { language } = translate;
 
@@ -41,7 +39,7 @@ const update = async (req) => {
       req.log(['error', 'db'], e);
       return Boom.conflict(translate[language].companyExists);
     }
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -78,120 +76,7 @@ const uploadFile = async (req) => {
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const addInternalHour = async (req) => {
-  try {
-    const company = await Company.findOne({ _id: req.params._id });
-    if (!company) return Boom.notFound(translate[language].companyNotFound);
-
-    if (company.rhConfig && company.rhConfig.internalHours && company.rhConfig.internalHours.length >= MAX_INTERNAL_HOURS_NUMBER) {
-      return Boom.forbidden(translate[language].companyInternalHourCreationNotAllowed);
-    }
-
-    const updatedCompany = await Company.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { 'rhConfig.internalHours': req.payload } },
-      {
-        new: true,
-        select: { name: 1, 'rhConfig.internalHours': 1 },
-      }
-    );
-
-    return {
-      message: translate[language].companyInternalHourCreated,
-      data: { internalHours: updatedCompany.rhConfig.internalHours },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const updateInternalHour = async (req) => {
-  try {
-    const { _id: companyId, internalHourId } = req.params;
-    const payload = { 'rhConfig.internalHours.$': { ...req.payload } };
-    const company = await Company.findOneAndUpdate(
-      {
-        _id: companyId,
-        'rhConfig.internalHours._id': internalHourId,
-      },
-      { $set: flat(payload) },
-      {
-        new: true,
-        select: { name: 1, 'rhConfig.internalHours': 1 },
-      }
-    );
-
-    if (!company) return Boom.notFound(translate[language].companyInternalHourNotFound);
-
-    if (req.payload.name) {
-      const updatedInternalHour = company.rhConfig.internalHours.find(hour => hour._id.toHexString() === internalHourId);
-      await updateEventsInternalHourType(updatedInternalHour._id, updateInternalHour);
-    }
-
-    return {
-      message: translate[language].companyInternalHourUpdated,
-      data: { internalHours: company.rhConfig.internalHours },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const getInternalHours = async (req) => {
-  try {
-    const company = await Company.findOne(
-      {
-        _id: req.params._id,
-        'rhConfig.internalHours': { $exists: true },
-      },
-      { name: 1, 'rhConfig.internalHours': 1 }
-    );
-
-    if (!company) return Boom.notFound(translate[language].companyInternalHoursNotFound);
-
-    return {
-      message: translate[language].companyInternalHoursFound,
-      data: { internalHours: company.rhConfig.internalHours },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
-  }
-};
-
-const removeInternalHour = async (req) => {
-  try {
-    const { _id: companyId, internalHourId } = req.params;
-
-    const company = await Company.findOne({ _id: companyId });
-    if (!company || !company.rhConfig || !company.rhConfig.internalHours) return Boom.notFound(translate[language].companyInternalHourNotFound);
-
-    const internalHour = company.rhConfig.internalHours.find(hour => hour._id.toHexString() === internalHourId);
-    if (!internalHour) return Boom.notFound(translate[language].companyInternalHourNotFound);
-    if (internalHour.default) return Boom.forbidden(translate[language].companyInternalHourDeletionNotAllowed);
-
-    const defaultType = company.rhConfig.internalHours.find(hour => hour.default);
-    if (!defaultType) return Boom.badImplementation();
-
-    await updateEventsInternalHourType(internalHourId, defaultType);
-
-    await Company.findOneAndUpdate(
-      { _id: companyId },
-      { $pull: { 'rhConfig.internalHours': { _id: internalHourId } } }
-    );
-
-    return {
-      message: translate[language].companyInternalHourRemoved,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -216,9 +101,5 @@ const create = async (req) => {
 module.exports = {
   update,
   uploadFile,
-  addInternalHour,
-  updateInternalHour,
-  getInternalHours,
-  removeInternalHour,
   create,
 };

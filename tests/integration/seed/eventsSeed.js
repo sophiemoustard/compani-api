@@ -67,10 +67,19 @@ const service = {
 
 const customerAuxiliary = {
   _id: new ObjectID('b0e491d37f0094ba49499562'),
+  company: authCompany._id,
   identity: { firstname: 'Romain', lastname: 'Bardet' },
   subscriptions: [
     { _id: new ObjectID('8b4c4f60d11f95df92d63859'), startDate: '2019-09-03T00:00:00', service: service._id },
   ],
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
 };
 
 const helpersCustomer = {

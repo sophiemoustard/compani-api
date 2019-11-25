@@ -13,10 +13,11 @@ const Drive = require('../models/Google/Drive');
 const ESign = require('../models/ESign');
 const EventHelper = require('./events');
 const CustomerHelper = require('./customers');
+const UtilsHelper = require('./utils');
 const GDriveStorageHelper = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
-const ESignHelper = require('../helpers/eSign');
+const ESignHelper = require('./eSign');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 
@@ -292,3 +293,32 @@ exports.saveCompletedContract = async (everSignDoc) => {
     { new: true }
   );
 };
+
+exports.getContractInfo = (versions, query, monthRatio) => {
+  let contractHours = 0;
+  let workedDays = 0;
+  let holidaysHours = 0;
+  const monthDays = monthRatio.businessDays + monthRatio.holidays;
+  for (const version of versions) {
+    const startDate = moment(version.startDate).isBefore(query.startDate)
+      ? moment(query.startDate).toDate()
+      : moment(version.startDate).startOf('d').toDate();
+    const endDate = version.endDate && moment(version.endDate).isBefore(query.endDate)
+      ? moment(version.endDate).endOf('d').toDate()
+      : moment(query.endDate).toDate();
+    const ratio = UtilsHelper.getDaysRatioBetweenTwoDates(startDate, endDate);
+
+    workedDays += ratio.businessDays;
+    contractHours += version.weeklyHours * ((ratio.businessDays + ratio.holidays) / monthDays);
+    holidaysHours += (version.weeklyHours / 6) * ratio.holidays;
+  }
+
+  return { contractHours, holidaysHours, workedDaysRatio: workedDays / monthDays };
+};
+
+exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => {
+  const isStartedOnEndDate = moment(ver.startDate).isSameOrBefore(query.endDate);
+  const isEndedOnStartDate = ver.endDate && moment(ver.endDate).isSameOrBefore(query.startDate);
+
+  return isStartedOnEndDate && !isEndedOnStartDate;
+});

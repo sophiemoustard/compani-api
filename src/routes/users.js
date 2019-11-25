@@ -81,16 +81,16 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: {
+              address: Joi.object().keys({
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string().required(),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                },
-              },
+                }),
+              }),
             }),
             administrative: Joi.object().keys({
               transportInvoice: Joi.object().keys({
@@ -159,10 +159,10 @@ exports.plugin = {
             emergencyPhone: Joi.string(),
             sector: Joi.objectId(),
             'local.email': Joi.string().email(), // bot special case
-            local: {
+            local: Joi.object().keys({
               email: Joi.string().email(),
               password: Joi.string(),
-            },
+            }),
             role: Joi.objectId(),
             picture: Joi.object().keys({
               link: Joi.string().allow(null),
@@ -186,81 +186,81 @@ exports.plugin = {
             }),
             contact: Joi.object().keys({
               phone: Joi.string().allow('', null),
-              address: {
+              address: Joi.object().keys({
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
                 fullAddress: Joi.string(),
-                location: {
+                location: Joi.object().keys({
                   type: Joi.string(),
                   coordinates: Joi.array(),
-                },
-              },
+                }),
+              }),
             }),
-            administrative: {
-              signup: {
+            administrative: Joi.object().keys({
+              signup: Joi.object().keys({
                 step: Joi.string(),
                 complete: Joi.boolean(),
-              },
+              }),
               identityDocs: Joi.string().valid('pp', 'cni', 'ts'),
-              mutualFund: {
+              mutualFund: Joi.object().keys({
                 has: Joi.boolean(),
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              navigoInvoice: {
+              }),
+              navigoInvoice: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              transportInvoice: {
+              }),
+              transportInvoice: Joi.object().keys({
                 transportType: Joi.string(),
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              phoneInvoice: {
+              }),
+              phoneInvoice: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              healthAttest: {
+              }),
+              healthAttest: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              idCardRecto: {
+              }),
+              idCardRecto: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              idCardVerso: {
+              }),
+              idCardVerso: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              passport: {
+              }),
+              passport: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              residencePermitRecto: {
+              }),
+              residencePermitRecto: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              residencePermitVerso: {
+              }),
+              residencePermitVerso: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
-              medicalCertificate: {
+              }),
+              medicalCertificate: Joi.object().keys({
                 driveId: Joi.string().allow(null),
                 link: Joi.string().allow(null),
-              },
+              }),
               socialSecurityNumber: Joi.number(),
-              payment: {
-                rib: {
+              payment: Joi.object().keys({
+                rib: Joi.object().keys({
                   iban: Joi.string(),
                   bic: Joi.string(),
-                },
-              },
+                }),
+              }),
               emergencyContact: Joi.object().keys({
                 name: Joi.string(),
                 phoneNumber: Joi.string(),
               }),
-            },
+            }),
             procedure: Joi.object().keys({
               _id: Joi.objectId(),
               name: Joi.string(),
@@ -285,9 +285,9 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             _id: Joi.objectId(),
-            'administrative.certificates': {
+            'administrative.certificates': Joi.object().keys({
               driveId: Joi.string(),
-            },
+            }),
           }),
         },
       },

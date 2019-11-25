@@ -8,6 +8,7 @@ const {
   updateEvent,
   createEvent,
   deleteEvent,
+  workingStats,
 } = require('../helpers/events');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
 const { deleteRepetition } = require('../helpers/eventsRepetition');
@@ -37,7 +38,7 @@ const list = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -60,7 +61,7 @@ const listForCreditNotes = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -112,7 +113,7 @@ const remove = async (req) => {
     return { message: translate[language].eventDeleted };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -127,7 +128,22 @@ const removeRepetition = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.badImplementation(e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const getWorkingStats = async (req) => {
+  try {
+    const { query, auth } = req;
+    const stats = await workingStats(query, auth.credentials);
+
+    return {
+      message: translate[language].hoursBalanceDetail,
+      data: { workingStats: stats },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
 
@@ -138,4 +154,5 @@ module.exports = {
   remove,
   removeRepetition,
   listForCreditNotes,
+  getWorkingStats,
 };

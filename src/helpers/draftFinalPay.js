@@ -7,34 +7,35 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const ContractRepository = require('../repositories/ContractRepository');
 const EventRepository = require('../repositories/EventRepository');
 const DraftPayHelper = require('./draftPay');
+const UtilsHelper = require('./utils');
+const ContractHelper = require('./contracts');
 
 exports.getContractMonthInfo = (contract, query) => {
+  const start = moment(query.startDate).startOf('M').toDate();
+  const end = moment(query.startDate).endOf('M').toDate();
   const versions = contract.versions.filter(ver =>
     (moment(ver.startDate).isSameOrBefore(query.endDate) && ver.endDate && moment(ver.endDate).isSameOrAfter(query.startDate)));
-  const monthBusinessDays = DraftPayHelper.getMonthBusinessDaysCount(query.startDate);
+  const monthBusinessDays = UtilsHelper.getDaysRatioBetweenTwoDates(start, end);
 
-  let contractHours = 0;
-  let workedDays = 0;
-  for (const version of versions) {
-    const startDate = moment(version.startDate).isBefore(query.startDate) ? moment(query.startDate) : moment(version.startDate).startOf('d');
-    const endDate = version.endDate && moment(version.endDate).isSameOrBefore(query.endDate)
-      ? moment(version.endDate).endOf('d')
-      : moment(query.endDate);
-    const businessDays = DraftPayHelper.getBusinessDaysCountBetweenTwoDates(startDate, endDate);
-    workedDays += businessDays;
-    contractHours += version.weeklyHours * (businessDays / monthBusinessDays) * WEEKS_PER_MONTH;
-  }
+  const info = ContractHelper.getContractInfo(versions, query, monthBusinessDays);
 
-  return { contractHours, workedDaysRatio: workedDays / monthBusinessDays };
+  return { contractHours: info.contractHours * WEEKS_PER_MONTH, workedDaysRatio: info.workedDaysRatio };
 };
 
 exports.getDraftFinalPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, company, query, distanceMatrix, surcharges) => {
   const { contracts } = auxiliary;
   const contract = contracts.find(cont => cont.status === COMPANY_CONTRACT && cont.endDate);
-  const pay = await DraftPayHelper.computePay(auxiliary, contract, eventsToPay, prevPay, company, query, distanceMatrix, surcharges);
+
+  const monthBalance = await DraftPayHelper.computeBalance(auxiliary, contract, eventsToPay, company, query, distanceMatrix, surcharges);
+  const hoursCounter = prevPay ? prevPay.hoursCounter + prevPay.diff.hoursBalance + monthBalance.hoursBalance : monthBalance.hoursBalance;
 
   return {
-    ...pay,
+    ...DraftPayHelper.genericData(query, auxiliary),
+    ...monthBalance,
+    hoursCounter,
+    mutual: !get(auxiliary, 'administrative.mutualFund.has'),
+    diff: prevPay.diff,
+    previousMonthHoursCounter: prevPay.hoursCounter,
     endDate: contract.endDate,
     endReason: contract.endReason,
     endNotificationDate: contract.endNotificationDate,

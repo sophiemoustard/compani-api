@@ -66,6 +66,7 @@ const customerThirdPartyPayer = {
 const customersList = [
   { // Customer with subscriptions, subscriptionsHistory, fundings and quote
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'fake@test.com',
     identity: {
       title: 'mr',
@@ -170,6 +171,7 @@ const customersList = [
   },
   { // Customer with mandates
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'tito@ty.com',
     identity: {
       title: 'mr',
@@ -196,6 +198,7 @@ const customersList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'toototjo@hfjld.io',
     identity: {
       title: 'mr',
@@ -222,6 +225,7 @@ const customersList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     email: 'volgarr@theviking.io',
     identity: {
       title: 'mr',
@@ -278,6 +282,8 @@ const eventList = [
     type: 'intervention',
     bills: {},
     subscription: subId,
+    startDate: '2019-01-16T14:30:19.543Z',
+    endDate: '2019-01-16T15:30:21.653Z',
   },
   {
     _id: new ObjectID(),
