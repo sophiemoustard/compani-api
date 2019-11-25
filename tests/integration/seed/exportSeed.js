@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -32,7 +33,9 @@ const auxiliary = {
   identity: { firstname: 'Lola', lastname: 'Lili' },
   role: rolesList.find(role => role.name === 'admin')._id,
   local: { email: 'toto@alenvi.io', password: '1234567890' },
+  refreshToken: uuidv4(),
   sector: sector._id,
+  company: authCompany._id,
 };
 
 const customer = {

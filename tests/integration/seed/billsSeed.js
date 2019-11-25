@@ -144,6 +144,7 @@ const billUserList = [
     _id: new ObjectID(),
     identity: { firstname: 'Tata', lastname: 'Toto' },
     local: { email: 'toto@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'auxiliary')._id,
     company: authCompany._id,
   },

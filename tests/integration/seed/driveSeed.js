@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const User = require('../../../src/models/User');
-const { rolesList, populateDBForAuthentication } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const auxiliary = {
   _id: new ObjectID(),
@@ -10,6 +10,7 @@ const auxiliary = {
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
+  company: authCompany._id,
 };
 
 const populateDB = async () => {

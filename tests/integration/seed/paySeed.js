@@ -37,6 +37,7 @@ const auxiliary1 = {
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId1,
   sector: sectorId,
+  company: authCompany._id,
 };
 
 const auxiliary2 = {
@@ -48,6 +49,7 @@ const auxiliary2 = {
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId2,
   sector: sectorId,
+  company: authCompany._id,
 };
 
 const contracts = [{

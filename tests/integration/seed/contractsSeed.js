@@ -56,6 +56,7 @@ const contractUser = {
   refreshToken: uuidv4(),
   role: rolesList[0]._id,
   contracts: [new ObjectID()],
+  company: authCompany._id,
 };
 
 const contractsList = [

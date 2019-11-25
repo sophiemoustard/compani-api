@@ -7,7 +7,6 @@ const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const User = require('../../src/models/User');
-const Drive = require('../../src/models/Google/Drive');
 const {
   usersSeedList,
   userPayload,
@@ -852,20 +851,17 @@ describe('USERS ROUTES', () => {
     let docPayload;
     let form;
     let addFileStub;
-    let getFileStub;
     beforeEach(() => {
       docPayload = {
         mutualFund: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         fileName: 'mutual_fund_doc',
       };
       form = generateFormData(docPayload);
-      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({ id: 'qwerty' });
-      getFileStub = sinon.stub(Drive, 'getFileById').returns({ webViewLink: 'http://test.com/file.pdf' });
+      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
     });
 
     afterEach(() => {
       addFileStub.restore();
-      getFileStub.restore();
     });
     describe('Admin', () => {
       beforeEach(populateDB);
@@ -888,7 +884,6 @@ describe('USERS ROUTES', () => {
           link: 'http://test.com/file.pdf',
         });
         sinon.assert.calledOnce(addFileStub);
-        sinon.assert.calledWith(getFileStub, { fileId: 'qwerty' });
       });
 
       it('should return a 403 error if user is not from same company', async () => {

@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const cloneDeep = require('lodash/cloneDeep');
+const uuidv4 = require('uuid/v4');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
@@ -30,6 +31,8 @@ const userList = [
     inactivityDate: null,
     sector: sectorList[0]._id,
     contracts: [contractList[0]._id],
+    company: authCompany._id,
+    refreshToken: uuidv4(),
   },
 ];
 

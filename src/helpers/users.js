@@ -82,7 +82,7 @@ exports.createUser = async (userPayload, credentials, refreshToken) => {
   const payload = {
     _id: populatedUser._id.toHexString(),
     role: {
-      ...populatedUser.role,
+      name: populatedUser.role.name,
       rights: populatedRights,
     },
   };

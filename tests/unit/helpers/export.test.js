@@ -12,7 +12,6 @@ const Pay = require('../../../src/models/Pay');
 const FinalPay = require('../../../src/models/FinalPay');
 const ExportHelper = require('../../../src/helpers/export');
 const UtilsHelper = require('../../../src/helpers/utils');
-const PayHelper = require('../../../src/helpers/pay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 
 describe('exportWorkingEventsHistory', () => {
@@ -532,7 +531,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return csv header', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -540,8 +539,9 @@ describe('exportAuxiliaries', () => {
 
     const auxiliaries = [];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -554,7 +554,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary info', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -569,8 +569,9 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -582,7 +583,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary sector', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -592,8 +593,9 @@ describe('exportAuxiliaries', () => {
       { sector: { name: 'La ruche' } },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -605,7 +607,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary identity', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -627,8 +629,9 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -640,7 +643,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary contracts count', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -650,8 +653,9 @@ describe('exportAuxiliaries', () => {
       { contracts: [{ _id: 1 }, { _id: 2 }] },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -663,7 +667,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary address', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -673,8 +677,9 @@ describe('exportAuxiliaries', () => {
       { contact: { address: { fullAddress: 'La ruche' } } },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -690,6 +695,7 @@ describe('exportHelpers', () => {
   let UserModel;
   let RoleModel;
   let getLastVersion;
+  const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     UserModel = sinon.mock(User);
     RoleModel = sinon.mock(Role);
@@ -708,12 +714,16 @@ describe('exportHelpers', () => {
 
     const helpers = [];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: roleId, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs({
+        path: 'customers',
+        populate: { path: 'firstIntervention', select: 'startDate' },
+      })
       .once()
       .returns(helpers);
 
-    const result = await ExportHelper.exportHelpers();
+    const result = await ExportHelper.exportHelpers(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
@@ -745,12 +755,16 @@ describe('exportHelpers', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: roleId, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs({
+        path: 'customers',
+        populate: { path: 'firstIntervention', select: 'startDate' },
+      })
       .once()
       .returns(helpers);
 
-    const result = await ExportHelper.exportHelpers();
+    const result = await ExportHelper.exportHelpers(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -778,12 +792,16 @@ describe('exportHelpers', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: roleId, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs({
+        path: 'customers',
+        populate: { path: 'firstIntervention', select: 'startDate' },
+      })
       .once()
       .returns(helpers);
 
-    const result = await ExportHelper.exportHelpers();
+    const result = await ExportHelper.exportHelpers(credentials);
 
     UserModel.verify();
     expect(result).toBeDefined();
