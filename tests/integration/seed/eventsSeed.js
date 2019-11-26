@@ -19,18 +19,22 @@ const contracts = [{
   status: 'contract_with_company',
   user: auxiliaryId,
   startDate: '2010-09-03T00:00:00',
+  company: authCompany._id,
   versions: [{
     startDate: '2010-09-03T00:00:00',
-    isActive: true,
+    grossHourlyRate: 10.43,
+    weeklyHours: 12,
   }],
 }, {
   _id: new ObjectID(),
   status: 'contract_with_company',
   user: planningReferentId,
+  company: authCompany._id,
   startDate: '2010-09-03T00:00:00',
   versions: [{
     startDate: '2010-09-03T00:00:00',
-    isActive: true,
+    grossHourlyRate: 10.43,
+    weeklyHours: 12,
   }],
 }];
 

@@ -51,7 +51,7 @@ exports.getContractList = async (query, credentials) => {
 exports.hasNotEndedCompanyContracts = async (contract) => {
   const endedContracts = await ContractRepository.getUserEndedCompanyContracts(contract.user, contract.startDate);
 
-  return endedContracts.length && moment(contract.startDate).isSameOrBefore(moment(endedContracts[0].endDate), 'd');
+  return endedContracts.length && moment(contract.startDate).isSameOrBefore(endedContracts[0].endDate, 'd');
 };
 
 exports.createContract = async (contractPayload, credentials) => {

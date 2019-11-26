@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { validatePayload } = require('./preHooks/validate');
 
 const {
   CUSTOMER_CONTRACT,
@@ -53,7 +54,7 @@ const ContractSchema = mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     startDate: { type: Date, required: true },
     endDate: { type: Date },
-    weeklyHours: { type: Number, required: true },
+    weeklyHours: { type: Number },
     grossHourlyRate: { type: Number, required: true },
     customerDoc: driveResourceSchemaDefinition,
     auxiliaryDoc: driveResourceSchemaDefinition,
@@ -64,6 +65,7 @@ const ContractSchema = mongoose.Schema({
   timestamps: true,
 });
 
+ContractSchema.pre('validate', validatePayload);
 module.exports = mongoose.model('Contract', ContractSchema);
 module.exports.CONTRACT_STATUS = CONTRACT_STATUS;
 module.exports.END_CONTRACT_REASONS = END_CONTRACT_REASONS;
