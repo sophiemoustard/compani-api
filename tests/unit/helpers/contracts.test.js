@@ -629,10 +629,8 @@ describe('getContractInfo', () => {
   });
 
   it('Case 1. One version no sunday', () => {
-    const versions = [
-      { endDate: '', startDate: '2019-05-04', weeklyHours: 20 },
-    ];
-    const query = { startDate: '2019-05-06', endDate: '2019-05-10' };
+    const versions = [{ endDate: '', startDate: '2019-05-04', weeklyHours: 20 }];
+    const query = { startDate: '2019-06-03', endDate: '2019-06-07' };
     getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 0, holidays: 0 });
 
     const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
@@ -643,16 +641,14 @@ describe('getContractInfo', () => {
     expect(result.holidaysHours).toBe(0);
     sinon.assert.calledWith(
       getDaysRatioBetweenTwoDates,
-      moment('2019-05-06').toDate(),
-      moment('2019-05-10').toDate()
+      moment('2019-06-03').toDate(),
+      moment('2019-06-07').toDate()
     );
   });
 
   it('Case 2. One version and sunday included', () => {
-    const versions = [
-      { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
-    ];
-    const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
+    const versions = [{ endDate: '', startDate: '2019-05-04', weeklyHours: 24 }];
+    const query = { startDate: '2019-06-03', endDate: '2019-06-09' };
     getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
 
     const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
@@ -660,22 +656,40 @@ describe('getContractInfo', () => {
     expect(result).toBeDefined();
     sinon.assert.calledWith(
       getDaysRatioBetweenTwoDates,
-      moment('2019-05-04').startOf('d').toDate(),
-      moment('2019-05-10').toDate()
+      moment('2019-06-03').startOf('d').toDate(),
+      moment('2019-06-09').toDate()
     );
   });
 
   it('Case 3. Multiple versions', () => {
     const versions = [
-      { startDate: '2019-01-01', endDate: '2019-05-04', weeklyHours: 18 },
-      { endDate: '', startDate: '2019-05-04', weeklyHours: 24 },
+      { startDate: '2019-01-01', endDate: '2019-07-04', weeklyHours: 18 },
+      { endDate: '', startDate: '2019-07-04', weeklyHours: 24 },
     ];
-    const query = { startDate: '2019-04-27', endDate: '2019-05-05' };
+    const query = { startDate: '2019-06-27', endDate: '2019-07-05' };
     getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 1, holidays: 0 });
 
     const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
 
     expect(result).toBeDefined();
     sinon.assert.calledTwice(getDaysRatioBetweenTwoDates);
+  });
+
+  it('Case 4. One version and holiday included', () => {
+    const versions = [{ endDate: '', startDate: '2019-05-04', weeklyHours: 24 }];
+    const query = { startDate: '2019-05-04', endDate: '2019-05-10' };
+    getDaysRatioBetweenTwoDates.returns({ businessDays: 4, sundays: 0, holidays: 1 });
+
+    const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
+
+    expect(result).toBeDefined();
+    expect(result.contractHours).toBe(12);
+    expect(result.workedDaysRatio).toBe(0.5);
+    expect(result.holidaysHours).toBe(4);
+    sinon.assert.calledWith(
+      getDaysRatioBetweenTwoDates,
+      moment('2019-05-04').startOf('d').toDate(),
+      moment('2019-05-10').toDate()
+    );
   });
 });
