@@ -90,7 +90,7 @@ const update = async (req) => {
       throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
     }
 
-    if (!(await isEditionAllowed(event, payload, req.auth.credentials))) return Boom.badData();
+    if (!(await isEditionAllowed(event, payload))) return Boom.badData();
 
     event = await updateEvent(event, payload, auth.credentials);
 

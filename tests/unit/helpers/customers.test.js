@@ -34,9 +34,13 @@ describe('getCustomerBySector', () => {
     const query = { startDate };
     getListQuery.returns(query);
 
-    await CustomerHelper.getCustomerBySector(startDate, endDate, sector);
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+
+    const queryBySector = { ...query, endDate, sector };
+    await CustomerHelper.getCustomerBySector(queryBySector, credentials);
     sinon.assert.calledWith(getListQuery, { startDate, endDate, sector, type: 'intervention' });
-    sinon.assert.calledWith(getCustomersFromEvent, query);
+    sinon.assert.calledWith(getCustomersFromEvent, { ...query }, companyId);
   });
 });
 
@@ -71,8 +75,8 @@ describe('getCustomers', () => {
   });
 
   it('should return empty array if no customer', async () => {
-    const query = { role: 'qwertyuiop' };
-    const credentials = {};
+    const companyId = new ObjectID();
+    const query = { role: 'qwertyuiop', company: companyId };
     CustomerMock.expects('find')
       .withExactArgs(query)
       .chain('populate')
@@ -80,18 +84,18 @@ describe('getCustomers', () => {
       .chain('lean')
       .once()
       .returns([]);
-    const result = await CustomerHelper.getCustomers(query, credentials);
+    const result = await CustomerHelper.getCustomers(query);
 
     CustomerMock.verify();
     expect(result).toEqual([]);
   });
 
   it('should return customers', async () => {
-    const query = { role: 'qwertyuiop' };
-    const credentials = {};
+    const companyId = new ObjectID();
+    const query = { role: 'qwertyuiop', company: companyId };
     const customers = [
-      { identity: { firstname: 'Emmanuel' } },
-      { identity: { firstname: 'Brigitte' } },
+      { identity: { firstname: 'Emmanuel' }, company: companyId },
+      { identity: { firstname: 'Brigitte' }, company: companyId },
     ];
     CustomerMock.expects('find')
       .withExactArgs(query)
@@ -103,12 +107,12 @@ describe('getCustomers', () => {
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
-    const result = await CustomerHelper.getCustomers(query, credentials);
+    const result = await CustomerHelper.getCustomers(query);
 
     CustomerMock.verify();
     expect(result).toEqual([
-      { identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true },
-      { identity: { firstname: 'Brigitte' }, subscriptions: 2, subscriptionsAccepted: true },
+      { identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true, company: companyId },
+      { identity: { firstname: 'Brigitte' }, subscriptions: 2, subscriptionsAccepted: true, company: companyId },
     ]);
     sinon.assert.calledTwice(populateSubscriptionsServices);
     sinon.assert.calledTwice(subscriptionsAccepted);
@@ -128,8 +132,9 @@ describe('getCustomersWithSubscriptions', () => {
   });
 
   it('should return empty array if no customer', async () => {
-    const query = { role: 'qwertyuiop' };
-    const credentials = {};
+    const companyId = new ObjectID();
+    const query = { role: 'qwertyuiop', company: companyId };
+    const credentials = { company: { _id: companyId } };
     CustomerMock.expects('find')
       .withExactArgs(query)
       .chain('populate')
@@ -143,11 +148,12 @@ describe('getCustomersWithSubscriptions', () => {
   });
 
   it('should return customers', async () => {
-    const query = { role: 'qwertyuiop' };
-    const credentials = {};
+    const companyId = new ObjectID();
+    const query = { role: 'qwertyuiop', company: companyId };
+    const credentials = { company: { _id: companyId } };
     const customers = [
-      { identity: { firstname: 'Emmanuel' } },
-      { identity: { firstname: 'Brigitte' } },
+      { identity: { firstname: 'Emmanuel' }, company: companyId },
+      { identity: { firstname: 'Brigitte' }, company: companyId },
     ];
     CustomerMock.expects('find')
       .withExactArgs(query)
@@ -161,8 +167,8 @@ describe('getCustomersWithSubscriptions', () => {
 
     CustomerMock.verify();
     expect(result).toEqual([
-      { identity: { firstname: 'Emmanuel' }, subscriptions: 2 },
-      { identity: { firstname: 'Brigitte' }, subscriptions: 2 },
+      { identity: { firstname: 'Emmanuel' }, subscriptions: 2, company: companyId },
+      { identity: { firstname: 'Brigitte' }, subscriptions: 2, company: companyId },
     ]);
     sinon.assert.calledTwice(populateSubscriptionsServices);
   });
@@ -187,8 +193,9 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
   });
 
   it('should return empty array if no service', async () => {
+    const companyId = new ObjectID();
     ServiceMock.expects('find').chain('lean').once().returns([]);
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     CustomerMock.verify();
@@ -197,11 +204,12 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
   });
 
   it('should return empty array if no customer', async () => {
-    const services = [{ _id: '1234567890', nature: 'fixed' }];
-    const credentials = {};
+    const companyId = new ObjectID();
+    const services = [{ _id: '1234567890', nature: 'fixed', company: companyId }];
+    const credentials = { company: { _id: companyId } };
     ServiceMock.expects('find').chain('lean').once().returns(services);
     CustomerMock.expects('find')
-      .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] } })
+      .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] }, company: companyId })
       .chain('populate')
       .chain('lean')
       .once()
@@ -214,29 +222,30 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
   });
 
   it('should return customers', async () => {
+    const companyId = new ObjectID();
     const customers = [
-      { identity: { firstname: 'Emmanuel' } },
-      { identity: { firstname: 'Brigitte' } },
+      { identity: { firstname: 'Emmanuel' }, company: companyId },
+      { identity: { firstname: 'Brigitte' }, company: companyId },
     ];
     const services = [{ _id: '1234567890', nature: 'fixed' }];
     ServiceMock.expects('find').chain('lean').once().returns(services);
     CustomerMock.expects('find')
-      .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] } })
+      .withExactArgs({ 'subscriptions.service': { $in: ['1234567890'] }, company: companyId })
       .chain('populate')
       .chain('lean')
       .once()
       .returns(customers);
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
 
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     CustomerMock.verify();
     ServiceMock.verify();
     expect(result).toEqual([
-      { identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true },
-      { identity: { firstname: 'Brigitte' }, subscriptions: 2, subscriptionsAccepted: true },
+      { identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true, company: companyId },
+      { identity: { firstname: 'Brigitte' }, subscriptions: 2, subscriptionsAccepted: true, company: companyId },
     ]);
     sinon.assert.calledTwice(populateSubscriptionsServices);
     sinon.assert.calledTwice(subscriptionsAccepted);
@@ -263,6 +272,7 @@ describe('getCustomer', () => {
 
   it('should return null if no customer', async () => {
     const customerId = 'qwertyuiop';
+
     CustomerMock.expects('findOne')
       .withExactArgs({ _id: customerId })
       .chain('populate')
@@ -272,8 +282,7 @@ describe('getCustomer', () => {
       .once()
       .returns(null);
 
-    const credentials = { company: new ObjectID() };
-    const result = await CustomerHelper.getCustomer(customerId, credentials);
+    const result = await CustomerHelper.getCustomer(customerId);
 
     CustomerMock.verify();
     expect(result).toBeNull();
@@ -281,6 +290,7 @@ describe('getCustomer', () => {
 
   it('should return customer', async () => {
     const customerId = 'qwertyuiop';
+
     const customer = { identity: { firstname: 'Emmanuel' } };
     CustomerMock.expects('findOne')
       .withExactArgs({ _id: customerId })
@@ -293,8 +303,7 @@ describe('getCustomer', () => {
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
-    const credentials = { company: new ObjectID() };
-    const result = await CustomerHelper.getCustomer(customerId, credentials);
+    const result = await CustomerHelper.getCustomer(customerId);
 
     CustomerMock.verify();
     expect(result).toEqual({ identity: { firstname: 'Emmanuel' }, subscriptions: 2, subscriptionsAccepted: true });
@@ -304,6 +313,7 @@ describe('getCustomer', () => {
 
   it('should return customer', async () => {
     const customerId = 'qwertyuiop';
+
     const customer = { identity: { firstname: 'Emmanuel' }, fundings: [{ _id: '1234' }, { _id: '09876' }] };
     CustomerMock.expects('findOne')
       .withExactArgs({ _id: customerId })
@@ -317,8 +327,7 @@ describe('getCustomer', () => {
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
     populateFundings.returnsArg(0);
 
-    const credentials = { company: new ObjectID() };
-    await CustomerHelper.getCustomer(customerId, credentials);
+    await CustomerHelper.getCustomer(customerId);
 
     CustomerMock.verify();
     sinon.assert.calledOnce(populateSubscriptionsServices);
@@ -500,6 +509,7 @@ describe('updateCustomer', () => {
       .chain('lean')
       .once()
       .returns(customerResult);
+
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
     CustomerMock.verify();
@@ -742,6 +752,7 @@ describe('updateCustomer', () => {
       .chain('lean')
       .once()
       .returns(customerResult);
+
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
     CustomerMock.verify();

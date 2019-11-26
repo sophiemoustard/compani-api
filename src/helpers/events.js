@@ -29,7 +29,7 @@ momentRange.extendMoment(moment);
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.createEvent = async (payload, credentials) => {
-  if (!(await EventsValidationHelper.isCreationAllowed(payload, credentials))) throw Boom.badData();
+  if (!(await EventsValidationHelper.isCreationAllowed(payload))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 

@@ -45,7 +45,6 @@ const create = async (req) => {
 const update = async (req) => {
   try {
     const updatedService = await Service.findByIdAndUpdate(req.params._id, { $push: { versions: req.payload } }, { new: true });
-
     if (!updatedService) return Boom.notFound(translate[language].serviceNotFound);
 
     return {
@@ -61,7 +60,6 @@ const update = async (req) => {
 const remove = async (req) => {
   try {
     const service = await Service.findByIdAndRemove(req.params._id);
-
     if (!service) return Boom.notFound(translate[language].serviceNotFound);
 
     return {

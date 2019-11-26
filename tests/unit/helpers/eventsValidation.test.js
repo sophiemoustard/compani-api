@@ -517,13 +517,13 @@ describe('isCreationAllowed', () => {
       .once()
       .returns(user);
     checkContracts.returns(false);
-    const credentials = {};
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+
+    const result = await EventsValidationHelper.isCreationAllowed(event);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWith(checkContracts, event, user, credentials);
+    sinon.assert.calledWith(checkContracts, event, user);
   });
 
   it('should return false as event is not absence and has conflicts', async () => {
@@ -545,13 +545,12 @@ describe('isCreationAllowed', () => {
       .returns(user);
     checkContracts.returns(true);
     hasConflicts.returns(true);
-    const credentials = {};
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isCreationAllowed(event);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user, credentials);
+    sinon.assert.calledWith(checkContracts, event, user);
   });
 
   it('should return false if auxiliary sector is not event sector', async () => {
@@ -573,13 +572,12 @@ describe('isCreationAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const credentials = {};
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isCreationAllowed(event);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user, credentials);
+    sinon.assert.calledWith(checkContracts, event, user);
   });
 
   it('should return true', async () => {
@@ -602,13 +600,12 @@ describe('isCreationAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const credentials = {};
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isCreationAllowed(event);
 
     UserModel.verify();
     expect(result).toBeTruthy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user, credentials);
+    sinon.assert.calledWith(checkContracts, event, user);
   });
 });
 

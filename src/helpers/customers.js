@@ -19,22 +19,28 @@ const Counter = require('../models/Rum');
 
 const { language } = translate;
 
-exports.getCustomerBySector = async (startDate, endDate, sector) => {
-  const query = EventsHelper.getListQuery({ startDate, endDate, type: INTERVENTION, sector });
-  return EventRepository.getCustomersFromEvent(query);
+exports.getCustomerBySector = async (query, credentials) => {
+  const queryCustomer = EventsHelper.getListQuery({
+    startDate: query.startDate,
+    endDate: query.endDate,
+    type: INTERVENTION,
+    sector: query.sector,
+  });
+  return EventRepository.getCustomersFromEvent({ ...queryCustomer }, get(credentials, 'company._id', null));
 };
 
-exports.getCustomersWithBilledEvents = async () => {
+exports.getCustomersWithBilledEvents = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const query = { isBilled: true, type: INTERVENTION };
-  return EventRepository.getCustomerWithBilledEvents(query);
+
+  return EventRepository.getCustomerWithBilledEvents(query, companyId);
 };
 
-exports.getCustomers = async (query, credentials) => {
+exports.getCustomers = async (query) => {
   const customers = await Customer.find(query)
     .populate({
       path: 'subscriptions.service',
-      match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
+      populate: { path: 'versions.surcharge' },
     })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
@@ -49,12 +55,11 @@ exports.getCustomers = async (query, credentials) => {
   return customers;
 };
 
-exports.getCustomersWithSubscriptions = async (query, credentials) => {
+exports.getCustomersWithSubscriptions = async (query) => {
   const customers = await Customer.find(query)
     .populate({
       path: 'subscriptions.service',
-      match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
+      populate: { path: 'versions.surcharge' },
     })
     .lean();
 
@@ -75,7 +80,7 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
 
   const ids = customerContractServices.map(service => service._id);
   const customers = await Customer
-    .find({ 'subscriptions.service': { $in: ids } })
+    .find({ 'subscriptions.service': { $in: ids }, company: companyId })
     .populate({
       path: 'subscriptions.service',
       match: { company: companyId },
@@ -92,14 +97,13 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   return customers;
 };
 
-exports.getCustomer = async (customerId, credentials) => {
+exports.getCustomer = async (customerId) => {
   let customer = await Customer.findOne({ _id: customerId })
     .populate({
       path: 'subscriptions.service',
-      match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'versions.surcharge', match: { company: get(credentials, 'company._id', null) } },
+      populate: { path: 'versions.surcharge' },
     })
-    .populate({ path: 'fundings.thirdPartyPayer', match: { company: get(credentials, 'company._id', null) } })
+    .populate({ path: 'fundings.thirdPartyPayer' })
     .populate({ path: 'firstIntervention', select: 'startDate' })
     .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated

@@ -165,7 +165,6 @@ describe('createContract', () => {
 
   it('should create a new customer contract', async () => {
     const newCustomerContractPayload = { ...newCompanyContractPayload, customer: new ObjectID() };
-
     getUserEndedCompanyContractsStub.returns([]);
     ContractMock
       .expects('create')

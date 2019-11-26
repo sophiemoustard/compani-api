@@ -5,11 +5,11 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const { rolesList, getUser } = require('./authenticationSeed');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const contractCustomer = {
   _id: new ObjectID(),
-  company: new ObjectID(),
+  company: authCompany._id,
   email: 'fake@test.com',
   identity: {
     title: 'mr',

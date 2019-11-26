@@ -629,14 +629,25 @@ exports.getEventsToBill = async (dates, customerId) => {
   ]);
 };
 
-exports.getCustomersFromEvent = async query => Event.aggregate([
+exports.getCustomersFromEvent = async (query, companyId) => Event.aggregate([
   { $match: query },
   {
     $lookup: {
       from: 'customers',
-      localField: 'customer',
-      foreignField: '_id',
       as: 'customer',
+      let: { customerId: '$customer' },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ['$_id', '$$customerId'] },
+                { $eq: ['$company', companyId] },
+              ],
+            },
+          },
+        },
+      ],
     },
   },
   { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
@@ -693,15 +704,26 @@ exports.getCustomersFromEvent = async query => Event.aggregate([
   { $replaceRoot: { newRoot: '$customer' } },
 ]);
 
-exports.getCustomerWithBilledEvents = async query => Event.aggregate([
+exports.getCustomerWithBilledEvents = async (query, companyId) => Event.aggregate([
   { $match: query },
   { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' } } },
   {
     $lookup: {
       from: 'customers',
-      localField: '_id.CUSTOMER',
-      foreignField: '_id',
       as: 'customer',
+      let: { customerId: '$_id.CUSTOMER' },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ['$_id', '$$customerId'] },
+                { $eq: ['$company', companyId] },
+              ],
+            },
+          },
+        },
+      ],
     },
   },
   { $unwind: { path: '$customer' } },

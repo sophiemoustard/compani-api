@@ -23,7 +23,7 @@ exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
     contract.status === COMPANY_CONTRACT &&
       moment(contract.startDate).isSameOrBefore(day, 'd') && (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
 
-exports.checkContracts = async (event, user, credentials) => {
+exports.checkContracts = async (event, user) => {
   if (!user.contracts || user.contracts.length === 0) return false;
 
   // If the event is an intervention :
@@ -35,8 +35,7 @@ exports.checkContracts = async (event, user, credentials) => {
       .findOne({ _id: event.customer })
       .populate({
         path: 'subscriptions.service',
-        match: { company: _.get(credentials, 'company._id', null) },
-        populate: { path: 'versions.surcharge', match: { company: _.get(credentials, 'company._id', null) } },
+        populate: { path: 'versions.surcharge' },
       })
       .lean();
     customer = populateSubscriptionsServices(customer);
@@ -80,12 +79,11 @@ const eventHasAuxiliarySector = (event, user) => event.sector === user.sector.to
 const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString();
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
-exports.isCreationAllowed = async (event, credentials) => {
+exports.isCreationAllowed = async (event) => {
   if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
   if (!event.auxiliary) return event.type === INTERVENTION;
-
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
-  if (!await exports.checkContracts(event, user, credentials)) return false;
+  if (!await exports.checkContracts(event, user)) return false;
 
   if (!(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event)) return false;
 
@@ -94,7 +92,7 @@ exports.isCreationAllowed = async (event, credentials) => {
   return true;
 };
 
-exports.isEditionAllowed = async (eventFromDB, payload, credentials) => {
+exports.isEditionAllowed = async (eventFromDB, payload) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
@@ -106,7 +104,7 @@ exports.isEditionAllowed = async (eventFromDB, payload, credentials) => {
   if (!event.auxiliary) return event.type === INTERVENTION;
 
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
-  if (!await exports.checkContracts(event, user, credentials)) return false;
+  if (!await exports.checkContracts(event, user)) return false;
 
   if (!(isRepetition(event) && event.type === INTERVENTION) && !event.isCancelled && (await exports.hasConflicts(event))) return false;
 
