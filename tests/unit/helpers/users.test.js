@@ -51,7 +51,7 @@ describe('getUsers', () => {
       .chain('populate')
       .withExactArgs('contracts')
       .chain('populate')
-      .withExactArgs({ path: 'sector', match: { company: companyId } })
+      .withExactArgs('sector')
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);
@@ -82,7 +82,7 @@ describe('getUsers', () => {
       .chain('populate')
       .withExactArgs('contracts')
       .chain('populate')
-      .withExactArgs({ path: 'sector', match: { company: companyId } })
+      .withExactArgs('sector')
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);
@@ -114,7 +114,7 @@ describe('getUsers', () => {
       .chain('populate')
       .withExactArgs('contracts')
       .chain('populate')
-      .withExactArgs({ path: 'sector', match: { company: companyId } })
+      .withExactArgs('sector')
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);
@@ -253,23 +253,19 @@ describe('createUser', () => {
       },
     };
     const tasks = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    const taskIds = tasks.map(task => ({ task: task._id }));
     const refreshToken = '0987654321';
     const credentials = { company: { _id: new ObjectID() } };
 
-    UserMock
-      .expects('create')
-      .withExactArgs({ ...payload, company: credentials.company._id, refreshToken })
-      .returns(newUser);
+    TaskMock.expects('find').chain('lean').returns(tasks);
 
-    TaskMock.expects('find').returns(tasks);
-
-    UserMock
-      .expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: newUser._id },
-        { $push: { procedure: { $each: tasks.map(t => ({ task: t._id })) } } },
-        { new: true }
-      )
+    UserMock.expects('create')
+      .withExactArgs({
+        ...payload,
+        company: credentials.company._id,
+        refreshToken,
+        procedure: taskIds,
+      })
       .returns({
         ...newUser,
         procedure: [
@@ -289,8 +285,8 @@ describe('createUser', () => {
         rights: populatedUserRights,
       },
     });
-    UserMock.verify();
     TaskMock.verify();
+    UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
   });
 });
@@ -327,12 +323,14 @@ describe('updateUser', () => {
     populateRoleStub.restore();
   });
 
-  it('should update a user', async () => {
+  it('should update a user and populate role', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
     UserMock
       .expects('findOneAndUpdate')
       .withExactArgs({ _id: userId }, { $set: flat(payload) }, { new: true, runValidators: true })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
       .returns({ ...cloneDeep(user), payload });
 
     populateRoleStub.returns(populatedUserRights);
@@ -348,12 +346,37 @@ describe('updateUser', () => {
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
   });
 
-  it('should update a user certificate', async () => {
+  it('should update a user and not populate role', async () => {
+    const payload = { identity: { firstname: 'Titi' } };
+
+    UserMock
+      .expects('findOneAndUpdate')
+      .withExactArgs({ _id: userId }, { $set: flat(payload) }, { new: true, runValidators: true })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
+      .returns({ _id: user._id, role: { rights: [] }, payload });
+
+    populateRoleStub.returns(populatedUserRights);
+
+    const result = await UsersHelper.updateUser(userId, payload);
+
+    expect(result).toMatchObject({
+      ...user,
+      payload,
+      role: { rights: [] },
+    });
+    UserMock.verify();
+    sinon.assert.notCalled(populateRoleStub);
+  });
+
+  it('should update a user certificate and populate role', async () => {
     const payload = { 'administrative.certificates': { driveId: '1234567890' } };
 
     UserMock
       .expects('findOneAndUpdate')
       .withExactArgs({ _id: userId }, { $pull: payload }, { new: true })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true })
       .returns({ ...cloneDeep(user), payload });
 
     populateRoleStub.returns(populatedUserRights);

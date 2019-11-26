@@ -116,15 +116,12 @@ const activeList = async (req) => {
 
 const show = async (req) => {
   try {
-    let { user } = req.pre;
-
-    await user
+    const user = await User.findOne({ _id: req.params._id })
       .populate('customers')
       .populate('contracts')
       .populate({ path: 'procedure.task', select: 'name _id' })
-      .execPopulate();
+      .lean({ autopopulate: true });
 
-    user = user.toObject();
     if (user.role && user.role.rights.length > 0) {
       user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
     }
@@ -174,8 +171,7 @@ const updateCertificates = async (req) => {
 
 const remove = async (req) => {
   try {
-    const { user } = req.pre;
-    await user.remove();
+    await User.findByIdAndRemove(req.params._id);
 
     return { message: translate[language].userRemoved };
   } catch (e) {
@@ -211,6 +207,8 @@ const getUserTasks = async (req) => {
       { _id: req.params._id, procedure: { $exists: true } },
       { identity: 1, procedure: 1 }
     ).populate({ path: 'procedure.task', select: 'name _id' });
+
+    if (!user) return Boom.notFound();
 
     return {
       message: translate[language].userTasksFound,
@@ -362,7 +360,7 @@ const uploadImage = async (req) => {
 
 const createDriveFolder = async (req) => {
   try {
-    const { user } = req.pre;
+    const user = await User.findById(req.params._id);
     let updatedUser;
 
     if (user.identity.firstname && user.identity.lastname) {

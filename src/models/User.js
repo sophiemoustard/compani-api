@@ -17,7 +17,7 @@ const SALT_WORK_FACTOR = 10;
 
 // User schema
 const UserSchema = mongoose.Schema({
-  refreshToken: { type: String, required: true },
+  refreshToken: String,
   resetPassword: {
     token: { type: String, default: null },
     expiresIn: { type: Date, default: null },
@@ -191,12 +191,36 @@ function setIsActive() {
   return isActive(this);
 }
 
+async function populateAfterSave(doc, next) {
+  try {
+    await doc
+      .populate({
+        path: 'role',
+        select: '-__v -createdAt -updatedAt',
+        populate: {
+          path: 'role.right_id',
+          select: 'description permission _id',
+        },
+      })
+      .populate({
+        path: 'company',
+        select: '-__v -createdAt -updatedAt',
+      })
+      .execPopulate();
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validatePayload);
+UserSchema.post('save', populateAfterSave);
 
 UserSchema.plugin(autopopulate);
 

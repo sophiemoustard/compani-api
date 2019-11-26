@@ -22,8 +22,7 @@ exports.getUsers = async (query, credentials) => {
     if (!query.role) throw Boom.notFound(translate[language].roleNotFound);
   }
 
-  const companyId = get(credentials, 'company._id', null);
-  query.company = companyId;
+  query.company = get(credentials, 'company._id', null);
   const params = pickBy(query);
 
   return User
@@ -33,7 +32,7 @@ exports.getUsers = async (query, credentials) => {
     .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate({ path: 'role', select: 'name' })
     .populate('contracts')
-    .populate({ path: 'sector', match: { company: companyId } });
+    .populate('sector');
 };
 
 exports.saveCertificateDriveId = async (userId, fileInfo) => {
@@ -74,15 +73,15 @@ exports.createAndSaveFile = async (administrativeKey, params, payload) => {
 };
 
 exports.createUser = async (userPayload, credentials, refreshToken) => {
-  const user = await User.create({ ...userPayload, company: get(credentials, 'company._id', null), refreshToken });
-  const tasks = await Task.find({});
+  const tasks = await Task.find({}, { _id: 1 }).lean();
   const taskIds = tasks.map(task => ({ task: task._id }));
-  const populatedUser = await User.findOneAndUpdate({ _id: user._id }, { $push: { procedure: { $each: taskIds } } }, { new: true });
-  const populatedRights = RolesHelper.populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
+  userPayload.procedure = taskIds;
+  const user = await User.create({ ...userPayload, company: get(credentials, 'company._id', null), refreshToken });
+  const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
   const payload = {
-    _id: populatedUser._id.toHexString(),
+    _id: user._id.toHexString(),
     role: {
-      name: populatedUser.role.name,
+      name: user.role.name,
       rights: populatedRights,
     },
   };
@@ -100,7 +99,7 @@ exports.updateUser = async (userId, userPayload) => {
     options.runValidators = true;
   }
 
-  const updatedUser = await User.findOneAndUpdate({ _id: userId }, update, options);
+  const updatedUser = await User.findOneAndUpdate({ _id: userId }, update, options).lean({ autopopulate: true });
 
   if (updatedUser.role && updatedUser.role.rights.length > 0) {
     updatedUser.role.rights = RolesHelper.populateRole(updatedUser.role.rights, { onlyGrantedRights: true });
