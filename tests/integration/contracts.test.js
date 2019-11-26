@@ -241,7 +241,7 @@ describe('CONTRACTS ROUTES', () => {
 
       const user = await User.findOne({ _id: contractsList[0].user });
       expect(user.inactivityDate).not.toBeNull();
-      expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment().add('1', 'months').startOf('M').format('YYYY-MM-DD'));
+      expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
       const events = await Event.find().lean();
       expect(events.length).toBe(contractEvents.length - 1);
     });
