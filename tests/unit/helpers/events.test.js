@@ -1,11 +1,11 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const Boom = require('boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const Repetition = require('../../../src/models/Repetition');
 const EventHelper = require('../../../src/helpers/events');
-const PayHelper = require('../../../src/helpers/pay');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
@@ -862,6 +862,21 @@ describe('deleteEvent', () => {
     sinon.assert.calledWith(createEventHistoryOnDelete, deletionInfo, credentials);
     sinon.assert.calledWith(deleteOne, { _id: event._id });
   });
+
+  it('should not delete event if it is billed', async () => {
+    try {
+      const event = {
+        _id: new ObjectID(),
+        type: INTERVENTION,
+        isBilled: true,
+        startDate: '2019-01-21T09:38:18',
+      };
+      const result = await EventHelper.deleteEvent(event, credentials);
+      expect(result).toBe(undefined);
+    } catch (e) {
+      expect(e).toEqual(Boom.forbidden('The event is already billed'));
+    }
+  });
 });
 
 describe('deleteEvents', () => {
@@ -887,6 +902,20 @@ describe('deleteEvents', () => {
 
     sinon.assert.callCount(createEventHistoryOnDelete, events.length);
     sinon.assert.calledWith(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
+  });
+
+  it('should not delete event if at least one is billed', async () => {
+    try {
+      const events = [
+        { _id: '1234567890', type: INTERVENTION, isBilled: true },
+        { _id: 'qwertyuiop', type: INTERVENTION, isBilled: false },
+        { _id: 'asdfghjkl', type: INTERVENTION, isBilled: false },
+      ];
+      await EventHelper.deleteEvents(events, credentials);
+      sinon.assert.notCalled(deleteMany);
+    } catch (e) {
+      expect(e).toEqual(Boom.forbidden('Some events are already billed'));
+    }
   });
 });
 
