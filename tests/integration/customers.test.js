@@ -22,7 +22,7 @@ const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const User = require('../../src/models/User');
 const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const FileHelper = require('../../src/helpers/file');
 
 describe('NODE ENV', () => {
@@ -136,6 +136,8 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
+      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company.toHexString() === authCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
       const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(res.result.data.customers).toHaveLength(customers.length);
     });
@@ -162,14 +164,16 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     it('should get only customers from the company', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
       const res = await app.inject({
         method: 'GET',
         url: '/customers',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
-      const customerNotFromCompany = res.result.data.customers.find(customer => customer._id.toHexString() === otherCompanyCustomerId.toHexString());
-      expect(customerNotFromCompany).not.toBeDefined();
+      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
+      expect(res.result.data.customers).toHaveLength(1);
     });
   });
 
@@ -210,15 +214,16 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     it('should get only customers with billed events from the company', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
       const res = await app.inject({
         method: 'GET',
         url: '/customers/billed-events',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
-      const customerNotFromCompany = res.result.data.customers.find(customer => customer._id.toHexString() === otherCompanyCustomerId.toHexString());
-      expect(customerNotFromCompany).not.toBeDefined();
+      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
     });
   });
 
@@ -259,14 +264,15 @@ describe('CUSTOMERS ROUTES', () => {
     });
 
     it('should get only customers from the company with customer contract subscriptions', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
       const res = await app.inject({
         method: 'GET',
         url: '/customers/customer-contract-subscriptions',
-        headers: { 'x-access-token': adminToken },
+        headers: { 'x-access-token': authToken },
       });
 
-      const customerNotFromCompany = res.result.data.customers.find(customer => customer._id.toHexString() === otherCompanyCustomerId.toHexString());
-      expect(customerNotFromCompany).not.toBeDefined();
+      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
     });
   });
 
@@ -1035,7 +1041,7 @@ describe('CUSTOMER MANDATES ROUTES', () => {
     });
 
     it('should return 403 if user is not from the same company', async () => {
-      const helper = userList[3];
+      const helper = userList[2];
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'POST',

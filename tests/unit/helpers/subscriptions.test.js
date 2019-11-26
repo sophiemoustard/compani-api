@@ -186,6 +186,7 @@ describe('exportSubscriptions', () => {
     CustomerModel.expects('find')
       .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 
@@ -210,6 +211,7 @@ describe('exportSubscriptions', () => {
     CustomerModel.expects('find')
       .withExactArgs({ subscriptions: { $exists: true, $not: { $size: 0 } }, company: companyId })
       .chain('populate')
+      .chain('lean')
       .once()
       .returns(customers);
 

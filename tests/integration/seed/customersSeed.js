@@ -9,10 +9,9 @@ const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
 const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const subId = new ObjectID();
-const otherCompanyId = new ObjectID();
 const otherCompanyCustomerId = new ObjectID();
 
 const customerServiceList = [
@@ -227,7 +226,7 @@ const customersList = [
     },
   },
   {
-    company: otherCompanyId,
+    company: otherCompany._id,
     _id: otherCompanyCustomerId,
     name: 'notFromCompany',
     email: 'test@test.io',
@@ -362,12 +361,20 @@ const userList = [
   },
   {
     _id: new ObjectID(),
-    company: authCompany._id,
+    company: otherCompany._id,
     identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Test' },
     local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: otherCompanyCustomerId,
+  },
+  {
+    _id: new ObjectID(),
+    company: otherCompany._id,
+    identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
+    local: { email: 'admin_for_other_company@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'admin')._id,
   },
 ];
 
@@ -408,7 +415,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
-    company: otherCompanyId,
+    company: otherCompany._id,
     isBilled: true,
     customer: otherCompanyCustomerId,
     type: 'intervention',
@@ -453,6 +460,5 @@ module.exports = {
   populateDB,
   customerServiceList,
   customerThirdPartyPayer,
-  otherCompanyId,
   otherCompanyCustomerId,
 };

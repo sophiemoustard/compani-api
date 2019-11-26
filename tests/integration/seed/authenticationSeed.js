@@ -196,6 +196,12 @@ const authCompany = {
   tradeName: 'Test',
 };
 
+const otherCompany = {
+  _id: new ObjectID(),
+  name: 'Other test SAS',
+  tradeName: 'Other test',
+};
+
 const userList = [
   {
     _id: new ObjectID(),
@@ -245,6 +251,7 @@ const populateDBForAuthentication = async () => {
   await User.deleteMany({});
   await Company.deleteMany({});
   await new Company(authCompany).save();
+  await new Company(otherCompany).save();
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
   for (let i = 0; i < userList.length; i++) {
@@ -285,4 +292,5 @@ module.exports = {
   getToken,
   getTokenByCredentials,
   authCompany,
+  otherCompany,
 };
