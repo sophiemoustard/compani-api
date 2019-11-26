@@ -7,7 +7,7 @@ const { language } = translate;
 exports.getUser = async (req) => {
   try {
     const userId = req.params._id;
-    const user = await User.findById(userId).lean();
+    const user = await User.findById(userId).lean({ autopopulate: true });
     if (!user) throw Boom.notFound(translate[language].userNotFound);
 
     return user;
