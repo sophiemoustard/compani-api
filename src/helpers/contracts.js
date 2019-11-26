@@ -90,7 +90,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   if (!hasActiveContracts) {
     await User.findOneAndUpdate(
       { _id: contract.user },
-      { $set: { inactivityDate: moment().add('1', 'months').startOf('M').toDate() } }
+      { $set: { inactivityDate: moment(contractToEnd.endDate).add('1', 'month').startOf('M').toDate() } }
     );
   }
 
