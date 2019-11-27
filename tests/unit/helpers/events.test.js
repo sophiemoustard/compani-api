@@ -829,6 +829,32 @@ describe('unassignConflictInterventions', () => {
   });
 });
 
+describe('cannotBeDeleted', () => {
+  it('should return true', async () => {
+    const event = { type: INTERVENTION, isBilled: true };
+    const result = EventHelper.cannotBeDeleted(event);
+    expect(result).toBe(true);
+  });
+
+  it('should return false', async () => {
+    const event = { type: INTERVENTION, isBilled: false };
+    const result = EventHelper.cannotBeDeleted(event);
+    expect(result).toBe(false);
+  });
+
+  it('should return false', async () => {
+    const event = { type: INTERVENTION };
+    const result = EventHelper.cannotBeDeleted(event);
+    expect(result).toBe(false);
+  });
+
+  it('should return false', async () => {
+    const event = { type: INTERNAL_HOUR, isBilled: true };
+    const result = EventHelper.cannotBeDeleted(event);
+    expect(result).toBe(false);
+  });
+});
+
 describe('deleteEvent', () => {
   let createEventHistoryOnDelete;
   let deleteOne;

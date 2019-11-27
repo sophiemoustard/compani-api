@@ -269,7 +269,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
   return Promise.all(promises);
 };
 
-exports.cannotBeDeleted = event => event.type === INTERVENTION && event.isBilled;
+exports.cannotBeDeleted = event => event.type === INTERVENTION && !!event.isBilled && event.isBilled;
 
 exports.deleteEvent = async (event, credentials) => {
   if (exports.cannotBeDeleted(event)) throw Boom.forbidden('The event is already billed');
