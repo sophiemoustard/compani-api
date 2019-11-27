@@ -16,6 +16,7 @@ const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
 const Counter = require('../models/Rum');
+const CustomerRepository = require('../repositories/CustomerRepository');
 
 const { language } = translate;
 
@@ -50,23 +51,6 @@ exports.getCustomers = async (query) => {
   for (let i = 0, l = customers.length; i < l; i++) {
     customers[i] = SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
     customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
-  }
-
-  return customers;
-};
-
-exports.getCustomersWithSubscriptions = async (query) => {
-  const customers = await Customer.find(query)
-    .populate({
-      path: 'subscriptions.service',
-      populate: { path: 'versions.surcharge' },
-    })
-    .lean();
-
-  if (customers.length === 0) return [];
-
-  for (let i = 0, l = customers.length; i < l; i++) {
-    customers[i] = SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
   }
 
   return customers;
