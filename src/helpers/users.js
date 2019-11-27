@@ -13,26 +13,31 @@ const RolesHelper = require('./roles');
 const { language } = translate;
 
 exports.getUsers = async (query, credentials) => {
+  const params = {
+    ...pickBy(query),
+    company: get(credentials, 'company._id', null),
+  };
+
   if (query.role) {
-    if (Array.isArray(query.role)) {
-      query.role = await Role.find({ name: { $in: query.role } }, { _id: 1 }).lean();
-    } else {
-      query.role = await Role.findOne({ name: query.role }, { _id: 1 }).lean();
-    }
-    if (!query.role) throw Boom.notFound(translate[language].roleNotFound);
+    let role;
+    if (Array.isArray(query.role)) role = await Role.find({ name: { $in: query.role } }, { _id: 1 }).lean();
+    else role = await Role.findOne({ name: query.role }, { _id: 1 }).lean();
+
+    if (!role) throw Boom.notFound(translate[language].roleNotFound);
+    params.role = role;
   }
 
-  query.company = get(credentials, 'company._id', null);
-  const params = pickBy(query);
-
-  return User
+  const users = await User
     .find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate({ path: 'role', select: 'name' })
     .populate('contracts')
-    .populate('sector');
+    .populate('sector')
+    .lean({ autopopulate: true });
+
+  return users;
 };
 
 exports.saveCertificateDriveId = async (userId, fileInfo) => {

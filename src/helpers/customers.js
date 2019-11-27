@@ -16,7 +16,6 @@ const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
 const Counter = require('../models/Rum');
-const CustomerRepository = require('../repositories/CustomerRepository');
 
 const { language } = translate;
 
