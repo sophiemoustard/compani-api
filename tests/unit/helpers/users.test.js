@@ -219,37 +219,43 @@ describe('createAndSaveFile', () => {
 describe('createUser', () => {
   let UserMock;
   let TaskMock;
+  let RoleMock;
   let populateRoleStub;
+  const userRights = [{
+    right_id: { _id: new ObjectID().toHexString(), permission: 'test' },
+    hasAccess: true,
+  }, {
+    right_id: { _id: new ObjectID().toHexString(), permission: 'test2' },
+    hasAccess: false,
+  }];
+  const populatedUserRights = userRights.map(right => ({
+    ...right,
+    right_id: right.right_id._id,
+    permission: right.right_id.permission,
+  }));
+  const refreshToken = '0987654321';
+  const credentials = { company: { _id: new ObjectID() } };
+
   beforeEach(() => {
     UserMock = sinon.mock(User);
     TaskMock = sinon.mock(Task);
+    RoleMock = sinon.mock(Role);
     populateRoleStub = sinon.stub(RolesHelper, 'populateRole');
   });
 
   afterEach(() => {
     UserMock.restore();
     TaskMock.restore();
+    RoleMock.restore();
     populateRoleStub.restore();
   });
 
-  it('should create a user', async () => {
+  it('should create an auxiliary', async () => {
     const payload = {
       identity: { lastname: 'Test', firstname: 'Toto' },
       local: { email: 'toto@test.com', password: '1234567890' },
       role: new ObjectID(),
     };
-    const userRights = [{
-      right_id: { _id: new ObjectID().toHexString(), permission: 'test' },
-      hasAccess: true,
-    }, {
-      right_id: { _id: new ObjectID().toHexString(), permission: 'test2' },
-      hasAccess: false,
-    }];
-    const populatedUserRights = userRights.map(right => ({
-      ...right,
-      right_id: right.right_id._id,
-      permission: right.right_id.permission,
-    }));
     const newUser = {
       _id: new ObjectID(),
       ...payload,
@@ -260,8 +266,12 @@ describe('createUser', () => {
     };
     const tasks = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
     const taskIds = tasks.map(task => ({ task: task._id }));
-    const refreshToken = '0987654321';
-    const credentials = { company: { _id: new ObjectID() } };
+
+    RoleMock
+      .expects('findById')
+      .withExactArgs(payload.role, { name: 1 })
+      .chain('lean')
+      .returns({ name: 'auxiliary' });
 
     TaskMock.expects('find').chain('lean').returns(tasks);
 
@@ -291,9 +301,84 @@ describe('createUser', () => {
         rights: populatedUserRights,
       },
     });
+    RoleMock.verify();
     TaskMock.verify();
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
+  });
+
+  it('should create a user other than auxiliary', async () => {
+    const payload = {
+      identity: { lastname: 'Test', firstname: 'Toto' },
+      local: { email: 'toto@test.com', password: '1234567890' },
+      role: new ObjectID(),
+    };
+    const newUser = {
+      _id: new ObjectID(),
+      ...payload,
+      role: {
+        name: 'coach',
+        rights: userRights,
+      },
+    };
+
+    RoleMock
+      .expects('findById')
+      .withExactArgs(payload.role, { name: 1 })
+      .chain('lean')
+      .returns({ name: 'coach' });
+
+    TaskMock.expects('find').never();
+
+    UserMock.expects('create')
+      .withExactArgs({
+        ...payload,
+        company: credentials.company._id,
+        refreshToken,
+      })
+      .returns({ ...newUser });
+
+    populateRoleStub.returns(populatedUserRights);
+
+    const result = await UsersHelper.createUser(payload, credentials, refreshToken);
+
+    expect(result).toMatchObject({
+      _id: newUser._id.toHexString(),
+      role: {
+        name: newUser.role.name,
+        rights: populatedUserRights,
+      },
+    });
+    RoleMock.verify();
+    TaskMock.verify();
+    UserMock.verify();
+    sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
+  });
+
+  it('should return a 400 error if role does not exist', async () => {
+    try {
+      const payload = {
+        identity: { lastname: 'Test', firstname: 'Toto' },
+        local: { email: 'toto@test.com', password: '1234567890' },
+        role: new ObjectID(),
+      };
+
+      RoleMock
+        .expects('findById')
+        .withExactArgs(payload.role, { name: 1 })
+        .chain('lean')
+        .returns(null);
+
+      TaskMock.expects('find').never();
+      UserMock.expects('create').never();
+
+      await UsersHelper.createUser(payload, credentials, refreshToken);
+    } catch (e) {
+      expect(e).toEqual(Boom.badRequest('Role does not exist'));
+      RoleMock.verify();
+      UserMock.verify();
+      sinon.assert.notCalled(populateRoleStub);
+    }
   });
 });
 

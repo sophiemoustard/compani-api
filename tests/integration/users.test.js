@@ -66,6 +66,8 @@ describe('USERS ROUTES', () => {
         expect(user.local.email).toBe(userPayload.local.email);
         expect(user.local.password).toBeDefined();
         expect(user).toHaveProperty('picture');
+        expect(user.procedure).toBeDefined();
+        expect(user.procedure.length).toBeGreaterThan(0);
       });
 
       it('should not create a user if role provided does not exist', async () => {
