@@ -67,6 +67,7 @@ const contractsList = [
     startDate: '2018-12-03T23:00:00.000Z',
     status: 'contract_with_company',
     _id: contractUser.contracts[0],
+    company: authCompany._id,
     versions: [
       {
         createdAt: '2018-12-04T16:34:04.144Z',
@@ -81,6 +82,7 @@ const contractsList = [
   {
     createdAt: '2018-08-02T17:12:55.144Z',
     endDate: null,
+    company: authCompany._id,
     user: getUser('auxiliary')._id,
     startDate: '2018-08-02T17:12:55.144Z',
     status: 'contract_with_company',
@@ -103,6 +105,7 @@ const contractsList = [
     endDate: '2018-09-02T17:12:55.144Z',
     status: 'contract_with_company',
     _id: new ObjectID(),
+    company: authCompany._id,
     versions: [
       {
         createdAt: '2018-08-02T17:12:55.144Z',

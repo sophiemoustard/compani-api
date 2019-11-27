@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { validatePayload } = require('./preHooks/validate');
 
 const {
   CUSTOMER_CONTRACT,
@@ -33,14 +34,15 @@ const END_CONTRACT_REASONS = [
 ];
 
 const ContractSchema = mongoose.Schema({
-  startDate: Date,
-  endDate: Date,
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  startDate: { type: Date, required: true },
+  endDate: { type: Date },
   endReason: { type: String, enum: END_CONTRACT_REASONS },
   otherMisc: String,
-  endNotificationDate: Date,
-  status: { type: String, enum: CONTRACT_STATUS },
+  endNotificationDate: { type: Date },
+  status: { type: String, enum: CONTRACT_STATUS, required: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   versions: [{
     signature: {
       eversignId: String,
@@ -50,10 +52,10 @@ const ContractSchema = mongoose.Schema({
       },
     },
     createdAt: { type: Date, default: Date.now },
-    startDate: Date,
-    endDate: Date,
-    weeklyHours: Number,
-    grossHourlyRate: Number,
+    startDate: { type: Date, required: true },
+    endDate: { type: Date },
+    weeklyHours: { type: Number },
+    grossHourlyRate: { type: Number, required: true },
     customerDoc: driveResourceSchemaDefinition,
     auxiliaryDoc: driveResourceSchemaDefinition,
     customerArchives: [driveResourceSchemaDefinition],
@@ -63,6 +65,7 @@ const ContractSchema = mongoose.Schema({
   timestamps: true,
 });
 
+ContractSchema.pre('validate', validatePayload);
 module.exports = mongoose.model('Contract', ContractSchema);
 module.exports.CONTRACT_STATUS = CONTRACT_STATUS;
 module.exports.END_CONTRACT_REASONS = END_CONTRACT_REASONS;

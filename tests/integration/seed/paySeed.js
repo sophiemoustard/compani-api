@@ -58,6 +58,7 @@ const contracts = [{
   startDate: '2018-12-03T23:00:00.000Z',
   status: 'contract_with_company',
   _id: contractId1,
+  company: authCompany._id,
   versions: [
     {
       createdAt: '2018-12-04T16:34:04',
@@ -71,6 +72,7 @@ const contracts = [{
 }, {
   createdAt: '2018-12-04T16:34:04',
   user: auxiliaryId2,
+  company: authCompany._id,
   startDate: '2018-12-03T23:00:00.000Z',
   status: 'contract_with_company',
   _id: contractId2,

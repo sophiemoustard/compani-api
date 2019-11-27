@@ -19,7 +19,15 @@ const sectorList = [{
 
 const contractList = [{
   _id: new ObjectID(),
+  user: new ObjectID(),
+  company: authCompany._id,
   status: COMPANY_CONTRACT,
+  startDate: '2010-09-03T00:00:00',
+  versions: [{
+    startDate: '2010-09-03T00:00:00',
+    grossHourlyRate: 10.43,
+    weeklyHours: 12,
+  }],
 }];
 
 const userList = [

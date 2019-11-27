@@ -34,8 +34,8 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const { payload } = req;
-    const contract = await createContract(payload);
+    const { payload, auth } = req;
+    const contract = await createContract(payload, auth.credentials);
 
     return {
       message: translate[language].contractCreated,
