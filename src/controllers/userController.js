@@ -52,7 +52,7 @@ const authenticate = async (req) => {
 
 const create = async (req) => {
   try {
-    const newUser = await UsersHelper.createUser(req.payload, req.auth.credentials, uuidv4());
+    const newUser = await UsersHelper.createUser(req.payload, req.auth.credentials);
     return {
       message: translate[language].userSaved,
       data: { user: newUser },

@@ -233,7 +233,6 @@ describe('createUser', () => {
     right_id: right.right_id._id,
     permission: right.right_id.permission,
   }));
-  const refreshToken = '0987654321';
   const credentials = { company: { _id: new ObjectID() } };
 
   beforeEach(() => {
@@ -279,7 +278,7 @@ describe('createUser', () => {
       .withExactArgs({
         ...payload,
         company: credentials.company._id,
-        refreshToken,
+        refreshToken: sinon.match.string,
         procedure: taskIds,
       })
       .returns({
@@ -292,7 +291,7 @@ describe('createUser', () => {
 
     populateRoleStub.returns(populatedUserRights);
 
-    const result = await UsersHelper.createUser(payload, credentials, refreshToken);
+    const result = await UsersHelper.createUser(payload, credentials);
 
     expect(result).toMatchObject({
       _id: newUser._id.toHexString(),
@@ -334,13 +333,13 @@ describe('createUser', () => {
       .withExactArgs({
         ...payload,
         company: credentials.company._id,
-        refreshToken,
+        refreshToken: sinon.match.string,
       })
       .returns({ ...newUser });
 
     populateRoleStub.returns(populatedUserRights);
 
-    const result = await UsersHelper.createUser(payload, credentials, refreshToken);
+    const result = await UsersHelper.createUser(payload, credentials);
 
     expect(result).toMatchObject({
       _id: newUser._id.toHexString(),
@@ -372,7 +371,7 @@ describe('createUser', () => {
       TaskMock.expects('find').never();
       UserMock.expects('create').never();
 
-      await UsersHelper.createUser(payload, credentials, refreshToken);
+      await UsersHelper.createUser(payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Role does not exist'));
       RoleMock.verify();

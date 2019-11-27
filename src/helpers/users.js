@@ -4,6 +4,7 @@ const get = require('lodash/get');
 const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const flat = require('flat');
+const uuidv4 = require('uuid/v4');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Task = require('../models/Task');
@@ -77,7 +78,7 @@ exports.createAndSaveFile = async (administrativeKey, params, payload) => {
   return uploadedFile;
 };
 
-exports.createUser = async (userPayload, credentials, refreshToken) => {
+exports.createUser = async (userPayload, credentials) => {
   const payload = cloneDeep(userPayload);
   const role = await Role.findById(payload.role, { name: 1 }).lean();
   if (!role) throw Boom.badRequest('Role does not exist');
@@ -88,7 +89,7 @@ exports.createUser = async (userPayload, credentials, refreshToken) => {
     payload.procedure = taskIds;
   }
 
-  const user = await User.create({ ...payload, company: get(credentials, 'company._id', null), refreshToken });
+  const user = await User.create({ ...payload, company: get(credentials, 'company._id', null), refreshToken: uuidv4() });
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
   return pickBy({
     _id: user._id.toHexString(),
