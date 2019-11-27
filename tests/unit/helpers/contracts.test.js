@@ -315,7 +315,8 @@ describe('endContract', () => {
     ContractFindOneStub.returns(contract);
 
     try {
-      await ContractHelper.endContract(contract._id, payload, credentials);
+      const result = await ContractHelper.endContract(contract._id, payload, credentials);
+      expect(result).toBe(undefined);
     } catch (e) {
       expect(e).toEqual(Boom.forbidden('Contract is already ended.'));
     }
