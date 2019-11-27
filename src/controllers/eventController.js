@@ -8,6 +8,7 @@ const {
   updateEvent,
   createEvent,
   deleteEvent,
+  removeManyEventsHelper,
   workingStats,
 } = require('../helpers/events');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
@@ -132,6 +133,19 @@ const removeRepetition = async (req) => {
   }
 };
 
+const removeManyEvents = async (req) => {
+  try {
+    const { payload, auth } = req;
+
+    await removeManyEventsHelper(payload.customer, payload.startDate, payload.endDate, auth.credentials);
+
+    return { message: translate[language].eventsDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const getWorkingStats = async (req) => {
   try {
     const { query, auth } = req;
@@ -153,6 +167,7 @@ module.exports = {
   update,
   remove,
   removeRepetition,
+  removeManyEvents,
   listForCreditNotes,
   getWorkingStats,
 };

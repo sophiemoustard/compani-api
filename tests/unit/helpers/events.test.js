@@ -614,6 +614,76 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   });
 });
 
+describe('removeManyEvents', () => {
+  let deleteEventsStub;
+  let EventModel;
+  const customerId = new ObjectID();
+  const userId = new ObjectID();
+  const credentials = { _id: userId };
+  const events = [
+    {
+      _id: new ObjectID(),
+      customer: customerId,
+      type: 'internal_hour',
+      startDate: '2019-10-12T10:00:00.000Z',
+      endDate: '2019-10-12T12:00:00.000Z',
+      auxiliary: userId,
+    },
+    {
+      _id: new ObjectID(),
+      customer: customerId,
+      type: 'unavailability',
+      startDate: '2019-10-09T11:00:00.000Z',
+      endDate: '2019-10-09T13:00:00.000Z',
+      auxiliary: userId,
+    },
+    {
+      _id: new ObjectID(),
+      customer: customerId,
+      type: 'unavailability',
+      startDate: '2019-10-20T11:00:00.000Z',
+      endDate: '2019-10-20T13:00:00.000Z',
+      auxiliary: userId,
+    },
+  ];
+
+  beforeEach(() => {
+    deleteEventsStub = sinon.stub(EventHelper, 'deleteEvents');
+    EventModel = sinon.mock(Event);
+  });
+  afterEach(() => {
+    deleteEventsStub.restore();
+    EventModel.restore();
+  });
+
+  it('should take endDate into account', async () => {
+    const startDate = '2019-10-10';
+    const endDate = '2019-10-19';
+    const query = { customer: customerId, startDate: { $gte: moment('2019-10-10'), $lte: moment('2019-10-19').endOf('d') } };
+    EventModel.expects('find')
+      .withExactArgs(query)
+      .chain('lean')
+      .once()
+      .returns([events[0]]);
+
+    await EventHelper.removeManyEventsHelper(customerId, startDate, endDate, credentials);
+    sinon.assert.calledWith(deleteEventsStub, [events[0]], credentials);
+  });
+
+  it('should not take endDate into account', async () => {
+    const startDate = '2019-10-10';
+    const query = { customer: customerId, startDate: { $gte: moment('2019-10-10') } };
+    EventModel.expects('find')
+      .withExactArgs(query)
+      .chain('lean')
+      .once()
+      .returns([events[0]]);
+
+    await EventHelper.removeManyEventsHelper(customerId, startDate, undefined, credentials);
+    sinon.assert.calledWith(deleteEventsStub, [events[0]], credentials);
+  });
+});
+
 describe('updateAbsencesOnContractEnd', () => {
   let getAbsences = null;
   let createEventHistoryOnUpdate = null;

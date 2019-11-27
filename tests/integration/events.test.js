@@ -602,4 +602,75 @@ describe('EVENTS ROUTES', () => {
       });
     });
   });
+
+  describe('DELETE /events/many-events', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should delete all events from startDate', async () => {
+        const payload = {
+          customer: customerAuxiliary._id,
+          startDate: '2019-10-14',
+        };
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: '/events/many-events',
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+        expect(response.statusCode).toBe(200);
+      });
+
+
+      it('should delete all events from startDate to endDate', async () => {
+        const payload = {
+          customer: customerAuxiliary._id,
+          startDate: '2019-10-14',
+          endDate: '2019-10-16',
+        };
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: '/events/many-events',
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+        expect(response.statusCode).toBe(200);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        const payload = {
+          customer: customerAuxiliary._id,
+          startDate: '2019-10-14',
+          endDate: '2019-10-16',
+        };
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: '/events/many-events',
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 });
