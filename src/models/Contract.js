@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validatePayload } = require('./preHooks/validate');
+const { validatePayload, validateQuery } = require('./preHooks/validate');
 
 const {
   CUSTOMER_CONTRACT,
@@ -66,6 +66,7 @@ const ContractSchema = mongoose.Schema({
 });
 
 ContractSchema.pre('validate', validatePayload);
+ContractSchema.pre('find', validateQuery);
 module.exports = mongoose.model('Contract', ContractSchema);
 module.exports.CONTRACT_STATUS = CONTRACT_STATUS;
 module.exports.END_CONTRACT_REASONS = END_CONTRACT_REASONS;

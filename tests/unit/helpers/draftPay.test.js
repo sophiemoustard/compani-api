@@ -1713,16 +1713,18 @@ describe('getAuxiliariesToPay', () => {
 
   it('should return auxiliaries', async () => {
     const end = '2019-05-31T23:59:59';
+    const credentials = { company: { _id: '1234567890' } };
     const auxiliaries = [{ _id: new ObjectID(), sector: { name: 'Abeilles' } }];
 
     getAuxiliariesToPay.returns(auxiliaries);
-    const result = await DraftPayHelper.getAuxiliariesToPay(end);
+    const result = await DraftPayHelper.getAuxiliariesToPay(end, credentials);
 
     expect(result).toBeDefined();
     expect(result).toEqual(auxiliaries);
     sinon.assert.calledWith(
       getAuxiliariesToPay,
       {
+        company: '1234567890',
         status: 'contract_with_company',
         startDate: { $lte: end },
         $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
@@ -1747,23 +1749,23 @@ describe('getDraftPay', () => {
 
   it('should return an empty array if no auxiliary', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const credentials = { company: '1234567890' };
+    const credentials = { company: { _id: '1234567890' } };
     getAuxiliariesToPay.returns([]);
     const result = await DraftPayHelper.getDraftPay(query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWith(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate());
+    sinon.assert.calledWith(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate(), credentials);
     sinon.assert.notCalled(computeDraftPayByAuxiliary);
   });
 
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaries = [{ _id: new ObjectID(), sector: { name: 'Abeilles' } }];
-    const credentials = { company: '1234567890' };
+    const credentials = { company: { _id: '1234567890' } };
     getAuxiliariesToPay.returns(auxiliaries);
     await DraftPayHelper.getDraftPay(query, credentials);
 
-    sinon.assert.calledWith(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate());
+    sinon.assert.calledWith(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate(), credentials);
     sinon.assert.calledWith(
       computeDraftPayByAuxiliary,
       auxiliaries,

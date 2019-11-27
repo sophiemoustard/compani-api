@@ -266,8 +266,9 @@ const contractExportHeader = [
   'Volume horaire hebdomadaire',
 ];
 
-exports.exportContractHistory = async (startDate, endDate) => {
+exports.exportContractHistory = async (startDate, endDate, credentials) => {
   const query = {
+    company: get(credentials, 'company._id', null),
     'versions.startDate': { $lte: endDate, $gte: startDate },
   };
 

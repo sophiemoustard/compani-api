@@ -5,7 +5,7 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const { rolesList, getUser } = require('./authenticationSeed');
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const contractCustomer = {
   _id: new ObjectID(),
@@ -47,6 +47,18 @@ const contractCustomer = {
   },
 };
 
+const otherCompanyContractUser = {
+  _id: new ObjectID(),
+  identity: { firstname: 'OCCU', lastname: 'OCCU' },
+  local: { email: 'other-company-contract-user@alenvi.io', password: '123456' },
+  inactivityDate: null,
+  employee_id: 12345678,
+  refreshToken: uuidv4(),
+  role: rolesList[0]._id,
+  contracts: [new ObjectID()],
+  company: otherCompany._id,
+};
+
 const contractUser = {
   _id: new ObjectID(),
   identity: { firstname: 'Test7', lastname: 'Test7' },
@@ -57,6 +69,26 @@ const contractUser = {
   role: rolesList[0]._id,
   contracts: [new ObjectID()],
   company: authCompany._id,
+};
+
+const otherCompanyContract = {
+  createdAt: '2018-12-04T16:34:04.144Z',
+  endDate: null,
+  user: otherCompanyContractUser._id,
+  startDate: '2018-12-03T23:00:00.000Z',
+  status: 'contract_with_company',
+  _id: otherCompanyContractUser.contracts[0],
+  company: otherCompany._id,
+  versions: [
+    {
+      createdAt: '2018-12-04T16:34:04.144Z',
+      endDate: null,
+      grossHourlyRate: 10.28,
+      startDate: '2018-12-03T23:00:00.000Z',
+      weeklyHours: 9,
+      _id: new ObjectID(),
+    },
+  ],
 };
 
 const contractsList = [
@@ -177,8 +209,9 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
   await new User(contractUser).save();
+  await new User(otherCompanyContractUser).save();
   await new Customer(contractCustomer).save();
-  await Contract.insertMany(contractsList);
+  await Contract.insertMany([...contractsList, otherCompanyContract]);
   await Event.insertMany(contractEvents);
 };
 
@@ -188,4 +221,5 @@ module.exports = {
   contractUser,
   contractCustomer,
   contractEvents,
+  otherCompanyContract,
 };

@@ -69,8 +69,9 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contr
   { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
 ]);
 
-exports.getUserEndedCompanyContracts = async contractUserId => Contract.find(
+exports.getUserEndedCompanyContracts = async (contractUserId, companyId) => Contract.find(
   {
+    company: companyId,
     user: contractUserId,
     status: COMPANY_CONTRACT,
     endDate: { $exists: true },
@@ -78,3 +79,11 @@ exports.getUserEndedCompanyContracts = async contractUserId => Contract.find(
   { endDate: 1 },
   { sort: { endDate: -1 } }
 ).lean();
+
+exports.getStaffRegister = async companyId => Contract
+  .find({ company: companyId })
+  .populate({
+    path: 'user',
+    select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto administrative.residencePermitVerso',
+  })
+  .lean();

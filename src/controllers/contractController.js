@@ -16,6 +16,7 @@ const {
   deleteVersion,
   getContractList,
 } = require('../helpers/contracts');
+const ContractRepository = require('../repositories/ContractRepository');
 
 const { language } = translate;
 
@@ -64,7 +65,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const contract = await Contract.findByIdAndRemove({ _id: req.params._id });
+    const contract = await Contract.findOneAndRemove({ _id: req.params._id });
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
@@ -164,13 +165,8 @@ const receiveSignatureEvents = async (req, h) => {
 
 const getStaffRegister = async (req) => {
   try {
-    const staffRegister = await Contract
-      .find()
-      .populate({
-        path: 'user',
-        select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto administrative.residencePermitVerso',
-      })
-      .lean();
+    const { credentials } = req.auth;
+    const staffRegister = await ContractRepository.getStaffRegister(credentials.company._id);
 
     return {
       message: translate[language].staffRegisteredFound,

@@ -154,15 +154,27 @@ describe('getDraftPay', () => {
 
   it('should return an empty array if no auxiliary', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const credentials = { company: { _id: '1234567890' } };
     getAuxiliariesToPay.returns([]);
-    const result = await DraftFinalPayHelper.getDraftFinalPay([], [], query);
+    const result = await DraftFinalPayHelper.getDraftFinalPay(query, credentials);
 
     expect(result).toBeDefined();
     expect(result).toEqual([]);
+    sinon.assert.calledWith(
+      getAuxiliariesToPay,
+      {
+        company: '1234567890',
+        status: 'contract_with_company',
+        endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
+      },
+      moment('2019-05-31T23:59:59').endOf('d').toDate(),
+      'finalpays'
+    );
   });
 
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
+    const credentials = { company: { _id: '1234567890' } };
     const auxiliaryId = new ObjectID();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
     const payData = [
@@ -191,13 +203,23 @@ describe('getDraftPay', () => {
     getPreviousMonthPay.returns(prevPay);
     companyMock.expects('findOne').chain('lean').returns({});
     getDraftFinalPayByAuxiliary.returns({ hoursBalance: 120 });
-    const result = await DraftFinalPayHelper.getDraftFinalPay(query);
+    const result = await DraftFinalPayHelper.getDraftFinalPay(query, credentials);
 
     expect(result).toBeDefined();
     expect(result).toEqual([{ hoursBalance: 120 }]);
     companyMock.verify();
     surchargeMock.verify();
     distanceMatrixMock.verify();
+    sinon.assert.calledWith(
+      getAuxiliariesToPay,
+      {
+        company: '1234567890',
+        status: 'contract_with_company',
+        endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
+      },
+      moment('2019-05-31T23:59:59').endOf('d').toDate(),
+      'finalpays'
+    );
     sinon.assert.calledWith(
       getDraftFinalPayByAuxiliary,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
