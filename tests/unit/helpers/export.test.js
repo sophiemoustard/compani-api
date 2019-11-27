@@ -338,26 +338,30 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     contractMock.expects('find')
+      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
       .chain('populate')
       .chain('lean')
       .once()
       .returns([]);
 
-    const result = await ExportHelper.exportContractHistory(startDate, endDate);
+    const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
     expect(result).toEqual([['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire']]);
   });
 
   it('should return an array containing the header and one row', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }] }];
     contractMock.expects('find')
+      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
       .chain('populate')
       .chain('lean')
       .once()
       .returns(contracts);
 
-    const result = await ExportHelper.exportContractHistory(startDate, endDate);
+    const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
     expect(result).toEqual([
       ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
@@ -366,6 +370,7 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     const contracts = [
       {
         user: { identity: { title: 'mr', lastname: 'Patate' } },
@@ -383,9 +388,13 @@ describe('exportContractHistory', () => {
       },
     ];
 
-    contractMock.expects('find').chain('populate').chain('lean').returns(contracts);
+    contractMock.expects('find')
+      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
+      .chain('populate')
+      .chain('lean')
+      .returns(contracts);
 
-    const result = await ExportHelper.exportContractHistory(startDate, endDate);
+    const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     expect(result).toEqual([
       ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
       ['Contrat', 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
@@ -809,6 +818,7 @@ describe('exportHelpers', () => {
     expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '37 rue de Ponthieu', '75008', 'Paris', 'Actif', '']);
   });
 });
+
 describe('formatSurchargedDetailsForExport', () => {
   const emptyPlan = { planName: 'Empty plan' };
   const unknownPlan = { planName: 'Unknown plan', helloWorld: { percentage: 7, hours: 10 } };

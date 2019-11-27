@@ -16,7 +16,7 @@ const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const ContractRepository = require('../../../src/repositories/ContractRepository');
+
 require('sinon-mongoose');
 
 describe('getContractList', () => {
@@ -33,7 +33,7 @@ describe('getContractList', () => {
     const credentials = { company: { _id: '1234567890' } };
     const query = { user: '1234567890' };
     ContractMock.expects('find')
-      .withExactArgs({ $and: [{ user: '1234567890' }] })
+      .withExactArgs({ $and: [{ company: '1234567890' }, { user: '1234567890' }] })
       .chain('populate')
       .chain('populate')
       .chain('lean')
@@ -49,12 +49,15 @@ describe('getContractList', () => {
     const query = { startDate: '2019-09-09T00:00:00', endDate: '2019-09-09T00:00:00' };
     ContractMock.expects('find')
       .withExactArgs({
-        $and: [{
-          $or: [
-            { versions: { $elemMatch: { startDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } } } },
-            { endDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
-          ],
-        }],
+        $and: [
+          { company: '1234567890' },
+          {
+            $or: [
+              { versions: { $elemMatch: { startDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } } } },
+              { endDate: { $gte: '2019-09-09T00:00:00', $lte: '2019-09-09T00:00:00' } },
+            ],
+          },
+        ],
       })
       .chain('populate')
       .chain('populate')
@@ -113,6 +116,7 @@ describe('createContract', () => {
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
+    sinon.assert.calledWith(hasNotEndedCompanyContracts, contract, '1234567890');
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
@@ -149,7 +153,7 @@ describe('createContract', () => {
       .once();
     CustomerMock.expects('findOneAndUpdate').never();
 
-    const result = await ContractHelper.createContract(contract, credentials);
+    const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.calledWith(generateSignatureRequestStub, contract.versions[0].signature);
     ContractMock.verify();
@@ -183,9 +187,10 @@ describe('createContract', () => {
       .withArgs({ _id: contract.customer }, { $push: { contracts: contract._id } })
       .once();
 
-    const result = await ContractHelper.createContract(contract, credentials);
+    const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
+    sinon.assert.calledWith(hasNotEndedCompanyContracts, contract, '1234567890');
     expect(result).toEqual(expect.objectContaining(contract));
     ContractMock.verify();
     UserMock.verify();
@@ -214,7 +219,7 @@ describe('createContract', () => {
 
 describe('endContract', () => {
   let ContractFindOneStub;
-  let ContractFindStub;
+  let ContractCountDocuments;
   let UserfindOneAndUpdateStub;
   let contractSaveStub;
   let unassignInterventionsOnContractEnd;
@@ -236,23 +241,17 @@ describe('endContract', () => {
     status: 'contract_with_company',
     versions: [{ _id: new ObjectID() }],
   };
-  const userContracts = [{
-    user: new ObjectID(),
-    endDate: moment('2019-08-06T23:00:00').toDate(),
-    startDate: moment('2019-05-06T23:00:00').toDate(),
-    status: 'contract_with_customer',
-  }];
   const updatedContract = {
     ...newContract[0],
     ...payload,
     versions: [{ ...newContract.versions[0], endDate: payload.endDate }],
   };
-  const credentials = { _id: new ObjectID() };
+  const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
   beforeEach(() => {
     contractDoc = new Contract(cloneDeep(newContract));
     contractSaveStub = sinon.stub(contractDoc, 'save');
     ContractFindOneStub = sinon.stub(Contract, 'findOne');
-    ContractFindStub = sinon.stub(Contract, 'find');
+    ContractCountDocuments = sinon.stub(Contract, 'countDocuments');
     UserfindOneAndUpdateStub = sinon.stub(User, 'findOneAndUpdate');
     unassignInterventionsOnContractEnd = sinon.stub(EventHelper, 'unassignInterventionsOnContractEnd');
     removeEventsExceptInterventionsOnContractEnd = sinon.stub(EventHelper, 'removeEventsExceptInterventionsOnContractEnd');
@@ -261,7 +260,7 @@ describe('endContract', () => {
   });
   afterEach(() => {
     ContractFindOneStub.restore();
-    ContractFindStub.restore();
+    ContractCountDocuments.restore();
     contractSaveStub.restore();
     UserfindOneAndUpdateStub.restore();
     unassignInterventionsOnContractEnd.restore();
@@ -272,13 +271,16 @@ describe('endContract', () => {
 
   it('should end contract', async () => {
     ContractFindOneStub.returns(contractDoc);
-    ContractFindStub.returns([updatedContract]);
+    ContractCountDocuments.returns(2);
 
     const result = await ContractHelper.endContract(contractDoc._id, payload, credentials);
 
     sinon.assert.called(ContractFindOneStub);
     sinon.assert.called(contractSaveStub);
-    sinon.assert.calledWith(ContractFindStub, { user: contractDoc.user });
+    sinon.assert.calledWith(
+      ContractCountDocuments,
+      { user: contractDoc.user, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
+    );
     sinon.assert.calledWith(unassignInterventionsOnContractEnd);
     sinon.assert.called(removeEventsExceptInterventionsOnContractEnd);
     sinon.assert.called(updateAbsencesOnContractEnd);
@@ -288,38 +290,22 @@ describe('endContract', () => {
 
   it('should end contract and set inactivity date for user if all contracts are ended', async () => {
     ContractFindOneStub.returns(contractDoc);
-    ContractFindStub.returns(userContracts);
+    ContractCountDocuments.returns(0);
 
     const result = await ContractHelper.endContract(contractDoc._id, payload, credentials);
 
     sinon.assert.called(ContractFindOneStub);
     sinon.assert.called(contractSaveStub);
-    sinon.assert.calledWith(ContractFindStub, { user: contractDoc.user });
+    sinon.assert.calledWith(
+      ContractCountDocuments,
+      { user: contractDoc.user, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
+    );
     sinon.assert.calledWith(
       UserfindOneAndUpdateStub,
       { _id: contractDoc.user },
       { $set: { inactivityDate: moment(payload.endDate).add('1', 'month').startOf('M').toDate() } }
     );
     expect(result.toObject()).toMatchObject(updatedContract);
-  });
-
-  it('should throw a 403 error if contract is already ended', async () => {
-    const contract = {
-      _id: new ObjectID(),
-      endDate: moment('2018-12-30T23:00:00').toDate(),
-      user: new ObjectID(),
-      startDate: moment('2018-12-03T23:00:00').toDate(),
-      status: 'contract_with_company',
-      versions: [{ _id: new ObjectID() }],
-    };
-    ContractFindOneStub.returns(contract);
-
-    try {
-      const result = await ContractHelper.endContract(contract._id, payload, credentials);
-      expect(result).toBe(undefined);
-    } catch (e) {
-      expect(e).toEqual(Boom.forbidden('Contract is already ended.'));
-    }
   });
 });
 

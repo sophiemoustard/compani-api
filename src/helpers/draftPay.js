@@ -456,8 +456,9 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
   return draftPay;
 };
 
-exports.getAuxiliariesToPay = async (end) => {
+exports.getAuxiliariesToPay = async (end, credentials) => {
   const contractRules = {
+    company: get(credentials, 'company._id', null),
     status: COMPANY_CONTRACT,
     startDate: { $lte: end },
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
@@ -470,7 +471,7 @@ exports.getDraftPay = async (query, credentials) => {
   const startDate = moment(query.startDate).startOf('d').toDate();
   const endDate = moment(query.endDate).endOf('d').toDate();
 
-  const auxiliaries = await exports.getAuxiliariesToPay(endDate);
+  const auxiliaries = await exports.getAuxiliariesToPay(endDate, credentials);
   if (auxiliaries.length === 0) return [];
 
   return exports.computeDraftPayByAuxiliary(auxiliaries, { startDate, endDate }, credentials);

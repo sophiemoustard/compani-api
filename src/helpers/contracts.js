@@ -22,7 +22,7 @@ const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 
 exports.getContractList = async (query, credentials) => {
-  const rules = [];
+  const rules = [{ company: get(credentials, 'company._id', null) }];
   if (query.startDate && query.endDate) {
     rules.push({
       $or: [
@@ -37,31 +37,28 @@ exports.getContractList = async (query, credentials) => {
 
   const params = rules.length > 0 ? { $and: rules } : {};
 
-  return Contract
-    .find(params)
+  return Contract.find(params)
     .populate({
       path: 'user',
       select: 'identity administrative.driveFolder sector contact local',
-      populate: { path: 'sector', match: { company: credentials.company._id }, select: 'name' },
+      populate: { path: 'sector', select: 'name' },
     })
     .populate({ path: 'customer', select: 'identity driveFolder' })
     .lean();
 };
 
-exports.hasNotEndedCompanyContracts = async (contract) => {
-  const endedContracts = await ContractRepository.getUserEndedCompanyContracts(contract.user, contract.startDate);
+exports.hasNotEndedCompanyContracts = async (contract, companyId) => {
+  const endedContracts = await ContractRepository.getUserEndedCompanyContracts(contract.user, companyId);
 
   return endedContracts.length && moment(contract.startDate).isSameOrBefore(endedContracts[0].endDate, 'd');
 };
 
 exports.createContract = async (contractPayload, credentials) => {
-  const payload = {
-    ...cloneDeep(contractPayload),
-    company: get(credentials, 'company._id', null),
-  };
+  const companyId = get(credentials, 'company._id', null);
+  const payload = { ...cloneDeep(contractPayload), company: companyId };
 
   if (payload.status === COMPANY_CONTRACT) {
-    const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(payload);
+    const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(payload, companyId);
     if (hasNotEndedCompanyContracts) throw Boom.badRequest('New contract start date is before last company contract end date.');
   }
 
@@ -89,7 +86,6 @@ exports.createContract = async (contractPayload, credentials) => {
 exports.endContract = async (contractId, contractToEnd, credentials) => {
   const contract = await Contract.findOne({ _id: contractId });
   if (!contract) return null;
-  if (contract.endDate) throw Boom.forbidden('Contract is already ended.');
 
   contract.endDate = contractToEnd.endDate;
   contract.endNotificationDate = contractToEnd.endNotificationDate;
@@ -100,9 +96,12 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
   await contract.save();
 
   // Update inactivityDate if all contracts are ended
-  const userContracts = await Contract.find({ user: contract.user });
-  const hasActiveContracts = userContracts.some(c => !c.endDate);
-  if (!hasActiveContracts) {
+  const notEndedContractCount = await Contract.countDocuments({
+    user: contract.user,
+    company: get(credentials, 'company._id', null),
+    $or: [{ endDate: { $exists: false } }, { endDate: null }],
+  });
+  if (!notEndedContractCount) {
     await User.findOneAndUpdate(
       { _id: contract.user },
       { $set: { inactivityDate: moment(contractToEnd.endDate).add('1', 'month').startOf('M').toDate() } }
