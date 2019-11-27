@@ -91,13 +91,10 @@ exports.createUser = async (userPayload, credentials) => {
 
   const user = await User.create({ ...payload, company: get(credentials, 'company._id', null), refreshToken: uuidv4() });
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
-  return pickBy({
-    _id: user._id.toHexString(),
-    role: {
-      name: user.role.name,
-      rights: populatedRights,
-    },
-  });
+  return {
+    ...pickBy(user),
+    role: { name: user.role.name, rights: populatedRights },
+  };
 };
 
 exports.updateUser = async (userId, userPayload) => {

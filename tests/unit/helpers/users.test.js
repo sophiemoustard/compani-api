@@ -258,13 +258,17 @@ describe('createUser', () => {
     const newUser = {
       _id: new ObjectID(),
       ...payload,
-      role: {
-        name: 'auxiliary',
-        rights: userRights,
-      },
+      role: { name: 'auxiliary', rights: userRights },
     };
     const tasks = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
     const taskIds = tasks.map(task => ({ task: task._id }));
+    const newUserWithProcedure = {
+      ...newUser,
+      procedure: [
+        { task: tasks[0]._id, isDone: false, at: null },
+        { task: tasks[1]._id, isDone: false, at: null },
+      ],
+    };
 
     RoleMock
       .expects('findById')
@@ -281,24 +285,15 @@ describe('createUser', () => {
         refreshToken: sinon.match.string,
         procedure: taskIds,
       })
-      .returns({
-        ...newUser,
-        procedure: [
-          { task: tasks[0]._id, isDone: false, at: null },
-          { task: tasks[1]._id, isDone: false, at: null },
-        ],
-      });
+      .returns({ ...newUserWithProcedure });
 
     populateRoleStub.returns(populatedUserRights);
 
     const result = await UsersHelper.createUser(payload, credentials);
 
     expect(result).toMatchObject({
-      _id: newUser._id.toHexString(),
-      role: {
-        name: newUser.role.name,
-        rights: populatedUserRights,
-      },
+      ...newUserWithProcedure,
+      role: { name: newUser.role.name, rights: populatedUserRights },
     });
     RoleMock.verify();
     TaskMock.verify();
@@ -315,10 +310,7 @@ describe('createUser', () => {
     const newUser = {
       _id: new ObjectID(),
       ...payload,
-      role: {
-        name: 'coach',
-        rights: userRights,
-      },
+      role: { name: 'coach', rights: userRights },
     };
 
     RoleMock
@@ -342,11 +334,8 @@ describe('createUser', () => {
     const result = await UsersHelper.createUser(payload, credentials);
 
     expect(result).toMatchObject({
-      _id: newUser._id.toHexString(),
-      role: {
-        name: newUser.role.name,
-        rights: populatedUserRights,
-      },
+      ...newUser,
+      role: { name: newUser.role.name, rights: populatedUserRights },
     });
     RoleMock.verify();
     TaskMock.verify();
