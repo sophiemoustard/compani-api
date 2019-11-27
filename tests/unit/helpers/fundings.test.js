@@ -14,6 +14,7 @@ describe('exportFundings', () => {
   let getLastVersion;
   let formatFloatForExport;
   let mergeLastVersionWithBaseObject;
+  const credentials = { company: { _id: new ObjectID() } };
 
   beforeEach(() => {
     getCustomerFundings = sinon.stub(CustomerRepository, 'getCustomerFundings');
@@ -35,7 +36,7 @@ describe('exportFundings', () => {
     const customers = [];
     getCustomerFundings.returns(customers);
 
-    const result = await FundingsHelper.exportFundings();
+    const result = await FundingsHelper.exportFundings(credentials);
 
     sinon.assert.notCalled(getLastVersion);
     sinon.assert.notCalled(formatFloatForExport);
@@ -51,7 +52,7 @@ describe('exportFundings', () => {
 
     getCustomerFundings.returns(customers);
 
-    const result = await FundingsHelper.exportFundings();
+    const result = await FundingsHelper.exportFundings(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -65,7 +66,7 @@ describe('exportFundings', () => {
 
     getCustomerFundings.returns(customers);
 
-    const result = await FundingsHelper.exportFundings();
+    const result = await FundingsHelper.exportFundings(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -79,7 +80,7 @@ describe('exportFundings', () => {
 
     getCustomerFundings.returns(customers);
 
-    const result = await FundingsHelper.exportFundings();
+    const result = await FundingsHelper.exportFundings(credentials);
 
     sinon.assert.calledOnce(mergeLastVersionWithBaseObject);
     sinon.assert.calledOnce(getLastVersion);
@@ -109,7 +110,7 @@ describe('exportFundings', () => {
 
     getCustomerFundings.returns(customers);
 
-    const result = await FundingsHelper.exportFundings();
+    const result = await FundingsHelper.exportFundings(credentials);
 
     sinon.assert.calledOnce(mergeLastVersionWithBaseObject);
     sinon.assert.notCalled(getLastVersion);

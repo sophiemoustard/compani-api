@@ -63,8 +63,8 @@ const fundingExportHeader = [
   'Participation du bénéficiaire',
 ];
 
-exports.exportFundings = async () => {
-  const customerFundings = await CustomerRepository.getCustomerFundings();
+exports.exportFundings = async (credentials) => {
+  const customerFundings = await CustomerRepository.getCustomerFundings(get(credentials, 'company._id', null));
   const data = [fundingExportHeader];
 
   for (const cus of customerFundings) {

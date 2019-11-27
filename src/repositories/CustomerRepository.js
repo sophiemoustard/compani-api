@@ -1,7 +1,7 @@
 const Customer = require('../models/Customer');
 
-exports.getCustomerFundings = async () => Customer.aggregate([
-  { $match: { fundings: { $exists: true, $not: { $size: 0 } } } },
+exports.getCustomerFundings = async companyId => Customer.aggregate([
+  { $match: { fundings: { $exists: true, $not: { $size: 0 } }, company: companyId } },
   { $unwind: '$fundings' },
   {
     $addFields: {
