@@ -259,9 +259,9 @@ const populateDBForAuthentication = async () => {
   }
 };
 
-const getUser = (roleName) => {
+const getUser = (roleName, list = userList) => {
   const role = rolesList.find(r => r.name === roleName);
-  return userList.find(u => u.role.toHexString() === role._id.toHexString());
+  return list.find(u => u.role.toHexString() === role._id.toHexString());
 };
 
 const getTokenByCredentials = memoize(
@@ -278,8 +278,8 @@ const getTokenByCredentials = memoize(
   credentials => JSON.stringify([credentials.email, credentials.password])
 );
 
-const getToken = (roleName) => {
-  const user = getUser(roleName);
+const getToken = (roleName, list) => {
+  const user = getUser(roleName, list);
   return getTokenByCredentials(user.local);
 };
 

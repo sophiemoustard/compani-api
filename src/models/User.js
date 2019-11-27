@@ -10,6 +10,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -37,8 +38,8 @@ const UserSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
     autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
+    required: true,
   },
-  employee_id: { type: Number, trim: true },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
     link: { type: String, trim: true },
@@ -123,6 +124,7 @@ const UserSchema = mongoose.Schema({
       select: '-__v -createdAt -updatedAt',
       maxDepth: 2,
     },
+    required: true,
   },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
@@ -189,10 +191,36 @@ function setIsActive() {
   return isActive(this);
 }
 
+async function populateAfterSave(doc, next) {
+  try {
+    await doc
+      .populate({
+        path: 'role',
+        select: '-__v -createdAt -updatedAt',
+        populate: {
+          path: 'role.right_id',
+          select: 'description permission _id',
+        },
+      })
+      .populate({
+        path: 'company',
+        select: '-__v -createdAt -updatedAt',
+      })
+      .execPopulate();
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
+UserSchema.pre('find', validateQuery);
+UserSchema.pre('validate', validatePayload);
+UserSchema.post('save', populateAfterSave);
 
 UserSchema.plugin(autopopulate);
 

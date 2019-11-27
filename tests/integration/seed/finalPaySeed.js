@@ -24,6 +24,7 @@ const user = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'coach')._id,
   inactivityDate: '2018-11-01T12:52:27.461Z',
+  company: authCompany._id,
 };
 
 const auxiliary = {
@@ -36,6 +37,7 @@ const auxiliary = {
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId,
   sector: sectorId,
+  company: authCompany._id,
 };
 
 const contract = {

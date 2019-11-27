@@ -1,23 +1,21 @@
 const bcrypt = require('bcrypt');
-const uuidv4 = require('uuid/v4');
 const flat = require('flat');
 const _ = require('lodash');
 const Boom = require('boom');
 const nodemailer = require('nodemailer');
 const moment = require('moment');
-
+const uuidv4 = require('uuid/v4');
 const { clean } = require('../helpers/utils');
 const { populateRole } = require('../helpers/roles');
 const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentication');
-const { createFolder } = require('../helpers/gdriveStorage');
+const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
+const UsersHelper = require('../helpers/users');
 const { getUsers, createAndSaveFile } = require('../helpers/users');
 const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
 const User = require('../models/User');
-const Role = require('../models/Role');
-const Task = require('../models/Task');
 const cloudinary = require('../models/Cloudinary');
 
 const { language } = translate;
@@ -54,21 +52,10 @@ const authenticate = async (req) => {
 
 const create = async (req) => {
   try {
-    req.payload.refreshToken = uuidv4();
-    const user = new User(req.payload);
-    await user.save();
-    const tasks = await Task.find({});
-    const taskIds = tasks.map(task => ({ task: task._id }));
-    const populatedUser = await User.findOneAndUpdate({ _id: user._id }, { $push: { procedure: { $each: taskIds } } }, { new: true });
-    populatedUser.role.rights = populateRole(populatedUser.role.rights, { onlyGrantedRights: true });
-    const payload = {
-      _id: populatedUser._id.toHexString(),
-      role: populatedUser.role,
-    };
-    const userPayload = _.pickBy(payload);
+    const newUser = await UsersHelper.createUser(req.payload, req.auth.credentials, uuidv4());
     return {
       message: translate[language].userSaved,
-      data: { user: userPayload },
+      data: { user: newUser },
     };
   } catch (e) {
     // Error code when there is a duplicate key, in this case : the email (unique field)
@@ -129,13 +116,12 @@ const activeList = async (req) => {
 
 const show = async (req) => {
   try {
-    let user = await User.findOne({ _id: req.params._id })
+    const user = await User.findOne({ _id: req.params._id })
       .populate('customers')
       .populate('contracts')
-      .populate({ path: 'procedure.task', select: 'name _id' });
-    if (!user) return Boom.notFound(translate[language].userNotFound);
+      .populate({ path: 'procedure.task', select: 'name _id' })
+      .lean({ autopopulate: true });
 
-    user = user.toObject();
     if (user.role && user.role.rights.length > 0) {
       user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
     }
@@ -152,17 +138,11 @@ const show = async (req) => {
 
 const update = async (req) => {
   try {
-    const newBody = flat(req.payload);
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $set: newBody }, { new: true, runValidators: true });
-    if (!userUpdated) return Boom.notFound(translate[language].userNotFound);
-
-    if (userUpdated.role && userUpdated.role.rights.length > 0) {
-      userUpdated.role.rights = populateRole(userUpdated.role.rights, { onlyGrantedRights: true });
-    }
+    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload);
 
     return {
       message: translate[language].userUpdated,
-      data: { userUpdated },
+      data: { updatedUser },
     };
   } catch (e) {
     // Error code when there is a duplicate key, in this case : the email (unique field)
@@ -177,16 +157,11 @@ const update = async (req) => {
 
 const updateCertificates = async (req) => {
   try {
-    delete req.payload._id;
-    const userUpdated = await User.findOneAndUpdate({ _id: req.params._id }, { $pull: req.payload }, { new: true });
-    if (!userUpdated) return Boom.notFound(translate[language].userNotFound);
+    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload);
 
-    if (userUpdated.role && userUpdated.role.rights.length > 0) {
-      userUpdated.role.rights = populateRole(userUpdated.role.rights, { onlyGrantedRights: true });
-    }
     return {
       message: translate[language].userUpdated,
-      data: { userUpdated },
+      data: { updatedUser },
     };
   } catch (e) {
     req.log('error', e);
@@ -196,42 +171,9 @@ const updateCertificates = async (req) => {
 
 const remove = async (req) => {
   try {
-    const userDeleted = await User.findByIdAndRemove({ _id: req.params._id });
-    if (!userDeleted) return Boom.notFound(translate[language].userNotFound);
+    await User.findByIdAndRemove(req.params._id);
 
-    return {
-      message: translate[language].userRemoved,
-      data: { userDeleted },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-// Get all users presentation for alenvi.io (youtube + picture)
-const getPresentation = async (req) => {
-  try {
-    const params = {
-      'youtube.location': _.isArray(req.query.location) ? { $in: req.query.location } : req.query.location,
-      role: _.isArray(req.query.role) ? { $in: req.query.role } : req.query.role,
-    };
-    const roleIds = await Role.find({ name: params.role }, { _id: 1 });
-    params.role = { $in: roleIds };
-    const payload = _.pickBy(params);
-    const users = await User.find(
-      payload,
-      {
-        _id: 0, identity: 1, role: 1, picture: 1, youtube: 1,
-      }
-    );
-
-    if (users.length === 0) return Boom.notFound(translate[language].usersNotFound);
-
-    return {
-      message: translate[language].usersFound,
-      data: { users },
-    };
+    return { message: translate[language].userRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -243,12 +185,14 @@ const updateTask = async (req) => {
     req.payload.at = Date.now();
     const tasks = await User
       .findOneAndUpdate(
-        { _id: req.params.user_id, 'procedure.task': req.params.task_id },
+        { _id: req.params._id, 'procedure.task': req.params.task_id },
         { $set: { 'procedure.$.check': req.payload } },
         { new: true }
       )
       .select('procedure');
+
     return {
+      message: translate[language].userTaskUpdated,
       data: { tasks },
     };
   } catch (e) {
@@ -416,18 +360,18 @@ const uploadImage = async (req) => {
 
 const createDriveFolder = async (req) => {
   try {
-    const user = await User.findOne({ _id: req.params._id });
+    const user = await User.findById(req.params._id);
     let updatedUser;
 
     if (user.identity.firstname && user.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID;
-      const { folder, folderLink } = await createFolder(user.identity, parentFolderId);
+      const { folder } = await GdriveStorageHelper.createFolder(user.identity, parentFolderId);
 
       const folderPayload = {};
       folderPayload.administrative = user.administrative || { driveFolder: {} };
       folderPayload.administrative.driveFolder = {
         driveId: folder.id,
-        link: folderLink.webViewLink,
+        link: folder.webViewLink,
       };
 
       updatedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: folderPayload }, { new: true, autopopulate: false });
@@ -459,7 +403,6 @@ module.exports = {
   show,
   update,
   remove,
-  getPresentation,
   refreshToken,
   forgotPassword,
   checkResetPasswordToken,
