@@ -269,10 +269,10 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
   return Promise.all(promises);
 };
 
-exports.canNotBeDeleted = event => event.type === INTERVENTION && event.isBilled ;
+exports.cannotBeDeleted = event => event.type === INTERVENTION && event.isBilled;
 
 exports.deleteEvent = async (event, credentials) => {
-  if (exports.canNotBeDeleted(event)) throw Boom.forbidden('The event is already billed');
+  if (exports.cannotBeDeleted(event)) throw Boom.forbidden('The event is already billed');
   const deletionInfo = _.omit(event, 'repetition');
   await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
   await Event.deleteOne({ _id: event._id });
@@ -282,7 +282,7 @@ exports.deleteEvent = async (event, credentials) => {
 
 exports.deleteEvents = async (events, credentials) => {
   const promises = [];
-  if (events.some(event => exports.canNotBeDeleted(event))) throw Boom.forbidden('Some events are already billed');
+  if (events.some(event => exports.cannotBeDeleted(event))) throw Boom.forbidden('Some events are already billed');
   for (const event of events) {
     const deletionInfo = _.omit(event, 'repetition');
     promises.push(EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials));
