@@ -27,7 +27,7 @@ exports.getUsers = async (query, credentials) => {
     params.role = role;
   }
 
-  const users = await User
+  return User
     .find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
@@ -35,9 +35,7 @@ exports.getUsers = async (query, credentials) => {
     .populate({ path: 'role', select: 'name' })
     .populate('contracts')
     .populate('sector')
-    .lean({ autopopulate: true });
-
-  return users;
+    .lean({ virtuals: true });
 };
 
 exports.saveCertificateDriveId = async (userId, fileInfo) => {

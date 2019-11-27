@@ -74,20 +74,13 @@ const create = async (req) => {
 const list = async (req) => {
   try {
     const users = await getUsers(req.query, req.auth.credentials);
-    if (users.length === 0) {
-      return {
-        message: translate[language].usersNotFound,
-        data: { users: [] },
-      };
-    }
 
     return {
-      message: translate[language].userFound,
+      message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
       data: { users },
     };
   } catch (e) {
     req.log('error', e);
-    if (Boom.isBoom(e)) return e;
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
@@ -95,17 +88,10 @@ const list = async (req) => {
 const activeList = async (req) => {
   try {
     const users = await getUsers(req.query, req.auth.credentials);
-    if (users.length === 0) {
-      return {
-        message: translate[language].usersNotFound,
-        data: { users: [] },
-      };
-    }
-
     const activeUsers = users.filter(user => user.isActive);
 
     return {
-      message: translate[language].userFound,
+      message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
       data: { users: activeUsers },
     };
   } catch (e) {

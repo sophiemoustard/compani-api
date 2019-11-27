@@ -53,7 +53,7 @@ describe('getUsers', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ virtuals: true })
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);
@@ -86,7 +86,7 @@ describe('getUsers', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ virtuals: true })
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);
@@ -120,7 +120,7 @@ describe('getUsers', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ virtuals: true })
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);
