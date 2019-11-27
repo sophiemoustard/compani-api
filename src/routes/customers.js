@@ -11,6 +11,7 @@ const {
   listBySector,
   listWithBilledEvents,
   listWithCustomerContractSubscriptions,
+  listWithIntervention,
   show,
   remove,
   addSubscription,
@@ -193,6 +194,15 @@ exports.plugin = {
         auth: { scope: ['customers:read'] },
       },
       handler: listWithCustomerContractSubscriptions,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/with-intervention',
+      options: {
+        auth: { scope: ['events:edit'] },
+      },
+      handler: listWithIntervention,
     });
 
     server.route({

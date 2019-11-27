@@ -796,3 +796,25 @@ exports.getCustomerWithBilledEvents = async (query, companyId) => Event.aggregat
     },
   },
 ]);
+
+exports.getCustomersWithIntervention = async companyId => Event.aggregate([
+  {
+    $match: {
+      type: INTERVENTION,
+      $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+    },
+  },
+  { $group: { _id: { customer: '$customer' } } },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: '_id.customer',
+      foreignField: '_id',
+      as: 'customer',
+    },
+  },
+  { $unwind: { path: '$customer' } },
+  { $replaceRoot: { newRoot: '$customer' } },
+  { $match: { company: companyId } },
+  { $project: { _id: 1, identity: { firstname: 1, lastname: 1 } } },
+]);

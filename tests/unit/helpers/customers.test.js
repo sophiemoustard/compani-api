@@ -252,6 +252,26 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
   });
 });
 
+describe('getCustomersWithIntervention', () => {
+  let getCustomersWithInterventionStub;
+  beforeEach(() => {
+    getCustomersWithInterventionStub = sinon.stub(EventRepository, 'getCustomersWithIntervention');
+  });
+  afterEach(() => {
+    getCustomersWithInterventionStub.restore();
+  });
+
+  it('should return an array of customers', async () => {
+    const customer = { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'test' } }
+    getCustomersWithInterventionStub.returns([customer]);
+    const credentials = { company: { _id: new ObjectID() } };
+    const result = await CustomerHelper.getCustomersWithIntervention(credentials);
+    sinon.assert.calledOnce(getCustomersWithInterventionStub);
+
+    expect(result).toEqual([customer]);
+  });
+});
+
 describe('getCustomer', () => {
   let CustomerMock;
   let populateSubscriptionsServices;
