@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
@@ -14,6 +15,13 @@ const { validateQuery, validatePayload } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 
+const procedureSchema = mongoose.Schema({
+  task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
+  check: {
+    isDone: { type: Boolean, default: false },
+    at: { type: Date, default: null },
+  },
+}, { id: false });
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -109,21 +117,12 @@ const UserSchema = mongoose.Schema({
       phoneNumber: String,
     },
   },
-  procedure: [{
-    task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
-    check: {
-      isDone: { type: Boolean, default: false },
-      at: { type: Date, default: null },
-    },
-  }],
+  procedure: [procedureSchema],
   isConfirmed: { type: Boolean, default: false },
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
-    autopopulate: {
-      select: '-__v -createdAt -updatedAt',
-      maxDepth: 2,
-    },
+    autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 2 },
     required: true,
   },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
@@ -132,6 +131,7 @@ const UserSchema = mongoose.Schema({
   timestamps: true,
   toObject: { virtuals: true },
   toJSON: { virtuals: true },
+  id: false,
 });
 
 async function save(next) {
@@ -222,6 +222,7 @@ UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validatePayload);
 UserSchema.post('save', populateAfterSave);
 
+UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);

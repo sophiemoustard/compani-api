@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
 const Task = require('../../../src/models/Task');
-const { rolesList, populateDBForAuthentication } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const company = {
   _id: new ObjectID(),

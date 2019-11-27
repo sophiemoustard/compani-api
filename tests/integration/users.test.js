@@ -324,6 +324,7 @@ describe('USERS ROUTES', () => {
           url: '/users/active',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         const activeUsers = userList.filter(u => isInList(res.result.data.users, u));
         expect(res.result.data.users.length).toBe(activeUsers.length);

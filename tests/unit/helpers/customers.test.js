@@ -119,61 +119,6 @@ describe('getCustomers', () => {
   });
 });
 
-describe('getCustomersWithSubscriptions', () => {
-  let CustomerMock;
-  let populateSubscriptionsServices;
-  beforeEach(() => {
-    CustomerMock = sinon.mock(Customer);
-    populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
-  });
-  afterEach(() => {
-    CustomerMock.restore();
-    populateSubscriptionsServices.restore();
-  });
-
-  it('should return empty array if no customer', async () => {
-    const companyId = new ObjectID();
-    const query = { role: 'qwertyuiop', company: companyId };
-    const credentials = { company: { _id: companyId } };
-    CustomerMock.expects('find')
-      .withExactArgs(query)
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns([]);
-    const result = await CustomerHelper.getCustomersWithSubscriptions(query, credentials);
-
-    CustomerMock.verify();
-    expect(result).toEqual([]);
-  });
-
-  it('should return customers', async () => {
-    const companyId = new ObjectID();
-    const query = { role: 'qwertyuiop', company: companyId };
-    const credentials = { company: { _id: companyId } };
-    const customers = [
-      { identity: { firstname: 'Emmanuel' }, company: companyId },
-      { identity: { firstname: 'Brigitte' }, company: companyId },
-    ];
-    CustomerMock.expects('find')
-      .withExactArgs(query)
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(customers);
-    populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
-
-    const result = await CustomerHelper.getCustomersWithSubscriptions(query, credentials);
-
-    CustomerMock.verify();
-    expect(result).toEqual([
-      { identity: { firstname: 'Emmanuel' }, subscriptions: 2, company: companyId },
-      { identity: { firstname: 'Brigitte' }, subscriptions: 2, company: companyId },
-    ]);
-    sinon.assert.calledTwice(populateSubscriptionsServices);
-  });
-});
-
 describe('getCustomersWithCustomerContractSubscriptions', () => {
   let CustomerMock;
   let ServiceMock;

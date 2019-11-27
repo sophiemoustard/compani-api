@@ -20,13 +20,13 @@ const {
   createAndSaveFile,
   getCustomerBySector,
   getCustomersWithBilledEvents,
-  getCustomersWithSubscriptions,
   getCustomers,
   getCustomersWithCustomerContractSubscriptions,
   getCustomer,
   updateCustomer,
 } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
+const CustomerRepository = require('../repositories/CustomerRepository');
 
 const { language } = translate;
 
@@ -46,12 +46,8 @@ const list = async (req) => {
 
 const listWithSubscriptions = async (req) => {
   try {
-    const query = {
-      ...req.query,
-      subscriptions: { $exists: true, $ne: { $size: 0 } },
-      company: get(req, 'auth.credentials.company._id', null),
-    };
-    const customers = await getCustomersWithSubscriptions(query);
+    const company = get(req, 'auth.credentials.company');
+    const customers = await CustomerRepository.getCustomerWithSubscriptions(company);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,

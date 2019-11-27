@@ -52,6 +52,8 @@ describe('getUsers', () => {
       .withExactArgs('contracts')
       .chain('populate')
       .withExactArgs('sector')
+      .chain('lean')
+      .withExactArgs({ virtuals: true })
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);
@@ -83,6 +85,8 @@ describe('getUsers', () => {
       .withExactArgs('contracts')
       .chain('populate')
       .withExactArgs('sector')
+      .chain('lean')
+      .withExactArgs({ virtuals: true })
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);
@@ -115,6 +119,8 @@ describe('getUsers', () => {
       .withExactArgs('contracts')
       .chain('populate')
       .withExactArgs('sector')
+      .chain('lean')
+      .withExactArgs({ virtuals: true })
       .returns(users);
 
     const result = await UsersHelper.getUsers(query, credentials);

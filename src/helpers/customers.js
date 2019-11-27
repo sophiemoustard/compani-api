@@ -55,23 +55,6 @@ exports.getCustomers = async (query) => {
   return customers;
 };
 
-exports.getCustomersWithSubscriptions = async (query) => {
-  const customers = await Customer.find(query)
-    .populate({
-      path: 'subscriptions.service',
-      populate: { path: 'versions.surcharge' },
-    })
-    .lean();
-
-  if (customers.length === 0) return [];
-
-  for (let i = 0, l = customers.length; i < l; i++) {
-    customers[i] = SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
-  }
-
-  return customers;
-};
-
 exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const query = { type: CUSTOMER_CONTRACT, company: companyId };
