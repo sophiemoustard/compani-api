@@ -64,7 +64,7 @@ const fundingExportHeader = [
 ];
 
 exports.exportFundings = async (credentials) => {
-  const customerFundings = await CustomerRepository.getCustomerFundings(credentials);
+  const customerFundings = await CustomerRepository.getCustomerFundings(get(credentials, 'company._id', null));
   const data = [fundingExportHeader];
 
   for (const cus of customerFundings) {

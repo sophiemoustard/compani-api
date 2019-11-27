@@ -1,8 +1,7 @@
-const get = require('lodash/get');
 const Customer = require('../models/Customer');
 
-exports.getCustomerFundings = async credentials => Customer.aggregate([
-  { $match: { fundings: { $exists: true, $not: { $size: 0 } }, company: get(credentials, 'company._id') } },
+exports.getCustomerFundings = async companyId => Customer.aggregate([
+  { $match: { fundings: { $exists: true, $not: { $size: 0 } }, company: companyId } },
   { $unwind: '$fundings' },
   {
     $addFields: {
