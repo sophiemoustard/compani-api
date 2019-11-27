@@ -217,7 +217,7 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'DELETE',
+      method: 'PUT',
       path: '/many-events',
       options: {
         auth: { scope: ['events:edit'] },
