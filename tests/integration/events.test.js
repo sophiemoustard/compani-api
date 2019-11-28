@@ -603,7 +603,7 @@ describe('EVENTS ROUTES', () => {
     });
   });
 
-  describe('DELETE /events/many-events', () => {
+  describe('DELETE /events/remove-many-events', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
@@ -617,8 +617,8 @@ describe('EVENTS ROUTES', () => {
         };
 
         const response = await app.inject({
-          method: 'DELETE',
-          url: '/events/many-events',
+          method: 'PUT',
+          url: '/events/remove-many-events',
           headers: { 'x-access-token': authToken },
           payload,
         });
@@ -634,8 +634,8 @@ describe('EVENTS ROUTES', () => {
         };
 
         const response = await app.inject({
-          method: 'DELETE',
-          url: '/events/many-events',
+          method: 'PUT',
+          url: '/events/remove-many-events',
           headers: { 'x-access-token': authToken },
           payload,
         });
@@ -662,8 +662,8 @@ describe('EVENTS ROUTES', () => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
           const response = await app.inject({
-            method: 'DELETE',
-            url: '/events/many-events',
+            method: 'PUT',
+            url: '/events/remove-many-events',
             headers: { 'x-access-token': authToken },
             payload,
           });
