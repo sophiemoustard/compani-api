@@ -292,8 +292,7 @@ describe('CUSTOMERS ROUTES', () => {
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
-        { name: 'auxiliary', expectedCode: 403 },
-        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'auxiliary', expectedCode: 200 },
         { name: 'coach', expectedCode: 200 },
       ];
 
