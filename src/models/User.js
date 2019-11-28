@@ -4,9 +4,7 @@ const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const moment = require('moment');
-const Boom = require('boom');
 
-const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
@@ -137,9 +135,6 @@ const UserSchema = mongoose.Schema({
 async function save(next) {
   try {
     const user = this;
-
-    const roleCount = await Role.countDocuments({ _id: user.role });
-    if (roleCount === 0) throw Boom.badRequest('Role does not exist');
 
     if (user.isModified('local.email')) {
       if (!validator.isEmail(user.local.email)) {

@@ -56,16 +56,26 @@ describe('USERS ROUTES', () => {
         });
 
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.user).toEqual(expect.objectContaining({
-          _id: expect.any(String),
-          role: expect.objectContaining({ name: 'auxiliary' }),
-        }));
+        expect(res.result.data.user._id).toEqual(expect.any(Object));
+        expect(res.result.data.user.role).toMatchObject({
+          name: 'auxiliary',
+          rights: expect.arrayContaining([
+            expect.objectContaining({
+              description: expect.any(String),
+              hasAccess: expect.any(Boolean),
+              permission: expect.any(String),
+              right_id: expect.any(Object),
+            }),
+          ]),
+        });
         user = await User.findById(res.result.data.user._id);
         expect(user.firstname).toBe(userPayload.firstname);
         expect(user.identity.lastname).toBe(userPayload.identity.lastname);
         expect(user.local.email).toBe(userPayload.local.email);
         expect(user.local.password).toBeDefined();
         expect(user).toHaveProperty('picture');
+        expect(user.procedure).toBeDefined();
+        expect(user.procedure.length).toBeGreaterThan(0);
       });
 
       it('should not create a user if role provided does not exist', async () => {

@@ -2,13 +2,16 @@ const Boom = require('boom');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const cloneDeep = require('lodash/cloneDeep');
 const flat = require('flat');
+const uuidv4 = require('uuid/v4');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Task = require('../models/Task');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const RolesHelper = require('./roles');
+const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
 
 const { language } = translate;
 
@@ -75,20 +78,23 @@ exports.createAndSaveFile = async (administrativeKey, params, payload) => {
   return uploadedFile;
 };
 
-exports.createUser = async (userPayload, credentials, refreshToken) => {
-  const tasks = await Task.find({}, { _id: 1 }).lean();
-  const taskIds = tasks.map(task => ({ task: task._id }));
-  userPayload.procedure = taskIds;
-  const user = await User.create({ ...userPayload, company: get(credentials, 'company._id', null), refreshToken });
+exports.createUser = async (userPayload, credentials) => {
+  const payload = cloneDeep(userPayload);
+  const role = await Role.findById(payload.role, { name: 1 }).lean();
+  if (!role) throw Boom.badRequest('Role does not exist');
+
+  if ([AUXILIARY, PLANNING_REFERENT].includes(role.name)) {
+    const tasks = await Task.find({}, { _id: 1 }).lean();
+    const taskIds = tasks.map(task => ({ task: task._id }));
+    payload.procedure = taskIds;
+  }
+
+  const user = await User.create({ ...payload, company: get(credentials, 'company._id', null), refreshToken: uuidv4() });
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
-  const payload = {
-    _id: user._id.toHexString(),
-    role: {
-      name: user.role.name,
-      rights: populatedRights,
-    },
+  return {
+    ...pickBy(user),
+    role: { name: user.role.name, rights: populatedRights },
   };
-  return pickBy(payload);
 };
 
 exports.updateUser = async (userId, userPayload) => {
