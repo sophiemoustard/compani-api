@@ -252,12 +252,17 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
   return Promise.all(promises);
 };
 
-exports.removeManyEventsHelper = async (customer, startDate, endDate, credentials) => {
-  const query = { customer, startDate: { $gte: moment(startDate) } };
-  if (endDate) query.startDate.$lte = moment(endDate).endOf('d');
+exports.removeCustomerEvents = async (customer, startDate, endDate, credentials) => {
+  const query = { customer, startDate: { $gte: moment(startDate).toDate() } };
+  if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
 
   const events = await Event.find(query).lean();
   await exports.deleteEvents(events, credentials);
+  if (!endDate) {
+    for (const event of events) {
+      await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    }
+  }
 };
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {

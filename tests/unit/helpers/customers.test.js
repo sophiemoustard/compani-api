@@ -266,8 +266,9 @@ describe('getCustomersWithIntervention', () => {
     getCustomersWithInterventionStub.returns([customer]);
     const credentials = { company: { _id: new ObjectID() } };
     const result = await CustomerHelper.getCustomersWithIntervention(credentials);
-    sinon.assert.calledOnce(getCustomersWithInterventionStub);
 
+    sinon.assert.calledOnce(getCustomersWithInterventionStub);
+    sinon.assert.calledWithExactly(getCustomersWithInterventionStub, credentials.company._id);
     expect(result).toEqual([customer]);
   });
 });

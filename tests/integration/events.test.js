@@ -16,6 +16,7 @@ const {
 const { getToken } = require('./seed/authenticationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../src/helpers/constants');
+const Repetition = require('../../src/models/Repetition');
 
 describe('NODE ENV', () => {
   it('should be "test"', () => {
@@ -603,43 +604,51 @@ describe('EVENTS ROUTES', () => {
     });
   });
 
-  describe('DELETE /events/remove-many-events', () => {
+  describe('DELETE /events/remove-customer-events', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('admin');
       });
 
-      it('should delete all events from startDate', async () => {
-        const payload = {
-          customer: customerAuxiliary._id,
-          startDate: '2019-10-14',
-        };
-
+      it('should delete all events from startDate including repetitions', async () => {
+        const customer = customerAuxiliary._id;
+        const startDate = '2019-10-14';
         const response = await app.inject({
-          method: 'PUT',
-          url: '/events/remove-many-events',
+          method: 'DELETE',
+          url: `/events/remove-customer-events?customer=${customer}&startDate=${startDate}`,
           headers: { 'x-access-token': authToken },
-          payload,
         });
+
         expect(response.statusCode).toBe(200);
+        expect(await Repetition.find({})).toHaveLength(0);
       });
 
 
       it('should delete all events from startDate to endDate', async () => {
-        const payload = {
-          customer: customerAuxiliary._id,
-          startDate: '2019-10-14',
-          endDate: '2019-10-16',
-        };
+        const customer = customerAuxiliary._id;
+        const startDate = '2019-10-14';
+        const endDate = '2019-10-16';
 
         const response = await app.inject({
-          method: 'PUT',
-          url: '/events/remove-many-events',
+          method: 'DELETE',
+          url: `/events/remove-customer-events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
-          payload,
         });
         expect(response.statusCode).toBe(200);
+      });
+
+      it('should not delete events if one event is billed', async () => {
+        const customer = customerAuxiliary._id;
+        const startDate = '2019-01-01';
+        const endDate = '2019-10-16';
+
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/remove-customer-events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(409);
       });
     });
 
@@ -654,18 +663,16 @@ describe('EVENTS ROUTES', () => {
       ];
 
       roles.forEach((role) => {
-        const payload = {
-          customer: customerAuxiliary._id,
-          startDate: '2019-10-14',
-          endDate: '2019-10-16',
-        };
+        const customer = customerAuxiliary._id;
+        const startDate = '2019-10-14';
+        const endDate = '2019-10-16';
+
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
           const response = await app.inject({
-            method: 'PUT',
-            url: '/events/remove-many-events',
+            method: 'DELETE',
+            url: `/events/remove-customer-events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
             headers: { 'x-access-token': authToken },
-            payload,
           });
 
           expect(response.statusCode).toBe(role.expectedCode);

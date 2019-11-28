@@ -99,8 +99,7 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
 
 exports.getCustomersWithIntervention = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const customers = EventRepository.getCustomersWithIntervention(companyId);
-  return customers;
+  return EventRepository.getCustomersWithIntervention(companyId);
 };
 
 

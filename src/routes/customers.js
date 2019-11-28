@@ -200,7 +200,7 @@ exports.plugin = {
       method: 'GET',
       path: '/with-intervention',
       options: {
-        auth: { scope: ['events:edit'] },
+        auth: { scope: ['events:read'] },
       },
       handler: listWithIntervention,
     });

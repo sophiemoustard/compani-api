@@ -8,7 +8,7 @@ const {
   update,
   remove,
   removeRepetition,
-  removeManyEvents,
+  removeCustomerEvents,
   listForCreditNotes,
   getWorkingStats,
 } = require('../controllers/eventController');
@@ -217,12 +217,12 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'PUT',
-      path: '/remove-many-events',
+      method: 'DELETE',
+      path: '/remove-customer-events',
       options: {
         auth: { scope: ['events:edit'] },
         validate: {
-          payload: Joi.object().keys({
+          query: Joi.object().keys({
             customer: Joi.objectId().required(),
             startDate: Joi.date().required(),
             endDate: Joi.date(),
@@ -232,7 +232,7 @@ exports.plugin = {
           { method: authorizeEventUpdate },
         ],
       },
-      handler: removeManyEvents,
+      handler: removeCustomerEvents,
     });
 
     server.route({

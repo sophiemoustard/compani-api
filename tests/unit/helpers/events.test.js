@@ -614,8 +614,9 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   });
 });
 
-describe('removeManyEvents', () => {
+describe('removeCustomerEvents', () => {
   let deleteEventsStub;
+  let deleteRepetitionStub;
   let EventModel;
   const customerId = new ObjectID();
   const userId = new ObjectID();
@@ -649,38 +650,45 @@ describe('removeManyEvents', () => {
 
   beforeEach(() => {
     deleteEventsStub = sinon.stub(EventHelper, 'deleteEvents');
+    deleteRepetitionStub = sinon.stub(EventsRepetitionHelper, 'deleteRepetition');
     EventModel = sinon.mock(Event);
   });
   afterEach(() => {
     deleteEventsStub.restore();
+    deleteRepetitionStub.restore();
     EventModel.restore();
   });
 
-  it('should take endDate into account', async () => {
+  it('should delete all events between start and end date', async () => {
     const startDate = '2019-10-10';
     const endDate = '2019-10-19';
-    const query = { customer: customerId, startDate: { $gte: moment('2019-10-10'), $lte: moment('2019-10-19').endOf('d') } };
+    const query = {
+      customer: customerId,
+      startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() }
+    };
     EventModel.expects('find')
       .withExactArgs(query)
       .chain('lean')
       .once()
       .returns([events[0]]);
 
-    await EventHelper.removeManyEventsHelper(customerId, startDate, endDate, credentials);
-    sinon.assert.calledWith(deleteEventsStub, [events[0]], credentials);
+    await EventHelper.removeCustomerEvents(customerId, startDate, endDate, credentials);
+    sinon.assert.calledWithExactly(deleteEventsStub, [events[0]], credentials);
+    sinon.assert.notCalled(deleteRepetitionStub);
   });
 
-  it('should not take endDate into account', async () => {
+  it('should delete all events and repetition as of start date', async () => {
     const startDate = '2019-10-10';
-    const query = { customer: customerId, startDate: { $gte: moment('2019-10-10') } };
+    const query = { customer: customerId, startDate: { $gte: moment('2019-10-10').toDate() } };
     EventModel.expects('find')
       .withExactArgs(query)
       .chain('lean')
       .once()
       .returns([events[0]]);
 
-    await EventHelper.removeManyEventsHelper(customerId, startDate, undefined, credentials);
-    sinon.assert.calledWith(deleteEventsStub, [events[0]], credentials);
+    await EventHelper.removeCustomerEvents(customerId, startDate, undefined, credentials);
+    sinon.assert.calledWithExactly(deleteEventsStub, [events[0]], credentials);
+    sinon.assert.calledWithExactly(deleteRepetitionStub, events[0], credentials);
   });
 });
 

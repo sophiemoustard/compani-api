@@ -3,6 +3,7 @@ const uuidv4 = require('uuid/v4');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
+const Repetition = require('../../../src/models/Repetition');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
@@ -10,6 +11,7 @@ const EventHistory = require('../../../src/models/EventHistory');
 const Sector = require('../../../src/models/Sector');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const app = require('../../../server');
+const { EVERY_WEEK } = require('../../../src/helpers/constants');
 
 const auxiliaryId = new ObjectID();
 const planningReferentId = new ObjectID();
@@ -95,6 +97,9 @@ const helpersCustomer = {
   role: rolesList[4]._id,
   company: authCompany._id,
 };
+
+const repetitionParentId = new ObjectID();
+const repetitions = [{ _id: new ObjectID(), parentId: repetitionParentId, repetition: { frequency: EVERY_WEEK } }];
 
 const eventsList = [
   {
@@ -228,14 +233,15 @@ const eventsList = [
     },
   },
   {
-    _id: new ObjectID(),
+    _id: repetitionParentId,
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
-    startDate: '2019-10-12T14:30:19.543Z',
-    endDate: '2019-10-12T16:30:19.543Z',
+    startDate: '2019-10-16T14:30:19.543Z',
+    endDate: '2019-10-16T16:30:19.543Z',
     auxiliary: eventAuxiliary._id,
     customer: customerAuxiliary._id,
+    repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: false,
@@ -255,10 +261,12 @@ const populateDB = async () => {
   await Service.deleteMany({});
   await EventHistory.deleteMany({});
   await Sector.deleteMany({});
+  await Repetition.deleteMany({});
 
   await populateDBForAuthentication();
   await Event.insertMany(eventsList);
   await Contract.insertMany(contracts);
+  await Repetition.insertMany(repetitions);
   await (new Sector(sector)).save();
   await (new User(eventAuxiliary)).save();
   await (new User(helpersCustomer)).save();
