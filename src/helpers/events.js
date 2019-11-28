@@ -259,7 +259,7 @@ exports.deleteCustomerEvents = async (customer, startDate, endDate, credentials)
 
   const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query);
   for (const events of eventsGroupedByParentId) {
-    if (events.events[0].repetition.frequency === NEVER) await exports.deleteEvents(events.events, credentials);
+    if (events.events[0].repetition.frequency === NEVER || endDate) await exports.deleteEvents(events.events, credentials);
     else await EventsRepetitionHelper.deleteRepetition(events.events[0], credentials);
   }
 };

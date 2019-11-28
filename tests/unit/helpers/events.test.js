@@ -664,7 +664,7 @@ describe('deleteCustomerEvents', () => {
     getEventsGroupedByParentIdStub.restore();
   });
 
-  it('should delete all events between start and end date', async () => {
+  it('should delete all events between start and end date and not delete the repetition', async () => {
     const startDate = '2019-10-10';
     const endDate = '2019-10-19';
     const query = {
