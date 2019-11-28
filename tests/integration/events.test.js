@@ -604,7 +604,7 @@ describe('EVENTS ROUTES', () => {
     });
   });
 
-  describe('DELETE /events/remove-customer-events', () => {
+  describe('DELETE /events', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
       beforeEach(async () => {
@@ -616,7 +616,7 @@ describe('EVENTS ROUTES', () => {
         const startDate = '2019-10-14';
         const response = await app.inject({
           method: 'DELETE',
-          url: `/events/remove-customer-events?customer=${customer}&startDate=${startDate}`,
+          url: `/events?customer=${customer}&startDate=${startDate}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -632,7 +632,7 @@ describe('EVENTS ROUTES', () => {
 
         const response = await app.inject({
           method: 'DELETE',
-          url: `/events/remove-customer-events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+          url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(200);
@@ -645,7 +645,7 @@ describe('EVENTS ROUTES', () => {
 
         const response = await app.inject({
           method: 'DELETE',
-          url: `/events/remove-customer-events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+          url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(409);
@@ -671,7 +671,7 @@ describe('EVENTS ROUTES', () => {
           authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
           const response = await app.inject({
             method: 'DELETE',
-            url: `/events/remove-customer-events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+            url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
             headers: { 'x-access-token': authToken },
           });
 

@@ -8,7 +8,7 @@ const {
   update,
   remove,
   removeRepetition,
-  removeCustomerEvents,
+  deleteCustomerEvents,
   listForCreditNotes,
   getWorkingStats,
 } = require('../controllers/eventController');
@@ -218,7 +218,7 @@ exports.plugin = {
 
     server.route({
       method: 'DELETE',
-      path: '/remove-customer-events',
+      path: '/',
       options: {
         auth: { scope: ['events:edit'] },
         validate: {
@@ -232,7 +232,7 @@ exports.plugin = {
           { method: authorizeEventUpdate },
         ],
       },
-      handler: removeCustomerEvents,
+      handler: deleteCustomerEvents,
     });
 
     server.route({

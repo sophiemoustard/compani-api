@@ -322,7 +322,7 @@ exports.getCustomerSubscriptions = contract => Event.aggregate([
   },
 ]);
 
-const getEventsGroupedByParentId = async rules => Event.aggregate([
+exports.getEventsGroupedByParentId = async rules => Event.aggregate([
   { $match: rules },
   {
     $group: {
@@ -338,14 +338,14 @@ const getEventsGroupedByParentId = async rules => Event.aggregate([
 ]);
 
 
-exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds) => getEventsGroupedByParentId({
+exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds) => exports.getEventsGroupedByParentId({
   startDate: { $gt: maxDate },
   auxiliary,
   subscription: { $in: subIds },
   $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
 });
 
-exports.getEventsExceptInterventions = async (startDate, auxiliary) => getEventsGroupedByParentId({
+exports.getEventsExceptInterventions = async (startDate, auxiliary) => exports.getEventsGroupedByParentId({
   startDate: { $gt: startDate },
   auxiliary,
   subscription: { $exists: false },

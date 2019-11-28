@@ -112,3 +112,5 @@ exports.isEditionAllowed = async (eventFromDB, payload) => {
 
   return true;
 };
+
+exports.isDeletionAllowed = event => event.type === INTERVENTION && !!event.isBilled && event.isBilled;

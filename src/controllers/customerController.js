@@ -110,9 +110,8 @@ const listWithCustomerContractSubscriptions = async (req) => {
 const listWithIntervention = async (req) => {
   try {
     const customers = await getCustomersWithIntervention(req.auth.credentials);
-    const message = customers.length > 0 ? translate[language].customersFound : translate[language].customersNotFound;
     return {
-      message,
+      message: customers.length > 0 ? translate[language].customersFound : translate[language].customersNotFound,
       data: { customers },
     };
   } catch (e) {
