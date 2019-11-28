@@ -27,7 +27,7 @@ exports.formatSubscriptionData = (bill) => {
   };
 };
 
-exports.formatCustomerBills = (customerBills, customer, number) => {
+exports.formatCustomerBills = (customerBills, customer, number, companyId) => {
   const billedEvents = {};
   const bill = {
     customer: customer._id,
@@ -36,6 +36,7 @@ exports.formatCustomerBills = (customerBills, customer, number) => {
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
     shouldBeSent: customerBills.shouldBeSent,
+    company: companyId,
   };
 
   for (const draftBill of customerBills.bills) {
@@ -48,7 +49,7 @@ exports.formatCustomerBills = (customerBills, customer, number) => {
   return { bill, billedEvents };
 };
 
-exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
+exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, companyId) => {
   let { seq } = number;
   const tppBills = [];
   const billedEvents = {};
@@ -60,6 +61,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) =>
       subscriptions: [],
       netInclTaxes: UtilsHelper.getFixedNumber(tpp.total, 2),
       date: tpp.bills[0].endDate,
+      company: companyId,
     };
     if (!tpp.bills[0].externalBilling) {
       tppBill.number = exports.formatBillNumber(number.prefix, seq);
@@ -128,21 +130,22 @@ exports.updateFundingHistories = async (histories) => {
   await Promise.all(promises);
 };
 
-exports.formatAndCreateBills = async (number, groupByCustomerBills) => {
+exports.formatAndCreateBills = async (number, groupByCustomerBills, credentials) => {
   const promises = [];
   let eventsToUpdate = {};
   let fundingHistories = {};
+  const companyId = get(credentials, 'company._id', null);
 
   for (const draftBills of groupByCustomerBills) {
     if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {
-      const customerBillingInfo = exports.formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
+      const customerBillingInfo = exports.formatCustomerBills(draftBills.customerBills, draftBills.customer, number, companyId);
       eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
       number.seq += 1;
       promises.push((new Bill(customerBillingInfo.bill)).save());
     }
 
     if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
-      const tppBillingInfo = exports.formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number);
+      const tppBillingInfo = exports.formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number, companyId);
       fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
 
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };

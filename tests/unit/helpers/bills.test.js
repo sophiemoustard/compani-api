@@ -84,6 +84,7 @@ describe('formatSubscriptionData', () => {
 
 describe('formatCustomerBills', () => {
   it('Case 1 : 1 bill', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
@@ -115,10 +116,11 @@ describe('formatCustomerBills', () => {
       total: 14.4,
     };
 
-    const result = BillHelper.formatCustomerBills(customerBills, customer, number);
+    const result = BillHelper.formatCustomerBills(customerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       shouldBeSent: true,
@@ -154,6 +156,7 @@ describe('formatCustomerBills', () => {
   });
 
   it('Case 2 : multiple bills', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
@@ -208,10 +211,11 @@ describe('formatCustomerBills', () => {
       }],
     };
 
-    const result = BillHelper.formatCustomerBills(customerBills, customer, number);
+    const result = BillHelper.formatCustomerBills(customerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       shouldBeSent: false,
@@ -271,6 +275,7 @@ describe('formatCustomerBills', () => {
 
 describe('formatThirdPartyPayerBills', () => {
   it('Case 1 : 1 third party payer - 1 bill - Funding monthly and hourly', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -304,10 +309,11 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       client: 'Papa',
@@ -349,6 +355,7 @@ describe('formatThirdPartyPayerBills', () => {
   });
 
   it('Case 2 : 1 third party payer - 1 bill - Funding once and hourly', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -382,10 +389,11 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       client: 'Papa',
@@ -425,6 +433,7 @@ describe('formatThirdPartyPayerBills', () => {
 
 
   it('Case 3 : 1 third party payer - 1 bill - Funding once and fixed', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -458,10 +467,11 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       client: 'Papa',
@@ -500,6 +510,7 @@ describe('formatThirdPartyPayerBills', () => {
   });
 
   it('Case 4 : 1 third party payer - multiple bills', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -559,10 +570,11 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       client: 'Papa',
@@ -628,6 +640,7 @@ describe('formatThirdPartyPayerBills', () => {
   });
 
   it('Case 5 : multiple third party payers', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -662,7 +675,7 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills.length).toEqual(2);

@@ -43,7 +43,7 @@ const createBills = async (req) => {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
-    await formatAndCreateBills(number, bills);
+    await formatAndCreateBills(number, bills, req.auth.credentials);
 
     return { message: translate[language].billsCreated };
   } catch (e) {
