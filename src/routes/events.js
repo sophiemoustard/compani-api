@@ -218,7 +218,7 @@ exports.plugin = {
 
     server.route({
       method: 'PUT',
-      path: '/many-events',
+      path: '/remove-many-events',
       options: {
         auth: { scope: ['events:edit'] },
         validate: {
