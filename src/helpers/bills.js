@@ -130,11 +130,21 @@ exports.updateFundingHistories = async (histories) => {
   await Promise.all(promises);
 };
 
-exports.formatAndCreateBills = async (number, groupByCustomerBills, credentials) => {
+exports.generateBillNumber = async (bills) => {
+  const prefix = `FACT-${moment(bills[0].endDate).format('MMYY')}`;
+  return BillNumber.findOneAndUpdate(
+    { prefix },
+    {},
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+};
+
+exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   const promises = [];
   let eventsToUpdate = {};
   let fundingHistories = {};
   const companyId = get(credentials, 'company._id', null);
+  const number = await exports.groupByCustomerBills(groupByCustomerBills);
 
   for (const draftBills of groupByCustomerBills) {
     if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {

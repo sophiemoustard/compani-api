@@ -3,6 +3,7 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 
+const BillNumber = require('../../../src/models/BillNumber');
 const BillHelper = require('../../../src/helpers/bills');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
@@ -13,6 +14,29 @@ describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
     expect(BillHelper.formatBillNumber('toto', 5)).toEqual('toto005');
     expect(BillHelper.formatBillNumber('toto', 345)).toEqual('toto345');
+  });
+});
+
+describe('generateBillNumber', () => {
+  it('should return a bill number', async () => {
+    const bills = [{ endDate: new Date('2019-11-15') }];
+    const prefix = 'FACT-1119';
+    const billNumber = { prefix, seq: 1 };
+    const BillNumberMock = sinon.mock(BillNumber);
+
+    BillNumberMock
+      .expects('findOneAndUpdate')
+      .withExactArgs(
+        { prefix },
+        {},
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      )
+      .returns(billNumber);
+
+    const result = await BillHelper.generateBillNumber(bills);
+
+    BillNumberMock.verify();
+    expect(result).toEqual(billNumber);
   });
 });
 
