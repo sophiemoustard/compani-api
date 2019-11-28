@@ -681,7 +681,7 @@ describe('deleteCustomerEvents', () => {
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
     await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, credentials);
-    sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events[0], credentials);
+    sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
     sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
     sinon.assert.notCalled(deleteRepetitionStub);
   });
@@ -701,7 +701,7 @@ describe('deleteCustomerEvents', () => {
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
     await EventHelper.deleteCustomerEvents(customerId, startDate, undefined, credentials);
-    sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events[0], credentials);
+    sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
     sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
     sinon.assert.calledWithExactly(deleteRepetitionStub, eventsGroupedByParentId[1].events[0], credentials);
   });

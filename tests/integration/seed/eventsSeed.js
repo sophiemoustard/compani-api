@@ -11,7 +11,7 @@ const EventHistory = require('../../../src/models/EventHistory');
 const Sector = require('../../../src/models/Sector');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 const app = require('../../../server');
-const { EVERY_WEEK } = require('../../../src/helpers/constants');
+const { EVERY_WEEK, NEVER } = require('../../../src/helpers/constants');
 
 const auxiliaryId = new ObjectID();
 const planningReferentId = new ObjectID();
@@ -106,6 +106,7 @@ const eventsList = [
     _id: new ObjectID(),
     sector: sector._id,
     type: 'internalHour',
+    repetition: { frequency: NEVER },
     startDate: '2019-01-17T10:30:18.653Z',
     endDate: '2019-01-17T12:00:18.653Z',
     auxiliary: eventAuxiliary._id,
@@ -119,6 +120,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     sector: sector._id,
+    repetition: { frequency: NEVER },
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
@@ -130,6 +132,7 @@ const eventsList = [
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
+    repetition: { frequency: NEVER },
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     auxiliary: eventAuxiliary._id,
@@ -142,6 +145,7 @@ const eventsList = [
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
+    repetition: { frequency: NEVER },
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
     auxiliary: eventAuxiliary._id,
@@ -161,6 +165,7 @@ const eventsList = [
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: true,
+    repetition: { frequency: NEVER },
     bills: {
       thirdPartyPayer: thirdPartyPayer._id,
       inclTaxesCustomer: 20,
@@ -177,6 +182,7 @@ const eventsList = [
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
+    repetition: { frequency: NEVER },
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
     auxiliary: eventAuxiliary._id,
@@ -195,6 +201,7 @@ const eventsList = [
     type: 'absence',
     startDate: '2019-07-19T14:00:18.653Z',
     endDate: '2019-07-19T17:00:18.653Z',
+    repetition: { frequency: NEVER },
     auxiliary: eventAuxiliary._id,
     createdAt: '2019-07-11T08:38:18.653Z',
   },
@@ -206,6 +213,7 @@ const eventsList = [
     startDate: '2019-10-17T14:30:19.543Z',
     endDate: '2019-10-17T16:30:19.543Z',
     auxiliary: eventAuxiliary._id,
+    repetition: { frequency: NEVER },
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
@@ -223,6 +231,7 @@ const eventsList = [
     startDate: '2019-10-15T14:30:19.543Z',
     endDate: '2019-10-15T16:30:19.543Z',
     auxiliary: eventAuxiliary._id,
+    repetition: { frequency: NEVER },
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
