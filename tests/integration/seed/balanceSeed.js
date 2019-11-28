@@ -153,10 +153,17 @@ const balanceCustomerList = [
   },
 ];
 
+const authBillService = {
+  serviceId: new ObjectID(),
+  name: 'Temps de qualité - autonomie',
+};
+
 const balanceBillList = [
   {
     _id: new ObjectID(),
     date: '2019-05-25',
+    number: 'FACT-1905001',
+    company: authCompany._id,
     customer: balanceCustomerList[0]._id,
     netInclTaxes: 101.28,
     subscriptions: [{
@@ -170,9 +177,10 @@ const balanceBillList = [
         endDate: '2019-01-16T12:30:21.653Z',
         auxiliary: new ObjectID(),
       }],
-      service: { name: 'Temps de qualité - autonomie' },
+      service: authBillService,
       hours: 4,
       unitExclTaxes: 24,
+      unitInclTaxes: 25.32,
       exclTaxes: 96,
       inclTaxes: 101.28,
       discount: 0,
@@ -181,6 +189,8 @@ const balanceBillList = [
   {
     _id: new ObjectID(),
     date: '2019-05-29',
+    number: 'FACT-1905002',
+    company: authCompany._id,
     customer: balanceCustomerList[1]._id,
     client: balanceThirdPartyPayer._id,
     netInclTaxes: 75.96,
@@ -189,7 +199,7 @@ const balanceBillList = [
       endDate: '2019-11-29',
       subscription: balanceCustomerList[1].subscriptions[0]._id,
       vat: 5.5,
-      service: { name: 'Temps de qualité - autonomie' },
+      service: authBillService,
       events: [{
         eventId: new ObjectID(),
         startDate: '2019-01-16T09:30:19.543Z',
@@ -198,6 +208,7 @@ const balanceBillList = [
       }],
       hours: 8,
       unitExclTaxes: 9,
+      unitInclTaxes: 9.495,
       exclTaxes: 72,
       inclTaxes: 75.96,
       discount: 0,
