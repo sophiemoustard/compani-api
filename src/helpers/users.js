@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const moment = require('moment');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const has = require('lodash/has');
@@ -8,6 +9,7 @@ const uuidv4 = require('uuid/v4');
 const Role = require('../models/Role');
 const User = require('../models/User');
 const Task = require('../models/Task');
+const Contract = require('../models/Contract');
 const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const RolesHelper = require('./roles');
@@ -115,4 +117,19 @@ exports.updateUser = async (userId, userPayload) => {
   }
 
   return updatedUser;
+};
+
+exports.updateUserInactivityDate = async (user, contractEndDate, credentials) => {
+  const notEndedContractCount = await Contract.countDocuments({
+    user,
+    company: get(credentials, 'company._id', null),
+    $or: [{ endDate: { $exists: false } }, { endDate: null }],
+  });
+
+  if (!notEndedContractCount) {
+    await User.updateOne(
+      { _id: user },
+      { $set: { inactivityDate: moment(contractEndDate).add('1', 'month').startOf('M').toDate() } }
+    );
+  }
 };
