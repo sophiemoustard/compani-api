@@ -11,12 +11,12 @@ const CompanySchema = mongoose.Schema({
   name: { type: String, unique: true, required: true },
   tradeName: { type: String, maxLength: 11, required: true },
   address: addressSchemaDefinition,
-  rcs: String,
-  rna: String,
-  ics: String,
-  iban: String,
-  bic: String,
-  type: { type: String, enum: COMPANY_TYPES, default: COMPANY },
+  rcs: { type: String },
+  rna: { type: String },
+  ics: { type: String },
+  iban: { type: String },
+  bic: { type: String },
+  type: { type: String, enum: COMPANY_TYPES, default: COMPANY, required: true },
   folderId: String,
   directDebitsFolderId: String,
   rhConfig: {
@@ -36,7 +36,7 @@ const CompanySchema = mongoose.Schema({
     },
   },
   customersConfig: {
-    billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS },
+    billingPeriod: { type: String, enum: COMPANY_BILLING_PERIODS, default: TWO_WEEKS, required: true },
     templates: {
       folderId: String,
       debitMandate: driveResourceSchemaDefinition,

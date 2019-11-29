@@ -59,6 +59,9 @@ const company = {
   _id: new ObjectID(),
   name: 'Test',
   tradeName: 'TT',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
 };
 
 const surcharge = {

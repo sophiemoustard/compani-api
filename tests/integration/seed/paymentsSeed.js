@@ -8,7 +8,7 @@ const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Company = require('../../../src/models/Company');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, userList, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const paymentTppList = [
   {

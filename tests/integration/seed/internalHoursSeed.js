@@ -10,6 +10,9 @@ const internalHoursCompany = {
   _id: new ObjectID(),
   name: 'Test SARL',
   tradeName: 'TT',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
 };
 
 const internalHourUsers = [{
