@@ -645,6 +645,15 @@ describe('deleteList', () => {
       _id: new ObjectID(),
       customer: customerId,
       type: 'unavailability',
+      repetition: { frequency: NEVER, parentId: new ObjectID() },
+      startDate: '2019-10-7T11:30:00.000Z',
+      endDate: '2019-10-7T13:00:00.000Z',
+      auxiliary: userId,
+    },
+    {
+      _id: new ObjectID(),
+      customer: customerId,
+      type: 'unavailability',
       startDate: '2019-10-20T11:00:00.000Z',
       endDate: '2019-10-20T13:00:00.000Z',
       auxiliary: userId,
@@ -687,16 +696,16 @@ describe('deleteList', () => {
   });
 
   it('should delete all events and repetition as of start date', async () => {
-    const startDate = '2019-10-08';
-    const query = { customer: customerId, startDate: { $gte: moment('2019-10-08').toDate() } };
+    const startDate = '2019-10-07';
+    const query = { customer: customerId, startDate: { $gte: moment('2019-10-07').toDate() } };
     EventModel.expects('countDocuments')
       .withExactArgs({ ...query, isBilled: true })
       .once()
       .returns(0);
 
     const eventsGroupedByParentId = [
-      { _id: new ObjectID(), events: [events[0]] },
-      { _id: new ObjectID(), events: [events[1]] },
+      { _id: null, events: [events[0]] },
+      { _id: new ObjectID(), events: [events[1], events[2]] },
     ];
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 

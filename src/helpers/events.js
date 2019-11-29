@@ -258,9 +258,9 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
   if (await Event.countDocuments({ ...query, isBilled: true }) > 0) throw Boom.conflict('Some events are already billed');
 
   const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query);
-  for (const events of eventsGroupedByParentId) {
-    if (events.events[0].repetition.frequency === NEVER || endDate) await exports.deleteEvents(events.events, credentials);
-    else await EventsRepetitionHelper.deleteRepetition(events.events[0], credentials);
+  for (const group of eventsGroupedByParentId) {
+    if (!group._id || endDate) await exports.deleteEvents(group.events, credentials);
+    else await EventsRepetitionHelper.deleteRepetition(group.events[0], credentials);
   }
 };
 
