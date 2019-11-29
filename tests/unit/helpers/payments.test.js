@@ -61,13 +61,9 @@ describe('generateXML', () => {
   let date;
   const fakeDate = new Date('2019-01-03');
 
-  const firstPaymentsInfo = {
-    test: 'test',
-  };
+  const firstPaymentsInfo = { test: 'test' };
 
-  const recurPaymentsInfo = {
-    test2: 'test2',
-  };
+  const recurPaymentsInfo = { test2: 'test2' };
 
   const generateSEPAHeaderArgument = {
     id: sinon.match.string,
@@ -78,16 +74,9 @@ describe('generateXML', () => {
     ics: company.ics,
   };
 
-  const document = {
-    Document: {
-      '@xlns': '123456',
-    },
-  };
+  const document = { Document: { '@xlns': '123456' } };
 
-  const SEPAHeader = {
-    header1: '1234',
-    header2: '5678',
-  };
+  const SEPAHeader = { header1: '1234', header2: '5678' };
 
   const generateFirstPaymentsInfoArgument = {
     id: sinon.match.string,
@@ -153,8 +142,9 @@ describe('generateXML', () => {
     sinon.assert.calledWithExactly(createDocumentStub);
     sinon.assert.calledOnce(generateSEPAHeaderStub);
     sinon.assert.calledWith(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 0, sum: 0 });
-
     sinon.assert.calledOnce(generateSEPAXmlStub);
+    sinon.assert.notCalled(generatePaymentInfoStub);
+    sinon.assert.notCalled(addTransactionInfoStub);
   });
 
   it('should deal with firstPayments if firstPayments has payment', async () => {
@@ -175,7 +165,6 @@ describe('generateXML', () => {
     sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
     sinon.assert.calledOnce(addTransactionInfoStub);
     sinon.assert.calledWithExactly(addTransactionInfoStub, firstPaymentsInfo, firstPayments);
-
     sinon.assert.calledOnce(generateSEPAXmlStub);
   });
 
@@ -248,7 +237,7 @@ describe('createPayment', () => {
     const result = await PaymentsHelper.createPayment(payment, credentials);
 
     expect(result).toBeDefined();
-    sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials);
+    sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials.company);
     sinon.assert.calledOnce(formatPaymentStub);
     sinon.assert.calledOnce(saveStub);
 
@@ -268,15 +257,15 @@ describe('formatPayment', () => {
       type: 'direct_debit',
     };
     const companyId = new ObjectID();
-    const credentials = { company: { _id: companyId } };
+    const company = { _id: companyId };
     const generatePaymentNumberStub = sinon.stub(PaymentsHelper, 'generatePaymentNumber').returns('REG-1904001');
-    const result = await PaymentsHelper.formatPayment(payment, credentials);
+    const result = await PaymentsHelper.formatPayment(payment, company);
     generatePaymentNumberStub.restore();
 
     expect(result).toBeDefined();
-    expect(payment.number).toBe('REG-1904001');
-    expect(ObjectID.isValid(payment._id)).toBe(true);
-    expect(payment.company).toBe(credentials.company._id);
+    expect(result.number).toBe('REG-1904001');
+    expect(ObjectID.isValid(result._id)).toBe(true);
+    expect(result.company).toBe(companyId);
   });
 });
 
