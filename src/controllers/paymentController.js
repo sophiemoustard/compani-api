@@ -1,9 +1,7 @@
 const Boom = require('boom');
 const flat = require('flat');
 
-const get = require('lodash/get');
 const Payment = require('../models/Payment');
-const { getDateQuery } = require('../helpers/utils');
 const PaymentHelper = require('../helpers/payments');
 const translate = require('../helpers/translate');
 
@@ -11,13 +9,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const { startDate, endDate, ...rest } = req.query;
-    const query = rest;
-    if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
-
-    const payments = await Payment.find(query)
-      .populate({ path: 'client', select: '_id name', match: { company: get(req, 'auth.credentials.company._id', null) } })
-      .populate({ path: 'customer', select: '_id identity' });
+    const payments = await PaymentHelper.list(req.query, req.auth.credentials);
 
     return {
       message: payments.length === 0 ? translate[language].paymentsNotFound : translate[language].paymentsFound,

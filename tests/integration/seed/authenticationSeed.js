@@ -194,6 +194,10 @@ const authCompany = {
   _id: new ObjectID(),
   name: 'Test SAS',
   tradeName: 'Test',
+  iban: '1234',
+  bic: '5678',
+  ics: '9876',
+  directDebitsFolderId: '1234',
 };
 
 const otherCompany = {

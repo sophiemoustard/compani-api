@@ -6,12 +6,65 @@ const { ObjectID } = require('mongodb');
 
 const omit = require('lodash/omit');
 const PaymentsHelper = require('../../../src/helpers/payments');
+const UtilsHelper = require('../../../src/helpers/utils');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Payment = require('../../../src/models/Payment');
 const xmlHelper = require('../../../src/helpers/xml');
 
 require('sinon-mongoose');
+
+describe('list', () => {
+  let getDateQueryStub;
+  let PaymentModel;
+  beforeEach(() => {
+    getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
+    PaymentModel = sinon.mock(Payment);
+  });
+
+  afterEach(() => {
+    getDateQueryStub.restore();
+    PaymentModel.restore();
+  });
+
+  it('should return all payments ', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const query = {};
+    const payment = { _id: new ObjectID() };
+    PaymentModel.expects('find').chain('populate').chain('lean').returns([payment]);
+
+    const result = await PaymentsHelper.list(query, credentials);
+
+    expect(result).toEqual([payment]);
+    sinon.assert.notCalled(getDateQueryStub);
+  });
+
+  it('should call getDateQuery if startDate is defined ', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const query = { startDate: '2019-11-01' };
+    const payment = { _id: new ObjectID() };
+    PaymentModel.expects('find').chain('populate').chain('lean').returns([payment]);
+
+    const result = await PaymentsHelper.list(query, credentials);
+
+    expect(result).toEqual([payment]);
+    sinon.assert.calledOnce(getDateQueryStub);
+    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+  });
+
+  it('should call getDateQuery if endDate is defined ', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const query = { endDate: '2019-11-01' };
+    const payment = { _id: new ObjectID() };
+    PaymentModel.expects('find').chain('populate').chain('lean').returns([payment]);
+
+    const result = await PaymentsHelper.list(query, credentials);
+
+    expect(result).toEqual([payment]);
+    sinon.assert.calledOnce(getDateQueryStub);
+    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
+  });
+});
 
 describe('generatePaymentNumber', () => {
   const paymentNatures = [
