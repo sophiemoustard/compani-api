@@ -3,7 +3,6 @@ const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const Boom = require('boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
-
 const { validateQuery, validatePayload } = require('./preHooks/validate');
 const {
   MONTHLY,
@@ -18,6 +17,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const subscriptionSchemaDefinition = require('./schemaDefinitions/subscription');
+const UtilsHelper = require('../helpers/utils');
 
 const FUNDING_FREQUENCIES = [MONTHLY, ONCE];
 const FUNDING_NATURES = [FIXED, HOURLY];
