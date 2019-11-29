@@ -39,6 +39,7 @@ module.exports = {
   diff: hoursBalanceDetails,
   endDate: { type: Date, required: true },
   ...hoursBalanceDetails,
+  holidaysHours: { type: Number, required: true },
   hoursCounter: { type: Number, required: true },
   hoursToWork: { type: Number, min: 0, required: true },
   month: { type: String, required: true, validate: /^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/ },
