@@ -9,6 +9,7 @@ const PaymentsHelper = require('../../../src/helpers/payments');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Payment = require('../../../src/models/Payment');
+const xmlHelper = require('../../../src/helpers/xml');
 
 require('sinon-mongoose');
 
@@ -26,6 +27,206 @@ describe('generatePaymentNumber', () => {
       expect(result).toBeDefined();
       expect(result).toBe(nature.result);
     });
+  });
+});
+
+describe('generateXML', () => {
+  const company = {
+    _id: new ObjectID(),
+    name: 'test',
+    iban: '1234',
+    bic: '5678',
+    ics: '9876',
+    directDebitsFolderId: '1234567890',
+  };
+  const firstPayments = [{
+    company: company._id,
+    date: '2019-11-20',
+    customer: new ObjectID(),
+    client: new ObjectID(),
+    netInclTaxes: 190,
+    nature: PAYMENT,
+    type: 'direct_debit',
+  }];
+  const recurPayments = [{
+    company: company._id,
+    date: '2019-11-20',
+    customer: new ObjectID(),
+    client: new ObjectID(),
+    netInclTaxes: 120,
+    nature: PAYMENT,
+    type: 'direct_debit',
+  }];
+
+  let date;
+  const fakeDate = new Date('2019-01-03');
+
+  const firstPaymentsInfo = {
+    test: 'test',
+  };
+
+  const recurPaymentsInfo = {
+    test2: 'test2',
+  };
+
+  const generateSEPAHeaderArgument = {
+    id: sinon.match.string,
+    created: fakeDate,
+    initiatorName: company.name.split(' ')[0],
+    txNumber: firstPayments.length + recurPayments.length,
+    sum: 310,
+    ics: company.ics,
+  };
+
+  const document = {
+    Document: {
+      '@xlns': '123456',
+    },
+  };
+
+  const SEPAHeader = {
+    header1: '1234',
+    header2: '5678',
+  };
+
+  const generateFirstPaymentsInfoArgument = {
+    id: sinon.match.string,
+    sequenceType: 'FRST',
+    method: 'DD',
+    txNumber: firstPayments.length,
+    sum: 190,
+    collectionDate: fakeDate,
+    creditor: {
+      name: company.name.split(' ')[0],
+      iban: company.iban,
+      bic: company.bic,
+      ics: company.ics,
+    },
+  };
+
+  const generateRecurPaymentsInfoArgument = {
+    id: sinon.match.string,
+    sequenceType: 'RCUR',
+    method: 'DD',
+    txNumber: recurPayments.length,
+    sum: 120,
+    collectionDate: fakeDate,
+    creditor: {
+      name: company.name.split(' ')[0],
+      iban: company.iban,
+      bic: company.bic,
+      ics: company.ics,
+    },
+  };
+
+  let generateSEPAHeaderStub;
+  let createDocumentStub;
+  let generatePaymentInfoStub;
+  let addTransactionInfoStub;
+  let generateSEPAXmlStub;
+  beforeEach(() => {
+    generateSEPAHeaderStub = sinon.stub(xmlHelper, 'generateSEPAHeader');
+    createDocumentStub = sinon.stub(xmlHelper, 'createDocument');
+    generatePaymentInfoStub = sinon.stub(xmlHelper, 'generatePaymentInfo');
+    addTransactionInfoStub = sinon.stub(xmlHelper, 'addTransactionInfo');
+    generateSEPAXmlStub = sinon.stub(xmlHelper, 'generateSEPAXml');
+    date = sinon.useFakeTimers(fakeDate.getTime());
+  });
+
+  afterEach(() => {
+    generateSEPAHeaderStub.restore();
+    createDocumentStub.restore();
+    generatePaymentInfoStub.restore();
+    addTransactionInfoStub.restore();
+    generateSEPAXmlStub.restore();
+    date.restore();
+  });
+
+  it('should not deal with firstPayments or recurPayments if neither has payment', async () => {
+    createDocumentStub.returns(document);
+    generateSEPAHeaderStub.returns(SEPAHeader);
+    generateSEPAXmlStub.returns();
+
+    await PaymentsHelper.generateXML([], [], company);
+
+    sinon.assert.calledOnce(createDocumentStub);
+    sinon.assert.calledWithExactly(createDocumentStub);
+    sinon.assert.calledOnce(generateSEPAHeaderStub);
+    sinon.assert.calledWith(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 0, sum: 0 });
+
+    sinon.assert.calledOnce(generateSEPAXmlStub);
+  });
+
+  it('should deal with firstPayments if firstPayments has payment', async () => {
+    createDocumentStub.returns(document);
+    generateSEPAHeaderStub.returns(SEPAHeader);
+    generatePaymentInfoStub.returns(firstPaymentsInfo);
+    addTransactionInfoStub.returns(firstPaymentsInfo);
+    generateSEPAXmlStub.returns();
+
+    await PaymentsHelper.generateXML(firstPayments, [], company);
+
+    sinon.assert.calledOnce(createDocumentStub);
+    sinon.assert.calledWithExactly(createDocumentStub);
+    sinon.assert.calledOnce(generateSEPAHeaderStub);
+    sinon.assert.calledWith(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 190 });
+
+    sinon.assert.calledOnce(generatePaymentInfoStub);
+    sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
+    sinon.assert.calledOnce(addTransactionInfoStub);
+    sinon.assert.calledWithExactly(addTransactionInfoStub, firstPaymentsInfo, firstPayments);
+
+    sinon.assert.calledOnce(generateSEPAXmlStub);
+  });
+
+  it('should deal with recurPayments if recurPayments has payments', async () => {
+    createDocumentStub.returns(document);
+    generateSEPAHeaderStub.returns(SEPAHeader);
+    generatePaymentInfoStub.returns(recurPaymentsInfo);
+    addTransactionInfoStub.returns(recurPaymentsInfo);
+    generateSEPAXmlStub.returns();
+
+    await PaymentsHelper.generateXML([], recurPayments, company);
+
+    sinon.assert.calledOnce(createDocumentStub);
+    sinon.assert.calledWithExactly(createDocumentStub);
+    sinon.assert.calledOnce(generateSEPAHeaderStub);
+    sinon.assert.calledWith(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 120 });
+
+    sinon.assert.calledOnce(generatePaymentInfoStub);
+    sinon.assert.calledWithExactly(generatePaymentInfoStub, generateRecurPaymentsInfoArgument);
+    sinon.assert.calledOnce(addTransactionInfoStub);
+    sinon.assert.calledWithExactly(addTransactionInfoStub, recurPaymentsInfo, recurPayments);
+
+    sinon.assert.calledOnce(generateSEPAXmlStub);
+  });
+
+  it('should deal with both firstPayments and recurPayments if both have payments', async () => {
+    createDocumentStub.returns(document);
+    generateSEPAHeaderStub.returns(SEPAHeader);
+    generatePaymentInfoStub.onCall(0).returns(firstPaymentsInfo);
+    addTransactionInfoStub.onCall(0).returns(firstPaymentsInfo);
+    generatePaymentInfoStub.onCall(1).returns(recurPaymentsInfo);
+    addTransactionInfoStub.onCall(1).returns(recurPaymentsInfo);
+
+    generateSEPAXmlStub.returns();
+
+    await PaymentsHelper.generateXML(firstPayments, recurPayments, company);
+
+    sinon.assert.calledOnce(createDocumentStub);
+    sinon.assert.calledWithExactly(createDocumentStub);
+    sinon.assert.calledOnce(generateSEPAHeaderStub);
+    sinon.assert.calledWith(generateSEPAHeaderStub, generateSEPAHeaderArgument);
+
+    sinon.assert.calledTwice(generatePaymentInfoStub);
+    sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
+    sinon.assert.calledWithExactly(generatePaymentInfoStub, generateRecurPaymentsInfoArgument);
+
+    sinon.assert.calledTwice(addTransactionInfoStub);
+    sinon.assert.calledWithExactly(addTransactionInfoStub, firstPaymentsInfo, firstPayments);
+    sinon.assert.calledWithExactly(addTransactionInfoStub, firstPaymentsInfo, firstPayments);
+
+    sinon.assert.calledOnce(generateSEPAXmlStub);
   });
 });
 
@@ -79,7 +280,7 @@ describe('formatPayment', () => {
   });
 });
 
-describe('savePayment', () => {
+describe('savePayments', () => {
   let formatPaymentStub;
   let generateXMLStub;
   let saveStub;

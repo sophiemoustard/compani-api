@@ -7,13 +7,7 @@ const Boom = require('boom');
 const Payment = require('../models/Payment');
 const PaymentNumber = require('../models/PaymentNumber');
 const { REFUND, PAYMENT, DIRECT_DEBIT, PAYMENT_TYPES_LIST, PAYMENT_NATURE_LIST, CIVILITY_LIST } = require('./constants');
-const {
-  createDocument,
-  generateSEPAHeader,
-  generateSEPAXml,
-  generatePaymentInfo,
-  addTransactionInfo,
-} = require('../helpers/xml');
+const xmlHelper = require('../helpers/xml');
 const UtilsHelper = require('./utils');
 
 
@@ -42,8 +36,8 @@ exports.generateXML = async (firstPayments, recurPayments, company) => {
   const totalPayments = firstPaymentsTotal + recurPaymentsTotal;
   let firstPaymentsInfo = null;
   let recurPaymentsInfo = null;
-  const doc = createDocument();
-  const header = generateSEPAHeader({
+  const doc = xmlHelper.createDocument();
+  const header = xmlHelper.generateSEPAHeader({
     id: `MSG${randomId}G`,
     created: new Date(),
     initiatorName: company.name.split(' ')[0],
@@ -53,7 +47,7 @@ exports.generateXML = async (firstPayments, recurPayments, company) => {
   });
 
   if (firstPayments.length > 0) {
-    firstPaymentsInfo = generatePaymentInfo({
+    firstPaymentsInfo = xmlHelper.generatePaymentInfo({
       id: `MSG${randomId}F`,
       sequenceType: 'FRST',
       method: 'DD',
@@ -67,11 +61,11 @@ exports.generateXML = async (firstPayments, recurPayments, company) => {
         ics: company.ics,
       },
     });
-    firstPaymentsInfo = addTransactionInfo(firstPaymentsInfo, firstPayments);
+    firstPaymentsInfo = xmlHelper.addTransactionInfo(firstPaymentsInfo, firstPayments);
   }
 
   if (recurPayments.length > 0) {
-    recurPaymentsInfo = generatePaymentInfo({
+    recurPaymentsInfo = xmlHelper.generatePaymentInfo({
       id: `MSG${randomId}R`,
       sequenceType: 'RCUR',
       method: 'DD',
@@ -85,10 +79,10 @@ exports.generateXML = async (firstPayments, recurPayments, company) => {
         ics: company.ics,
       },
     });
-    recurPaymentsInfo = addTransactionInfo(recurPaymentsInfo, recurPayments);
+    recurPaymentsInfo = xmlHelper.addTransactionInfo(recurPaymentsInfo, recurPayments);
   }
 
-  const outputPath = await generateSEPAXml(doc, header, company.directDebitsFolderId, firstPaymentsInfo, recurPaymentsInfo);
+  const outputPath = await xmlHelper.generateSEPAXml(doc, header, company.directDebitsFolderId, firstPaymentsInfo, recurPaymentsInfo);
   return outputPath;
 };
 
