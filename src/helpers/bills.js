@@ -144,14 +144,14 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   let eventsToUpdate = {};
   let fundingHistories = {};
   const companyId = get(credentials, 'company._id', null);
-  const number = await exports.groupByCustomerBills(groupByCustomerBills);
+  const number = await exports.generateBillNumber(groupByCustomerBills);
 
   for (const draftBills of groupByCustomerBills) {
     if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {
       const customerBillingInfo = exports.formatCustomerBills(draftBills.customerBills, draftBills.customer, number, companyId);
       eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
       number.seq += 1;
-      promises.push((new Bill(customerBillingInfo.bill)).save());
+      promises.push(Bill.create(customerBillingInfo.bill));
     }
 
     if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
@@ -160,7 +160,7 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
 
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
-        promises.push((new Bill(bill)).save());
+        promises.push(Bill.create(bill));
         if (bill.number) number.seq += 1;
       }
     }
