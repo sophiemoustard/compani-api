@@ -614,7 +614,7 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   });
 });
 
-describe('deleteCustomerEvents', () => {
+describe('deleteList', () => {
   let deleteEventsStub;
   let deleteRepetitionStub;
   let EventModel;
@@ -680,7 +680,7 @@ describe('deleteCustomerEvents', () => {
 
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
-    await EventHelper.deleteCustomerEvents(customerId, startDate, endDate, credentials);
+    await EventHelper.deleteList(customerId, startDate, endDate, credentials);
     sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
     sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
     sinon.assert.notCalled(deleteRepetitionStub);
@@ -700,7 +700,7 @@ describe('deleteCustomerEvents', () => {
     ];
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
-    await EventHelper.deleteCustomerEvents(customerId, startDate, undefined, credentials);
+    await EventHelper.deleteList(customerId, startDate, undefined, credentials);
     sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
     sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
     sinon.assert.calledWithExactly(deleteRepetitionStub, eventsGroupedByParentId[1].events[0], credentials);
@@ -919,32 +919,6 @@ describe('unassignConflictInterventions', () => {
 
     getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERVENTION]);
     sinon.assert.callCount(updateEvent, events.length);
-  });
-});
-
-describe('isDeletionAllowed', () => {
-  it('should return true', async () => {
-    const event = { type: INTERVENTION, isBilled: true };
-    const result = EventsValidationHelper.isDeletionAllowed(event);
-    expect(result).toBe(true);
-  });
-
-  it('should return false', async () => {
-    const event = { type: INTERVENTION, isBilled: false };
-    const result = EventsValidationHelper.isDeletionAllowed(event);
-    expect(result).toBe(false);
-  });
-
-  it('should return false', async () => {
-    const event = { type: INTERVENTION };
-    const result = EventsValidationHelper.isDeletionAllowed(event);
-    expect(result).toBe(false);
-  });
-
-  it('should return false', async () => {
-    const event = { type: INTERNAL_HOUR, isBilled: true };
-    const result = EventsValidationHelper.isDeletionAllowed(event);
-    expect(result).toBe(false);
   });
 });
 

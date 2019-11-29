@@ -125,11 +125,11 @@ const removeRepetition = async (req) => {
   }
 };
 
-const deleteCustomerEvents = async (req) => {
+const deleteList = async (req) => {
   try {
     const { query, auth } = req;
 
-    await EventsHelper.deleteCustomerEvents(query.customer, query.startDate, query.endDate, auth.credentials);
+    await EventsHelper.deleteList(query.customer, query.startDate, query.endDate, auth.credentials);
 
     return { message: translate[language].eventsDeleted };
   } catch (e) {
@@ -159,7 +159,7 @@ module.exports = {
   update,
   remove,
   removeRepetition,
-  deleteCustomerEvents,
+  deleteList,
   listForCreditNotes,
   getWorkingStats,
 };

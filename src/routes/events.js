@@ -8,7 +8,7 @@ const {
   update,
   remove,
   removeRepetition,
-  deleteCustomerEvents,
+  deleteList,
   listForCreditNotes,
   getWorkingStats,
 } = require('../controllers/eventController');
@@ -232,7 +232,7 @@ exports.plugin = {
           { method: authorizeEventUpdate },
         ],
       },
-      handler: deleteCustomerEvents,
+      handler: deleteList,
     });
 
     server.route({

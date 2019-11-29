@@ -252,7 +252,7 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
   return Promise.all(promises);
 };
 
-exports.deleteCustomerEvents = async (customer, startDate, endDate, credentials) => {
+exports.deleteList = async (customer, startDate, endDate, credentials) => {
   const query = { customer: new ObjectID(customer), startDate: { $gte: moment(startDate).toDate() } };
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
   if (await Event.countDocuments({ ...query, isBilled: true }) > 0) throw Boom.conflict('Some events are already billed');
@@ -282,7 +282,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
 };
 
 exports.deleteEvent = async (event, credentials) => {
-  if (EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict('The event is already billed');
+  if (!EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict('The event is already billed');
   const deletionInfo = _.omit(event, 'repetition');
   await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
   await Event.deleteOne({ _id: event._id });
@@ -292,7 +292,7 @@ exports.deleteEvent = async (event, credentials) => {
 
 exports.deleteEvents = async (events, credentials) => {
   const promises = [];
-  if (events.some(event => EventsValidationHelper.isDeletionAllowed(event))) throw Boom.conflict('Some events are already billed');
+  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) throw Boom.conflict('Some events are already billed');
   for (const event of events) {
     const deletionInfo = _.omit(event, 'repetition');
     promises.push(EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials));
