@@ -136,7 +136,7 @@ exports.generateBillNumber = async (bills) => {
     { prefix },
     {},
     { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
+  ).lean();
 };
 
 exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {

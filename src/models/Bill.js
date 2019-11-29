@@ -21,7 +21,7 @@ const BillSchema = mongoose.Schema({
       name: String,
       nature: ServiceSchema.path('nature'),
     },
-    vat: { type: Number, required: true },
+    vat: { type: Number, default: 0 },
     events: [{
       eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
       auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

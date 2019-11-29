@@ -39,6 +39,7 @@ describe('generateBillNumber', () => {
         {},
         { new: true, upsert: true, setDefaultsOnInsert: true }
       )
+      .chain('lean')
       .returns(billNumber);
 
     const result = await BillHelper.generateBillNumber(bills);
@@ -143,11 +144,7 @@ describe('formatAndCreateBills', () => {
     generateBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
-
-    BillMock
-      .expects('create')
-      .twice();
-
+    BillMock.expects('create').twice();
     BillNumberMock
       .expects('findOneAndUpdate')
       .withExactArgs({ prefix: number.prefix }, { $set: { seq: 3 } });
@@ -208,11 +205,7 @@ describe('formatAndCreateBills', () => {
 
     generateBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
-
-    BillMock
-      .expects('create')
-      .once();
-
+    BillMock.expects('create').once();
     BillNumberMock
       .expects('findOneAndUpdate')
       .withExactArgs({ prefix: number.prefix }, { $set: { seq: 2 } });
@@ -268,11 +261,7 @@ describe('formatAndCreateBills', () => {
 
     generateBillNumberStub.returns(number);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
-
-    BillMock
-      .expects('create')
-      .once();
-
+    BillMock.expects('create').once();
     BillNumberMock
       .expects('findOneAndUpdate')
       .withExactArgs({ prefix: number.prefix }, { $set: { seq: 2 } });

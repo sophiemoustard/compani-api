@@ -286,6 +286,99 @@ describe('BILL ROUTES - POST /bills', () => {
       const draftBillsLength = payload[0].customerBills.bills.length + payload[0].thirdPartyPayerBills[0].bills.length;
       expect(bills.length).toBe(draftBillsLength + billsList.length);
     });
+
+    it('should create new bill with vat 0 if service is not taxed', async () => {
+      const draftBillPayload = [
+        {
+          customerId: '5ccbfcf3d6eaa746a3c34cdf',
+          customer: {
+            _id: '5ccbfcf3d6eaa746a3c34cdf',
+            identity: {
+              title: 'mr',
+              firstname: 'Marie',
+              lastname: 'Renard',
+            },
+          },
+          endDate: '2019-05-31T23:59:59.999Z',
+          customerBills: {
+            bills: [
+              {
+                _id: '5ccbfcf4bffe7646a387b470',
+                subscription: {
+                  _id: '5ccbfcf3d6eaa746a3c34ce1',
+                  service: {
+                    _id: '5ccbfcf3d6eaa746a3c34cda',
+                    type: 'contract_with_customer',
+                    company: '5ccbfcf3d6eaa746a3c34cc4',
+                    versions: [
+                      {
+                        _id: '5ccbfcf4bffe7646a387b469',
+                        defaultUnitAmount: 6,
+                        name: 'Service 1',
+                        startDate: '2019-01-16T16:58:15.519Z',
+                        createdAt: '2019-05-03T08:33:56.163Z',
+                      },
+                    ],
+                    nature: 'hourly',
+                    createdAt: '2019-05-03T08:33:56.163Z',
+                    updatedAt: '2019-05-03T08:33:56.163Z',
+                  },
+                  versions: [
+                    {
+                      _id: '5ccbfcf4bffe7646a387b456',
+                      unitTTCRate: 6,
+                      estimatedWeeklyVolume: 8,
+                      evenings: 0,
+                      sundays: 0,
+                      startDate: '2019-04-03T08:33:55.370Z',
+                      createdAt: '2019-05-03T08:33:56.144Z',
+                    },
+                  ],
+                  createdAt: '2019-05-03T08:33:56.144Z',
+                },
+                identity: {
+                  title: 'mr',
+                  firstname: 'Marie',
+                  lastname: 'Renard',
+                  birthDate: '2018-05-23T18:59:04.466Z',
+                },
+                discount: 0,
+                startDate: '2019-05-01T00:00:00.000Z',
+                endDate: '2019-05-31T23:59:59.999Z',
+                unitExclTaxes: 10.714285714285714,
+                unitInclTaxes: 12,
+                vat: 12,
+                eventsList: [
+                  {
+                    event: '5ccbfcf3d6eaa746a3c34ceb',
+                    auxiliary: new ObjectID(),
+                    startDate: '2019-05-02T08:00:00.000Z',
+                    endDate: '2019-05-02T10:00:00.000Z',
+                    inclTaxesCustomer: 24,
+                    exclTaxesCustomer: 21.428571428571427,
+                    surcharges: [{ percentage: 90, name: 'Noël' }],
+                  },
+                ],
+                hours: 2,
+                exclTaxes: 21.428571428571427,
+                inclTaxes: 24,
+              },
+            ],
+            total: 24,
+          },
+        },
+      ];
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: { bills: draftBillPayload },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const bills = await Bill.find({ 'subscriptions.vat': 0 }).lean();
+      expect(bills.length).toBe(1);
+    });
   });
 
   describe('Other roles', () => {
