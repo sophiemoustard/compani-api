@@ -1,9 +1,11 @@
 const sinon = require('sinon');
+const Boom = require('boom');
 const expect = require('expect');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 
-const payments = require('../../../src/helpers/payments');
+const omit = require('lodash/omit');
+const PaymentsHelper = require('../../../src/helpers/payments');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
 const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Payment = require('../../../src/models/Payment');
@@ -18,7 +20,7 @@ describe('generatePaymentNumber', () => {
   paymentNatures.forEach((nature) => {
     it(`should return right payment number if nature is '${nature.type}' `, async () => {
       const findOneAndUpdate = sinon.stub(PaymentNumber, 'findOneAndUpdate').returns(nature.returned);
-      const result = await payments.generatePaymentNumber(nature.type);
+      const result = await PaymentsHelper.generatePaymentNumber(nature.type);
       findOneAndUpdate.restore();
 
       expect(result).toBeDefined();
@@ -27,8 +29,35 @@ describe('generatePaymentNumber', () => {
   });
 });
 
+describe('createPayment', () => {
+  it('should create a payment', async () => {
+    const payment = {
+      date: '2019-11-28',
+      customer: new ObjectID(),
+      client: new ObjectID(),
+      netInclTaxes: 190,
+      nature: PAYMENT,
+      type: 'direct_debit',
+    };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment').returns(payment);
+    const saveStub = sinon.stub(Payment.prototype, 'save');
+
+    const result = await PaymentsHelper.createPayment(payment, credentials);
+
+    expect(result).toBeDefined();
+    sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials);
+    sinon.assert.calledOnce(formatPaymentStub);
+    sinon.assert.calledOnce(saveStub);
+
+    formatPaymentStub.restore();
+    saveStub.restore();
+  });
+});
+
 describe('formatPayment', () => {
-  it('should add an id and a number to payment', async () => {
+  it('should add an id, a number and a company to payment', async () => {
     const payment = {
       date: moment().toDate(),
       customer: new ObjectID(),
@@ -37,13 +66,99 @@ describe('formatPayment', () => {
       nature: PAYMENT,
       type: 'direct_debit',
     };
-    const generatePaymentNumberStub = sinon.stub(payments, 'generatePaymentNumber').returns('REG-1904001');
-    const result = await payments.formatPayment(payment);
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const generatePaymentNumberStub = sinon.stub(PaymentsHelper, 'generatePaymentNumber').returns('REG-1904001');
+    const result = await PaymentsHelper.formatPayment(payment, credentials);
     generatePaymentNumberStub.restore();
 
     expect(result).toBeDefined();
     expect(payment.number).toBe('REG-1904001');
     expect(ObjectID.isValid(payment._id)).toBe(true);
+    expect(payment.company).toBe(credentials.company._id);
+  });
+});
+
+describe('savePayment', () => {
+  let formatPaymentStub;
+  let generateXMLStub;
+  let saveStub;
+  let PaymentModel;
+  beforeEach(() => {
+    formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment');
+    generateXMLStub = sinon.stub(PaymentsHelper, 'generateXML');
+    saveStub = sinon.stub(Payment.prototype, 'save');
+    PaymentModel = sinon.mock(Payment);
+  });
+
+  afterEach(() => {
+    formatPaymentStub.restore();
+    generateXMLStub.restore();
+    saveStub.restore();
+    PaymentModel.restore();
+  });
+  const credentials = {
+    company: {
+      _id: new ObjectID(),
+      name: 'test',
+      iban: '1234',
+      bic: '5678',
+      ics: '9876',
+      directDebitsFolderId: '1234567890',
+    },
+  };
+  const payload = [{
+    company: credentials.company._id,
+    date: '2019-11-20',
+    customer: new ObjectID(),
+    client: new ObjectID(),
+    netInclTaxes: 190,
+    nature: PAYMENT,
+    type: 'direct_debit',
+  },
+  {
+    company: credentials.company._id,
+    date: '2019-11-20',
+    customer: new ObjectID(),
+    client: new ObjectID(),
+    netInclTaxes: 120,
+    nature: PAYMENT,
+    type: 'direct_debit',
+  }];
+  it('should return error if company is missing', async () => {
+    try {
+      const credentialsTmp = {};
+      await PaymentsHelper.savePayments(payload, credentialsTmp);
+      sinon.assert.notCalled(formatPaymentStub);
+    } catch (e) {
+      expect(e).toEqual(Boom.badRequest('Missing mandatory company info !'));
+    }
+  });
+
+  const params = ['name', 'iban', 'bic', 'ics', 'directDebitsFolderId'];
+  params.forEach((param) => {
+    it(`should return error if missing '${param}' `, async () => {
+      try {
+        await PaymentsHelper.savePayments(payload, omit(credentials, `company.${param}`));
+        sinon.assert.notCalled(formatPaymentStub);
+      } catch (e) {
+        expect(e).toEqual(Boom.badRequest('Missing mandatory company info !'));
+      }
+    });
+  });
+
+  it('should save payments', async () => {
+    PaymentModel.expects('countDocuments').onCall(0).returns(0);
+    PaymentModel.expects('countDocuments').onCall(1).returns(1);
+    formatPaymentStub.onCall(0).returns(payload[0]);
+    formatPaymentStub.onCall(1).returns(payload[1]);
+    generateXMLStub.returns('');
+
+    await PaymentsHelper.savePayments(payload, credentials);
+    sinon.assert.calledTwice(formatPaymentStub);
+    sinon.assert.calledTwice(saveStub);
+    sinon.assert.calledWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
+    sinon.assert.calledOnce(generateXMLStub);
   });
 });
 
@@ -101,7 +216,7 @@ describe('exportPaymentsHistory', () => {
       .once()
       .returns([]);
     const credentials = { company: new ObjectID() };
-    const exportArray = await payments.exportPaymentsHistory(null, null, credentials);
+    const exportArray = await PaymentsHelper.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
   });
@@ -115,7 +230,7 @@ describe('exportPaymentsHistory', () => {
       .once()
       .returns(paymentsList);
     const credentials = { company: new ObjectID() };
-    const exportArray = await payments.exportPaymentsHistory(null, null, credentials);
+    const exportArray = await PaymentsHelper.exportPaymentsHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,

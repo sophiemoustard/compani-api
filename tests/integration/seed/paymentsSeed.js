@@ -107,6 +107,7 @@ const paymentCustomerList = [
 const paymentsList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903201',
     date: '2019-05-26T15:47:42',
     customer: paymentCustomerList[0]._id,
@@ -117,6 +118,7 @@ const paymentsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903202',
     date: '2019-05-24T15:47:42',
     customer: paymentCustomerList[0]._id,
@@ -126,6 +128,7 @@ const paymentsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903203',
     date: '2019-05-27T12:10:20',
     customer: paymentCustomerList[1]._id,

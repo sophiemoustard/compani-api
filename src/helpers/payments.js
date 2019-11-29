@@ -35,7 +35,7 @@ exports.generatePaymentNumber = async (paymentNature) => {
   return `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
 };
 
-const generateXML = async (firstPayments, recurPayments, company) => {
+exports.generateXML = async (firstPayments, recurPayments, company) => {
   const randomId = randomize('0', 31);
   const firstPaymentsTotal = firstPayments.reduce((acc, next) => acc + next.netInclTaxes, 0);
   const recurPaymentsTotal = recurPayments.reduce((acc, next) => acc + next.netInclTaxes, 0);
@@ -92,20 +92,29 @@ const generateXML = async (firstPayments, recurPayments, company) => {
   return outputPath;
 };
 
-exports.formatPayment = async (payment) => {
-  const paymentNumber = await exports.generatePaymentNumber(payment.nature);
-  payment.number = paymentNumber;
-  payment._id = new ObjectID();
+exports.createPayment = async (payload, credentials) => {
+  const payment = new Payment(await exports.formatPayment(payload, credentials));
+  await payment.save();
   return payment;
 };
 
-exports.savePayments = async (payload, company) => {
+
+exports.formatPayment = async (payment, credentials) => {
+  const paymentNumber = await exports.generatePaymentNumber(payment.nature);
+  payment.number = paymentNumber;
+  payment._id = new ObjectID();
+  payment.company = get(credentials, 'company._id', null);
+  return payment;
+};
+
+exports.savePayments = async (payload, credentials) => {
+  const { company } = credentials;
   if (!company || !company.name || !company.iban || !company.bic || !company.ics || !company.directDebitsFolderId) throw Boom.badRequest('Missing mandatory company info !');
   const promises = [];
   const firstPayments = [];
   const recurPayments = [];
   for (let payment of payload) {
-    payment = await exports.formatPayment(payment);
+    payment = await exports.formatPayment(payment, credentials);
     const countPayments = await Payment.countDocuments({ customer: payment.customer, type: DIRECT_DEBIT, rum: payment.rum });
     if (countPayments === 0) {
       firstPayments.push(payment);
@@ -116,8 +125,7 @@ exports.savePayments = async (payload, company) => {
     const savedPayment = new Payment(payment);
     promises.push(savedPayment.save());
   }
-
-  return Promise.all([generateXML(firstPayments, recurPayments, company), ...promises]);
+  return Promise.all([exports.generateXML(firstPayments, recurPayments, company), ...promises]);
 };
 
 const paymentExportHeader = [
