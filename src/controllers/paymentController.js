@@ -4,7 +4,7 @@ const flat = require('flat');
 const get = require('lodash/get');
 const Payment = require('../models/Payment');
 const { getDateQuery } = require('../helpers/utils');
-const { savePayments, formatPayment } = require('../helpers/payments');
+const PaymentHelper = require('../helpers/payments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -31,9 +31,8 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const payload = await formatPayment(req.payload);
-    const payment = new Payment(payload);
-    await payment.save();
+    const { payload, auth } = req;
+    const payment = await PaymentHelper.createPayment(payload, auth.credentials);
 
     return {
       message: translate[language].paymentCreated,
@@ -47,7 +46,7 @@ const create = async (req) => {
 
 const createList = async (req, h) => {
   try {
-    const [payments] = await savePayments(req.payload, req.auth.credentials.company);
+    const [payments] = await PaymentHelper.savePayments(req.payload, req.auth.credentials);
     return h.file(payments, { confine: false });
   } catch (e) {
     req.log('error', e);
