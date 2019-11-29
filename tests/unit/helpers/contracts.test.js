@@ -1,16 +1,14 @@
 const sinon = require('sinon');
 const expect = require('expect');
 const moment = require('moment');
-const flat = require('flat');
 const Boom = require('boom');
-const cloneDeep = require('lodash/cloneDeep');
-const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const EventHelper = require('../../../src/helpers/events');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
 const ESignHelper = require('../../../src/helpers/eSign');
 const CustomerHelper = require('../../../src/helpers/customers');
+const UserHelper = require('../../../src/helpers/users');
 const GDriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const { RESIGNATION } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
@@ -219,51 +217,23 @@ describe('createContract', () => {
 });
 
 describe('endContract', () => {
-  let ContractFindOneStub;
-  let ContractCountDocuments;
-  let UserfindOneAndUpdateStub;
-  let contractSaveStub;
+  let ContractMock;
+  let updateUserInactivityDate;
   let unassignInterventionsOnContractEnd;
   let removeEventsExceptInterventionsOnContractEnd;
   let updateAbsencesOnContractEnd;
-  let contractDoc;
   let unassignReferentOnContractEnd;
-  const payload = {
-    endDate: moment('2018-12-03T23:00:00').toDate(),
-    endNotificationDate: moment('2018-12-03T23:00:00').toDate(),
-    endReason: RESIGNATION,
-    otherMisc: 'test',
-  };
-  const newContract = {
-    _id: new ObjectID(),
-    endDate: null,
-    user: new ObjectID(),
-    startDate: moment('2018-12-03T23:00:00').toDate(),
-    status: 'contract_with_company',
-    versions: [{ _id: new ObjectID() }],
-  };
-  const updatedContract = {
-    ...newContract[0],
-    ...payload,
-    versions: [{ ...newContract.versions[0], endDate: payload.endDate }],
-  };
-  const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
   beforeEach(() => {
-    contractDoc = new Contract(cloneDeep(newContract));
-    contractSaveStub = sinon.stub(contractDoc, 'save');
-    ContractFindOneStub = sinon.stub(Contract, 'findOne');
-    ContractCountDocuments = sinon.stub(Contract, 'countDocuments');
-    UserfindOneAndUpdateStub = sinon.stub(User, 'findOneAndUpdate');
+    ContractMock = sinon.mock(Contract);
+    updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
     unassignInterventionsOnContractEnd = sinon.stub(EventHelper, 'unassignInterventionsOnContractEnd');
     removeEventsExceptInterventionsOnContractEnd = sinon.stub(EventHelper, 'removeEventsExceptInterventionsOnContractEnd');
     updateAbsencesOnContractEnd = sinon.stub(EventHelper, 'updateAbsencesOnContractEnd');
     unassignReferentOnContractEnd = sinon.stub(CustomerHelper, 'unassignReferentOnContractEnd');
   });
   afterEach(() => {
-    ContractFindOneStub.restore();
-    ContractCountDocuments.restore();
-    contractSaveStub.restore();
-    UserfindOneAndUpdateStub.restore();
+    ContractMock.restore();
+    updateUserInactivityDate.restore();
     unassignInterventionsOnContractEnd.restore();
     removeEventsExceptInterventionsOnContractEnd.restore();
     updateAbsencesOnContractEnd.restore();
@@ -271,42 +241,84 @@ describe('endContract', () => {
   });
 
   it('should end contract', async () => {
-    ContractFindOneStub.returns(contractDoc);
-    ContractCountDocuments.returns(2);
+    const payload = {
+      endDate: '2018-12-06T23:00:00',
+      endNotificationDate: '2018-12-02T23:00:00',
+      endReason: RESIGNATION,
+      otherMisc: 'test',
+    };
+    const contract = {
+      _id: new ObjectID(),
+      endDate: null,
+      user: new ObjectID(),
+      startDate: '2018-12-03T23:00:00',
+      status: 'contract_with_company',
+      versions: [{ _id: new ObjectID(), startDate: '2018-12-03T23:00:00' }],
+    };
+    const updatedContract = {
+      ...contract,
+      ...payload,
+      versions: [{ ...contract.versions[0], endDate: payload.endDate }],
+    };
+    const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
 
-    const result = await ContractHelper.endContract(contractDoc._id, payload, credentials);
+    ContractMock.expects('findOne')
+      .withExactArgs({ _id: contract._id.toHexString() })
+      .chain('lean')
+      .once()
+      .returns(contract);
+    ContractMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: contract._id.toHexString() },
+        { $set: { ...payload, [`versions[${contract.versions.length - 1}].endDate`]: payload.endDate } }
+      )
+      .chain('lean')
+      .once()
+      .returns(updatedContract);
 
-    sinon.assert.called(ContractFindOneStub);
-    sinon.assert.called(contractSaveStub);
-    sinon.assert.calledWith(
-      ContractCountDocuments,
-      { user: contractDoc.user, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
-    );
-    sinon.assert.calledWith(unassignInterventionsOnContractEnd);
-    sinon.assert.called(removeEventsExceptInterventionsOnContractEnd);
-    sinon.assert.called(updateAbsencesOnContractEnd);
-    sinon.assert.called(unassignReferentOnContractEnd);
-    expect(result.toObject()).toMatchObject(updatedContract);
+    const result = await ContractHelper.endContract(contract._id.toHexString(), payload, credentials);
+
+    sinon.assert.calledWith(updateUserInactivityDate, contract.user, payload.endDate, credentials);
+    sinon.assert.calledWith(unassignInterventionsOnContractEnd, updatedContract, credentials);
+    sinon.assert.calledWith(unassignReferentOnContractEnd, updatedContract);
+    sinon.assert.calledWith(removeEventsExceptInterventionsOnContractEnd, updatedContract, credentials);
+    sinon.assert.calledWith(updateAbsencesOnContractEnd, updatedContract.user, updatedContract.endDate, credentials);
+    expect(result).toMatchObject(updatedContract);
+    ContractMock.verify();
   });
 
-  it('should end contract and set inactivity date for user if all contracts are ended', async () => {
-    ContractFindOneStub.returns(contractDoc);
-    ContractCountDocuments.returns(0);
+  it('should throw an error if contract end date is before last version start date', async () => {
+    try {
+      const contractId = new ObjectID();
+      const payload = {
+        endDate: '2018-12-03T23:00:00',
+        endNotificationDate: '2018-12-02T23:00:00',
+        endReason: RESIGNATION,
+        otherMisc: 'test',
+      };
+      const contract = {
+        _id: new ObjectID(),
+        endDate: null,
+        user: new ObjectID(),
+        startDate: '2018-12-05T23:00:00',
+        status: 'contract_with_company',
+        versions: [{ _id: new ObjectID(), startDate: '2018-12-05T23:00:00' }],
+      };
+      const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
 
-    const result = await ContractHelper.endContract(contractDoc._id, payload, credentials);
+      ContractMock.expects('findOne').chain('lean').returns(contract).once();
+      ContractMock.expects('findOneAndUpdate').never();
 
-    sinon.assert.called(ContractFindOneStub);
-    sinon.assert.called(contractSaveStub);
-    sinon.assert.calledWith(
-      ContractCountDocuments,
-      { user: contractDoc.user, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
-    );
-    sinon.assert.calledWith(
-      UserfindOneAndUpdateStub,
-      { _id: contractDoc.user },
-      { $set: { inactivityDate: moment(payload.endDate).add('1', 'month').startOf('M').toDate() } }
-    );
-    expect(result.toObject()).toMatchObject(updatedContract);
+      await ContractHelper.endContract(contractId.toHexString(), payload, credentials);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+      sinon.assert.notCalled(updateUserInactivityDate);
+      sinon.assert.notCalled(unassignInterventionsOnContractEnd);
+      sinon.assert.notCalled(unassignReferentOnContractEnd);
+      sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
+      sinon.assert.notCalled(updateAbsencesOnContractEnd);
+      ContractMock.verify();
+    }
   });
 });
 
@@ -410,7 +422,31 @@ describe('formatVersionEditionPayload', () => {
     generateSignatureRequest.restore();
   });
 
-  it('should update signatue payload', async () => {});
+  it('should update signatue payload', async () => {
+    const oldVersion = { grossHourlyRate: 12, startDate: '2019-09-12T00:00:00' };
+    const newVersion = { signature: { template: '12345' } };
+    const versionIndex = 1;
+    generateSignatureRequest.returns({ data: { document_hash: '567890' } });
+
+    const result = await ContractHelper.formatVersionEditionPayload(oldVersion, newVersion, versionIndex);
+
+    console.log(result);
+    expect(result.$set['versions.1.signature.eversignId']).toEqual('567890');
+    expect(result.$unset['versions.1.signature.signedBy']).toEqual('');
+  });
+
+  it('should throw error if signature request returns error', async () => {
+    try {
+      const oldVersion = { grossHourlyRate: 12, startDate: '2019-09-12T00:00:00' };
+      const newVersion = { signature: { template: '12345' } };
+      const versionIndex = 1;
+      generateSignatureRequest.returns({ data: { error: '567890' } });
+
+      await ContractHelper.formatVersionEditionPayload(oldVersion, newVersion, versionIndex);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(400);
+    }
+  });
 
   it('should not update signatue payload', async () => {
     const oldVersion = { grossHourlyRate: 12, startDate: '2019-09-12T00:00:00' };
