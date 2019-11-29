@@ -1,7 +1,8 @@
 const sinon = require('sinon');
 const expect = require('expect');
-const moment = require('moment');
+const moment = require('../../../src/extensions/moment');
 const Boom = require('boom');
+const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const EventHelper = require('../../../src/helpers/events');
 const ContractHelper = require('../../../src/helpers/contracts');
@@ -270,7 +271,8 @@ describe('endContract', () => {
     ContractMock.expects('findOneAndUpdate')
       .withExactArgs(
         { _id: contract._id.toHexString() },
-        { $set: { ...payload, [`versions[${contract.versions.length - 1}].endDate`]: payload.endDate } }
+        { $set: flat({ ...payload, [`versions.${contract.versions.length - 1}.endDate`]: payload.endDate }) },
+        { new: true }
       )
       .chain('lean')
       .once()
@@ -430,7 +432,6 @@ describe('formatVersionEditionPayload', () => {
 
     const result = await ContractHelper.formatVersionEditionPayload(oldVersion, newVersion, versionIndex);
 
-    console.log(result);
     expect(result.$set['versions.1.signature.eversignId']).toEqual('567890');
     expect(result.$unset['versions.1.signature.signedBy']).toEqual('');
   });

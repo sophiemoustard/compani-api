@@ -1,5 +1,6 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
+const moment = require('moment');
 const sinon = require('sinon');
 const Boom = require('boom');
 const flat = require('flat');
@@ -9,6 +10,7 @@ const RolesHelper = require('../../../src/helpers/roles');
 const translate = require('../../../src/helpers/translate');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const User = require('../../../src/models/User');
+const Contract = require('../../../src/models/Contract');
 const Role = require('../../../src/models/Role');
 const Task = require('../../../src/models/Task');
 
@@ -469,5 +471,52 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
+  });
+});
+
+describe('updateUserInactivityDate', () => {
+  let countDocuments;
+  let updateOne;
+  beforeEach(() => {
+    countDocuments = sinon.stub(Contract, 'countDocuments');
+    updateOne = sinon.stub(User, 'updateOne');
+  });
+  afterEach(() => {
+    countDocuments.restore();
+    updateOne.restore();
+  });
+
+  it('should update user inactivity date', async () => {
+    const userId = new ObjectID();
+    const endDate = '2019-02-12T00:00:00';
+    const credentials = { company: { _id: '1234567890' } };
+
+    countDocuments.returns(0);
+
+    await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
+    sinon.assert.calledWith(
+      countDocuments,
+      { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
+    );
+    sinon.assert.calledWith(
+      updateOne,
+      { _id: userId },
+      { $set: { inactivityDate: moment(endDate).add('1', 'month').startOf('M').toDate() } }
+    );
+  });
+
+  it('should not update user inactivity date', async () => {
+    const userId = new ObjectID();
+    const endDate = '2019-02-12T00:00:00';
+    const credentials = { company: { _id: '1234567890' } };
+
+    countDocuments.returns(2);
+
+    await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
+    sinon.assert.calledWith(
+      countDocuments,
+      { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
+    );
+    sinon.assert.notCalled(updateOne);
   });
 });

@@ -94,7 +94,6 @@ const otherCompanyContract = {
 const contractsList = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
-    endDate: null,
     user: contractUser._id,
     startDate: '2018-12-03T23:00:00.000Z',
     status: 'contract_with_company',
@@ -103,7 +102,6 @@ const contractsList = [
     versions: [
       {
         createdAt: '2018-12-04T16:34:04.144Z',
-        endDate: null,
         grossHourlyRate: 10.28,
         startDate: '2018-12-03T23:00:00.000Z',
         weeklyHours: 9,

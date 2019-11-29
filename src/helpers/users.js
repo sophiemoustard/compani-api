@@ -127,7 +127,7 @@ exports.updateUserInactivityDate = async (user, contractEndDate, credentials) =>
   });
 
   if (!notEndedContractCount) {
-    await User.findOneAndUpdate(
+    await User.updateOne(
       { _id: user },
       { $set: { inactivityDate: moment(contractEndDate).add('1', 'month').startOf('M').toDate() } }
     );

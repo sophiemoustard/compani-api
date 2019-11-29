@@ -1,7 +1,7 @@
 const flat = require('flat');
 const Boom = require('boom');
 const mongoose = require('mongoose');
-const moment = require('moment');
+const moment = require('../extensions/moment');
 const path = require('path');
 const os = require('os');
 const get = require('lodash/get');
@@ -88,7 +88,6 @@ exports.createContract = async (contractPayload, credentials) => {
 exports.endContract = async (contractId, contractToEnd, credentials) => {
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const lastVersion = contract.versions[contract.versions.length - 1];
-  console.log(contractToEnd.endDate, lastVersion.startDate);
   if (moment(contractToEnd.endDate).isBefore(lastVersion.startDate, 'd')) throw Boom.conflict('End date is before last version start date');
 
   const set = {
@@ -96,9 +95,9 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     endNotificationDate: contractToEnd.endNotificationDate,
     endReason: contractToEnd.endReason,
     otherMisc: contractToEnd.otherMisc,
-    [`versions[${contract.versions.length - 1}].endDate`]: contractToEnd.endDate,
+    [`versions.${contract.versions.length - 1}.endDate`]: contractToEnd.endDate,
   };
-  const updatedContract = await Contract.findOneAndUpdate({ _id: contractId }, { $set: set }).lean();
+  const updatedContract = await Contract.findOneAndUpdate({ _id: contractId }, { $set: flat(set) }, { new: true }).lean();
 
   await Promise.all([
     UserHelper.updateUserInactivityDate(updatedContract.user, updatedContract.endDate, credentials),
