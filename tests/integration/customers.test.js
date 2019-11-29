@@ -276,6 +276,41 @@ describe('CUSTOMERS ROUTES', () => {
     });
   });
 
+  describe('GET /with-intervention', () => {
+    it('should get all customers with at least one intervention', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/with-intervention',
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customers).toBeDefined();
+      expect(res.result.data.customers).toHaveLength(1);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers/with-intervention',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
   describe('GET /customers/{id}', () => {
     it('should return customer', async () => {
       const customerId = customersList[0]._id;

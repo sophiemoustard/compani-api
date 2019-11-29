@@ -22,6 +22,7 @@ const {
   getCustomersWithBilledEvents,
   getCustomers,
   getCustomersWithCustomerContractSubscriptions,
+  getCustomersWithIntervention,
   getCustomer,
   updateCustomer,
 } = require('../helpers/customers');
@@ -94,6 +95,19 @@ const listWithCustomerContractSubscriptions = async (req) => {
 
     return {
       message: translate[language].customersFound,
+      data: { customers },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const listWithIntervention = async (req) => {
+  try {
+    const customers = await getCustomersWithIntervention(req.auth.credentials);
+    return {
+      message: customers.length > 0 ? translate[language].customersFound : translate[language].customersNotFound,
       data: { customers },
     };
   } catch (e) {
@@ -687,6 +701,7 @@ module.exports = {
   listBySector,
   listWithCustomerContractSubscriptions,
   listWithBilledEvents,
+  listWithIntervention,
   show,
   create,
   remove,

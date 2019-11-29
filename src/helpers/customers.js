@@ -80,7 +80,13 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   return customers;
 };
 
-exports.getCustomer = async (customerId) => {
+exports.getCustomersWithIntervention = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  return EventRepository.getCustomersWithIntervention(companyId);
+};
+
+
+exports.getCustomer = async (customerId, credentials) => {
   let customer = await Customer.findOne({ _id: customerId })
     .populate({
       path: 'subscriptions.service',

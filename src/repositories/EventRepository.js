@@ -322,7 +322,7 @@ exports.getCustomerSubscriptions = contract => Event.aggregate([
   },
 ]);
 
-const getEventsGroupedByParentId = async rules => Event.aggregate([
+exports.getEventsGroupedByParentId = async rules => Event.aggregate([
   { $match: rules },
   {
     $group: {
@@ -338,14 +338,14 @@ const getEventsGroupedByParentId = async rules => Event.aggregate([
 ]);
 
 
-exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds) => getEventsGroupedByParentId({
+exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds) => exports.getEventsGroupedByParentId({
   startDate: { $gt: maxDate },
   auxiliary,
   subscription: { $in: subIds },
   $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
 });
 
-exports.getEventsExceptInterventions = async (startDate, auxiliary) => getEventsGroupedByParentId({
+exports.getEventsExceptInterventions = async (startDate, auxiliary) => exports.getEventsGroupedByParentId({
   startDate: { $gt: startDate },
   auxiliary,
   subscription: { $exists: false },
@@ -795,4 +795,26 @@ exports.getCustomerWithBilledEvents = async (query, companyId) => Event.aggregat
       thirdPartyPayers: 1,
     },
   },
+]);
+
+exports.getCustomersWithIntervention = async companyId => Event.aggregate([
+  {
+    $match: {
+      type: INTERVENTION,
+      $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+    },
+  },
+  { $group: { _id: { customer: '$customer' } } },
+  {
+    $lookup: {
+      from: 'customers',
+      localField: '_id.customer',
+      foreignField: '_id',
+      as: 'customer',
+    },
+  },
+  { $unwind: { path: '$customer' } },
+  { $replaceRoot: { newRoot: '$customer' } },
+  { $match: { company: companyId } },
+  { $project: { _id: 1, identity: { firstname: 1, lastname: 1 } } },
 ]);

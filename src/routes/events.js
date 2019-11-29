@@ -8,6 +8,7 @@ const {
   update,
   remove,
   removeRepetition,
+  deleteList,
   listForCreditNotes,
   getWorkingStats,
 } = require('../controllers/eventController');
@@ -213,6 +214,25 @@ exports.plugin = {
         ],
       },
       handler: removeRepetition,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/',
+      options: {
+        auth: { scope: ['events:edit'] },
+        validate: {
+          query: Joi.object().keys({
+            customer: Joi.objectId().required(),
+            startDate: Joi.date().required(),
+            endDate: Joi.date(),
+          }),
+        },
+        pre: [
+          { method: authorizeEventUpdate },
+        ],
+      },
+      handler: deleteList,
     });
 
     server.route({
