@@ -622,43 +622,6 @@ describe('deleteList', () => {
   const customerId = new ObjectID();
   const userId = new ObjectID();
   const credentials = { _id: userId };
-  const events = [
-    {
-      _id: new ObjectID(),
-      customer: customerId,
-      type: 'internal_hour',
-      repetition: { frequency: NEVER },
-      startDate: '2019-10-12T10:00:00.000Z',
-      endDate: '2019-10-12T12:00:00.000Z',
-      auxiliary: userId,
-    },
-    {
-      _id: new ObjectID(),
-      customer: customerId,
-      type: 'unavailability',
-      repetition: { frequency: EVERY_WEEK, parentId: new ObjectID() },
-      startDate: '2019-10-09T11:00:00.000Z',
-      endDate: '2019-10-09T13:00:00.000Z',
-      auxiliary: userId,
-    },
-    {
-      _id: new ObjectID(),
-      customer: customerId,
-      type: 'unavailability',
-      repetition: { frequency: NEVER, parentId: new ObjectID() },
-      startDate: '2019-10-7T11:30:00.000Z',
-      endDate: '2019-10-7T13:00:00.000Z',
-      auxiliary: userId,
-    },
-    {
-      _id: new ObjectID(),
-      customer: customerId,
-      type: 'unavailability',
-      startDate: '2019-10-20T11:00:00.000Z',
-      endDate: '2019-10-20T13:00:00.000Z',
-      auxiliary: userId,
-    },
-  ];
 
   beforeEach(() => {
     deleteEventsStub = sinon.stub(EventHelper, 'deleteEvents');
@@ -680,6 +643,43 @@ describe('deleteList', () => {
       customer: customerId,
       startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
     };
+    const events = [
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'internal_hour',
+        repetition: { frequency: NEVER },
+        startDate: '2019-10-12T10:00:00.000Z',
+        endDate: '2019-10-12T12:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: EVERY_WEEK, parentId: new ObjectID() },
+        startDate: '2019-10-09T11:00:00.000Z',
+        endDate: '2019-10-09T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: NEVER, parentId: new ObjectID() },
+        startDate: '2019-10-7T11:30:00.000Z',
+        endDate: '2019-10-7T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        startDate: '2019-10-20T11:00:00.000Z',
+        endDate: '2019-10-20T13:00:00.000Z',
+        auxiliary: userId,
+      },
+    ];
     EventModel.expects('countDocuments')
       .withExactArgs({ ...query, isBilled: true })
       .once()
@@ -698,6 +698,44 @@ describe('deleteList', () => {
   it('should delete all events and repetition as of start date', async () => {
     const startDate = '2019-10-07';
     const query = { customer: customerId, startDate: { $gte: moment('2019-10-07').toDate() } };
+    const repetitionParentId = new ObjectID();
+    const events = [
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'internal_hour',
+        repetition: { frequency: NEVER },
+        startDate: '2019-10-12T10:00:00.000Z',
+        endDate: '2019-10-12T12:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
+        startDate: '2019-10-09T11:00:00.000Z',
+        endDate: '2019-10-09T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: NEVER, parentId: repetitionParentId },
+        startDate: '2019-10-7T11:30:00.000Z',
+        endDate: '2019-10-7T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        startDate: '2019-10-20T11:00:00.000Z',
+        endDate: '2019-10-20T13:00:00.000Z',
+        auxiliary: userId,
+      },
+    ];
     EventModel.expects('countDocuments')
       .withExactArgs({ ...query, isBilled: true })
       .once()
@@ -705,7 +743,7 @@ describe('deleteList', () => {
 
     const eventsGroupedByParentId = [
       { _id: null, events: [events[0]] },
-      { _id: new ObjectID(), events: [events[1], events[2]] },
+      { _id: repetitionParentId, events: [events[1], events[2]] },
     ];
     getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
 
@@ -713,6 +751,50 @@ describe('deleteList', () => {
     sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
     sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
     sinon.assert.calledWithExactly(deleteRepetitionStub, eventsGroupedByParentId[1].events[0], credentials);
+  });
+
+  it('should delete all events and repetition even if repetition frequency is NEVER', async () => {
+    const startDate = '2019-10-07';
+    const query = { customer: customerId, startDate: { $gte: moment('2019-10-07').toDate() } };
+    const repetitionParentId = new ObjectID();
+    const events = [
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: NEVER, parentId: repetitionParentId },
+        startDate: '2019-10-09T11:00:00.000Z',
+        endDate: '2019-10-09T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: NEVER, parentId: repetitionParentId },
+        startDate: '2019-10-7T11:30:00.000Z',
+        endDate: '2019-10-7T13:00:00.000Z',
+        auxiliary: userId,
+      },
+    ];
+    EventModel.expects('countDocuments')
+      .withExactArgs({ ...query, isBilled: true })
+      .once()
+      .returns(0);
+
+    const eventsGroupedByParentId = [
+      { _id: repetitionParentId, events: [events[0], events[1]] },
+    ];
+    getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
+
+    await EventHelper.deleteList(customerId, startDate, undefined, credentials);
+    sinon.assert.notCalled(deleteEventsStub);
+    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
+    sinon.assert.calledWithExactly(
+      deleteRepetitionStub,
+      { ...eventsGroupedByParentId[0].events[0], repetition: { frequency: EVERY_WEEK, parentId: eventsGroupedByParentId[0].events[0].repetition.parentId } },
+      credentials
+    );
   });
 });
 

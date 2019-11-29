@@ -11,6 +11,7 @@ const {
   ABSENCE,
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
+  EVERY_WEEK,
 } = require('./constants');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
@@ -260,7 +261,10 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
   const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query);
   for (const group of eventsGroupedByParentId) {
     if (!group._id || endDate) await exports.deleteEvents(group.events, credentials);
-    else await EventsRepetitionHelper.deleteRepetition(group.events[0], credentials);
+    else {
+      const event = { ...group.events[0], repetition: { frequency: EVERY_WEEK, parentId: group._id } };
+      await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    }
   }
 };
 
