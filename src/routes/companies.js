@@ -3,14 +3,13 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const { COMPANY_TYPES } = require('../models/Company');
-
 const {
   update,
   uploadFile,
   create,
 } = require('../controllers/companyController');
-const { COMPANY_BILLING_PERIODS } = require('../models/Company');
+const { TWO_WEEKS } = require('../helpers/constants');
+const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
 const { authorizeCompanyUpdate, companyExists } = require('./preHandlers/companies');
 
 exports.plugin = {
@@ -147,7 +146,7 @@ exports.plugin = {
               }).required().min(1)],
             }).required(),
             customersConfig: Joi.object().keys({
-              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS),
+              billingPeriod: Joi.string().valid(COMPANY_BILLING_PERIODS).default(TWO_WEEKS),
             }),
           }),
         },

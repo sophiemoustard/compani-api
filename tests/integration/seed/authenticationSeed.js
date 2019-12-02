@@ -198,6 +198,9 @@ const authCompany = {
   bic: '5678',
   ics: '9876',
   directDebitsFolderId: '1234',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
 };
 
 const otherCompany = {

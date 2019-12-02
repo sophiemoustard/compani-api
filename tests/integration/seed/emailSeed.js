@@ -8,6 +8,9 @@ const emailCompany = {
   _id: new ObjectID(),
   name: 'Autretest SA',
   tradeName: 'Autretest',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
 };
 
 const emailUser = {

@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
 const Company = require('../../../src/models/Company');
 const Task = require('../../../src/models/Task');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication } = require('./authenticationSeed');
 
 const company = {
   _id: new ObjectID(),
@@ -21,6 +21,9 @@ const company = {
   bic: 'RTYUIKJHBFRG',
   ics: '12345678',
   directDebitsFolderId: '1234567890',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
 };
 
 const task = {
