@@ -33,6 +33,7 @@ describe('list', () => {
     const payment = { _id: new ObjectID() };
     PaymentModel
       .expects('find')
+      .withExactArgs({ company: credentials.company._id })
       .chain('populate')
       .withExactArgs({ path: 'client', select: '_id name' })
       .chain('populate')
@@ -50,8 +51,12 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const query = { startDate: '2019-11-01' };
     const payment = { _id: new ObjectID() };
+
+    getDateQueryStub.returns({ $lte: '2019-11-01' });
+
     PaymentModel
       .expects('find')
+      .withExactArgs({ company: credentials.company._id, date: { $lte: '2019-11-01' } })
       .chain('populate')
       .withExactArgs({ path: 'client', select: '_id name' })
       .chain('populate')
@@ -69,8 +74,12 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const query = { endDate: '2019-11-01' };
     const payment = { _id: new ObjectID() };
+
+    getDateQueryStub.returns({ $gte: '2019-11-01' });
+
     PaymentModel
       .expects('find')
+      .withExactArgs({ company: credentials.company._id, date: { $gte: '2019-11-01' } })
       .chain('populate')
       .withExactArgs({ path: 'client', select: '_id name' })
       .chain('populate')
