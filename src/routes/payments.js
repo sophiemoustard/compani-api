@@ -9,6 +9,7 @@ const {
   createList,
   update,
 } = require('../controllers/paymentController');
+const { getPayment, authorizePaymentsUpdate } = require('./preHandlers/payments');
 const { PAYMENT_NATURES, PAYMENT_TYPES } = require('../models/Payment');
 
 exports.plugin = {
@@ -84,6 +85,10 @@ exports.plugin = {
             nature: Joi.string(),
           },
         },
+        pre: [
+          { method: getPayment, assign: 'payment' },
+          { method: authorizePaymentsUpdate },
+        ],
       },
       handler: update,
     });
