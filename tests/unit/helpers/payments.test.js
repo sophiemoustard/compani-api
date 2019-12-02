@@ -368,6 +368,7 @@ describe('savePayments', () => {
     nature: PAYMENT,
     type: 'direct_debit',
   }];
+
   it('should return error if company is missing', async () => {
     try {
       const credentialsTmp = {};

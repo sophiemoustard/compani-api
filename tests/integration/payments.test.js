@@ -3,7 +3,7 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList, paymentUser } = require('./seed/paymentsSeed');
+const { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList, paymentUser, userFromOtherCompany } = require('./seed/paymentsSeed');
 const { PAYMENT, REFUND } = require('../../src/helpers/constants');
 const translate = require('../../src/helpers/translate');
 const Payment = require('../../src/models/Payment');
@@ -232,7 +232,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
   describe('Admin without company', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getTokenByCredentials(userFromOtherCompany.local);
     });
     it('should not create multiple payments as company credentials are missing', async () => {
       const payload = [...originalPayload];
