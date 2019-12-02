@@ -10,6 +10,18 @@ const { REFUND, PAYMENT, DIRECT_DEBIT, PAYMENT_TYPES_LIST, PAYMENT_NATURE_LIST, 
 const XmlHelper = require('../helpers/xml');
 const UtilsHelper = require('./utils');
 
+exports.list = async (payload, credentials) => {
+  const { startDate, endDate, ...query } = payload;
+  query.company = get(credentials, 'company._id', null);
+  if (startDate || endDate) {
+    query.date = UtilsHelper.getDateQuery({ startDate, endDate });
+  }
+
+  return Payment.find(query)
+    .populate({ path: 'client', select: '_id name' })
+    .populate({ path: 'customer', select: '_id identity' })
+    .lean();
+};
 
 exports.generatePaymentNumber = async (paymentNature) => {
   const numberQuery = {};
@@ -141,12 +153,13 @@ const paymentExportHeader = [
 exports.exportPaymentsHistory = async (startDate, endDate, credentials) => {
   const query = {
     date: { $lte: endDate, $gte: startDate },
+    company: get(credentials, 'company._id'),
   };
 
   const payments = await Payment.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client', match: { company: get(credentials, 'company._id', null) } })
+    .populate({ path: 'client' })
     .lean();
 
   const rows = [paymentExportHeader];

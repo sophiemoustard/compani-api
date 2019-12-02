@@ -139,16 +139,6 @@ const paymentsList = [
   },
 ];
 
-const company = {
-  _id: new ObjectID(),
-  name: 'Alenvi',
-  tradeName: 'TT',
-  iban: 'paiement',
-  bic: 'money',
-  ics: 'kesako',
-  directDebitsFolderId: '1234567890',
-};
-
 const paymentUser = {
   _id: new ObjectID(),
   identity: { firstname: 'HelperForCustomer', lastname: 'Test' },
@@ -159,18 +149,32 @@ const paymentUser = {
   company: authCompany._id,
 };
 
+const otherCompany = { _id: new ObjectID(), name: 'Test2 SAS', tradeName: 'Test2' };
+
+const userFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  refreshToken: uuidv4(),
+  identity: { firstname: 'toto', lastname: 'toto' },
+  role: rolesList.find(role => role.name === 'admin')._id,
+  local: { email: 'test_other_company@alenvi.io', password: '123456' },
+};
+
 const populateDB = async () => {
   await PaymentNumber.deleteMany({});
   await Payment.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Customer.deleteMany({});
   await User.deleteMany({});
+  await Company.deleteMany({});
 
   await populateDBForAuthentication();
+  await new Company(otherCompany).save();
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
   await (new User(paymentUser).save());
+  await (new User(userFromOtherCompany).save());
 };
 
 const populateDBWithCompany = async () => {
@@ -178,18 +182,12 @@ const populateDBWithCompany = async () => {
   await Payment.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Customer.deleteMany({});
-  await Company.deleteMany({});
 
   await populateDBForAuthentication();
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
-  await new Company(company).save();
   await (new User(paymentUser).save());
-
-  const role = rolesList.find(r => r.name === 'admin');
-  const user = userList.find(u => u.role.toHexString() === role._id.toHexString());
-  await User.findOneAndUpdate({ _id: user._id }, { company: company._id });
 };
 
 module.exports = {
@@ -198,4 +196,5 @@ module.exports = {
   populateDBWithCompany,
   paymentCustomerList,
   paymentUser,
+  userFromOtherCompany,
 };
