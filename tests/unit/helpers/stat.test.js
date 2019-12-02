@@ -41,7 +41,7 @@ describe('getCustomerFundingsMonitoring', () => {
     getEventsGroupedByFundingsStub.returns([{
       thirdPartyPayer: { name: 'Tiers payeur' },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: '2019-09-30T23:00:00.000Z',
+      startDate: moment().startOf('month').subtract(1, 'month'),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       prevMonthEvents: [],
@@ -62,29 +62,38 @@ describe('getCustomerFundingsMonitoring', () => {
     const eventsGroupedByFundings = [{
       thirdPartyPayer: { name: 'Tiers payeur' },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: '2019-09-30T23:00:00.000Z',
+      startDate: moment().startOf('month').subtract(1, 'month'),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
-          startDate: '2019-11-10T14:00:18.653Z',
-          endDate: '2019-11-10T16:00:18.653Z',
+          startDate: moment().startOf('month').hours(14),
+          endDate: moment().startOf('month').hours(16),
         },
         {
-          startDate: '2019-11-10T11:00:18.653Z',
-          endDate: '2019-11-10T15:00:18.653Z',
+          startDate: moment().startOf('month').add(1, 'd').hours(11),
+          endDate: moment().startOf('month').add(1, 'd').hours(15),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: '2019-10-10T10:00:18.653Z',
-          endDate: '2019-10-10T12:00:18.653Z',
+          startDate: moment().startOf('month').subtract(1, 'month').hours(10),
+          endDate: moment().startOf('month').subtract(1, 'month').hours(12),
         },
         {
           type: 'intervention',
-          startDate: '2019-10-10T09:00:18.653Z',
-          endDate: '2019-10-10T10:30:18.653Z',
+          startDate: moment()
+            .startOf('month')
+            .subtract(1, 'month')
+            .add(1, 'd')
+            .hours(9),
+          endDate: moment()
+            .startOf('month')
+            .subtract(1, 'month')
+            .add(1, 'd')
+            .hours(10)
+            .minutes(30),
         },
       ],
     }];
@@ -111,26 +120,33 @@ describe('getCustomerFundingsMonitoring', () => {
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
-          type: 'intervention',
-          startDate: '2019-11-10T14:00:18.653Z',
-          endDate: '2019-11-10T16:00:18.653Z',
+          startDate: moment().startOf('month').hours(14),
+          endDate: moment().startOf('month').hours(16),
         },
         {
-          type: 'intervention',
-          startDate: '2019-11-10T11:00:18.653Z',
-          endDate: '2019-11-10T15:00:18.653Z',
+          startDate: moment().startOf('month').add(1, 'd').hours(11),
+          endDate: moment().startOf('month').add(1, 'd').hours(15),
         },
       ],
       prevMonthEvents: [
         {
           type: 'intervention',
-          startDate: '2019-10-10T10:00:18.653Z',
-          endDate: '2019-10-10T12:00:18.653Z',
+          startDate: moment().startOf('month').subtract(1, 'month').hours(10),
+          endDate: moment().startOf('month').subtract(1, 'month').hours(12),
         },
         {
           type: 'intervention',
-          startDate: '2019-10-10T09:00:18.653Z',
-          endDate: '2019-10-10T10:30:18.653Z',
+          startDate: moment()
+            .startOf('month')
+            .subtract(1, 'month')
+            .add(1, 'd')
+            .hours(9),
+          endDate: moment()
+            .startOf('month')
+            .subtract(1, 'month')
+            .add(1, 'd')
+            .hours(10)
+            .minutes(30),
         },
       ],
     }];
