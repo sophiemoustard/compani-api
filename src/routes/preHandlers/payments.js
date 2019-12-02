@@ -35,6 +35,8 @@ exports.authorizePaymentsListCreation = async (req) => {
   try {
     const { credentials } = req.auth;
 
+    if (req.payload.some(payment => payment.client)) throw Boom.forbidden();
+
     const customersIds = [...new Set(req.payload.map(payment => payment.customer))];
     const customersCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: credentials.company._id });
     if (customersCount === customersIds.length) return null;

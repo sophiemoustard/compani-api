@@ -263,6 +263,20 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       });
       expect(response.statusCode).toBe(403);
     });
+
+    it('it should not create multiple payments if at least one paiement has a tpp', async () => {
+      const payload = [
+        { ...originalPayload[0], client: new ObjectID() },
+        { ...originalPayload[1] },
+      ];
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Admin without company', () => {
