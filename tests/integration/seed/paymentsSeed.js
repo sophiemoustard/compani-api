@@ -160,6 +160,20 @@ const userFromOtherCompany = {
   local: { email: 'test_other_company@alenvi.io', password: '123456' },
 };
 
+const customerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  identity: { firstname: 'customer', lastname: 'toto' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
+};
+
 const populateDB = async () => {
   await PaymentNumber.deleteMany({});
   await Payment.deleteMany({});
@@ -175,6 +189,7 @@ const populateDB = async () => {
   await Payment.insertMany(paymentsList);
   await (new User(paymentUser).save());
   await (new User(userFromOtherCompany).save());
+  await (new Customer(customerFromOtherCompany).save());
 };
 
 const populateDBWithCompany = async () => {
@@ -197,4 +212,5 @@ module.exports = {
   paymentCustomerList,
   paymentUser,
   userFromOtherCompany,
+  customerFromOtherCompany,
 };
