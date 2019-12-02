@@ -1,3 +1,4 @@
+const get = require('lodash/get');
 const { getLastVersion } = require('./utils');
 const { PAYMENT } = require('./constants');
 const BillRepository = require('../repositories/BillRepository');
@@ -84,8 +85,9 @@ exports.getBalancesFromPayments = (payment) => {
   return bill;
 };
 
-exports.getBalances = async (companyId, customerId, maxDate) => {
-  const bills = await BillRepository.findAmountsGroupedByClient(customerId, maxDate);
+exports.getBalances = async (customerId, maxDate, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const bills = await BillRepository.findAmountsGroupedByClient(customerId, maxDate, companyId);
   const customerCreditNotesAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(customerId, maxDate);
   const tppCreditNotesAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(customerId, maxDate);
   const payments = await PaymentRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
