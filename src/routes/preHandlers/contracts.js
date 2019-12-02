@@ -1,5 +1,7 @@
 const Boom = require('boom');
 const Contract = require('../../models/Contract');
+const User = require('../../models/User');
+const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -14,6 +16,23 @@ exports.getContract = async (req) => {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
+};
+
+exports.authorizeContractCreation = async (req) => {
+  const { payload } = req;
+  const { credentials } = req.auth;
+  const companyId = credentials.company._id.toHexString();
+
+  if (payload.customer) {
+    const customer = await Customer.findOne({ _id: payload.customer }, { company: 1 }).lean();
+    if (customer.company.toHexString() !== companyId) throw Boom.forbidden();
+  }
+
+  const user = await User.findOne({ _id: payload.user }, { company: 1 }).lean();
+  if (!user) throw Boom.forbidden();
+  if (user.company.toHexString() !== companyId) throw Boom.forbidden();
+
+  return null;
 };
 
 exports.authorizeContractUpdate = async (req) => {

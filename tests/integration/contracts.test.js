@@ -17,6 +17,8 @@ const {
   contractCustomer,
   contractEvents,
   otherCompanyContract,
+  customerFromOtherCompany,
+  otherCompanyContractUser,
 } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
@@ -189,6 +191,36 @@ describe('CONTRACTS ROUTES', () => {
       expect(response.result.data.contract.versions[0]).toMatchObject({
         signature: { signedBy: { auxiliary: false, other: false }, eversignId: '1234567890' },
       });
+    });
+
+    it('it should not create a contract if customer is not from the same company', async () => {
+      const customerContractPayload = {
+        startDate: '2019-01-18T15:46:30.636Z',
+        versions: [{ grossHourlyRate: 10.43, startDate: '2019-01-18T15:46:30.636Z' }],
+        user: contractUser._id,
+        customer: customerFromOtherCompany._id,
+        status: 'contract_with_customer',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        payload: customerContractPayload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('it should not create a contract if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        payload: { ...payload, user: otherCompanyContractUser._id },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const missingParams = [

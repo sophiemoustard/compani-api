@@ -91,6 +91,20 @@ const otherCompanyContract = {
   ],
 };
 
+const customerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompanyContract._id,
+  identity: { firstname: 'customer', lastname: 'toto' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
+};
+
 const contractsList = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
@@ -209,6 +223,7 @@ const populateDB = async () => {
   await new User(contractUser).save();
   await new User(otherCompanyContractUser).save();
   await new Customer(contractCustomer).save();
+  await new Customer(customerFromOtherCompany).save();
   await Contract.insertMany([...contractsList, otherCompanyContract]);
   await Event.insertMany(contractEvents);
 };
@@ -220,4 +235,6 @@ module.exports = {
   contractCustomer,
   contractEvents,
   otherCompanyContract,
+  customerFromOtherCompany,
+  otherCompanyContractUser,
 };
