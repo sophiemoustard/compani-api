@@ -949,6 +949,79 @@ describe('formatThirdPartyPayerBills', () => {
   });
 });
 
+describe('getBills', () => {
+  let BillMock;
+  let getDateQueryStub;
+  const credentials = { company: { _id: new ObjectID() } };
+  const bills = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+
+  beforeEach(() => {
+    BillMock = sinon.mock(Bill);
+    getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
+  });
+
+  afterEach(() => {
+    BillMock.restore();
+    getDateQueryStub.restore();
+  });
+
+  it('should return bills', async () => {
+    BillMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('lean')
+      .returns(bills);
+
+    const result = await BillHelper.getBills({}, credentials);
+
+    expect(result).toEqual(bills);
+    BillMock.verify();
+    sinon.assert.notCalled(getDateQueryStub);
+  });
+
+  it('should return bills at specified start date', async () => {
+    const query = { startDate: new Date('2019-11-01') };
+    const dateQuery = { $lte: query.startDate };
+
+    getDateQueryStub.returns(dateQuery);
+    BillMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, date: dateQuery })
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('lean')
+      .returns(bills);
+
+    const result = await BillHelper.getBills(query, credentials);
+
+    expect(result).toEqual(bills);
+    BillMock.verify();
+    sinon.assert.calledWithExactly(getDateQueryStub, { ...query, endDate: undefined });
+  });
+
+  it('should return bills at specified end date', async () => {
+    const query = { endDate: new Date('2019-11-01') };
+    const dateQuery = { $gte: query.endDate };
+
+    getDateQueryStub.returns(dateQuery);
+    BillMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, date: dateQuery })
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('lean')
+      .returns(bills);
+
+    const result = await BillHelper.getBills(query, credentials);
+
+    expect(result).toEqual(bills);
+    BillMock.verify();
+    sinon.assert.calledWithExactly(getDateQueryStub, { ...query, startDate: undefined });
+  });
+});
+
 describe('formatBillSubscriptionsForPdf', () => {
   let getUnitInclTaxes;
   let formatPrice;

@@ -4,9 +4,7 @@ const Bill = require('../models/Bill');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
 const { getDraftBillsList } = require('../helpers/draftBills');
-const { formatAndCreateBills } = require('../helpers/bills');
-const { getDateQuery } = require('../helpers/utils');
-const { formatPDF } = require('../helpers/bills');
+const BillHelper = require('../helpers/bills');
 const { generatePdf } = require('../helpers/pdf');
 const { COMPANI } = require('../helpers/constants');
 
@@ -32,7 +30,7 @@ const draftBillsList = async (req) => {
 
 const createBills = async (req) => {
   try {
-    await formatAndCreateBills(req.payload.bills, req.auth.credentials);
+    await BillHelper.formatAndCreateBills(req.payload.bills, req.auth.credentials);
 
     return { message: translate[language].billsCreated };
   } catch (e) {
@@ -43,20 +41,10 @@ const createBills = async (req) => {
 
 const list = async (req) => {
   try {
-    const { startDate, endDate, ...rest } = req.query;
-    const query = rest;
-    if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
-
-    const bills = await Bill.find(query).populate({
-      path: 'client',
-      select: '_id name',
-      match: { company: get(req, 'auth.credentials.company._id', null) },
-    });
-
-    if (!bills) return Boom.notFound(translate[language].billsNotFound);
+    const bills = await BillHelper.getBills(req.query, req.auth.credentials);
 
     return {
-      message: translate[language].billsFound,
+      message: bills.length ? translate[language].billsFound : translate[language].billsNotFound,
       data: { bills },
     };
   } catch (e) {
@@ -76,7 +64,7 @@ const generateBillPdf = async (req, h) => {
     if (bill.origin !== COMPANI) return Boom.badRequest(translate[language].billNotCompani);
 
     const company = await Company.findOne();
-    const data = formatPDF(bill, company);
+    const data = BillHelper.formatPDF(bill, company);
     const pdf = await generatePdf(data, './src/data/bill.html');
 
     return h.response(pdf)
