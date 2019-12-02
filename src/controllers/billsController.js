@@ -1,8 +1,5 @@
 const Boom = require('boom');
-const moment = require('moment');
-
 const get = require('lodash/get');
-const BillNumber = require('../models/BillNumber');
 const Bill = require('../models/Bill');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
@@ -35,15 +32,7 @@ const draftBillsList = async (req) => {
 
 const createBills = async (req) => {
   try {
-    const { bills } = req.payload;
-    const prefix = `FACT-${moment(bills[0].endDate).format('MMYY')}`;
-    const number = await BillNumber.findOneAndUpdate(
-      { prefix },
-      {},
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-
-    await formatAndCreateBills(number, bills);
+    await formatAndCreateBills(req.payload.bills, req.auth.credentials);
 
     return { message: translate[language].billsCreated };
   } catch (e) {

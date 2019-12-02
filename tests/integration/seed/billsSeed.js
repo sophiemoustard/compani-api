@@ -49,6 +49,11 @@ const billService = {
   nature: HOURLY,
 };
 
+const authBillService = {
+  serviceId: new ObjectID(),
+  name: 'Temps de qualité - autonomie',
+};
+
 const billCustomerList = [
   {
     _id: new ObjectID(),
@@ -153,6 +158,7 @@ const billUserList = [
 const billsList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'FACT-1807001',
     date: '2019-05-29',
     customer: billCustomerList[0]._id,
@@ -162,8 +168,8 @@ const billsList = [
       startDate: '2019-05-29',
       endDate: '2019-11-29',
       subscription: billCustomerList[0].subscriptions[0]._id,
+      service: authBillService,
       vat: 5.5,
-      service: { name: 'Temps de qualité - autonomie' },
       events: [{
         eventId: new ObjectID(),
         startDate: '2019-01-16T09:30:19.543Z',
@@ -172,6 +178,7 @@ const billsList = [
       }],
       hours: 8,
       unitExclTaxes: 9,
+      unitInclTaxes: 9.495,
       exclTaxes: 72,
       inclTaxes: 75.96,
       discount: 0,
@@ -179,6 +186,7 @@ const billsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'FACT-1807002',
     date: '2019-05-25',
     customer: billCustomerList[1]._id,
@@ -194,9 +202,10 @@ const billsList = [
         endDate: '2019-01-16T12:30:21.653Z',
         auxiliary: billUserList[1]._id,
       }],
-      service: { name: 'Temps de qualité - autonomie' },
+      service: authBillService,
       hours: 4,
       unitExclTaxes: 24,
+      unitInclTaxes: 25.32,
       exclTaxes: 96,
       inclTaxes: 101.28,
       discount: 0,
