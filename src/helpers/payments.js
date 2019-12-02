@@ -11,9 +11,8 @@ const XmlHelper = require('../helpers/xml');
 const UtilsHelper = require('./utils');
 
 exports.list = async (payload, credentials) => {
-  const { startDate, endDate, ...rest } = payload;
-  const query = rest;
-  query.company = get(credentials, 'company._id');
+  const { startDate, endDate, ...query } = payload;
+  query.company = get(credentials, 'company._id', null);
   if (startDate || endDate) {
     query.date = UtilsHelper.getDateQuery({ startDate, endDate });
   }

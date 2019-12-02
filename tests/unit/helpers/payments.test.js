@@ -31,7 +31,14 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const query = {};
     const payment = { _id: new ObjectID() };
-    PaymentModel.expects('find').chain('populate').chain('lean').returns([payment]);
+    PaymentModel
+      .expects('find')
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: '_id identity' })
+      .chain('lean')
+      .returns([payment]);
 
     const result = await PaymentsHelper.list(query, credentials);
 
@@ -43,12 +50,18 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const query = { startDate: '2019-11-01' };
     const payment = { _id: new ObjectID() };
-    PaymentModel.expects('find').chain('populate').chain('lean').returns([payment]);
+    PaymentModel
+      .expects('find')
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: '_id identity' })
+      .chain('lean')
+      .returns([payment]);
 
     const result = await PaymentsHelper.list(query, credentials);
 
     expect(result).toEqual([payment]);
-    sinon.assert.calledOnce(getDateQueryStub);
     sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
   });
 
@@ -56,12 +69,18 @@ describe('list', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const query = { endDate: '2019-11-01' };
     const payment = { _id: new ObjectID() };
-    PaymentModel.expects('find').chain('populate').chain('lean').returns([payment]);
+    PaymentModel
+      .expects('find')
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: '_id identity' })
+      .chain('lean')
+      .returns([payment]);
 
     const result = await PaymentsHelper.list(query, credentials);
 
     expect(result).toEqual([payment]);
-    sinon.assert.calledOnce(getDateQueryStub);
     sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
   });
 });
