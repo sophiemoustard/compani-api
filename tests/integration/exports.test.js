@@ -79,7 +79,7 @@ describe('EXPORTS ROUTES', () => {
       it('should get bills', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/exports/bill/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
+          url: '/exports/bill/history?startDate=2019-05-25T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
           headers: { 'x-access-token': adminToken },
         });
 

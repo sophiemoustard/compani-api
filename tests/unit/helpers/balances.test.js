@@ -354,7 +354,7 @@ describe('getBalances', () => {
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, null, null, credentials.company._id);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, null, null);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, null, null);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null, credentials.company._id);
   });
 
   it('should return balances from bills', async () => {
@@ -378,7 +378,7 @@ describe('getBalances', () => {
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, null, null, credentials.company._id);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, null, null);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, null, null);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null, credentials.company._id);
   });
 
   it('should return balances from customer credit notes', async () => {
@@ -402,7 +402,7 @@ describe('getBalances', () => {
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, null, null, credentials.company._id);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, null, null);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, null, null);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null, credentials.company._id);
   });
 
   it('should return balances from TPP credit notes', async () => {
@@ -425,7 +425,7 @@ describe('getBalances', () => {
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, null, null, credentials.company._id);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, null, null);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, null, null);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null, credentials.company._id);
   });
 
   it('should return balances from payments', async () => {
@@ -451,7 +451,7 @@ describe('getBalances', () => {
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, null, null, credentials.company._id);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, null, null);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, null, null);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null, credentials.company._id);
   });
 
   it('should return balances from bills, credit notes and payments', async () => {
@@ -497,6 +497,6 @@ describe('getBalances', () => {
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, null, null, credentials.company._id);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, null, null);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, null, null);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, null, null, credentials.company._id);
   });
 });
