@@ -99,11 +99,12 @@ const helpersCustomer = {
 };
 
 const repetitionParentId = new ObjectID();
-const repetitions = [{ _id: new ObjectID(), parentId: repetitionParentId, repetition: { frequency: EVERY_WEEK } }];
+const repetitions = [{ _id: new ObjectID(), parentId: repetitionParentId, repetition: { frequency: EVERY_WEEK }, company: authCompany._id }];
 
 const eventsList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     type: 'internalHour',
     repetition: { frequency: NEVER },
@@ -119,6 +120,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     repetition: { frequency: NEVER },
     type: 'absence',
@@ -129,6 +131,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
@@ -142,6 +145,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
@@ -155,6 +159,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
@@ -179,6 +184,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
@@ -197,6 +203,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     type: 'absence',
     startDate: '2019-07-19T14:00:18.653Z',
@@ -207,6 +214,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
@@ -225,6 +233,7 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',
@@ -243,6 +252,7 @@ const eventsList = [
   },
   {
     _id: repetitionParentId,
+    company: authCompany._id,
     sector: sector._id,
     type: 'intervention',
     status: 'contract_with_company',

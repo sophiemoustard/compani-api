@@ -1,5 +1,6 @@
 const sinon = require('sinon');
 const moment = require('moment');
+const { ObjectID } = require('mongodb');
 require('sinon-mongoose');
 
 const Repetition = require('../../../src/models/Repetition');
@@ -68,6 +69,7 @@ describe('method', () => {
 
       const futureEvent = new Event({
         type: 'intervention',
+        company: new ObjectID(),
         customer: '5d4420d306ab3d00147caf11',
         subscription: '5d4422b306ab3d00147caf13',
         auxiliary: '5d121abe9ff937001403b6c6',

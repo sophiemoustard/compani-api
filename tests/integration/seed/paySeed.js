@@ -93,6 +93,7 @@ const contracts = [{
 
 const event = {
   _id: new ObjectID(),
+  company: authCompany._id,
   type: 'intervention',
   status: 'contract_with_company',
   startDate: '2019-05-12T09:00:00',

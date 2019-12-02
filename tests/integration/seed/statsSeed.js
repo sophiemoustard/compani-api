@@ -132,6 +132,7 @@ const customerList = [
 const eventListForFollowUp = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
     subscription: subscriptionId,
@@ -141,6 +142,7 @@ const eventListForFollowUp = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
     subscription: subscriptionId,
@@ -185,6 +187,7 @@ const tuesdayOfPreviousMonth = dayOfPreviousMonth(2);
 const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
     subscription: subscriptionId,
@@ -194,6 +197,7 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
     subscription: subscriptionId,
@@ -203,6 +207,7 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
     subscription: subscriptionId,
@@ -212,6 +217,7 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
     subscription: subscriptionId,
@@ -221,6 +227,7 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
     subscription: subscriptionId,

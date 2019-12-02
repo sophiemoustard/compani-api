@@ -91,6 +91,7 @@ const creditNoteUserList = [
 
 const creditNoteEvent = {
   _id: new ObjectID(),
+  company: authCompany._id,
   sector: new ObjectID(),
   type: 'intervention',
   status: 'contract_with_company',

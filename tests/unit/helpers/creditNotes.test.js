@@ -29,6 +29,7 @@ describe('updateEventAndFundingHistory', () => {
     const fundingId = new ObjectID();
     const events = [
       new Event({
+        company: new ObjectID(),
         bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
         startDate: new Date('2019/01/19'),
       }),
@@ -55,6 +56,7 @@ describe('updateEventAndFundingHistory', () => {
     const fundingId = new ObjectID();
     const events = [
       new Event({
+        company: new ObjectID(),
         bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
         startDate: new Date('2019/01/19'),
       }),
@@ -76,6 +78,7 @@ describe('updateEventAndFundingHistory', () => {
     const fundingId = new ObjectID();
     const events = [
       new Event({
+        company: new ObjectID(),
         bills: { nature: 'hourly', fundingId, thirdPartyPayer: new ObjectID(), careHours: 3 },
         startDate: new Date('2019/01/19'),
       }),
@@ -97,6 +100,7 @@ describe('updateEventAndFundingHistory', () => {
     const fundingId = new ObjectID();
     const events = [
       new Event({
+        company: new ObjectID(),
         bills: { nature: 'fixed', fundingId, thirdPartyPayer: new ObjectID(), inclTaxesTpp: 666 },
         startDate: new Date('2019/01/19'),
       }),

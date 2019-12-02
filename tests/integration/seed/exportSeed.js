@@ -193,6 +193,7 @@ const thirdPartyPayer = {
 const eventList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector,
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
@@ -202,6 +203,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector,
     type: 'intervention',
     status: 'contract_with_company',
@@ -214,6 +216,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector,
     type: 'intervention',
     status: 'contract_with_company',

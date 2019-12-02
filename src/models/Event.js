@@ -44,6 +44,8 @@ const EVENT_CANCELLATION_REASONS = [AUXILIARY_INITIATIVE, CUSTOMER_INITIATIVE];
 const EVENT_CANCELLATION_CONDITIONS = [INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, NOT_INVOICED_AND_NOT_PAID];
 const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK, EVERY_TWO_WEEKS];
 
+const { validatePayload } = require('./preHooks/validate');
+
 const EventSchema = mongoose.Schema({
   type: { type: String, enum: EVENT_TYPES },
   startDate: { type: Date, required: true },
@@ -80,7 +82,10 @@ const EventSchema = mongoose.Schema({
     surcharges: billEventSurchargesSchemaDefinition,
   },
   status: { type: String, enum: CONTRACT_STATUS, required: () => this.type === INTERVENTION },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
+
+EventSchema.pre('validate', validatePayload);
 
 module.exports = mongoose.model('Event', EventSchema);
 module.exports.EVENT_TYPES = EVENT_TYPES;

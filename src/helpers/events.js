@@ -31,10 +31,12 @@ const isRepetition = event => event.repetition && event.repetition.frequency && 
 
 exports.createEvent = async (payload, credentials) => {
   if (!(await EventsValidationHelper.isCreationAllowed(payload))) throw Boom.badData();
+  const companyId = _.get(credentials, 'company._id', null);
+  if (!companyId) throw Boom.forbidden();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  let event = { ...payload };
+  let event = { ...payload, company: companyId };
   const isRepeatedEvent = isRepetition(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await EventsValidationHelper.hasConflicts(event)) {
     delete event.auxiliary;
