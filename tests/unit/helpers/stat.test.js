@@ -106,7 +106,7 @@ describe('getCustomerFundingsMonitoring', () => {
     const eventsGroupedByFundings = [{
       thirdPartyPayer: { name: 'Tiers payeur' },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
-      startDate: '2019-10-31T23:00:00.000Z',
+      startDate: moment().startOf('month'),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
