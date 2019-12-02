@@ -9,7 +9,7 @@ const {
   createList,
   update,
 } = require('../controllers/paymentController');
-const { getPayment, authorizePaymentsUpdate, authorizePaymentsCreation, authorizePaymentCreation } = require('./preHandlers/payments');
+const { getPayment, authorizePaymentUpdate, authorizePaymentsListCreation, authorizePaymentCreation } = require('./preHandlers/payments');
 const { PAYMENT_NATURES, PAYMENT_TYPES } = require('../models/Payment');
 
 exports.plugin = {
@@ -68,7 +68,7 @@ exports.plugin = {
             rum: Joi.string().required(),
           })).min(1).required(),
         },
-        pre: [{ method: authorizePaymentsCreation }],
+        pre: [{ method: authorizePaymentsListCreation }],
       },
       handler: createList,
     });
@@ -89,7 +89,7 @@ exports.plugin = {
         },
         pre: [
           { method: getPayment, assign: 'payment' },
-          { method: authorizePaymentsUpdate },
+          { method: authorizePaymentUpdate },
         ],
       },
       handler: update,

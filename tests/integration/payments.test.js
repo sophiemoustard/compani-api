@@ -3,7 +3,7 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList, paymentUser, userFromOtherCompany, customerFromOtherCompany } = require('./seed/paymentsSeed');
+const { paymentsList, populateDB, paymentCustomerList, paymentUser, userFromOtherCompany, customerFromOtherCompany, tppFromOtherCompany } = require('./seed/paymentsSeed');
 const { PAYMENT, REFUND } = require('../../src/helpers/constants');
 const translate = require('../../src/helpers/translate');
 const Payment = require('../../src/models/Payment');
@@ -166,6 +166,17 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
       });
       expect(response.statusCode).toBe(403);
     });
+
+    it('it should not create a payment if client is not from the same company', async () => {
+      const payload = { ...originalPayload, client: tppFromOtherCompany._id };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -242,6 +253,20 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
     it('it should not create multiple payments if at least one customer is not from the same company', async () => {
       const payload = [
         { ...originalPayload[0], customer: customerFromOtherCompany._id },
+        { ...originalPayload[1] },
+      ];
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('it should not create multiple payments if at least one client is not from the same company', async () => {
+      const payload = [
+        { ...originalPayload[0], client: tppFromOtherCompany._id },
         { ...originalPayload[1] },
       ];
       const response = await app.inject({

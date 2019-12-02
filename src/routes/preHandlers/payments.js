@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const Payment = require('../../models/Payment');
 const Customer = require('../../models/Customer');
+const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -17,7 +18,7 @@ exports.getPayment = async (req) => {
   }
 };
 
-exports.authorizePaymentsUpdate = (req) => {
+exports.authorizePaymentUpdate = (req) => {
   try {
     const { credentials } = req.auth;
     const { payment } = req.pre;
@@ -30,14 +31,22 @@ exports.authorizePaymentsUpdate = (req) => {
   }
 };
 
-exports.authorizePaymentsCreation = async (req) => {
+exports.authorizePaymentsListCreation = async (req) => {
   try {
     const { credentials } = req.auth;
-    const customersId = [...new Set(req.payload.map(payment => payment.customer))];
-    const customers = await Customer.countDocuments({ _id: { $in: customersId }, company: credentials.company._id });
 
-    if (customers === customersId.length) return null;
+    const customersIds = [...new Set(req.payload.map(payment => payment.customer))];
+    const customersCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: credentials.company._id });
+    const areCustomersFromSameCompany = customersCount === customersIds.length;
 
+    const tppIds = [...new Set(req.payload.filter(payment => payment.client).map(payment => payment.client))];
+    let areTppFromSameCompany = true;
+    if (tppIds.length) {
+      const tppCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: credentials.company._id });
+      areTppFromSameCompany = tppCount === tppIds.length;
+    }
+
+    if (areCustomersFromSameCompany && areTppFromSameCompany) return null;
     throw Boom.forbidden();
   } catch (e) {
     req.log('error', e);
@@ -49,10 +58,16 @@ exports.authorizePaymentCreation = async (req) => {
   try {
     const { credentials } = req.auth;
     const payment = req.payload;
-    const customer = await Customer.findById(payment.customer);
 
+    const customer = await Customer.findById(payment.customer);
     if (!customer) throw Boom.forbidden();
     if (customer.company.toHexString() !== credentials.company._id.toHexString()) throw Boom.forbidden();
+
+    if (payment.client) {
+      const tpp = await ThirdPartyPayer.findById(payment.client);
+      if (!tpp) throw Boom.forbidden();
+      if (tpp.company.toHexString() !== credentials.company._id.toHexString()) throw Boom.forbidden();
+    }
 
     return null;
   } catch (e) {
