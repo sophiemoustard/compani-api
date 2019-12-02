@@ -37,16 +37,8 @@ exports.authorizePaymentsListCreation = async (req) => {
 
     const customersIds = [...new Set(req.payload.map(payment => payment.customer))];
     const customersCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: credentials.company._id });
-    const areCustomersFromSameCompany = customersCount === customersIds.length;
+    if (customersCount === customersIds.length) return null;
 
-    const tppIds = [...new Set(req.payload.filter(payment => payment.client).map(payment => payment.client))];
-    let areTppFromSameCompany = true;
-    if (tppIds.length) {
-      const tppCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: credentials.company._id });
-      areTppFromSameCompany = tppCount === tppIds.length;
-    }
-
-    if (areCustomersFromSameCompany && areTppFromSameCompany) return null;
     throw Boom.forbidden();
   } catch (e) {
     req.log('error', e);
