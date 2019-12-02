@@ -233,18 +233,19 @@ const formatCreditNotesForExport = (creditNotes) => {
 exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credentials) => {
   const query = {
     date: { $lte: endDate, $gte: startDate },
+    company: get(credentials, 'company._id', null),
   };
 
   const bills = await Bill.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'client', match: { company: get(credentials, 'company._id', null) } })
+    .populate('client')
     .lean();
 
   const creditNotes = await CreditNote.find(query)
     .sort({ date: 'desc' })
     .populate({ path: 'customer', select: 'identity' })
-    .populate({ path: 'thirdPartyPayer', match: { company: get(credentials, 'company._id', null) } })
+    .populate('thirdPartyPayer')
     .lean();
 
   const rows = [billAndCreditNoteExportHeader];
