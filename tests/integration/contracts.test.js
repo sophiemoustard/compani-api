@@ -193,7 +193,7 @@ describe('CONTRACTS ROUTES', () => {
       });
     });
 
-    it('it should not create a contract if customer is not from the same company', async () => {
+    it('should not create a contract if customer is not from the same company', async () => {
       const customerContractPayload = {
         startDate: '2019-01-18T15:46:30.636Z',
         versions: [{ grossHourlyRate: 10.43, startDate: '2019-01-18T15:46:30.636Z' }],
@@ -212,7 +212,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('it should not create a contract if user is not from the same company', async () => {
+    it('should not create a contract if user is not from the same company', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/contracts',
