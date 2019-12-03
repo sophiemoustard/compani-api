@@ -72,6 +72,7 @@ const event = {
   auxiliary: auxiliaryId,
   customer: customerId,
   createdAt: '2019-05-01T09:00:00',
+  sector: new ObjectID(),
   subscription: subscriptionId,
 };
 
