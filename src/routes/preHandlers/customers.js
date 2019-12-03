@@ -8,7 +8,9 @@ const { language } = translate;
 exports.getCustomer = async (req) => {
   try {
     const companyId = get(req, 'auth.credentials.company._id', null);
+    console.log('test in prehandler');
     const customer = await Customer.findById(req.params._id).populate({ path: 'firstIntervention', select: 'startDate' });
+    console.log('test2');
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
     if (customer.company.toHexString() === companyId.toHexString()) return customer;

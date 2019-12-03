@@ -99,33 +99,29 @@ exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules,
 
 exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
 
-exports.getEventList = (rules, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  return Event.find(rules)
-    .populate({
-      path: 'auxiliary',
-      select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
-      populate: { path: 'sector', match: { company: companyId } },
-    })
-    .populate({
-      path: 'customer',
-      select: 'identity subscriptions contact',
-      populate: { path: 'subscriptions.service', match: { company: companyId } },
-    })
-    .populate({
-      path: 'internalHour',
-      match: { company: companyId },
-    })
-    .lean();
-};
+exports.getEventList = rules => Event.find(rules)
+  .populate({
+    path: 'auxiliary',
+    select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
+    populate: { path: 'sector' },
+  })
+  .populate({
+    path: 'customer',
+    select: 'identity subscriptions contact',
+    populate: { path: 'subscriptions.service' },
+  })
+  .populate({ path: 'internalHour' })
+  .lean();
 
-exports.getEventsInConflicts = async (dates, auxiliary, types, eventId) => {
+exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {
   const rules = {
     startDate: { $lt: dates.endDate },
     endDate: { $gt: dates.startDate },
     auxiliary,
     type: { $in: types },
+    company: companyId,
   };
+
   if (eventId) rules._id = { $ne: eventId };
 
   return Event.find(rules).lean();
@@ -141,14 +137,14 @@ exports.countAuxiliaryEventsBetweenDates = (filters) => {
   return Event.countDocuments(query);
 };
 
-exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, type) => {
+exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, companyId, type = null) => {
   const query = {
     auxiliary,
     startDate: { $lt: endDate },
     endDate: { $gt: startDate },
+    company: companyId,
   };
   if (type) query.type = type;
-
   return Event.find(query);
 };
 
@@ -263,12 +259,13 @@ exports.getAbsencesForExport = async (start, end, credentials) => {
     type: ABSENCE,
     startDate: { $lt: end },
     endDate: { $gt: start },
+    company: get(credentials, 'company._id', null),
   };
 
   return Event.find(query)
     .sort({ startDate: 'desc' })
     .populate({ path: 'auxiliary', select: 'identity' })
-    .populate({ path: 'sector', match: { company: credentials.company._id } })
+    .populate({ path: 'sector' })
     .lean();
 };
 
@@ -351,11 +348,12 @@ exports.getEventsExceptInterventions = async (startDate, auxiliary) => exports.g
   subscription: { $exists: false },
 });
 
-exports.getAbsences = async (auxiliaryId, maxEndDate) => Event.find({
+exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({
   type: ABSENCE,
   auxiliary: auxiliaryId,
   startDate: { $lte: maxEndDate },
   endDate: { $gt: maxEndDate },
+  company: companyId,
 });
 
 exports.getEventsToPay = async (start, end, auxiliaries) => {

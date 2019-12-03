@@ -83,7 +83,6 @@ exports.createRepetitions = async (eventFromDb, payload) => {
   if (get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
     await Event.findOneAndUpdate({ _id: eventFromDb._id }, { 'repetition.parentId': eventFromDb._id });
   }
-
   payload.repetition.parentId = eventFromDb._id;
   switch (payload.repetition.frequency) {
     case EVERY_DAY:
@@ -107,7 +106,7 @@ exports.createRepetitions = async (eventFromDb, payload) => {
   return eventFromDb;
 };
 
-exports.updateRepetition = async (event, eventPayload) => {
+exports.updateRepetition = async (event, eventPayload, credentials) => {
   const parentStartDate = moment(eventPayload.startDate);
   const parentEndDate = moment(eventPayload.endDate);
   const promises = [];
@@ -116,6 +115,7 @@ exports.updateRepetition = async (event, eventPayload) => {
     'repetition.parentId': event.repetition.parentId,
     'repetition.frequency': { $not: { $eq: NEVER } },
     startDate: { $gte: new Date(event.startDate) },
+    company: get(credentials, 'company._id', null),
   });
 
   for (let i = 0, l = events.length; i < l; i++) {
@@ -152,6 +152,7 @@ exports.deleteRepetition = async (event, credentials) => {
     await Event.deleteMany({
       'repetition.parentId': event.repetition.parentId,
       startDate: { $gte: new Date(event.startDate) },
+      company: get(credentials, 'company._id'),
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     });
 

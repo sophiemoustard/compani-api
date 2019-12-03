@@ -263,15 +263,15 @@ describe('updateRepetition', () => {
     ];
     findEvent.returns(events);
     hasConflicts.returns(false);
-
-    await EventsRepetitionHelper.updateRepetition(event, payload);
+    const credentials = { company: { _id: new ObjectID() } };
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     sinon.assert.calledWith(
       findEvent,
       {
         'repetition.parentId': 'qwertyuiop',
         'repetition.frequency': { $not: { $eq: 'never' } },
-        startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') }
+        startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
       }
     );
     sinon.assert.calledThrice(hasConflicts);
@@ -287,8 +287,8 @@ describe('updateRepetition', () => {
     ];
     findEvent.returns(events);
     hasConflicts.returns(true);
-
-    await EventsRepetitionHelper.updateRepetition(event, payload);
+    const credentials = { company: { _id: new ObjectID() } };
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     sinon.assert.calledWith(
       hasConflicts,

@@ -30,12 +30,12 @@ momentRange.extendMoment(moment);
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.createEvent = async (payload, credentials) => {
-  if (!(await EventsValidationHelper.isCreationAllowed(payload))) throw Boom.badData();
   const companyId = _.get(credentials, 'company._id', null);
+  let event = { ...payload, company: companyId };
+  if (!(await EventsValidationHelper.isCreationAllowed(event))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  let event = { ...payload, company: companyId };
   const isRepeatedEvent = isRepetition(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await EventsValidationHelper.hasConflicts(event)) {
     delete event.auxiliary;
@@ -44,7 +44,6 @@ exports.createEvent = async (payload, credentials) => {
 
   event = await Event.create(event);
   event = await EventRepository.getEvent(event._id, credentials);
-
   if (payload.type === ABSENCE) {
     const { startDate, endDate, auxiliary, _id } = event;
     const dates = { startDate, endDate };
@@ -59,13 +58,13 @@ exports.createEvent = async (payload, credentials) => {
 
 exports.deleteConflictInternalHoursAndUnavailabilities = async (dates, auxiliary, eventId, credentials) => {
   const types = [INTERNAL_HOUR, UNAVAILABILITY];
-  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, eventId);
+  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, _.get(credentials, 'company._id', null), eventId);
 
   await exports.deleteEvents(events, credentials);
 };
 
 exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
-  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION]);
+  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION], _.get(credentials, 'company._id', null));
 
   for (let i = 0, l = interventions.length; i < l; i++) {
     const payload = _.omit(interventions[i], ['_id', 'auxiliary', 'repetition']);
@@ -73,8 +72,8 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
   }
 };
 
-exports.getListQuery = (query) => {
-  const rules = [];
+exports.getListQuery = (query, credentials) => {
+  const rules = [{ company: _.get(credentials, 'company._id') }];
 
   const { auxiliary, type, customer, sector, isBilled, startDate, endDate, status } = query;
 
@@ -107,6 +106,20 @@ exports.getListQuery = (query) => {
   }
 
   return rules.length > 0 ? { $and: rules } : {};
+};
+
+exports.listForCreditNotes = (payload, credentials) => {
+  let query = {
+    startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+    endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+    customer: payload.customer,
+    isBilled: payload.isBilled,
+    type: INTERVENTION,
+    company: _.get(credentials, 'company._id', null),
+  };
+  if (payload.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': payload.thirdPartyPayer };
+  else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 }, 'bills.inclTaxesTpp': { $exists: false } };
+  return Event.find(query).lean();
 };
 
 exports.populateEventSubscription = (event) => {
@@ -164,7 +177,7 @@ exports.isMiscOnlyUpdated = (event, payload) => {
  */
 exports.updateEvent = async (event, eventPayload, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
-  if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload);
+  if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
 
   const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
   let unset = null;
@@ -271,7 +284,7 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
   const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
-  const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate);
+  const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate, _.get(credentials, 'company._id', null));
   const absencesIds = absences.map(abs => abs._id);
   const promises = [];
 

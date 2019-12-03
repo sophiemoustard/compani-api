@@ -22,7 +22,7 @@ const {
 } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
-const { getToken, getUser } = require('./seed/authenticationSeed');
+const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {

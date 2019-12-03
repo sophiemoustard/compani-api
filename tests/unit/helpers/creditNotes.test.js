@@ -37,8 +37,9 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(events);
     findOneAndUpdate.returns(null);
+    const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNoteHelper.updateEventAndFundingHistory([], false);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
@@ -64,8 +65,9 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(events);
     findOneAndUpdate.returns(new FundingHistory());
+    const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNoteHelper.updateEventAndFundingHistory([], false);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
@@ -86,8 +88,9 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(events);
     findOneAndUpdate.returns(null);
+    const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNoteHelper.updateEventAndFundingHistory([], true);
+    await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
@@ -108,8 +111,9 @@ describe('updateEventAndFundingHistory', () => {
 
     find.returns(events);
     findOneAndUpdate.returns(new FundingHistory());
+    const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNoteHelper.updateEventAndFundingHistory([], false);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,

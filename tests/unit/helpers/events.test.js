@@ -250,6 +250,76 @@ describe('updateEvent', () => {
   });
 });
 
+describe('listForCreditNotes', () => {
+  let EventModel;
+  beforeEach(() => {
+    EventModel = sinon.mock(Event);
+  });
+  afterEach(() => {
+    EventModel.restore();
+  });
+  it('should return events with creditNotes', async () => {
+    const events = [{
+      type: 'intervention',
+      isBilled: true,
+    }];
+    const companyId = new ObjectID();
+    const payload = { customer: new ObjectID(), isBilled: true };
+    const credentials = { company: { _id: companyId } };
+
+    const query = {
+      startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+      customer: payload.customer,
+      isBilled: payload.isBilled,
+      type: INTERVENTION,
+      company: companyId,
+      'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
+      'bills.inclTaxesTpp': { $exists: false },
+    };
+
+    EventModel.expects('find')
+      .withArgs(query)
+      .chain('lean')
+      .returns(events);
+
+    const result = await EventHelper.listForCreditNotes(payload, credentials);
+    expect(result).toBeDefined();
+    expect(result).toBe(events);
+  });
+
+  it('should query with thirdPartyPayer', async () => {
+    const events = [{
+      type: 'intervention',
+      isBilled: true,
+    }];
+    const companyId = new ObjectID();
+    const payload = { thirdPartyPayer: new ObjectID(), customer: new ObjectID(), isBilled: true };
+    const credentials = { company: { _id: companyId } };
+
+    const query = {
+      startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+      customer: payload.customer,
+      isBilled: payload.isBilled,
+      type: INTERVENTION,
+      company: companyId,
+      'bills.thirdPartyPayer': payload.thirdPartyPayer,
+    };
+
+    EventModel.expects('find')
+      .withArgs(query)
+      .chain('lean')
+      .returns(events);
+
+    const result = await EventHelper.listForCreditNotes(payload, credentials);
+    expect(result).toBeDefined();
+    expect(result).toBe(events);
+  });
+
+});
+
+
 describe('populateEventSubscription', () => {
   it('should populate subscription as event is an intervention', async () => {
     const event = {

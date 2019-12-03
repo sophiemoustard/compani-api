@@ -64,7 +64,7 @@ const update = async (req) => {
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
     if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
 
-    creditNote = await updateCreditNotes(creditNote, req.payload);
+    creditNote = await updateCreditNotes(creditNote, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteUpdated,
@@ -82,7 +82,7 @@ const remove = async (req) => {
     if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
     if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
 
-    await updateEventAndFundingHistory(creditNote.events, true);
+    await updateEventAndFundingHistory(creditNote.events, true, req.auth.credentials);
     await CreditNote.findByIdAndRemove(req.params._id);
     if (creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(creditNote.linkedCreditNote);
 

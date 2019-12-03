@@ -28,8 +28,7 @@ exports.getCustomerBySector = async (query, credentials) => {
     endDate: query.endDate,
     type: INTERVENTION,
     sector: query.sector,
-  });
-
+  }, credentials);
   return EventRepository.getCustomersFromEvent({ ...queryCustomer }, get(credentials, 'company._id', null));
 };
 

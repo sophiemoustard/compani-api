@@ -12,7 +12,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = EventsHelper.getListQuery(req.query);
+    const query = EventsHelper.getListQuery(req.query, req.auth.credentials);
     const { groupBy } = req.query;
 
     let events;
@@ -37,17 +37,7 @@ const list = async (req) => {
 
 const listForCreditNotes = async (req) => {
   try {
-    let query = {
-      startDate: { $gte: moment(req.query.startDate).startOf('d').toDate() },
-      endDate: { $lte: moment(req.query.endDate).endOf('d').toDate() },
-      customer: req.query.customer,
-      isBilled: req.query.isBilled,
-      type: INTERVENTION,
-    };
-    if (req.query.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': req.query.thirdPartyPayer };
-    else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 }, 'bills.inclTaxesTpp': { $exists: false } };
-    const events = await Event.find(query).lean();
-
+    const events = await EventsHelper.listForCreditNotes(req.query, req.auth.credentials);
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
       data: { events },
