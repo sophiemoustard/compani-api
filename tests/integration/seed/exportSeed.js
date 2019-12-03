@@ -513,6 +513,7 @@ const finalPayList = [
 const creditNotesList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     date: '2019-05-28',
     startDate: '2019-05-27',
     endDate: '2019-11-25',

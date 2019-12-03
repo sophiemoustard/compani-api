@@ -2,7 +2,17 @@ const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const app = require('../../server');
 const CreditNote = require('../../src/models/CreditNote');
-const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent, creditNoteUserList } = require('./seed/creditNotesSeed');
+const {
+  populateDB,
+  creditNotesList,
+  creditNoteCustomer,
+  creditNoteEvent,
+  creditNoteUserList,
+  creditNoteThirdPartyPayer,
+  otherCompanyCustomer,
+  otherCompanyThirdPartyPayer,
+  otherCompanyEvent,
+} = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 
@@ -35,7 +45,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       },
     }],
     subscription: {
-      _id: new ObjectID(),
+      _id: creditNoteCustomer.subscriptions[0]._id,
       service: {
         serviceId: new ObjectID(),
         nature: FIXED,
@@ -56,7 +66,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         method: 'POST',
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
-        payload: { ...payload, exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: new ObjectID() },
+        payload: { ...payload, exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: creditNoteThirdPartyPayer._id },
       });
 
       expect(response.statusCode).toBe(200);
@@ -78,6 +88,89 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(response.statusCode).toBe(200);
       const creditNotes = await CreditNote.find();
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
+    });
+
+    it('should return a 403 error if customer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: { ...payload, customer: otherCompanyCustomer._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer subscription is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: {
+          ...payload,
+          subscription: {
+            _id: otherCompanyCustomer.subscriptions[0]._id,
+            service: {
+              serviceId: new ObjectID(),
+              nature: FIXED,
+              name: 'titi',
+            },
+            vat: 5.5,
+          },
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if third party payer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: {
+          ...payload,
+          exclTaxesTpp: 100,
+          inclTaxesTpp: 100,
+          thirdPartyPayer: otherCompanyThirdPartyPayer._id,
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if at least one event is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: {
+          ...payload,
+          events: [{
+            eventId: creditNoteEvent._id,
+            auxiliary: creditNoteEvent.auxiliary,
+            startDate: creditNoteEvent.startDate,
+            endDate: creditNoteEvent.endDate,
+            serviceName: 'toto',
+            bills: {
+              inclTaxesCustomer: 10,
+              exclTaxesCustomer: 8,
+            },
+          }, {
+            eventId: otherCompanyEvent._id,
+            auxiliary: new ObjectID(),
+            startDate: otherCompanyEvent.startDate,
+            endDate: otherCompanyEvent.endDate,
+            serviceName: 'tata',
+            bills: {
+              inclTaxesCustomer: 10,
+              exclTaxesCustomer: 8,
+            },
+          }],
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const missingParams = [
