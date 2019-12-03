@@ -22,7 +22,7 @@
       }
     ],
     "eqeqeq": "off",
-    "max-len": "off",
+    "max-len": ["error", { "code" : 120, "tabWidth": 2 }],
     "no-underscore-dangle": "off",
     "global-require": "off",
     "strict": "off",
