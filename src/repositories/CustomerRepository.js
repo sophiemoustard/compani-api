@@ -108,4 +108,16 @@ exports.getCustomersList = async query => Customer.aggregate([
   },
   { $addFields: { 'customer.subscriptions': '$subscriptions' } },
   { $replaceRoot: { newRoot: '$customer' } },
+  {
+    $project: {
+      identity: 1,
+      contact: 1,
+      payment: 1,
+      subscriptions: 1,
+      subscriptionsHistory: 1,
+      quotes: 1,
+      createdAt: 1,
+      company: 1,
+    },
+  },
 ]);
