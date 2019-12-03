@@ -12,7 +12,7 @@ const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
-const { EVERY_WEEK, NEVER } = require('../../../src/helpers/constants');
+const { EVERY_WEEK, NEVER, COMPANY_CONTRACT } = require('../../../src/helpers/constants');
 
 const auxiliaryId = new ObjectID();
 const planningReferentId = new ObjectID();
@@ -83,17 +83,30 @@ const thirdPartyPayer = {
 const service = {
   _id: new ObjectID(),
   company: authCompany._id,
-  versions: [
-    { _id: new ObjectID() },
-  ],
+  type: COMPANY_CONTRACT,
+  nature: 'hourly',
+  versions: [{
+    defaultUnitAmount: 12,
+    exemptFromCharges: false,
+    name: 'Service 1',
+    startDate: '2019-01-16 17:58:15.519',
+    vat: 12,
+  }],
 };
 
 const serviceFromOtherCompany = {
   _id: new ObjectID(),
+  type: COMPANY_CONTRACT,
+  nature: 'hourly',
   company: otherCompany._id,
-  versions: [
-    { _id: new ObjectID() },
-  ],
+  versions: [{
+    _id: new ObjectID(),
+    defaultUnitAmount: 12,
+    exemptFromCharges: false,
+    name: 'Service 1',
+    startDate: '2019-01-16 17:58:15.519',
+    vat: 12,
+  }],
 };
 
 const customerAuxiliary = {

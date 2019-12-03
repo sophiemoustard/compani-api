@@ -46,13 +46,16 @@ const userList = [
 
 const serviceList = [{
   _id: new ObjectID(),
+  type: COMPANY_CONTRACT,
   nature: 'hourly',
   company: authCompany._id,
-  versions: [
-    {
-      name: 'Autonomie',
-    },
-  ],
+  versions: [{
+    defaultUnitAmount: 150,
+    name: 'Service 3',
+    startDate: '2019-01-16 17:58:15.519',
+    exemptFromCharges: false,
+    vat: 12,
+  }],
 }];
 
 const subscriptionId = new ObjectID();

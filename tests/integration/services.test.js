@@ -27,6 +27,7 @@ describe('SERVICES ROUTES', () => {
         defaultUnitAmount: 12,
         vat: 12,
         exemptFromCharges: true,
+        startDate: '2019-09-19T09:00:00',
       }],
       nature: HOURLY,
     };

@@ -28,11 +28,12 @@ exports.plugin = {
           payload: Joi.object().keys({
             type: Joi.string().required().valid(CONTRACT_STATUS),
             versions: Joi.array().items({
+              startDate: Joi.date().required(),
               defaultUnitAmount: Joi.number().required(),
               name: Joi.string().required(),
-              vat: Joi.number(),
+              vat: Joi.number().default(0),
               surcharge: Joi.objectId(),
-              exemptFromCharges: Joi.boolean(),
+              exemptFromCharges: Joi.boolean().required(),
             }),
             nature: Joi.string().required().valid(SERVICE_NATURES),
           }),

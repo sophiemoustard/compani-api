@@ -48,9 +48,6 @@ exports.getCustomersWithSubscriptions = async query => Customer.aggregate([
   },
   { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
   { $unwind: { path: '$subscriptions.service.versions', preserveNullAndEmptyArrays: true } },
-  {
-    $match: { 'subscriptions.service.versions.startDate': { $lte: moment().startOf('d').toDate() } },
-  },
   { $sort: { 'subscriptions.service.versions.startDate': -1 } },
   {
     $group: {

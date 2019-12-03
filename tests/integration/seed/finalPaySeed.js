@@ -113,6 +113,7 @@ const service = {
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',
+    exemptFromCharges: false,
     startDate: '2019-01-16 17:58:15.519',
     vat: 12,
   }],

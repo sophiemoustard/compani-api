@@ -47,6 +47,7 @@ const customerServiceList = [
       name: 'Service 1',
       startDate: '2019-01-16 17:58:15.519',
       vat: 12,
+      exemptFromCharges: false,
     }],
     nature: HOURLY,
   },
@@ -59,6 +60,7 @@ const customerServiceList = [
       name: 'Service 2',
       startDate: '2019-01-18 19:58:15.519',
       vat: 12,
+      exemptFromCharges: false,
     }],
     nature: HOURLY,
   },
@@ -159,6 +161,7 @@ const balanceCustomerList = [
 const authBillService = {
   serviceId: new ObjectID(),
   name: 'Temps de qualité - autonomie',
+  nature: 'hourly',
 };
 
 const balanceBillList = [
