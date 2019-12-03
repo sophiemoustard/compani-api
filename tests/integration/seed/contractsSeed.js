@@ -166,6 +166,7 @@ const contractsList = [
 const contractEvents = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'internalHour',
     startDate: '2019-08-08T14:00:18.653Z',
@@ -180,6 +181,7 @@ const contractEvents = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
@@ -189,6 +191,7 @@ const contractEvents = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
     status: 'contract_with_company',
@@ -201,6 +204,7 @@ const contractEvents = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
     status: 'contract_with_company',

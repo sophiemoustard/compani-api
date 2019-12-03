@@ -861,7 +861,7 @@ describe('createEvent', () => {
   let getEvent;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
-  const credentials = { _id: 'qwertyuiop' };
+  const credentials = { _id: 'qwertyuiop', company: { _id: new ObjectID() } };
   beforeEach(() => {
     createMock = sinon.mock(Event);
     isCreationAllowed = sinon.stub(EventsValidationHelper, 'isCreationAllowed');
@@ -895,7 +895,7 @@ describe('createEvent', () => {
   });
 
   it('should create as creation is allowed', async () => {
-    const newEvent = new Event({ type: INTERNAL_HOUR });
+    const newEvent = new Event({ type: INTERNAL_HOUR, company: new ObjectID() });
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
@@ -911,7 +911,7 @@ describe('createEvent', () => {
   });
 
   it('should create repetitions as event is a repetition', async () => {
-    const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK } };
+    const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK }, company: new ObjectID() };
     const newEvent = new Event(payload);
 
     isCreationAllowed.returns(true);
@@ -937,6 +937,7 @@ describe('createEvent', () => {
       endDate: '2019-03-20T12:00:00',
       auxiliary: auxiliaryId.toHexString(),
       _id: eventId.toHexString(),
+      company: new ObjectID(),
     };
     const newEvent = new Event({ ...payload, auxiliary: { _id: auxiliaryId } });
 

@@ -168,7 +168,7 @@ exports.createFutureEventBasedOnRepetition = async (repetition) => {
   const newEventStartDate = moment().add(90, 'd').set(pick(startDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
   const newEventEndDate = moment().add(90, 'd').set(pick(endDateObj, ['hours', 'minutes', 'seconds', 'milliseconds'])).toDate();
   const newEvent = {
-    ...pick(repetition, ['type', 'customer', 'subscription', 'auxiliary', 'sector', 'status', 'misc', 'internalHour', 'address']),
+    ...pick(repetition, ['type', 'customer', 'subscription', 'auxiliary', 'sector', 'status', 'misc', 'internalHour', 'address', 'company']),
     startDate: newEventStartDate,
     endDate: newEventEndDate,
     repetition: { frequency, parentId },

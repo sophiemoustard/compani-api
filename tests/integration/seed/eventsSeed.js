@@ -8,8 +8,9 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const EventHistory = require('../../../src/models/EventHistory');
+const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
 const { EVERY_WEEK, NEVER } = require('../../../src/helpers/constants');
 
@@ -40,11 +41,16 @@ const contracts = [{
   }],
 }];
 
-const sector = {
+const sectors = [{
   _id: new ObjectID(),
   name: 'Paris',
   company: authCompany._id,
-};
+},
+{
+  _id: new ObjectID(),
+  name: '',
+  company: authCompany._id,
+}];
 
 const eventAuxiliary = {
   _id: auxiliaryId,
@@ -54,29 +60,65 @@ const eventAuxiliary = {
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
   contracts: [contracts[0]._id],
-  sector: sector._id,
+  sector: sectors[0]._id,
   company: authCompany._id,
 };
 
+const auxiliaryFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Jean', lastname: 'Martin' },
+  local: { email: 'j@m.com', password: '1234' },
+  administrative: { driveFolder: { driveId: '1234567890' } },
+  refreshToken: uuidv4(),
+  role: rolesList[1]._id,
+  sector: sectors[0]._id,
+  company: otherCompany._id,
+};
+
 const thirdPartyPayer = {
-  _id: new ObjectID('62400565f8fd3555379720c9'),
+  _id: new ObjectID(),
   company: authCompany._id,
 };
 
 const service = {
-  _id: new ObjectID('5d3b239ce9e4352ef86e773b'),
+  _id: new ObjectID(),
   company: authCompany._id,
   versions: [
     { _id: new ObjectID() },
   ],
 };
 
+const serviceFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  versions: [
+    { _id: new ObjectID() },
+  ],
+};
+
 const customerAuxiliary = {
-  _id: new ObjectID('b0e491d37f0094ba49499562'),
+  _id: new ObjectID(),
   company: authCompany._id,
   identity: { firstname: 'Romain', lastname: 'Bardet' },
   subscriptions: [
-    { _id: new ObjectID('8b4c4f60d11f95df92d63859'), startDate: '2019-09-03T00:00:00', service: service._id },
+    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: service._id },
+  ],
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
+};
+
+const customerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  identity: { firstname: 'test', lastname: 'toto' },
+  subscriptions: [
+    { _id: new ObjectID(), startDate: '2019-09-03T00:00:00', service: service._id },
   ],
   contact: {
     primaryAddress: {
@@ -99,12 +141,13 @@ const helpersCustomer = {
 };
 
 const repetitionParentId = new ObjectID();
-const repetitions = [{ _id: new ObjectID(), parentId: repetitionParentId, repetition: { frequency: EVERY_WEEK } }];
+const repetitions = [{ _id: new ObjectID(), parentId: repetitionParentId, repetition: { frequency: EVERY_WEEK }, company: authCompany._id }];
 
 const eventsList = [
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'internalHour',
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T10:30:18.653Z',
@@ -119,7 +162,8 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     repetition: { frequency: NEVER },
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
@@ -129,7 +173,8 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
@@ -142,7 +187,8 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
@@ -155,7 +201,8 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -179,7 +226,8 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
@@ -197,7 +245,8 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'absence',
     startDate: '2019-07-19T14:00:18.653Z',
     endDate: '2019-07-19T17:00:18.653Z',
@@ -207,7 +256,8 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-17T14:30:19.543Z',
@@ -225,7 +275,8 @@ const eventsList = [
   },
   {
     _id: new ObjectID(),
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-15T14:30:19.543Z',
@@ -243,7 +294,8 @@ const eventsList = [
   },
   {
     _id: repetitionParentId,
-    sector: sector._id,
+    company: authCompany._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-16T14:30:19.543Z',
@@ -261,6 +313,9 @@ const eventsList = [
   },
 ];
 
+const internalHour = { _id: new ObjectID(), name: 'test', company: authCompany._id };
+const internalHourFromOtherCompany = { _id: new ObjectID(), name: 'Tutu', company: otherCompany._id };
+
 const populateDB = async () => {
   await Event.deleteMany({});
   await User.deleteMany({});
@@ -271,17 +326,23 @@ const populateDB = async () => {
   await EventHistory.deleteMany({});
   await Sector.deleteMany({});
   await Repetition.deleteMany({});
+  await InternalHour.deleteMany({});
 
   await populateDBForAuthentication();
   await Event.insertMany(eventsList);
   await Contract.insertMany(contracts);
   await Repetition.insertMany(repetitions);
-  await (new Sector(sector)).save();
+  await Sector.insertMany(sectors);
   await (new User(eventAuxiliary)).save();
   await (new User(helpersCustomer)).save();
+  await (new User(auxiliaryFromOtherCompany)).save();
   await (new Customer(customerAuxiliary)).save();
+  await (new Customer(customerFromOtherCompany)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();
   await (new Service(service)).save();
+  await (new Service(serviceFromOtherCompany)).save();
+  await (new InternalHour(internalHour)).save();
+  await (new InternalHour(internalHourFromOtherCompany)).save();
 };
 
 const getUserToken = async (userCredentials) => {
@@ -299,8 +360,13 @@ module.exports = {
   populateDB,
   eventAuxiliary,
   customerAuxiliary,
-  sector,
+  sectors,
   thirdPartyPayer,
   helpersCustomer,
   getUserToken,
+  internalHour,
+  customerFromOtherCompany,
+  auxiliaryFromOtherCompany,
+  internalHourFromOtherCompany,
+  serviceFromOtherCompany,
 };

@@ -132,8 +132,10 @@ const customerList = [
 const eventListForFollowUp = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T08:00:00.000+00:00',
@@ -141,8 +143,10 @@ const eventListForFollowUp = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
@@ -185,8 +189,10 @@ const tuesdayOfPreviousMonth = dayOfPreviousMonth(2);
 const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toDate(),
@@ -194,8 +200,10 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toDate(),
@@ -203,8 +211,10 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toDate(),
@@ -212,8 +222,10 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toDate(),
@@ -221,8 +233,10 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toDate(),

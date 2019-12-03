@@ -5,6 +5,8 @@ const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource
 const { CONTRACT_STATUS } = require('./Contract');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
+const { validatePayload } = require('./preHooks/validate');
+
 const RepetitionSchema = mongoose.Schema({
   type: { type: String, enum: EVENT_TYPES },
   startDate: Date,
@@ -20,6 +22,9 @@ const RepetitionSchema = mongoose.Schema({
   frequency: { type: String, enum: REPETITION_FREQUENCIES },
   parentId: { type: mongoose.Schema.Types.ObjectId },
   status: { type: String, enum: CONTRACT_STATUS },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
 }, { timestamps: true });
+
+RepetitionSchema.pre('validate', validatePayload);
 
 module.exports = mongoose.model('Repetition', RepetitionSchema);
