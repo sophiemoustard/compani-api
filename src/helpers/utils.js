@@ -109,3 +109,22 @@ exports.getDaysRatioBetweenTwoDates = (start, end) => {
 
   return { holidays, sundays, businessDays };
 };
+
+exports.formatIdentity = (identity, format) => {
+  if (!identity) return '';
+  const formatLower = format.toLowerCase();
+  const values = [];
+
+  for (let i = 0; i < format.length; ++i) {
+    let value;
+    if (formatLower[i] === 'f') value = (identity.firstname || '').trim();
+    else if (formatLower[i] === 'l') value = (identity.lastname || '').trim().toUpperCase();
+
+    if (!value) continue;
+
+    if (formatLower[i] === format[i]) value = `${value.charAt(0).toUpperCase()}.`;
+    values.push(value);
+  }
+
+  return values.join(' ');
+};

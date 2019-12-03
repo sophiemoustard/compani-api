@@ -35,48 +35,77 @@ exports.getCustomerFundings = async companyId => Customer.aggregate([
   },
 ]);
 
-exports.getCustomerWithSubscriptions = async (company) => {
-  const query = {
-    subscriptions: { $exists: true, $ne: { $size: 0 } },
-    company: company._id,
-  };
+exports.getCustomersWithSubscriptions = async query => Customer.aggregate([
+  { $match: query },
+  { $unwind: { path: '$subscriptions', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'subscriptions.service',
+      foreignField: '_id',
+      as: 'subscriptions.service',
+    },
+  },
+  { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
+  { $unwind: { path: '$subscriptions.service.versions', preserveNullAndEmptyArrays: true } },
+  {
+    $match: { 'subscriptions.service.versions.startDate': { $lte: moment().startOf('d').toDate() } },
+  },
+  { $sort: { 'subscriptions.service.versions.startDate': -1 } },
+  {
+    $group: {
+      _id: { _id: '$_id', subscription: 'subscriptions._id' },
+      customer: { $first: '$$ROOT' },
+      serviceVersions: { $first: '$subscriptions.service.versions' },
+    },
+  },
+  {
+    $addFields: {
+      'customer.subscriptions.service': {
+        $mergeObjects: ['$serviceVersions', '$customer.subscriptions.service'],
+      },
+    },
+  },
+  { $replaceRoot: { newRoot: '$customer' } },
+  {
+    $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
+  },
+  { $addFields: { 'customer.subscriptions': '$subscriptions' } },
+  { $replaceRoot: { newRoot: '$customer' } },
+]);
 
-  return Customer.aggregate([
-    { $match: query },
-    { $unwind: { path: '$subscriptions' } },
-    {
-      $lookup: {
-        from: 'services',
-        localField: 'subscriptions.service',
-        foreignField: '_id',
-        as: 'subscriptions.service',
+exports.getCustomersList = async query => Customer.aggregate([
+  { $match: query },
+  { $unwind: { path: '$subscriptions', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'services',
+      localField: 'subscriptions.service',
+      foreignField: '_id',
+      as: 'subscriptions.service',
+    },
+  },
+  { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
+  { $unwind: { path: '$subscriptions.service.versions', preserveNullAndEmptyArrays: true } },
+  { $sort: { 'subscriptions.service.versions.startDate': -1 } },
+  {
+    $group: {
+      _id: { _id: '$_id', subscription: 'subscriptions._id' },
+      customer: { $first: '$$ROOT' },
+      serviceVersions: { $first: '$subscriptions.service.versions' },
+    },
+  },
+  {
+    $addFields: {
+      'customer.subscriptions.service': {
+        $mergeObjects: ['$serviceVersions', '$customer.subscriptions.service'],
       },
     },
-    { $unwind: { path: '$subscriptions.service' } },
-    { $unwind: { path: '$subscriptions.service.versions' } },
-    {
-      $match: { 'subscriptions.service.versions.startDate': { $lte: moment().startOf('d').toDate() } },
-    },
-    { $sort: { 'subscriptions.service.versions.startDate': -1 } },
-    {
-      $group: {
-        _id: { _id: '$_id', subscription: 'subscriptions._id' },
-        customer: { $first: '$$ROOT' },
-        serviceVersions: { $first: '$subscriptions.service.versions' },
-      },
-    },
-    {
-      $addFields: {
-        'customer.subscriptions.service': {
-          $mergeObjects: ['$serviceVersions', '$customer.subscriptions.service'],
-        },
-      },
-    },
-    { $replaceRoot: { newRoot: '$customer' } },
-    {
-      $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
-    },
-    { $addFields: { 'customer.subscriptions': '$subscriptions' } },
-    { $replaceRoot: { newRoot: '$customer' } },
-  ]);
-};
+  },
+  { $replaceRoot: { newRoot: '$customer' } },
+  {
+    $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
+  },
+  { $addFields: { 'customer.subscriptions': '$subscriptions' } },
+  { $replaceRoot: { newRoot: '$customer' } },
+]);

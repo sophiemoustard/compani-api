@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
+const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const { generateFormData } = require('./utils');
 const GetStream = require('get-stream');
@@ -177,6 +178,53 @@ describe('CUSTOMERS ROUTES', () => {
     });
   });
 
+  describe('GET /customers/first-intervention', () => {
+    it('should get all customers with first intervention info', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/first-intervention',
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      const customers = await Customer.find({ company: authCompany._id }).lean();
+      expect(Object.values(res.result.data.customers)).toHaveLength(customers.length);
+      expect(Object.values(res.result.data.customers).every(cus => has(cus, 'firstIntervention'))).toBeTruthy();
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+
+    it('should get only customers from the company with first intervention info', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/first-intervention',
+        headers: { 'x-access-token': authToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(Object.values(res.result.data.customers)).toHaveLength(1);
+      expect(Object.values(res.result.data.customers).every(cus => has(cus, 'firstIntervention'))).toBeTruthy();
+    });
+  });
+
   describe('GET /customers/billed-events', () => {
     it('should get all customers with billed events', async () => {
       const res = await app.inject({
@@ -227,7 +275,56 @@ describe('CUSTOMERS ROUTES', () => {
     });
   });
 
-  describe('GET /customer-contract-subscriptions', () => {
+  describe('GET /customers/subscriptions', () => {
+    it('should get all customers with subscriptions', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/subscriptions',
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
+      expect(res.result.data.customers.length).toEqual(1);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers/subscriptions',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+
+    it('should get only customers with subscriptions from the company', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/subscriptions',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customers).toBeDefined();
+      const areAllCustomersFromCompany = res.result.data.customers
+        .every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
+    });
+  });
+
+  describe('GET /customer/customer-contract-subscriptions', () => {
     it('should get all customers with customer contract subscriptions', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -276,7 +373,7 @@ describe('CUSTOMERS ROUTES', () => {
     });
   });
 
-  describe('GET /with-intervention', () => {
+  describe('GET /customer/with-intervention', () => {
     it('should get all customers with at least one intervention', async () => {
       const res = await app.inject({
         method: 'GET',

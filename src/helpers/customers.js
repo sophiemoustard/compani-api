@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const moment = require('moment');
 const has = require('lodash/has');
 const get = require('lodash/get');
+const keyBy = require('lodash/keyBy');
 const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
@@ -15,6 +16,8 @@ const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
+const UtilsHelper = require('./utils');
+const CustomerRepository = require('../repositories/CustomerRepository');
 const Counter = require('../models/Rum');
 
 const { language } = translate;
@@ -26,6 +29,7 @@ exports.getCustomerBySector = async (query, credentials) => {
     type: INTERVENTION,
     sector: query.sector,
   });
+
   return EventRepository.getCustomersFromEvent({ ...queryCustomer }, get(credentials, 'company._id', null));
 };
 
@@ -37,43 +41,36 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
 };
 
 exports.getCustomers = async (query) => {
-  const customers = await Customer.find(query)
-    .populate({
-      path: 'subscriptions.service',
-      populate: { path: 'versions.surcharge' },
-    })
-    .populate({ path: 'firstIntervention', select: 'startDate' })
-    .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
-
+  const customers = await CustomerRepository.getCustomersList(query);
   if (customers.length === 0) return [];
 
   for (let i = 0, l = customers.length; i < l; i++) {
-    customers[i] = SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
+    if (customers[i].identity) customers[i].identity.fullName = UtilsHelper.formatIdentity(customers[i].identity, 'FL');
     customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
   }
 
   return customers;
 };
 
+exports.getCustomersFirstIntervention = async (query) => {
+  const customers = await Customer.find(query, { _id: 1 })
+    .populate({ path: 'firstIntervention', select: 'startDate' })
+    .lean();
+
+  return keyBy(customers, '_id');
+};
+
 exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const query = { type: CUSTOMER_CONTRACT, company: companyId };
-  const customerContractServices = await Service.find(query).lean();
+  const customerContractServices = await Service.find({ type: CUSTOMER_CONTRACT, company: companyId }).lean();
   if (customerContractServices.length === 0) return [];
 
   const ids = customerContractServices.map(service => service._id);
-  const customers = await Customer
-    .find({ 'subscriptions.service': { $in: ids }, company: companyId })
-    .populate({
-      path: 'subscriptions.service',
-      match: { company: companyId },
-      populate: { path: 'versions.surcharge', match: { company: companyId } },
-    })
-    .lean();
+  const query = { 'subscriptions.service': { $in: ids }, company: companyId };
+  const customers = await CustomerRepository.getCustomersWithSubscriptions(query);
   if (customers.length === 0) return [];
 
   for (let i = 0, l = customers.length; i < l; i++) {
-    customers[i] = SubscriptionsHelper.populateSubscriptionsServices(customers[i]);
     customers[i] = SubscriptionsHelper.subscriptionsAccepted(customers[i]);
   }
 
@@ -85,8 +82,16 @@ exports.getCustomersWithIntervention = async (credentials) => {
   return EventRepository.getCustomersWithIntervention(companyId);
 };
 
+exports.getCustomersWithSubscriptions = async (credentials) => {
+  const query = {
+    subscriptions: { $exists: true, $not: { $size: 0 } },
+    company: get(credentials, 'company._id'),
+  };
 
-exports.getCustomer = async (customerId, credentials) => {
+  return CustomerRepository.getCustomersWithSubscriptions(query);
+};
+
+exports.getCustomer = async (customerId) => {
   let customer = await Customer.findOne({ _id: customerId })
     .populate({
       path: 'subscriptions.service',
@@ -176,43 +181,30 @@ exports.updateCustomer = async (customerId, customerPayload) => {
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {
-  const payload = {
-    'quotes.$': { _id: quoteId, drive: { ...file } },
-  };
-  const params = { _id: customerId, 'quotes._id': quoteId };
+  const payload = { 'quotes.$': { _id: quoteId, drive: { ...file } } };
 
-  await Customer.findOneAndUpdate(
-    { ...params },
+  await Customer.updateOne(
+    { _id: customerId, 'quotes._id': quoteId },
     { $set: flat(payload) },
     { new: true, autopopulate: false }
   );
 };
 
 const uploadMandate = async (customerId, mandateId, file) => {
-  const payload = {
-    'payment.mandates.$': { _id: mandateId, drive: { ...file } },
-  };
-  const params = { _id: customerId, 'payment.mandates._id': mandateId };
+  const payload = { 'payment.mandates.$': { _id: mandateId, drive: { ...file } } };
 
-  await Customer.findOneAndUpdate(
-    { ...params },
+  await Customer.updateOne(
+    { _id: customerId, 'payment.mandates._id': mandateId },
     { $set: flat(payload) },
     { new: true, autopopulate: false }
   );
 };
 
-const uploadFinancialCertificate = async (customerId, file) => {
-  const payload = {
-    financialCertificates: { ...file },
-  };
-  const params = { _id: customerId };
-
-  await Customer.findOneAndUpdate(
-    { ...params },
-    { $push: payload },
-    { new: true, autopopulate: false }
-  );
-};
+const uploadFinancialCertificate = async (customerId, file) => Customer.updateOne(
+  { _id: customerId },
+  { $push: { financialCertificates: { ...file } } },
+  { new: true, autopopulate: false }
+);
 
 exports.createAndSaveFile = async (docKeys, params, payload) => {
   const uploadedFile = await GdriveStorageHelper.addFile({

@@ -7,6 +7,7 @@ const {
   create,
   update,
   list,
+  listWithFirstIntervention,
   listWithSubscriptions,
   listBySector,
   listWithBilledEvents,
@@ -151,6 +152,15 @@ exports.plugin = {
         },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/first-intervention',
+      options: {
+        auth: { scope: ['customers:read'] },
+      },
+      handler: listWithFirstIntervention,
     });
 
     server.route({

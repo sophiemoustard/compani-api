@@ -18,6 +18,7 @@ const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/eSign');
 const {
   createAndSaveFile,
+  getCustomersFirstIntervention,
   getCustomerBySector,
   getCustomersWithBilledEvents,
   getCustomers,
@@ -25,9 +26,9 @@ const {
   getCustomersWithIntervention,
   getCustomer,
   updateCustomer,
+  getCustomersWithSubscriptions,
 } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
-const CustomerRepository = require('../repositories/CustomerRepository');
 
 const { language } = translate;
 
@@ -45,10 +46,24 @@ const list = async (req) => {
   }
 };
 
+const listWithFirstIntervention = async (req) => {
+  try {
+    const { query, auth } = req;
+    const customers = await getCustomersFirstIntervention({ ...query, company: get(auth, 'credentials.company._id', null) });
+
+    return {
+      message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
+      data: { customers },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const listWithSubscriptions = async (req) => {
   try {
-    const company = get(req, 'auth.credentials.company');
-    const customers = await CustomerRepository.getCustomerWithSubscriptions(company);
+    const customers = await getCustomersWithSubscriptions(req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -697,6 +712,7 @@ const removeFunding = async (req) => {
 
 module.exports = {
   list,
+  listWithFirstIntervention,
   listWithSubscriptions,
   listBySector,
   listWithCustomerContractSubscriptions,
