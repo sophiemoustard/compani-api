@@ -12,6 +12,10 @@ const {
   thirdPartyPayer,
   helpersCustomer,
   getUserToken,
+  internalHour,
+  customerFromOtherCompany,
+  auxiliaryFromOtherCompany,
+  internalHourFromOtherCompany,
 } = require('./seed/eventsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const app = require('../../server');
@@ -278,7 +282,7 @@ describe('EVENTS ROUTES', () => {
             zipCode: '92160',
             city: 'Antony',
           },
-          internalHour: new ObjectID('5cf7defc3d14e9701967acf7'),
+          internalHour: internalHour._id,
         };
 
         const response = await app.inject({
@@ -389,6 +393,94 @@ describe('EVENTS ROUTES', () => {
         });
         expect(response.statusCode).toEqual(400);
       });
+
+      it('should return a 403 if customer is not from the same company', async () => {
+        const payload = {
+          type: INTERVENTION,
+          startDate: '2019-01-23T10:00:00.000+01:00',
+          endDate: '2019-01-23T12:30:00.000+01:00',
+          auxiliary: eventAuxiliary._id.toHexString(),
+          sector: sector._id.toHexString(),
+          customer: customerFromOtherCompany._id.toHexString(),
+          subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
+          status: 'contract_with_company',
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if the subscription is not for the customer', async () => {
+        const payload = {
+          type: INTERVENTION,
+          startDate: '2019-01-23T10:00:00.000+01:00',
+          endDate: '2019-01-23T12:30:00.000+01:00',
+          auxiliary: eventAuxiliary._id.toHexString(),
+          sector: sector._id.toHexString(),
+          customer: customerAuxiliary._id.toHexString(),
+          subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
+          status: 'contract_with_company',
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if auxiliary is not from the same company', async () => {
+        const payload = {
+          type: INTERVENTION,
+          startDate: '2019-01-23T10:00:00.000+01:00',
+          endDate: '2019-01-23T12:30:00.000+01:00',
+          auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
+          sector: sector._id.toHexString(),
+          customer: customerAuxiliary._id.toHexString(),
+          subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+          status: 'contract_with_company',
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if internalHour is not from the same company', async () => {
+        const payload = {
+          type: INTERNAL_HOUR,
+          internalHour: internalHourFromOtherCompany._id,
+          startDate: '2019-01-23T10:00:00.000+01:00',
+          endDate: '2019-01-23T12:30:00.000+01:00',
+          auxiliary: eventAuxiliary._id.toHexString(),
+          sector: sector._id.toHexString(),
+          subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+          status: 'contract_with_company',
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
 
     describe('Other roles', () => {
@@ -494,7 +586,7 @@ describe('EVENTS ROUTES', () => {
 
       it('should return a 404 error as event is not found', async () => {
         const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sector._id.toHexString() };
-        const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
+        const invalidId = new ObjectID();
 
         const response = await app.inject({
           method: 'PUT',
@@ -505,7 +597,59 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toBe(404);
       });
+
+      it('should return a 403 if the subscription is not for the customer', async () => {
+        const event = eventsList[0];
+        const payload = {
+          sector: sector._id.toHexString(),
+          subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if auxiliary is not from the same company', async () => {
+        const event = eventsList[0];
+        const payload = {
+          sector: sector._id.toHexString(),
+          auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if internalHour is not from the same company', async () => {
+        const event = eventsList[0];
+        const payload = {
+          sector: sector._id.toHexString(),
+          internalHour: internalHourFromOtherCompany._id,
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
+
     describe('Other roles', () => {
       beforeEach(populateDB);
 
@@ -562,7 +706,7 @@ describe('EVENTS ROUTES', () => {
       });
 
       it('should return a 404 error as event is not found', async () => {
-        const invalidId = new ObjectID('5cf7defc3d14e9701967acf7');
+        const invalidId = new ObjectID();
 
         const response = await app.inject({
           method: 'DELETE',

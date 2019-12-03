@@ -32,7 +32,6 @@ const isRepetition = event => event.repetition && event.repetition.frequency && 
 exports.createEvent = async (payload, credentials) => {
   if (!(await EventsValidationHelper.isCreationAllowed(payload))) throw Boom.badData();
   const companyId = _.get(credentials, 'company._id', null);
-  if (!companyId) throw Boom.forbidden();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
@@ -53,7 +52,7 @@ exports.createEvent = async (payload, credentials) => {
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
-  if (isRepeatedEvent) await EventsRepetitionHelper.createRepetitions(event, payload);
+  if (isRepeatedEvent) await EventsRepetitionHelper.createRepetitions(event, { ...payload, company: companyId });
 
   return exports.populateEventSubscription(event);
 };
