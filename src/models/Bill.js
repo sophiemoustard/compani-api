@@ -3,7 +3,7 @@ const ServiceSchema = require('./Service').schema;
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { COMPANI, THIRD_PARTY, OGUST } = require('../helpers/constants');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
-const { validatePayload } = require('./preHooks/validate');
+const { validatePayload, validateQuery } = require('./preHooks/validate');
 
 const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
 
@@ -44,6 +44,7 @@ const BillSchema = mongoose.Schema({
 }, { timestamps: true });
 
 BillSchema.pre('validate', validatePayload);
+BillSchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('Bill', BillSchema);
 module.exports.BILL_ORIGINS = BILL_ORIGINS;

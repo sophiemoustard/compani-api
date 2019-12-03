@@ -172,6 +172,14 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   await Promise.all(promises);
 };
 
+exports.getBills = async (query, credentials) => {
+  const { startDate, endDate, ...billsQuery } = query;
+  if (startDate || endDate) billsQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
+  billsQuery.company = get(credentials, 'company._id', null);
+
+  return Bill.find(billsQuery).populate({ path: 'client', select: '_id name' }).lean();
+};
+
 const formatCustomerName = customer => (customer.identity.firstname
   ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
   : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);

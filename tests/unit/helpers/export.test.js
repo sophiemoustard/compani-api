@@ -239,6 +239,13 @@ describe('exportBillsAndCreditNotesHistory', () => {
       inclTaxesCustomer: 5.5,
     },
   ];
+  const credentials = { company: { _id: new ObjectID() } };
+  const findQuery = {
+    date: { $lte: null, $gte: null },
+    company: credentials.company._id,
+  };
+  const sortQuery = { date: 'desc' };
+  const populateCustomerQuery = { path: 'customer', select: 'identity' };
   let mockBill;
   let mockCreditNote;
   let formatPriceStub;
@@ -258,24 +265,62 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    const credentials = { company: new ObjectID() };
-    mockBill.expects('find').chain('lean').returns([]);
-    mockCreditNote.expects('find').chain('lean').returns([]);
+    mockBill
+      .expects('find')
+      .withExactArgs(findQuery)
+      .chain('sort')
+      .withExactArgs(sortQuery)
+      .chain('populate')
+      .withExactArgs(populateCustomerQuery)
+      .chain('populate')
+      .withExactArgs('client')
+      .chain('lean')
+      .returns([]);
+    mockCreditNote
+      .expects('find')
+      .withExactArgs(findQuery)
+      .chain('sort')
+      .withExactArgs(sortQuery)
+      .chain('populate')
+      .withExactArgs(populateCustomerQuery)
+      .chain('populate')
+      .withExactArgs('thirdPartyPayer')
+      .chain('lean')
+      .returns([]);
+
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
-
     mockBill.verify();
     mockCreditNote.verify();
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    const credentials = { company: new ObjectID() };
-    mockBill.expects('find').chain('lean').returns([{}]);
-    mockCreditNote.expects('find').chain('lean').returns([{}]);
-
+    mockBill
+      .expects('find')
+      .withExactArgs(findQuery)
+      .chain('sort')
+      .withExactArgs(sortQuery)
+      .chain('populate')
+      .withExactArgs(populateCustomerQuery)
+      .chain('populate')
+      .withExactArgs('client')
+      .chain('lean')
+      .returns([{}]);
+    mockCreditNote
+      .expects('find')
+      .withExactArgs(findQuery)
+      .chain('sort')
+      .withExactArgs(sortQuery)
+      .chain('populate')
+      .withExactArgs(populateCustomerQuery)
+      .chain('populate')
+      .withExactArgs('thirdPartyPayer')
+      .chain('lean')
+      .returns([{}]);
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
+
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
@@ -283,29 +328,33 @@ describe('exportBillsAndCreditNotesHistory', () => {
       ['Facture', '', '', '', '', '', '', '', '', '', '', ''],
       ['Avoir', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
-
     mockBill.verify();
     mockCreditNote.verify();
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    mockBill.expects('find')
+    mockBill
+      .expects('find')
+      .withExactArgs(findQuery)
       .chain('sort')
+      .withExactArgs(sortQuery)
       .chain('populate')
+      .withExactArgs(populateCustomerQuery)
       .chain('populate')
+      .withExactArgs('client')
       .chain('lean')
-      .once()
       .returns(bills);
-    mockCreditNote.expects('find')
+    mockCreditNote
+      .expects('find')
+      .withExactArgs(findQuery)
       .chain('sort')
+      .withExactArgs(sortQuery)
       .chain('populate')
+      .withExactArgs(populateCustomerQuery)
       .chain('populate')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
-      .once()
       .returns(creditNotes);
-
-    const credentials = { company: new ObjectID() };
-
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
@@ -320,7 +369,6 @@ describe('exportBillsAndCreditNotesHistory', () => {
       ['Avoir', 'F1501231', '21/05/2019', '5d761a8f6f6cba0d259b17eb', '', 'BINKS', 'Jar jar', '5d761ad7ffd1dc0d39dadd7e', 'SW', 'F-18.5', 'F-8.5', 'Temps de qualité - autonomie'],
       ['Avoir', 'F6473250', '25/05/2019', '5d761a8f6f8eba0d259b173f', '', 'R2D2', '', '', '', 'F-10.5', 'F-5.5', 'Temps de qualité - autonomie'],
     ]);
-
     mockBill.verify();
     mockCreditNote.verify();
   });

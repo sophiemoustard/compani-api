@@ -5,7 +5,7 @@ const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const { populateDB, billUserList, billsList, billCustomerList } = require('./seed/billsSeed');
+const { populateDB, billUserList, billsList, authBillsList, billCustomerList } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const Bill = require('../../src/models/Bill');
@@ -282,9 +282,9 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find().lean();
+      const bills = await Bill.find({ company: authCompany._id }).lean();
       const draftBillsLength = payload[0].customerBills.bills.length + payload[0].thirdPartyPayerBills[0].bills.length;
-      expect(bills.length).toBe(draftBillsLength + billsList.length);
+      expect(bills.length).toBe(draftBillsLength + authBillsList.length);
     });
 
     it('should create new bill with vat 0 if service is not taxed', async () => {
@@ -376,7 +376,7 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find({ 'subscriptions.vat': 0 }).lean();
+      const bills = await Bill.find({ 'subscriptions.vat': 0, company: authCompany._id }).lean();
       expect(bills.length).toBe(1);
     });
   });
@@ -416,7 +416,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
     it('should get bill pdf', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/bills/${billsList[0]._id}/pdfs`,
+        url: `/bills/${authBillsList[0]._id}/pdfs`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -430,7 +430,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',
-        url: `/bills/${billsList[0]._id}/pdfs`,
+        url: `/bills/${authBillsList[0]._id}/pdfs`,
         headers: { 'x-access-token': helperToken },
       });
       expect(res.statusCode).toBe(200);
@@ -447,7 +447,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/bills/${billsList[0]._id}/pdfs`,
+          url: `/bills/${authBillsList[0]._id}/pdfs`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -466,7 +466,20 @@ describe('BILL ROUTES - GET /bills', () => {
       authToken = await getToken('admin');
     });
 
-    it('should get all bills', async () => {
+    it('should get all bills (company A)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/bills',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.bills.length).toBe(authBillsList.length);
+    });
+
+    it('should get all bills (company B)', async () => {
+      authToken = await getTokenByCredentials(billUserList[4].local);
+
       const response = await app.inject({
         method: 'GET',
         url: '/bills',
@@ -479,8 +492,19 @@ describe('BILL ROUTES - GET /bills', () => {
   });
 
   describe('Other roles', () => {
-    it('should return customer bills if I am its helper', async () => {
+    it('should return customer bills if I am its helper (company A)', async () => {
       const helper = billUserList[0];
+      const helperToken = await getTokenByCredentials(helper.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/bills?customer=${helper.customers[0]}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return customer bills if I am its helper (company B)', async () => {
+      const helper = billUserList[2];
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',
