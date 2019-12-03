@@ -17,6 +17,8 @@ const {
   contractCustomer,
   contractEvents,
   otherCompanyContract,
+  customerFromOtherCompany,
+  otherCompanyContractUser,
 } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
@@ -191,6 +193,36 @@ describe('CONTRACTS ROUTES', () => {
       });
     });
 
+    it('should not create a contract if customer is not from the same company', async () => {
+      const customerContractPayload = {
+        startDate: '2019-01-18T15:46:30.636Z',
+        versions: [{ grossHourlyRate: 10.43, startDate: '2019-01-18T15:46:30.636Z' }],
+        user: contractUser._id,
+        customer: customerFromOtherCompany._id,
+        status: 'contract_with_customer',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        payload: customerContractPayload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not create a contract if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        payload: { ...payload, user: otherCompanyContractUser._id },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const missingParams = [
       { path: 'startDate' },
       { path: 'status' },
@@ -249,11 +281,13 @@ describe('CONTRACTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.contract).toBeDefined();
-      expect(moment(response.result.data.contract.endDate).format('YYYY/MM/DD')).toEqual(moment(endDate).format('YYYY/MM/DD'));
+      expect(moment(response.result.data.contract.endDate).format('YYYY/MM/DD'))
+        .toEqual(moment(endDate).format('YYYY/MM/DD'));
 
       const user = await User.findOne({ _id: contractsList[0].user });
       expect(user.inactivityDate).not.toBeNull();
-      expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
+      expect(moment(user.inactivityDate).format('YYYY-MM-DD'))
+        .toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
       const events = await Event.find().lean();
       expect(events.length).toBe(contractEvents.length - 1);
     });

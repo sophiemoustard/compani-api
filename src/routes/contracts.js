@@ -17,7 +17,7 @@ const {
   receiveSignatureEvents,
   getStaffRegister,
 } = require('../controllers/contractController');
-const { getContract, authorizeContractUpdate } = require('./preHandlers/contracts');
+const { getContract, authorizeContractUpdate, authorizeContractCreation } = require('./preHandlers/contracts');
 
 exports.plugin = {
   name: 'contract-routes',
@@ -79,6 +79,9 @@ exports.plugin = {
               .when('status', { is: COMPANY_CONTRACT, then: Joi.forbidden() }),
           }),
         },
+        pre: [
+          { method: authorizeContractCreation },
+        ],
       },
       handler: create,
     });
