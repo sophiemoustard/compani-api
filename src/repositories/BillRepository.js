@@ -3,7 +3,7 @@ const moment = require('moment');
 
 const Bill = require('../models/Bill');
 
-exports.findAmountsGroupedByClient = async (customerId = null, dateMax = null, companyId) => {
+exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMax = null) => {
   const rules = [{ company: new ObjectID(companyId) }];
   if (customerId) rules.push({ customer: new ObjectID(customerId) });
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
