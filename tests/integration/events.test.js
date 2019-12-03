@@ -8,7 +8,7 @@ const {
   eventsList,
   eventAuxiliary,
   customerAuxiliary,
-  sector,
+  sectors,
   thirdPartyPayer,
   helpersCustomer,
   getUserToken,
@@ -275,7 +275,7 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliary._id.toHexString(),
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -304,7 +304,7 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliary._id.toHexString(),
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           customer: customer._id.toHexString(),
           subscription: customer.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
@@ -328,7 +328,7 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliary._id.toHexString(),
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           absence: ILLNESS,
           absenceNature: DAILY,
           attachment: {
@@ -355,7 +355,7 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliary._id,
-          sector: sector._id,
+          sector: sectors[0]._id,
         };
 
         const response = await app.inject({
@@ -376,7 +376,7 @@ describe('EVENTS ROUTES', () => {
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: '5c0002a5086ec30013f7f436',
           customer: '5c35b5eb1a6fb00997363eeb',
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
@@ -400,7 +400,7 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: eventAuxiliary._id.toHexString(),
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           customer: customerFromOtherCompany._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
@@ -422,7 +422,7 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: eventAuxiliary._id.toHexString(),
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
@@ -444,7 +444,29 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
+          customer: customerAuxiliary._id.toHexString(),
+          subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+          status: 'contract_with_company',
+        };
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/events',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if sector is not the same as auxiliary\'s', async () => {
+        const payload = {
+          type: INTERVENTION,
+          startDate: '2019-01-23T10:00:00.000+01:00',
+          endDate: '2019-01-23T12:30:00.000+01:00',
+          auxiliary: eventAuxiliary._id.toHexString(),
+          sector: sectors[1]._id.toHexString(),
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
@@ -467,7 +489,7 @@ describe('EVENTS ROUTES', () => {
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
           auxiliary: eventAuxiliary._id.toHexString(),
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
         };
@@ -491,7 +513,7 @@ describe('EVENTS ROUTES', () => {
         startDate: '2019-01-23T10:00:00.000+01:00',
         endDate: '2019-01-23T12:30:00.000+01:00',
         auxiliary: eventAuxiliary._id.toHexString(),
-        sector: sector._id.toHexString(),
+        sector: sectors[0]._id.toHexString(),
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
         status: 'contract_with_company',
@@ -538,7 +560,7 @@ describe('EVENTS ROUTES', () => {
         const payload = {
           startDate: '2019-01-23T10:00:00.000Z',
           endDate: '2019-01-23T12:00:00.000Z',
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           auxiliary: event.auxiliary.toHexString(),
         };
 
@@ -571,7 +593,7 @@ describe('EVENTS ROUTES', () => {
       });
 
       it('should return a 400 error as startDate and endDate are not on the same day', async () => {
-        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sector._id.toHexString() };
+        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectors[0]._id.toHexString() };
         const event = eventsList[0];
 
         const response = await app.inject({
@@ -585,7 +607,7 @@ describe('EVENTS ROUTES', () => {
       });
 
       it('should return a 404 error as event is not found', async () => {
-        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sector._id.toHexString() };
+        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectors[0]._id.toHexString() };
         const invalidId = new ObjectID();
 
         const response = await app.inject({
@@ -601,7 +623,7 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if the subscription is not for the customer', async () => {
         const event = eventsList[0];
         const payload = {
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
         };
 
@@ -618,8 +640,25 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if auxiliary is not from the same company', async () => {
         const event = eventsList[0];
         const payload = {
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if sector is not the same as auxiliary\'s', async () => {
+        const event = eventsList[0];
+        const payload = {
+          auxiliary: eventAuxiliary._id.toHexString(),
+          sector: sectors[1]._id.toHexString(),
         };
 
         const response = await app.inject({
@@ -635,7 +674,7 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if internalHour is not from the same company', async () => {
         const event = eventsList[0];
         const payload = {
-          sector: sector._id.toHexString(),
+          sector: sectors[0]._id.toHexString(),
           internalHour: internalHourFromOtherCompany._id,
         };
 
@@ -656,7 +695,7 @@ describe('EVENTS ROUTES', () => {
       const payload = {
         startDate: '2019-01-23T10:00:00.000Z',
         endDate: '2019-01-23T12:00:00.000Z',
-        sector: sector._id.toHexString(),
+        sector: sectors[0]._id.toHexString(),
       };
 
       const roles = [

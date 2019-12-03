@@ -39,21 +39,24 @@ exports.authorizeEventCreationOrUpdate = async (req) => {
   const isOwnEvent = credentials.scope.includes('events:own:edit') && event.auxiliary === credentials._id;
   if (!canEditEvent && !isOwnEvent) throw Boom.forbidden();
 
+  const companyId = get(credentials, 'company._id', null);
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
-    const customer = await Customer.findOne(({ _id: customerId, company: get(credentials, 'company._id', null) }));
+    const customer = await Customer.findOne(({ _id: customerId, company: companyId })).lean();
     if (!customer) throw Boom.forbidden();
-    const subscriptionsIds = customer.subscriptions.map(subscription => subscription._id);
+    const subscriptionsIds = customer.subscriptions.map(subscription => subscription._id.toHexString());
     if (!(subscriptionsIds.includes(req.payload.subscription))) throw Boom.forbidden();
   }
 
   if (req.payload.auxiliary) {
-    const auxiliary = await User.findOne(({ _id: req.payload.auxiliary, company: get(credentials, 'company._id', null) }));
+    const auxiliary = await User.findOne(({ _id: req.payload.auxiliary, company: companyId })).lean();
     if (!auxiliary) throw Boom.forbidden();
+    const eventSector = req.payload.sector || event.sector;
+    if (auxiliary.sector.toHexString() !== eventSector) throw Boom.forbidden();
   }
 
   if (req.payload.internalHour) {
-    const internalHour = await InternalHour.findOne(({ _id: req.payload.internalHour, company: get(credentials, 'company._id', null) }));
+    const internalHour = await InternalHour.findOne(({ _id: req.payload.internalHour, company: companyId })).lean();
     if (!internalHour) throw Boom.forbidden();
   }
 

@@ -41,11 +41,16 @@ const contracts = [{
   }],
 }];
 
-const sector = {
+const sectors = [{
   _id: new ObjectID(),
   name: 'Paris',
   company: authCompany._id,
-};
+},
+{
+  _id: new ObjectID(),
+  name: '',
+  company: authCompany._id,
+}];
 
 const eventAuxiliary = {
   _id: auxiliaryId,
@@ -55,7 +60,7 @@ const eventAuxiliary = {
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
   contracts: [contracts[0]._id],
-  sector: sector._id,
+  sector: sectors[0]._id,
   company: authCompany._id,
 };
 
@@ -66,7 +71,7 @@ const auxiliaryFromOtherCompany = {
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
-  sector: sector._id,
+  sector: sectors[0]._id,
   company: otherCompany._id,
 };
 
@@ -142,7 +147,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'internalHour',
     repetition: { frequency: NEVER },
     startDate: '2019-01-17T10:30:18.653Z',
@@ -158,7 +163,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     repetition: { frequency: NEVER },
     type: 'absence',
     startDate: '2019-01-19T14:00:18.653Z',
@@ -169,7 +174,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
@@ -183,7 +188,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
@@ -197,7 +202,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
@@ -222,7 +227,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     repetition: { frequency: NEVER },
@@ -241,7 +246,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'absence',
     startDate: '2019-07-19T14:00:18.653Z',
     endDate: '2019-07-19T17:00:18.653Z',
@@ -252,7 +257,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-17T14:30:19.543Z',
@@ -271,7 +276,7 @@ const eventsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-15T14:30:19.543Z',
@@ -290,7 +295,7 @@ const eventsList = [
   {
     _id: repetitionParentId,
     company: authCompany._id,
-    sector: sector._id,
+    sector: sectors[0]._id,
     type: 'intervention',
     status: 'contract_with_company',
     startDate: '2019-10-16T14:30:19.543Z',
@@ -327,7 +332,7 @@ const populateDB = async () => {
   await Event.insertMany(eventsList);
   await Contract.insertMany(contracts);
   await Repetition.insertMany(repetitions);
-  await (new Sector(sector)).save();
+  await Sector.insertMany(sectors);
   await (new User(eventAuxiliary)).save();
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();
@@ -355,7 +360,7 @@ module.exports = {
   populateDB,
   eventAuxiliary,
   customerAuxiliary,
-  sector,
+  sectors,
   thirdPartyPayer,
   helpersCustomer,
   getUserToken,
