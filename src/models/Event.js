@@ -47,18 +47,18 @@ const REPETITION_FREQUENCIES = [NEVER, EVERY_DAY, EVERY_WEEK_DAY, EVERY_WEEK, EV
 const { validatePayload } = require('./preHooks/validate');
 
 const EventSchema = mongoose.Schema({
-  type: { type: String, enum: EVENT_TYPES },
+  type: { type: String, enum: EVENT_TYPES, required: true },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
+  sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector', required: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: () => this.type === INTERVENTION },
   subscription: { type: mongoose.Schema.Types.ObjectId, required: () => this.type === INTERVENTION },
   internalHour: { type: mongoose.Schema.Types.ObjectId, ref: 'InternalHour', required: () => this.type === INTERNAL_HOUR },
   absence: { type: String, enum: ABSENCE_TYPES, required: () => this.type === ABSENCE },
-  absenceNature: { type: String, enum: ABSENCE_NATURES },
+  absenceNature: { type: String, enum: ABSENCE_NATURES, required: () => this.type === ABSENCE },
   address: addressSchemaDefinition,
-  misc: String,
+  misc: { type: String, required: () => this.type === ABSENCE },
   attachment: { type: mongoose.Schema(driveResourceSchemaDefinition, { _id: false }), required: () => this.absence === ILLNESS || this.absence === WORK_ACCIDENT },
   repetition: {
     frequency: { type: String, enum: REPETITION_FREQUENCIES },
