@@ -46,21 +46,26 @@ exports.formatCreditNote = (payload, prefix, seq) => {
   return new CreditNote(payload);
 };
 
-exports.createCreditNotes = async (payload) => {
+exports.createCreditNotes = async (payload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const query = { prefix: `AV-${moment(payload.date).format('YYMM')}` };
-  const number = await CreditNoteNumber.findOneAndUpdate(query, {}, { new: true, upsert: true, setDefaultsOnInsert: true });
+  const number = await CreditNoteNumber.findOneAndUpdate(
+    query,
+    {},
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
   let { seq } = number;
 
   let tppCreditNote;
   let customerCreditNote;
   if (payload.inclTaxesTpp) {
-    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0 };
+    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0, company: companyId };
     tppCreditNote = await exports.formatCreditNote(tppPayload, number.prefix, seq);
     seq++;
   }
   if (payload.inclTaxesCustomer) {
     delete payload.thirdPartyPayer;
-    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0 };
+    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0, company: companyId };
     customerCreditNote = await exports.formatCreditNote(customerPayload, number.prefix, seq);
     seq++;
   }
@@ -83,8 +88,9 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
   if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true);
 
   let creditNote;
-  if (!creditNoteFromDB.linkedCreditNote) creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payload }, { new: true });
-  else {
+  if (!creditNoteFromDB.linkedCreditNote) {
+    creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payload }, { new: true });
+  } else {
     const tppPayload = { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
     const customerPayload = { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
     delete customerPayload.thirdPartyPayer;
@@ -103,9 +109,10 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
   return creditNote;
 };
 
-const formatCustomerName = customer => (customer.identity.firstname
-  ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
-  : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
+const formatCustomerName = customer =>
+  (customer.identity.firstname
+    ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
+    : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
 
 const formatEventForPdf = event => ({
   identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
@@ -116,9 +123,10 @@ const formatEventForPdf = event => ({
   surcharges: event.bills.surcharges && PdfHelper.formatEventSurchargesForPdf(event.bills.surcharges),
 });
 
-const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTpp
-  ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
-  : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
+const computeCreditNoteEventVat = (creditNote, event) =>
+  (creditNote.exclTaxesTpp
+    ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
+    : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
 exports.formatPDF = (creditNote, company) => {
   const computedData = {
@@ -127,7 +135,9 @@ exports.formatPDF = (creditNote, company) => {
     number: creditNote.number,
     forTpp: !!creditNote.thirdPartyPayer,
     recipient: {
-      address: creditNote.thirdPartyPayer ? get(creditNote, 'thirdPartyPayer.address', {}) : get(creditNote, 'customer.contact.primaryAddress', {}),
+      address: creditNote.thirdPartyPayer
+        ? get(creditNote, 'thirdPartyPayer.address', {})
+        : get(creditNote, 'customer.contact.primaryAddress', {}),
       name: creditNote.thirdPartyPayer ? creditNote.thirdPartyPayer.name : formatCustomerName(creditNote.customer),
     },
   };
@@ -155,8 +165,12 @@ exports.formatPDF = (creditNote, company) => {
         identity: { ...creditNote.customer.identity, title: CIVILITY_LIST[get(creditNote, 'customer.identity.title')] },
         contact: creditNote.customer.contact,
       },
-      exclTaxes: creditNote.exclTaxesTpp ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp) : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
-      inclTaxes: creditNote.inclTaxesTpp ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp) : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
+      exclTaxes: creditNote.exclTaxesTpp
+        ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp)
+        : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
+      inclTaxes: creditNote.inclTaxesTpp
+        ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp)
+        : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,
       company,
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',

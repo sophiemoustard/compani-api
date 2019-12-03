@@ -3,6 +3,7 @@ const { COMPANI, OGUST } = require('../helpers/constants');
 const { SERVICE_NATURES } = require('./Service');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
+const { validatePayload } = require('./preHooks/validate');
 
 const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
 
@@ -48,7 +49,10 @@ const CreditNoteSchema = mongoose.Schema({
   linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' },
   origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI },
   driveFile: driveResourceSchemaDefinition,
+  company: { type: mongoose.Schema.Types.ObjectId, required: true },
 }, { timestamps: true });
+
+CreditNoteSchema.pre('validate', validatePayload);
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);
 module.exports.CREDIT_NOTE_ORIGINS = CREDIT_NOTE_ORIGINS;
