@@ -49,7 +49,8 @@ const list = async (req) => {
 const listWithFirstIntervention = async (req) => {
   try {
     const { query, auth } = req;
-    const customers = await getCustomersFirstIntervention({ ...query, company: get(auth, 'credentials.company._id', null) });
+    const companyId = get(auth, 'credentials.company._id', null);
+    const customers = await getCustomersFirstIntervention({ ...query, company: companyId }, companyId);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -133,7 +134,7 @@ const listWithIntervention = async (req) => {
 
 const show = async (req) => {
   try {
-    const customer = await getCustomer(req.params._id);
+    const customer = await getCustomer(req.params._id, req.auth.credentials);
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     return {

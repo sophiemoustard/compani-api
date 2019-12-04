@@ -51,9 +51,9 @@ exports.getCustomers = async (query) => {
   return customers;
 };
 
-exports.getCustomersFirstIntervention = async (query) => {
+exports.getCustomersFirstIntervention = async (query, companyId) => {
   const customers = await Customer.find(query, { _id: 1 })
-    .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
     .lean();
 
   return keyBy(customers, '_id');
@@ -90,14 +90,15 @@ exports.getCustomersWithSubscriptions = async (credentials) => {
   return CustomerRepository.getCustomersWithSubscriptions(query);
 };
 
-exports.getCustomer = async (customerId) => {
+exports.getCustomer = async (customerId, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   let customer = await Customer.findOne({ _id: customerId })
     .populate({
       path: 'subscriptions.service',
       populate: { path: 'versions.surcharge' },
     })
     .populate({ path: 'fundings.thirdPartyPayer' })
-    .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
     .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
   if (!customer) return null;

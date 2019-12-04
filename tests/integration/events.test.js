@@ -31,236 +31,236 @@ describe('NODE ENV', () => {
 describe('EVENTS ROUTES', () => {
   let authToken = null;
 
-  // describe('GET /events', () => {
-  //   describe('Admin', () => {
-  //     beforeEach(populateDB);
-  //     beforeEach(async () => {
-  //       authToken = await getToken('admin');
-  //     });
-  //     it('should return all events', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: '/events',
-  //         headers: { 'x-access-token': authToken },
-  //       });
+  describe('GET /events', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+      it('should return all events', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events',
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(200);
-  //       expect(response.result.data.events).toBeDefined();
-  //       expect(response.result.data.events.length).toEqual(eventsList.length);
-  //     });
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        expect(response.result.data.events.length).toEqual(eventsList.length);
+      });
 
-  //     it('should return a list of events', async () => {
-  //       const startDate = moment('2019-01-18');
-  //       const endDate = moment('2019-01-20');
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+      it('should return a list of events', async () => {
+        const startDate = moment('2019-01-18');
+        const endDate = moment('2019-01-20');
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(200);
-  //       expect(response.result.data.events).toBeDefined();
-  //       response.result.data.events.forEach((event) => {
-  //         expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
-  //         expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
-  //         if (event.type === 'intervention') {
-  //           expect(event.subscription._id).toBeDefined();
-  //         }
-  //       });
-  //     });
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        response.result.data.events.forEach((event) => {
+          expect(moment(event.startDate).isSameOrAfter(startDate)).toBeTruthy();
+          expect(moment(event.startDate).isSameOrBefore(endDate)).toBeTruthy();
+          if (event.type === 'intervention') {
+            expect(event.subscription._id).toBeDefined();
+          }
+        });
+      });
 
-  //     it('should return a list of events groupedBy customers', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: '/events?groupBy=customer&type=intervention',
-  //         headers: { 'x-access-token': authToken },
-  //       });
+      it('should return a list of events groupedBy customers', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events?groupBy=customer&type=intervention',
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(200);
-  //       expect(response.result.data.events).toBeDefined();
-  //       expect(response.result.data.events[0]._id).toBeDefined();
-  //       expect(response.result.data.events[0].events).toBeDefined();
-  //       response.result.data.events[0].events.forEach((event) => {
-  //         expect(event.customer._id).toEqual(response.result.data.events[0]._id);
-  //       });
-  //     });
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        expect(response.result.data.events[0]._id).toBeDefined();
+        expect(response.result.data.events[0].events).toBeDefined();
+        response.result.data.events[0].events.forEach((event) => {
+          expect(event.customer._id).toEqual(response.result.data.events[0]._id);
+        });
+      });
 
-  //     it('should return a list of events groupedBy auxiliaries', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: '/events?groupBy=auxiliary',
-  //         headers: { 'x-access-token': authToken },
-  //       });
+      it('should return a list of events groupedBy auxiliaries', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events?groupBy=auxiliary',
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(200);
-  //       expect(response.result.data.events).toBeDefined();
-  //       expect(response.result.data.events[0]._id).toBeDefined();
-  //       expect(response.result.data.events[0].events).toBeDefined();
-  //       response.result.data.events[0].events.forEach((event) => {
-  //         expect(event.auxiliary._id).toEqual(response.result.data.events[0]._id);
-  //       });
-  //     });
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        expect(response.result.data.events[0]._id).toBeDefined();
+        expect(response.result.data.events[0].events).toBeDefined();
+        response.result.data.events[0].events.forEach((event) => {
+          expect(event.auxiliary._id).toEqual(response.result.data.events[0]._id);
+        });
+      });
 
-  //     it('should return an empty list as no event is matching the request', async () => {
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: '/events?startDate=20000101&endDate=20001010',
-  //         headers: { 'x-access-token': authToken },
-  //       });
+      it('should return an empty list as no event is matching the request', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/events?startDate=20000101&endDate=20001010',
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(200);
-  //       expect(response.result.data.events).toEqual([]);
-  //     });
-  //   });
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toEqual([]);
+      });
+    });
 
-  //   describe('Other roles', () => {
-  //     beforeEach(populateDB);
+    describe('Other roles', () => {
+      beforeEach(populateDB);
 
-  //     const roles = [
-  //       { name: 'helper', expectedCode: 403 },
-  //       {
-  //         name: 'helper\'s customer',
-  //         expectedCode: 200,
-  //         url: `/events?customer=${customerAuxiliary._id.toHexString()}`,
-  //         customCredentials: { ...helpersCustomer.local },
-  //       },
-  //       { name: 'auxiliary', expectedCode: 200 },
-  //       { name: 'coach', expectedCode: 200 },
-  //       { name: 'planningReferent', expectedCode: 200 },
-  //     ];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        {
+          name: 'helper\'s customer',
+          expectedCode: 200,
+          url: `/events?customer=${customerAuxiliary._id.toHexString()}`,
+          customCredentials: { ...helpersCustomer.local },
+        },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
 
-  //     roles.forEach((role) => {
-  //       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //         authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-  //         const response = await app.inject({
-  //           method: 'GET',
-  //           url: role.url || '/events',
-  //           headers: { 'x-access-token': authToken },
-  //         });
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: role.url || '/events',
+            headers: { 'x-access-token': authToken },
+          });
 
-  //         expect(response.statusCode).toBe(role.expectedCode);
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 
-  // describe('GET /events/credit-notes', () => {
-  //   describe('Admin', () => {
-  //     beforeEach(populateDB);
-  //     beforeEach(async () => {
-  //       authToken = await getToken('admin');
-  //     });
+  describe('GET /events/credit-notes', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
 
-  //     it('should return a list of billed events for specified customer', async () => {
-  //       const query = {
-  //         startDate: moment('2019-01-01').toDate(),
-  //         endDate: moment('2019-01-20').toDate(),
-  //         customer: customerAuxiliary._id.toHexString(),
-  //         isBilled: true,
-  //       };
+      it('should return a list of billed events for specified customer', async () => {
+        const query = {
+          startDate: moment('2019-01-01').toDate(),
+          endDate: moment('2019-01-20').toDate(),
+          customer: customerAuxiliary._id.toHexString(),
+          isBilled: true,
+        };
 
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/events/credit-notes?${qs.stringify(query)}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(200);
-  //       expect(response.result.data.events).toBeDefined();
-  //       const filteredEvents = eventsList.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
-  //       expect(response.result.data.events.length).toBe(filteredEvents.length);
-  //     });
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        const filteredEvents = eventsList.filter(ev => ev.isBilled && !ev.bills.inclTaxesTpp);
+        expect(response.result.data.events.length).toBe(filteredEvents.length);
+      });
 
-  //     it('should return a list of billed events for specified customer and tpp', async () => {
-  //       const query = {
-  //         startDate: moment('2019-01-01').toDate(),
-  //         endDate: moment('2019-01-20').toDate(),
-  //         customer: customerAuxiliary._id.toHexString(),
-  //         thirdPartyPayer: thirdPartyPayer._id.toHexString(),
-  //         isBilled: true,
-  //       };
+      it('should return a list of billed events for specified customer and tpp', async () => {
+        const query = {
+          startDate: moment('2019-01-01').toDate(),
+          endDate: moment('2019-01-20').toDate(),
+          customer: customerAuxiliary._id.toHexString(),
+          thirdPartyPayer: thirdPartyPayer._id.toHexString(),
+          isBilled: true,
+        };
 
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/events/credit-notes?${qs.stringify(query)}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(200);
-  //       expect(response.result.data.events).toBeDefined();
-  //       const filteredEvents = eventsList.filter(ev => ev.isBilled && ev.bills.inclTaxesTpp);
-  //       expect(response.result.data.events.length).toBe(filteredEvents.length);
-  //     });
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toBeDefined();
+        const filteredEvents = eventsList.filter(ev => ev.isBilled && ev.bills.inclTaxesTpp);
+        expect(response.result.data.events.length).toBe(filteredEvents.length);
+      });
 
-  //     it('should return an empty list as no event is matching the request', async () => {
-  //       const query = {
-  //         startDate: moment('2017-01-01').toDate(),
-  //         endDate: moment('2017-01-20').toDate(),
-  //         customer: customerAuxiliary._id.toHexString(),
-  //         isBilled: true,
-  //       };
+      it('should return an empty list as no event is matching the request', async () => {
+        const query = {
+          startDate: moment('2017-01-01').toDate(),
+          endDate: moment('2017-01-20').toDate(),
+          customer: customerAuxiliary._id.toHexString(),
+          isBilled: true,
+        };
 
-  //       const response = await app.inject({
-  //         method: 'GET',
-  //         url: `/events/credit-notes?${qs.stringify(query)}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(200);
-  //       expect(response.result.data.events).toEqual([]);
-  //     });
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.events).toEqual([]);
+      });
 
-  //     const wrongParams = ['startDate', 'endDate', 'customer', 'isBilled'];
-  //     wrongParams.forEach((param) => {
-  //       it(`should return a 400 error if missing '${param}' parameter`, async () => {
-  //         const query = {
-  //           startDate: moment('2019-01-01').toDate(),
-  //           endDate: moment('2019-01-20').toDate(),
-  //           customer: customerAuxiliary._id.toHexString(),
-  //           isBilled: true,
-  //         };
-  //         const wrongQuery = omit(query, param);
+      const wrongParams = ['startDate', 'endDate', 'customer', 'isBilled'];
+      wrongParams.forEach((param) => {
+        it(`should return a 400 error if missing '${param}' parameter`, async () => {
+          const query = {
+            startDate: moment('2019-01-01').toDate(),
+            endDate: moment('2019-01-20').toDate(),
+            customer: customerAuxiliary._id.toHexString(),
+            isBilled: true,
+          };
+          const wrongQuery = omit(query, param);
 
-  //         const response = await app.inject({
-  //           method: 'GET',
-  //           url: `/events/credit-notes?${qs.stringify(wrongQuery)}`,
-  //           headers: { 'x-access-token': authToken },
-  //         });
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/credit-notes?${qs.stringify(wrongQuery)}`,
+            headers: { 'x-access-token': authToken },
+          });
 
-  //         expect(response.statusCode).toBe(400);
-  //       });
-  //     });
-  //   });
+          expect(response.statusCode).toBe(400);
+        });
+      });
+    });
 
-  //   describe('Other roles', () => {
-  //     const roles = [
-  //       { name: 'helper', expectedCode: 403 },
-  //       { name: 'auxiliary', expectedCode: 200 },
-  //       { name: 'coach', expectedCode: 200 },
-  //       { name: 'planningReferent', expectedCode: 200 },
-  //     ];
-  //     const query = {
-  //       startDate: moment('2019-01-01').toDate(),
-  //       endDate: moment('2019-01-20').toDate(),
-  //       customer: customerAuxiliary._id.toHexString(),
-  //       isBilled: true,
-  //     };
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+      const query = {
+        startDate: moment('2019-01-01').toDate(),
+        endDate: moment('2019-01-20').toDate(),
+        customer: customerAuxiliary._id.toHexString(),
+        isBilled: true,
+      };
 
-  //     roles.forEach((role) => {
-  //       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //         authToken = await getToken(role.name);
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
 
-  //         const response = await app.inject({
-  //           method: 'GET',
-  //           url: `/events/credit-notes?${qs.stringify(query)}`,
-  //           headers: { 'x-access-token': authToken },
-  //         });
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/credit-notes?${qs.stringify(query)}`,
+            headers: { 'x-access-token': authToken },
+          });
 
-  //         expect(response.statusCode).toBe(role.expectedCode);
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 
   describe('POST /events', () => {
     describe('Admin', () => {
@@ -548,319 +548,319 @@ describe('EVENTS ROUTES', () => {
   });
 
 
-  // describe('PUT /events/{_id}', () => {
-  //   describe('Admin', () => {
-  //     beforeEach(populateDB);
-  //     beforeEach(async () => {
-  //       authToken = await getToken('admin');
-  //     });
+  describe('PUT /events/{_id}', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
 
-  //     it('should update corresponding event', async () => {
-  //       const event = eventsList[0];
-  //       const payload = {
-  //         startDate: '2019-01-23T10:00:00.000Z',
-  //         endDate: '2019-01-23T12:00:00.000Z',
-  //         sector: sectors[0]._id.toHexString(),
-  //         auxiliary: event.auxiliary.toHexString(),
-  //       };
+      it('should update corresponding event', async () => {
+        const event = eventsList[0];
+        const payload = {
+          startDate: '2019-01-23T10:00:00.000Z',
+          endDate: '2019-01-23T12:00:00.000Z',
+          sector: sectors[0]._id.toHexString(),
+          auxiliary: event.auxiliary.toHexString(),
+        };
 
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/events/${event._id.toHexString()}`,
-  //         payload,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toBe(200);
-  //       expect(response.result.data.event).toBeDefined();
-  //       expect(response.result.data.event._id).toEqual(event._id);
-  //       expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
-  //       expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
-  //     });
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.event).toBeDefined();
+        expect(response.result.data.event._id).toEqual(event._id);
+        expect(moment(response.result.data.event.startDate).isSame(moment(payload.startDate))).toBeTruthy();
+        expect(moment(response.result.data.event.endDate).isSame(moment(payload.endDate))).toBeTruthy();
+      });
 
-  //     it('should return a 400 error as payload is invalid', async () => {
-  //       const payload = { beginDate: '2019-01-23T10:00:00.000Z', sector: new ObjectID() };
-  //       const event = eventsList[0];
+      it('should return a 400 error as payload is invalid', async () => {
+        const payload = { beginDate: '2019-01-23T10:00:00.000Z', sector: new ObjectID() };
+        const event = eventsList[0];
 
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/events/${event._id.toHexString()}`,
-  //         payload,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toBe(400);
-  //     });
+        expect(response.statusCode).toBe(400);
+      });
 
-  //     it('should return a 400 error as startDate and endDate are not on the same day', async () => {
-  //       const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectors[0]._id.toHexString() };
-  //       const event = eventsList[0];
+      it('should return a 400 error as startDate and endDate are not on the same day', async () => {
+        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectors[0]._id.toHexString() };
+        const event = eventsList[0];
 
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/events/${event._id.toHexString()}`,
-  //         payload,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toBe(400);
-  //     });
+        expect(response.statusCode).toBe(400);
+      });
 
-  //     it('should return a 404 error as event is not found', async () => {
-  //       const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectors[0]._id.toHexString() };
-  //       const invalidId = new ObjectID();
+      it('should return a 404 error as event is not found', async () => {
+        const payload = { startDate: '2019-01-23T10:00:00.000Z', endDate: '2019-02-23T12:00:00.000Z', sector: sectors[0]._id.toHexString() };
+        const invalidId = new ObjectID();
 
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/events/${invalidId.toHexString()}`,
-  //         payload,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${invalidId.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toBe(404);
-  //     });
+        expect(response.statusCode).toBe(404);
+      });
 
-  //     it('should return a 403 if the subscription is not for the customer', async () => {
-  //       const event = eventsList[0];
-  //       const payload = {
-  //         sector: sectors[0]._id.toHexString(),
-  //         subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
-  //       };
+      it('should return a 403 if the subscription is not for the customer', async () => {
+        const event = eventsList[0];
+        const payload = {
+          sector: sectors[0]._id.toHexString(),
+          subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
+        };
 
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/events/${event._id.toHexString()}`,
-  //         payload,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(403);
-  //     });
+        expect(response.statusCode).toEqual(403);
+      });
 
-  //     it('should return a 403 if auxiliary is not from the same company', async () => {
-  //       const event = eventsList[0];
-  //       const payload = {
-  //         sector: sectors[0]._id.toHexString(),
-  //         auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
-  //       };
+      it('should return a 403 if auxiliary is not from the same company', async () => {
+        const event = eventsList[0];
+        const payload = {
+          sector: sectors[0]._id.toHexString(),
+          auxiliary: auxiliaryFromOtherCompany._id.toHexString(),
+        };
 
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/events/${event._id.toHexString()}`,
-  //         payload,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(403);
-  //     });
+        expect(response.statusCode).toEqual(403);
+      });
 
-  //     it('should return a 403 if sector is not the same as auxiliary\'s', async () => {
-  //       const event = eventsList[0];
-  //       const payload = {
-  //         auxiliary: eventAuxiliary._id.toHexString(),
-  //         sector: sectors[1]._id.toHexString(),
-  //       };
+      it('should return a 403 if sector is not the same as auxiliary\'s', async () => {
+        const event = eventsList[0];
+        const payload = {
+          auxiliary: eventAuxiliary._id.toHexString(),
+          sector: sectors[1]._id.toHexString(),
+        };
 
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/events/${event._id.toHexString()}`,
-  //         payload,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(403);
-  //     });
+        expect(response.statusCode).toEqual(403);
+      });
 
-  //     it('should return a 403 if internalHour is not from the same company', async () => {
-  //       const event = eventsList[0];
-  //       const payload = {
-  //         sector: sectors[0]._id.toHexString(),
-  //         internalHour: internalHourFromOtherCompany._id,
-  //       };
+      it('should return a 403 if internalHour is not from the same company', async () => {
+        const event = eventsList[0];
+        const payload = {
+          sector: sectors[0]._id.toHexString(),
+          internalHour: internalHourFromOtherCompany._id,
+        };
 
-  //       const response = await app.inject({
-  //         method: 'PUT',
-  //         url: `/events/${event._id.toHexString()}`,
-  //         payload,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toEqual(403);
-  //     });
-  //   });
+        expect(response.statusCode).toEqual(403);
+      });
+    });
 
-  //   describe('Other roles', () => {
-  //     beforeEach(populateDB);
+    describe('Other roles', () => {
+      beforeEach(populateDB);
 
-  //     const payload = {
-  //       startDate: '2019-01-23T10:00:00.000Z',
-  //       endDate: '2019-01-23T12:00:00.000Z',
-  //       sector: sectors[0]._id.toHexString(),
-  //     };
+      const payload = {
+        startDate: '2019-01-23T10:00:00.000Z',
+        endDate: '2019-01-23T12:00:00.000Z',
+        sector: sectors[0]._id.toHexString(),
+      };
 
-  //     const roles = [
-  //       { name: 'helper', expectedCode: 403 },
-  //       { name: 'auxiliary', expectedCode: 403 },
-  //       { name: 'planningReferent', expectedCode: 200 },
-  //       {
-  //         name: 'auxiliary event',
-  //         expectedCode: 200,
-  //         customCredentials: eventAuxiliary.local,
-  //       },
-  //       { name: 'coach', expectedCode: 200 },
-  //     ];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 200 },
+        {
+          name: 'auxiliary event',
+          expectedCode: 200,
+          customCredentials: eventAuxiliary.local,
+        },
+        { name: 'coach', expectedCode: 200 },
+      ];
 
-  //     roles.forEach((role) => {
-  //       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //         authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-  //         const response = await app.inject({
-  //           method: 'PUT',
-  //           url: `/events/${eventsList[2]._id.toHexString()}`,
-  //           payload,
-  //           headers: { 'x-access-token': authToken },
-  //         });
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'PUT',
+            url: `/events/${eventsList[2]._id.toHexString()}`,
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
 
-  //         expect(response.statusCode).toBe(role.expectedCode);
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 
-  // describe('DELETE /events/{_id}', () => {
-  //   describe('Admin', () => {
-  //     beforeEach(populateDB);
-  //     beforeEach(async () => {
-  //       authToken = await getToken('admin');
-  //     });
+  describe('DELETE /events/{_id}', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
 
-  //     it('should delete corresponding event', async () => {
-  //       const event = eventsList[0];
+      it('should delete corresponding event', async () => {
+        const event = eventsList[0];
 
-  //       const response = await app.inject({
-  //         method: 'DELETE',
-  //         url: `/events/${event._id.toHexString()}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(response.statusCode).toBe(200);
-  //     });
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${event._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(200);
+      });
 
-  //     it('should return a 404 error as event is not found', async () => {
-  //       const invalidId = new ObjectID();
+      it('should return a 404 error as event is not found', async () => {
+        const invalidId = new ObjectID();
 
-  //       const response = await app.inject({
-  //         method: 'DELETE',
-  //         url: `/events/${invalidId.toHexString()}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events/${invalidId.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toBe(404);
-  //     });
-  //   });
+        expect(response.statusCode).toBe(404);
+      });
+    });
 
-  //   describe('Other roles', () => {
-  //     beforeEach(populateDB);
+    describe('Other roles', () => {
+      beforeEach(populateDB);
 
-  //     const roles = [
-  //       { name: 'helper', expectedCode: 403 },
-  //       { name: 'auxiliary', expectedCode: 403 },
-  //       { name: 'planningReferent', expectedCode: 200 },
-  //       {
-  //         name: 'auxiliary event',
-  //         expectedCode: 200,
-  //         customCredentials: eventAuxiliary.local,
-  //       },
-  //       { name: 'coach', expectedCode: 200 },
-  //     ];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 200 },
+        {
+          name: 'auxiliary event',
+          expectedCode: 200,
+          customCredentials: eventAuxiliary.local,
+        },
+        { name: 'coach', expectedCode: 200 },
+      ];
 
-  //     roles.forEach((role) => {
-  //       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //         authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-  //         const response = await app.inject({
-  //           method: 'DELETE',
-  //           url: `/events/${eventsList[2]._id.toHexString()}`,
-  //           headers: { 'x-access-token': authToken },
-  //         });
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/events/${eventsList[2]._id.toHexString()}`,
+            headers: { 'x-access-token': authToken },
+          });
 
-  //         expect(response.statusCode).toBe(role.expectedCode);
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 
-  // describe('DELETE /events', () => {
-  //   describe('Admin', () => {
-  //     beforeEach(populateDB);
-  //     beforeEach(async () => {
-  //       authToken = await getToken('admin');
-  //     });
+  describe('DELETE /events', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
 
-  //     it('should delete all events from startDate including repetitions', async () => {
-  //       const customer = customerAuxiliary._id;
-  //       const startDate = '2019-10-14';
-  //       const response = await app.inject({
-  //         method: 'DELETE',
-  //         url: `/events?customer=${customer}&startDate=${startDate}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
+      it('should delete all events from startDate including repetitions', async () => {
+        const customer = customerAuxiliary._id;
+        const startDate = '2019-10-14';
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events?customer=${customer}&startDate=${startDate}`,
+          headers: { 'x-access-token': authToken },
+        });
 
-  //       expect(response.statusCode).toBe(200);
-  //       expect(await Repetition.find({})).toHaveLength(0);
-  //     });
+        expect(response.statusCode).toBe(200);
+        expect(await Repetition.find({})).toHaveLength(0);
+      });
 
 
-  //     it('should delete all events from startDate to endDate', async () => {
-  //       const customer = customerAuxiliary._id;
-  //       const startDate = '2019-10-14';
-  //       const endDate = '2019-10-16';
+      it('should delete all events from startDate to endDate', async () => {
+        const customer = customerAuxiliary._id;
+        const startDate = '2019-10-14';
+        const endDate = '2019-10-16';
 
-  //       const response = await app.inject({
-  //         method: 'DELETE',
-  //         url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(response.statusCode).toBe(200);
-  //     });
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(200);
+      });
 
-  //     it('should not delete events if one event is billed', async () => {
-  //       const customer = customerAuxiliary._id;
-  //       const startDate = '2019-01-01';
-  //       const endDate = '2019-10-16';
+      it('should not delete events if one event is billed', async () => {
+        const customer = customerAuxiliary._id;
+        const startDate = '2019-01-01';
+        const endDate = '2019-10-16';
 
-  //       const response = await app.inject({
-  //         method: 'DELETE',
-  //         url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
-  //         headers: { 'x-access-token': authToken },
-  //       });
-  //       expect(response.statusCode).toBe(409);
-  //     });
-  //   });
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(409);
+      });
+    });
 
-  //   describe('Other roles', () => {
-  //     beforeEach(populateDB);
+    describe('Other roles', () => {
+      beforeEach(populateDB);
 
-  //     const roles = [
-  //       { name: 'helper', expectedCode: 403 },
-  //       { name: 'auxiliary', expectedCode: 403 },
-  //       { name: 'planningReferent', expectedCode: 200 },
-  //       { name: 'coach', expectedCode: 200 },
-  //     ];
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'planningReferent', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
 
-  //     roles.forEach((role) => {
-  //       const customer = customerAuxiliary._id;
-  //       const startDate = '2019-10-14';
-  //       const endDate = '2019-10-16';
+      roles.forEach((role) => {
+        const customer = customerAuxiliary._id;
+        const startDate = '2019-10-14';
+        const endDate = '2019-10-16';
 
-  //       it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-  //         authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
-  //         const response = await app.inject({
-  //           method: 'DELETE',
-  //           url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
-  //           headers: { 'x-access-token': authToken },
-  //         });
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'DELETE',
+            url: `/events?customer=${customer}&startDate=${startDate}&endDate=${endDate}`,
+            headers: { 'x-access-token': authToken },
+          });
 
-  //         expect(response.statusCode).toBe(role.expectedCode);
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 });
