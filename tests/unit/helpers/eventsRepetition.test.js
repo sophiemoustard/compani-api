@@ -272,6 +272,7 @@ describe('updateRepetition', () => {
         'repetition.parentId': 'qwertyuiop',
         'repetition.frequency': { $not: { $eq: 'never' } },
         startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+        company: credentials.company._id,
       }
     );
     sinon.assert.calledThrice(hasConflicts);
@@ -307,7 +308,7 @@ describe('deleteRepetition', () => {
   let createEventHistoryOnDelete;
   let deleteMany;
   let deleteOne;
-  const credentials = { _id: (new ObjectID()).toHexString() };
+  const credentials = { _id: (new ObjectID()).toHexString(), company: { _id: new ObjectID() } };
   beforeEach(() => {
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
     deleteMany = sinon.stub(Event, 'deleteMany');
@@ -336,6 +337,7 @@ describe('deleteRepetition', () => {
         'repetition.parentId': parentId,
         startDate: { $gte: new Date(event.startDate) },
         $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+        company: credentials.company._id,
       }
     );
     sinon.assert.calledWith(deleteOne, { parentId });

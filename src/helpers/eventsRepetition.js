@@ -110,18 +110,25 @@ exports.updateRepetition = async (event, eventPayload, credentials) => {
   const parentStartDate = moment(eventPayload.startDate);
   const parentEndDate = moment(eventPayload.endDate);
   const promises = [];
+  const companyId = get(credentials, 'company._id', null);
 
   const events = await Event.find({
     'repetition.parentId': event.repetition.parentId,
     'repetition.frequency': { $not: { $eq: NEVER } },
     startDate: { $gte: new Date(event.startDate) },
-    company: get(credentials, 'company._id', null),
+    company: companyId,
   });
 
   for (let i = 0, l = events.length; i < l; i++) {
     const startDate = moment(events[i].startDate).hours(parentStartDate.hours()).minutes(parentStartDate.minutes()).toISOString();
     const endDate = moment(events[i].endDate).hours(parentEndDate.hours()).minutes(parentEndDate.minutes()).toISOString();
-    let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
+    let eventToSet = {
+      ...eventPayload,
+      startDate,
+      endDate,
+      _id: events[i]._id,
+      company: companyId,
+    };
 
     let unset;
     if (eventPayload.auxiliary && event.type === INTERVENTION && await EventsValidationHelper.hasConflicts(eventToSet)) {

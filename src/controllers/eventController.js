@@ -1,11 +1,10 @@
 const Boom = require('boom');
 const moment = require('moment');
-const Event = require('../models/Event');
 const translate = require('../helpers/translate');
 const EventsHelper = require('../helpers/events');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
 const { deleteRepetition } = require('../helpers/eventsRepetition');
-const { ABSENCE, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
+const { ABSENCE, AUXILIARY, CUSTOMER } = require('../helpers/constants');
 const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
 
 const { language } = translate;

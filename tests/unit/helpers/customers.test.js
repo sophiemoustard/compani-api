@@ -126,16 +126,16 @@ describe('getCustomersFirstIntervention', () => {
     ];
     const query = { company: 'mnbvcxz' };
 
+    const companyId = new ObjectID();
     CustomerMock
       .expects('find')
       .withExactArgs(query, { _id: 1 })
       .chain('populate')
-      .withExactArgs({ path: 'firstIntervention', select: 'startDate' })
+      .withExactArgs({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
       .chain('lean')
       .returns(customers)
       .once();
 
-    const companyId = new ObjectID();
     const result = await CustomerHelper.getCustomersFirstIntervention(query, companyId);
     expect(result).toEqual({
       123456: { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },

@@ -288,7 +288,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(user.inactivityDate).not.toBeNull();
       expect(moment(user.inactivityDate).format('YYYY-MM-DD'))
         .toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
-      const events = await Event.find().lean();
+      const events = await Event.find({ company: authCompany._id }).lean();
       expect(events.length).toBe(contractEvents.length - 1);
     });
 
