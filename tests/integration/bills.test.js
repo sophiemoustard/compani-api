@@ -14,6 +14,7 @@ const {
   billServices,
   eventList,
   billThirdPartyPayer,
+  otherCompanyBillThirdPartyPayer,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
@@ -312,6 +313,69 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(response.statusCode).toBe(200);
       const bills = await Bill.find({ 'subscriptions.vat': 0, company: authCompany._id }).lean();
       expect(bills.length).toBe(1);
+    });
+
+    it('should return a 403 error if customer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: { bills: [{ ...payload[0], customerId: billCustomerList[2]._id }] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if third party payer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: {
+          bills: [{
+            ...payload[0],
+            thirdPartyPayerBills: [{
+              ...payload[0].thirdPartyPayerBills[0],
+              bills: [{
+                ...payload[0].thirdPartyPayerBills[0].bills[0],
+                thirdPartyPayer: otherCompanyBillThirdPartyPayer,
+              }],
+            }],
+          }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if at least one event is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: {
+          bills: [{
+            ...payload[0],
+            customerBills: {
+              ...payload[0].customerBills,
+              bills: [{
+                ...payload[0].customerBills.bills[0],
+                eventsList: [{
+                  event: eventList[5]._id,
+                  auxiliary: new ObjectID(),
+                  startDate: '2019-05-02T08:00:00.000Z',
+                  endDate: '2019-05-02T10:00:00.000Z',
+                  inclTaxesCustomer: 24,
+                  exclTaxesCustomer: 24,
+                  surcharges: [{ percentage: 90, name: 'Noël' }],
+                }],
+              }],
+            },
+          }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

@@ -39,6 +39,12 @@ const company = {
   directDebitsFolderId: '1234567890',
 };
 
+const otherCompanyBillThirdPartyPayer = {
+  _id: new ObjectID(),
+  name: 'Titi',
+  company: company._id,
+};
+
 const billServices = [{
   _id: new ObjectID(),
   type: COMPANY_CONTRACT,
@@ -391,6 +397,19 @@ const eventList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: billCustomerList[0].subscriptions[0]._id,
   },
+  {
+    _id: new ObjectID(),
+    company: company._id,
+    sector: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-01-18T14:30:19.543Z',
+    endDate: '2019-01-18T16:30:19.543Z',
+    auxiliary: new ObjectID(),
+    customer: billCustomerList[2]._id,
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: billCustomerList[2].subscriptions[0]._id,
+  },
 ];
 
 const populateDB = async () => {
@@ -422,4 +441,5 @@ module.exports = {
   billServices,
   eventList,
   billThirdPartyPayer,
+  otherCompanyBillThirdPartyPayer,
 };
