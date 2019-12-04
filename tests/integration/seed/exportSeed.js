@@ -519,8 +519,10 @@ const creditNotesList = [
     endDate: '2019-11-25',
     customer: customer._id,
     thirdPartyPayer: customerThirdPartyPayer._id,
-    exclTaxes: 100,
-    inclTaxes: 112,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    exclTaxesTpp: 10,
+    inclTaxesTpp: 90,
     events: [{
       eventId: new ObjectID(),
       serviceName: 'Temps de qualité - autonomie',

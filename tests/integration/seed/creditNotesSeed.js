@@ -125,9 +125,8 @@ const creditNotesList = [
     startDate: moment().startOf('month').toDate(),
     endDate: moment().set('date', 15).toDate(),
     customer: creditNoteCustomer._id,
-    thirdPartyPayer: creditNoteThirdPartyPayer._id,
-    exclTaxes: 100,
-    inclTaxes: 112,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
     events: [{
       eventId: creditNoteEvent._id,
       auxiliary: creditNoteEvent.auxiliary,
