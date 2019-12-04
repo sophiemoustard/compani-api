@@ -1,5 +1,9 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 const CreditNote = require('../../models/CreditNote');
+const Customer = require('../../models/Customer');
+const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
+const Event = require('../../models/Event');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -24,4 +28,34 @@ exports.authorizeCreditNoteReading = async (req) => {
   if (credentials.scope.includes(`customer-${creditNote.customer.toHexString()}`)) return null;
 
   throw Boom.forbidden();
+};
+
+exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
+  const { credentials } = req.auth;
+  const creditNote = req.pre.creditNote || req.payload;
+  const companyId = get(credentials, 'company._id', null);
+
+  if (!credentials.scope.includes('bills:edit')) throw Boom.forbidden();
+
+  if (creditNote.customer) {
+    const customer = await Customer.findOne(({ _id: creditNote.customer, company: companyId })).lean();
+    if (!customer) throw Boom.forbidden();
+    if (creditNote.subscription) {
+      const subscriptionsIds = customer.subscriptions.map(subscription => subscription._id.toHexString());
+      if (!(subscriptionsIds.includes(creditNote.subscription._id))) throw Boom.forbidden();
+    }
+  }
+
+  if (creditNote.thirdPartyPayer) {
+    const tpp = await ThirdPartyPayer.findOne(({ _id: creditNote.thirdPartyPayer, company: companyId })).lean();
+    if (!tpp) throw Boom.forbidden();
+  }
+
+  if (creditNote.events && creditNote.events.length) {
+    const eventsIds = creditNote.events.map(ev => ev.eventId);
+    const eventsCount = await Event.countDocuments({ _id: { $in: eventsIds }, company: companyId });
+    if (eventsCount !== eventsIds.length) throw Boom.forbidden();
+  }
+
+  return null;
 };

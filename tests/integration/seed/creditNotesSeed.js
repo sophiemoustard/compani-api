@@ -6,6 +6,8 @@ const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const User = require('../../../src/models/User');
 const Service = require('../../../src/models/Service');
+const Company = require('../../../src/models/Company');
+const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
 const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
@@ -113,6 +115,7 @@ const creditNoteEvent = {
     nature: 'hourly',
     careHours: 2,
   },
+  origin: 'compani',
 };
 
 const creditNotesList = [
@@ -122,22 +125,124 @@ const creditNotesList = [
     startDate: moment().startOf('month').toDate(),
     endDate: moment().set('date', 15).toDate(),
     customer: creditNoteCustomer._id,
-    thirdPartyPayer: creditNoteThirdPartyPayer._id,
-    exclTaxes: 100,
-    inclTaxes: 112,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
     events: [{
       eventId: creditNoteEvent._id,
       auxiliary: creditNoteEvent.auxiliary,
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
+      serviceName: 'toto',
       bills: {
         inclTaxesCustomer: 10,
         exclTaxesCustomer: 8,
       },
     }],
+    subscription: {
+      _id: creditNoteCustomer.subscriptions[0]._id,
+      service: {
+        serviceId: creditNoteService._id,
+        nature: 'fixed',
+        name: 'toto',
+      },
+      vat: 5.5,
+    },
     origin: 'compani',
+    company: authCompany._id,
   },
 ];
+
+const otherCompany = {
+  _id: new ObjectID(),
+  name: 'eCorp SAS',
+  tradeName: 'eCorp',
+};
+
+const otherCompanyThirdPartyPayer = {
+  _id: new ObjectID(),
+  name: 'Titi',
+  company: otherCompany._id,
+};
+
+const otherCompanyService = {
+  _id: new ObjectID(),
+  type: COMPANY_CONTRACT,
+  company: otherCompany._id,
+  versions: [{
+    defaultUnitAmount: 24,
+    name: 'Service 2',
+    startDate: '2019-01-16 17:58:15.519',
+    vat: 5.5,
+    exemptFromCharges: false,
+  }],
+  nature: HOURLY,
+};
+
+const otherCompanyCustomer = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  email: 't@t.com',
+  identity: {
+    title: 'mr',
+    firstname: 'Jean',
+    lastname: 'Bonbeurre',
+  },
+  contact: {
+    primaryAddress: {
+      fullAddress: '23 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0623675432',
+  },
+  payment: {
+    bankAccountOwner: 'Jean Bonbeurre',
+    iban: 'FR9514708000505917721779B13',
+    bic: 'AGMDHISOBD',
+    mandates: [
+      { rum: 'R19879533456767438', _id: new ObjectID(), signedAt: moment().toDate() },
+    ],
+  },
+  subscriptions: [
+    {
+      _id: new ObjectID(),
+      service: otherCompanyService._id,
+      versions: [{
+        unitTTCRate: 24,
+        estimatedWeeklyVolume: 6,
+        evenings: 0,
+        sundays: 1,
+        startDate: '2018-01-01T10:00:00.000+01:00',
+      }],
+    },
+  ],
+};
+
+const otherCompanyEvent = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  sector: new ObjectID(),
+  type: 'intervention',
+  status: 'contract_with_company',
+  startDate: '2019-01-16T09:30:19.543Z',
+  endDate: '2019-01-16T11:30:21.653Z',
+  auxiliary: new ObjectID(),
+  customer: otherCompanyCustomer._id,
+  createdAt: '2019-01-15T11:33:14.343Z',
+  subscription: otherCompanyCustomer.subscriptions[0]._id,
+  isBilled: true,
+  bills: {
+    thirdPartyPayer: otherCompanyThirdPartyPayer._id,
+    inclTaxesCustomer: 20,
+    exclTaxesCustomer: 15,
+    inclTaxesTpp: 10,
+    exclTaxesTpp: 5,
+    fundingId: new ObjectID(),
+    nature: 'hourly',
+    careHours: 2,
+  },
+  origin: 'compani',
+};
 
 const populateDB = async () => {
   await CreditNote.deleteMany({});
@@ -146,15 +251,16 @@ const populateDB = async () => {
   await Service.deleteMany({});
   await CreditNoteNumber.deleteMany({});
   await User.deleteMany({});
+  await ThirdPartyPayer.deleteMany({});
 
   await populateDBForAuthentication();
-  await new Event(creditNoteEvent).save();
-  await new Customer(creditNoteCustomer).save();
-  await new Service(creditNoteService).save();
+  await new Company(otherCompany).save();
+  await Event.create([creditNoteEvent, otherCompanyEvent]);
+  await Customer.create([creditNoteCustomer, otherCompanyCustomer]);
+  await Service.create([creditNoteService, otherCompanyService]);
+  await ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]);
   await CreditNote.insertMany(creditNotesList);
-  for (const user of creditNoteUserList) {
-    await (new User(user).save());
-  }
+  await User.create(creditNoteUserList);
 };
 
 module.exports = {
@@ -163,4 +269,8 @@ module.exports = {
   creditNoteCustomer,
   creditNoteEvent,
   creditNoteUserList,
+  creditNoteThirdPartyPayer,
+  otherCompanyCustomer,
+  otherCompanyThirdPartyPayer,
+  otherCompanyEvent,
 };

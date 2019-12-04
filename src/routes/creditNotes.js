@@ -10,7 +10,11 @@ const {
   remove,
   generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
-const { getCreditNote, authorizeCreditNoteReading } = require('./preHandlers/creditNotes');
+const {
+  getCreditNote,
+  authorizeCreditNoteReading,
+  authorizeCreditNoteCreationOrUpdate,
+} = require('./preHandlers/creditNotes');
 
 const { SERVICE_NATURES } = require('../models/Service');
 
@@ -69,6 +73,7 @@ exports.plugin = {
             }),
           }),
         },
+        pre: [{ method: authorizeCreditNoteCreationOrUpdate }],
       },
     });
 

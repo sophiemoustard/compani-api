@@ -34,7 +34,9 @@ const list = async (req) => {
     }
 
     return {
-      message: creditNotes.length === 0 ? translate[language].creditNotesNotFound : translate[language].creditNotesFound,
+      message: creditNotes.length === 0
+        ? translate[language].creditNotesNotFound
+        : translate[language].creditNotesFound,
       data: { creditNotes },
     };
   } catch (e) {
@@ -45,7 +47,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    await createCreditNotes(req.payload);
+    await createCreditNotes(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteCreated,

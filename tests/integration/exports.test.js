@@ -1,13 +1,6 @@
 const expect = require('expect');
 const app = require('../../server');
-const {
-  SERVICE,
-  AUXILIARY,
-  HELPER,
-  CUSTOMER,
-  FUNDING,
-  SUBSCRIPTION,
-} = require('../../src/helpers/constants');
+const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION } = require('../../src/helpers/constants');
 const { getToken } = require('./seed/authenticationSeed');
 const {
   populateEvents,
@@ -38,7 +31,7 @@ describe('EXPORTS ROUTES', () => {
       it('should get working events', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/exports/working_event/history?startDate=2019-01-15T15%3A47%3A42.077%2B01%3A00&endDate=2019-01-17T15%3A47%3A42.077%2B01%3A00',
+          url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-17',
           headers: { 'x-access-token': adminToken },
         });
 
@@ -60,7 +53,7 @@ describe('EXPORTS ROUTES', () => {
           adminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/exports/working_event/history?startDate=2019-01-15T15%3A47%3A42.077%2B01%3A00&endDate=2019-01-17T15%3A47%3A42.077%2B01%3A00',
+            url: '/exports/working_event/history?startDate=2019-01-15&endDate=2019-01-17',
             headers: { 'x-access-token': adminToken },
           });
 
@@ -76,16 +69,16 @@ describe('EXPORTS ROUTES', () => {
       beforeEach(async () => {
         adminToken = await getToken('admin');
       });
-      it('should get bills', async () => {
+      it('should get bills and credit notes', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/exports/bill/history?startDate=2019-05-25T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
+          url: '/exports/bill/history?startDate=2019-05-25&endDate=2019-05-29',
           headers: { 'x-access-token': adminToken },
         });
 
         expect(response.statusCode).toBe(200);
         expect(response.result).toBeDefined();
-        expect(response.result.split('\r\n').length).toBe(3);
+        expect(response.result.split('\r\n').length).toBe(4);
       });
     });
 
@@ -101,7 +94,7 @@ describe('EXPORTS ROUTES', () => {
           adminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/exports/bill/history?startDate=2019-05-26T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-29T15%3A47%3A42.077%2B01%3A00',
+            url: '/exports/bill/history?startDate=2019-05-26&endDate=2019-05-29',
             headers: { 'x-access-token': adminToken },
           });
 
@@ -120,7 +113,7 @@ describe('EXPORTS ROUTES', () => {
       it('should get payments', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/exports/payment/history?startDate=2019-05-25T16%3A47%3A49.168%2B02%3A00&endDate=2019-05-31T16%3A47%3A49.169%2B02%3A00',
+          url: '/exports/payment/history?startDate=2019-05-25&endDate=2019-05-31',
           headers: { 'x-access-token': adminToken },
         });
 
@@ -142,7 +135,7 @@ describe('EXPORTS ROUTES', () => {
           adminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/exports/payment/history?startDate=2019-05-25T16%3A47%3A49.168%2B02%3A00&endDate=2019-05-31T16%3A47%3A49.169%2B02%3A00',
+            url: '/exports/payment/history?startDate=2019-05-25&endDate=2019-05-31',
             headers: { 'x-access-token': adminToken },
           });
 
@@ -161,7 +154,7 @@ describe('EXPORTS ROUTES', () => {
       it('should get pay', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/exports/pay/history?startDate=2019-01-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T22%3A47%3A42.077%2B01%3A00',
+          url: '/exports/pay/history?startDate=2019-01-01&endDate=2019-05-31',
           headers: { 'x-access-token': adminToken },
         });
 
@@ -183,7 +176,7 @@ describe('EXPORTS ROUTES', () => {
           adminToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/exports/pay/history?startDate=2019-01-01T15%3A47%3A42.077%2B01%3A00&endDate=2019-05-31T15%3A47%3A42.077%2B01%3A00',
+            url: '/exports/pay/history?startDate=2019-01-01&endDate=2019-05-31',
             headers: { 'x-access-token': adminToken },
           });
 

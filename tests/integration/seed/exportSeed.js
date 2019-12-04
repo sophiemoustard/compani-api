@@ -513,20 +513,37 @@ const finalPayList = [
 const creditNotesList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     date: '2019-05-28',
     startDate: '2019-05-27',
     endDate: '2019-11-25',
     customer: customer._id,
     thirdPartyPayer: customerThirdPartyPayer._id,
-    exclTaxes: 100,
-    inclTaxes: 112,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    exclTaxesTpp: 10,
+    inclTaxesTpp: 90,
     events: [{
       eventId: new ObjectID(),
+      serviceName: 'Temps de qualité - autonomie',
       startDate: '2019-01-16T10:30:19.543Z',
       endDate: '2019-01-16T12:30:21.653Z',
       auxiliary: new ObjectID(),
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
+      },
     }],
     origin: 'compani',
+    subscription: {
+      _id: customer.subscriptions[0]._id,
+      service: {
+        serviceId: new ObjectID(),
+        nature: 'fixed',
+        name: 'toto',
+      },
+      vat: 5.5,
+    },
   },
 ];
 
