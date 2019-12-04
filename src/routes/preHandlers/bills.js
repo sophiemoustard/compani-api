@@ -22,10 +22,13 @@ exports.authorizeBillReading = async (req) => {
   const { credentials } = req.auth;
   const { bill } = req.pre;
 
-  if (credentials.scope.includes('bills:read')) return null;
-  if (credentials.scope.includes(`customer-${bill.customer.toHexString()}`)) return null;
+  const customer = await Customer.findOne({ _id: bill.customer, company: credentials.company._id }).lean();
+  if (!customer) throw Boom.forbidden();
+  if (!credentials.scope.includes('bills:read')) {
+    if (!credentials.scope.includes(`customer-${bill.customer.toHexString()}`)) throw Boom.forbidden();
+  }
 
-  throw Boom.forbidden();
+  return null;
 };
 
 exports.authorizeBillCreation = async (req) => {

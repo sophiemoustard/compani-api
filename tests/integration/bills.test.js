@@ -356,6 +356,16 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
 
       expect(response.statusCode).toBe(200);
     });
+
+    it('should a 403 error if bill customer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/bills/${billsList[0]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
