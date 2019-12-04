@@ -124,9 +124,9 @@ describe('getCustomersFirstIntervention', () => {
       { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },
       { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
     ];
-    const query = { company: 'mnbvcxz' };
 
     const companyId = new ObjectID();
+    const query = { company: companyId };
     CustomerMock
       .expects('find')
       .withExactArgs(query, { _id: 1 })

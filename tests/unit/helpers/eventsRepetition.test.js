@@ -293,7 +293,13 @@ describe('updateRepetition', () => {
 
     sinon.assert.calledWith(
       hasConflicts,
-      { _id: '123456', auxiliary: '1234567890', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' }
+      {
+        _id: '123456',
+        auxiliary: '1234567890',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        company: credentials.company._id,
+      }
     );
     sinon.assert.calledWith(
       findOneAndUpdateEvent,

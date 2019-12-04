@@ -127,11 +127,10 @@ exports.updateRepetition = async (event, eventPayload, credentials) => {
       startDate,
       endDate,
       _id: events[i]._id,
-      company: companyId,
     };
 
     let unset;
-    if (eventPayload.auxiliary && event.type === INTERVENTION && await EventsValidationHelper.hasConflicts(eventToSet)) {
+    if (eventPayload.auxiliary && event.type === INTERVENTION && await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId })) {
       eventToSet = omit(eventToSet, ['repetition', 'auxiliary']);
       unset = { auxiliary: '', repetition: '' };
     } else if (!eventPayload.auxiliary) {
