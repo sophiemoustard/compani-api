@@ -378,6 +378,19 @@ const eventList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: billCustomerList[0].subscriptions[0]._id,
   },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    sector: new ObjectID(),
+    type: 'intervention',
+    status: 'contract_with_company',
+    startDate: '2019-01-18T14:30:19.543Z',
+    endDate: '2019-01-18T16:30:19.543Z',
+    auxiliary: new ObjectID(),
+    customer: billCustomerList[0]._id,
+    createdAt: '2019-01-16T14:30:19.543Z',
+    subscription: billCustomerList[0].subscriptions[0]._id,
+  },
 ];
 
 const populateDB = async () => {
@@ -406,4 +419,7 @@ module.exports = {
   billCustomerList,
   billUserList,
   billsList,
+  billServices,
+  eventList,
+  billThirdPartyPayer,
 };

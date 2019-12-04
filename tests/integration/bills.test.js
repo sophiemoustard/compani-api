@@ -5,7 +5,16 @@ const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const { populateDB, billUserList, billsList, authBillsList, billCustomerList } = require('./seed/billsSeed');
+const {
+  populateDB,
+  billUserList,
+  billsList,
+  authBillsList,
+  billCustomerList,
+  billServices,
+  eventList,
+  billThirdPartyPayer,
+} = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const Bill = require('../../src/models/Bill');
@@ -98,15 +107,10 @@ describe('BILL ROUTES - POST /bills', () => {
   beforeEach(populateDB);
   const payload = [
     {
-      customerId: '5ccbfcf3d6eaa746a3c34cdf',
+      customerId: billCustomerList[0]._id,
       customer: {
-        _id: '5ccbfcf3d6eaa746a3c34cdf',
-        identity: {
-          title: 'mr',
-          firstname: 'Marie',
-          lastname: 'Renard',
-          birthDate: '2018-05-23T18:59:04.466Z',
-        },
+        _id: billCustomerList[0]._id,
+        identity: billCustomerList[0].identity,
       },
       endDate: '2019-05-31T23:59:59.999Z',
       customerBills: {
@@ -114,26 +118,8 @@ describe('BILL ROUTES - POST /bills', () => {
           {
             _id: '5ccbfcf4bffe7646a387b470',
             subscription: {
-              _id: '5ccbfcf3d6eaa746a3c34ce1',
-              service: {
-                _id: '5ccbfcf3d6eaa746a3c34cda',
-                type: 'contract_with_customer',
-                company: '5ccbfcf3d6eaa746a3c34cc4',
-                versions: [
-                  {
-                    _id: '5ccbfcf4bffe7646a387b469',
-                    defaultUnitAmount: 12,
-                    name: 'Service 1',
-                    startDate: '2019-01-16T16:58:15.519Z',
-                    vat: 12,
-                    createdAt: '2019-05-03T08:33:56.163Z',
-                  },
-                ],
-                nature: 'hourly',
-                __v: 0,
-                createdAt: '2019-05-03T08:33:56.163Z',
-                updatedAt: '2019-05-03T08:33:56.163Z',
-              },
+              _id: billCustomerList[0].subscriptions[0]._id,
+              service: billServices[0],
               versions: [
                 {
                   _id: '5ccbfcf4bffe7646a387b456',
@@ -147,12 +133,7 @@ describe('BILL ROUTES - POST /bills', () => {
               ],
               createdAt: '2019-05-03T08:33:56.144Z',
             },
-            identity: {
-              title: 'mr',
-              firstname: 'Marie',
-              lastname: 'Renard',
-              birthDate: '2018-05-23T18:59:04.466Z',
-            },
+            identity: billCustomerList[0].identity,
             discount: 0,
             startDate: '2019-05-01T00:00:00.000Z',
             endDate: '2019-05-31T23:59:59.999Z',
@@ -161,7 +142,7 @@ describe('BILL ROUTES - POST /bills', () => {
             vat: 12,
             eventsList: [
               {
-                event: '5ccbfcf3d6eaa746a3c34ceb',
+                event: eventList[4]._id,
                 auxiliary: new ObjectID(),
                 startDate: '2019-05-02T08:00:00.000Z',
                 endDate: '2019-05-02T10:00:00.000Z',
@@ -183,29 +164,11 @@ describe('BILL ROUTES - POST /bills', () => {
             {
               _id: '5ccbfcf4bffe7646a387b472',
               subscription: {
-                _id: '5ccbfcf3d6eaa746a3c34cde',
-                service: {
-                  _id: '5ccbfcf3d6eaa746a3c34cda',
-                  type: 'contract_with_customer',
-                  company: '5ccbfcf3d6eaa746a3c34cc4',
-                  versions: [
-                    {
-                      _id: '5ccbfcf4bffe7646a387b469',
-                      defaultUnitAmount: 12,
-                      name: 'Service 1',
-                      startDate: '2019-01-16T16:58:15.519Z',
-                      vat: 12,
-                      createdAt: '2019-05-03T08:33:56.163Z',
-                    },
-                  ],
-                  nature: 'hourly',
-                  __v: 0,
-                  createdAt: '2019-05-03T08:33:56.163Z',
-                  updatedAt: '2019-05-03T08:33:56.163Z',
-                },
+                _id: billCustomerList[0].subscriptions[0]._id,
+                service: billServices[0],
                 versions: [
                   {
-                    _id: '5ccbfcf4bffe7646a387b458',
+                    _id: '5ccbfcf4bffe7646a387b456',
                     unitTTCRate: 12,
                     estimatedWeeklyVolume: 12,
                     evenings: 2,
@@ -216,12 +179,7 @@ describe('BILL ROUTES - POST /bills', () => {
                 ],
                 createdAt: '2019-05-03T08:33:56.144Z',
               },
-              identity: {
-                title: 'mr',
-                firstname: 'Marie',
-                lastname: 'Renard',
-                birthDate: '2018-05-23T18:59:04.466Z',
-              },
+              identity: billCustomerList[0].identity,
               discount: 0,
               startDate: '2019-05-01T00:00:00.000Z',
               endDate: '2019-05-31T23:59:59.999Z',
@@ -233,13 +191,13 @@ describe('BILL ROUTES - POST /bills', () => {
               hours: 2,
               eventsList: [
                 {
-                  event: '5ccbfcf3d6eaa746a3c34cea',
+                  event: eventList[4]._id,
                   auxiliary: new ObjectID(),
                   startDate: '2019-05-02T08:00:00.000Z',
                   endDate: '2019-05-02T10:00:00.000Z',
                   inclTaxesTpp: 24,
                   exclTaxesTpp: 21.428571428571427,
-                  thirdPartyPayer: '5ccbfcf3d6eaa746a3c34cdc',
+                  thirdPartyPayer: billThirdPartyPayer._id,
                   inclTaxesCustomer: 0,
                   exclTaxesCustomer: 0,
                   history: {
@@ -252,14 +210,7 @@ describe('BILL ROUTES - POST /bills', () => {
                 },
               ],
               externalBilling: false,
-              thirdPartyPayer: {
-                _id: '5ccbfcf3d6eaa746a3c34cdc',
-                name: 'Toto',
-                company: authCompany._id,
-                __v: 0,
-                createdAt: '2019-05-03T08:33:56.156Z',
-                updatedAt: '2019-05-03T08:33:56.156Z',
-              },
+              thirdPartyPayer: billThirdPartyPayer,
             },
           ],
           total: 24,
@@ -290,14 +241,10 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should create new bill with vat 0 if service is not taxed', async () => {
       const draftBillPayload = [
         {
-          customerId: '5ccbfcf3d6eaa746a3c34cdf',
+          customerId: billCustomerList[0]._id,
           customer: {
-            _id: '5ccbfcf3d6eaa746a3c34cdf',
-            identity: {
-              title: 'mr',
-              firstname: 'Marie',
-              lastname: 'Renard',
-            },
+            _id: billCustomerList[0]._id,
+            identity: billCustomerList[0].identity,
           },
           endDate: '2019-05-31T23:59:59.999Z',
           customerBills: {
@@ -305,62 +252,49 @@ describe('BILL ROUTES - POST /bills', () => {
               {
                 _id: '5ccbfcf4bffe7646a387b470',
                 subscription: {
-                  _id: '5ccbfcf3d6eaa746a3c34ce1',
+                  _id: billCustomerList[0].subscriptions[0]._id,
                   service: {
-                    _id: '5ccbfcf3d6eaa746a3c34cda',
-                    type: 'contract_with_customer',
-                    company: '5ccbfcf3d6eaa746a3c34cc4',
-                    versions: [
-                      {
-                        _id: '5ccbfcf4bffe7646a387b469',
-                        defaultUnitAmount: 6,
-                        name: 'Service 1',
-                        startDate: '2019-01-16T16:58:15.519Z',
-                        createdAt: '2019-05-03T08:33:56.163Z',
-                      },
-                    ],
-                    nature: 'hourly',
-                    createdAt: '2019-05-03T08:33:56.163Z',
-                    updatedAt: '2019-05-03T08:33:56.163Z',
+                    ...billServices[0],
+                    versions: [{
+                      defaultUnitAmount: 12,
+                      name: 'Service 1',
+                      startDate: '2019-01-16 17:58:15.519',
+                      vat: 0,
+                    }],
                   },
                   versions: [
                     {
                       _id: '5ccbfcf4bffe7646a387b456',
-                      unitTTCRate: 6,
-                      estimatedWeeklyVolume: 8,
-                      evenings: 0,
-                      sundays: 0,
+                      unitTTCRate: 12,
+                      estimatedWeeklyVolume: 12,
+                      evenings: 2,
+                      sundays: 1,
                       startDate: '2019-04-03T08:33:55.370Z',
                       createdAt: '2019-05-03T08:33:56.144Z',
                     },
                   ],
                   createdAt: '2019-05-03T08:33:56.144Z',
                 },
-                identity: {
-                  title: 'mr',
-                  firstname: 'Marie',
-                  lastname: 'Renard',
-                  birthDate: '2018-05-23T18:59:04.466Z',
-                },
+                identity: billCustomerList[0].identity,
                 discount: 0,
                 startDate: '2019-05-01T00:00:00.000Z',
                 endDate: '2019-05-31T23:59:59.999Z',
                 unitExclTaxes: 10.714285714285714,
                 unitInclTaxes: 12,
-                vat: 12,
+                vat: 0,
                 eventsList: [
                   {
-                    event: '5ccbfcf3d6eaa746a3c34ceb',
+                    event: eventList[4]._id,
                     auxiliary: new ObjectID(),
                     startDate: '2019-05-02T08:00:00.000Z',
                     endDate: '2019-05-02T10:00:00.000Z',
                     inclTaxesCustomer: 24,
-                    exclTaxesCustomer: 21.428571428571427,
+                    exclTaxesCustomer: 24,
                     surcharges: [{ percentage: 90, name: 'Noël' }],
                   },
                 ],
                 hours: 2,
-                exclTaxes: 21.428571428571427,
+                exclTaxes: 24,
                 inclTaxes: 24,
               },
             ],
