@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { COMPANI, OGUST } = require('../helpers/constants');
-const ServiceSchema = require('./Service').schema;
+const { SERVICE_NATURES } = require('./Service');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 
@@ -39,7 +39,7 @@ const CreditNoteSchema = mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId },
     service: {
       serviceId: { type: mongoose.Schema.Types.ObjectId },
-      nature: ServiceSchema.path('nature'),
+      nature: { type: String, enum: SERVICE_NATURES, required: !!this.serviceId },
       name: String,
     },
     vat: Number,

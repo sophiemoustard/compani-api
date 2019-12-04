@@ -24,6 +24,7 @@ const customerServiceList = [
       name: 'Service 1',
       startDate: '2019-01-16 17:58:15',
       vat: 12,
+      exemptFromCharges: false,
     }],
     nature: HOURLY,
   },
@@ -33,6 +34,7 @@ const customerServiceList = [
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
+      exemptFromCharges: false,
       name: 'Service 2',
       startDate: '2019-01-18 19:58:15',
       vat: 12,

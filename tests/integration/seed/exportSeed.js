@@ -77,7 +77,9 @@ const serviceList = [
     versions: [{
       name: 'Service 1',
       surcharge: surcharge._id,
+      exemptFromCharges: false,
       startDate: '2019-01-16 17:58:15.519',
+      defaultUnitAmount: 24,
     }],
     nature: HOURLY,
   },
@@ -89,6 +91,7 @@ const serviceList = [
       defaultUnitAmount: 24,
       name: 'Service 2',
       surcharge: surcharge._id,
+      exemptFromCharges: false,
       startDate: '2019-01-18 19:58:15.519',
       vat: 12,
     }],
@@ -235,6 +238,7 @@ const eventList = [
 const authBillService = {
   serviceId: new ObjectID(),
   name: 'Temps de qualité - autonomie',
+  nature: 'fixed',
 };
 
 const billsList = [

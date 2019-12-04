@@ -8,17 +8,17 @@ const Customer = require('./Customer');
 const SERVICE_NATURES = [FIXED, HOURLY];
 
 const ServiceSchema = mongoose.Schema({
-  nature: { type: String, enum: SERVICE_NATURES },
-  type: { type: String, enum: CONTRACT_STATUS },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+  nature: { type: String, enum: SERVICE_NATURES, required: true },
+  type: { type: String, enum: CONTRACT_STATUS, required: true },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   versions: [{
-    name: String,
-    defaultUnitAmount: Number,
-    vat: Number,
+    name: { type: String, required: true },
+    defaultUnitAmount: { type: Number, required: true },
+    vat: { type: Number, default: 0 },
     surcharge: { type: mongoose.Schema.Types.ObjectId, ref: 'Surcharge' },
-    startDate: { type: Date, default: Date.now },
+    startDate: { type: Date, required: true },
     createdAt: { type: Date, default: Date.now },
-    exemptFromCharges: { type: Boolean, default: false },
+    exemptFromCharges: { type: Boolean, required: true },
   }],
 }, { timestamps: true });
 
