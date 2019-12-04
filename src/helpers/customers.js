@@ -52,7 +52,7 @@ exports.getCustomers = async (query) => {
 };
 
 exports.getCustomersFirstIntervention = async (query, companyId) => {
-  const customers = await Customer.find(query, { _id: 1 })
+  const customers = await Customer.find({ ...query, company: companyId }, { _id: 1 })
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
     .lean();
 

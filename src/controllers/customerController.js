@@ -50,7 +50,7 @@ const listWithFirstIntervention = async (req) => {
   try {
     const { query, auth } = req;
     const companyId = get(auth, 'credentials.company._id', null);
-    const customers = await getCustomersFirstIntervention({ ...query, company: companyId }, companyId);
+    const customers = await getCustomersFirstIntervention(query, companyId);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,

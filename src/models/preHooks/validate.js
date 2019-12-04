@@ -9,7 +9,6 @@ module.exports = {
     if (!hasCompany && !isPopulate) next(Boom.badRequest());
     next();
   },
-
   validatePayload(next) {
     if (!this.company) next(Boom.badRequest());
     next();

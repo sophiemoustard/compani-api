@@ -105,7 +105,7 @@ exports.getListQuery = (query, credentials) => {
     rules.push({ startDate: { $lt: endDateQuery } });
   }
 
-  return rules.length > 0 ? { $and: rules } : {};
+  return { $and: rules };
 };
 
 exports.listForCreditNotes = (payload, credentials) => {
