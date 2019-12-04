@@ -83,7 +83,6 @@ exports.createRepetitions = async (eventFromDb, payload) => {
   if (get(eventFromDb, 'repetition.frequency', NEVER) !== NEVER) {
     await Event.findOneAndUpdate({ _id: eventFromDb._id }, { 'repetition.parentId': eventFromDb._id });
   }
-
   payload.repetition.parentId = eventFromDb._id;
   switch (payload.repetition.frequency) {
     case EVERY_DAY:
@@ -107,24 +106,31 @@ exports.createRepetitions = async (eventFromDb, payload) => {
   return eventFromDb;
 };
 
-exports.updateRepetition = async (event, eventPayload) => {
+exports.updateRepetition = async (event, eventPayload, credentials) => {
   const parentStartDate = moment(eventPayload.startDate);
   const parentEndDate = moment(eventPayload.endDate);
   const promises = [];
+  const companyId = get(credentials, 'company._id', null);
 
   const events = await Event.find({
     'repetition.parentId': event.repetition.parentId,
     'repetition.frequency': { $not: { $eq: NEVER } },
     startDate: { $gte: new Date(event.startDate) },
+    company: companyId,
   });
 
   for (let i = 0, l = events.length; i < l; i++) {
     const startDate = moment(events[i].startDate).hours(parentStartDate.hours()).minutes(parentStartDate.minutes()).toISOString();
     const endDate = moment(events[i].endDate).hours(parentEndDate.hours()).minutes(parentEndDate.minutes()).toISOString();
-    let eventToSet = { ...eventPayload, startDate, endDate, _id: events[i]._id };
+    let eventToSet = {
+      ...eventPayload,
+      startDate,
+      endDate,
+      _id: events[i]._id,
+    };
 
     let unset;
-    if (eventPayload.auxiliary && event.type === INTERVENTION && await EventsValidationHelper.hasConflicts(eventToSet)) {
+    if (eventPayload.auxiliary && event.type === INTERVENTION && await EventsValidationHelper.hasConflicts({ ...eventToSet, company: companyId })) {
       eventToSet = omit(eventToSet, ['repetition', 'auxiliary']);
       unset = { auxiliary: '', repetition: '' };
     } else if (!eventPayload.auxiliary) {
@@ -152,6 +158,7 @@ exports.deleteRepetition = async (event, credentials) => {
     await Event.deleteMany({
       'repetition.parentId': event.repetition.parentId,
       startDate: { $gte: new Date(event.startDate) },
+      company: get(credentials, 'company._id'),
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     });
 

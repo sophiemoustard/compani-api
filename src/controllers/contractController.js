@@ -94,7 +94,7 @@ const createContractVersion = async (req) => {
 
 const updateContractVersion = async (req) => {
   try {
-    const contract = await updateVersion(req.params._id, req.params.versionId, req.payload);
+    const contract = await updateVersion(req.params._id, req.params.versionId, req.payload, req.auth.credentials);
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return {
@@ -109,7 +109,7 @@ const updateContractVersion = async (req) => {
 
 const removeContractVersion = async (req) => {
   try {
-    await deleteVersion(req.params._id, req.params.versionId);
+    await deleteVersion(req.params._id, req.params.versionId, req.auth.credentials);
 
     return { message: translate[language].contractVersionRemoved };
   } catch (e) {

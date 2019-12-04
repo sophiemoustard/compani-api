@@ -20,6 +20,8 @@ const {
   COMPANY_CONTRACT,
   HOURLY,
   CUSTOMER_CONTRACT,
+  PAID_LEAVE,
+  DAILY,
 } = require('../../../src/helpers/constants');
 
 const sector = {
@@ -202,6 +204,8 @@ const eventList = [
     company: authCompany._id,
     sector,
     type: 'absence',
+    absence: PAID_LEAVE,
+    absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
     auxiliary,

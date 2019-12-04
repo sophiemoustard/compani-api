@@ -62,8 +62,9 @@ const getServiceName = (service) => {
   return lastVersion.name;
 };
 
-exports.exportWorkingEventsHistory = async (startDate, endDate) => {
-  const events = await EventRepository.getWorkingEventsForExport(startDate, endDate);
+exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => {
+  const companyId = get(credentials, 'company._id');
+  const events = await EventRepository.getWorkingEventsForExport(startDate, endDate, companyId);
 
   const rows = [workingEventExportHeader];
   for (const event of events) {
@@ -333,9 +334,10 @@ const customerExportHeader = [
 const formatIdentity = person => `${person.firstname} ${person.lastname}`;
 
 exports.exportCustomers = async (credentials) => {
-  const customers = await Customer.find({ company: get(credentials, 'company._id', null) })
+  const companyId = get(credentials, 'company._id', null);
+  const customers = await Customer.find({ company: companyId })
     .populate({ path: 'subscriptions.service' })
-    .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
     .populate({ path: 'referent', select: 'identity.firstname identity.lastname' })
     .lean();
   const rows = [customerExportHeader];

@@ -644,10 +644,10 @@ describe('deleteVersion', () => {
     };
     countAuxiliaryEventsBetweenDates.returns(0);
     findOneContract.returns(contract);
-
-    await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
+    const credentials = { company: { _id: new ObjectID() }};
+    await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
     sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
-    sinon.assert.calledWith(countAuxiliaryEventsBetweenDates, { auxiliary: 'toot', startDate: '2019-09-09', status: 'ok' });
+    sinon.assert.calledWith(countAuxiliaryEventsBetweenDates, { auxiliary: 'toot', startDate: '2019-09-09', status: 'ok', company: credentials.company._id });
     sinon.assert.notCalled(saveContract);
     sinon.assert.calledWith(deleteOne, { _id: contractId.toHexString() });
     sinon.assert.calledWith(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });

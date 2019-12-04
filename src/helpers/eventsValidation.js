@@ -64,9 +64,10 @@ exports.checkContracts = async (event, user) => {
 
 exports.hasConflicts = async (event) => {
   const { _id, auxiliary, startDate, endDate } = event;
+
   const auxiliaryEvents = event.type !== ABSENCE
-    ? await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate)
-    : await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, ABSENCE);
+    ? await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, event.company)
+    : await EventRepository.getAuxiliaryEventsBetweenDates(auxiliary, startDate, endDate, event.company, ABSENCE);
 
   return auxiliaryEvents.some((ev) => {
     if ((_id && _id.toHexString() === ev._id.toHexString()) || ev.isCancelled) return false;
@@ -84,7 +85,6 @@ exports.isCreationAllowed = async (event) => {
   if (!event.auxiliary) return event.type === INTERVENTION;
   const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
   if (!await exports.checkContracts(event, user)) return false;
-
   if (!(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event)) return false;
 
   if (!eventHasAuxiliarySector(event, user)) return false;

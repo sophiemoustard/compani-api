@@ -423,6 +423,7 @@ describe('hasConflicts', () => {
       endDate: '2019-10-02T11:00:00.000Z',
       auxiliary: auxiliaryId,
       type: ABSENCE,
+      company: new ObjectID(),
     };
 
     getAuxiliaryEventsBetweenDates.returns([
@@ -431,7 +432,7 @@ describe('hasConflicts', () => {
 
     await EventsValidationHelper.hasConflicts(event);
 
-    sinon.assert.calledWith(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', ABSENCE);
+    sinon.assert.calledWith(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', event.company, ABSENCE);
   });
 });
 

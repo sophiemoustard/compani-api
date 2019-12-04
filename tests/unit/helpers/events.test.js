@@ -250,6 +250,76 @@ describe('updateEvent', () => {
   });
 });
 
+describe('listForCreditNotes', () => {
+  let EventModel;
+  beforeEach(() => {
+    EventModel = sinon.mock(Event);
+  });
+  afterEach(() => {
+    EventModel.restore();
+  });
+  it('should return events with creditNotes', async () => {
+    const events = [{
+      type: 'intervention',
+      isBilled: true,
+    }];
+    const companyId = new ObjectID();
+    const payload = { customer: new ObjectID(), isBilled: true };
+    const credentials = { company: { _id: companyId } };
+
+    const query = {
+      startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+      customer: payload.customer,
+      isBilled: payload.isBilled,
+      type: INTERVENTION,
+      company: companyId,
+      'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
+      'bills.inclTaxesTpp': { $exists: false },
+    };
+
+    EventModel.expects('find')
+      .withArgs(query)
+      .chain('lean')
+      .returns(events);
+
+    const result = await EventHelper.listForCreditNotes(payload, credentials);
+    expect(result).toBeDefined();
+    expect(result).toBe(events);
+  });
+
+  it('should query with thirdPartyPayer', async () => {
+    const events = [{
+      type: 'intervention',
+      isBilled: true,
+    }];
+    const companyId = new ObjectID();
+    const payload = { thirdPartyPayer: new ObjectID(), customer: new ObjectID(), isBilled: true };
+    const credentials = { company: { _id: companyId } };
+
+    const query = {
+      startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+      customer: payload.customer,
+      isBilled: payload.isBilled,
+      type: INTERVENTION,
+      company: companyId,
+      'bills.thirdPartyPayer': payload.thirdPartyPayer,
+    };
+
+    EventModel.expects('find')
+      .withArgs(query)
+      .chain('lean')
+      .returns(events);
+
+    const result = await EventHelper.listForCreditNotes(payload, credentials);
+    expect(result).toBeDefined();
+    expect(result).toBe(events);
+  });
+
+});
+
+
 describe('populateEventSubscription', () => {
   it('should populate subscription as event is an intervention', async () => {
     const event = {
@@ -621,7 +691,7 @@ describe('deleteList', () => {
   let getEventsGroupedByParentIdStub;
   const customerId = new ObjectID();
   const userId = new ObjectID();
-  const credentials = { _id: userId };
+  const credentials = { _id: userId, company: { _id: new ObjectID() } };
 
   beforeEach(() => {
     deleteEventsStub = sinon.stub(EventHelper, 'deleteEvents');
@@ -640,6 +710,7 @@ describe('deleteList', () => {
     const startDate = '2019-10-10';
     const endDate = '2019-10-19';
     const query = {
+      company: credentials.company._id,
       customer: customerId,
       startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
     };
@@ -697,7 +768,11 @@ describe('deleteList', () => {
 
   it('should delete all events and repetition as of start date', async () => {
     const startDate = '2019-10-07';
-    const query = { customer: customerId, startDate: { $gte: moment('2019-10-07').toDate() } };
+    const query = {
+      customer: customerId,
+      startDate: { $gte: moment('2019-10-07').toDate() },
+      company: credentials.company._id,
+    };
     const repetitionParentId = new ObjectID();
     const events = [
       {
@@ -755,7 +830,11 @@ describe('deleteList', () => {
 
   it('should delete all events and repetition even if repetition frequency is NEVER', async () => {
     const startDate = '2019-10-07';
-    const query = { customer: customerId, startDate: { $gte: moment('2019-10-07').toDate() } };
+    const query = {
+      customer: customerId,
+      startDate: { $gte: moment('2019-10-07').toDate() },
+      company: credentials.company._id,
+    };
     const repetitionParentId = new ObjectID();
     const events = [
       {

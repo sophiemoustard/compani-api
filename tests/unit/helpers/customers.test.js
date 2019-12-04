@@ -42,7 +42,7 @@ describe('getCustomerBySector', () => {
     const queryBySector = { ...query, endDate, sector };
     await CustomerHelper.getCustomerBySector(queryBySector, credentials);
     sinon.assert.calledWith(getListQuery, { startDate, endDate, sector, type: 'intervention' });
-    sinon.assert.calledWith(getCustomersFromEvent, { ...query }, companyId);
+    sinon.assert.calledWith(getCustomersFromEvent, { ...query, company: companyId });
   });
 });
 
@@ -56,8 +56,9 @@ describe('getCustomersWithBilledEvents', () => {
   });
 
   it('should return customer by sector', async () => {
-    await CustomerHelper.getCustomersWithBilledEvents();
-    sinon.assert.calledWith(getCustomerWithBilledEvents, { isBilled: true, type: 'intervention' });
+    const credentials = { company: { _id: new ObjectID() } };
+    await CustomerHelper.getCustomersWithBilledEvents(credentials);
+    sinon.assert.calledWith(getCustomerWithBilledEvents, { isBilled: true, type: 'intervention', company: credentials.company._id });
   });
 });
 
@@ -124,18 +125,19 @@ describe('getCustomersFirstIntervention', () => {
       { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },
       { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
     ];
-    const query = { company: 'mnbvcxz' };
 
+    const companyId = new ObjectID();
+    const query = { company: companyId };
     CustomerMock
       .expects('find')
       .withExactArgs(query, { _id: 1 })
       .chain('populate')
-      .withExactArgs({ path: 'firstIntervention', select: 'startDate' })
+      .withExactArgs({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
       .chain('lean')
       .returns(customers)
       .once();
 
-    const result = await CustomerHelper.getCustomersFirstIntervention(query);
+    const result = await CustomerHelper.getCustomersFirstIntervention(query, companyId);
     expect(result).toEqual({
       123456: { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },
       '0987': { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },

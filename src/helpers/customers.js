@@ -1,5 +1,6 @@
 const flat = require('flat');
 const Boom = require('boom');
+const { ObjectID } = require('mongodb');
 const crypto = require('crypto');
 const moment = require('moment');
 const has = require('lodash/has');
@@ -28,16 +29,16 @@ exports.getCustomerBySector = async (query, credentials) => {
     endDate: query.endDate,
     type: INTERVENTION,
     sector: query.sector,
-  });
-
-  return EventRepository.getCustomersFromEvent({ ...queryCustomer }, get(credentials, 'company._id', null));
+  }, credentials);
+  const companyId = get(credentials, 'company._id', null);
+  return EventRepository.getCustomersFromEvent({ ...queryCustomer, company: new ObjectID(companyId) });
 };
 
 exports.getCustomersWithBilledEvents = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const query = { isBilled: true, type: INTERVENTION };
+  const query = { isBilled: true, type: INTERVENTION, company: new ObjectID(companyId) };
 
-  return EventRepository.getCustomerWithBilledEvents(query, companyId);
+  return EventRepository.getCustomerWithBilledEvents(query);
 };
 
 exports.getCustomers = async (query) => {
@@ -52,9 +53,9 @@ exports.getCustomers = async (query) => {
   return customers;
 };
 
-exports.getCustomersFirstIntervention = async (query) => {
-  const customers = await Customer.find(query, { _id: 1 })
-    .populate({ path: 'firstIntervention', select: 'startDate' })
+exports.getCustomersFirstIntervention = async (query, companyId) => {
+  const customers = await Customer.find({ ...query, company: companyId }, { _id: 1 })
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
     .lean();
 
   return keyBy(customers, '_id');
@@ -91,14 +92,15 @@ exports.getCustomersWithSubscriptions = async (credentials) => {
   return CustomerRepository.getCustomersWithSubscriptions(query);
 };
 
-exports.getCustomer = async (customerId) => {
+exports.getCustomer = async (customerId, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   let customer = await Customer.findOne({ _id: customerId })
     .populate({
       path: 'subscriptions.service',
       populate: { path: 'versions.surcharge' },
     })
     .populate({ path: 'fundings.thirdPartyPayer' })
-    .populate({ path: 'firstIntervention', select: 'startDate' })
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
     .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
   if (!customer) return null;

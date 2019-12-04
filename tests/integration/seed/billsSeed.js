@@ -1,7 +1,7 @@
 const { ObjectID } = require('mongodb');
 const uuidv4 = require('uuid/v4');
 const moment = require('moment');
-const { COMPANY_CONTRACT, HOURLY } = require('../../../src/helpers/constants');
+const { COMPANY_CONTRACT, HOURLY, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 const Bill = require('../../../src/models/Bill');
 const Service = require('../../../src/models/Service');
 const Customer = require('../../../src/models/Customer');
@@ -345,6 +345,8 @@ const eventList = [
     company: authCompany._id,
     sector: new ObjectID(),
     type: 'absence',
+    absence: PAID_LEAVE,
+    absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
     auxiliary: new ObjectID(),

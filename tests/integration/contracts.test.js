@@ -22,7 +22,7 @@ const {
 } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
-const { getToken, getUser } = require('./seed/authenticationSeed');
+const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -288,7 +288,7 @@ describe('CONTRACTS ROUTES', () => {
       expect(user.inactivityDate).not.toBeNull();
       expect(moment(user.inactivityDate).format('YYYY-MM-DD'))
         .toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
-      const events = await Event.find().lean();
+      const events = await Event.find({ company: authCompany._id }).lean();
       expect(events.length).toBe(contractEvents.length - 1);
     });
 

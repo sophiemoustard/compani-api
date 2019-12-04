@@ -8,9 +8,12 @@ const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 
-exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
+exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credentials) => {
   const promises = [];
-  const events = await Event.find({ _id: { $in: eventsToUpdate.map(ev => ev.eventId) } });
+  const events = await Event.find({
+    _id: { $in: eventsToUpdate.map(ev => ev.eventId) },
+    company: get(credentials, 'company._id', null),
+  });
   for (const event of events) {
     if (event.bills.thirdPartyPayer && event.bills.fundingId) {
       if (event.bills.nature !== HOURLY) {
@@ -80,12 +83,12 @@ exports.createCreditNotes = async (payload, credentials) => {
   else creditNotes = [customerCreditNote];
 
   promises.push(CreditNote.insertMany(creditNotes), CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } }));
-  if (payload.events) promises.push(exports.updateEventAndFundingHistory(payload.events, false));
+  if (payload.events) promises.push(exports.updateEventAndFundingHistory(payload.events, false, credentials));
   return Promise.all(promises);
 };
 
-exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
-  if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true);
+exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
+  if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true, credentials);
 
   let creditNote;
   if (!creditNoteFromDB.linkedCreditNote) {
@@ -104,7 +107,7 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
     }
   }
 
-  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false);
+  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false, credentials);
 
   return creditNote;
 };

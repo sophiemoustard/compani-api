@@ -12,7 +12,7 @@ const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
-const { EVERY_WEEK, NEVER, COMPANY_CONTRACT } = require('../../../src/helpers/constants');
+const { EVERY_WEEK, NEVER, COMPANY_CONTRACT, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 
 const auxiliaryId = new ObjectID();
 const planningReferentId = new ObjectID();
@@ -179,6 +179,8 @@ const eventsList = [
     sector: sectors[0]._id,
     repetition: { frequency: NEVER },
     type: 'absence',
+    absence: PAID_LEAVE,
+    absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
     auxiliary: eventAuxiliary._id,
@@ -261,6 +263,8 @@ const eventsList = [
     company: authCompany._id,
     sector: sectors[0]._id,
     type: 'absence',
+    absence: PAID_LEAVE,
+    absenceNature: DAILY,
     startDate: '2019-07-19T14:00:18.653Z',
     endDate: '2019-07-19T17:00:18.653Z',
     repetition: { frequency: NEVER },

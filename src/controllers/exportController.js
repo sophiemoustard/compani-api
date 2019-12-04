@@ -78,7 +78,7 @@ const exportHistory = async (req, h) => {
     let exportArray;
     switch (type) {
       case WORKING_EVENT:
-        exportArray = await exportWorkingEventsHistory(startDate, endDate);
+        exportArray = await exportWorkingEventsHistory(startDate, endDate, credentials);
         break;
       case BILL:
         exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate, credentials);

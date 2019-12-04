@@ -263,15 +263,16 @@ describe('updateRepetition', () => {
     ];
     findEvent.returns(events);
     hasConflicts.returns(false);
-
-    await EventsRepetitionHelper.updateRepetition(event, payload);
+    const credentials = { company: { _id: new ObjectID() } };
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     sinon.assert.calledWith(
       findEvent,
       {
         'repetition.parentId': 'qwertyuiop',
         'repetition.frequency': { $not: { $eq: 'never' } },
-        startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') }
+        startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+        company: credentials.company._id,
       }
     );
     sinon.assert.calledThrice(hasConflicts);
@@ -287,12 +288,18 @@ describe('updateRepetition', () => {
     ];
     findEvent.returns(events);
     hasConflicts.returns(true);
-
-    await EventsRepetitionHelper.updateRepetition(event, payload);
+    const credentials = { company: { _id: new ObjectID() } };
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     sinon.assert.calledWith(
       hasConflicts,
-      { _id: '123456', auxiliary: '1234567890', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' }
+      {
+        _id: '123456',
+        auxiliary: '1234567890',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        company: credentials.company._id,
+      }
     );
     sinon.assert.calledWith(
       findOneAndUpdateEvent,
@@ -307,7 +314,7 @@ describe('deleteRepetition', () => {
   let createEventHistoryOnDelete;
   let deleteMany;
   let deleteOne;
-  const credentials = { _id: (new ObjectID()).toHexString() };
+  const credentials = { _id: (new ObjectID()).toHexString(), company: { _id: new ObjectID() } };
   beforeEach(() => {
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
     deleteMany = sinon.stub(Event, 'deleteMany');
@@ -336,6 +343,7 @@ describe('deleteRepetition', () => {
         'repetition.parentId': parentId,
         startDate: { $gte: new Date(event.startDate) },
         $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+        company: credentials.company._id,
       }
     );
     sinon.assert.calledWith(deleteOne, { parentId });

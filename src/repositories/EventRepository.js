@@ -99,33 +99,29 @@ exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules,
 
 exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
 
-exports.getEventList = (rules, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  return Event.find(rules)
-    .populate({
-      path: 'auxiliary',
-      select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
-      populate: { path: 'sector', match: { company: companyId } },
-    })
-    .populate({
-      path: 'customer',
-      select: 'identity subscriptions contact',
-      populate: { path: 'subscriptions.service', match: { company: companyId } },
-    })
-    .populate({
-      path: 'internalHour',
-      match: { company: companyId },
-    })
-    .lean();
-};
+exports.getEventList = rules => Event.find(rules)
+  .populate({
+    path: 'auxiliary',
+    select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
+    populate: { path: 'sector' },
+  })
+  .populate({
+    path: 'customer',
+    select: 'identity subscriptions contact',
+    populate: { path: 'subscriptions.service' },
+  })
+  .populate({ path: 'internalHour' })
+  .lean();
 
-exports.getEventsInConflicts = async (dates, auxiliary, types, eventId) => {
+exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {
   const rules = {
     startDate: { $lt: dates.endDate },
     endDate: { $gt: dates.startDate },
     auxiliary,
     type: { $in: types },
+    company: companyId,
   };
+
   if (eventId) rules._id = { $ne: eventId };
 
   return Event.find(rules).lean();
@@ -141,14 +137,14 @@ exports.countAuxiliaryEventsBetweenDates = (filters) => {
   return Event.countDocuments(query);
 };
 
-exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, type) => {
+exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, companyId, type = null) => {
   const query = {
     auxiliary,
     startDate: { $lt: endDate },
     endDate: { $gt: startDate },
+    company: companyId,
   };
   if (type) query.type = type;
-
   return Event.find(query);
 };
 
@@ -170,8 +166,9 @@ exports.updateEvent = async (eventId, set, unset, credentials) => Event
   .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
   .lean();
 
-exports.getWorkingEventsForExport = async (startDate, endDate) => {
+exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
   const rules = [
+    { company: new ObjectID(companyId) },
     { type: { $in: [INTERVENTION, INTERNAL_HOUR] } },
     {
       $or: [
@@ -263,19 +260,21 @@ exports.getAbsencesForExport = async (start, end, credentials) => {
     type: ABSENCE,
     startDate: { $lt: end },
     endDate: { $gt: start },
+    company: get(credentials, 'company._id', null),
   };
 
   return Event.find(query)
     .sort({ startDate: 'desc' })
     .populate({ path: 'auxiliary', select: 'identity' })
-    .populate({ path: 'sector', match: { company: credentials.company._id } })
+    .populate({ path: 'sector' })
     .lean();
 };
 
-exports.getCustomerSubscriptions = contract => Event.aggregate([
+exports.getCustomerSubscriptions = (contract, companyId) => Event.aggregate([
   {
     $match: {
       $and: [
+        { company: new ObjectID(companyId) },
         { startDate: { $gt: new Date(contract.endDate) } },
         { auxiliary: new ObjectID(contract.user) },
         { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
@@ -338,28 +337,32 @@ exports.getEventsGroupedByParentId = async rules => Event.aggregate([
 ]);
 
 
-exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds) => exports.getEventsGroupedByParentId({
+exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds, companyId) => exports.getEventsGroupedByParentId({
   startDate: { $gt: maxDate },
   auxiliary,
+  company: new ObjectID(companyId),
   subscription: { $in: subIds },
   $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
 });
 
-exports.getEventsExceptInterventions = async (startDate, auxiliary) => exports.getEventsGroupedByParentId({
+exports.getEventsExceptInterventions = async (startDate, auxiliary, companyId) => exports.getEventsGroupedByParentId({
   startDate: { $gt: startDate },
   auxiliary,
+  company: new ObjectID(companyId),
   subscription: { $exists: false },
 });
 
-exports.getAbsences = async (auxiliaryId, maxEndDate) => Event.find({
+exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({
   type: ABSENCE,
   auxiliary: auxiliaryId,
   startDate: { $lte: maxEndDate },
   endDate: { $gt: maxEndDate },
+  company: companyId,
 });
 
-exports.getEventsToPay = async (start, end, auxiliaries) => {
+exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
   const rules = [
+    { company: new ObjectID(companyId) },
     { startDate: { $lt: end } },
     { endDate: { $gt: start } },
     {
@@ -473,64 +476,9 @@ exports.getEventsToPay = async (start, end, auxiliaries) => {
   ]);
 };
 
-exports.getAbsencesToPay = async (start, end, auxiliaries) => Event.aggregate([
-  {
-    $match: {
-      type: ABSENCE,
-      auxiliary: { $in: auxiliaries },
-      $or: [
-        { startDate: { $gte: start, $lt: end } },
-        { endDate: { $gt: start, $lte: end } },
-        { endDate: { $gte: end }, startDate: { $lte: start } },
-      ],
-    },
-  },
-  {
-    $lookup: {
-      from: 'users',
-      localField: 'auxiliary',
-      foreignField: '_id',
-      as: 'auxiliary',
-    },
-  },
-  { $unwind: { path: '$auxiliary' } },
-  {
-    $lookup: {
-      from: 'sectors',
-      localField: 'auxiliary.sector',
-      foreignField: '_id',
-      as: 'auxiliary.sector',
-    },
-  },
-  { $unwind: { path: '$auxiliary.sector' } },
-  {
-    $lookup: {
-      from: 'contracts',
-      localField: 'auxiliary.contracts',
-      foreignField: '_id',
-      as: 'auxiliary.contracts',
-    },
-  },
-  {
-    $project: {
-      auxiliary: {
-        _id: 1,
-        identity: { firstname: 1, lastname: 1 },
-        sector: 1,
-        contracts: 1,
-        contact: 1,
-        administrative: { mutualFund: 1, transportInvoice: 1 },
-      },
-      startDate: 1,
-      endDate: 1,
-      absenceNature: 1,
-    },
-  },
-  { $group: { _id: '$auxiliary._id', events: { $push: '$$ROOT' } } },
-]);
-
-exports.getEventsToBill = async (dates, customerId) => {
+exports.getEventsToBill = async (dates, customerId, companyId) => {
   const rules = [
+    { company: new ObjectID(companyId) },
     { endDate: { $lt: dates.endDate } },
     { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
     { auxiliary: { $exists: true, $ne: '' } },
@@ -629,7 +577,7 @@ exports.getEventsToBill = async (dates, customerId) => {
   ]);
 };
 
-exports.getCustomersFromEvent = async (query, companyId) => Event.aggregate([
+exports.getCustomersFromEvent = async query => Event.aggregate([
   { $match: query },
   {
     $lookup: {
@@ -642,7 +590,6 @@ exports.getCustomersFromEvent = async (query, companyId) => Event.aggregate([
             $expr: {
               $and: [
                 { $eq: ['$_id', '$$customerId'] },
-                { $eq: ['$company', companyId] },
               ],
             },
           },
@@ -704,7 +651,7 @@ exports.getCustomersFromEvent = async (query, companyId) => Event.aggregate([
   { $replaceRoot: { newRoot: '$customer' } },
 ]);
 
-exports.getCustomerWithBilledEvents = async (query, companyId) => Event.aggregate([
+exports.getCustomerWithBilledEvents = async query => Event.aggregate([
   { $match: query },
   { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' } } },
   {
@@ -718,7 +665,6 @@ exports.getCustomerWithBilledEvents = async (query, companyId) => Event.aggregat
             $expr: {
               $and: [
                 { $eq: ['$_id', '$$customerId'] },
-                { $eq: ['$company', companyId] },
               ],
             },
           },
@@ -800,6 +746,7 @@ exports.getCustomerWithBilledEvents = async (query, companyId) => Event.aggregat
 exports.getCustomersWithIntervention = async companyId => Event.aggregate([
   {
     $match: {
+      company: new ObjectID(companyId),
       type: INTERVENTION,
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     },
@@ -815,6 +762,5 @@ exports.getCustomersWithIntervention = async companyId => Event.aggregate([
   },
   { $unwind: { path: '$customer' } },
   { $replaceRoot: { newRoot: '$customer' } },
-  { $match: { company: companyId } },
   { $project: { _id: 1, identity: { firstname: 1, lastname: 1 } } },
 ]);
