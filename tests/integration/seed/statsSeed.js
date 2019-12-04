@@ -10,7 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED } = require('../../../src/helpers/constants');
+const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 
 const sectorList = [{
   _id: new ObjectID(),
@@ -138,6 +138,7 @@ const eventListForFollowUp = [
     company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    status: COMPANY_CONTRACT,
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
@@ -148,6 +149,7 @@ const eventListForFollowUp = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
+    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -194,6 +196,7 @@ const eventListForFundingsMonitoring = [
     _id: new ObjectID(),
     company: authCompany._id,
     type: 'intervention',
+    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
     sector: new ObjectID(),
     subscription: subscriptionId,
@@ -204,6 +207,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
     sector: new ObjectID(),
@@ -215,6 +219,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
     sector: new ObjectID(),
@@ -226,6 +231,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
     sector: new ObjectID(),
@@ -237,6 +243,7 @@ const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
+    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
     sector: new ObjectID(),

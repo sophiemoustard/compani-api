@@ -73,7 +73,7 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
 };
 
 exports.getListQuery = (query, credentials) => {
-  const rules = [{ company: _.get(credentials, 'company._id') }];
+  const rules = [{ company: new ObjectID(_.get(credentials, 'company._id')) }];
 
   const { auxiliary, type, customer, sector, isBilled, startDate, endDate, status } = query;
 
@@ -205,7 +205,8 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
 };
 
 exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
-  const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract);
+  const companyId = _.get(credentials, 'company._id', null);
+  const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract, companyId);
 
   if (customerSubscriptionsFromEvents.length === 0) return;
   let correspondingSubs;
@@ -216,7 +217,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
-  const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds);
+  const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds, companyId);
   const promises = [];
   const ids = [];
 
@@ -246,7 +247,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
-  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user);
+  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user, _.get(credentials, 'company._id', null));
   const promises = [];
   const ids = [];
 
@@ -268,7 +269,12 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
 };
 
 exports.deleteList = async (customer, startDate, endDate, credentials) => {
-  const query = { customer: new ObjectID(customer), startDate: { $gte: moment(startDate).toDate() } };
+  const companyId = _.get(credentials, 'company._id', null);
+  const query = {
+    customer: new ObjectID(customer),
+    startDate: { $gte: moment(startDate).toDate() },
+    company: new ObjectID(companyId),
+  };
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
   if (await Event.countDocuments({ ...query, isBilled: true }) > 0) throw Boom.conflict('Some events are already billed');
 
@@ -339,13 +345,13 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
   return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
 });
 
-exports.workingStats = async (query) => {
+exports.workingStats = async (query, credentials) => {
   const ids = Array.isArray(query.auxiliary) ? query.auxiliary.map(id => new ObjectID(id)) : [new ObjectID(query.auxiliary)];
   const auxiliaries = await User.find({ _id: { $in: ids } }).populate('contracts').lean();
 
   const { startDate, endDate } = query;
   const distanceMatrix = await DistanceMatrix.find().lean();
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id));
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id), _.get(credentials, 'company._id'));
 
   const workingStats = {};
   for (const auxiliary of auxiliaries) {

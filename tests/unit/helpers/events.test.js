@@ -691,7 +691,7 @@ describe('deleteList', () => {
   let getEventsGroupedByParentIdStub;
   const customerId = new ObjectID();
   const userId = new ObjectID();
-  const credentials = { _id: userId };
+  const credentials = { _id: userId, company: { _id: new ObjectID() } };
 
   beforeEach(() => {
     deleteEventsStub = sinon.stub(EventHelper, 'deleteEvents');
@@ -710,6 +710,7 @@ describe('deleteList', () => {
     const startDate = '2019-10-10';
     const endDate = '2019-10-19';
     const query = {
+      company: credentials.company._id,
       customer: customerId,
       startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
     };
@@ -767,7 +768,11 @@ describe('deleteList', () => {
 
   it('should delete all events and repetition as of start date', async () => {
     const startDate = '2019-10-07';
-    const query = { customer: customerId, startDate: { $gte: moment('2019-10-07').toDate() } };
+    const query = {
+      customer: customerId,
+      startDate: { $gte: moment('2019-10-07').toDate() },
+      company: credentials.company._id,
+    };
     const repetitionParentId = new ObjectID();
     const events = [
       {
@@ -825,7 +830,11 @@ describe('deleteList', () => {
 
   it('should delete all events and repetition even if repetition frequency is NEVER', async () => {
     const startDate = '2019-10-07';
-    const query = { customer: customerId, startDate: { $gte: moment('2019-10-07').toDate() } };
+    const query = {
+      customer: customerId,
+      startDate: { $gte: moment('2019-10-07').toDate() },
+      company: credentials.company._id,
+    };
     const repetitionParentId = new ObjectID();
     const events = [
       {

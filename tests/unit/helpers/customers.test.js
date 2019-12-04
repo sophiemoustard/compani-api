@@ -42,7 +42,7 @@ describe('getCustomerBySector', () => {
     const queryBySector = { ...query, endDate, sector };
     await CustomerHelper.getCustomerBySector(queryBySector, credentials);
     sinon.assert.calledWith(getListQuery, { startDate, endDate, sector, type: 'intervention' });
-    sinon.assert.calledWith(getCustomersFromEvent, { ...query }, companyId);
+    sinon.assert.calledWith(getCustomersFromEvent, { ...query, company: companyId });
   });
 });
 
@@ -56,8 +56,9 @@ describe('getCustomersWithBilledEvents', () => {
   });
 
   it('should return customer by sector', async () => {
-    await CustomerHelper.getCustomersWithBilledEvents();
-    sinon.assert.calledWith(getCustomerWithBilledEvents, { isBilled: true, type: 'intervention' });
+    const credentials = { company: { _id: new ObjectID() } };
+    await CustomerHelper.getCustomersWithBilledEvents(credentials);
+    sinon.assert.calledWith(getCustomerWithBilledEvents, { isBilled: true, type: 'intervention', company: credentials.company._id });
   });
 });
 

@@ -61,8 +61,8 @@ exports.getDraftFinalPay = async (query, credentials) => {
     DistanceMatrix.find().lean(),
   ]);
 
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id));
-  const prevPayList = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix);
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id), companyId);
+  const prevPayList = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix, companyId);
 
   const draftFinalPay = [];
   for (const auxiliary of auxiliaries) {

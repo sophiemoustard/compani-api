@@ -1,5 +1,6 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
+const { DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
@@ -184,6 +185,8 @@ const contractEvents = [
     company: authCompany._id,
     sector: new ObjectID(),
     type: 'absence',
+    absence: PAID_LEAVE,
+    absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
     auxiliary: contractUser._id,

@@ -114,7 +114,7 @@ const CustomerSchema = mongoose.Schema({
 const countSubscriptionUsage = async (doc) => {
   if (doc && doc.subscriptions && doc.subscriptions.length > 0) {
     for (const subscription of doc.subscriptions) {
-      subscription.eventCount = await Event.countDocuments({ subscription: subscription._id });
+      subscription.eventCount = await Event.countDocuments({ subscription: subscription._id, company: doc.company });
     }
   }
 };

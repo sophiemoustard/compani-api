@@ -62,8 +62,9 @@ const getServiceName = (service) => {
   return lastVersion.name;
 };
 
-exports.exportWorkingEventsHistory = async (startDate, endDate) => {
-  const events = await EventRepository.getWorkingEventsForExport(startDate, endDate);
+exports.exportWorkingEventsHistory = async (startDate, endDate, credentials) => {
+  const companyId = get(credentials, 'company._id');
+  const events = await EventRepository.getWorkingEventsForExport(startDate, endDate, companyId);
 
   const rows = [workingEventExportHeader];
   for (const event of events) {

@@ -135,13 +135,18 @@ exports.createVersion = async (contractId, versionPayload) => {
   return Contract.findOneAndUpdate({ _id: contractId }, { $push: { versions: versionToAdd } }).lean();
 };
 
-exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex) => {
+exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex, credentials) => {
   if (versionIndex !== 0) return true;
   if (contract.endDate) return false;
 
   const { status, user } = contract;
   const { startDate } = versionToUpdate;
-  const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates({ status, auxiliary: user, endDate: startDate });
+  const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates({
+    status,
+    auxiliary: user,
+    endDate: startDate,
+    company: get(credentials, 'company._id', null),
+  });
 
   return eventsCount === 0;
 };
@@ -182,11 +187,11 @@ exports.formatVersionEditionPayload = async (oldVersion, newVersion, versionInde
   return payload;
 };
 
-exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
+exports.updateVersion = async (contractId, versionId, versionToUpdate, credentials) => {
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
 
-  const canUpdate = await exports.canUpdateVersion(contract, versionToUpdate, index);
+  const canUpdate = await exports.canUpdateVersion(contract, versionToUpdate, index, credentials);
   if (!canUpdate) throw Boom.badData();
 
   const payload = await exports.formatVersionEditionPayload(contract.versions[index], versionToUpdate, index);
@@ -198,7 +203,7 @@ exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
   return Contract.findOneAndUpdate({ _id: contractId }, { ...pick(payload, ['$set', '$push']) }).lean();
 };
 
-exports.deleteVersion = async (contractId, versionId) => {
+exports.deleteVersion = async (contractId, versionId, credentials) => {
   const contract = await Contract.findOne({ _id: contractId, 'versions.0': { $exists: true } });
   if (!contract) return null;
 
@@ -212,7 +217,7 @@ exports.deleteVersion = async (contractId, versionId) => {
     contract.save();
   } else {
     const { user, startDate, status, customer } = contract;
-    const query = { auxiliary: user, startDate, status };
+    const query = { auxiliary: user, startDate, status, company: get(credentials, 'company._id', null) };
     if (customer) query.customer = customer;
     const eventCount = await EventRepository.countAuxiliaryEventsBetweenDates(query);
     if (eventCount) throw Boom.forbidden();

@@ -1,5 +1,6 @@
 const flat = require('flat');
 const Boom = require('boom');
+const { ObjectID } = require('mongodb');
 const crypto = require('crypto');
 const moment = require('moment');
 const has = require('lodash/has');
@@ -29,14 +30,15 @@ exports.getCustomerBySector = async (query, credentials) => {
     type: INTERVENTION,
     sector: query.sector,
   }, credentials);
-  return EventRepository.getCustomersFromEvent({ ...queryCustomer }, get(credentials, 'company._id', null));
+  const companyId = get(credentials, 'company._id', null);
+  return EventRepository.getCustomersFromEvent({ ...queryCustomer, company: new ObjectID(companyId) });
 };
 
 exports.getCustomersWithBilledEvents = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const query = { isBilled: true, type: INTERVENTION };
+  const query = { isBilled: true, type: INTERVENTION, company: new ObjectID(companyId) };
 
-  return EventRepository.getCustomerWithBilledEvents(query, companyId);
+  return EventRepository.getCustomerWithBilledEvents(query);
 };
 
 exports.getCustomers = async (query) => {
