@@ -1,47 +1,50 @@
 const mongoose = require('mongoose');
 const { COMPANI, OGUST } = require('../helpers/constants');
-const { SERVICE_NATURES } = require('./Service');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
+const { SERVICE_NATURES } = require('./Service');
 const { validatePayload } = require('./preHooks/validate');
 
 const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
 
 const CreditNoteSchema = mongoose.Schema({
   number: String,
-  date: Date,
+  date: { type: Date, required: true },
   startDate: Date,
   endDate: Date,
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
   exclTaxesCustomer: Number,
   inclTaxesCustomer: Number,
-  exclTaxesTpp: Number,
-  inclTaxesTpp: Number,
+  exclTaxesTpp: { type: Number, required: () => !!this.thirdPartyPayer },
+  inclTaxesTpp: { type: Number, required: () => !!this.thirdPartyPayer },
   events: [{
-    eventId: { type: mongoose.Schema.Types.ObjectId },
-    auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    serviceName: String,
-    startDate: { type: Date },
-    endDate: { type: Date },
+    eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    serviceName: { type: String, required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
     bills: {
-      inclTaxesCustomer: Number,
-      exclTaxesCustomer: Number,
-      thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
-      inclTaxesTpp: Number,
-      exclTaxesTpp: Number,
-      fundingId: { type: mongoose.Schema.Types.ObjectId },
-      nature: String,
-      careHours: Number,
-      surcharges: billEventSurchargesSchemaDefinition,
+      type: mongoose.Schema({
+        inclTaxesCustomer: Number,
+        exclTaxesCustomer: Number,
+        thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
+        inclTaxesTpp: Number,
+        exclTaxesTpp: Number,
+        fundingId: { type: mongoose.Schema.Types.ObjectId },
+        nature: String,
+        careHours: Number,
+        surcharges: billEventSurchargesSchemaDefinition,
+      }, { id: false }),
+      required: true,
     },
   }],
   subscription: {
     _id: { type: mongoose.Schema.Types.ObjectId },
     service: {
-      serviceId: { type: mongoose.Schema.Types.ObjectId },
-      nature: { type: String, enum: SERVICE_NATURES, required: !!this.serviceId },
-      name: String,
+      serviceId: { type: mongoose.Schema.Types.ObjectId, required: () => !!this.subscription },
+      nature: { type: String, enum: SERVICE_NATURES, required: () => !!this.subscription },
+      name: { type: String, required: () => !!this.subscription },
     },
     vat: Number,
     unitInclTaxes: Number,

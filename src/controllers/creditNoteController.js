@@ -34,8 +34,9 @@ const list = async (req) => {
     }
 
     return {
-      message:
-        creditNotes.length === 0 ? translate[language].creditNotesNotFound : translate[language].creditNotesFound,
+      message: creditNotes.length === 0
+        ? translate[language].creditNotesNotFound
+        : translate[language].creditNotesFound,
       data: { creditNotes },
     };
   } catch (e) {

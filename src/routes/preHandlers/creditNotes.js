@@ -40,8 +40,10 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   if (creditNote.customer) {
     const customer = await Customer.findOne(({ _id: creditNote.customer, company: companyId })).lean();
     if (!customer) throw Boom.forbidden();
-    const subscriptionsIds = customer.subscriptions.map(subscription => subscription._id.toHexString());
-    if (!(subscriptionsIds.includes(creditNote.subscription._id))) throw Boom.forbidden();
+    if (creditNote.subscription) {
+      const subscriptionsIds = customer.subscriptions.map(subscription => subscription._id.toHexString());
+      if (!(subscriptionsIds.includes(creditNote.subscription._id))) throw Boom.forbidden();
+    }
   }
 
   if (creditNote.thirdPartyPayer) {
@@ -51,8 +53,8 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
 
   if (creditNote.events && creditNote.events.length) {
     const eventsIds = creditNote.events.map(ev => ev.eventId);
-    const eventsCheckCount = await Event.countDocuments({ _id: { $in: eventsIds }, company: companyId });
-    if (eventsCheckCount !== eventsIds.length) throw Boom.forbidden();
+    const eventsCount = await Event.countDocuments({ _id: { $in: eventsIds }, company: companyId });
+    if (eventsCount !== eventsIds.length) throw Boom.forbidden();
   }
 
   return null;

@@ -133,11 +133,21 @@ const creditNotesList = [
       auxiliary: creditNoteEvent.auxiliary,
       startDate: creditNoteEvent.startDate,
       endDate: creditNoteEvent.endDate,
+      serviceName: 'toto',
       bills: {
         inclTaxesCustomer: 10,
         exclTaxesCustomer: 8,
       },
     }],
+    subscription: {
+      _id: creditNoteCustomer.subscriptions[0]._id,
+      service: {
+        serviceId: creditNoteService._id,
+        nature: 'fixed',
+        name: 'toto',
+      },
+      vat: 5.5,
+    },
     origin: 'compani',
     company: authCompany._id,
   },
@@ -164,6 +174,7 @@ const otherCompanyService = {
     name: 'Service 2',
     startDate: '2019-01-16 17:58:15.519',
     vat: 5.5,
+    exemptFromCharges: false,
   }],
   nature: HOURLY,
 };

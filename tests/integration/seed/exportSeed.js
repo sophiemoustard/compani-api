@@ -523,11 +523,25 @@ const creditNotesList = [
     inclTaxes: 112,
     events: [{
       eventId: new ObjectID(),
+      serviceName: 'Temps de qualité - autonomie',
       startDate: '2019-01-16T10:30:19.543Z',
       endDate: '2019-01-16T12:30:21.653Z',
       auxiliary: new ObjectID(),
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
+      },
     }],
     origin: 'compani',
+    subscription: {
+      _id: customer.subscriptions[0]._id,
+      service: {
+        serviceId: new ObjectID(),
+        nature: 'fixed',
+        name: 'toto',
+      },
+      vat: 5.5,
+    },
   },
 ];
 
