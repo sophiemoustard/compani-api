@@ -2,6 +2,7 @@ const Boom = require('boom');
 const Bill = require('../../models/Bill');
 const Customer = require('../../models/Customer');
 const Event = require('../../models/Event');
+const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const translate = require('../../helpers/translate');
 
 const { language } = translate;
@@ -40,7 +41,7 @@ exports.authorizeBillCreation = async (req) => {
   const customerCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: companyId });
   if (customerCount !== customersIds.length) throw Boom.forbidden();
 
-  const ids = { subscriptionsIds: new Set(), eventsIds: new Set() };
+  const ids = { subscriptionsIds: new Set(), eventsIds: new Set(), tppIds: new Set() };
 
   for (const bill of bills) {
     for (const customerBill of bill.customerBills.bills) {
@@ -53,6 +54,7 @@ exports.authorizeBillCreation = async (req) => {
         for (const tppBill of tpp.bills) {
           ids.eventsIds.add(...tppBill.eventsList.map(ev => ev.event));
           ids.subscriptionsIds.add(tppBill.subscription._id);
+          ids.tppIds.add(tppBill.thirdPartyPayer._id);
         }
       }
     }
@@ -65,6 +67,8 @@ exports.authorizeBillCreation = async (req) => {
     company: companyId,
   });
   if (subscriptionsCount !== ids.subscriptionsIds.size) throw Boom.forbidden();
+  const tppCount = await ThirdPartyPayer.countDocuments({ _id: { $in: [...ids.tppIds] }, company: companyId });
+  if (tppCount !== ids.tppIds.size) throw Boom.forbidden();
 
   return null;
 };
