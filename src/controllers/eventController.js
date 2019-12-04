@@ -20,7 +20,7 @@ const list = async (req) => {
     } else if (groupBy === AUXILIARY) {
       events = await getEventsGroupedByAuxiliaries(query);
     } else {
-      events = await getEventList(query, req.auth.credentials);
+      events = await getEventList(query);
       events = await EventsHelper.populateEvents(events);
     }
 

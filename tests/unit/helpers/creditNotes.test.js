@@ -393,7 +393,7 @@ describe('createCreditNotes', () => {
       1
     );
     sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesTpp: 1234 }]);
-    sinon.assert.calledWithExactly(updateEventAndFundingHistory, [{ _id: 'asdfghjkl' }], false);
+    sinon.assert.calledWithExactly(updateEventAndFundingHistory, [{ _id: 'asdfghjkl' }], false, credentials);
     sinon.assert.calledWithExactly(
       findOneAndUpdateNumber.getCall(0),
       { prefix },
