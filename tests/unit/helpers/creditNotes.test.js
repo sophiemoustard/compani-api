@@ -89,7 +89,7 @@ describe('getCreditNotes', () => {
     sinon.assert.calledWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
   });
 
-  it('should get not call populatyeSubscriptionsService if no creditNotes', async () => {
+  it('should not call populateSubscriptionsService if no creditNotes', async () => {
     const payload = {
       customer: customerId,
       startDate: '2019-07-30T00:00:00',

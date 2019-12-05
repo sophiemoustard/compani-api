@@ -530,16 +530,16 @@ describe('getBalancesWithDetails', () => {
     const query = { customer: new ObjectID(), startDate: '2019-12-01', endDate: '2019-12-05' };
 
     getBalancesStub.returns({ balance: 10 });
-    getBillsStub.returns({ bills: [] });
-    getPaymentsStub.returns({ payments: [] });
-    getCreditNotesStub.returns({ creditNotes: [] });
+    getBillsStub.returns([{ name: 'bills' }]);
+    getPaymentsStub.returns([{ name: 'payments' }]);
+    getCreditNotesStub.returns([{ name: 'creditNotes' }]);
 
     const result = await BalanceHelper.getBalancesWithDetails(query, credentials);
 
     expect(result.balances).toEqual({ balance: 10 });
-    expect(result.bills).toEqual({ bills: [] });
-    expect(result.payments).toEqual({ payments: [] });
-    expect(result.creditNotes).toEqual({ creditNotes: [] });
+    expect(result.bills).toEqual([{ name: 'bills' }]);
+    expect(result.payments).toEqual([{ name: 'payments' }]);
+    expect(result.creditNotes).toEqual([{ name: 'creditNotes' }]);
     getBalancesStub.calledWithExactly(credentials, query.customer, query.startDate);
     getBillsStub.calledWithExactly(query, credentials);
     getPaymentsStub.calledWithExactly(query, credentials);

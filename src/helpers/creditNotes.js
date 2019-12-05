@@ -12,9 +12,9 @@ const { HOURLY, CIVILITY_LIST } = require('./constants');
 exports.getCreditNotes = async (payload, credentials) => {
   const { startDate, endDate, ...query } = payload;
   if (startDate || endDate) query.date = UtilsHelper.getDateQuery({ startDate, endDate });
+  query.company = get(credentials, 'company._id', null);
 
-  const companyId = get(credentials, 'company._id', null);
-  const creditNotes = await CreditNote.find({ ...query, company: companyId })
+  const creditNotes = await CreditNote.find(query)
     .populate({
       path: 'customer',
       select: '_id identity subscriptions',

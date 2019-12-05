@@ -121,10 +121,18 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
 };
 
 exports.getBalancesWithDetails = async (query, credentials) => {
-  const balances = await exports.getBalances(credentials, query.customer, query.startDate);
-  const bills = await BillHelper.getBills(query, credentials);
-  const payments = await PaymentHelper.getPayments(query, credentials);
-  const creditNotes = await CreditNoteHelper.getCreditNotes(query, credentials);
+  let balances;
+  let bills;
+  let payments;
+  let creditNotes;
+  await Promise.all([
+    await exports.getBalances(credentials, query.customer, query.startDate),
+    await BillHelper.getBills(query, credentials),
+    await PaymentHelper.getPayments(query, credentials),
+    await CreditNoteHelper.getCreditNotes(query, credentials),
+  ]).then((values) => {
+    [balances, bills, payments, creditNotes] = values;
+  });
 
   return { balances, bills, payments, creditNotes };
 };
