@@ -25,10 +25,14 @@ exports.authorizeCreditNoteReading = async (req) => {
   const { credentials } = req.auth;
   const { creditNote } = req.pre;
 
-  if (credentials.scope.includes('bills:read')) return null;
-  if (credentials.scope.includes(`customer-${creditNote.customer.toHexString()}`)) return null;
+  const canRead = credentials.scope.includes('bills:read');
+  const isHelpersCustomer = credentials.scope.includes(`customer-${creditNote.customer.toHexString()}`);
 
-  throw Boom.forbidden();
+  const customer = await Customer.findOne({ _id: creditNote.customer, company: credentials.company._id }).lean();
+  if (!customer) throw Boom.forbidden();
+  if (!canRead && !isHelpersCustomer) throw Boom.forbidden();
+
+  return null;
 };
 
 

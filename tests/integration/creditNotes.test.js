@@ -13,9 +13,10 @@ const {
   otherCompanyThirdPartyPayer,
   otherCompanyEvent,
   otherCompanyUser,
+  otherCompanyCreditNote,
 } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -71,7 +72,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const creditNotes = await CreditNote.find();
+      const creditNotes = await CreditNote.find({ company: authCompany });
       expect(creditNotes.filter(cn => cn.linkedCreditNote)).toBeDefined();
       expect(creditNotes.filter(cn => cn.linkedCreditNote).length).toEqual(2);
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
@@ -87,7 +88,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const creditNotes = await CreditNote.find();
+      const creditNotes = await CreditNote.find({ company: authCompany._id });
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
     });
 
@@ -349,6 +350,26 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it('should get credit note pdf', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/creditNotes/${creditNotesList[0]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 error if customer is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/creditNotes/${otherCompanyCreditNote._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
