@@ -22,25 +22,17 @@ exports.getBill = async (req) => {
 exports.authorizeBillReading = async (req) => {
   const { credentials } = req.auth;
   const { bill } = req.pre;
+  const canRead = credentials.scope.includes('bills:read');
+  const isHelpersCustomer = credentials.scope.includes(`customer-${bill.customer.toHexString()}`);
 
   const customer = await Customer.findOne({ _id: bill.customer, company: credentials.company._id }).lean();
   if (!customer) throw Boom.forbidden();
-  if (!credentials.scope.includes('bills:read')) {
-    if (!credentials.scope.includes(`customer-${bill.customer.toHexString()}`)) throw Boom.forbidden();
-  }
+  if (!canRead && !isHelpersCustomer) throw Boom.forbidden();
 
   return null;
 };
 
-exports.authorizeBillCreation = async (req) => {
-  const { credentials } = req.auth;
-  const { bills } = req.payload;
-  const companyId = credentials.company._id;
-
-  const customersIds = [...new Set(bills.map(bill => bill.customerId))];
-  const customerCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: companyId });
-  if (customerCount !== customersIds.length) throw Boom.forbidden();
-
+const getUniqueIdsFromBills = (bills) => {
   const ids = { subscriptionsIds: new Set(), eventsIds: new Set(), tppIds: new Set() };
 
   for (const bill of bills) {
@@ -59,6 +51,20 @@ exports.authorizeBillCreation = async (req) => {
       }
     }
   }
+
+  return ids;
+};
+
+exports.authorizeBillsCreation = async (req) => {
+  const { credentials } = req.auth;
+  const { bills } = req.payload;
+  const companyId = credentials.company._id;
+
+  const customersIds = [...new Set(bills.map(bill => bill.customerId))];
+  const customerCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: companyId });
+  if (customerCount !== customersIds.length) throw Boom.forbidden();
+
+  const ids = getUniqueIdsFromBills(bills);
 
   const eventsCount = await Event.countDocuments({ _id: { $in: [...ids.eventsIds] }, company: companyId });
   if (eventsCount !== ids.eventsIds.size) throw Boom.forbidden();

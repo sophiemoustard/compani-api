@@ -377,6 +377,43 @@ describe('BILL ROUTES - POST /bills', () => {
 
       expect(response.statusCode).toBe(403);
     });
+
+    it('should return a 403 error if at least one bill subscription is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: {
+          bills: [{
+            ...payload[0],
+            customerBills: {
+              ...payload[0].customerBills,
+              bills: [{
+                ...payload[0].customerBills.bills[0],
+                subscription: {
+                  _id: billCustomerList[2].subscriptions[0]._id,
+                  service: billServices[1],
+                  versions: [
+                    {
+                      _id: '5ccbfcf4bffe7646a387b456',
+                      unitTTCRate: 12,
+                      estimatedWeeklyVolume: 12,
+                      evenings: 2,
+                      sundays: 1,
+                      startDate: '2019-04-03T08:33:55.370Z',
+                      createdAt: '2019-05-03T08:33:56.144Z',
+                    },
+                  ],
+                  createdAt: '2019-05-03T08:33:56.144Z',
+                },
+              }],
+            },
+          }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -421,7 +458,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should a 403 error if bill customer is not from same company', async () => {
+    it('should return a 403 error if bill customer is not from same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/bills/${billsList[0]._id}/pdfs`,
