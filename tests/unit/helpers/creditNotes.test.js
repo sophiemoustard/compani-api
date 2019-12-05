@@ -5,10 +5,121 @@ const FundingHistory = require('../../../src/models/FundingHistory');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const CreditNote = require('../../../src/models/CreditNote');
 const Event = require('../../../src/models/Event');
-const CreditNoteHelper = require('../../../src/helpers/creditNotes');
+const CreditNotesHelper = require('../../../src/helpers/creditNotes');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
+const SubscriptionHelper = require('../../../src/helpers/subscriptions');
 const moment = require('moment');
+
+require('sinon-mongoose');
+
+describe('getCreditNotes', () => {
+  let getDateQueryStub;
+  let CreditNoteMock;
+  let populateSubscriptionsServicesStub;
+  const companyId = new ObjectID();
+  const credentials = { company: { _id: companyId } };
+  const customerId = new ObjectID();
+
+  beforeEach(() => {
+    getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
+    populateSubscriptionsServicesStub = sinon.stub(SubscriptionHelper, 'populateSubscriptionsServices');
+    CreditNoteMock = sinon.mock(CreditNote);
+  });
+  afterEach(() => {
+    getDateQueryStub.restore();
+    CreditNoteMock.restore();
+    populateSubscriptionsServicesStub.restore();
+  });
+
+  it('should get all credit notes', async () => {
+    const payload = {
+      customer: customerId,
+      startDate: '2019-07-30T00:00:00',
+      endDate: '2019-08-30T00:00:00',
+    };  
+    const dateQuery = {
+      $lte: moment(payload.endDate).endOf('day').toISOString(),
+      $gte: moment(payload.startDate).startOf('day').toISOString(),
+    };
+    getDateQueryStub.returns(dateQuery);
+    const query = { date: dateQuery, customer: customerId, company: companyId };
+    CreditNoteMock.expects('find')
+      .withExactArgs(query)
+      .chain('populate')
+      .withExactArgs({
+        path: 'customer',
+        select: '_id identity subscriptions',
+        populate: { path: 'subscriptions.service' },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
+      .chain('lean')
+      .returns([{ customer: { _id: customerId } }]);
+    populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
+
+    const result = await CreditNotesHelper.getCreditNotes(payload, credentials);
+    expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
+    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
+    sinon.assert.calledWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
+  });
+
+  it('should not call getDateQuery if no date in payload', async () => {
+    const payload = {
+      customer: customerId,
+    };
+    const query = { customer: customerId, company: companyId };
+    CreditNoteMock.expects('find')
+      .withExactArgs(query)
+      .chain('populate')
+      .withExactArgs({
+        path: 'customer',
+        select: '_id identity subscriptions',
+        populate: { path: 'subscriptions.service' },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
+      .chain('lean')
+      .returns([{ customer: { _id: customerId } }]);
+    populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
+
+    const result = await CreditNotesHelper.getCreditNotes(payload, credentials);
+    expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
+    sinon.assert.notCalled(getDateQueryStub);
+    sinon.assert.calledWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
+  });
+
+  it('should get not call populatyeSubscriptionsService if no creditNotes', async () => {
+    const payload = {
+      customer: customerId,
+      startDate: '2019-07-30T00:00:00',
+      endDate: '2019-08-30T00:00:00',
+    };
+    const dateQuery = {
+      $lte: moment(payload.endDate).endOf('day').toISOString(),
+      $gte: moment(payload.startDate).startOf('day').toISOString(),
+    };
+    getDateQueryStub.returns(dateQuery);
+    const query = { date: dateQuery, customer: customerId, company: companyId };
+    CreditNoteMock.expects('find')
+      .withExactArgs(query)
+      .chain('populate')
+      .withExactArgs({
+        path: 'customer',
+        select: '_id identity subscriptions',
+        populate: { path: 'subscriptions.service' },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
+      .chain('lean')
+      .returns([]);
+
+    const result = await CreditNotesHelper.getCreditNotes(payload, credentials);
+    expect(result).toEqual([]);
+    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
+    sinon.assert.notCalled(populateSubscriptionsServicesStub);
+  });
+});
 
 describe('updateEventAndFundingHistory', () => {
   let findOneAndUpdate = null;
@@ -39,7 +150,7 @@ describe('updateEventAndFundingHistory', () => {
     findOneAndUpdate.returns(null);
     const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
+    await CreditNotesHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
@@ -67,7 +178,7 @@ describe('updateEventAndFundingHistory', () => {
     findOneAndUpdate.returns(new FundingHistory());
     const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
+    await CreditNotesHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
@@ -90,7 +201,7 @@ describe('updateEventAndFundingHistory', () => {
     findOneAndUpdate.returns(null);
     const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
+    await CreditNotesHelper.updateEventAndFundingHistory([], true, credentials);
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
@@ -113,7 +224,7 @@ describe('updateEventAndFundingHistory', () => {
     findOneAndUpdate.returns(new FundingHistory());
     const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
+    await CreditNotesHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
@@ -201,7 +312,7 @@ describe('formatPDF', () => {
     formatPrice.onCall(2).returns('234,00 €');
     formatEventSurchargesForPdf.returns([{ percentage: 30, startHour: '19h' }]);
 
-    const result = CreditNoteHelper.formatPDF(creditNote, {});
+    const result = CreditNotesHelper.formatPDF(creditNote, {});
 
     expect(result).toEqual(expectedResult);
     sinon.assert.calledWith(formatEventSurchargesForPdf, [{ percentage: 30 }]);
@@ -268,7 +379,7 @@ describe('formatPDF', () => {
     formatPrice.onCall(1).returns('21,00 €');
     formatPrice.onCall(2).returns('34,00 €');
 
-    const result = CreditNoteHelper.formatPDF(creditNote, {});
+    const result = CreditNotesHelper.formatPDF(creditNote, {});
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
@@ -298,7 +409,7 @@ describe('formatPDF', () => {
 
     formatPrice.onCall(0).returns('12,00 €');
 
-    const result = CreditNoteHelper.formatPDF(creditNote, {});
+    const result = CreditNotesHelper.formatPDF(creditNote, {});
 
     expect(result).toBeDefined();
     expect(result.creditNote.subscription).toBeDefined();
@@ -317,9 +428,9 @@ describe('createCreditNotes', () => {
 
   beforeEach(() => {
     findOneAndUpdateNumber = sinon.stub(CreditNoteNumber, 'findOneAndUpdate');
-    formatCreditNote = sinon.stub(CreditNoteHelper, 'formatCreditNote');
+    formatCreditNote = sinon.stub(CreditNotesHelper, 'formatCreditNote');
     insertManyCreditNote = sinon.stub(CreditNote, 'insertMany');
-    updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
+    updateEventAndFundingHistory = sinon.stub(CreditNotesHelper, 'updateEventAndFundingHistory');
   });
   afterEach(() => {
     findOneAndUpdateNumber.restore();
@@ -337,7 +448,7 @@ describe('createCreditNotes', () => {
     findOneAndUpdateNumber.onCall(0).returns({ seq: 1, prefix });
     formatCreditNote.returns({ inclTaxesCustomer: 1234 });
 
-    await CreditNoteHelper.createCreditNotes(payload, credentials);
+    await CreditNotesHelper.createCreditNotes(payload, credentials);
 
     sinon.assert.calledWithExactly(
       formatCreditNote,
@@ -376,7 +487,7 @@ describe('createCreditNotes', () => {
     findOneAndUpdateNumber.onCall(0).returns({ seq: 1, prefix });
     formatCreditNote.returns({ inclTaxesTpp: 1234 });
 
-    await CreditNoteHelper.createCreditNotes(payload, credentials);
+    await CreditNotesHelper.createCreditNotes(payload, credentials);
 
     sinon.assert.calledWithExactly(
       formatCreditNote,
@@ -418,7 +529,7 @@ describe('createCreditNotes', () => {
     formatCreditNote.onCall(0).returns({ _id: '1234', inclTaxesCustomer: 32 });
     formatCreditNote.onCall(1).returns({ _id: '0987', inclTaxesTpp: 1234 });
 
-    await CreditNoteHelper.createCreditNotes(payload, credentials);
+    await CreditNotesHelper.createCreditNotes(payload, credentials);
 
     sinon.assert.calledWithExactly(
       formatCreditNote.getCall(0),

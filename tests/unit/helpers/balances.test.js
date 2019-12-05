@@ -5,6 +5,9 @@ const moment = require('moment');
 const _ = require('lodash');
 
 const BalanceHelper = require('../../../src/helpers/balances');
+const BillHelper = require('../../../src/helpers/bills');
+const PaymentHelper = require('../../../src/helpers/payments');
+const CreditNoteHelper = require('../../../src/helpers/creditNotes');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const CreditNoteRepository = require('../../../src/repositories/CreditNoteRepository');
 const PaymentRepository = require('../../../src/repositories/PaymentRepository');
@@ -500,5 +503,46 @@ describe('getBalances', () => {
     sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, customerId, maxDate);
     sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, customerId, maxDate);
     sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+  });
+});
+
+describe('getBalancesWithDetails', () => {
+  let getBalancesStub;
+  let getBillsStub;
+  let getPaymentsStub;
+  let getCreditNotesStub;
+
+  beforeEach(() => {
+    getBalancesStub = sinon.stub(BalanceHelper, 'getBalances');
+    getBillsStub = sinon.stub(BillHelper, 'getBills');
+    getPaymentsStub = sinon.stub(PaymentHelper, 'getPayments');
+    getCreditNotesStub = sinon.stub(CreditNoteHelper, 'getCreditNotes');
+  });
+  afterEach(() => {
+    getBalancesStub.restore();
+    getBillsStub.restore();
+    getPaymentsStub.restore();
+    getCreditNotesStub.restore();
+  });
+
+  it('should get balances with details', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const query = { customer: new ObjectID(), startDate: '2019-12-01', endDate: '2019-12-05' };
+
+    getBalancesStub.returns({ balance: 10 });
+    getBillsStub.returns({ bills: [] });
+    getPaymentsStub.returns({ payments: [] });
+    getCreditNotesStub.returns({ creditNotes: [] });
+
+    const result = await BalanceHelper.getBalancesWithDetails(query, credentials);
+
+    expect(result.balances).toEqual({ balance: 10 });
+    expect(result.bills).toEqual({ bills: [] });
+    expect(result.payments).toEqual({ payments: [] });
+    expect(result.creditNotes).toEqual({ creditNotes: [] });
+    getBalancesStub.calledWithExactly(credentials, query.customer, query.startDate);
+    getBillsStub.calledWithExactly(query, credentials);
+    getPaymentsStub.calledWithExactly(query, credentials);
+    getCreditNotesStub.calledWithExactly(query, credentials);
   });
 });
