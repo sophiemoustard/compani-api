@@ -430,6 +430,7 @@ describe('USERS ROUTES', () => {
           }),
           local: expect.objectContaining({ email: usersSeedList[0].local.email }),
           role: expect.objectContaining({ name: 'auxiliary' }),
+          isActive: expect.any(Boolean),
         }));
       });
 
