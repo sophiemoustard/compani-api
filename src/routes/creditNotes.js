@@ -162,6 +162,10 @@ exports.plugin = {
             }),
           }),
         },
+        pre: [
+          { method: getCreditNote, assign: 'creditNote' },
+          { method: authorizeCreditNoteCreationOrUpdate },
+        ],
       },
     });
 

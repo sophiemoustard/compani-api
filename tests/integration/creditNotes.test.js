@@ -388,7 +388,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  const payload = {
+  let payload = {
     date: '2019-07-19T14:00:18',
     startDate: '2019-07-01T00:00:00',
     endDate: '2019-07-31T23:59:59',
@@ -423,6 +423,57 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if customer is not from same company', async () => {
+      payload = { customer: otherCompanyCustomer._id };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if third party payer is not from same company', async () => {
+      payload = { exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: otherCompanyThirdPartyPayer._id };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if at least one event is not from same company', async () => {
+      payload = {
+        events: [{
+          eventId: otherCompanyEvent._id,
+          auxiliary: new ObjectID(),
+          startDate: otherCompanyEvent.startDate,
+          endDate: otherCompanyEvent.endDate,
+          serviceName: 'tata',
+          bills: {
+            inclTaxesCustomer: 10,
+            exclTaxesCustomer: 8,
+          },
+        }],
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

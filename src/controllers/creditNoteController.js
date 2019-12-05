@@ -41,15 +41,12 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    let creditNote = await CreditNote.findOne({ _id: req.params._id }).lean();
-    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
-
-    creditNote = await updateCreditNotes(creditNote, req.payload, req.auth.credentials);
+    const { creditNote } = req.pre;
+    const updatedCreditNote = await updateCreditNotes(creditNote, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteUpdated,
-      data: { creditNote },
+      data: { creditNote: updatedCreditNote },
     };
   } catch (e) {
     req.log('error', e);

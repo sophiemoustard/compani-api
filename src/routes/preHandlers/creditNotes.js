@@ -5,6 +5,7 @@ const Customer = require('../../models/Customer');
 const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Event = require('../../models/Event');
 const translate = require('../../helpers/translate');
+const { COMPANI } = require('../../helpers/constants');
 
 const { language } = translate;
 
@@ -30,29 +31,34 @@ exports.authorizeCreditNoteReading = async (req) => {
   throw Boom.forbidden();
 };
 
+
 exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const { credentials } = req.auth;
-  const creditNote = req.pre.creditNote || req.payload;
+  const { creditNote } = req.pre;
+  const { payload } = req;
   const companyId = get(credentials, 'company._id', null);
 
   if (!credentials.scope.includes('bills:edit')) throw Boom.forbidden();
+  if (creditNote && creditNote.origin !== COMPANI) {
+    return Boom.forbidden(translate[language].creditNoteNotCompani);
+  }
 
-  if (creditNote.customer) {
-    const customer = await Customer.findOne(({ _id: creditNote.customer, company: companyId })).lean();
+  if (payload.customer) {
+    const customer = await Customer.findOne(({ _id: payload.customer, company: companyId })).lean();
     if (!customer) throw Boom.forbidden();
-    if (creditNote.subscription) {
+    if (payload.subscription) {
       const subscriptionsIds = customer.subscriptions.map(subscription => subscription._id.toHexString());
-      if (!(subscriptionsIds.includes(creditNote.subscription._id))) throw Boom.forbidden();
+      if (!subscriptionsIds.includes(payload.subscription._id)) throw Boom.forbidden();
     }
   }
 
-  if (creditNote.thirdPartyPayer) {
-    const tpp = await ThirdPartyPayer.findOne(({ _id: creditNote.thirdPartyPayer, company: companyId })).lean();
+  if (payload.thirdPartyPayer) {
+    const tpp = await ThirdPartyPayer.findOne(({ _id: payload.thirdPartyPayer, company: companyId })).lean();
     if (!tpp) throw Boom.forbidden();
   }
 
-  if (creditNote.events && creditNote.events.length) {
-    const eventsIds = creditNote.events.map(ev => ev.eventId);
+  if (payload.events && payload.events.length) {
+    const eventsIds = payload.events.map(ev => ev.eventId);
     const eventsCount = await Event.countDocuments({ _id: { $in: eventsIds }, company: companyId });
     if (eventsCount !== eventsIds.length) throw Boom.forbidden();
   }

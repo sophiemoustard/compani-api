@@ -39,17 +39,17 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
   for (const event of events) {
     if (event.bills.thirdPartyPayer && event.bills.fundingId) {
       if (event.bills.nature !== HOURLY) {
-        await FundingHistory.findOneAndUpdate(
+        await FundingHistory.updateOne(
           { fundingId: event.bills.fundingId },
           { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } }
         );
       } else {
-        let history = await FundingHistory.findOneAndUpdate(
+        const history = await FundingHistory.findOneAndUpdate(
           { fundingId: event.bills.fundingId, month: moment(event.startDate).format('MM/YYYY') },
           { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
         );
         if (!history) {
-          history = await FundingHistory.findOneAndUpdate(
+          await FundingHistory.updateOne(
             { fundingId: event.bills.fundingId },
             { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
           );
@@ -122,10 +122,10 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
 
     if (creditNoteFromDB.thirdPartyPayer) {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });
-      await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: customerPayload }, { new: true });
+      await CreditNote.updateOne(creditNoteFromDB.linkedCreditNote, { $set: customerPayload }, { new: true });
     } else {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: customerPayload }, { new: true });
-      await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: tppPayload }, { new: true });
+      await CreditNote.updateOne(creditNoteFromDB.linkedCreditNote, { $set: tppPayload }, { new: true });
     }
   }
 
