@@ -5,7 +5,7 @@ const FundingHistory = require('../../../src/models/FundingHistory');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const CreditNote = require('../../../src/models/CreditNote');
 const Event = require('../../../src/models/Event');
-const CreditNotesHelper = require('../../../src/helpers/creditNotes');
+const CreditNoteHelper = require('../../../src/helpers/creditNotes');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const SubscriptionHelper = require('../../../src/helpers/subscriptions');
@@ -58,7 +58,7 @@ describe('getCreditNotes', () => {
       .returns([{ customer: { _id: customerId } }]);
     populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
 
-    const result = await CreditNotesHelper.getCreditNotes(payload, credentials);
+    const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
     expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
     sinon.assert.calledWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
     sinon.assert.calledWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
@@ -83,7 +83,7 @@ describe('getCreditNotes', () => {
       .returns([{ customer: { _id: customerId } }]);
     populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
 
-    const result = await CreditNotesHelper.getCreditNotes(payload, credentials);
+    const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
     expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
     sinon.assert.notCalled(getDateQueryStub);
     sinon.assert.calledWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
@@ -114,7 +114,7 @@ describe('getCreditNotes', () => {
       .chain('lean')
       .returns([]);
 
-    const result = await CreditNotesHelper.getCreditNotes(payload, credentials);
+    const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
     expect(result).toEqual([]);
     sinon.assert.calledWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
     sinon.assert.notCalled(populateSubscriptionsServicesStub);
@@ -150,7 +150,7 @@ describe('updateEventAndFundingHistory', () => {
     findOneAndUpdate.returns(null);
     const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNotesHelper.updateEventAndFundingHistory([], false, credentials);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
@@ -178,7 +178,7 @@ describe('updateEventAndFundingHistory', () => {
     findOneAndUpdate.returns(new FundingHistory());
     const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNotesHelper.updateEventAndFundingHistory([], false, credentials);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
@@ -201,7 +201,7 @@ describe('updateEventAndFundingHistory', () => {
     findOneAndUpdate.returns(null);
     const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNotesHelper.updateEventAndFundingHistory([], true, credentials);
+    await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
     sinon.assert.callCount(findOneAndUpdate, 2);
     sinon.assert.calledWith(
       findOneAndUpdate.firstCall,
@@ -224,7 +224,7 @@ describe('updateEventAndFundingHistory', () => {
     findOneAndUpdate.returns(new FundingHistory());
     const credentials = { company: { _id: new ObjectID() } };
 
-    await CreditNotesHelper.updateEventAndFundingHistory([], false, credentials);
+    await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
     sinon.assert.callCount(findOneAndUpdate, 1);
     sinon.assert.calledWith(
       findOneAndUpdate,
@@ -312,7 +312,7 @@ describe('formatPDF', () => {
     formatPrice.onCall(2).returns('234,00 €');
     formatEventSurchargesForPdf.returns([{ percentage: 30, startHour: '19h' }]);
 
-    const result = CreditNotesHelper.formatPDF(creditNote, {});
+    const result = CreditNoteHelper.formatPDF(creditNote, {});
 
     expect(result).toEqual(expectedResult);
     sinon.assert.calledWith(formatEventSurchargesForPdf, [{ percentage: 30 }]);
@@ -379,7 +379,7 @@ describe('formatPDF', () => {
     formatPrice.onCall(1).returns('21,00 €');
     formatPrice.onCall(2).returns('34,00 €');
 
-    const result = CreditNotesHelper.formatPDF(creditNote, {});
+    const result = CreditNoteHelper.formatPDF(creditNote, {});
 
     expect(result).toBeDefined();
     expect(result).toEqual(expectedResult);
@@ -409,7 +409,7 @@ describe('formatPDF', () => {
 
     formatPrice.onCall(0).returns('12,00 €');
 
-    const result = CreditNotesHelper.formatPDF(creditNote, {});
+    const result = CreditNoteHelper.formatPDF(creditNote, {});
 
     expect(result).toBeDefined();
     expect(result.creditNote.subscription).toBeDefined();
@@ -428,9 +428,9 @@ describe('createCreditNotes', () => {
 
   beforeEach(() => {
     findOneAndUpdateNumber = sinon.stub(CreditNoteNumber, 'findOneAndUpdate');
-    formatCreditNote = sinon.stub(CreditNotesHelper, 'formatCreditNote');
+    formatCreditNote = sinon.stub(CreditNoteHelper, 'formatCreditNote');
     insertManyCreditNote = sinon.stub(CreditNote, 'insertMany');
-    updateEventAndFundingHistory = sinon.stub(CreditNotesHelper, 'updateEventAndFundingHistory');
+    updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
   });
   afterEach(() => {
     findOneAndUpdateNumber.restore();
@@ -448,7 +448,7 @@ describe('createCreditNotes', () => {
     findOneAndUpdateNumber.onCall(0).returns({ seq: 1, prefix });
     formatCreditNote.returns({ inclTaxesCustomer: 1234 });
 
-    await CreditNotesHelper.createCreditNotes(payload, credentials);
+    await CreditNoteHelper.createCreditNotes(payload, credentials);
 
     sinon.assert.calledWithExactly(
       formatCreditNote,
@@ -487,7 +487,7 @@ describe('createCreditNotes', () => {
     findOneAndUpdateNumber.onCall(0).returns({ seq: 1, prefix });
     formatCreditNote.returns({ inclTaxesTpp: 1234 });
 
-    await CreditNotesHelper.createCreditNotes(payload, credentials);
+    await CreditNoteHelper.createCreditNotes(payload, credentials);
 
     sinon.assert.calledWithExactly(
       formatCreditNote,
@@ -529,7 +529,7 @@ describe('createCreditNotes', () => {
     formatCreditNote.onCall(0).returns({ _id: '1234', inclTaxesCustomer: 32 });
     formatCreditNote.onCall(1).returns({ _id: '0987', inclTaxesTpp: 1234 });
 
-    await CreditNotesHelper.createCreditNotes(payload, credentials);
+    await CreditNoteHelper.createCreditNotes(payload, credentials);
 
     sinon.assert.calledWithExactly(
       formatCreditNote.getCall(0),
