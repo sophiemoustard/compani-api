@@ -4,9 +4,7 @@ const get = require('lodash/get');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { updateEventAndFundingHistory, createCreditNotes, updateCreditNotes } = require('../helpers/creditNotes');
-const { populateSubscriptionsServices } = require('../helpers/subscriptions');
-const { getDateQuery } = require('../helpers/utils');
+const { updateEventAndFundingHistory, createCreditNotes, updateCreditNotes, getCreditNotes } = require('../helpers/creditNotes');
 const { formatPDF } = require('../helpers/creditNotes');
 const { generatePdf } = require('../helpers/pdf');
 const { COMPANI } = require('../helpers/constants');
@@ -15,24 +13,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const { startDate, endDate, ...rest } = req.query;
-    const query = rest;
-    if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
-
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    const creditNotes = await CreditNote.find(query)
-      .populate({
-        path: 'customer',
-        select: '_id identity subscriptions',
-        populate: { path: 'subscriptions.service', match: { company: companyId } },
-      })
-      .populate({ path: 'thirdPartyPayer', select: '_id name', match: { company: companyId } })
-      .lean();
-
-    for (let i = 0, l = creditNotes.length; i < l; i++) {
-      creditNotes[i].customer = populateSubscriptionsServices({ ...creditNotes[i].customer });
-    }
-
+    const creditNotes = await getCreditNotes(req.query, req.auth.credentials);
     return {
       message: creditNotes.length === 0
         ? translate[language].creditNotesNotFound

@@ -1,6 +1,6 @@
 const Boom = require('boom');
 
-const { getBalances } = require('../helpers/balances');
+const { getBalances, getBalancesWithDetails } = require('../helpers/balances');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
@@ -21,6 +21,21 @@ const list = async (req) => {
   }
 };
 
+const listWithDetails = async (req) => {
+  try {
+    const balancesWithDetails = await getBalancesWithDetails(req.query, req.auth.credentials);
+
+    return {
+      message: translate[language].balancesFound,
+      data: balancesWithDetails,
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   list,
+  listWithDetails,
 };

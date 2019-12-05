@@ -4,9 +4,32 @@ const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
+const { populateSubscriptionsServices } = require('../helpers/subscriptions');
+const { getDateQuery } = require('../helpers/utils');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
+
+exports.getCreditNotes = async (payload, credentials) => {
+  const { startDate, endDate, ...query } = payload;
+  if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
+
+  const companyId = get(credentials, 'company._id', null);
+  const creditNotes = await CreditNote.find(query)
+    .populate({
+      path: 'customer',
+      select: '_id identity subscriptions',
+      populate: { path: 'subscriptions.service', match: { company: companyId } },
+    })
+    .populate({ path: 'thirdPartyPayer', select: '_id name', match: { company: companyId } })
+    .lean();
+
+  for (let i = 0, l = creditNotes.length; i < l; i++) {
+    creditNotes[i].customer = populateSubscriptionsServices({ ...creditNotes[i].customer });
+  }
+
+  return creditNotes;
+};
 
 exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credentials) => {
   const promises = [];

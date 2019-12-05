@@ -14,7 +14,7 @@ const xmlHelper = require('../../../src/helpers/xml');
 
 require('sinon-mongoose');
 
-describe('list', () => {
+describe('getPayments', () => {
   let getDateQueryStub;
   let PaymentModel;
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe('list', () => {
       .chain('lean')
       .returns([payment]);
 
-    const result = await PaymentsHelper.list(query, credentials);
+    const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
     sinon.assert.notCalled(getDateQueryStub);
@@ -64,7 +64,7 @@ describe('list', () => {
       .chain('lean')
       .returns([payment]);
 
-    const result = await PaymentsHelper.list(query, credentials);
+    const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
     sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
@@ -87,7 +87,7 @@ describe('list', () => {
       .chain('lean')
       .returns([payment]);
 
-    const result = await PaymentsHelper.list(query, credentials);
+    const result = await PaymentsHelper.getPayments(query, credentials);
 
     expect(result).toEqual([payment]);
     sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });

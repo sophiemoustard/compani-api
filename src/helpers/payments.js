@@ -10,7 +10,7 @@ const { REFUND, PAYMENT, DIRECT_DEBIT, PAYMENT_TYPES_LIST, PAYMENT_NATURE_LIST, 
 const XmlHelper = require('../helpers/xml');
 const UtilsHelper = require('./utils');
 
-exports.list = async (payload, credentials) => {
+exports.getPayments = async (payload, credentials) => {
   const { startDate, endDate, ...query } = payload;
   query.company = get(credentials, 'company._id', null);
   if (startDate || endDate) {
