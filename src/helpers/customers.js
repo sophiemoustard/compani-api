@@ -55,7 +55,8 @@ exports.getCustomers = async (query) => {
 
 exports.getCustomersFirstIntervention = async (query, companyId) => {
   const customers = await Customer.find({ ...query, company: companyId }, { _id: 1 })
-    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
+    // need the match as it is a virtual populate
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .lean();
 
   return keyBy(customers, '_id');
@@ -100,7 +101,8 @@ exports.getCustomer = async (customerId, credentials) => {
       populate: { path: 'versions.surcharge' },
     })
     .populate({ path: 'fundings.thirdPartyPayer' })
-    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
+    // need the match as it is a virtual populate
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .populate({ path: 'referent', select: '_id identity.firstname identity.lastname picture' })
     .lean(); // Do not need to add { virtuals: true } as firstIntervention is populated
   if (!customer) return null;
@@ -148,7 +150,8 @@ exports.updateCustomer = async (customerId, customerPayload) => {
   } else if (has(customerPayload, 'payment.iban')) {
     const customer = await Customer.findById(customerId).lean();
     // if the user updates its RIB, we should generate a new mandate.
-    if (customer.payment.iban && customer.payment.iban !== '' && customer.payment.iban !== customerPayload.payment.iban) {
+    if (customer.payment.iban && customer.payment.iban !== '' &&
+      customer.payment.iban !== customerPayload.payment.iban) {
       const mandate = { rum: await exports.generateRum() };
       payload = {
         $set: flat(customerPayload, { safe: true }),
@@ -169,7 +172,10 @@ exports.updateCustomer = async (customerId, customerPayload) => {
         { $set: { address: customer.contact.primaryAddress } } :
         { $set: { address: customerPayload.contact[addressField] } };
       await Event.updateMany(
-        { 'address.fullAddress': customer.contact[addressField].fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+        {
+          'address.fullAddress': customer.contact[addressField].fullAddress,
+          startDate: { $gte: moment().startOf('day').toDate() },
+        },
         setAddressToEventPayload,
         { new: true }
       );

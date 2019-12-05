@@ -13,7 +13,7 @@ const { encode } = require('../helpers/authentication');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const UsersHelper = require('../helpers/users');
-const { getUsers, createAndSaveFile } = require('../helpers/users');
+const { getUsersList, createAndSaveFile, getUser } = require('../helpers/users');
 const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
 const User = require('../models/User');
 const cloudinary = require('../models/Cloudinary');
@@ -73,7 +73,7 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const users = await getUsers(req.query, req.auth.credentials);
+    const users = await getUsersList(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
@@ -87,7 +87,7 @@ const list = async (req) => {
 
 const activeList = async (req) => {
   try {
-    const users = await getUsers(req.query, req.auth.credentials);
+    const users = await getUsersList(req.query, req.auth.credentials);
     const activeUsers = users.filter(user => user.isActive);
 
     return {
@@ -102,15 +102,7 @@ const activeList = async (req) => {
 
 const show = async (req) => {
   try {
-    const user = await User.findOne({ _id: req.params._id })
-      .populate('customers')
-      .populate('contracts')
-      .populate({ path: 'procedure.task', select: 'name _id' })
-      .lean({ autopopulate: true });
-
-    if (user.role && user.role.rights.length > 0) {
-      user.role.rights = populateRole(user.role.rights, { onlyGrantedRights: true });
-    }
+    const user = await getUser(req.params._id);
 
     return {
       message: translate[language].userFound,

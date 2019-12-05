@@ -17,7 +17,7 @@ const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
 
 const { language } = translate;
 
-exports.getUsers = async (query, credentials) => {
+exports.getUsersList = async (query, credentials) => {
   const params = {
     ...pickBy(query),
     company: get(credentials, 'company._id', null),
@@ -41,6 +41,21 @@ exports.getUsers = async (query, credentials) => {
     .populate('contracts')
     .populate('sector')
     .lean({ virtuals: true });
+};
+
+exports.getUser = async (userId) => {
+  const user = await User.findOne({ _id: userId })
+    .populate('customers')
+    .populate('contracts')
+    .populate({ path: 'procedure.task', select: 'name _id' })
+    .lean({ autopopulate: true, virtuals: true });
+  if (!user) throw Boom.notFound(translate[language].userNotFound);
+
+  if (user.role && user.role.rights.length > 0) {
+    user.role.rights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
+  }
+
+  return user;
 };
 
 exports.saveCertificateDriveId = async (userId, fileInfo) => {

@@ -18,7 +18,7 @@ require('sinon-mongoose');
 
 const { language } = translate;
 
-describe('getUsers', () => {
+describe('getUsersList', () => {
   let UserMock;
   let RoleMock;
   const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
@@ -58,7 +58,7 @@ describe('getUsers', () => {
       .withExactArgs({ virtuals: true })
       .returns(users);
 
-    const result = await UsersHelper.getUsers(query, credentials);
+    const result = await UsersHelper.getUsersList(query, credentials);
     expect(result).toEqual(users);
     UserMock.verify();
   });
@@ -91,7 +91,7 @@ describe('getUsers', () => {
       .withExactArgs({ virtuals: true })
       .returns(users);
 
-    const result = await UsersHelper.getUsers(query, credentials);
+    const result = await UsersHelper.getUsersList(query, credentials);
     expect(result).toEqual(users);
     RoleMock.verify();
     UserMock.verify();
@@ -125,7 +125,7 @@ describe('getUsers', () => {
       .withExactArgs({ virtuals: true })
       .returns(users);
 
-    const result = await UsersHelper.getUsers(query, credentials);
+    const result = await UsersHelper.getUsersList(query, credentials);
     expect(result).toEqual(users);
     RoleMock.verify();
     UserMock.verify();
@@ -145,13 +145,95 @@ describe('getUsers', () => {
       .never();
 
     try {
-      await UsersHelper.getUsers(query, credentials);
+      await UsersHelper.getUsersList(query, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].roleNotFound));
     }
 
     RoleMock.verify();
     UserMock.verify();
+  });
+});
+
+describe('getUser', () => {
+  let userMock;
+  let populateRole;
+  beforeEach(() => {
+    userMock = sinon.mock(User);
+    populateRole = sinon.stub(RolesHelper, 'populateRole');
+  });
+  afterEach(() => {
+    userMock.restore();
+    populateRole.restore();
+  });
+
+  it('should return user without populating role', async () => {
+    const userId = new ObjectID();
+    const user = { _id: userId, role: { name: 'helper', rights: [] } };
+    userMock.expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs('customers')
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .once()
+      .returns(user);
+
+    await UsersHelper.getUser(userId);
+
+    sinon.assert.notCalled(populateRole);
+    userMock.verify();
+  });
+
+  it('should return user and populate role', async () => {
+    const userId = new ObjectID();
+    const rightId = new ObjectID();
+    const user = { _id: userId, role: { name: 'helper', rights: [{ _id: rightId }] } };
+    userMock.expects('findOne')
+      .withExactArgs({ _id: userId })
+      .chain('populate')
+      .withExactArgs('customers')
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('populate')
+      .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .once()
+      .returns(user);
+    populateRole.returns(user);
+
+    await UsersHelper.getUser(userId);
+
+    sinon.assert.calledWith(populateRole, [{ _id: rightId }], { onlyGrantedRights: true });
+    userMock.verify();
+  });
+
+  it('should throw error if user not found', async () => {
+    try {
+      const userId = new ObjectID();
+      userMock.expects('findOne')
+        .withExactArgs({ _id: userId })
+        .chain('populate')
+        .withExactArgs('customers')
+        .chain('populate')
+        .withExactArgs('contracts')
+        .chain('populate')
+        .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+        .chain('lean')
+        .withExactArgs({ autopopulate: true, virtuals: true })
+        .once()
+        .returns(null);
+
+      await UsersHelper.getUser(userId);
+    } catch (e) {
+      userMock.verify();
+      expect(e.output.statusCode).toEqual(404);
+    }
   });
 });
 
