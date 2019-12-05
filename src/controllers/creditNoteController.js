@@ -56,9 +56,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const creditNote = await CreditNote.findOne({ _id: req.params._id });
-    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
+    const { creditNote } = req.pre;
 
     await updateEventAndFundingHistory(creditNote.events, true, req.auth.credentials);
     await CreditNote.findByIdAndRemove(req.params._id);

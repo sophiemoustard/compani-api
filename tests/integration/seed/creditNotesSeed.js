@@ -218,6 +218,15 @@ const otherCompanyCustomer = {
   ],
 };
 
+const otherCompanyUser = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Tutu', lastname: 'Toto' },
+  local: { email: 'other_user@alenvi.io', password: '123456' },
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'admin')._id,
+  company: otherCompany._id,
+};
+
 const otherCompanyEvent = {
   _id: new ObjectID(),
   company: otherCompany._id,
@@ -260,7 +269,7 @@ const populateDB = async () => {
   await Service.create([creditNoteService, otherCompanyService]);
   await ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]);
   await CreditNote.insertMany(creditNotesList);
-  await User.create(creditNoteUserList);
+  await User.create([...creditNoteUserList, otherCompanyUser]);
 };
 
 module.exports = {
@@ -273,4 +282,5 @@ module.exports = {
   otherCompanyCustomer,
   otherCompanyThirdPartyPayer,
   otherCompanyEvent,
+  otherCompanyUser,
 };

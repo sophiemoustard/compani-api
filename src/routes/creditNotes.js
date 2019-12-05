@@ -14,6 +14,7 @@ const {
   getCreditNote,
   authorizeCreditNoteReading,
   authorizeCreditNoteCreationOrUpdate,
+  authorizeCreditNoteDeletion,
 } = require('./preHandlers/creditNotes');
 
 const { SERVICE_NATURES } = require('../models/Service');
@@ -104,6 +105,10 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
+        pre: [
+          { method: getCreditNote, assign: 'creditNote' },
+          { method: authorizeCreditNoteDeletion },
+        ],
       },
     });
 

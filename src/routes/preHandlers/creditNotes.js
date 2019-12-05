@@ -40,7 +40,7 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
 
   if (!credentials.scope.includes('bills:edit')) throw Boom.forbidden();
   if (creditNote && creditNote.origin !== COMPANI) {
-    return Boom.forbidden(translate[language].creditNoteNotCompani);
+    throw Boom.forbidden(translate[language].creditNoteNotCompani);
   }
 
   if (payload.customer) {
@@ -64,4 +64,16 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   }
 
   return null;
+};
+
+exports.authorizeCreditNoteDeletion = async (req) => {
+  const { credentials } = req.auth;
+  const { creditNote } = req.pre;
+
+  if (creditNote.company.toHexString() === credentials.company._id.toHexString()) return null;
+
+  if (creditNote && creditNote.origin !== COMPANI) {
+    throw Boom.forbidden(translate[language].creditNoteNotCompani);
+  }
+  throw Boom.forbidden();
 };

@@ -12,6 +12,7 @@ const {
   otherCompanyCustomer,
   otherCompanyThirdPartyPayer,
   otherCompanyEvent,
+  otherCompanyUser,
 } = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
@@ -517,6 +518,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
       });
       expect(response.statusCode).toBe(200);
     });
+
     it('should return a 404 error if credit does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
@@ -524,6 +526,17 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if user is not from credit note company', async () => {
+      authToken = await getTokenByCredentials(otherCompanyUser.local);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
     });
   });
 
