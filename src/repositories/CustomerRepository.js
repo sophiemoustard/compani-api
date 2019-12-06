@@ -51,7 +51,7 @@ exports.getCustomersWithSubscriptions = async query => Customer.aggregate([
   { $sort: { 'subscriptions.service.versions.startDate': -1 } },
   {
     $group: {
-      _id: { _id: '$_id', subscription: 'subscriptions._id' },
+      _id: { _id: '$_id', subscription: '$subscriptions._id' },
       customer: { $first: '$$ROOT' },
       serviceVersions: { $first: '$subscriptions.service.versions' },
     },
