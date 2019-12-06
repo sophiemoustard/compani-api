@@ -8,7 +8,118 @@ const Event = require('../../../src/models/Event');
 const CreditNoteHelper = require('../../../src/helpers/creditNotes');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
+const SubscriptionHelper = require('../../../src/helpers/subscriptions');
 const moment = require('moment');
+
+require('sinon-mongoose');
+
+describe('getCreditNotes', () => {
+  let getDateQueryStub;
+  let CreditNoteMock;
+  let populateSubscriptionsServicesStub;
+  const companyId = new ObjectID();
+  const credentials = { company: { _id: companyId } };
+  const customerId = new ObjectID();
+
+  beforeEach(() => {
+    getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
+    populateSubscriptionsServicesStub = sinon.stub(SubscriptionHelper, 'populateSubscriptionsServices');
+    CreditNoteMock = sinon.mock(CreditNote);
+  });
+  afterEach(() => {
+    getDateQueryStub.restore();
+    CreditNoteMock.restore();
+    populateSubscriptionsServicesStub.restore();
+  });
+
+  it('should get all credit notes', async () => {
+    const payload = {
+      customer: customerId,
+      startDate: '2019-07-30T00:00:00',
+      endDate: '2019-08-30T00:00:00',
+    };  
+    const dateQuery = {
+      $lte: moment(payload.endDate).endOf('day').toISOString(),
+      $gte: moment(payload.startDate).startOf('day').toISOString(),
+    };
+    getDateQueryStub.returns(dateQuery);
+    const query = { date: dateQuery, customer: customerId, company: companyId };
+    CreditNoteMock.expects('find')
+      .withExactArgs(query)
+      .chain('populate')
+      .withExactArgs({
+        path: 'customer',
+        select: '_id identity subscriptions',
+        populate: { path: 'subscriptions.service' },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
+      .chain('lean')
+      .returns([{ customer: { _id: customerId } }]);
+    populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
+
+    const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
+    expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
+    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
+    sinon.assert.calledWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
+  });
+
+  it('should not call getDateQuery if no date in payload', async () => {
+    const payload = {
+      customer: customerId,
+    };
+    const query = { customer: customerId, company: companyId };
+    CreditNoteMock.expects('find')
+      .withExactArgs(query)
+      .chain('populate')
+      .withExactArgs({
+        path: 'customer',
+        select: '_id identity subscriptions',
+        populate: { path: 'subscriptions.service' },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
+      .chain('lean')
+      .returns([{ customer: { _id: customerId } }]);
+    populateSubscriptionsServicesStub.returns({ _id: customerId, firstname: 'toto' });
+
+    const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
+    expect(result).toEqual([{ customer: { _id: customerId, firstname: 'toto' } }]);
+    sinon.assert.notCalled(getDateQueryStub);
+    sinon.assert.calledWithExactly(populateSubscriptionsServicesStub, { _id: customerId });
+  });
+
+  it('should not call populateSubscriptionsService if no creditNotes', async () => {
+    const payload = {
+      customer: customerId,
+      startDate: '2019-07-30T00:00:00',
+      endDate: '2019-08-30T00:00:00',
+    };
+    const dateQuery = {
+      $lte: moment(payload.endDate).endOf('day').toISOString(),
+      $gte: moment(payload.startDate).startOf('day').toISOString(),
+    };
+    getDateQueryStub.returns(dateQuery);
+    const query = { date: dateQuery, customer: customerId, company: companyId };
+    CreditNoteMock.expects('find')
+      .withExactArgs(query)
+      .chain('populate')
+      .withExactArgs({
+        path: 'customer',
+        select: '_id identity subscriptions',
+        populate: { path: 'subscriptions.service' },
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'thirdPartyPayer', select: '_id name' })
+      .chain('lean')
+      .returns([]);
+
+    const result = await CreditNoteHelper.getCreditNotes(payload, credentials);
+    expect(result).toEqual([]);
+    sinon.assert.calledWithExactly(getDateQueryStub, { startDate: payload.startDate, endDate: payload.endDate });
+    sinon.assert.notCalled(populateSubscriptionsServicesStub);
+  });
+});
 
 describe('updateEventAndFundingHistory', () => {
   let findOneAndUpdate = null;

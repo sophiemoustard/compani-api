@@ -9,8 +9,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const payments = await PaymentHelper.list(req.query, req.auth.credentials);
-
+    const payments = await PaymentHelper.getPayments(req.query, req.auth.credentials);
     return {
       message: payments.length === 0 ? translate[language].paymentsNotFound : translate[language].paymentsFound,
       data: { payments },

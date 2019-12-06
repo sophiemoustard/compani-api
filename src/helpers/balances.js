@@ -1,9 +1,12 @@
 const get = require('lodash/get');
 const { getLastVersion } = require('./utils');
-const { PAYMENT } = require('./constants');
+const { PAYMENT, BILL, CREDIT_NOTE } = require('./constants');
 const BillRepository = require('../repositories/BillRepository');
 const CreditNoteRepository = require('../repositories/CreditNoteRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
+const BillHelper = require('../helpers/bills');
+const CreditNoteHelper = require('../helpers/creditNotes');
+const PaymentHelper = require('../helpers/payments');
 
 exports.canBeDirectDebited = (bill) => {
   if (!bill) throw new Error('Bill must be provided');
@@ -114,6 +117,16 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
   for (const cn of remainingPayments) {
     balances.push(exports.getBalancesFromPayments(cn, payments));
   }
-
   return balances;
+};
+
+exports.getBalancesWithDetails = async (query, credentials) => {
+  const [balances, bills, payments, creditNotes] = await Promise.all([
+    exports.getBalances(credentials, query.customer, query.startDate),
+    BillHelper.getBills(query, credentials),
+    PaymentHelper.getPayments(query, credentials),
+    CreditNoteHelper.getCreditNotes(query, credentials),
+  ]);
+
+  return { balances, bills, payments, creditNotes };
 };
