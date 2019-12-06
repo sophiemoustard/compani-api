@@ -47,16 +47,16 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
     throw Boom.forbidden(translate[language].creditNoteNotCompani);
   }
 
-  if (payload.customer) {
-    const customer = await Customer.findOne(({ _id: payload.customer, company: companyId })).lean();
-    if (!customer) throw Boom.forbidden();
-  }
-
-  if (payload.subscription) {
-    const customer = await Customer.findOne({
-      'subscriptions._id': payload.subscription._id,
+  if (payload.customer && payload.subscription) {
+    const customer = await Customer.findOne(({
+      _id: payload.customer,
+      'subscriptions._id':
+       payload.subscription._id,
       company: companyId,
-    }).lean();
+    })).lean();
+    if (!customer) throw Boom.forbidden();
+  } else if (payload.customer) {
+    const customer = await Customer.findOne(({ _id: payload.customer, company: companyId })).lean();
     if (!customer) throw Boom.forbidden();
   }
 

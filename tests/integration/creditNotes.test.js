@@ -524,6 +524,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
 
     it('should return a 403 error if customer subscription is not from same company', async () => {
       payload = {
+        customer: creditNoteCustomer._id,
         subscription: {
           _id: otherCompanyCustomer.subscriptions[0]._id,
           service: {
