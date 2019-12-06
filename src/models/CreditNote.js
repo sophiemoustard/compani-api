@@ -3,7 +3,7 @@ const { COMPANI, OGUST } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 const { SERVICE_NATURES } = require('./Service');
-const { validatePayload } = require('./preHooks/validate');
+const { validatePayload, validateQuery } = require('./preHooks/validate');
 
 const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
 
@@ -71,20 +71,20 @@ const CreditNoteSchema = mongoose.Schema(
         serviceId: {
           type: mongoose.Schema.Types.ObjectId,
           required() {
-            return !!this.subscription;
+            return !!this.subscription.serviceId;
           },
         },
         nature: {
           type: String,
           enum: SERVICE_NATURES,
           required() {
-            return !!this.subscription;
+            return !!this.subscription.serviceId;
           },
         },
         name: {
           type: String,
           required() {
-            return !!this.subscription;
+            return !!this.subscription.serviceId;
           },
         },
       },
@@ -100,6 +100,7 @@ const CreditNoteSchema = mongoose.Schema(
 );
 
 CreditNoteSchema.pre('validate', validatePayload);
+CreditNoteSchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);
 module.exports.CREDIT_NOTE_ORIGINS = CREDIT_NOTE_ORIGINS;

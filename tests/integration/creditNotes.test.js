@@ -287,7 +287,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
       authToken = await getToken('admin');
     });
 
-    it('should get all credit notes', async () => {
+    it('should get all credit notes (company A)', async () => {
       const creditNotesNumber = creditNotesList.length;
       const response = await app.inject({
         method: 'GET',
@@ -297,6 +297,19 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.creditNotes.length).toEqual(creditNotesNumber);
+    });
+
+    it('should get all credit notes (company B)', async () => {
+      authToken = await getTokenByCredentials(otherCompanyUser.local);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.creditNotes.length).toEqual(1);
     });
   });
 

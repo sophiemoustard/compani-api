@@ -37,7 +37,7 @@ describe('getCreditNotes', () => {
       customer: customerId,
       startDate: '2019-07-30T00:00:00',
       endDate: '2019-08-30T00:00:00',
-    };  
+    };
     const dateQuery = {
       $lte: moment(payload.endDate).endOf('day').toISOString(),
       $gte: moment(payload.startDate).startOf('day').toISOString(),

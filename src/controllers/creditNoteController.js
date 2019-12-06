@@ -4,8 +4,13 @@ const get = require('lodash/get');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { updateEventAndFundingHistory, createCreditNotes, updateCreditNotes, getCreditNotes } = require('../helpers/creditNotes');
-const { formatPDF } = require('../helpers/creditNotes');
+const {
+  updateEventAndFundingHistory,
+  createCreditNotes,
+  updateCreditNotes,
+  getCreditNotes,
+  formatPDF,
+} = require('../helpers/creditNotes');
 const { generatePdf } = require('../helpers/pdf');
 const { COMPANI } = require('../helpers/constants');
 
@@ -14,6 +19,7 @@ const { language } = translate;
 const list = async (req) => {
   try {
     const creditNotes = await getCreditNotes(req.query, req.auth.credentials);
+
     return {
       message: creditNotes.length === 0
         ? translate[language].creditNotesNotFound
