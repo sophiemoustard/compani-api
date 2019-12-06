@@ -50,10 +50,14 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   if (payload.customer) {
     const customer = await Customer.findOne(({ _id: payload.customer, company: companyId })).lean();
     if (!customer) throw Boom.forbidden();
-    if (payload.subscription) {
-      const subscriptionsIds = customer.subscriptions.map(subscription => subscription._id.toHexString());
-      if (!subscriptionsIds.includes(payload.subscription._id)) throw Boom.forbidden();
-    }
+  }
+
+  if (payload.subscription) {
+    const customer = await Customer.findOne({
+      'subscriptions._id': payload.subscription._id,
+      company: companyId,
+    }).lean();
+    if (!customer) throw Boom.forbidden();
   }
 
   if (payload.thirdPartyPayer) {

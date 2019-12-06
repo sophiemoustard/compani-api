@@ -68,12 +68,7 @@ const CreditNoteSchema = mongoose.Schema(
     subscription: {
       _id: { type: mongoose.Schema.Types.ObjectId },
       service: {
-        serviceId: {
-          type: mongoose.Schema.Types.ObjectId,
-          required() {
-            return !!this.subscription.serviceId;
-          },
-        },
+        serviceId: { type: mongoose.Schema.Types.ObjectId },
         nature: {
           type: String,
           enum: SERVICE_NATURES,

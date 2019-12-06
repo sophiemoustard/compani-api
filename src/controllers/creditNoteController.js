@@ -47,8 +47,7 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const { creditNote } = req.pre;
-    const updatedCreditNote = await updateCreditNotes(creditNote, req.payload, req.auth.credentials);
+    const updatedCreditNote = await updateCreditNotes(req.pre.creditNote, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteUpdated,
@@ -62,11 +61,9 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const { creditNote } = req.pre;
-
-    await updateEventAndFundingHistory(creditNote.events, true, req.auth.credentials);
+    await updateEventAndFundingHistory(req.pre.creditNote.events, true, req.auth.credentials);
     await CreditNote.findByIdAndRemove(req.params._id);
-    if (creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(creditNote.linkedCreditNote);
+    if (req.pre.creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(req.pre.creditNote.linkedCreditNote);
 
     return {
       message: translate[language].creditNoteDeleted,

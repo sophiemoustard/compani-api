@@ -694,7 +694,7 @@ describe('updateCreditNotes', () => {
     );
     sinon.assert.calledWithExactly(
       updateOne,
-      creditNoteWithLink.linkedCreditNote,
+      { _id: creditNoteWithLink.linkedCreditNote },
       { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
       { new: true }
     );
@@ -739,7 +739,7 @@ describe('updateCreditNotes', () => {
     );
     sinon.assert.calledWithExactly(
       updateOne,
-      creditNoteWithLink.linkedCreditNote,
+      { _id: creditNoteWithLink.linkedCreditNote },
       { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
       { new: true }
     );

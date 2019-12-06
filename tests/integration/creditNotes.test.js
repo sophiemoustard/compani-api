@@ -460,6 +460,17 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it('should return a 403 error if credit not origin is not from Compani', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[1]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     it('should return a 403 error if customer is not from same company', async () => {
       payload = { customer: otherCompanyCustomer._id };
 
@@ -501,6 +512,28 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
         }],
       };
 
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer subscription is not from same company', async () => {
+      payload = {
+        subscription: {
+          _id: otherCompanyCustomer.subscriptions[0]._id,
+          service: {
+            serviceId: new ObjectID(),
+            nature: FIXED,
+            name: 'titi',
+          },
+          vat: 5.5,
+        },
+      };
       const response = await app.inject({
         method: 'PUT',
         url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,

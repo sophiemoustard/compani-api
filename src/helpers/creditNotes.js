@@ -122,10 +122,10 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
 
     if (creditNoteFromDB.thirdPartyPayer) {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });
-      await CreditNote.updateOne(creditNoteFromDB.linkedCreditNote, { $set: customerPayload }, { new: true });
+      await CreditNote.updateOne({ _id: creditNoteFromDB.linkedCreditNote }, { $set: customerPayload }, { new: true });
     } else {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: customerPayload }, { new: true });
-      await CreditNote.updateOne(creditNoteFromDB.linkedCreditNote, { $set: tppPayload }, { new: true });
+      await CreditNote.updateOne({ _id: creditNoteFromDB.linkedCreditNote }, { $set: tppPayload }, { new: true });
     }
   }
 
@@ -137,8 +137,8 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
 exports.getCreditNotes = async (query, credentials) => {
   const { startDate, endDate, ...creditNoteQuery } = query;
   if (startDate || endDate) creditNoteQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
-
   creditNoteQuery.company = get(credentials, 'company._id', null);
+
   const creditNotes = await CreditNote.find(creditNoteQuery)
     .populate({
       path: 'customer',
