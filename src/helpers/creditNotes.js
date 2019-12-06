@@ -9,12 +9,12 @@ const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 
-exports.getCreditNotes = async (payload, credentials) => {
-  const { startDate, endDate, ...query } = payload;
-  if (startDate || endDate) query.date = UtilsHelper.getDateQuery({ startDate, endDate });
-  query.company = get(credentials, 'company._id', null);
+exports.getCreditNotes = async (query, credentials) => {
+  const { startDate, endDate, ...creditNoteQuery } = query;
+  if (startDate || endDate) creditNoteQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
+  creditNoteQuery.company = get(credentials, 'company._id', null);
 
-  const creditNotes = await CreditNote.find(query)
+  const creditNotes = await CreditNote.find(creditNoteQuery)
     .populate({
       path: 'customer',
       select: '_id identity subscriptions',
