@@ -4,9 +4,9 @@ const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
-const SubscriptionsHelper = require('../helpers/subscriptions');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
+const SubscriptionsHelper = require('./subscriptions');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 
 exports.getCreditNotes = async (query, credentials) => {
@@ -39,17 +39,17 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
   for (const event of events) {
     if (event.bills.thirdPartyPayer && event.bills.fundingId) {
       if (event.bills.nature !== HOURLY) {
-        await FundingHistory.findOneAndUpdate(
+        await FundingHistory.updateOne(
           { fundingId: event.bills.fundingId },
           { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } }
         );
       } else {
-        let history = await FundingHistory.findOneAndUpdate(
+        const history = await FundingHistory.findOneAndUpdate(
           { fundingId: event.bills.fundingId, month: moment(event.startDate).format('MM/YYYY') },
           { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
         );
         if (!history) {
-          history = await FundingHistory.findOneAndUpdate(
+          await FundingHistory.updateOne(
             { fundingId: event.bills.fundingId },
             { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
           );
@@ -122,16 +122,37 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
 
     if (creditNoteFromDB.thirdPartyPayer) {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });
-      await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: customerPayload }, { new: true });
+      await CreditNote.updateOne({ _id: creditNoteFromDB.linkedCreditNote }, { $set: customerPayload }, { new: true });
     } else {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: customerPayload }, { new: true });
-      await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: tppPayload }, { new: true });
+      await CreditNote.updateOne({ _id: creditNoteFromDB.linkedCreditNote }, { $set: tppPayload }, { new: true });
     }
   }
 
   if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false, credentials);
 
   return creditNote;
+};
+
+exports.getCreditNotes = async (query, credentials) => {
+  const { startDate, endDate, ...creditNoteQuery } = query;
+  if (startDate || endDate) creditNoteQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
+  creditNoteQuery.company = get(credentials, 'company._id', null);
+
+  const creditNotes = await CreditNote.find(creditNoteQuery)
+    .populate({
+      path: 'customer',
+      select: '_id identity subscriptions',
+      populate: { path: 'subscriptions.service' },
+    })
+    .populate({ path: 'thirdPartyPayer', select: '_id name' })
+    .lean();
+
+  for (let i = 0, l = creditNotes.length; i < l; i++) {
+    creditNotes[i].customer = SubscriptionsHelper.populateSubscriptionsServices({ ...creditNotes[i].customer });
+  }
+
+  return creditNotes;
 };
 
 const formatCustomerName = customer =>

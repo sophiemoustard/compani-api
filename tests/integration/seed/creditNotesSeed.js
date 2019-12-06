@@ -150,6 +150,37 @@ const creditNotesList = [
     origin: 'compani',
     company: authCompany._id,
   },
+  {
+    _id: new ObjectID(),
+    date: moment().toDate(),
+    startDate: moment().startOf('month').toDate(),
+    endDate: moment().set('date', 15).toDate(),
+    customer: creditNoteCustomer._id,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    events: [{
+      eventId: creditNoteEvent._id,
+      auxiliary: creditNoteEvent.auxiliary,
+      startDate: creditNoteEvent.startDate,
+      endDate: creditNoteEvent.endDate,
+      serviceName: 'toto',
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
+      },
+    }],
+    subscription: {
+      _id: creditNoteCustomer.subscriptions[0]._id,
+      service: {
+        serviceId: creditNoteService._id,
+        nature: 'fixed',
+        name: 'toto',
+      },
+      vat: 5.5,
+    },
+    origin: 'ogust',
+    company: authCompany._id,
+  },
 ];
 
 const otherCompany = {
@@ -218,6 +249,15 @@ const otherCompanyCustomer = {
   ],
 };
 
+const otherCompanyUser = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Tutu', lastname: 'Toto' },
+  local: { email: 'other_user@alenvi.io', password: '123456' },
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'admin')._id,
+  company: otherCompany._id,
+};
+
 const otherCompanyEvent = {
   _id: new ObjectID(),
   company: otherCompany._id,
@@ -244,6 +284,38 @@ const otherCompanyEvent = {
   origin: 'compani',
 };
 
+const otherCompanyCreditNote = {
+  _id: new ObjectID(),
+  date: moment().toDate(),
+  startDate: moment().startOf('month').toDate(),
+  endDate: moment().set('date', 15).toDate(),
+  customer: otherCompanyCustomer._id,
+  exclTaxesCustomer: 100,
+  inclTaxesCustomer: 112,
+  events: [{
+    eventId: otherCompanyEvent._id,
+    auxiliary: new ObjectID(),
+    startDate: otherCompanyEvent.startDate,
+    endDate: otherCompanyEvent.endDate,
+    serviceName: 'titi',
+    bills: {
+      inclTaxesCustomer: 10,
+      exclTaxesCustomer: 8,
+    },
+  }],
+  subscription: {
+    _id: otherCompanyCustomer.subscriptions[0]._id,
+    service: {
+      serviceId: otherCompanyService._id,
+      nature: 'fixed',
+      name: 'toto',
+    },
+    vat: 5.5,
+  },
+  origin: 'compani',
+  company: otherCompany._id,
+};
+
 const populateDB = async () => {
   await CreditNote.deleteMany({});
   await Event.deleteMany({});
@@ -259,8 +331,8 @@ const populateDB = async () => {
   await Customer.create([creditNoteCustomer, otherCompanyCustomer]);
   await Service.create([creditNoteService, otherCompanyService]);
   await ThirdPartyPayer.create([creditNoteThirdPartyPayer, otherCompanyThirdPartyPayer]);
-  await CreditNote.insertMany(creditNotesList);
-  await User.create(creditNoteUserList);
+  await CreditNote.insertMany([...creditNotesList, otherCompanyCreditNote]);
+  await User.create([...creditNoteUserList, otherCompanyUser]);
 };
 
 module.exports = {
@@ -273,4 +345,6 @@ module.exports = {
   otherCompanyCustomer,
   otherCompanyThirdPartyPayer,
   otherCompanyEvent,
+  otherCompanyUser,
+  otherCompanyCreditNote,
 };

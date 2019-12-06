@@ -4,8 +4,13 @@ const get = require('lodash/get');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { updateEventAndFundingHistory, createCreditNotes, updateCreditNotes, getCreditNotes } = require('../helpers/creditNotes');
-const { formatPDF } = require('../helpers/creditNotes');
+const {
+  updateEventAndFundingHistory,
+  createCreditNotes,
+  updateCreditNotes,
+  getCreditNotes,
+  formatPDF,
+} = require('../helpers/creditNotes');
 const { generatePdf } = require('../helpers/pdf');
 const { COMPANI } = require('../helpers/constants');
 
@@ -14,6 +19,7 @@ const { language } = translate;
 const list = async (req) => {
   try {
     const creditNotes = await getCreditNotes(req.query, req.auth.credentials);
+
     return {
       message: creditNotes.length === 0
         ? translate[language].creditNotesNotFound
@@ -41,15 +47,11 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    let creditNote = await CreditNote.findOne({ _id: req.params._id }).lean();
-    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
-
-    creditNote = await updateCreditNotes(creditNote, req.payload, req.auth.credentials);
+    const updatedCreditNote = await updateCreditNotes(req.pre.creditNote, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteUpdated,
-      data: { creditNote },
+      data: { creditNote: updatedCreditNote },
     };
   } catch (e) {
     req.log('error', e);
@@ -59,13 +61,9 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const creditNote = await CreditNote.findOne({ _id: req.params._id });
-    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
-
-    await updateEventAndFundingHistory(creditNote.events, true, req.auth.credentials);
+    await updateEventAndFundingHistory(req.pre.creditNote.events, true, req.auth.credentials);
     await CreditNote.findByIdAndRemove(req.params._id);
-    if (creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(creditNote.linkedCreditNote);
+    if (req.pre.creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(req.pre.creditNote.linkedCreditNote);
 
     return {
       message: translate[language].creditNoteDeleted,

@@ -37,7 +37,7 @@ describe('getCreditNotes', () => {
       customer: customerId,
       startDate: '2019-07-30T00:00:00',
       endDate: '2019-08-30T00:00:00',
-    };  
+    };
     const dateQuery = {
       $lte: moment(payload.endDate).endOf('day').toISOString(),
       $gte: moment(payload.startDate).startOf('day').toISOString(),
@@ -122,16 +122,19 @@ describe('getCreditNotes', () => {
 });
 
 describe('updateEventAndFundingHistory', () => {
-  let findOneAndUpdate = null;
-  let find = null;
-  let save = null;
+  let findOneAndUpdate;
+  let updateOne;
+  let find;
+  let save;
   beforeEach(() => {
     findOneAndUpdate = sinon.stub(FundingHistory, 'findOneAndUpdate');
+    updateOne = sinon.stub(FundingHistory, 'updateOne');
     find = sinon.stub(Event, 'find');
     save = sinon.stub(Event.prototype, 'save');
   });
   afterEach(() => {
     findOneAndUpdate.restore();
+    updateOne.restore();
     find.restore();
     save.restore();
   });
@@ -151,14 +154,13 @@ describe('updateEventAndFundingHistory', () => {
     const credentials = { company: { _id: new ObjectID() } };
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
-    sinon.assert.callCount(findOneAndUpdate, 2);
-    sinon.assert.calledWith(
-      findOneAndUpdate.firstCall,
+    sinon.assert.calledWithExactly(
+      findOneAndUpdate,
       { fundingId, month: '01/2019' },
       { $inc: { careHours: -3 } }
     );
-    sinon.assert.calledWith(
-      findOneAndUpdate.secondCall,
+    sinon.assert.calledWithExactly(
+      updateOne,
       { fundingId },
       { $inc: { careHours: -3 } }
     );
@@ -179,12 +181,12 @@ describe('updateEventAndFundingHistory', () => {
     const credentials = { company: { _id: new ObjectID() } };
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
-    sinon.assert.callCount(findOneAndUpdate, 1);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       findOneAndUpdate,
       { fundingId, month: '01/2019' },
       { $inc: { careHours: -3 } }
     );
+    sinon.assert.notCalled(updateOne);
   });
 
   it('should decrement history for hourly and monthly funding', async () => {
@@ -202,10 +204,14 @@ describe('updateEventAndFundingHistory', () => {
     const credentials = { company: { _id: new ObjectID() } };
 
     await CreditNoteHelper.updateEventAndFundingHistory([], true, credentials);
-    sinon.assert.callCount(findOneAndUpdate, 2);
-    sinon.assert.calledWith(
-      findOneAndUpdate.firstCall,
+    sinon.assert.calledWithExactly(
+      findOneAndUpdate,
       { fundingId, month: '01/2019' },
+      { $inc: { careHours: 3 } }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { fundingId },
       { $inc: { careHours: 3 } }
     );
   });
@@ -221,13 +227,11 @@ describe('updateEventAndFundingHistory', () => {
     ];
 
     find.returns(events);
-    findOneAndUpdate.returns(new FundingHistory());
     const credentials = { company: { _id: new ObjectID() } };
 
     await CreditNoteHelper.updateEventAndFundingHistory([], false, credentials);
-    sinon.assert.callCount(findOneAndUpdate, 1);
-    sinon.assert.calledWith(
-      findOneAndUpdate,
+    sinon.assert.calledWithExactly(
+      updateOne,
       { fundingId },
       { $inc: { amountTTC: -666 } }
     );
@@ -574,6 +578,170 @@ describe('createCreditNotes', () => {
       findOneAndUpdateNumber.getCall(1),
       { prefix },
       { $set: { seq: 3 } }
+    );
+  });
+});
+
+describe('updateCreditNotes', () => {
+  let updateEventAndFundingHistory;
+  let findByIdAndUpdate;
+  let updateOne;
+  const creditNote = {
+    _id: new ObjectID(),
+    number: 1,
+    events: [{
+      auxiliary: {
+        identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
+      },
+      startDate: '2019-04-29T06:00:00.000Z',
+      endDate: '2019-04-29T15:00:00.000Z',
+      serviceName: 'Toto',
+      bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
+    }],
+    customer: {
+      identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
+      contact: { primaryAddress: { fullAddress: 'La ruche' } },
+      subscriptions: [{ _id: new ObjectID(), service: { versions: [{ name: 'Toto' }] } }],
+    },
+    date: '2019-04-29T22:00:00.000Z',
+    exclTaxesCustomer: 221,
+    inclTaxesCustomer: 234,
+    exclTaxesTpp: 21,
+    inclTaxesTpp: 34,
+  };
+  const credentials = { company: { _id: new ObjectID() } };
+
+  beforeEach(() => {
+    updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
+    findByIdAndUpdate = sinon.stub(CreditNote, 'findByIdAndUpdate');
+    updateOne = sinon.stub(CreditNote, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateEventAndFundingHistory.restore();
+    findByIdAndUpdate.restore();
+    updateOne.restore();
+  });
+
+  it('should update a credit note', async () => {
+    const payload = { customer: { identity: { firstname: 'Titi' } } };
+    const updatedCreditNote = {
+      ...creditNote,
+      customer: {
+        ...creditNote.customer,
+        identity: {
+          ...creditNote.customer.identity,
+          firstname: payload.customer.identity.firstname,
+        },
+      },
+    };
+
+    findByIdAndUpdate.returns(updatedCreditNote);
+
+    const result = await CreditNoteHelper.updateCreditNotes(creditNote, payload, credentials);
+
+    expect(result).toMatchObject(updatedCreditNote);
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory,
+      creditNote.events,
+      true,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      { $set: payload },
+      { new: true }
+    );
+  });
+
+  it('should update a customer credit note and its tpp linked credit note', async () => {
+    const creditNoteWithLink = { ...creditNote, linkedCreditNote: new ObjectID() };
+    const payload = {
+      events: [{
+        auxiliary: {
+          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
+        },
+        startDate: '2019-04-30T06:00:00.000Z',
+        endDate: '2019-04-30T15:00:00.000Z',
+        serviceName: 'Toto',
+        bills: { inclTaxesCustomer: 123, exclTaxesCustomer: 90 },
+      }],
+    };
+    const updatedCreditNote = { ...creditNoteWithLink, events: payload.events };
+
+    findByIdAndUpdate.returns(updatedCreditNote);
+
+    const result = await CreditNoteHelper.updateCreditNotes(creditNoteWithLink, payload, credentials);
+    expect(result).toMatchObject(updatedCreditNote);
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory.firstCall,
+      creditNoteWithLink.events,
+      true,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory.secondCall,
+      payload.events,
+      false,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { new: true }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: creditNoteWithLink.linkedCreditNote },
+      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      { new: true }
+    );
+  });
+
+  it('should update a tpp credit note and its customer linked credit note', async () => {
+    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: new ObjectID(), linkedCreditNote: new ObjectID() };
+    const payload = {
+      events: [{
+        auxiliary: {
+          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
+        },
+        startDate: '2019-04-30T06:00:00.000Z',
+        endDate: '2019-04-30T15:00:00.000Z',
+        serviceName: 'Toto',
+        bills: { inclTaxesCustomer: 123, exclTaxesCustomer: 90 },
+      }],
+    };
+    const updatedCreditNote = { ...creditNoteWithLink, events: payload.events };
+
+    findByIdAndUpdate.returns(updatedCreditNote);
+
+    const result = await CreditNoteHelper.updateCreditNotes(creditNoteWithLink, payload, credentials);
+    expect(result).toMatchObject(updatedCreditNote);
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory.firstCall,
+      creditNoteWithLink.events,
+      true,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory.secondCall,
+      payload.events,
+      false,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      { new: true }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: creditNoteWithLink.linkedCreditNote },
+      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { new: true }
     );
   });
 });

@@ -2,13 +2,13 @@ const { ObjectID } = require('mongodb');
 
 const CreditNote = require('../models/CreditNote');
 
-exports.findAmountsGroupedByCustomer = async (customerId = null, dateMax = null) => {
-  const rules = [];
+exports.findAmountsGroupedByCustomer = async (companyId, customerId = null, dateMax = null) => {
+  const rules = [{ company: new ObjectID(companyId) }];
   if (customerId) rules.push({ customer: new ObjectID(customerId) });
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
   const customerCreditNotesAmounts = await CreditNote.aggregate([
-    { $match: rules.length === 0 ? {} : { $and: rules } },
+    { $match: { $and: rules } },
     {
       $group: { _id: '$customer', refund: { $sum: '$inclTaxesCustomer' } },
     },
@@ -33,8 +33,8 @@ exports.findAmountsGroupedByCustomer = async (customerId = null, dateMax = null)
   return customerCreditNotesAmounts;
 };
 
-exports.findAmountsGroupedByTpp = async (customerId = null, dateMax = null) => {
-  const rules = [];
+exports.findAmountsGroupedByTpp = async (companyId, customerId = null, dateMax = null) => {
+  const rules = [{ company: new ObjectID(companyId) }];
   if (customerId) rules.push({ customer: new ObjectID(customerId) });
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 

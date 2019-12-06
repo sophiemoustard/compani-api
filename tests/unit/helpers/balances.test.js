@@ -144,7 +144,11 @@ describe('computePayments', () => {
   it('should compute payments for customer', () => {
     const customerId = new ObjectID();
     const ids = { customer: customerId };
-    const payments = [{ netInclTaxes: 14, nature: 'payment' }, { netInclTaxes: 12, nature: 'refund' }, { netInclTaxes: 23, nature: 'payment' }];
+    const payments = [
+      { netInclTaxes: 14, nature: 'payment' },
+      { netInclTaxes: 12, nature: 'refund' },
+      { netInclTaxes: 23, nature: 'payment' },
+    ];
 
     computeTotal.onCall(0).returns(14);
     computeTotal.onCall(1).returns(2);
@@ -239,7 +243,13 @@ describe('getBalance', () => {
       { _id: { customer: new ObjectID() }, refund: 90 },
     ];
     const payments = [
-      { _id: { customer: customerId }, payments: [{ nature: 'payment', netInclTaxes: 80 }, { nature: 'payment', netInclTaxes: 30 }] },
+      {
+        _id: { customer: customerId },
+        payments: [
+          { nature: 'payment', netInclTaxes: 80 },
+          { nature: 'payment', netInclTaxes: 30 },
+        ],
+      },
       { _id: { customer: new ObjectID() }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
     ];
     canBeDirectDebited.returns(true);
@@ -289,7 +299,13 @@ describe('getBalance', () => {
       { _id: { customer: new ObjectID(), tpp: tppId }, refund: 50 },
     ];
     const payments = [
-      { _id: { customer: customerId, tpp: tppId }, payments: [{ nature: 'refund', netInclTaxes: 80 }, { nature: 'payment', netInclTaxes: 30 }] },
+      {
+        _id: { customer: customerId, tpp: tppId },
+        payments: [
+          { nature: 'refund', netInclTaxes: 80 },
+          { nature: 'payment', netInclTaxes: 30 },
+        ],
+      },
       { _id: { customer: customerId, tpp: tppId }, payments: [{ nature: 'payment', netInclTaxes: 50 }] },
     ];
     canBeDirectDebited.returns(false);
@@ -357,8 +373,8 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
     sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
@@ -381,8 +397,8 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
     sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
@@ -405,8 +421,8 @@ describe('getBalances', () => {
     sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByCustomer.length);
     sinon.assert.notCalled(getBalancesFromPayments);
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
     sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
@@ -428,8 +444,8 @@ describe('getBalances', () => {
     sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByTpp.length);
     sinon.assert.notCalled(getBalancesFromPayments);
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
     sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
@@ -454,8 +470,8 @@ describe('getBalances', () => {
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.callCount(getBalancesFromPayments, paymentsAmountsGroupedByClient.length);
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
     sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
@@ -500,8 +516,8 @@ describe('getBalances', () => {
     sinon.assert.callCount(getBalancesFromCreditNotes, 1);
     sinon.assert.callCount(getBalancesFromPayments, 1);
     sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, customerId, maxDate);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
     sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 });
