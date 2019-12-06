@@ -116,10 +116,9 @@ exports.getBalances = async (credentials, customerId = null, maxDate = null) => 
   }
 
   const remainingPayments = payments.filter(payment =>
-    !clients.some(cl =>
-      cl.customer.toHexString() === payment._id.customer.toHexString() &&
-          ((!cl.tpp && !payment._id.tpp) ||
-            (cl.tpp && payment._id.tpp && cl.tpp.toHexString() === payment._id.tpp.toHexString()))));
+    !clients.some(cl => cl.customer.toHexString() === payment._id.customer.toHexString() &&
+      ((!cl.tpp && !payment._id.tpp) ||
+      (cl.tpp && payment._id.tpp && cl.tpp.toHexString() === payment._id.tpp.toHexString()))));
   for (const cn of remainingPayments) {
     balances.push(exports.getBalancesFromPayments(cn, payments));
   }

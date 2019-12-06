@@ -43,17 +43,12 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const companyId = get(credentials, 'company._id', null);
 
   if (!credentials.scope.includes('bills:edit')) throw Boom.forbidden();
-  if (creditNote && creditNote.origin !== COMPANI) {
-    throw Boom.forbidden(translate[language].creditNoteNotCompani);
-  }
+  if (creditNote && creditNote.origin !== COMPANI) throw Boom.forbidden(translate[language].creditNoteNotCompani);
 
   if (payload.customer && payload.subscription) {
-    const customer = await Customer.findOne(({
-      _id: payload.customer,
-      'subscriptions._id':
-       payload.subscription._id,
-      company: companyId,
-    })).lean();
+    const customer = await Customer
+      .findOne({ _id: payload.customer, 'subscriptions._id': payload.subscription._id, company: companyId })
+      .lean();
     if (!customer) throw Boom.forbidden();
   } else if (payload.customer) {
     const customer = await Customer.findOne(({ _id: payload.customer, company: companyId })).lean();
