@@ -160,7 +160,21 @@ describe('exportAbsencesHistory', () => {
 });
 
 describe('exportBillsAndCreditNotesHistory', () => {
-  const header = ['Nature', 'Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Montant HT en €', 'Montant TTC en €', 'Services'];
+  const header = [
+    'Nature',
+    'Identifiant',
+    'Date',
+    'Id Bénéficiaire',
+    'Titre',
+    'Nom',
+    'Prénom',
+    'Id tiers payeur',
+    'Tiers payeur',
+    'Montant HT en €',
+    'Montant TTC en €',
+    'Services',
+    'Date de création',
+  ];
   const bills = [
     {
       number: 'FACT-0549236',
@@ -181,6 +195,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         exclTaxes: 389276.0208,
         inclTaxes: 410686.201944,
       }],
+      createdAt: '2019-10-11',
     }, {
       number: 'FACT-0419457',
       date: '2019-05-22T06:00:00.000+00:00',
@@ -205,6 +220,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         inclTaxes: 302,
         exclTaxes: 318.6099999,
       }],
+      createdAt: '2019-10-12',
     },
   ];
   const creditNotes = [
@@ -224,6 +240,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       inclTaxesCustomer: 5.5,
       exclTaxesTpp: 8,
       inclTaxesTpp: 3,
+      createdAt: '2019-10-15',
     },
     {
       number: 'F6473250',
@@ -237,6 +254,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
       inclTaxesCustomer: 5.5,
+      createdAt: '2019-10-16',
     },
   ];
   const credentials = { company: { _id: new ObjectID() } };
@@ -325,8 +343,8 @@ describe('exportBillsAndCreditNotesHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Facture', '', '', '', '', '', '', '', '', '', '', ''],
-      ['Avoir', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Facture', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Avoir', '', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
     mockBill.verify();
     mockCreditNote.verify();
@@ -364,10 +382,65 @@ describe('exportBillsAndCreditNotesHistory', () => {
     sinon.assert.callCount(formatFloatForExportStub, 8);
     expect(exportArray).toEqual([
       header,
-      ['Facture', 'FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
-      ['Facture', 'FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M.', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
-      ['Avoir', 'F1501231', '21/05/2019', '5d761a8f6f6cba0d259b17eb', '', 'BINKS', 'Jar jar', '5d761ad7ffd1dc0d39dadd7e', 'SW', 'F-18.5', 'F-8.5', 'Temps de qualité - autonomie'],
-      ['Avoir', 'F6473250', '25/05/2019', '5d761a8f6f8eba0d259b173f', '', 'R2D2', '', '', '', 'F-10.5', 'F-5.5', 'Temps de qualité - autonomie'],
+      [
+        'Facture',
+        'FACT-0549236',
+        '20/05/2019',
+        '5c35b5eb1a4fb00997363eb3',
+        'Mme',
+        'MATHY',
+        'Mimi',
+        '5c35b5eb7e0fb87297363eb2',
+        'TF1',
+        'F-389276.0208',
+        'F-389276.023',
+        'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC',
+        '11/10/2019'],
+      [
+        'Facture',
+        'FACT-0419457',
+        '22/05/2019',
+        '5c35b5eb1a6fb02397363eb1',
+        'M.',
+        'HORSEMAN',
+        'Bojack',
+        '5c35b5eb1a6fb87297363eb2',
+        'The Sherif',
+        'F-1018.6307999',
+        'F-1057.1319439',
+        'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC',
+        '12/10/2019',
+      ],
+      [
+        'Avoir',
+        'F1501231',
+        '21/05/2019',
+        '5d761a8f6f6cba0d259b17eb',
+        '',
+        'BINKS',
+        'Jar jar',
+        '5d761ad7ffd1dc0d39dadd7e',
+        'SW',
+        'F-18.5',
+        'F-8.5',
+        'Temps de qualité - autonomie',
+        '15/10/2019',
+      ],
+      [
+        'Avoir',
+        'F6473250',
+        '25/05/2019',
+        '5d761a8f6f8eba0d259b173f',
+        '',
+        'R2D2',
+        '',
+        '',
+        '',
+        'F-10.5',
+        'F-5.5',
+        'Temps de qualité - autonomie',
+        '16/10/2019',
+      ],
     ]);
     mockBill.verify();
     mockCreditNote.verify();

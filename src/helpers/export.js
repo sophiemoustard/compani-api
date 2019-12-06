@@ -158,6 +158,7 @@ const billAndCreditNoteExportHeader = [
   'Montant HT en €',
   'Montant TTC en €',
   'Services',
+  'Date de création',
 ];
 
 const formatRowCommonsForExport = (document) => {
@@ -191,6 +192,7 @@ const formatBillsForExport = (bills) => {
       totalExclTaxesFormatted = UtilsHelper.formatFloatForExport(totalExclTaxes);
     }
 
+    const createdAt = get(bill, 'createdAt', null);
     const cells = [
       'Facture',
       ...formatRowCommonsForExport(bill),
@@ -199,6 +201,7 @@ const formatBillsForExport = (bills) => {
       totalExclTaxesFormatted,
       UtilsHelper.formatFloatForExport(bill.netInclTaxes),
       exportBillSubscribtions(bill),
+      createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
     ];
 
     rows.push(cells);
@@ -215,6 +218,7 @@ const formatCreditNotesForExport = (creditNotes) => {
     const totalInclTaxes = (creditNote.inclTaxesCustomer || 0) + (creditNote.inclTaxesTpp || 0);
     const tppId = get(creditNote.thirdPartyPayer, '_id');
 
+    const createdAt = get(creditNote, 'createdAt', null);
     const cells = [
       'Avoir',
       ...formatRowCommonsForExport(creditNote),
@@ -223,6 +227,7 @@ const formatCreditNotesForExport = (creditNotes) => {
       UtilsHelper.formatFloatForExport(totalExclTaxes),
       UtilsHelper.formatFloatForExport(totalInclTaxes),
       get(creditNote, 'subscription.service.name') || '',
+      createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
     ];
 
     rows.push(cells);
