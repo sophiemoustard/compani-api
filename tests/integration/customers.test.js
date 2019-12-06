@@ -285,6 +285,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
       expect(res.result.data.customers.length).toEqual(1);
+      expect(res.result.data.customers[0].subscriptions).toHaveLength(2);
     });
 
     describe('Other roles', () => {
