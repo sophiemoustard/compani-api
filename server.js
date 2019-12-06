@@ -9,7 +9,7 @@ const { routes } = require('./src/routes/index');
 const { plugins } = require('./src/plugins/index');
 
 const server = Hapi.server({
-  port: process.env.NODE_ENV === 'test' ? 3001 : 3000,
+  port: process.env.NODE_ENV === 'test' ? 3001 : (process.env.PORT || 3000),
   routes: {
     log: {
       collect: true,
