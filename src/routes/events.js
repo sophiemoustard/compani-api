@@ -31,7 +31,7 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
-const { getEvent, authorizeEventCreationOrUpdate, authorizeEventDeletion } = require('./preHandlers/events');
+const { getEvent, authorizeEventCreation, authorizeEventUpdate, authorizeEventDeletion } = require('./preHandlers/events');
 
 exports.plugin = {
   name: 'routes-event',
@@ -77,9 +77,7 @@ exports.plugin = {
               .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
           }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
-        pre: [
-          { method: authorizeEventCreationOrUpdate },
-        ],
+        pre: [{ method: authorizeEventCreation }],
       },
       handler: create,
     });
@@ -177,7 +175,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventCreationOrUpdate },
+          { method: authorizeEventUpdate },
         ],
       },
 
