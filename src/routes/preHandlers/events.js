@@ -31,15 +31,34 @@ exports.authorizeEventDeletion = async (req) => {
   return null;
 };
 
-exports.authorizeEventCreationOrUpdate = async (req) => {
+exports.authorizeEventCreation = async (req) => {
   const { credentials } = req.auth;
-  const event = req.pre.event || req.payload;
+  const { payload } = req;
 
   const canEditEvent = credentials.scope.includes('events:edit');
-  const isOwnEvent = credentials.scope.includes('events:own:edit') && event.auxiliary === credentials._id;
+  const isOwnEvent = credentials.scope.includes('events:own:edit') && payload.auxiliary === credentials._id;
   if (!canEditEvent && !isOwnEvent) throw Boom.forbidden();
 
+  return exports.checkEventCreationOrUpdate(req);
+};
+
+exports.authorizeEventUpdate = async (req) => {
+  const { credentials } = req.auth;
+  const { pre } = req;
+
+  const canEditEvent = credentials.scope.includes('events:edit');
+  const isOwnEvent = pre.event.auxiliary && credentials.scope.includes('events:own:edit') &&
+    pre.event.auxiliary.toHexString() === credentials._id;
+  if (!canEditEvent && !isOwnEvent) throw Boom.forbidden();
+
+  return exports.checkEventCreationOrUpdate(req);
+};
+
+exports.checkEventCreationOrUpdate = async (req) => {
+  const { credentials } = req.auth;
+  const event = req.pre.event || req.payload;
   const companyId = get(credentials, 'company._id', null);
+
   if (req.payload.customer || (event.customer && req.payload.subscription)) {
     const customerId = req.payload.customer || event.customer;
     const customer = await Customer.findOne(({ _id: customerId, company: companyId })).lean();
