@@ -4,6 +4,13 @@ const { ObjectID } = require('mongodb');
 const EventHistory = require('../models/EventHistory');
 const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } = require('./constants');
 const UtilsHelper = require('./utils');
+const EventHistoryRepository = require('../repositories/EventHistoryRepository');
+
+exports.list = async (query, credentials) => {
+  const { createdAt } = query;
+  const listQuery = exports.getListQuery(query, credentials);
+  return EventHistoryRepository.paginate(listQuery, createdAt, credentials);
+};
 
 exports.getListQuery = (query, credentials) => {
   const queryCompany = { company: new ObjectID(get(credentials, 'company._id', null)) };

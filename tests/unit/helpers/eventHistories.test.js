@@ -3,9 +3,40 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventHistoryHelper = require('../../../src/helpers/eventHistories');
+const EventHistoryRepository = require('../../../src/repositories/EventHistoryRepository');
 const EventHistory = require('../../../src/models/EventHistory');
 
 require('sinon-mongoose');
+
+describe('list', () => {
+  let getListQueryStub;
+  let paginateStub;
+  beforeEach(() => {
+    getListQueryStub = sinon.stub(EventHistoryHelper, 'getListQuery');
+    paginateStub = sinon.stub(EventHistoryRepository, 'paginate');
+  });
+  afterEach(() => {
+    getListQueryStub.restore();
+    paginateStub.restore();
+  });
+
+  it('should get event histories', async () => {
+    const query = { createdAt: '2019-11-10' };
+    const credentials = { company: { _id: new ObjectID() } };
+    const listQuery = {
+      $and: [
+        { company: credentials.company._id },
+        { $or: [{ createdAt: { $lte: '2019-11-10' } }] },
+      ],
+    };
+    getListQueryStub.returns(listQuery);
+    paginateStub.returns({});
+    const result = await EventHistoryHelper.list(query, credentials);
+    expect(result).toEqual({});
+    getListQueryStub.calledWithExactly(query, credentials);
+    paginateStub.calledWithExactly(query, listQuery, query.createdAt, credentials);
+  });
+});
 
 describe('getListQuery', () => {
   let formatArrayOrStringQueryParam;

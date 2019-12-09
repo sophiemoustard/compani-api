@@ -1,17 +1,12 @@
 const Boom = require('boom');
 const translate = require('../helpers/translate');
-const EventHistoryRepository = require('../repositories/EventHistoryRepository');
-const { getListQuery } = require('../helpers/eventHistories');
+const EventHistoriesHelper = require('../helpers/eventHistories');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const { createdAt } = req.query;
-    const { credentials } = req.auth;
-    const query = getListQuery(req.query, credentials);
-    const eventHistories = await EventHistoryRepository.paginate(query, createdAt, credentials);
-
+    const eventHistories = await EventHistoriesHelper.list(req.query, req.auth.credentials);
     return {
       message: translate[language].eventHistoriesFound,
       data: { eventHistories },
