@@ -27,7 +27,7 @@ exports.formatSubscriptionData = (bill) => {
   };
 };
 
-exports.formatCustomerBills = (customerBills, customer, number) => {
+exports.formatCustomerBills = (customerBills, customer, number, companyId) => {
   const billedEvents = {};
   const bill = {
     customer: customer._id,
@@ -36,6 +36,7 @@ exports.formatCustomerBills = (customerBills, customer, number) => {
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
     shouldBeSent: customerBills.shouldBeSent,
+    company: companyId,
   };
 
   for (const draftBill of customerBills.bills) {
@@ -48,7 +49,7 @@ exports.formatCustomerBills = (customerBills, customer, number) => {
   return { bill, billedEvents };
 };
 
-exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) => {
+exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, companyId) => {
   let { seq } = number;
   const tppBills = [];
   const billedEvents = {};
@@ -60,6 +61,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number) =>
       subscriptions: [],
       netInclTaxes: UtilsHelper.getFixedNumber(tpp.total, 2),
       date: tpp.bills[0].endDate,
+      company: companyId,
     };
     if (!tpp.bills[0].externalBilling) {
       tppBill.number = exports.formatBillNumber(number.prefix, seq);
@@ -128,26 +130,37 @@ exports.updateFundingHistories = async (histories) => {
   await Promise.all(promises);
 };
 
-exports.formatAndCreateBills = async (number, groupByCustomerBills) => {
+exports.generateBillNumber = async (bills) => {
+  const prefix = `FACT-${moment(bills[0].endDate).format('MMYY')}`;
+  return BillNumber.findOneAndUpdate(
+    { prefix },
+    {},
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  ).lean();
+};
+
+exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   const promises = [];
   let eventsToUpdate = {};
   let fundingHistories = {};
+  const companyId = get(credentials, 'company._id', null);
+  const number = await exports.generateBillNumber(groupByCustomerBills);
 
   for (const draftBills of groupByCustomerBills) {
     if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {
-      const customerBillingInfo = exports.formatCustomerBills(draftBills.customerBills, draftBills.customer, number);
+      const customerBillingInfo = exports.formatCustomerBills(draftBills.customerBills, draftBills.customer, number, companyId);
       eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
       number.seq += 1;
-      promises.push((new Bill(customerBillingInfo.bill)).save());
+      promises.push(Bill.create(customerBillingInfo.bill));
     }
 
     if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
-      const tppBillingInfo = exports.formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number);
+      const tppBillingInfo = exports.formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number, companyId);
       fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
 
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
-        promises.push((new Bill(bill)).save());
+        promises.push(Bill.create(bill));
         if (bill.number) number.seq += 1;
       }
     }
@@ -157,6 +170,14 @@ exports.formatAndCreateBills = async (number, groupByCustomerBills) => {
   await exports.updateFundingHistories(fundingHistories);
   await exports.updateEvents(eventsToUpdate);
   await Promise.all(promises);
+};
+
+exports.getBills = async (query, credentials) => {
+  const { startDate, endDate, ...billsQuery } = query;
+  if (startDate || endDate) billsQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
+  billsQuery.company = get(credentials, 'company._id', null);
+
+  return Bill.find(billsQuery).populate({ path: 'client', select: '_id name' }).lean();
 };
 
 const formatCustomerName = customer => (customer.identity.firstname

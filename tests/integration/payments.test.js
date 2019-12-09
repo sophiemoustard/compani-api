@@ -3,12 +3,12 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { paymentsList, populateDB, populateDBWithCompany, paymentCustomerList, paymentUser } = require('./seed/paymentsSeed');
+const { paymentsList, populateDB, paymentCustomerList, paymentUser, userFromOtherCompany, customerFromOtherCompany, tppFromOtherCompany } = require('./seed/paymentsSeed');
 const { PAYMENT, REFUND } = require('../../src/helpers/constants');
 const translate = require('../../src/helpers/translate');
 const Payment = require('../../src/models/Payment');
 const Drive = require('../../src/models/Google/Drive');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 
 const { language } = translate;
 
@@ -100,7 +100,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         expect(response.result.message).toBe(translate[language].paymentCreated);
         expect(response.result.data.payment).toEqual(expect.objectContaining(payload));
         expect(response.result.data.payment.number).toBe(payload.nature === PAYMENT ? `REG-${moment().format('YYMM')}001` : `REMB-${moment().format('YYMM')}001`);
-        const payments = await Payment.find().lean();
+        const payments = await Payment.find({ company: authCompany._id }).lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
     });
@@ -155,6 +155,28 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         expect(res.statusCode).toBe(400);
       });
     });
+
+    it('it should not create a payment if customer is not from the same company', async () => {
+      const payload = { ...originalPayload, customer: customerFromOtherCompany._id };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('it should not create a payment if client is not from the same company', async () => {
+      const payload = { ...originalPayload, client: tppFromOtherCompany._id };
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -205,7 +227,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
   ];
 
   describe('Admin with company', () => {
-    beforeEach(populateDBWithCompany);
+    beforeEach(populateDB);
     beforeEach(async () => {
       authToken = await getToken('admin');
     });
@@ -222,20 +244,51 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const payments = await Payment.find().lean();
+      const payments = await Payment.find({ company: authCompany._id }).lean();
       expect(payments.length).toBe(paymentsList.length + 2);
       sinon.assert.called(addStub);
       addStub.restore();
+    });
+
+    it('it should not create multiple payments if at least one customer is not from the same company', async () => {
+      const payload = [
+        { ...originalPayload[0], customer: customerFromOtherCompany._id },
+        { ...originalPayload[1] },
+      ];
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('it should not create multiple payments if at least one paiement has a tpp', async () => {
+      const payload = [
+        { ...originalPayload[0], client: new ObjectID() },
+        { ...originalPayload[1] },
+      ];
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
     });
   });
 
   describe('Admin without company', () => {
     beforeEach(populateDB);
     beforeEach(async () => {
-      authToken = await getToken('admin');
+      authToken = await getTokenByCredentials(userFromOtherCompany.local);
     });
     it('should not create multiple payments as company credentials are missing', async () => {
-      const payload = [...originalPayload];
+      const payload = [
+        { ...originalPayload[0], customer: customerFromOtherCompany._id },
+        { ...originalPayload[1], customer: customerFromOtherCompany._id },
+      ];
       const response = await app.inject({
         method: 'POST',
         url: '/payments/createlist',
@@ -351,6 +404,18 @@ describe('PAYMENTS ROUTES - PUT /payments/_id', () => {
         });
         expect(res.statusCode).toBe(400);
       });
+    });
+
+    it('should not update payment if user is not from the same company', async () => {
+      authToken = await getTokenByCredentials(userFromOtherCompany.local);
+      const payload = { ...originalPayload };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/payments/${paymentsList[0]._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+      expect(res.statusCode).toBe(403);
     });
   });
 

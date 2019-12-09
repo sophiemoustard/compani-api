@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { validatePayload, validateQuery } = require('./preHooks/validate');
 
 const {
   PAYMENT,
@@ -15,6 +16,7 @@ const PAYMENT_TYPES = [DIRECT_DEBIT, BANK_TRANSFER, CHECK, CESU];
 const PaymentSchema = mongoose.Schema({
   number: String,
   date: { type: Date, default: Date.now },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
   netInclTaxes: Number,
@@ -23,6 +25,9 @@ const PaymentSchema = mongoose.Schema({
   rum: String,
 
 }, { timestamps: true });
+
+PaymentSchema.pre('validate', validatePayload);
+PaymentSchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('Payment', PaymentSchema);
 module.exports.PAYMENT_NATURES = PAYMENT_NATURES;

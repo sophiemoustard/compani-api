@@ -67,9 +67,10 @@ exports.getCustomerCount = (events) => {
 };
 
 exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
   const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
-  const auxiliaryEvents = await EventRepository.getEventsToPay(startDate, endDate, [new ObjectID(auxiliaryId)]);
+  const auxiliaryEvents = await EventRepository.getEventsToPay(startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
   const customersCount = auxiliaryEvents[0] ? exports.getCustomerCount(auxiliaryEvents[0].events) : 0;
 
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
@@ -79,14 +80,13 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
   const prevPay = await Pay.findOne({ month: prevMonth, auxiliary: auxiliaryId }).lean();
   const query = { startDate, endDate };
-  const companyId = get(credentials, 'company._id', null);
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne({ _id: companyId }).lean(),
     Surcharge.find({ company: companyId }).lean(),
     DistanceMatrix.find().lean(),
   ]);
 
-  const prevPayList = await DraftPayHelper.getPreviousMonthPay([{ ...auxiliary, prevPay }], query, surcharges, distanceMatrix);
+  const prevPayList = await DraftPayHelper.getPreviousMonthPay([{ ...auxiliary, prevPay }], query, surcharges, distanceMatrix, companyId);
   const prevPayWithDiff = prevPayList.length ? prevPayList[0] : null;
   const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
   if (!contract) throw Boom.badRequest();

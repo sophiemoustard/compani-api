@@ -1,8 +1,12 @@
+const get = require('lodash/get');
 const { getLastVersion } = require('./utils');
 const { PAYMENT } = require('./constants');
 const BillRepository = require('../repositories/BillRepository');
 const CreditNoteRepository = require('../repositories/CreditNoteRepository');
 const PaymentRepository = require('../repositories/PaymentRepository');
+const BillHelper = require('../helpers/bills');
+const CreditNoteHelper = require('../helpers/creditNotes');
+const PaymentHelper = require('../helpers/payments');
 
 exports.canBeDirectDebited = (bill) => {
   if (!bill) throw new Error('Bill must be provided');
@@ -46,7 +50,9 @@ exports.getBalance = (bill, customerAggregation, tppAggregation, payments) => {
       && pay._id.tpp && pay._id.tpp.toHexString() === bill._id.tpp.toHexString());
 
   bill.billed -= correspondingCreditNote ? correspondingCreditNote.refund : 0;
-  bill.paid = correspondingPayment && correspondingPayment.payments ? exports.computePayments(correspondingPayment.payments) : 0;
+  bill.paid = correspondingPayment && correspondingPayment.payments
+    ? exports.computePayments(correspondingPayment.payments)
+    : 0;
   bill.balance = bill.paid - bill.billed;
   bill.toPay = exports.canBeDirectDebited(bill) ? Math.abs(bill.balance) : 0;
 
@@ -62,7 +68,9 @@ exports.getBalancesFromCreditNotes = (creditNote, payments) => {
   const bill = {
     customer: creditNote.customer,
     billed: -creditNote.refund,
-    paid: correspondingPayment && correspondingPayment.payments ? exports.computePayments(correspondingPayment.payments) : 0,
+    paid: correspondingPayment && correspondingPayment.payments
+      ? exports.computePayments(correspondingPayment.payments)
+      : 0,
     toPay: 0,
     ...(creditNote.thirdPartyPayer && { thirdPartyPayer: { ...creditNote.thirdPartyPayer } }),
   };
@@ -84,20 +92,21 @@ exports.getBalancesFromPayments = (payment) => {
   return bill;
 };
 
-exports.getBalances = async (customerId, maxDate) => {
-  const bills = await BillRepository.findAmountsGroupedByClient(customerId, maxDate);
-  const customerCreditNotesAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(customerId, maxDate);
-  const tppCreditNotesAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(customerId, maxDate);
-  const payments = await PaymentRepository.findAmountsGroupedByClient(customerId, maxDate);
+exports.getBalances = async (credentials, customerId = null, maxDate = null) => {
+  const companyId = get(credentials, 'company._id', null);
+  const bills = await BillRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
+  const customerCNAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(companyId, customerId, maxDate);
+  const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId, customerId, maxDate);
+  const payments = await PaymentRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
 
   const balances = [];
   const clients = [];
   for (const bill of bills) {
     clients.push({ ...bill._id });
-    balances.push(exports.getBalance(bill, customerCreditNotesAggregation, tppCreditNotesAggregation, payments));
+    balances.push(exports.getBalance(bill, customerCNAggregation, tppCNAggregation, payments));
   }
 
-  const remainingCreditNotes = [...customerCreditNotesAggregation, ...tppCreditNotesAggregation]
+  const remainingCreditNotes = [...customerCNAggregation, ...tppCNAggregation]
     .filter(cn => !clients.some(cl => cl.customer.toHexString() === cn._id.customer.toHexString()
       && ((!cl.tpp && !cn._id.tpp) || (cl.tpp && cn._id.tpp && cl.tpp.toHexString() === cn._id.tpp.toHexString()))));
 
@@ -106,12 +115,23 @@ exports.getBalances = async (customerId, maxDate) => {
     balances.push(exports.getBalancesFromCreditNotes(cn, payments));
   }
 
-  const remainingPayments = payments
-    .filter(payment => !clients.some(cl => cl.customer.toHexString() === payment._id.customer.toHexString()
-      && ((!cl.tpp && !payment._id.tpp) || (cl.tpp && payment._id.tpp && cl.tpp.toHexString() === payment._id.tpp.toHexString()))));
+  const remainingPayments = payments.filter(payment =>
+    !clients.some(cl => cl.customer.toHexString() === payment._id.customer.toHexString() &&
+      ((!cl.tpp && !payment._id.tpp) ||
+      (cl.tpp && payment._id.tpp && cl.tpp.toHexString() === payment._id.tpp.toHexString()))));
   for (const cn of remainingPayments) {
     balances.push(exports.getBalancesFromPayments(cn, payments));
   }
-
   return balances;
+};
+
+exports.getBalancesWithDetails = async (query, credentials) => {
+  const [balances, bills, payments, creditNotes] = await Promise.all([
+    exports.getBalances(credentials, query.customer, query.startDate),
+    BillHelper.getBills(query, credentials),
+    PaymentHelper.getPayments(query, credentials),
+    CreditNoteHelper.getCreditNotes(query, credentials),
+  ]);
+
+  return { balances, bills, payments, creditNotes };
 };

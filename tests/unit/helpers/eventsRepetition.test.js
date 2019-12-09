@@ -112,7 +112,7 @@ describe('createRepetitionsEveryDay', () => {
 
   it('should create repetition every day', async () => {
     const event = { startDate: '2019-01-10T09:00:00.000Z', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedPayload.returns(new Event());
+    formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
     await EventsRepetitionHelper.createRepetitionsEveryDay(event);
 
     sinon.assert.callCount(formatRepeatedPayload, 90);
@@ -134,7 +134,7 @@ describe('createRepetitionsEveryWeekDay', () => {
 
   it('should create repetition every day', async () => {
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedPayload.returns(new Event());
+    formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
     await EventsRepetitionHelper.createRepetitionsEveryWeekDay(event);
 
     sinon.assert.callCount(formatRepeatedPayload, 64);
@@ -156,7 +156,7 @@ describe('createRepetitionsByWeek', () => {
 
   it('should create repetition every day', async () => {
     const event = { startDate: '2019-01-10T09:00:00', endDate: '2019-01-10T11:00:00' };
-    formatRepeatedPayload.returns(new Event());
+    formatRepeatedPayload.returns(new Event({ company: new ObjectID() }));
     await EventsRepetitionHelper.createRepetitionsByWeek(event);
 
     sinon.assert.callCount(formatRepeatedPayload, 13);
@@ -187,7 +187,7 @@ describe('createRepetitions', () => {
 
   it('should call createRepetitionsEveryDay', async () => {
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
-    const event = new Event({ repetition: { frequency: EVERY_WEEK } });
+    const event = new Event({ repetition: { frequency: EVERY_WEEK }, company: new ObjectID() });
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
     sinon.assert.called(findOneAndUpdate);
@@ -196,7 +196,7 @@ describe('createRepetitions', () => {
 
   it('should call createRepetitionsEveryDay', async () => {
     const payload = { _id: '1234567890', repetition: { frequency: 'every_day', parentId: '0987654321' } };
-    const event = new Event();
+    const event = new Event({ company: new ObjectID() });
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
     sinon.assert.notCalled(findOneAndUpdate);
@@ -206,7 +206,7 @@ describe('createRepetitions', () => {
 
   it('should call createRepetitionsEveryWeekDay', async () => {
     const payload = { _id: '1234567890', repetition: { frequency: 'every_week_day', parentId: '0987654321' } };
-    const event = new Event();
+    const event = new Event({ company: new ObjectID() });
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
     sinon.assert.notCalled(findOneAndUpdate);
@@ -216,7 +216,7 @@ describe('createRepetitions', () => {
 
   it('should call createRepetitionsByWeek to repeat every week', async () => {
     const payload = { _id: '1234567890', repetition: { frequency: 'every_week', parentId: '0987654321' } };
-    const event = new Event();
+    const event = new Event({ company: new ObjectID() });
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
     sinon.assert.notCalled(findOneAndUpdate);
@@ -226,7 +226,7 @@ describe('createRepetitions', () => {
 
   it('should call createRepetitionsByWeek to repeat every two weeks', async () => {
     const payload = { _id: '1234567890', repetition: { frequency: 'every_two_weeks', parentId: '0987654321' } };
-    const event = new Event();
+    const event = new Event({ company: new ObjectID() });
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
     sinon.assert.notCalled(findOneAndUpdate);
@@ -263,14 +263,16 @@ describe('updateRepetition', () => {
     ];
     findEvent.returns(events);
     hasConflicts.returns(false);
+    const credentials = { company: { _id: new ObjectID() } };
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
-    await EventsRepetitionHelper.updateRepetition(event, payload);
     sinon.assert.calledWith(
       findEvent,
       {
         'repetition.parentId': 'qwertyuiop',
         'repetition.frequency': { $not: { $eq: 'never' } },
         startDate: { $gte: new Date('2019-03-23T09:00:00.000Z') },
+        company: credentials.company._id,
       }
     );
     sinon.assert.calledThrice(hasConflicts);
@@ -286,12 +288,18 @@ describe('updateRepetition', () => {
     ];
     findEvent.returns(events);
     hasConflicts.returns(true);
-
-    await EventsRepetitionHelper.updateRepetition(event, payload);
+    const credentials = { company: { _id: new ObjectID() } };
+    await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
     sinon.assert.calledWith(
       hasConflicts,
-      { _id: '123456', auxiliary: '1234567890', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' }
+      {
+        _id: '123456',
+        auxiliary: '1234567890',
+        startDate: '2019-03-24T10:00:00.000Z',
+        endDate: '2019-03-24T11:00:00.000Z',
+        company: credentials.company._id,
+      }
     );
     sinon.assert.calledWith(
       findOneAndUpdateEvent,
@@ -306,7 +314,7 @@ describe('deleteRepetition', () => {
   let createEventHistoryOnDelete;
   let deleteMany;
   let deleteOne;
-  const credentials = { _id: (new ObjectID()).toHexString() };
+  const credentials = { _id: (new ObjectID()).toHexString(), company: { _id: new ObjectID() } };
   beforeEach(() => {
     createEventHistoryOnDelete = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnDelete');
     deleteMany = sinon.stub(Event, 'deleteMany');
@@ -335,6 +343,7 @@ describe('deleteRepetition', () => {
         'repetition.parentId': parentId,
         startDate: { $gte: new Date(event.startDate) },
         $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+        company: credentials.company._id,
       }
     );
     sinon.assert.calledWith(deleteOne, { parentId });

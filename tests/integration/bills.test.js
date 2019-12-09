@@ -5,7 +5,17 @@ const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
-const { populateDB, billUserList, billsList, billCustomerList } = require('./seed/billsSeed');
+const {
+  populateDB,
+  billUserList,
+  billsList,
+  authBillsList,
+  billCustomerList,
+  billServices,
+  eventList,
+  billThirdPartyPayer,
+  otherCompanyBillThirdPartyPayer,
+} = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const Bill = require('../../src/models/Bill');
@@ -98,15 +108,10 @@ describe('BILL ROUTES - POST /bills', () => {
   beforeEach(populateDB);
   const payload = [
     {
-      customerId: '5ccbfcf3d6eaa746a3c34cdf',
+      customerId: billCustomerList[0]._id,
       customer: {
-        _id: '5ccbfcf3d6eaa746a3c34cdf',
-        identity: {
-          title: 'mr',
-          firstname: 'Marie',
-          lastname: 'Renard',
-          birthDate: '2018-05-23T18:59:04.466Z',
-        },
+        _id: billCustomerList[0]._id,
+        identity: billCustomerList[0].identity,
       },
       endDate: '2019-05-31T23:59:59.999Z',
       customerBills: {
@@ -114,26 +119,8 @@ describe('BILL ROUTES - POST /bills', () => {
           {
             _id: '5ccbfcf4bffe7646a387b470',
             subscription: {
-              _id: '5ccbfcf3d6eaa746a3c34ce1',
-              service: {
-                _id: '5ccbfcf3d6eaa746a3c34cda',
-                type: 'contract_with_customer',
-                company: '5ccbfcf3d6eaa746a3c34cc4',
-                versions: [
-                  {
-                    _id: '5ccbfcf4bffe7646a387b469',
-                    defaultUnitAmount: 12,
-                    name: 'Service 1',
-                    startDate: '2019-01-16T16:58:15.519Z',
-                    vat: 12,
-                    createdAt: '2019-05-03T08:33:56.163Z',
-                  },
-                ],
-                nature: 'hourly',
-                __v: 0,
-                createdAt: '2019-05-03T08:33:56.163Z',
-                updatedAt: '2019-05-03T08:33:56.163Z',
-              },
+              _id: billCustomerList[0].subscriptions[0]._id,
+              service: billServices[0],
               versions: [
                 {
                   _id: '5ccbfcf4bffe7646a387b456',
@@ -147,12 +134,7 @@ describe('BILL ROUTES - POST /bills', () => {
               ],
               createdAt: '2019-05-03T08:33:56.144Z',
             },
-            identity: {
-              title: 'mr',
-              firstname: 'Marie',
-              lastname: 'Renard',
-              birthDate: '2018-05-23T18:59:04.466Z',
-            },
+            identity: billCustomerList[0].identity,
             discount: 0,
             startDate: '2019-05-01T00:00:00.000Z',
             endDate: '2019-05-31T23:59:59.999Z',
@@ -161,7 +143,7 @@ describe('BILL ROUTES - POST /bills', () => {
             vat: 12,
             eventsList: [
               {
-                event: '5ccbfcf3d6eaa746a3c34ceb',
+                event: eventList[4]._id,
                 auxiliary: new ObjectID(),
                 startDate: '2019-05-02T08:00:00.000Z',
                 endDate: '2019-05-02T10:00:00.000Z',
@@ -183,29 +165,11 @@ describe('BILL ROUTES - POST /bills', () => {
             {
               _id: '5ccbfcf4bffe7646a387b472',
               subscription: {
-                _id: '5ccbfcf3d6eaa746a3c34cde',
-                service: {
-                  _id: '5ccbfcf3d6eaa746a3c34cda',
-                  type: 'contract_with_customer',
-                  company: '5ccbfcf3d6eaa746a3c34cc4',
-                  versions: [
-                    {
-                      _id: '5ccbfcf4bffe7646a387b469',
-                      defaultUnitAmount: 12,
-                      name: 'Service 1',
-                      startDate: '2019-01-16T16:58:15.519Z',
-                      vat: 12,
-                      createdAt: '2019-05-03T08:33:56.163Z',
-                    },
-                  ],
-                  nature: 'hourly',
-                  __v: 0,
-                  createdAt: '2019-05-03T08:33:56.163Z',
-                  updatedAt: '2019-05-03T08:33:56.163Z',
-                },
+                _id: billCustomerList[0].subscriptions[0]._id,
+                service: billServices[0],
                 versions: [
                   {
-                    _id: '5ccbfcf4bffe7646a387b458',
+                    _id: '5ccbfcf4bffe7646a387b456',
                     unitTTCRate: 12,
                     estimatedWeeklyVolume: 12,
                     evenings: 2,
@@ -216,12 +180,7 @@ describe('BILL ROUTES - POST /bills', () => {
                 ],
                 createdAt: '2019-05-03T08:33:56.144Z',
               },
-              identity: {
-                title: 'mr',
-                firstname: 'Marie',
-                lastname: 'Renard',
-                birthDate: '2018-05-23T18:59:04.466Z',
-              },
+              identity: billCustomerList[0].identity,
               discount: 0,
               startDate: '2019-05-01T00:00:00.000Z',
               endDate: '2019-05-31T23:59:59.999Z',
@@ -233,13 +192,13 @@ describe('BILL ROUTES - POST /bills', () => {
               hours: 2,
               eventsList: [
                 {
-                  event: '5ccbfcf3d6eaa746a3c34cea',
+                  event: eventList[4]._id,
                   auxiliary: new ObjectID(),
                   startDate: '2019-05-02T08:00:00.000Z',
                   endDate: '2019-05-02T10:00:00.000Z',
                   inclTaxesTpp: 24,
                   exclTaxesTpp: 21.428571428571427,
-                  thirdPartyPayer: '5ccbfcf3d6eaa746a3c34cdc',
+                  thirdPartyPayer: billThirdPartyPayer._id,
                   inclTaxesCustomer: 0,
                   exclTaxesCustomer: 0,
                   history: {
@@ -252,14 +211,7 @@ describe('BILL ROUTES - POST /bills', () => {
                 },
               ],
               externalBilling: false,
-              thirdPartyPayer: {
-                _id: '5ccbfcf3d6eaa746a3c34cdc',
-                name: 'Toto',
-                company: authCompany._id,
-                __v: 0,
-                createdAt: '2019-05-03T08:33:56.156Z',
-                updatedAt: '2019-05-03T08:33:56.156Z',
-              },
+              thirdPartyPayer: billThirdPartyPayer,
             },
           ],
           total: 24,
@@ -282,9 +234,185 @@ describe('BILL ROUTES - POST /bills', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const bills = await Bill.find().lean();
+      const bills = await Bill.find({ company: authCompany._id }).lean();
       const draftBillsLength = payload[0].customerBills.bills.length + payload[0].thirdPartyPayerBills[0].bills.length;
-      expect(bills.length).toBe(draftBillsLength + billsList.length);
+      expect(bills.length).toBe(draftBillsLength + authBillsList.length);
+    });
+
+    it('should create new bill with vat 0 if service is not taxed', async () => {
+      const draftBillPayload = [
+        {
+          customerId: billCustomerList[0]._id,
+          customer: {
+            _id: billCustomerList[0]._id,
+            identity: billCustomerList[0].identity,
+          },
+          endDate: '2019-05-31T23:59:59.999Z',
+          customerBills: {
+            bills: [
+              {
+                _id: '5ccbfcf4bffe7646a387b470',
+                subscription: {
+                  _id: billCustomerList[0].subscriptions[0]._id,
+                  service: {
+                    ...billServices[0],
+                    versions: [{
+                      defaultUnitAmount: 12,
+                      name: 'Service 1',
+                      startDate: '2019-01-16 17:58:15.519',
+                      vat: 0,
+                    }],
+                  },
+                  versions: [
+                    {
+                      _id: '5ccbfcf4bffe7646a387b456',
+                      unitTTCRate: 12,
+                      estimatedWeeklyVolume: 12,
+                      evenings: 2,
+                      sundays: 1,
+                      startDate: '2019-04-03T08:33:55.370Z',
+                      createdAt: '2019-05-03T08:33:56.144Z',
+                    },
+                  ],
+                  createdAt: '2019-05-03T08:33:56.144Z',
+                },
+                identity: billCustomerList[0].identity,
+                discount: 0,
+                startDate: '2019-05-01T00:00:00.000Z',
+                endDate: '2019-05-31T23:59:59.999Z',
+                unitExclTaxes: 10.714285714285714,
+                unitInclTaxes: 12,
+                vat: 0,
+                eventsList: [
+                  {
+                    event: eventList[4]._id,
+                    auxiliary: new ObjectID(),
+                    startDate: '2019-05-02T08:00:00.000Z',
+                    endDate: '2019-05-02T10:00:00.000Z',
+                    inclTaxesCustomer: 24,
+                    exclTaxesCustomer: 24,
+                    surcharges: [{ percentage: 90, name: 'Noël' }],
+                  },
+                ],
+                hours: 2,
+                exclTaxes: 24,
+                inclTaxes: 24,
+              },
+            ],
+            total: 24,
+          },
+        },
+      ];
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: { bills: draftBillPayload },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const bills = await Bill.find({ 'subscriptions.vat': 0, company: authCompany._id }).lean();
+      expect(bills.length).toBe(1);
+    });
+
+    it('should return a 403 error if customer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: { bills: [{ ...payload[0], customerId: billCustomerList[2]._id }] },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if third party payer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: {
+          bills: [{
+            ...payload[0],
+            thirdPartyPayerBills: [{
+              ...payload[0].thirdPartyPayerBills[0],
+              bills: [{
+                ...payload[0].thirdPartyPayerBills[0].bills[0],
+                thirdPartyPayer: otherCompanyBillThirdPartyPayer,
+              }],
+            }],
+          }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if at least one event is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: {
+          bills: [{
+            ...payload[0],
+            customerBills: {
+              ...payload[0].customerBills,
+              bills: [{
+                ...payload[0].customerBills.bills[0],
+                eventsList: [{
+                  event: eventList[5]._id,
+                  auxiliary: new ObjectID(),
+                  startDate: '2019-05-02T08:00:00.000Z',
+                  endDate: '2019-05-02T10:00:00.000Z',
+                  inclTaxesCustomer: 24,
+                  exclTaxesCustomer: 24,
+                  surcharges: [{ percentage: 90, name: 'Noël' }],
+                }],
+              }],
+            },
+          }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if at least one bill subscription is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: {
+          bills: [{
+            ...payload[0],
+            customerBills: {
+              ...payload[0].customerBills,
+              bills: [{
+                ...payload[0].customerBills.bills[0],
+                subscription: {
+                  _id: billCustomerList[2].subscriptions[0]._id,
+                  service: billServices[1],
+                  versions: [
+                    {
+                      _id: '5ccbfcf4bffe7646a387b456',
+                      unitTTCRate: 12,
+                      estimatedWeeklyVolume: 12,
+                      evenings: 2,
+                      sundays: 1,
+                      startDate: '2019-04-03T08:33:55.370Z',
+                      createdAt: '2019-05-03T08:33:56.144Z',
+                    },
+                  ],
+                  createdAt: '2019-05-03T08:33:56.144Z',
+                },
+              }],
+            },
+          }],
+        },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -323,11 +451,21 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
     it('should get bill pdf', async () => {
       const response = await app.inject({
         method: 'GET',
+        url: `/bills/${authBillsList[0]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 error if bill customer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
         url: `/bills/${billsList[0]._id}/pdfs`,
         headers: { 'x-access-token': authToken },
       });
-      
-      expect(response.statusCode).toBe(200);
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -337,7 +475,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',
-        url: `/bills/${billsList[0]._id}/pdfs`,
+        url: `/bills/${authBillsList[0]._id}/pdfs`,
         headers: { 'x-access-token': helperToken },
       });
       expect(res.statusCode).toBe(200);
@@ -354,7 +492,7 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/bills/${billsList[0]._id}/pdfs`,
+          url: `/bills/${authBillsList[0]._id}/pdfs`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -373,7 +511,20 @@ describe('BILL ROUTES - GET /bills', () => {
       authToken = await getToken('admin');
     });
 
-    it('should get all bills', async () => {
+    it('should get all bills (company A)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: '/bills',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.bills.length).toBe(authBillsList.length);
+    });
+
+    it('should get all bills (company B)', async () => {
+      authToken = await getTokenByCredentials(billUserList[4].local);
+
       const response = await app.inject({
         method: 'GET',
         url: '/bills',
@@ -386,8 +537,19 @@ describe('BILL ROUTES - GET /bills', () => {
   });
 
   describe('Other roles', () => {
-    it('should return customer bills if I am its helper', async () => {
+    it('should return customer bills if I am its helper (company A)', async () => {
       const helper = billUserList[0];
+      const helperToken = await getTokenByCredentials(helper.local);
+      const res = await app.inject({
+        method: 'GET',
+        url: `/bills?customer=${helper.customers[0]}`,
+        headers: { 'x-access-token': helperToken },
+      });
+      expect(res.statusCode).toBe(200);
+    });
+
+    it('should return customer bills if I am its helper (company B)', async () => {
+      const helper = billUserList[2];
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',

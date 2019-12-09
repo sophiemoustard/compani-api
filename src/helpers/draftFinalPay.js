@@ -46,7 +46,9 @@ exports.getDraftFinalPayByAuxiliary = async (auxiliary, eventsToPay, prevPay, co
 exports.getDraftFinalPay = async (query, credentials) => {
   const start = moment(query.startDate).startOf('d').toDate();
   const end = moment(query.endDate).endOf('d').toDate();
+  const companyId = get(credentials, 'company._id', null);
   const contractRules = {
+    company: companyId,
     status: COMPANY_CONTRACT,
     endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
   };
@@ -55,12 +57,12 @@ exports.getDraftFinalPay = async (query, credentials) => {
 
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne().lean(),
-    Surcharge.find({ company: get(credentials, 'company._id', null) }).lean(),
+    Surcharge.find({ company: companyId }).lean(),
     DistanceMatrix.find().lean(),
   ]);
 
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id));
-  const prevPayList = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix);
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(aux => aux._id), companyId);
+  const prevPayList = await DraftPayHelper.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix, companyId);
 
   const draftFinalPay = [];
   for (const auxiliary of auxiliaries) {

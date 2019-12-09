@@ -11,6 +11,7 @@ const {
   ABSENCE,
   UNAVAILABILITY,
   PLANNING_VIEW_END_HOUR,
+  EVERY_WEEK,
 } = require('./constants');
 const EventHistoriesHelper = require('./eventHistories');
 const EventsValidationHelper = require('./eventsValidation');
@@ -29,11 +30,12 @@ momentRange.extendMoment(moment);
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.createEvent = async (payload, credentials) => {
-  if (!(await EventsValidationHelper.isCreationAllowed(payload, credentials))) throw Boom.badData();
+  const companyId = _.get(credentials, 'company._id', null);
+  let event = { ...payload, company: companyId };
+  if (!(await EventsValidationHelper.isCreationAllowed(event))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
-  let event = { ...payload };
   const isRepeatedEvent = isRepetition(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await EventsValidationHelper.hasConflicts(event)) {
     delete event.auxiliary;
@@ -42,7 +44,6 @@ exports.createEvent = async (payload, credentials) => {
 
   event = await Event.create(event);
   event = await EventRepository.getEvent(event._id, credentials);
-
   if (payload.type === ABSENCE) {
     const { startDate, endDate, auxiliary, _id } = event;
     const dates = { startDate, endDate };
@@ -50,20 +51,20 @@ exports.createEvent = async (payload, credentials) => {
     await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
   }
 
-  if (isRepeatedEvent) await EventsRepetitionHelper.createRepetitions(event, payload);
+  if (isRepeatedEvent) await EventsRepetitionHelper.createRepetitions(event, { ...payload, company: companyId });
 
   return exports.populateEventSubscription(event);
 };
 
 exports.deleteConflictInternalHoursAndUnavailabilities = async (dates, auxiliary, eventId, credentials) => {
   const types = [INTERNAL_HOUR, UNAVAILABILITY];
-  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, eventId);
+  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, _.get(credentials, 'company._id', null), eventId);
 
   await exports.deleteEvents(events, credentials);
 };
 
 exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
-  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION]);
+  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION], _.get(credentials, 'company._id', null));
 
   for (let i = 0, l = interventions.length; i < l; i++) {
     const payload = _.omit(interventions[i], ['_id', 'auxiliary', 'repetition']);
@@ -71,8 +72,8 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
   }
 };
 
-exports.getListQuery = (query) => {
-  const rules = [];
+exports.getListQuery = (query, credentials) => {
+  const rules = [{ company: new ObjectID(_.get(credentials, 'company._id')) }];
 
   const { auxiliary, type, customer, sector, isBilled, startDate, endDate, status } = query;
 
@@ -104,7 +105,21 @@ exports.getListQuery = (query) => {
     rules.push({ startDate: { $lt: endDateQuery } });
   }
 
-  return rules.length > 0 ? { $and: rules } : {};
+  return { $and: rules };
+};
+
+exports.listForCreditNotes = (payload, credentials) => {
+  let query = {
+    startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+    endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+    customer: payload.customer,
+    isBilled: payload.isBilled,
+    type: INTERVENTION,
+    company: _.get(credentials, 'company._id', null),
+  };
+  if (payload.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': payload.thirdPartyPayer };
+  else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 }, 'bills.inclTaxesTpp': { $exists: false } };
+  return Event.find(query).lean();
 };
 
 exports.populateEventSubscription = (event) => {
@@ -162,7 +177,7 @@ exports.isMiscOnlyUpdated = (event, payload) => {
  */
 exports.updateEvent = async (event, eventPayload, credentials) => {
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
-  if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload);
+  if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
 
   const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
   let unset = null;
@@ -190,7 +205,8 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
 };
 
 exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
-  const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract);
+  const companyId = _.get(credentials, 'company._id', null);
+  const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract, companyId);
 
   if (customerSubscriptionsFromEvents.length === 0) return;
   let correspondingSubs;
@@ -201,7 +217,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
-  const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds);
+  const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds, companyId);
   const promises = [];
   const ids = [];
 
@@ -231,7 +247,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
-  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user);
+  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user, _.get(credentials, 'company._id', null));
   const promises = [];
   const ids = [];
 
@@ -252,9 +268,29 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
   return Promise.all(promises);
 };
 
+exports.deleteList = async (customer, startDate, endDate, credentials) => {
+  const companyId = _.get(credentials, 'company._id', null);
+  const query = {
+    customer: new ObjectID(customer),
+    startDate: { $gte: moment(startDate).toDate() },
+    company: new ObjectID(companyId),
+  };
+  if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
+  if (await Event.countDocuments({ ...query, isBilled: true }) > 0) throw Boom.conflict('Some events are already billed');
+
+  const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query);
+  for (const group of eventsGroupedByParentId) {
+    if (!group._id || endDate) await exports.deleteEvents(group.events, credentials);
+    else {
+      const event = { ...group.events[0], repetition: { frequency: EVERY_WEEK, parentId: group._id } };
+      await EventsRepetitionHelper.deleteRepetition(event, credentials);
+    }
+  }
+};
+
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
   const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
-  const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate);
+  const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate, _.get(credentials, 'company._id', null));
   const absencesIds = absences.map(abs => abs._id);
   const promises = [];
 
@@ -270,6 +306,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
 };
 
 exports.deleteEvent = async (event, credentials) => {
+  if (!EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict('The event is already billed');
   const deletionInfo = _.omit(event, 'repetition');
   await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
   await Event.deleteOne({ _id: event._id });
@@ -279,6 +316,7 @@ exports.deleteEvent = async (event, credentials) => {
 
 exports.deleteEvents = async (events, credentials) => {
   const promises = [];
+  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) throw Boom.conflict('Some events are already billed');
   for (const event of events) {
     const deletionInfo = _.omit(event, 'repetition');
     promises.push(EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials));
@@ -307,13 +345,13 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
   return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
 });
 
-exports.workingStats = async (query) => {
+exports.workingStats = async (query, credentials) => {
   const ids = Array.isArray(query.auxiliary) ? query.auxiliary.map(id => new ObjectID(id)) : [new ObjectID(query.auxiliary)];
   const auxiliaries = await User.find({ _id: { $in: ids } }).populate('contracts').lean();
 
   const { startDate, endDate } = query;
   const distanceMatrix = await DistanceMatrix.find().lean();
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id));
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id), _.get(credentials, 'company._id'));
 
   const workingStats = {};
   for (const auxiliary of auxiliaries) {

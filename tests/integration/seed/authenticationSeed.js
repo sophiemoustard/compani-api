@@ -194,6 +194,19 @@ const authCompany = {
   _id: new ObjectID(),
   name: 'Test SAS',
   tradeName: 'Test',
+  iban: '1234',
+  bic: '5678',
+  ics: '9876',
+  directDebitsFolderId: '1234',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
+};
+
+const otherCompany = {
+  _id: new ObjectID(),
+  name: 'Other test SAS',
+  tradeName: 'Other test',
 };
 
 const userList = [
@@ -245,6 +258,7 @@ const populateDBForAuthentication = async () => {
   await User.deleteMany({});
   await Company.deleteMany({});
   await new Company(authCompany).save();
+  await new Company(otherCompany).save();
   await Right.insertMany(rightsList);
   await Role.insertMany(rolesList);
   for (let i = 0; i < userList.length; i++) {
@@ -252,9 +266,9 @@ const populateDBForAuthentication = async () => {
   }
 };
 
-const getUser = (roleName) => {
+const getUser = (roleName, list = userList) => {
   const role = rolesList.find(r => r.name === roleName);
-  return userList.find(u => u.role.toHexString() === role._id.toHexString());
+  return list.find(u => u.role.toHexString() === role._id.toHexString());
 };
 
 const getTokenByCredentials = memoize(
@@ -271,8 +285,8 @@ const getTokenByCredentials = memoize(
   credentials => JSON.stringify([credentials.email, credentials.password])
 );
 
-const getToken = (roleName) => {
-  const user = getUser(roleName);
+const getToken = (roleName, list) => {
+  const user = getUser(roleName, list);
   return getTokenByCredentials(user.local);
 };
 
@@ -285,4 +299,5 @@ module.exports = {
   getToken,
   getTokenByCredentials,
   authCompany,
+  otherCompany,
 };

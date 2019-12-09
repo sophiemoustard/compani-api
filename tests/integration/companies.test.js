@@ -128,6 +128,7 @@ describe('COMPANIES ROUTES', () => {
       });
 
       it('should create a new company', async () => {
+        const companiesBefore = await Company.find().lean();
         const response = await app.inject({
           method: 'POST',
           url: '/companies',
@@ -137,7 +138,7 @@ describe('COMPANIES ROUTES', () => {
         expect(response.statusCode).toBe(200);
         expect(response.result.data.company).toBeDefined();
         const companies = await Company.find().lean();
-        expect(companies.length).toBe(3);
+        expect(companies).toHaveLength(companiesBefore.length + 1);
       });
 
       const missingParams = [

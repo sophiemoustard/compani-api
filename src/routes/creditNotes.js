@@ -10,7 +10,12 @@ const {
   remove,
   generateCreditNotePdf,
 } = require('../controllers/creditNoteController');
-const { getCreditNote, authorizeCreditNoteReading } = require('./preHandlers/creditNotes');
+const {
+  getCreditNote,
+  authorizeCreditNoteReading,
+  authorizeCreditNoteCreationOrUpdate,
+  authorizeCreditNoteDeletion,
+} = require('./preHandlers/creditNotes');
 
 const { SERVICE_NATURES } = require('../models/Service');
 
@@ -69,6 +74,7 @@ exports.plugin = {
             }),
           }),
         },
+        pre: [{ method: authorizeCreditNoteCreationOrUpdate }],
       },
     });
 
@@ -99,6 +105,10 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
+        pre: [
+          { method: getCreditNote, assign: 'creditNote' },
+          { method: authorizeCreditNoteDeletion },
+        ],
       },
     });
 
@@ -157,6 +167,10 @@ exports.plugin = {
             }),
           }),
         },
+        pre: [
+          { method: getCreditNote, assign: 'creditNote' },
+          { method: authorizeCreditNoteCreationOrUpdate },
+        ],
       },
     });
 

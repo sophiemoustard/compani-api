@@ -3,7 +3,7 @@ const uuidv4 = require('uuid/v4');
 const ActivationCode = require('../../../src/models/ActivationCode');
 const User = require('../../../src/models/User');
 const { rolesList } = require('./authenticationSeed');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const activationCodeUser = {
   _id: new ObjectID(),
@@ -13,6 +13,7 @@ const activationCodeUser = {
   role: rolesList.find(role => role.name === 'coach')._id,
   inactivityDate: '2018-11-01T12:52:27.461Z',
   isConfirmed: false,
+  company: authCompany._id,
 };
 
 const activationCode = {

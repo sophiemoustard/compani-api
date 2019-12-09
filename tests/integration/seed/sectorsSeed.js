@@ -19,6 +19,9 @@ const sectorCompany = {
   bic: 'RTYUIKJHBFRG',
   ics: '12345678',
   directDebitsFolderId: '1234567890',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
 };
 
 const sectorsList = [

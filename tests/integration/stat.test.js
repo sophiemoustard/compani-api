@@ -1,5 +1,4 @@
 const expect = require('expect');
-const moment = require('moment');
 const app = require('../../server');
 const {
   customerList,
@@ -65,7 +64,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
     it('should get customer fundings monitoring', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-fundings-monitoring/${customerList[0]._id}`,
+        url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
@@ -78,7 +77,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
     it('should get only hourly and monthly fundings', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-fundings-monitoring/${customerList[0]._id}`,
+        url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
@@ -99,7 +98,7 @@ describe('GET /stats/customer-fundings-monitoring', () => {
         const authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/stats/customer-fundings-monitoring/${customerList[0]._id}`,
+          url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 

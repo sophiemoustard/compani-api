@@ -34,26 +34,27 @@ const { exportToCsv } = require('../helpers/file');
 const exportData = async (req, h) => {
   try {
     const { type } = req.params;
+    const { credentials } = req.auth;
 
     let data;
     switch (type) {
       case AUXILIARY:
-        data = await exportAuxiliaries(req.auth.credentials);
+        data = await exportAuxiliaries(credentials);
         break;
       case HELPER:
-        data = await exportHelpers();
+        data = await exportHelpers(credentials);
         break;
       case FUNDING:
-        data = await exportFundings();
+        data = await exportFundings(credentials);
         break;
       case CUSTOMER:
-        data = await exportCustomers(req.auth.credentials);
+        data = await exportCustomers(credentials);
         break;
       case SUBSCRIPTION:
-        data = await exportSubscriptions(req.auth.credentials);
+        data = await exportSubscriptions(credentials);
         break;
       case SERVICE:
-        data = await exportServices(req.auth.credentials);
+        data = await exportServices(credentials);
         break;
     }
 
@@ -69,6 +70,7 @@ const exportData = async (req, h) => {
 const exportHistory = async (req, h) => {
   try {
     const { type } = req.params;
+    const { credentials } = req.auth;
 
     const startDate = moment(req.query.startDate).startOf('day').toDate();
     const endDate = moment(req.query.endDate).endOf('day').toDate();
@@ -76,22 +78,22 @@ const exportHistory = async (req, h) => {
     let exportArray;
     switch (type) {
       case WORKING_EVENT:
-        exportArray = await exportWorkingEventsHistory(startDate, endDate);
+        exportArray = await exportWorkingEventsHistory(startDate, endDate, credentials);
         break;
       case BILL:
-        exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate, req.auth.credentials);
+        exportArray = await exportBillsAndCreditNotesHistory(startDate, endDate, credentials);
         break;
       case PAYMENT:
-        exportArray = await exportPaymentsHistory(startDate, endDate, req.auth.credentials);
+        exportArray = await exportPaymentsHistory(startDate, endDate, credentials);
         break;
       case ABSENCE:
-        exportArray = await exportAbsencesHistory(startDate, endDate, req.auth.credentials);
+        exportArray = await exportAbsencesHistory(startDate, endDate, credentials);
         break;
       case PAY:
-        exportArray = await exportPayAndFinalPayHistory(startDate, endDate, req.auth.credentials);
+        exportArray = await exportPayAndFinalPayHistory(startDate, endDate, credentials);
         break;
       case CONTRACT:
-        exportArray = await exportContractHistory(startDate, endDate);
+        exportArray = await exportContractHistory(startDate, endDate, credentials);
         break;
     }
 

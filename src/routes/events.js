@@ -8,6 +8,7 @@ const {
   update,
   remove,
   removeRepetition,
+  deleteList,
   listForCreditNotes,
   getWorkingStats,
 } = require('../controllers/eventController');
@@ -30,7 +31,7 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
-const { getEvent, authorizeEventUpdate } = require('./preHandlers/events');
+const { getEvent, authorizeEventCreationOrUpdate, authorizeEventDeletion } = require('./preHandlers/events');
 
 exports.plugin = {
   name: 'routes-event',
@@ -77,7 +78,7 @@ exports.plugin = {
           }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
         },
         pre: [
-          { method: authorizeEventUpdate },
+          { method: authorizeEventCreationOrUpdate },
         ],
       },
       handler: create,
@@ -176,7 +177,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate },
+          { method: authorizeEventCreationOrUpdate },
         ],
       },
 
@@ -193,7 +194,7 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate },
+          { method: authorizeEventDeletion },
         ],
       },
       handler: remove,
@@ -209,10 +210,26 @@ exports.plugin = {
         },
         pre: [
           { method: getEvent, assign: 'event' },
-          { method: authorizeEventUpdate },
+          { method: authorizeEventDeletion },
         ],
       },
       handler: removeRepetition,
+    });
+
+    server.route({
+      method: 'DELETE',
+      path: '/',
+      options: {
+        auth: { scope: ['events:edit'] },
+        validate: {
+          query: Joi.object().keys({
+            customer: Joi.objectId().required(),
+            startDate: Joi.date().required(),
+            endDate: Joi.date(),
+          }),
+        },
+      },
+      handler: deleteList,
     });
 
     server.route({

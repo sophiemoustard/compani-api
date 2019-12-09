@@ -423,6 +423,7 @@ describe('hasConflicts', () => {
       endDate: '2019-10-02T11:00:00.000Z',
       auxiliary: auxiliaryId,
       type: ABSENCE,
+      company: new ObjectID(),
     };
 
     getAuxiliaryEventsBetweenDates.returns([
@@ -431,7 +432,7 @@ describe('hasConflicts', () => {
 
     await EventsValidationHelper.hasConflicts(event);
 
-    sinon.assert.calledWith(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', ABSENCE);
+    sinon.assert.calledWith(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', event.company, ABSENCE);
   });
 });
 
@@ -517,13 +518,13 @@ describe('isCreationAllowed', () => {
       .once()
       .returns(user);
     checkContracts.returns(false);
-    const credentials = {};
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+
+    const result = await EventsValidationHelper.isCreationAllowed(event);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWith(checkContracts, event, user, credentials);
+    sinon.assert.calledWith(checkContracts, event, user);
   });
 
   it('should return false as event is not absence and has conflicts', async () => {
@@ -545,13 +546,12 @@ describe('isCreationAllowed', () => {
       .returns(user);
     checkContracts.returns(true);
     hasConflicts.returns(true);
-    const credentials = {};
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isCreationAllowed(event);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user, credentials);
+    sinon.assert.calledWith(checkContracts, event, user);
   });
 
   it('should return false if auxiliary sector is not event sector', async () => {
@@ -573,13 +573,12 @@ describe('isCreationAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const credentials = {};
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isCreationAllowed(event);
 
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user, credentials);
+    sinon.assert.calledWith(checkContracts, event, user);
   });
 
   it('should return true', async () => {
@@ -602,13 +601,12 @@ describe('isCreationAllowed', () => {
       .chain('lean')
       .once()
       .returns(user);
-    const credentials = {};
-    const result = await EventsValidationHelper.isCreationAllowed(event, credentials);
+    const result = await EventsValidationHelper.isCreationAllowed(event);
 
     UserModel.verify();
     expect(result).toBeTruthy();
     sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user, credentials);
+    sinon.assert.calledWith(checkContracts, event, user);
   });
 });
 
@@ -925,5 +923,31 @@ describe('isEditionAllowed', () => {
     expect(result).toBeTruthy();
     sinon.assert.calledWith(hasConflicts, { ...eventFromDB, ...payload });
     sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+  });
+});
+
+describe('isDeletionAllowed', () => {
+  it('should return false', async () => {
+    const event = { type: INTERVENTION, isBilled: true };
+    const result = EventsValidationHelper.isDeletionAllowed(event);
+    expect(result).toBe(false);
+  });
+
+  it('should return true', async () => {
+    const event = { type: INTERVENTION, isBilled: false };
+    const result = EventsValidationHelper.isDeletionAllowed(event);
+    expect(result).toBe(true);
+  });
+
+  it('should return true', async () => {
+    const event = { type: INTERVENTION };
+    const result = EventsValidationHelper.isDeletionAllowed(event);
+    expect(result).toBe(true);
+  });
+
+  it('should return true', async () => {
+    const event = { type: INTERNAL_HOUR, isBilled: true };
+    const result = EventsValidationHelper.isDeletionAllowed(event);
+    expect(result).toBe(true);
   });
 });

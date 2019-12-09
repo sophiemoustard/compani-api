@@ -6,25 +6,50 @@ const CreditNoteNumber = require('../models/CreditNoteNumber');
 const FundingHistory = require('../models/FundingHistory');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
+const SubscriptionsHelper = require('./subscriptions');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
 
-exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled) => {
+exports.getCreditNotes = async (query, credentials) => {
+  const { startDate, endDate, ...creditNoteQuery } = query;
+  if (startDate || endDate) creditNoteQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
+  creditNoteQuery.company = get(credentials, 'company._id', null);
+
+  const creditNotes = await CreditNote.find(creditNoteQuery)
+    .populate({
+      path: 'customer',
+      select: '_id identity subscriptions',
+      populate: { path: 'subscriptions.service' },
+    })
+    .populate({ path: 'thirdPartyPayer', select: '_id name' })
+    .lean();
+
+  for (let i = 0, l = creditNotes.length; i < l; i++) {
+    creditNotes[i].customer = SubscriptionsHelper.populateSubscriptionsServices({ ...creditNotes[i].customer });
+  }
+
+  return creditNotes;
+};
+
+exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credentials) => {
   const promises = [];
-  const events = await Event.find({ _id: { $in: eventsToUpdate.map(ev => ev.eventId) } });
+  const events = await Event.find({
+    _id: { $in: eventsToUpdate.map(ev => ev.eventId) },
+    company: get(credentials, 'company._id', null),
+  });
   for (const event of events) {
     if (event.bills.thirdPartyPayer && event.bills.fundingId) {
       if (event.bills.nature !== HOURLY) {
-        await FundingHistory.findOneAndUpdate(
+        await FundingHistory.updateOne(
           { fundingId: event.bills.fundingId },
           { $inc: { amountTTC: isBilled ? event.bills.inclTaxesTpp : -event.bills.inclTaxesTpp } }
         );
       } else {
-        let history = await FundingHistory.findOneAndUpdate(
+        const history = await FundingHistory.findOneAndUpdate(
           { fundingId: event.bills.fundingId, month: moment(event.startDate).format('MM/YYYY') },
           { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
         );
         if (!history) {
-          history = await FundingHistory.findOneAndUpdate(
+          await FundingHistory.updateOne(
             { fundingId: event.bills.fundingId },
             { $inc: { careHours: isBilled ? event.bills.careHours : -event.bills.careHours } }
           );
@@ -46,21 +71,26 @@ exports.formatCreditNote = (payload, prefix, seq) => {
   return new CreditNote(payload);
 };
 
-exports.createCreditNotes = async (payload) => {
+exports.createCreditNotes = async (payload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const query = { prefix: `AV-${moment(payload.date).format('YYMM')}` };
-  const number = await CreditNoteNumber.findOneAndUpdate(query, {}, { new: true, upsert: true, setDefaultsOnInsert: true });
+  const number = await CreditNoteNumber.findOneAndUpdate(
+    query,
+    {},
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
   let { seq } = number;
 
   let tppCreditNote;
   let customerCreditNote;
   if (payload.inclTaxesTpp) {
-    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0 };
+    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0, company: companyId };
     tppCreditNote = await exports.formatCreditNote(tppPayload, number.prefix, seq);
     seq++;
   }
   if (payload.inclTaxesCustomer) {
     delete payload.thirdPartyPayer;
-    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0 };
+    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0, company: companyId };
     customerCreditNote = await exports.formatCreditNote(customerPayload, number.prefix, seq);
     seq++;
   }
@@ -75,37 +105,60 @@ exports.createCreditNotes = async (payload) => {
   else creditNotes = [customerCreditNote];
 
   promises.push(CreditNote.insertMany(creditNotes), CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } }));
-  if (payload.events) promises.push(exports.updateEventAndFundingHistory(payload.events, false));
+  if (payload.events) promises.push(exports.updateEventAndFundingHistory(payload.events, false, credentials));
   return Promise.all(promises);
 };
 
-exports.updateCreditNotes = async (creditNoteFromDB, payload) => {
-  if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true);
+exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
+  if (creditNoteFromDB.events) await exports.updateEventAndFundingHistory(creditNoteFromDB.events, true, credentials);
 
   let creditNote;
-  if (!creditNoteFromDB.linkedCreditNote) creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payload }, { new: true });
-  else {
+  if (!creditNoteFromDB.linkedCreditNote) {
+    creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: payload }, { new: true });
+  } else {
     const tppPayload = { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 };
     const customerPayload = { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 };
     delete customerPayload.thirdPartyPayer;
 
     if (creditNoteFromDB.thirdPartyPayer) {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: tppPayload }, { new: true });
-      await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: customerPayload }, { new: true });
+      await CreditNote.updateOne({ _id: creditNoteFromDB.linkedCreditNote }, { $set: customerPayload }, { new: true });
     } else {
       creditNote = await CreditNote.findByIdAndUpdate(creditNoteFromDB._id, { $set: customerPayload }, { new: true });
-      await CreditNote.findByIdAndUpdate(creditNoteFromDB.linkedCreditNote, { $set: tppPayload }, { new: true });
+      await CreditNote.updateOne({ _id: creditNoteFromDB.linkedCreditNote }, { $set: tppPayload }, { new: true });
     }
   }
 
-  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false);
+  if (payload.events) await exports.updateEventAndFundingHistory(payload.events, false, credentials);
 
   return creditNote;
 };
 
-const formatCustomerName = customer => (customer.identity.firstname
-  ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
-  : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
+exports.getCreditNotes = async (query, credentials) => {
+  const { startDate, endDate, ...creditNoteQuery } = query;
+  if (startDate || endDate) creditNoteQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
+  creditNoteQuery.company = get(credentials, 'company._id', null);
+
+  const creditNotes = await CreditNote.find(creditNoteQuery)
+    .populate({
+      path: 'customer',
+      select: '_id identity subscriptions',
+      populate: { path: 'subscriptions.service' },
+    })
+    .populate({ path: 'thirdPartyPayer', select: '_id name' })
+    .lean();
+
+  for (let i = 0, l = creditNotes.length; i < l; i++) {
+    creditNotes[i].customer = SubscriptionsHelper.populateSubscriptionsServices({ ...creditNotes[i].customer });
+  }
+
+  return creditNotes;
+};
+
+const formatCustomerName = customer =>
+  (customer.identity.firstname
+    ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
+    : `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.lastname}`);
 
 const formatEventForPdf = event => ({
   identity: `${event.auxiliary.identity.firstname.substring(0, 1)}. ${event.auxiliary.identity.lastname}`,
@@ -116,9 +169,10 @@ const formatEventForPdf = event => ({
   surcharges: event.bills.surcharges && PdfHelper.formatEventSurchargesForPdf(event.bills.surcharges),
 });
 
-const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTpp
-  ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
-  : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
+const computeCreditNoteEventVat = (creditNote, event) =>
+  (creditNote.exclTaxesTpp
+    ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
+    : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
 exports.formatPDF = (creditNote, company) => {
   const computedData = {
@@ -127,7 +181,9 @@ exports.formatPDF = (creditNote, company) => {
     number: creditNote.number,
     forTpp: !!creditNote.thirdPartyPayer,
     recipient: {
-      address: creditNote.thirdPartyPayer ? get(creditNote, 'thirdPartyPayer.address', {}) : get(creditNote, 'customer.contact.primaryAddress', {}),
+      address: creditNote.thirdPartyPayer
+        ? get(creditNote, 'thirdPartyPayer.address', {})
+        : get(creditNote, 'customer.contact.primaryAddress', {}),
       name: creditNote.thirdPartyPayer ? creditNote.thirdPartyPayer.name : formatCustomerName(creditNote.customer),
     },
   };
@@ -155,8 +211,12 @@ exports.formatPDF = (creditNote, company) => {
         identity: { ...creditNote.customer.identity, title: CIVILITY_LIST[get(creditNote, 'customer.identity.title')] },
         contact: creditNote.customer.contact,
       },
-      exclTaxes: creditNote.exclTaxesTpp ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp) : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
-      inclTaxes: creditNote.inclTaxesTpp ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp) : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
+      exclTaxes: creditNote.exclTaxesTpp
+        ? UtilsHelper.formatPrice(creditNote.exclTaxesTpp)
+        : UtilsHelper.formatPrice(creditNote.exclTaxesCustomer),
+      inclTaxes: creditNote.inclTaxesTpp
+        ? UtilsHelper.formatPrice(creditNote.inclTaxesTpp)
+        : UtilsHelper.formatPrice(creditNote.inclTaxesCustomer),
       ...computedData,
       company,
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',

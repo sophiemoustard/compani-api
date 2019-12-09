@@ -21,6 +21,9 @@ const company = {
   bic: 'RTYUIKJHBFRG',
   ics: '12345678',
   directDebitsFolderId: '1234567890',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
 };
 
 const servicesList = [
@@ -33,6 +36,7 @@ const servicesList = [
       name: 'Service 1',
       startDate: '2019-01-16 17:58:15.519',
       vat: 12,
+      exemptFromCharges: false,
     }],
     nature: HOURLY,
   },
@@ -45,6 +49,7 @@ const servicesList = [
       name: 'Service 2',
       startDate: '2019-01-18 19:58:15.519',
       vat: 12,
+      exemptFromCharges: false,
     }],
     nature: HOURLY,
   },
@@ -57,6 +62,7 @@ const servicesList = [
       name: 'Service 3',
       startDate: '2019-01-16 17:58:15.519',
       vat: 12,
+      exemptFromCharges: false,
     }],
     nature: FIXED,
   },
@@ -71,6 +77,7 @@ const serviceFromOtherCompany = {
     name: 'Service 3',
     startDate: '2019-01-16 17:58:15.519',
     vat: 12,
+    exemptFromCharges: false,
   }],
   nature: FIXED,
 };

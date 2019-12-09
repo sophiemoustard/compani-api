@@ -1,25 +1,17 @@
 const Boom = require('boom');
 const moment = require('moment');
-const Event = require('../models/Event');
 const translate = require('../helpers/translate');
-const {
-  getListQuery,
-  populateEvents,
-  updateEvent,
-  createEvent,
-  deleteEvent,
-  workingStats,
-} = require('../helpers/events');
+const EventsHelper = require('../helpers/events');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
 const { deleteRepetition } = require('../helpers/eventsRepetition');
-const { ABSENCE, INTERVENTION, AUXILIARY, CUSTOMER } = require('../helpers/constants');
+const { ABSENCE, AUXILIARY, CUSTOMER } = require('../helpers/constants');
 const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = getListQuery(req.query);
+    const query = EventsHelper.getListQuery(req.query, req.auth.credentials);
     const { groupBy } = req.query;
 
     let events;
@@ -28,8 +20,8 @@ const list = async (req) => {
     } else if (groupBy === AUXILIARY) {
       events = await getEventsGroupedByAuxiliaries(query);
     } else {
-      events = await getEventList(query, req.auth.credentials);
-      events = await populateEvents(events);
+      events = await getEventList(query);
+      events = await EventsHelper.populateEvents(events);
     }
 
     return {
@@ -44,17 +36,7 @@ const list = async (req) => {
 
 const listForCreditNotes = async (req) => {
   try {
-    let query = {
-      startDate: { $gte: moment(req.query.startDate).startOf('d').toDate() },
-      endDate: { $lte: moment(req.query.endDate).endOf('d').toDate() },
-      customer: req.query.customer,
-      isBilled: req.query.isBilled,
-      type: INTERVENTION,
-    };
-    if (req.query.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': req.query.thirdPartyPayer };
-    else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 }, 'bills.inclTaxesTpp': { $exists: false } };
-    const events = await Event.find(query).lean();
-
+    const events = await EventsHelper.listForCreditNotes(req.query, req.auth.credentials);
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
       data: { events },
@@ -68,7 +50,7 @@ const listForCreditNotes = async (req) => {
 const create = async (req) => {
   try {
     const { payload, auth } = req;
-    const event = await createEvent(payload, auth.credentials);
+    const event = await EventsHelper.createEvent(payload, auth.credentials);
 
     return {
       message: translate[language].eventCreated,
@@ -90,9 +72,9 @@ const update = async (req) => {
       throw Boom.badRequest(translate[language].eventDatesNotOnSameDay);
     }
 
-    if (!(await isEditionAllowed(event, payload, req.auth.credentials))) return Boom.badData();
+    if (!(await isEditionAllowed(event, payload))) return Boom.badData();
 
-    event = await updateEvent(event, payload, auth.credentials);
+    event = await EventsHelper.updateEvent(event, payload, auth.credentials);
 
     return {
       message: translate[language].eventUpdated,
@@ -107,7 +89,7 @@ const update = async (req) => {
 const remove = async (req) => {
   try {
     const { auth, pre } = req;
-    const event = await deleteEvent(pre.event, auth.credentials);
+    const event = await EventsHelper.deleteEvent(pre.event, auth.credentials);
     if (!event) return Boom.notFound(translate[language].eventNotFound);
 
     return { message: translate[language].eventDeleted };
@@ -132,10 +114,23 @@ const removeRepetition = async (req) => {
   }
 };
 
+const deleteList = async (req) => {
+  try {
+    const { query, auth } = req;
+
+    await EventsHelper.deleteList(query.customer, query.startDate, query.endDate, auth.credentials);
+
+    return { message: translate[language].eventsDeleted };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const getWorkingStats = async (req) => {
   try {
     const { query, auth } = req;
-    const stats = await workingStats(query, auth.credentials);
+    const stats = await EventsHelper.workingStats(query, auth.credentials);
 
     return {
       message: translate[language].hoursBalanceDetail,
@@ -153,6 +148,7 @@ module.exports = {
   update,
   remove,
   removeRepetition,
+  deleteList,
   listForCreditNotes,
   getWorkingStats,
 };

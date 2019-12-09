@@ -9,27 +9,10 @@ const QuoteNumber = require('../../../src/models/QuoteNumber');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
 const { FIXED, ONCE, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const subId = new ObjectID();
-
-const customerCompany = {
-  _id: new ObjectID('5d3eb871dd552f11866eea7b'),
-  name: 'Test',
-  tradeName: 'To',
-  rhConfig: {
-    internalHours: [
-      { name: 'Formation', default: true, _id: new ObjectID() },
-      { name: 'Code', default: false, _id: new ObjectID() },
-      { name: 'Gouter', default: false, _id: new ObjectID() },
-    ],
-    feeAmount: 12,
-  },
-  iban: 'FR3514508000505917721779B12',
-  bic: 'RTYUIKJHBFRG',
-  ics: '12345678',
-  directDebitsFolderId: '1234567890',
-};
+const otherCompanyCustomerId = new ObjectID();
 
 const customerServiceList = [
   {
@@ -41,6 +24,7 @@ const customerServiceList = [
       name: 'Service 1',
       startDate: '2019-01-16 17:58:15',
       vat: 12,
+      exemptFromCharges: false,
     }],
     nature: HOURLY,
   },
@@ -50,6 +34,7 @@ const customerServiceList = [
     company: authCompany._id,
     versions: [{
       defaultUnitAmount: 24,
+      exemptFromCharges: false,
       name: 'Service 2',
       startDate: '2019-01-18 19:58:15',
       vat: 12,
@@ -242,6 +227,110 @@ const customersList = [
       phone: '0612345678',
     },
   },
+  {
+    company: otherCompany._id,
+    _id: otherCompanyCustomerId,
+    name: 'notFromCompany',
+    email: 'test@test.io',
+    identity: {
+      title: 'mr',
+      firstname: 'test',
+      lastname: 'test',
+    },
+    driveFolder: { driveId: '09876543' },
+    contact: {
+      primaryAddress: {
+        fullAddress: '37 rue de Ponthieu 75018 Paris',
+        zipCode: '75018',
+        city: 'Paris',
+      },
+      phone: '0698765432',
+    },
+    subscriptions: [
+      {
+        _id: new ObjectID(),
+        service: customerServiceList[0]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      },
+      {
+        _id: new ObjectID(),
+        service: customerServiceList[1]._id,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      },
+    ],
+    subscriptionsHistory: [{
+      subscriptions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        service: 'Service 1',
+      }, {
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+        service: 'Service 2',
+      }],
+      helper: {
+        firstname: 'Vladimir',
+        lastname: 'Poutine',
+        title: 'mr',
+      },
+      approvalDate: '2018-01-01T10:00:00.000+01:00',
+    }],
+    payment: {
+      bankAccountOwner: 'David gaudu',
+      iban: '',
+      bic: '',
+      mandates: [
+        {
+          _id: new ObjectID(),
+          rum: 'R012345678903456789',
+        },
+      ],
+    },
+    quotes: [{
+      _id: new ObjectID(),
+      subscriptions: [{
+        serviceName: 'Test',
+        unitTTCRate: 23,
+        estimatedWeeklyVolume: 3,
+      }, {
+        serviceName: 'Test2',
+        unitTTCRate: 30,
+        estimatedWeeklyVolume: 10,
+      }],
+    }],
+    fundings: [
+      {
+        _id: new ObjectID(),
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayer._id,
+        subscription: subId,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
+          frequency: ONCE,
+          endDate: moment.utc().add(6, 'months').toDate(),
+          effectiveDate: moment.utc().toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [0, 1, 2, 3, 4, 5, 6],
+        }],
+      },
+    ],
+  },
 ];
 
 const userList = [
@@ -272,24 +361,58 @@ const userList = [
     role: rolesList.find(role => role.name === 'helper')._id,
     customers: [customersList[3]._id],
   },
+  {
+    _id: new ObjectID(),
+    company: otherCompany._id,
+    identity: { firstname: 'HelperForCustomerOtherCompany', lastname: 'Test' },
+    local: { email: 'helper_for_customer_other_company@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'helper')._id,
+    customers: otherCompanyCustomerId,
+  },
+  {
+    _id: new ObjectID(),
+    company: otherCompany._id,
+    identity: { firstname: 'AdminForOtherCompany', lastname: 'Test' },
+    local: { email: 'admin_for_other_company@alenvi.io', password: '123456' },
+    refreshToken: uuidv4(),
+    role: rolesList.find(role => role.name === 'admin')._id,
+  },
 ];
 
 const eventList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     isBilled: true,
     customer: customersList[0]._id,
     type: 'intervention',
     bills: {},
+    sector: new ObjectID(),
     subscription: subId,
+    status: COMPANY_CONTRACT,
     startDate: '2019-01-16T14:30:19.543Z',
     endDate: '2019-01-16T15:30:21.653Z',
   },
   {
     _id: new ObjectID(),
-    sector: new ObjectID(),
+    isBilled: false,
+    company: authCompany._id,
+    customer: customersList[0]._id,
     type: 'intervention',
-    status: 'contract_with_company',
+    bills: {},
+    sector: new ObjectID(),
+    subscription: subId,
+    status: COMPANY_CONTRACT,
+    startDate: '2019-01-17T14:30:19.543Z',
+    endDate: '2019-01-17T15:30:21.653Z',
+  },
+  {
+    _id: new ObjectID(),
+    sector: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    status: COMPANY_CONTRACT,
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
     customer: customersList[0]._id,
@@ -307,6 +430,28 @@ const eventList = [
       careHours: 2,
     },
   },
+  {
+    _id: new ObjectID(),
+    company: otherCompany._id,
+    isBilled: true,
+    customer: otherCompanyCustomerId,
+    type: 'intervention',
+    bills: {
+      thirdPartyPayer: new ObjectID(),
+      inclTaxesCustomer: 20,
+      exclTaxesCustomer: 15,
+      inclTaxesTpp: 10,
+      exclTaxesTpp: 5,
+      fundingId: new ObjectID(),
+      nature: 'hourly',
+      careHours: 2,
+    },
+    sector: new ObjectID(),
+    subscription: new ObjectID(),
+    status: COMPANY_CONTRACT,
+    startDate: '2019-01-16T14:30:19.543Z',
+    endDate: '2019-01-16T15:30:21.653Z',
+  },
 ];
 
 const populateDB = async () => {
@@ -319,7 +464,6 @@ const populateDB = async () => {
   await User.deleteMany({});
 
   await populateDBForAuthentication();
-  await (new Company(customerCompany)).save();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);
   await Customer.insertMany(customersList);
@@ -335,4 +479,5 @@ module.exports = {
   populateDB,
   customerServiceList,
   customerThirdPartyPayer,
+  otherCompanyCustomerId,
 };

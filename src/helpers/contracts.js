@@ -1,10 +1,11 @@
 const flat = require('flat');
 const Boom = require('boom');
 const mongoose = require('mongoose');
-const moment = require('moment');
+const moment = require('../extensions/moment');
 const path = require('path');
 const os = require('os');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const cloneDeep = require('lodash/cloneDeep');
 const Contract = require('../models/Contract');
 const User = require('../models/User');
@@ -18,11 +19,12 @@ const GDriveStorageHelper = require('./gdriveStorage');
 const { CUSTOMER_CONTRACT, COMPANY_CONTRACT } = require('./constants');
 const { createAndReadFile } = require('./file');
 const ESignHelper = require('./eSign');
+const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 
 exports.getContractList = async (query, credentials) => {
-  const rules = [];
+  const rules = [{ company: get(credentials, 'company._id', null) }];
   if (query.startDate && query.endDate) {
     rules.push({
       $or: [
@@ -37,161 +39,171 @@ exports.getContractList = async (query, credentials) => {
 
   const params = rules.length > 0 ? { $and: rules } : {};
 
-  return Contract
-    .find(params)
+  return Contract.find(params)
     .populate({
       path: 'user',
       select: 'identity administrative.driveFolder sector contact local',
-      populate: { path: 'sector', match: { company: credentials.company._id }, select: 'name' },
+      populate: { path: 'sector', select: 'name' },
     })
     .populate({ path: 'customer', select: 'identity driveFolder' })
     .lean();
 };
 
-exports.createContract = async (contractPayload) => {
-  const newContractPayload = cloneDeep(contractPayload);
-  if (newContractPayload.status === COMPANY_CONTRACT) {
-    const endedCompanyContracts = await ContractRepository.getUserEndedCompanyContracts(newContractPayload.user, newContractPayload.startDate);
-    if (endedCompanyContracts.length && moment(newContractPayload.startDate).isSameOrBefore(moment(endedCompanyContracts[0].endDate), 'd')) {
-      throw Boom.badRequest('New company contract start date is before last company contract end date.');
-    }
+exports.hasNotEndedCompanyContracts = async (contract, companyId) => {
+  const endedContracts = await ContractRepository.getUserEndedCompanyContracts(contract.user, companyId);
+
+  return endedContracts.length && moment(contract.startDate).isSameOrBefore(endedContracts[0].endDate, 'd');
+};
+
+exports.createContract = async (contractPayload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const payload = { ...cloneDeep(contractPayload), company: companyId };
+
+  if (payload.status === COMPANY_CONTRACT) {
+    const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(payload, companyId);
+    if (hasNotEndedCompanyContracts) throw Boom.badRequest('New contract start date is before last company contract end date.');
   }
 
-  if (newContractPayload.versions[0].signature) {
-    const { signature } = newContractPayload.versions[0];
+  if (payload.versions[0].signature) {
+    const { signature } = payload.versions[0];
     const doc = await ESignHelper.generateSignatureRequest(signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-    newContractPayload.versions[0].signature = { eversignId: doc.data.document_hash };
-  }
-  const newContract = await Contract.create(newContractPayload);
 
-  await User.findOneAndUpdate({ _id: newContract.user }, { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' } });
-  if (newContract.customer) await Customer.findOneAndUpdate({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
+    payload.versions[0].signature = { eversignId: doc.data.document_hash };
+  }
+
+  const newContract = await Contract.create(payload);
+
+  await User.findOneAndUpdate(
+    { _id: newContract.user },
+    { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' } }
+  );
+  if (newContract.customer) {
+    await Customer.findOneAndUpdate({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
+  }
 
   return newContract;
 };
 
 exports.endContract = async (contractId, contractToEnd, credentials) => {
-  const contract = await Contract.findOne({ _id: contractId });
-  if (!contract) return null;
+  const contract = await Contract.findOne({ _id: contractId }).lean();
+  const lastVersion = contract.versions[contract.versions.length - 1];
+  if (moment(contractToEnd.endDate).isBefore(lastVersion.startDate, 'd')) throw Boom.conflict('End date is before last version start date');
+
+  const set = {
+    endDate: contractToEnd.endDate,
+    endNotificationDate: contractToEnd.endNotificationDate,
+    endReason: contractToEnd.endReason,
+    otherMisc: contractToEnd.otherMisc,
+    [`versions.${contract.versions.length - 1}.endDate`]: contractToEnd.endDate,
+  };
+  const updatedContract = await Contract.findOneAndUpdate({ _id: contractId }, { $set: flat(set) }, { new: true }).lean();
+
+  await Promise.all([
+    UserHelper.updateUserInactivityDate(updatedContract.user, updatedContract.endDate, credentials),
+    EventHelper.unassignInterventionsOnContractEnd(updatedContract, credentials),
+    CustomerHelper.unassignReferentOnContractEnd(updatedContract),
+    EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials),
+    EventHelper.updateAbsencesOnContractEnd(updatedContract.user, updatedContract.endDate, credentials),
+  ]);
+
+  return updatedContract;
+};
+
+exports.createVersion = async (contractId, versionPayload) => {
+  const contract = await Contract.findOne({ _id: contractId }).lean();
   if (contract.endDate) throw Boom.forbidden('Contract is already ended.');
 
-  contract.endDate = contractToEnd.endDate;
-  contract.endNotificationDate = contractToEnd.endNotificationDate;
-  contract.endReason = contractToEnd.endReason;
-  contract.otherMisc = contractToEnd.otherMisc;
-  // End last version
-  contract.versions[contract.versions.length - 1].endDate = contractToEnd.endDate;
-  await contract.save();
+  const versionToAdd = { ...versionPayload };
+  if (versionPayload.signature) {
+    const doc = await ESignHelper.generateSignatureRequest(versionPayload.signature);
+    if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
-  // Update inactivityDate if all contracts are ended
-  const userContracts = await Contract.find({ user: contract.user });
-  const hasActiveContracts = userContracts.some(c => !c.endDate);
-  if (!hasActiveContracts) {
-    await User.findOneAndUpdate(
-      { _id: contract.user },
-      { $set: { inactivityDate: moment(contractToEnd.endDate).add('1', 'month').startOf('M').toDate() } }
+    versionToAdd.signature = { eversignId: doc.data.document_hash };
+  }
+
+  if (contract.versions && contract.versions.length >= 1) {
+    const previousVersionIndex = contract.versions.length - 1;
+    const previousVersionEndDate = moment(versionToAdd.startDate).subtract(1, 'd').endOf('d').toISOString();
+
+    await Contract.updateOne(
+      { _id: contractId },
+      { $set: { [`versions.${previousVersionIndex}.endDate`]: previousVersionEndDate } }
     );
   }
 
-  await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
-  await CustomerHelper.unassignReferentOnContractEnd(contract);
-  await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-  await EventHelper.updateAbsencesOnContractEnd(contract.user, contract.endDate, credentials);
-
-  return contract;
+  return Contract.findOneAndUpdate({ _id: contractId }, { $push: { versions: versionToAdd } }).lean();
 };
 
-exports.createVersion = async (contractId, newVersion) => {
-  let contract = await Contract.findById(contractId, {}, { autopopulate: false });
-  if (!contract) return null;
-  if (contract.endDate) throw Boom.forbidden('Contract is already ended.');
-
-  if (newVersion.signature) {
-    const doc = await ESignHelper.generateSignatureRequest(newVersion.signature);
-    if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-
-    newVersion.signature = { eversignId: doc.data.document_hash };
-  }
-
-  contract.versions.push(newVersion);
-  await contract.save();
-
-  if (contract.versions.length > 1) {
-    const previousVersionIndex = contract.versions.length - 2;
-    contract = await exports.updatePreviousVersion(contractId, previousVersionIndex, newVersion.startDate);
-  }
-
-  return contract;
-};
-
-exports.updatePreviousVersion = async (contractId, previousVersionIndex, versionStartDate) => {
-  const previousVersionStartDate = moment(versionStartDate).subtract(1, 'd').endOf('d').toISOString();
-  return Contract.findOneAndUpdate(
-    { _id: contractId },
-    { $set: { [`versions.${previousVersionIndex}.endDate`]: previousVersionStartDate } }
-  );
-};
-
-exports.canUpdate = async (contract, versionToUpdate, versionIndex) => {
+exports.canUpdateVersion = async (contract, versionToUpdate, versionIndex, credentials) => {
   if (versionIndex !== 0) return true;
   if (contract.endDate) return false;
 
   const { status, user } = contract;
   const { startDate } = versionToUpdate;
-  const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates({ status, auxiliary: user, endDate: startDate });
+  const eventsCount = await EventRepository.countAuxiliaryEventsBetweenDates({
+    status,
+    auxiliary: user,
+    endDate: startDate,
+    company: get(credentials, 'company._id', null),
+  });
 
   return eventsCount === 0;
 };
 
-exports.updateVersion = async (contractId, versionId, versionToUpdate) => {
-  let contract = await Contract.findOne({ _id: contractId }).lean();
-  const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
-
-  const canUpdate = await exports.canUpdate(contract, versionToUpdate, index);
-  if (!canUpdate) throw Boom.badData();
-
-  const unset = {};
-  const set = { ...versionToUpdate };
-  const push = {};
-  if (versionToUpdate.signature) {
-    const doc = await ESignHelper.generateSignatureRequest(versionToUpdate.signature);
+exports.formatVersionEditionPayload = async (oldVersion, newVersion, versionIndex) => {
+  const versionUnset = { signature: '' };
+  const versionSet = { ...newVersion };
+  if (newVersion.signature) {
+    const doc = await ESignHelper.generateSignatureRequest(newVersion.signature);
     if (doc.data.error) throw Boom.badRequest(`Eversign: ${doc.data.error.type}`);
 
-    set.signature = { eversignId: doc.data.document_hash };
-    unset.signature = { signedBy: '' };
-  } else {
-    unset.signature = '';
+    versionSet.signature = { eversignId: doc.data.document_hash };
+    versionUnset.signature = { signedBy: '' };
   }
 
-  if (contract.versions[index].customerDoc) {
-    push[`versions.${index}.customerArchives`] = contract.versions[index].customerDoc;
-    unset.customerDoc = '';
+  const push = {};
+  if (oldVersion.customerDoc) {
+    push[`versions.${versionIndex}.customerArchives`] = oldVersion.customerDoc;
+    versionUnset.customerDoc = '';
+  }
+  if (oldVersion.auxiliaryDoc) {
+    push[`versions.${versionIndex}.auxiliaryArchives`] = oldVersion.auxiliaryDoc;
+    versionUnset.auxiliaryDoc = '';
   }
 
-  if (contract.versions[index].auxiliaryDoc) {
-    push[`versions.${index}.auxiliaryArchives`] = contract.versions[index].auxiliaryDoc;
-    unset.auxiliaryDoc = '';
-  }
-
-  const payload = { $set: flat({ [`versions.${index}`]: { ...set } }) };
-  if (Object.keys(unset).length > 0) payload.$unset = flat({ [`versions.${index}`]: unset });
-  if (Object.keys(push).length > 0) payload.$push = push;
-
-  contract = await Contract.findOneAndUpdate({ _id: contractId }, { ...payload }).lean();
-  if (versionToUpdate.startDate) {
-    if (index === 0) {
-      await Contract.updateOne({ _id: contractId }, { startDate: versionToUpdate.startDate });
-    } else {
-      const previousVersionIndex = index - 1;
-      await exports.updatePreviousVersion(contract, previousVersionIndex, versionToUpdate.startDate);
+  const set = { [`versions.${versionIndex}`]: versionSet };
+  if (newVersion.startDate) {
+    if (versionIndex === 0) set.startDate = newVersion.startDate;
+    else {
+      set[`versions.${versionIndex - 1}`] = { endDate: moment(newVersion.startDate).subtract(1, 'd').endOf('d').toISOString() };
     }
   }
 
-  return contract;
+  const payload = { $set: flat({ ...set }) };
+  if (Object.keys(versionUnset).length > 0) payload.$unset = flat({ [`versions.${versionIndex}`]: versionUnset });
+  if (Object.keys(push).length > 0) payload.$push = push;
+
+  return payload;
 };
 
-exports.deleteVersion = async (contractId, versionId) => {
+exports.updateVersion = async (contractId, versionId, versionToUpdate, credentials) => {
+  const contract = await Contract.findOne({ _id: contractId }).lean();
+  const index = contract.versions.findIndex(ver => ver._id.toHexString() === versionId);
+
+  const canUpdate = await exports.canUpdateVersion(contract, versionToUpdate, index, credentials);
+  if (!canUpdate) throw Boom.badData();
+
+  const payload = await exports.formatVersionEditionPayload(contract.versions[index], versionToUpdate, index);
+
+  if (payload.$unset && Object.keys(payload.$unset).length > 0) {
+    await Contract.updateOne({ _id: contractId }, { $unset: payload.$unset });
+  }
+
+  return Contract.findOneAndUpdate({ _id: contractId }, { ...pick(payload, ['$set', '$push']) }).lean();
+};
+
+exports.deleteVersion = async (contractId, versionId, credentials) => {
   const contract = await Contract.findOne({ _id: contractId, 'versions.0': { $exists: true } });
   if (!contract) return null;
 
@@ -205,7 +217,7 @@ exports.deleteVersion = async (contractId, versionId) => {
     contract.save();
   } else {
     const { user, startDate, status, customer } = contract;
-    const query = { auxiliary: user, startDate, status };
+    const query = { auxiliary: user, startDate, status, company: get(credentials, 'company._id', null) };
     if (customer) query.customer = customer;
     const eventCount = await EventRepository.countAuxiliaryEventsBetweenDates(query);
     if (eventCount) throw Boom.forbidden();

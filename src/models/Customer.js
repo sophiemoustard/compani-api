@@ -3,6 +3,7 @@ const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const Boom = require('boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 const {
   MONTHLY,
   ONCE,
@@ -113,7 +114,7 @@ const CustomerSchema = mongoose.Schema({
 const countSubscriptionUsage = async (doc) => {
   if (doc && doc.subscriptions && doc.subscriptions.length > 0) {
     for (const subscription of doc.subscriptions) {
-      subscription.eventCount = await Event.countDocuments({ subscription: subscription._id });
+      subscription.eventCount = await Event.countDocuments({ subscription: subscription._id, company: doc.company });
     }
   }
 };
@@ -153,6 +154,8 @@ CustomerSchema.virtual('firstIntervention', {
   options: { sort: { startDate: 1 } },
 });
 
+CustomerSchema.pre('find', validateQuery);
+CustomerSchema.pre('validate', validatePayload);
 CustomerSchema.pre('remove', removeCustomer);
 CustomerSchema.pre('findOneAndUpdate', validateAddress);
 CustomerSchema.post('findOne', countSubscriptionUsage);

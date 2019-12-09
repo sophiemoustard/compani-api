@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
+const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const { generateFormData } = require('./utils');
 const GetStream = require('get-stream');
@@ -11,6 +12,7 @@ const GetStream = require('get-stream');
 const app = require('../../server');
 const {
   populateDB,
+  otherCompanyCustomerId,
   customersList,
   userList,
   customerServiceList,
@@ -21,7 +23,7 @@ const ESign = require('../../src/models/ESign');
 const Drive = require('../../src/models/Google/Drive');
 const User = require('../../src/models/User');
 const { MONTHLY, FIXED, COMPANY_CONTRACT, HOURLY, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials, authCompany, otherCompany } = require('./seed/authenticationSeed');
 const FileHelper = require('../../src/helpers/file');
 
 describe('NODE ENV', () => {
@@ -55,6 +57,7 @@ describe('CUSTOMERS ROUTES', () => {
 
   describe('POST /customers', () => {
     it('should create a new customer', async () => {
+      const customersBefore = await customersList.filter(customer => customer.company === authCompany._id);
       const res = await app.inject({
         method: 'POST',
         url: '/customers',
@@ -66,6 +69,7 @@ describe('CUSTOMERS ROUTES', () => {
 
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customer).toMatchObject({
+        company: authCompany._id,
         identity: { lastname: payload.identity.lastname },
         contact: {
           primaryAddress: {
@@ -83,8 +87,8 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customer.payment.mandates).toBeDefined();
       expect(res.result.data.customer.payment.mandates.length).toEqual(1);
       expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
-      const customers = await Customer.find({});
-      expect(customers).toHaveLength(customersList.length + 1);
+      const customers = await Customer.find({ company: authCompany._id }).lean();
+      expect(customers).toHaveLength(customersBefore.length + 1);
     });
 
     const missingParams = ['identity.lastname', 'contact.primaryAddress.street', 'contact.primaryAddress.zipCode', 'contact.primaryAddress.city'];
@@ -133,7 +137,10 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.customers).toHaveLength(customersList.length);
+      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company.toHexString() === authCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
+      const customers = await Customer.find({ company: authCompany._id }).lean();
+      expect(res.result.data.customers).toHaveLength(customers.length);
     });
 
     describe('Other roles', () => {
@@ -156,6 +163,66 @@ describe('CUSTOMERS ROUTES', () => {
         });
       });
     });
+
+    it('should get only customers from the company', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers',
+        headers: { 'x-access-token': authToken },
+      });
+      expect(res.statusCode).toBe(200);
+      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
+      expect(res.result.data.customers).toHaveLength(1);
+    });
+  });
+
+  describe('GET /customers/first-intervention', () => {
+    it('should get all customers with first intervention info', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/first-intervention',
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      const customers = await Customer.find({ company: authCompany._id }).lean();
+      expect(Object.values(res.result.data.customers)).toHaveLength(customers.length);
+      expect(Object.values(res.result.data.customers).every(cus => has(cus, 'firstIntervention'))).toBeTruthy();
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+
+    it('should get only customers from the company with first intervention info', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/first-intervention',
+        headers: { 'x-access-token': authToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(Object.values(res.result.data.customers)).toHaveLength(1);
+      expect(Object.values(res.result.data.customers).every(cus => has(cus, 'firstIntervention'))).toBeTruthy();
+    });
   });
 
   describe('GET /customers/billed-events', () => {
@@ -165,7 +232,6 @@ describe('CUSTOMERS ROUTES', () => {
         url: '/customers/billed-events',
         headers: { 'x-access-token': adminToken },
       });
-
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
       expect(res.result.data.customers[0].subscriptions).toBeDefined();
@@ -194,9 +260,72 @@ describe('CUSTOMERS ROUTES', () => {
         });
       });
     });
+
+    it('should get only customers with billed events from the company', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/billed-events',
+        headers: { 'x-access-token': authToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customers).toBeDefined();
+      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
+    });
   });
 
-  describe('GET /customer-contract-subscriptions', () => {
+  describe('GET /customers/subscriptions', () => {
+    it('should get all customers with subscriptions', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/subscriptions',
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customers.every(cus => cus.subscriptions.length > 0)).toBeTruthy();
+      expect(res.result.data.customers.length).toEqual(1);
+      expect(res.result.data.customers[0].subscriptions).toHaveLength(2);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers/subscriptions',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+
+    it('should get only customers with subscriptions from the company', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/subscriptions',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customers).toBeDefined();
+      const areAllCustomersFromCompany = res.result.data.customers
+        .every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
+    });
+  });
+
+  describe('GET /customer/customer-contract-subscriptions', () => {
     it('should get all customers with customer contract subscriptions', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -224,6 +353,53 @@ describe('CUSTOMERS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: '/customers/customer-contract-subscriptions',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+
+    it('should get only customers from the company with customer contract subscriptions', async () => {
+      const authToken = await getTokenByCredentials(userList[4].local);
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/customer-contract-subscriptions',
+        headers: { 'x-access-token': authToken },
+      });
+
+      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      expect(areAllCustomersFromCompany).toBe(true);
+    });
+  });
+
+  describe('GET /customer/with-intervention', () => {
+    it('should get all customers with at least one intervention', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/customers/with-intervention',
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customers).toBeDefined();
+      expect(res.result.data.customers).toHaveLength(1);
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/customers/with-intervention',
             headers: { 'x-access-token': authToken },
           });
 
@@ -280,6 +456,15 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if customer is not from the same company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/customers/${otherCompanyCustomerId}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
@@ -425,12 +610,22 @@ describe('CUSTOMERS ROUTES', () => {
         });
       });
     });
+
+    it('should not update a customer if from other company', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${otherCompanyCustomerId}`,
+        payload: updatePayload,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(403);
+    });
   });
 
   describe('DELETE /customers/{id}', () => {
     it('should delete a customer without interventions', async () => {
       const deleteFileStub = sinon.stub(Drive, 'deleteFile').resolves({ id: '1234567890' });
-
+      const customersBefore = await customersList.filter(customer => customer.company === authCompany._id);
       const res = await app.inject({
         method: 'DELETE',
         url: `/customers/${customersList[3]._id.toHexString()}`,
@@ -439,8 +634,8 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.statusCode).toBe(200);
       sinon.assert.calledWith(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
       deleteFileStub.restore();
-      const customers = await Customer.find().lean();
-      expect(customers.length).toBe(customersList.length - 1);
+      const customers = await Customer.find({ company: authCompany._id }).lean();
+      expect(customers.length).toBe(customersBefore.length - 1);
       const helper = await User.findById(userList[2]._id).lean();
       expect(helper).toBeNull();
     });
@@ -451,6 +646,15 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if customer is not from the same company', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${otherCompanyCustomerId}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(403);
     });
 
     it('should return a 403 error if customer has interventions', async () => {
@@ -544,6 +748,28 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(409);
     });
 
+    it('should return 403 if customer not from company', async () => {
+      const customer = customersList[0];
+      const payload = {
+        service: customer.subscriptions[0].service,
+        versions: [{
+          unitTTCRate: 12,
+          estimatedWeeklyVolume: 12,
+          evenings: 2,
+          sundays: 1,
+        }],
+      };
+
+      const result = await app.inject({
+        method: 'POST',
+        url: `/customers/${otherCompanyCustomerId}/subscriptions`,
+        headers: { 'x-access-token': adminToken },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
       const payload = {
         service: customerServiceList[1]._id,
@@ -629,6 +855,17 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       expect(result.statusCode).toBe(404);
     });
 
+    it('should return 403 if customer not from company', async () => {
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${otherCompanyCustomerId}/subscriptions/${new ObjectID()}`,
+        headers: { 'x-access-token': adminToken },
+        payload,
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
       const customer = customersList[0];
       const subscription = customer.subscriptions[0];
@@ -666,6 +903,16 @@ describe('CUSTOMER SUBSCRIPTIONS ROUTES', () => {
       });
 
       expect(result.statusCode).toBe(200);
+    });
+
+    it('should not delete customer subscription if customer not from same company', async () => {
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${otherCompanyCustomerId}/subscriptions/${new ObjectID()}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(result.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
@@ -723,6 +970,16 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       });
 
       expect(result.statusCode).toBe(404);
+    });
+
+    it('should return 403 if customer is from other company', async () => {
+      const result = await app.inject({
+        method: 'GET',
+        url: `/customers/${otherCompanyCustomerId}/mandates`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(result.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
@@ -794,6 +1051,19 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       });
 
       expect(result.statusCode).toEqual(404);
+    });
+
+    it('should return 403 if user not from same company', async () => {
+      const payload = { signedAt: '2019-09-09T00:00:00' };
+
+      const result = await app.inject({
+        method: 'PUT',
+        url: `/customers/${otherCompanyCustomerId}/mandates/${new ObjectID()}`,
+        headers: { 'x-access-token': adminToken },
+        payload,
+      });
+
+      expect(result.statusCode).toEqual(403);
     });
 
     describe('Other roles', () => {
@@ -903,6 +1173,18 @@ describe('CUSTOMER MANDATES ROUTES', () => {
       expect(customer.payment.mandates[0].everSignId).toBeDefined();
     });
 
+    it('should return 403 if user is not from the same company', async () => {
+      const helper = userList[2];
+      const helperToken = await getTokenByCredentials(helper.local);
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${otherCompanyCustomerId}/mandates/${mandateId}/esign`,
+        headers: { 'x-access-token': helperToken },
+        payload,
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
     const roles = [
       { name: 'helper', expectedCode: 403, callCount: 0 },
       { name: 'admin', expectedCode: 403, callCount: 0 },
@@ -959,6 +1241,16 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
 
+    it('should return 403 error if user is from other company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/customers/${otherCompanyCustomerId}/quotes`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
       const roles = [
         { name: 'helper', expectedCode: 403 },
@@ -1010,6 +1302,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         expect.objectContaining(payload.subscriptions[1]),
       ]));
     });
+
     it("should return a 400 error if 'subscriptions' array is missing from payload", async () => {
       const res = await app.inject({
         method: 'POST',
@@ -1018,6 +1311,27 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(400);
+    });
+
+    it('should not create a customer quote if from other company', async () => {
+      const payload = {
+        subscriptions: [{
+          serviceName: 'TestTest',
+          unitTTCRate: 23,
+          estimatedWeeklyVolume: 3,
+        }, {
+          serviceName: 'TestTest2',
+          unitTTCRate: 30,
+          estimatedWeeklyVolume: 10,
+        }],
+      };
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${otherCompanyCustomerId}/quotes`,
+        payload,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
@@ -1066,6 +1380,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       const customer = await Customer.findById(customersList[0]._id);
       expect(customer.quotes.length).toBe(customersList[0].quotes.length - 1);
     });
+
     it('should return a 404 error if user is not found', async () => {
       const invalidId = new ObjectID().toHexString();
       const res = await app.inject({
@@ -1076,6 +1391,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       });
       expect(res.statusCode).toBe(404);
     });
+
     it('should return a 404 error if quote does not exist', async () => {
       const invalidId = new ObjectID().toHexString();
       const res = await app.inject({
@@ -1085,6 +1401,16 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if user is not from the same company', async () => {
+      const res = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${otherCompanyCustomerId}/quotes/${new ObjectID()}`,
+        payload: {},
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
@@ -1195,8 +1521,7 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       expect(res.statusCode).toBe(400);
     });
 
-    it('should return a 404 error if user does not exist', async () => {
-      const invalidId = new ObjectID().toHexString();
+    it('should return a 403 error if user is not from the same company', async () => {
       const payload = {
         subscriptions: [{
           service: 'TestTest',
@@ -1215,13 +1540,13 @@ describe('CUSTOMERS SUBSCRIPTION HISTORY ROUTES', () => {
       };
 
       const res = await app.inject({
-        method: 'DELETE',
-        url: `/customers/${invalidId}/subscriptionshistory`,
+        method: 'POST',
+        url: `/customers/${otherCompanyCustomerId}/subscriptionshistory`,
         payload,
         headers: { 'x-access-token': helperToken },
       });
 
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
@@ -1402,6 +1727,31 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
 
+    it('should return a 403 error if customer is not from the same company', async () => {
+      const payload = {
+        subscription: customersList[0].subscriptions[0]._id,
+        nature: FIXED,
+        thirdPartyPayer: customerThirdPartyPayer._id,
+        frequency: MONTHLY,
+        versions: [{
+          folderNumber: 'D123456',
+          startDate: moment.utc().toDate(),
+          endDate: moment.utc().add(6, 'months').toDate(),
+          amountTTC: 120,
+          customerParticipationRate: 10,
+          careDays: [2, 5],
+        }],
+      };
+
+      const res = await app.inject({
+        method: 'POST',
+        url: `/customers/${otherCompanyCustomerId}/fundings`,
+        payload,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
       const customer = customersList[0];
       const payload = {
@@ -1483,6 +1833,24 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       expect(res.statusCode).toBe(404);
     });
 
+    it('should return a 403 error if customer is not from the same company', async () => {
+      const payload = {
+        subscription: customersList[0].subscriptions[0]._id,
+        amountTTC: 90,
+        customerParticipationRate: 20,
+        startDate: moment.utc().add(6, 'months').toDate(),
+        endDate: moment.utc().add(1, 'year').toDate(),
+        careDays: [1, 3],
+      };
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/customers/${otherCompanyCustomerId}/fundings/${new ObjectID()}`,
+        payload,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
     describe('Other roles', () => {
       const customer = customersList[0];
       const payload = {
@@ -1527,6 +1895,16 @@ describe('CUSTOMERS FUNDINGS ROUTES', () => {
       });
 
       expect(result.statusCode).toBe(200);
+    });
+
+    it('should not delete customer funding if customer is not from same company', async () => {
+      const result = await app.inject({
+        method: 'DELETE',
+        url: `/customers/${otherCompanyCustomerId}/fundings/${new ObjectID()}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(result.statusCode).toBe(403);
     });
 
     describe('Other roles', () => {
@@ -1600,6 +1978,28 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       sinon.assert.calledOnce(getFileByIdStub);
     });
 
+    it('should not upload a signed mandate if customer is not from the same company', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const customer = customersList[customersList.length - 1];
+      const payload = {
+        fileName: 'mandat_signe',
+        mandateId: customer.payment.mandates[0]._id.toHexString(),
+        signedMandate: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${otherCompanyCustomerId}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
     it('should upload a signed quote', async () => {
       addStub.returns({ id: 'fakeFileDriveId' });
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
@@ -1624,6 +2024,28 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       sinon.assert.calledOnce(getFileByIdStub);
     });
 
+    it('should not upload a signed quote if customer is not from the same company', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const customer = customersList[customersList.length - 1];
+      const payload = {
+        fileName: 'devis_signe',
+        quoteId: customer.quotes[0]._id.toHexString(),
+        signedQuote: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${otherCompanyCustomerId}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
     it('should upload a financial certificate', async () => {
       addStub.returns({ id: 'fakeFileDriveId' });
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
@@ -1645,6 +2067,26 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       expect(response.statusCode).toEqual(200);
       sinon.assert.calledOnce(addStub);
       sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    it('should not upload a financial certificate if customer is not fromn the same company', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+      const payload = {
+        fileName: 'financialCertificate',
+        financialCertificates: '',
+      };
+      const form = generateFormData(payload);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/customers/${otherCompanyCustomerId}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': adminToken },
+      });
+
+      expect(response.statusCode).toEqual(403);
     });
 
     describe('Other roles', () => {

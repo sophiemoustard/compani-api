@@ -16,6 +16,7 @@ const {
   deleteVersion,
   getContractList,
 } = require('../helpers/contracts');
+const ContractRepository = require('../repositories/ContractRepository');
 
 const { language } = translate;
 
@@ -34,8 +35,8 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    const { payload } = req;
-    const contract = await createContract(payload);
+    const { payload, auth } = req;
+    const contract = await createContract(payload, auth.credentials);
 
     return {
       message: translate[language].contractCreated,
@@ -64,7 +65,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const contract = await Contract.findByIdAndRemove({ _id: req.params._id });
+    const contract = await Contract.findOneAndRemove({ _id: req.params._id });
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
@@ -93,7 +94,7 @@ const createContractVersion = async (req) => {
 
 const updateContractVersion = async (req) => {
   try {
-    const contract = await updateVersion(req.params._id, req.params.versionId, req.payload);
+    const contract = await updateVersion(req.params._id, req.params.versionId, req.payload, req.auth.credentials);
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
     return {
@@ -108,7 +109,7 @@ const updateContractVersion = async (req) => {
 
 const removeContractVersion = async (req) => {
   try {
-    await deleteVersion(req.params._id, req.params.versionId);
+    await deleteVersion(req.params._id, req.params.versionId, req.auth.credentials);
 
     return { message: translate[language].contractVersionRemoved };
   } catch (e) {
@@ -164,13 +165,8 @@ const receiveSignatureEvents = async (req, h) => {
 
 const getStaffRegister = async (req) => {
   try {
-    const staffRegister = await Contract
-      .find()
-      .populate({
-        path: 'user',
-        select: 'identity administrative.idCardRecto administrative.idCardVerso administrative.residencePermitRecto administrative.residencePermitVerso',
-      })
-      .lean();
+    const { credentials } = req.auth;
+    const staffRegister = await ContractRepository.getStaffRegister(credentials.company._id);
 
     return {
       message: translate[language].staffRegisteredFound,

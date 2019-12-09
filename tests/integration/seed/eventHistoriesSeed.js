@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
@@ -10,6 +11,8 @@ const user = {
   identity: { firstname: 'Bob', lastname: 'Marley' },
   local: { email: 'lala@alenvi.io', password: '123456' },
   role: rolesList[1]._id,
+  company: authCompany._id,
+  refreshToken: uuidv4(),
 };
 
 const eventHistoryAuxiliary = {
@@ -17,6 +20,8 @@ const eventHistoryAuxiliary = {
   identity: { firstname: 'Mimi', lastname: 'Mita' },
   local: { email: 'lili@alenvi.io', password: '123456' },
   role: rolesList[2]._id,
+  company: authCompany._id,
+  refreshToken: uuidv4(),
 };
 
 const sector = {

@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { getCustomerFollowUp, getCustomerFundingsMonitoring } = require('../controllers/statController');
+const { authorizeGetStats } = require('./preHandlers/stats');
 
 exports.plugin = {
   name: 'routes-stats',
@@ -18,20 +19,22 @@ exports.plugin = {
             customer: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeGetStats }],
       },
       handler: getCustomerFollowUp,
     });
 
     server.route({
       method: 'GET',
-      path: '/customer-fundings-monitoring/{_id}',
+      path: '/customer-fundings-monitoring',
       options: {
         auth: { scope: ['customers:read'] },
         validate: {
           query: {
-            params: { _id: Joi.string().required() },
+            customer: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeGetStats }],
       },
       handler: getCustomerFundingsMonitoring,
     });

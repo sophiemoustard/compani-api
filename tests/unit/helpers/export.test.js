@@ -12,7 +12,6 @@ const Pay = require('../../../src/models/Pay');
 const FinalPay = require('../../../src/models/FinalPay');
 const ExportHelper = require('../../../src/helpers/export');
 const UtilsHelper = require('../../../src/helpers/utils');
-const PayHelper = require('../../../src/helpers/pay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 
 describe('exportWorkingEventsHistory', () => {
@@ -161,7 +160,21 @@ describe('exportAbsencesHistory', () => {
 });
 
 describe('exportBillsAndCreditNotesHistory', () => {
-  const header = ['Nature', 'Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Montant HT en €', 'Montant TTC en €', 'Services'];
+  const header = [
+    'Nature',
+    'Identifiant',
+    'Date',
+    'Id Bénéficiaire',
+    'Titre',
+    'Nom',
+    'Prénom',
+    'Id tiers payeur',
+    'Tiers payeur',
+    'Montant HT en €',
+    'Montant TTC en €',
+    'Services',
+    'Date de création',
+  ];
   const bills = [
     {
       number: 'FACT-0549236',
@@ -182,6 +195,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         exclTaxes: 389276.0208,
         inclTaxes: 410686.201944,
       }],
+      createdAt: '2019-10-11',
     }, {
       number: 'FACT-0419457',
       date: '2019-05-22T06:00:00.000+00:00',
@@ -206,6 +220,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
         inclTaxes: 302,
         exclTaxes: 318.6099999,
       }],
+      createdAt: '2019-10-12',
     },
   ];
   const creditNotes = [
@@ -225,6 +240,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       inclTaxesCustomer: 5.5,
       exclTaxesTpp: 8,
       inclTaxesTpp: 3,
+      createdAt: '2019-10-15',
     },
     {
       number: 'F6473250',
@@ -238,8 +254,16 @@ describe('exportBillsAndCreditNotesHistory', () => {
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
       inclTaxesCustomer: 5.5,
+      createdAt: '2019-10-16',
     },
   ];
+  const credentials = { company: { _id: new ObjectID() } };
+  const findQuery = {
+    date: { $lte: null, $gte: null },
+    company: credentials.company._id,
+  };
+  const sortQuery = { date: 'desc' };
+  const populateCustomerQuery = { path: 'customer', select: 'identity' };
   let mockBill;
   let mockCreditNote;
   let formatPriceStub;
@@ -259,54 +283,96 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    const credentials = { company: new ObjectID() };
-    mockBill.expects('find').chain('lean').returns([]);
-    mockCreditNote.expects('find').chain('lean').returns([]);
+    mockBill
+      .expects('find')
+      .withExactArgs(findQuery)
+      .chain('sort')
+      .withExactArgs(sortQuery)
+      .chain('populate')
+      .withExactArgs(populateCustomerQuery)
+      .chain('populate')
+      .withExactArgs('client')
+      .chain('lean')
+      .returns([]);
+    mockCreditNote
+      .expects('find')
+      .withExactArgs(findQuery)
+      .chain('sort')
+      .withExactArgs(sortQuery)
+      .chain('populate')
+      .withExactArgs(populateCustomerQuery)
+      .chain('populate')
+      .withExactArgs('thirdPartyPayer')
+      .chain('lean')
+      .returns([]);
+
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
-
     mockBill.verify();
     mockCreditNote.verify();
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    const credentials = { company: new ObjectID() };
-    mockBill.expects('find').chain('lean').returns([{}]);
-    mockCreditNote.expects('find').chain('lean').returns([{}]);
-
+    mockBill
+      .expects('find')
+      .withExactArgs(findQuery)
+      .chain('sort')
+      .withExactArgs(sortQuery)
+      .chain('populate')
+      .withExactArgs(populateCustomerQuery)
+      .chain('populate')
+      .withExactArgs('client')
+      .chain('lean')
+      .returns([{}]);
+    mockCreditNote
+      .expects('find')
+      .withExactArgs(findQuery)
+      .chain('sort')
+      .withExactArgs(sortQuery)
+      .chain('populate')
+      .withExactArgs(populateCustomerQuery)
+      .chain('populate')
+      .withExactArgs('thirdPartyPayer')
+      .chain('lean')
+      .returns([{}]);
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
+
     const exportArray = await ExportHelper.exportBillsAndCreditNotesHistory(null, null, credentials);
 
     expect(exportArray).toEqual([
       header,
-      ['Facture', '', '', '', '', '', '', '', '', '', '', ''],
-      ['Avoir', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Facture', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Avoir', '', '', '', '', '', '', '', '', '', '', '', ''],
     ]);
-
     mockBill.verify();
     mockCreditNote.verify();
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    mockBill.expects('find')
+    mockBill
+      .expects('find')
+      .withExactArgs(findQuery)
       .chain('sort')
+      .withExactArgs(sortQuery)
       .chain('populate')
+      .withExactArgs(populateCustomerQuery)
       .chain('populate')
+      .withExactArgs('client')
       .chain('lean')
-      .once()
       .returns(bills);
-    mockCreditNote.expects('find')
+    mockCreditNote
+      .expects('find')
+      .withExactArgs(findQuery)
       .chain('sort')
+      .withExactArgs(sortQuery)
       .chain('populate')
+      .withExactArgs(populateCustomerQuery)
       .chain('populate')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
-      .once()
       .returns(creditNotes);
-
-    const credentials = { company: new ObjectID() };
-
     formatPriceStub.callsFake(price => (price ? `P-${price}` : ''));
     formatFloatForExportStub.callsFake(float => (float ? `F-${float}` : ''));
 
@@ -316,12 +382,66 @@ describe('exportBillsAndCreditNotesHistory', () => {
     sinon.assert.callCount(formatFloatForExportStub, 8);
     expect(exportArray).toEqual([
       header,
-      ['Facture', 'FACT-0549236', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'F-389276.0208', 'F-389276.023', 'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC'],
-      ['Facture', 'FACT-0419457', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M.', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'F-1018.6307999', 'F-1057.1319439', 'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC'],
-      ['Avoir', 'F1501231', '21/05/2019', '5d761a8f6f6cba0d259b17eb', '', 'BINKS', 'Jar jar', '5d761ad7ffd1dc0d39dadd7e', 'SW', 'F-18.5', 'F-8.5', 'Temps de qualité - autonomie'],
-      ['Avoir', 'F6473250', '25/05/2019', '5d761a8f6f8eba0d259b173f', '', 'R2D2', '', '', '', 'F-10.5', 'F-5.5', 'Temps de qualité - autonomie'],
+      [
+        'Facture',
+        'FACT-0549236',
+        '20/05/2019',
+        '5c35b5eb1a4fb00997363eb3',
+        'Mme',
+        'MATHY',
+        'Mimi',
+        '5c35b5eb7e0fb87297363eb2',
+        'TF1',
+        'F-389276.0208',
+        'F-389276.023',
+        'Temps de qualité - autonomie - 20 heures - P-410686.201944 TTC',
+        '11/10/2019'],
+      [
+        'Facture',
+        'FACT-0419457',
+        '22/05/2019',
+        '5c35b5eb1a6fb02397363eb1',
+        'M.',
+        'HORSEMAN',
+        'Bojack',
+        '5c35b5eb1a6fb87297363eb2',
+        'The Sherif',
+        'F-1018.6307999',
+        'F-1057.1319439',
+        'Forfait nuit - 15 heures - P-738.521944 TTC\r\nForfait nuit - 7 heures - P-302 TTC',
+        '12/10/2019',
+      ],
+      [
+        'Avoir',
+        'F1501231',
+        '21/05/2019',
+        '5d761a8f6f6cba0d259b17eb',
+        '',
+        'BINKS',
+        'Jar jar',
+        '5d761ad7ffd1dc0d39dadd7e',
+        'SW',
+        'F-18.5',
+        'F-8.5',
+        'Temps de qualité - autonomie',
+        '15/10/2019',
+      ],
+      [
+        'Avoir',
+        'F6473250',
+        '25/05/2019',
+        '5d761a8f6f8eba0d259b173f',
+        '',
+        'R2D2',
+        '',
+        '',
+        '',
+        'F-10.5',
+        'F-5.5',
+        'Temps de qualité - autonomie',
+        '16/10/2019',
+      ],
     ]);
-
     mockBill.verify();
     mockCreditNote.verify();
   });
@@ -339,26 +459,30 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     contractMock.expects('find')
+      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
       .chain('populate')
       .chain('lean')
       .once()
       .returns([]);
 
-    const result = await ExportHelper.exportContractHistory(startDate, endDate);
+    const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
     expect(result).toEqual([['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire']]);
   });
 
   it('should return an array containing the header and one row', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }] }];
     contractMock.expects('find')
+      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
       .chain('populate')
       .chain('lean')
       .once()
       .returns(contracts);
 
-    const result = await ExportHelper.exportContractHistory(startDate, endDate);
+    const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
     expect(result).toEqual([
       ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
@@ -367,6 +491,7 @@ describe('exportContractHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
+    const credentials = { company: { _id: '1234567890' } };
     const contracts = [
       {
         user: { identity: { title: 'mr', lastname: 'Patate' } },
@@ -384,9 +509,13 @@ describe('exportContractHistory', () => {
       },
     ];
 
-    contractMock.expects('find').chain('populate').chain('lean').returns(contracts);
+    contractMock.expects('find')
+      .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
+      .chain('populate')
+      .chain('lean')
+      .returns(contracts);
 
-    const result = await ExportHelper.exportContractHistory(startDate, endDate);
+    const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     expect(result).toEqual([
       ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
       ['Contrat', 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
@@ -411,15 +540,16 @@ describe('exportCustomers', () => {
 
   it('should return csv header', async () => {
     const customers = [];
+    const companyId = new ObjectID();
     CustomerModel.expects('find')
-      .withExactArgs()
+      .withExactArgs({ company: companyId })
       .chain('populate')
       .chain('populate')
       .chain('lean')
       .once()
       .returns(customers);
 
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
@@ -457,14 +587,14 @@ describe('exportCustomers', () => {
       fundings: [{ _id: 'toto' }, { _id: 'lala' }],
       createdAt: '2012-12-12T00:00:00.000+00:00',
     }];
+    const companyId = new ObjectID();
     CustomerModel.expects('find')
-      .withExactArgs()
+      .withExactArgs({ company: companyId })
       .chain('populate')
       .chain('lean')
       .once()
       .returns(customers);
-
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
@@ -496,14 +626,15 @@ describe('exportCustomers', () => {
 
   it('should return empty strings if missing data', async () => {
     const customers = [{}];
+    const companyId = new ObjectID();
     CustomerModel.expects('find')
-      .withExactArgs()
+      .withExactArgs({ company: companyId })
       .chain('populate')
       .chain('lean')
       .once()
       .returns(customers);
 
-    const credentials = {};
+    const credentials = { company: { _id: companyId } };
     const result = await ExportHelper.exportCustomers(credentials);
 
     expect(result).toBeDefined();
@@ -530,7 +661,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return csv header', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -538,8 +669,9 @@ describe('exportAuxiliaries', () => {
 
     const auxiliaries = [];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -552,7 +684,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary info', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -567,8 +699,9 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -580,7 +713,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary sector', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -590,8 +723,9 @@ describe('exportAuxiliaries', () => {
       { sector: { name: 'La ruche' } },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -603,7 +737,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary identity', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -625,8 +759,9 @@ describe('exportAuxiliaries', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -638,7 +773,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary contracts count', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -648,8 +783,9 @@ describe('exportAuxiliaries', () => {
       { contracts: [{ _id: 1 }, { _id: 2 }] },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -661,7 +797,7 @@ describe('exportAuxiliaries', () => {
   });
 
   it('should return auxiliary address', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
       .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
@@ -671,8 +807,9 @@ describe('exportAuxiliaries', () => {
       { contact: { address: { fullAddress: 'La ruche' } } },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: { $in: roleIds } })
+      .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs('sector')
       .once()
       .returns(auxiliaries);
 
@@ -688,6 +825,7 @@ describe('exportHelpers', () => {
   let UserModel;
   let RoleModel;
   let getLastVersion;
+  const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     UserModel = sinon.mock(User);
     RoleModel = sinon.mock(Role);
@@ -706,12 +844,16 @@ describe('exportHelpers', () => {
 
     const helpers = [];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: roleId, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs({
+        path: 'customers',
+        populate: { path: 'firstIntervention', select: 'startDate' },
+      })
       .once()
       .returns(helpers);
 
-    const result = await ExportHelper.exportHelpers();
+    const result = await ExportHelper.exportHelpers(credentials);
 
     expect(result).toBeDefined();
     expect(result[0]).toMatchObject([
@@ -743,12 +885,16 @@ describe('exportHelpers', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: roleId, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs({
+        path: 'customers',
+        populate: { path: 'firstIntervention', select: 'startDate' },
+      })
       .once()
       .returns(helpers);
 
-    const result = await ExportHelper.exportHelpers();
+    const result = await ExportHelper.exportHelpers(credentials);
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
@@ -776,12 +922,16 @@ describe('exportHelpers', () => {
       },
     ];
     UserModel.expects('find')
-      .withExactArgs({ role: roleId })
+      .withExactArgs({ role: roleId, company: credentials.company._id })
       .chain('populate')
+      .withExactArgs({
+        path: 'customers',
+        populate: { path: 'firstIntervention', select: 'startDate' },
+      })
       .once()
       .returns(helpers);
 
-    const result = await ExportHelper.exportHelpers();
+    const result = await ExportHelper.exportHelpers(credentials);
 
     UserModel.verify();
     expect(result).toBeDefined();
@@ -789,6 +939,7 @@ describe('exportHelpers', () => {
     expect(result[1]).toMatchObject(['', '', '', 'M.', 'PATATE', '', '37 rue de Ponthieu', '75008', 'Paris', 'Actif', '']);
   });
 });
+
 describe('formatSurchargedDetailsForExport', () => {
   const emptyPlan = { planName: 'Empty plan' };
   const unknownPlan = { planName: 'Unknown plan', helloWorld: { percentage: 7, hours: 10 } };

@@ -309,8 +309,9 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
 };
 
 exports.getDraftBillsList = async (dates, billingStartDate, credentials, customerId = null) => {
-  const eventsToBill = await EventRepository.getEventsToBill(dates, customerId);
-  const thirdPartyPayersList = await ThirdPartyPayer.find({ company: get(credentials, 'company._id', null) }).lean();
+  const companyId = get(credentials, 'company._id', null);
+  const eventsToBill = await EventRepository.getEventsToBill(dates, customerId, companyId);
+  const thirdPartyPayersList = await ThirdPartyPayer.find({ company: companyId }).lean();
   const draftBillsList = [];
   for (let i = 0, l = eventsToBill.length; i < l; i++) {
     const customerDraftBills = [];

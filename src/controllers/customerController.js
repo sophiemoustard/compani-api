@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const flat = require('flat');
-const _ = require('lodash');
+const get = require('lodash/get');
+const pick = require('lodash/pick');
 const moment = require('moment');
 const path = require('path');
 const os = require('os');
@@ -17,13 +18,15 @@ const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/eSign');
 const {
   createAndSaveFile,
+  getCustomersFirstIntervention,
   getCustomerBySector,
   getCustomersWithBilledEvents,
-  getCustomersWithSubscriptions,
   getCustomers,
   getCustomersWithCustomerContractSubscriptions,
+  getCustomersWithIntervention,
   getCustomer,
   updateCustomer,
+  getCustomersWithSubscriptions,
 } = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
 
@@ -31,7 +34,23 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customers = await getCustomers(req.query, req.auth.credentials);
+    const customers = await getCustomers({ ...req.query, company: get(req, 'auth.credentials.company._id', null) });
+
+    return {
+      message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
+      data: { customers },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const listWithFirstIntervention = async (req) => {
+  try {
+    const { query, auth } = req;
+    const companyId = get(auth, 'credentials.company._id', null);
+    const customers = await getCustomersFirstIntervention(query, companyId);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -45,8 +64,7 @@ const list = async (req) => {
 
 const listWithSubscriptions = async (req) => {
   try {
-    const query = { ...req.query, subscriptions: { $exists: true, $ne: { $size: 0 } } };
-    const customers = await getCustomersWithSubscriptions(query, req.auth.credentials);
+    const customers = await getCustomersWithSubscriptions(req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -60,7 +78,7 @@ const listWithSubscriptions = async (req) => {
 
 const listBySector = async (req) => {
   try {
-    const customers = await getCustomerBySector(req.query.startDate, req.query.endDate, req.query.sector);
+    const customers = await getCustomerBySector(req.query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -74,7 +92,8 @@ const listBySector = async (req) => {
 
 const listWithBilledEvents = async (req) => {
   try {
-    const customers = await getCustomersWithBilledEvents();
+    const { credentials } = req.auth;
+    const customers = await getCustomersWithBilledEvents(credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -100,6 +119,19 @@ const listWithCustomerContractSubscriptions = async (req) => {
   }
 };
 
+const listWithIntervention = async (req) => {
+  try {
+    const customers = await getCustomersWithIntervention(req.auth.credentials);
+    return {
+      message: customers.length > 0 ? translate[language].customersFound : translate[language].customersNotFound,
+      data: { customers },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 const show = async (req) => {
   try {
     const customer = await getCustomer(req.params._id, req.auth.credentials);
@@ -117,7 +149,7 @@ const show = async (req) => {
 
 const create = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
+    const companyId = get(req, 'auth.credentials.company._id', null);
     if (!companyId) return Boom.forbidden();
     const mandate = { rum: await generateRum() };
     const payload = {
@@ -140,7 +172,6 @@ const create = async (req) => {
 const remove = async (req) => {
   try {
     const { customer } = req.pre;
-
     await customer.remove();
 
     return { message: translate[language].customerRemoved };
@@ -170,7 +201,6 @@ const update = async (req) => {
 
 const updateSubscription = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
     const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
       { $push: { 'subscriptions.$.versions': req.payload } },
@@ -182,8 +212,7 @@ const updateSubscription = async (req) => {
     )
       .populate({
         path: 'subscriptions.service',
-        match: { company: companyId },
-        populate: { path: 'versions.surcharge', match: { company: companyId } },
+        populate: { path: 'versions.surcharge' },
       })
       .lean();
 
@@ -194,7 +223,7 @@ const updateSubscription = async (req) => {
     return {
       message: translate[language].customerSubscriptionUpdated,
       data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         subscriptions,
       },
     };
@@ -206,7 +235,7 @@ const updateSubscription = async (req) => {
 
 const addSubscription = async (req) => {
   try {
-    const companyId = _.get(req, 'auth.credentials.company._id', null);
+    const companyId = get(req, 'auth.credentials.company._id', null);
     const serviceId = req.payload.service;
     const subscribedService = await Service.findOne({ _id: serviceId });
 
@@ -239,7 +268,7 @@ const addSubscription = async (req) => {
     return {
       message: translate[language].customerSubscriptionAdded,
       data: {
-        customer: _.pick(updatedCustomer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(updatedCustomer, ['_id', 'identity.lastname', 'identity.firstname']),
         subscriptions,
       },
     };
@@ -290,7 +319,7 @@ const getMandates = async (req) => {
     return {
       message: translate[language].customerMandatesFound,
       data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         mandates: customer.payment.mandates,
       },
     };
@@ -320,7 +349,7 @@ const updateMandate = async (req) => {
     return {
       message: translate[language].customerMandateUpdated,
       data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         mandates: customer.payment.mandates,
       },
     };
@@ -378,7 +407,7 @@ const getCustomerQuotes = async (req) => {
     return {
       message: translate[language].customerQuotesFound,
       data: {
-        user: _.pick(quotes, ['_id', 'identity']),
+        user: pick(quotes, ['_id', 'identity']),
         quotes: quotes.quotes,
       },
     };
@@ -407,7 +436,7 @@ const createCustomerQuote = async (req) => {
     return {
       message: translate[language].customerQuoteAdded,
       data: {
-        user: _.pick(newQuote, ['_id', 'identity']),
+        user: pick(newQuote, ['_id', 'identity']),
         quote: newQuote.quotes.find(quote => quoteNumber === quote.quoteNumber),
       },
     };
@@ -445,13 +474,12 @@ const createDriveFolder = async (req) => {
   try {
     const customer = await Customer.findOne(
       { _id: req.params._id },
-      { 'identity.firstname': 1, 'identity.lastname': 1 }
+      { 'identity.firstname': 1, 'identity.lastname': 1, company: 1 }
     );
-
     if (customer.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID;
-      const { folder, folderLink } = await createFolder(customer.identity, parentFolderId);
-      customer.driveFolder = { driveId: folder.id, link: folderLink.webViewLink };
+      const { folder } = await createFolder(customer.identity, parentFolderId);
+      customer.driveFolder = { driveId: folder.id, link: folder.webViewLink };
       await customer.save();
     }
 
@@ -552,7 +580,7 @@ const saveSignedMandate = async (req) => {
     return {
       message: translate[language].signedDocumentSaved,
       data: {
-        user: _.pick(customer, ['_id', 'identity']),
+        user: pick(customer, ['_id', 'identity']),
         mandate: customer.payment.mandates.find(mandate => req.params.mandateId === mandate._id.toHexString()),
       },
     };
@@ -576,7 +604,7 @@ const createHistorySubscription = async (req) => {
     return {
       message: translate[language].customerSubscriptionHistoryAdded,
       data: {
-        customer: _.pick(customer, ['_id', 'identity']),
+        customer: pick(customer, ['_id', 'identity']),
         subscriptionHistory: customer.subscriptionsHistory.find(sub => moment(sub.approvalDate).isSame(moment(), 'day')),
       },
     };
@@ -599,8 +627,8 @@ const createFunding = async (req) => {
         autopopulate: false,
       }
     )
-      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'subscriptions.service' })
+      .populate({ path: 'fundings.thirdPartyPayer' })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
@@ -611,7 +639,7 @@ const createFunding = async (req) => {
     return {
       message: translate[language].customerFundingCreated,
       data: {
-        customer: _.pick(customer, ['_id', 'identity']),
+        customer: pick(customer, ['_id', 'identity']),
         funding,
       },
     };
@@ -637,8 +665,8 @@ const updateFunding = async (req) => {
         autopopulate: false,
       }
     )
-      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'subscriptions.service' })
+      .populate({ path: 'fundings.thirdPartyPayer' })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
@@ -649,7 +677,7 @@ const updateFunding = async (req) => {
     return {
       message: translate[language].customerFundingUpdated,
       data: {
-        customer: _.pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
+        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
         funding,
       },
     };
@@ -669,8 +697,8 @@ const removeFunding = async (req) => {
         autopopulate: false,
       }
     )
-      .populate({ path: 'subscriptions.service', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
-      .populate({ path: 'fundings.thirdPartyPayer', match: { company: _.get(req, 'auth.credentials.company._id', null) } })
+      .populate({ path: 'subscriptions.service' })
+      .populate({ path: 'fundings.thirdPartyPayer' })
       .lean();
 
     return {
@@ -685,10 +713,12 @@ const removeFunding = async (req) => {
 
 module.exports = {
   list,
+  listWithFirstIntervention,
   listWithSubscriptions,
   listBySector,
   listWithCustomerContractSubscriptions,
   listWithBilledEvents,
+  listWithIntervention,
   show,
   create,
   remove,

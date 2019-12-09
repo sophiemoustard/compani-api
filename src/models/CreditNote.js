@@ -1,54 +1,102 @@
 const mongoose = require('mongoose');
+const has = require('lodash/has');
 const { COMPANI, OGUST } = require('../helpers/constants');
-const ServiceSchema = require('./Service').schema;
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
+const { SERVICE_NATURES } = require('./Service');
+const { validatePayload, validateQuery } = require('./preHooks/validate');
 
 const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
 
-const CreditNoteSchema = mongoose.Schema({
-  number: String,
-  date: Date,
-  startDate: Date,
-  endDate: Date,
-  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
-  thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
-  exclTaxesCustomer: Number,
-  inclTaxesCustomer: Number,
-  exclTaxesTpp: Number,
-  inclTaxesTpp: Number,
-  events: [{
-    eventId: { type: mongoose.Schema.Types.ObjectId },
-    auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    serviceName: String,
-    startDate: { type: Date },
-    endDate: { type: Date },
-    bills: {
-      inclTaxesCustomer: Number,
-      exclTaxesCustomer: Number,
-      thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
-      inclTaxesTpp: Number,
-      exclTaxesTpp: Number,
-      fundingId: { type: mongoose.Schema.Types.ObjectId },
-      nature: String,
-      careHours: Number,
-      surcharges: billEventSurchargesSchemaDefinition,
+const CreditNoteSchema = mongoose.Schema(
+  {
+    number: String,
+    date: { type: Date, required: true },
+    startDate: Date,
+    endDate: Date,
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
+    thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
+    exclTaxesCustomer: {
+      type: Number,
+      required() {
+        return !this.thirdPartyPayer;
+      },
     },
-  }],
-  subscription: {
-    _id: { type: mongoose.Schema.Types.ObjectId },
-    service: {
-      serviceId: { type: mongoose.Schema.Types.ObjectId },
-      nature: ServiceSchema.path('nature'),
-      name: String,
+    inclTaxesCustomer: {
+      type: Number,
+      required() {
+        return !this.thirdPartyPayer;
+      },
     },
-    vat: Number,
-    unitInclTaxes: Number,
+    exclTaxesTpp: {
+      type: Number,
+      required() {
+        return !!this.thirdPartyPayer;
+      },
+    },
+    inclTaxesTpp: {
+      type: Number,
+      required() {
+        return !!this.thirdPartyPayer;
+      },
+    },
+    events: [
+      {
+        eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
+        auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        serviceName: { type: String, required: true },
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+        bills: {
+          type: mongoose.Schema(
+            {
+              inclTaxesCustomer: Number,
+              exclTaxesCustomer: Number,
+              thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId },
+              inclTaxesTpp: Number,
+              exclTaxesTpp: Number,
+              fundingId: { type: mongoose.Schema.Types.ObjectId },
+              nature: String,
+              careHours: Number,
+              surcharges: billEventSurchargesSchemaDefinition,
+            },
+            { id: false }
+          ),
+          required: true,
+        },
+      },
+    ],
+    subscription: {
+      _id: { type: mongoose.Schema.Types.ObjectId },
+      service: {
+        serviceId: { type: mongoose.Schema.Types.ObjectId },
+        nature: {
+          type: String,
+          enum: SERVICE_NATURES,
+          required() {
+            return has(this.subscription, 'service.serviceId');
+          },
+        },
+        name: {
+          type: String,
+          required() {
+            return has(this.subscription, 'service.serviceId');
+          },
+        },
+      },
+      vat: Number,
+      unitInclTaxes: Number,
+    },
+    linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' },
+    origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI },
+    driveFile: driveResourceSchemaDefinition,
+    company: { type: mongoose.Schema.Types.ObjectId, required: true },
   },
-  linkedCreditNote: { type: mongoose.Schema.Types.ObjectId, ref: 'CreditNote' },
-  origin: { type: String, enum: CREDIT_NOTE_ORIGINS, default: COMPANI },
-  driveFile: driveResourceSchemaDefinition,
-}, { timestamps: true });
+  { timestamps: true }
+);
+
+CreditNoteSchema.pre('validate', validatePayload);
+CreditNoteSchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);
 module.exports.CREDIT_NOTE_ORIGINS = CREDIT_NOTE_ORIGINS;

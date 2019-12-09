@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
+const get = require('lodash/get');
 const app = require('../../server');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
@@ -9,10 +10,19 @@ const Contract = require('../../src/models/Contract');
 const Customer = require('../../src/models/Customer');
 const User = require('../../src/models/User');
 const Event = require('../../src/models/Event');
-const { populateDB, contractsList, contractUser, contractCustomer, contractEvents } = require('./seed/contractsSeed');
+const {
+  populateDB,
+  contractsList,
+  contractUser,
+  contractCustomer,
+  contractEvents,
+  otherCompanyContract,
+  customerFromOtherCompany,
+  otherCompanyContractUser,
+} = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
-const { getToken, getUser } = require('./seed/authenticationSeed');
+const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -100,8 +110,10 @@ describe('CONTRACTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.contract).toBeDefined();
-      const contracts = await Contract.find({});
+
+      const contracts = await Contract.find({ company: get(response, 'result.data.contract.company') });
       expect(contracts.length).toEqual(contractsList.length + 1);
+
       const user = await User.findOne({ _id: payload.user });
       expect(user).toBeDefined();
       expect(user.contracts).toContainEqual(new ObjectID(response.result.data.contract._id));
@@ -127,8 +139,10 @@ describe('CONTRACTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.contract).toBeDefined();
-      const contracts = await Contract.find({});
+
+      const contracts = await Contract.find({ company: get(response, 'result.data.contract.company') });
       expect(contracts.length).toEqual(contractsList.length + 1);
+
       const customer = await Customer.findOne({ _id: contractCustomer._id });
       expect(customer).toBeDefined();
       expect(customer.contracts).toContainEqual(response.result.data.contract._id);
@@ -179,6 +193,36 @@ describe('CONTRACTS ROUTES', () => {
       });
     });
 
+    it('should not create a contract if customer is not from the same company', async () => {
+      const customerContractPayload = {
+        startDate: '2019-01-18T15:46:30.636Z',
+        versions: [{ grossHourlyRate: 10.43, startDate: '2019-01-18T15:46:30.636Z' }],
+        user: contractUser._id,
+        customer: customerFromOtherCompany._id,
+        status: 'contract_with_customer',
+      };
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        payload: customerContractPayload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not create a contract if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/contracts',
+        payload: { ...payload, user: otherCompanyContractUser._id },
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const missingParams = [
       { path: 'startDate' },
       { path: 'status' },
@@ -226,7 +270,7 @@ describe('CONTRACTS ROUTES', () => {
 
   describe('PUT contract/:id', () => {
     it('should end the contract, unassign future interventions and remove other future events', async () => {
-      const endDate = new Date('2019-07-08T14:00:18.653Z');
+      const endDate = '2019-07-08T14:00:00.000Z';
       const payload = { endDate };
       const response = await app.inject({
         method: 'PUT',
@@ -237,13 +281,27 @@ describe('CONTRACTS ROUTES', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.contract).toBeDefined();
-      expect(response.result.data.contract.endDate).toEqual(endDate);
+      expect(moment(response.result.data.contract.endDate).format('YYYY/MM/DD'))
+        .toEqual(moment(endDate).format('YYYY/MM/DD'));
 
       const user = await User.findOne({ _id: contractsList[0].user });
       expect(user.inactivityDate).not.toBeNull();
-      expect(moment(user.inactivityDate).format('YYYY-MM-DD')).toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
-      const events = await Event.find().lean();
+      expect(moment(user.inactivityDate).format('YYYY-MM-DD'))
+        .toEqual(moment(endDate).add('1', 'months').startOf('M').format('YYYY-MM-DD'));
+      const events = await Event.find({ company: authCompany._id }).lean();
       expect(events.length).toBe(contractEvents.length - 1);
+    });
+
+    it('should return 403 as user and contract are not in the same company', async () => {
+      const payload = { endDate: moment().toDate() };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/contracts/${otherCompanyContract._id}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('should return 404 error if no contract', async () => {
@@ -262,7 +320,7 @@ describe('CONTRACTS ROUTES', () => {
 
     it('should return 400 error invalid payload', async () => {
       const endDate = moment().toDate();
-      const payload = { dateEnde: endDate };
+      const payload = { dateEnd: endDate };
       const response = await app.inject({
         method: 'PUT',
         url: `/contracts/${contractsList[0]._id}`,

@@ -2,10 +2,19 @@ const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
+const pick = require('lodash/pick');
+const omit = require('lodash/omit');
 
+const BillNumber = require('../../../src/models/BillNumber');
+const Bill = require('../../../src/models/Bill');
 const BillHelper = require('../../../src/helpers/bills');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
+const {
+  bills: billsData,
+  customerId: customerIdData,
+  companyId: companyIdData,
+} = require('../data/bills');
 
 require('sinon-mongoose');
 
@@ -13,6 +22,264 @@ describe('formatBillNumber', () => {
   it('should return the correct bill number', () => {
     expect(BillHelper.formatBillNumber('toto', 5)).toEqual('toto005');
     expect(BillHelper.formatBillNumber('toto', 345)).toEqual('toto345');
+  });
+});
+
+describe('generateBillNumber', () => {
+  it('should return a bill number', async () => {
+    const bills = [{ endDate: new Date('2019-11-15') }];
+    const prefix = 'FACT-1119';
+    const billNumber = { prefix, seq: 1 };
+    const BillNumberMock = sinon.mock(BillNumber);
+
+    BillNumberMock
+      .expects('findOneAndUpdate')
+      .withExactArgs(
+        { prefix },
+        {},
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      )
+      .chain('lean')
+      .returns(billNumber);
+
+    const result = await BillHelper.generateBillNumber(bills);
+
+    BillNumberMock.verify();
+    expect(result).toEqual(billNumber);
+    BillNumberMock.restore();
+  });
+});
+
+describe('formatAndCreateBills', () => {
+  let BillNumberMock;
+  let BillMock;
+  let generateBillNumberStub;
+  let formatCustomerBillsStub;
+  let formatThirdPartyPayerBillsStub;
+  let updateFundingHistoriesStub;
+  let updateEventsStub;
+
+  beforeEach(() => {
+    BillNumberMock = sinon.mock(BillNumber);
+    BillMock = sinon.mock(Bill);
+    generateBillNumberStub = sinon.stub(BillHelper, 'generateBillNumber');
+    formatCustomerBillsStub = sinon.stub(BillHelper, 'formatCustomerBills');
+    formatThirdPartyPayerBillsStub = sinon.stub(BillHelper, 'formatThirdPartyPayerBills');
+    updateFundingHistoriesStub = sinon.stub(BillHelper, 'updateFundingHistories');
+    updateEventsStub = sinon.stub(BillHelper, 'updateEvents');
+  });
+
+  afterEach(() => {
+    BillNumberMock.restore();
+    BillMock.restore();
+    generateBillNumberStub.restore();
+    formatCustomerBillsStub.restore();
+    formatThirdPartyPayerBillsStub.restore();
+    updateFundingHistoriesStub.restore();
+    updateEventsStub.restore();
+  });
+
+  it('should create customer and third party payer bills', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const number = { prefix: 'FACT-1911', seq: 1 };
+    const customerBill = billsData[0].customerBills.bills[0];
+    const tppBill = billsData[0].thirdPartyPayerBills[0].bills[0];
+    const customerServiceVersion = customerBill.subscription.service.versions[0];
+    const tppServiceVersion = tppBill.subscription.service.versions[0];
+    const customerSubscriptionEvents = customerBill.eventsList.map(ev => ({
+      eventId: ev.event,
+      ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
+    }));
+    const tppSubscriptionEvents = tppBill.eventsList.map(ev => ({
+      eventId: ev.event,
+      ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
+    }));
+    const customerBilledEvents = customerBill.eventsList.reduce((acc, curr) => ({ ...acc, [curr.event]: { ...curr } }), {});
+    const tppBilledEvents = tppBill.eventsList.reduce((acc, curr) => ({ ...acc, [curr.event]: { ...curr, careHours: curr.history.careHours } }), {});
+    const customerBillingInfo = {
+      bill: {
+        customer: customerIdData,
+        number: 'FACT-1911001',
+        netInclTaxes: billsData[0].customerBills.total.toFixed(2),
+        date: customerBill.endDate,
+        shouldBeSent: billsData[0].customerBills.shouldBeSent,
+        companyId: companyIdData,
+        subscriptions: [{
+          ...customerBill,
+          subscription: customerBill.subscription._id,
+          service: {
+            serviceId: customerBill.subscription.service._id,
+            ...pick(customerServiceVersion, ['name', 'nature']),
+          },
+          vat: customerServiceVersion.vat,
+          events: customerSubscriptionEvents,
+        }],
+      },
+      customerBilledEvents,
+    };
+
+    const tppBillingInfo = {
+      tppBills: [{
+        customer: customerIdData,
+        number: 'FACT-1911002',
+        client: tppBill.thirdPartyPayer._id,
+        netInclTaxes: billsData[0].thirdPartyPayerBills[0].total.toFixed(2),
+        date: tppBill.endDate,
+        company: companyIdData,
+        subscriptions: [{
+          ...tppBill,
+          subscription: tppBill.subscription._id,
+          service: {
+            serviceId: tppBill.subscription.service._id,
+            ...pick(tppServiceVersion, ['name', 'nature']),
+          },
+          vat: tppServiceVersion.vat,
+          events: tppSubscriptionEvents,
+        }],
+      }],
+      tppBilledEvents,
+      fundingHistories: {},
+    };
+
+    generateBillNumberStub.returns(number);
+    formatCustomerBillsStub.returns(customerBillingInfo);
+    formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+    BillMock.expects('create').twice();
+    BillNumberMock
+      .expects('findOneAndUpdate')
+      .withExactArgs({ prefix: number.prefix }, { $set: { seq: 3 } });
+
+    await BillHelper.formatAndCreateBills(billsData, credentials);
+
+    BillNumberMock.verify();
+    BillMock.verify();
+    sinon.assert.calledWithExactly(
+      formatCustomerBillsStub,
+      billsData[0].customerBills,
+      billsData[0].customer,
+      number,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(
+      formatThirdPartyPayerBillsStub,
+      billsData[0].thirdPartyPayerBills,
+      billsData[0].customer,
+      number,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {});
+    sinon.assert.calledWithExactly(updateEventsStub, { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents });
+  });
+
+  it('should create customer bill', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const number = { prefix: 'FACT-1911', seq: 1 };
+    const customerBill = billsData[0].customerBills.bills[0];
+    const customerServiceVersion = customerBill.subscription.service.versions[0];
+    const customerSubscriptionEvents = customerBill.eventsList.map(ev => ({
+      eventId: ev.event,
+      ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
+    }));
+    const customerBilledEvents = customerBill.eventsList.reduce((acc, curr) => ({ ...acc, [curr.event]: { ...curr } }), {});
+    const customerBillingInfo = {
+      bill: {
+        customer: customerIdData,
+        number: 'FACT-1911001',
+        netInclTaxes: billsData[0].customerBills.total.toFixed(2),
+        date: customerBill.endDate,
+        shouldBeSent: billsData[0].customerBills.shouldBeSent,
+        companyId: companyIdData,
+        subscriptions: [{
+          ...customerBill,
+          subscription: customerBill.subscription._id,
+          service: {
+            serviceId: customerBill.subscription.service._id,
+            ...pick(customerServiceVersion, ['name', 'nature']),
+          },
+          vat: customerServiceVersion.vat,
+          events: customerSubscriptionEvents,
+        }],
+      },
+      customerBilledEvents,
+    };
+
+    generateBillNumberStub.returns(number);
+    formatCustomerBillsStub.returns(customerBillingInfo);
+    BillMock.expects('create').once();
+    BillNumberMock
+      .expects('findOneAndUpdate')
+      .withExactArgs({ prefix: number.prefix }, { $set: { seq: 2 } });
+
+    await BillHelper.formatAndCreateBills([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
+
+    BillNumberMock.verify();
+    BillMock.verify();
+    sinon.assert.calledWithExactly(
+      formatCustomerBillsStub,
+      billsData[0].customerBills,
+      billsData[0].customer,
+      number,
+      credentials.company._id
+    );
+    sinon.assert.notCalled(formatThirdPartyPayerBillsStub);
+    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {});
+    sinon.assert.calledWithExactly(updateEventsStub, { ...customerBillingInfo.billedEvents });
+  });
+
+  it('should create third party payer bill', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const number = { prefix: 'FACT-1911', seq: 1 };
+    const tppBill = billsData[0].thirdPartyPayerBills[0].bills[0];
+    const tppServiceVersion = tppBill.subscription.service.versions[0];
+    const tppSubscriptionEvents = tppBill.eventsList.map(ev => ({
+      eventId: ev.event,
+      ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
+    }));
+    const tppBilledEvents = tppBill.eventsList.reduce((acc, curr) => ({ ...acc, [curr.event]: { ...curr, careHours: curr.history.careHours } }), {});
+    const tppBillingInfo = {
+      tppBills: [{
+        customer: customerIdData,
+        number: 'FACT-1911002',
+        client: tppBill.thirdPartyPayer._id,
+        netInclTaxes: billsData[0].thirdPartyPayerBills[0].total.toFixed(2),
+        date: tppBill.endDate,
+        company: companyIdData,
+        subscriptions: [{
+          ...tppBill,
+          subscription: tppBill.subscription._id,
+          service: {
+            serviceId: tppBill.subscription.service._id,
+            ...pick(tppServiceVersion, ['name', 'nature']),
+          },
+          vat: tppServiceVersion.vat,
+          events: tppSubscriptionEvents,
+        }],
+      }],
+      tppBilledEvents,
+      fundingHistories: {},
+    };
+
+    generateBillNumberStub.returns(number);
+    formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
+    BillMock.expects('create').once();
+    BillNumberMock
+      .expects('findOneAndUpdate')
+      .withExactArgs({ prefix: number.prefix }, { $set: { seq: 2 } });
+
+    await BillHelper.formatAndCreateBills([{ ...billsData[0], customerBills: {} }], credentials);
+
+    BillNumberMock.verify();
+    BillMock.verify();
+    sinon.assert.notCalled(formatCustomerBillsStub);
+    sinon.assert.calledWithExactly(
+      formatThirdPartyPayerBillsStub,
+      billsData[0].thirdPartyPayerBills,
+      billsData[0].customer,
+      number,
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {});
+    sinon.assert.calledWithExactly(updateEventsStub, { ...tppBillingInfo.billedEvents });
   });
 });
 
@@ -84,6 +351,7 @@ describe('formatSubscriptionData', () => {
 
 describe('formatCustomerBills', () => {
   it('Case 1 : 1 bill', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
@@ -115,10 +383,11 @@ describe('formatCustomerBills', () => {
       total: 14.4,
     };
 
-    const result = BillHelper.formatCustomerBills(customerBills, customer, number);
+    const result = BillHelper.formatCustomerBills(customerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       shouldBeSent: true,
@@ -154,6 +423,7 @@ describe('formatCustomerBills', () => {
   });
 
   it('Case 2 : multiple bills', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const customerBills = {
@@ -208,10 +478,11 @@ describe('formatCustomerBills', () => {
       }],
     };
 
-    const result = BillHelper.formatCustomerBills(customerBills, customer, number);
+    const result = BillHelper.formatCustomerBills(customerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
     expect(result.bill).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       shouldBeSent: false,
@@ -271,6 +542,7 @@ describe('formatCustomerBills', () => {
 
 describe('formatThirdPartyPayerBills', () => {
   it('Case 1 : 1 third party payer - 1 bill - Funding monthly and hourly', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -304,10 +576,11 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       client: 'Papa',
@@ -349,6 +622,7 @@ describe('formatThirdPartyPayerBills', () => {
   });
 
   it('Case 2 : 1 third party payer - 1 bill - Funding once and hourly', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -382,10 +656,11 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       client: 'Papa',
@@ -425,6 +700,7 @@ describe('formatThirdPartyPayerBills', () => {
 
 
   it('Case 3 : 1 third party payer - 1 bill - Funding once and fixed', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -458,10 +734,11 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       client: 'Papa',
@@ -500,6 +777,7 @@ describe('formatThirdPartyPayerBills', () => {
   });
 
   it('Case 4 : 1 third party payer - multiple bills', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -559,10 +837,11 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills[0]).toMatchObject({
+      company: companyId,
       customer: 'lilalo',
       number: 'Picsou077',
       client: 'Papa',
@@ -628,6 +907,7 @@ describe('formatThirdPartyPayerBills', () => {
   });
 
   it('Case 5 : multiple third party payers', () => {
+    const companyId = new ObjectID();
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
@@ -662,10 +942,83 @@ describe('formatThirdPartyPayerBills', () => {
       }],
     }];
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills.length).toEqual(2);
+  });
+});
+
+describe('getBills', () => {
+  let BillMock;
+  let getDateQueryStub;
+  const credentials = { company: { _id: new ObjectID() } };
+  const bills = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+
+  beforeEach(() => {
+    BillMock = sinon.mock(Bill);
+    getDateQueryStub = sinon.stub(UtilsHelper, 'getDateQuery');
+  });
+
+  afterEach(() => {
+    BillMock.restore();
+    getDateQueryStub.restore();
+  });
+
+  it('should return bills', async () => {
+    BillMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('lean')
+      .returns(bills);
+
+    const result = await BillHelper.getBills({}, credentials);
+
+    expect(result).toEqual(bills);
+    BillMock.verify();
+    sinon.assert.notCalled(getDateQueryStub);
+  });
+
+  it('should return bills at specified start date', async () => {
+    const query = { startDate: new Date('2019-11-01') };
+    const dateQuery = { $lte: query.startDate };
+
+    getDateQueryStub.returns(dateQuery);
+    BillMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, date: dateQuery })
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('lean')
+      .returns(bills);
+
+    const result = await BillHelper.getBills(query, credentials);
+
+    expect(result).toEqual(bills);
+    BillMock.verify();
+    sinon.assert.calledWithExactly(getDateQueryStub, { ...query, endDate: undefined });
+  });
+
+  it('should return bills at specified end date', async () => {
+    const query = { endDate: new Date('2019-11-01') };
+    const dateQuery = { $gte: query.endDate };
+
+    getDateQueryStub.returns(dateQuery);
+    BillMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id, date: dateQuery })
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name' })
+      .chain('lean')
+      .returns(bills);
+
+    const result = await BillHelper.getBills(query, credentials);
+
+    expect(result).toEqual(bills);
+    BillMock.verify();
+    sinon.assert.calledWithExactly(getDateQueryStub, { ...query, startDate: undefined });
   });
 });
 

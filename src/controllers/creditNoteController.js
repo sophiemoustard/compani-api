@@ -4,10 +4,13 @@ const get = require('lodash/get');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const { updateEventAndFundingHistory, createCreditNotes, updateCreditNotes } = require('../helpers/creditNotes');
-const { populateSubscriptionsServices } = require('../helpers/subscriptions');
-const { getDateQuery } = require('../helpers/utils');
-const { formatPDF } = require('../helpers/creditNotes');
+const {
+  updateEventAndFundingHistory,
+  createCreditNotes,
+  updateCreditNotes,
+  getCreditNotes,
+  formatPDF,
+} = require('../helpers/creditNotes');
 const { generatePdf } = require('../helpers/pdf');
 const { COMPANI } = require('../helpers/constants');
 
@@ -15,26 +18,12 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const { startDate, endDate, ...rest } = req.query;
-    const query = rest;
-    if (startDate || endDate) query.date = getDateQuery({ startDate, endDate });
-
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    const creditNotes = await CreditNote.find(query)
-      .populate({
-        path: 'customer',
-        select: '_id identity subscriptions',
-        populate: { path: 'subscriptions.service', match: { company: companyId } },
-      })
-      .populate({ path: 'thirdPartyPayer', select: '_id name', match: { company: companyId } })
-      .lean();
-
-    for (let i = 0, l = creditNotes.length; i < l; i++) {
-      creditNotes[i].customer = populateSubscriptionsServices({ ...creditNotes[i].customer });
-    }
+    const creditNotes = await getCreditNotes(req.query, req.auth.credentials);
 
     return {
-      message: creditNotes.length === 0 ? translate[language].creditNotesNotFound : translate[language].creditNotesFound,
+      message: creditNotes.length === 0
+        ? translate[language].creditNotesNotFound
+        : translate[language].creditNotesFound,
       data: { creditNotes },
     };
   } catch (e) {
@@ -45,7 +34,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    await createCreditNotes(req.payload);
+    await createCreditNotes(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteCreated,
@@ -58,15 +47,11 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    let creditNote = await CreditNote.findOne({ _id: req.params._id }).lean();
-    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
-
-    creditNote = await updateCreditNotes(creditNote, req.payload);
+    const updatedCreditNote = await updateCreditNotes(req.pre.creditNote, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteUpdated,
-      data: { creditNote },
+      data: { creditNote: updatedCreditNote },
     };
   } catch (e) {
     req.log('error', e);
@@ -76,13 +61,9 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    const creditNote = await CreditNote.findOne({ _id: req.params._id });
-    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
-
-    await updateEventAndFundingHistory(creditNote.events, true);
+    await updateEventAndFundingHistory(req.pre.creditNote.events, true, req.auth.credentials);
     await CreditNote.findByIdAndRemove(req.params._id);
-    if (creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(creditNote.linkedCreditNote);
+    if (req.pre.creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(req.pre.creditNote.linkedCreditNote);
 
     return {
       message: translate[language].creditNoteDeleted,

@@ -9,7 +9,7 @@ const {
   list,
   generateBillPdf,
 } = require('../controllers/billsController');
-const { getBill, authorizeBillReading } = require('./preHandlers/bills');
+const { getBill, authorizeBillReading, authorizeBillsCreation } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
@@ -148,6 +148,7 @@ exports.plugin = {
             })),
           },
         },
+        pre: [{ method: authorizeBillsCreation }],
       },
       handler: createBills,
     });

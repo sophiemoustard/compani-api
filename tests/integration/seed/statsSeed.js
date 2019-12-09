@@ -1,6 +1,7 @@
 const { ObjectID } = require('mongodb');
 const moment = require('../../../src/extensions/moment');
 const cloneDeep = require('lodash/cloneDeep');
+const uuidv4 = require('uuid/v4');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
@@ -9,7 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED } = require('../../../src/helpers/constants');
+const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 
 const sectorList = [{
   _id: new ObjectID(),
@@ -18,7 +19,15 @@ const sectorList = [{
 
 const contractList = [{
   _id: new ObjectID(),
+  user: new ObjectID(),
+  company: authCompany._id,
   status: COMPANY_CONTRACT,
+  startDate: '2010-09-03T00:00:00',
+  versions: [{
+    startDate: '2010-09-03T00:00:00',
+    grossHourlyRate: 10.43,
+    weeklyHours: 12,
+  }],
 }];
 
 const userList = [
@@ -30,18 +39,23 @@ const userList = [
     inactivityDate: null,
     sector: sectorList[0]._id,
     contracts: [contractList[0]._id],
+    company: authCompany._id,
+    refreshToken: uuidv4(),
   },
 ];
 
 const serviceList = [{
   _id: new ObjectID(),
+  type: COMPANY_CONTRACT,
   nature: 'hourly',
   company: authCompany._id,
-  versions: [
-    {
-      name: 'Autonomie',
-    },
-  ],
+  versions: [{
+    defaultUnitAmount: 150,
+    name: 'Service 3',
+    startDate: '2019-01-16 17:58:15.519',
+    exemptFromCharges: false,
+    vat: 12,
+  }],
 }];
 
 const subscriptionId = new ObjectID();
@@ -121,8 +135,11 @@ const customerList = [
 const eventListForFollowUp = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
     customer: customerList[0]._id,
+    status: COMPANY_CONTRACT,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T08:00:00.000+00:00',
@@ -130,8 +147,11 @@ const eventListForFollowUp = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
+    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
@@ -174,8 +194,11 @@ const tuesdayOfPreviousMonth = dayOfPreviousMonth(2);
 const eventListForFundingsMonitoring = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     type: 'intervention',
+    status: COMPANY_CONTRACT,
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toDate(),
@@ -183,8 +206,11 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
+    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toDate(),
@@ -192,8 +218,11 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
+    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toDate(),
@@ -201,8 +230,11 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
+    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toDate(),
@@ -210,8 +242,11 @@ const eventListForFundingsMonitoring = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
+    status: COMPANY_CONTRACT,
     type: 'intervention',
     customer: customerList[0]._id,
+    sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toDate(),

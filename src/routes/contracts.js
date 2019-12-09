@@ -17,6 +17,7 @@ const {
   receiveSignatureEvents,
   getStaffRegister,
 } = require('../controllers/contractController');
+const { getContract, authorizeContractUpdate, authorizeContractCreation } = require('./preHandlers/contracts');
 
 exports.plugin = {
   name: 'contract-routes',
@@ -78,6 +79,9 @@ exports.plugin = {
               .when('status', { is: COMPANY_CONTRACT, then: Joi.forbidden() }),
           }),
         },
+        pre: [
+          { method: authorizeContractCreation },
+        ],
       },
       handler: create,
     });
@@ -96,6 +100,10 @@ exports.plugin = {
             endNotificationDate: Joi.date(),
           },
         },
+        pre: [
+          { method: getContract, assign: 'contract' },
+          { method: authorizeContractUpdate },
+        ],
       },
       handler: update,
     });
@@ -108,6 +116,10 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
         },
+        pre: [
+          { method: getContract, assign: 'contract' },
+          { method: authorizeContractUpdate },
+        ],
       },
       handler: remove,
     });
@@ -145,6 +157,10 @@ exports.plugin = {
             }),
           },
         },
+        pre: [
+          { method: getContract, assign: 'contract' },
+          { method: authorizeContractUpdate },
+        ],
       },
       handler: createContractVersion,
     });
@@ -182,6 +198,10 @@ exports.plugin = {
             }),
           },
         },
+        pre: [
+          { method: getContract, assign: 'contract' },
+          { method: authorizeContractUpdate },
+        ],
       },
       handler: updateContractVersion,
     });
@@ -197,6 +217,10 @@ exports.plugin = {
             versionId: Joi.objectId().required(),
           },
         },
+        pre: [
+          { method: getContract, assign: 'contract' },
+          { method: authorizeContractUpdate },
+        ],
       },
       handler: removeContractVersion,
     });
@@ -227,6 +251,10 @@ exports.plugin = {
             signedContract: Joi.any(),
           }),
         },
+        pre: [
+          { method: getContract, assign: 'contract' },
+          { method: authorizeContractUpdate },
+        ],
       },
     });
 

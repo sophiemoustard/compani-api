@@ -1,11 +1,11 @@
 const expect = require('expect');
 const sinon = require('sinon');
+const Boom = require('boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Event = require('../../../src/models/Event');
 const Repetition = require('../../../src/models/Repetition');
 const EventHelper = require('../../../src/helpers/events');
-const PayHelper = require('../../../src/helpers/pay');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
@@ -249,6 +249,76 @@ describe('updateEvent', () => {
     );
   });
 });
+
+describe('listForCreditNotes', () => {
+  let EventModel;
+  beforeEach(() => {
+    EventModel = sinon.mock(Event);
+  });
+  afterEach(() => {
+    EventModel.restore();
+  });
+  it('should return events with creditNotes', async () => {
+    const events = [{
+      type: 'intervention',
+      isBilled: true,
+    }];
+    const companyId = new ObjectID();
+    const payload = { customer: new ObjectID(), isBilled: true };
+    const credentials = { company: { _id: companyId } };
+
+    const query = {
+      startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+      customer: payload.customer,
+      isBilled: payload.isBilled,
+      type: INTERVENTION,
+      company: companyId,
+      'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
+      'bills.inclTaxesTpp': { $exists: false },
+    };
+
+    EventModel.expects('find')
+      .withArgs(query)
+      .chain('lean')
+      .returns(events);
+
+    const result = await EventHelper.listForCreditNotes(payload, credentials);
+    expect(result).toBeDefined();
+    expect(result).toBe(events);
+  });
+
+  it('should query with thirdPartyPayer', async () => {
+    const events = [{
+      type: 'intervention',
+      isBilled: true,
+    }];
+    const companyId = new ObjectID();
+    const payload = { thirdPartyPayer: new ObjectID(), customer: new ObjectID(), isBilled: true };
+    const credentials = { company: { _id: companyId } };
+
+    const query = {
+      startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+      endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+      customer: payload.customer,
+      isBilled: payload.isBilled,
+      type: INTERVENTION,
+      company: companyId,
+      'bills.thirdPartyPayer': payload.thirdPartyPayer,
+    };
+
+    EventModel.expects('find')
+      .withArgs(query)
+      .chain('lean')
+      .returns(events);
+
+    const result = await EventHelper.listForCreditNotes(payload, credentials);
+    expect(result).toBeDefined();
+    expect(result).toBe(events);
+  });
+
+});
+
 
 describe('populateEventSubscription', () => {
   it('should populate subscription as event is an intervention', async () => {
@@ -613,6 +683,199 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   });
 });
 
+describe('deleteList', () => {
+  let deleteEventsStub;
+  let deleteRepetitionStub;
+  let EventModel;
+  let getEventsGroupedByParentIdStub;
+  const customerId = new ObjectID();
+  const userId = new ObjectID();
+  const credentials = { _id: userId, company: { _id: new ObjectID() } };
+
+  beforeEach(() => {
+    deleteEventsStub = sinon.stub(EventHelper, 'deleteEvents');
+    deleteRepetitionStub = sinon.stub(EventsRepetitionHelper, 'deleteRepetition');
+    EventModel = sinon.mock(Event);
+    getEventsGroupedByParentIdStub = sinon.stub(EventRepository, 'getEventsGroupedByParentId');
+  });
+  afterEach(() => {
+    deleteEventsStub.restore();
+    deleteRepetitionStub.restore();
+    EventModel.restore();
+    getEventsGroupedByParentIdStub.restore();
+  });
+
+  it('should delete all events between start and end date and not delete the repetition', async () => {
+    const startDate = '2019-10-10';
+    const endDate = '2019-10-19';
+    const query = {
+      company: credentials.company._id,
+      customer: customerId,
+      startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
+    };
+    const events = [
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'internal_hour',
+        repetition: { frequency: NEVER },
+        startDate: '2019-10-12T10:00:00.000Z',
+        endDate: '2019-10-12T12:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: EVERY_WEEK, parentId: new ObjectID() },
+        startDate: '2019-10-09T11:00:00.000Z',
+        endDate: '2019-10-09T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: NEVER, parentId: new ObjectID() },
+        startDate: '2019-10-7T11:30:00.000Z',
+        endDate: '2019-10-7T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        startDate: '2019-10-20T11:00:00.000Z',
+        endDate: '2019-10-20T13:00:00.000Z',
+        auxiliary: userId,
+      },
+    ];
+    EventModel.expects('countDocuments')
+      .withExactArgs({ ...query, isBilled: true })
+      .once()
+      .returns(0);
+
+    const eventsGroupedByParentId = [{ _id: new ObjectID(), events: [events[0]] }];
+
+    getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
+
+    await EventHelper.deleteList(customerId, startDate, endDate, credentials);
+    sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
+    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
+    sinon.assert.notCalled(deleteRepetitionStub);
+  });
+
+  it('should delete all events and repetition as of start date', async () => {
+    const startDate = '2019-10-07';
+    const query = {
+      customer: customerId,
+      startDate: { $gte: moment('2019-10-07').toDate() },
+      company: credentials.company._id,
+    };
+    const repetitionParentId = new ObjectID();
+    const events = [
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'internal_hour',
+        repetition: { frequency: NEVER },
+        startDate: '2019-10-12T10:00:00.000Z',
+        endDate: '2019-10-12T12:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: EVERY_WEEK, parentId: repetitionParentId },
+        startDate: '2019-10-09T11:00:00.000Z',
+        endDate: '2019-10-09T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: NEVER, parentId: repetitionParentId },
+        startDate: '2019-10-7T11:30:00.000Z',
+        endDate: '2019-10-7T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        startDate: '2019-10-20T11:00:00.000Z',
+        endDate: '2019-10-20T13:00:00.000Z',
+        auxiliary: userId,
+      },
+    ];
+    EventModel.expects('countDocuments')
+      .withExactArgs({ ...query, isBilled: true })
+      .once()
+      .returns(0);
+
+    const eventsGroupedByParentId = [
+      { _id: null, events: [events[0]] },
+      { _id: repetitionParentId, events: [events[1], events[2]] },
+    ];
+    getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
+
+    await EventHelper.deleteList(customerId, startDate, undefined, credentials);
+    sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
+    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
+    sinon.assert.calledWithExactly(deleteRepetitionStub, eventsGroupedByParentId[1].events[0], credentials);
+  });
+
+  it('should delete all events and repetition even if repetition frequency is NEVER', async () => {
+    const startDate = '2019-10-07';
+    const query = {
+      customer: customerId,
+      startDate: { $gte: moment('2019-10-07').toDate() },
+      company: credentials.company._id,
+    };
+    const repetitionParentId = new ObjectID();
+    const events = [
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: NEVER, parentId: repetitionParentId },
+        startDate: '2019-10-09T11:00:00.000Z',
+        endDate: '2019-10-09T13:00:00.000Z',
+        auxiliary: userId,
+      },
+      {
+        _id: new ObjectID(),
+        customer: customerId,
+        type: 'unavailability',
+        repetition: { frequency: NEVER, parentId: repetitionParentId },
+        startDate: '2019-10-7T11:30:00.000Z',
+        endDate: '2019-10-7T13:00:00.000Z',
+        auxiliary: userId,
+      },
+    ];
+    EventModel.expects('countDocuments')
+      .withExactArgs({ ...query, isBilled: true })
+      .once()
+      .returns(0);
+
+    const eventsGroupedByParentId = [
+      { _id: repetitionParentId, events: [events[0], events[1]] },
+    ];
+    getEventsGroupedByParentIdStub.returns(eventsGroupedByParentId);
+
+    await EventHelper.deleteList(customerId, startDate, undefined, credentials);
+    sinon.assert.notCalled(deleteEventsStub);
+    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
+    sinon.assert.calledWithExactly(
+      deleteRepetitionStub,
+      { ...eventsGroupedByParentId[0].events[0], repetition: { frequency: EVERY_WEEK, parentId: eventsGroupedByParentId[0].events[0].repetition.parentId } },
+      credentials
+    );
+  });
+});
+
 describe('updateAbsencesOnContractEnd', () => {
   let getAbsences = null;
   let createEventHistoryOnUpdate = null;
@@ -676,7 +939,7 @@ describe('createEvent', () => {
   let getEvent;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
-  const credentials = { _id: 'qwertyuiop' };
+  const credentials = { _id: 'qwertyuiop', company: { _id: new ObjectID() } };
   beforeEach(() => {
     createMock = sinon.mock(Event);
     isCreationAllowed = sinon.stub(EventsValidationHelper, 'isCreationAllowed');
@@ -710,7 +973,7 @@ describe('createEvent', () => {
   });
 
   it('should create as creation is allowed', async () => {
-    const newEvent = new Event({ type: INTERNAL_HOUR });
+    const newEvent = new Event({ type: INTERNAL_HOUR, company: new ObjectID() });
 
     isCreationAllowed.returns(true);
     getEvent.returns(newEvent);
@@ -726,7 +989,7 @@ describe('createEvent', () => {
   });
 
   it('should create repetitions as event is a repetition', async () => {
-    const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK } };
+    const payload = { type: INTERVENTION, repetition: { frequency: EVERY_WEEK }, company: new ObjectID() };
     const newEvent = new Event(payload);
 
     isCreationAllowed.returns(true);
@@ -752,6 +1015,7 @@ describe('createEvent', () => {
       endDate: '2019-03-20T12:00:00',
       auxiliary: auxiliaryId.toHexString(),
       _id: eventId.toHexString(),
+      company: new ObjectID(),
     };
     const newEvent = new Event({ ...payload, auxiliary: { _id: auxiliaryId } });
 
@@ -861,6 +1125,21 @@ describe('deleteEvent', () => {
     sinon.assert.calledWith(createEventHistoryOnDelete, deletionInfo, credentials);
     sinon.assert.calledWith(deleteOne, { _id: event._id });
   });
+
+  it('should not delete event if it is billed', async () => {
+    try {
+      const event = {
+        _id: new ObjectID(),
+        type: INTERVENTION,
+        isBilled: true,
+        startDate: '2019-01-21T09:38:18',
+      };
+      const result = await EventHelper.deleteEvent(event, credentials);
+      expect(result).toBe(undefined);
+    } catch (e) {
+      expect(e).toEqual(Boom.forbidden('The event is already billed'));
+    }
+  });
 });
 
 describe('deleteEvents', () => {
@@ -886,6 +1165,20 @@ describe('deleteEvents', () => {
 
     sinon.assert.callCount(createEventHistoryOnDelete, events.length);
     sinon.assert.calledWith(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
+  });
+
+  it('should not delete event if at least one is billed', async () => {
+    try {
+      const events = [
+        { _id: '1234567890', type: INTERVENTION, isBilled: true },
+        { _id: 'qwertyuiop', type: INTERVENTION, isBilled: false },
+        { _id: 'asdfghjkl', type: INTERVENTION, isBilled: false },
+      ];
+      await EventHelper.deleteEvents(events, credentials);
+      sinon.assert.notCalled(deleteMany);
+    } catch (e) {
+      expect(e).toEqual(Boom.forbidden('Some events are already billed'));
+    }
   });
 });
 

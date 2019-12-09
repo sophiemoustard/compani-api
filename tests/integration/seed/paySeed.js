@@ -37,6 +37,7 @@ const auxiliary1 = {
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId1,
   sector: sectorId,
+  company: authCompany._id,
 };
 
 const auxiliary2 = {
@@ -48,6 +49,7 @@ const auxiliary2 = {
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId2,
   sector: sectorId,
+  company: authCompany._id,
 };
 
 const contracts = [{
@@ -56,6 +58,7 @@ const contracts = [{
   startDate: '2018-12-03T23:00:00.000Z',
   status: 'contract_with_company',
   _id: contractId1,
+  company: authCompany._id,
   versions: [
     {
       createdAt: '2018-12-04T16:34:04',
@@ -69,6 +72,7 @@ const contracts = [{
 }, {
   createdAt: '2018-12-04T16:34:04',
   user: auxiliaryId2,
+  company: authCompany._id,
   startDate: '2018-12-03T23:00:00.000Z',
   status: 'contract_with_company',
   _id: contractId2,
@@ -89,6 +93,7 @@ const contracts = [{
 
 const event = {
   _id: new ObjectID(),
+  company: authCompany._id,
   type: 'intervention',
   status: 'contract_with_company',
   startDate: '2019-05-12T09:00:00',
@@ -96,6 +101,7 @@ const event = {
   auxiliary: auxiliaryId1,
   customer: customerId,
   createdAt: '2019-05-01T09:00:00',
+  sector: new ObjectID(),
   subscription: subscriptionId,
 };
 
@@ -136,6 +142,7 @@ const service = {
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',
+    exemptFromCharges: false,
     startDate: '2019-01-16 17:58:15.519',
     vat: 12,
   }],

@@ -410,12 +410,12 @@ exports.computePrevPayDiff = async (auxiliary, eventsToPay, prevPay, query, dist
   };
 };
 
-exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, distanceMatrix) => {
+exports.getPreviousMonthPay = async (auxiliaries, query, surcharges, distanceMatrix, companyId) => {
   const prevMonthQuery = {
     startDate: moment(query.startDate).subtract(1, 'M').startOf('M').toDate(),
     endDate: moment(query.endDate).subtract(1, 'M').endOf('M').toDate(),
   };
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(prevMonthQuery.startDate, prevMonthQuery.endDate, auxiliaries.map(aux => aux._id));
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(prevMonthQuery.startDate, prevMonthQuery.endDate, auxiliaries.map(aux => aux._id), companyId);
 
   const prevPayDiff = [];
   for (const auxiliary of auxiliaries) {
@@ -437,8 +437,8 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
     DistanceMatrix.find().lean(),
   ]);
 
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id));
-  const prevPayList = await exports.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix);
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id), companyId);
+  const prevPayList = await exports.getPreviousMonthPay(auxiliaries, query, surcharges, distanceMatrix, companyId);
 
   const draftPay = [];
   for (const auxiliary of auxiliaries) {
@@ -456,8 +456,9 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
   return draftPay;
 };
 
-exports.getAuxiliariesToPay = async (end) => {
+exports.getAuxiliariesToPay = async (end, credentials) => {
   const contractRules = {
+    company: get(credentials, 'company._id', null),
     status: COMPANY_CONTRACT,
     startDate: { $lte: end },
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
@@ -470,7 +471,7 @@ exports.getDraftPay = async (query, credentials) => {
   const startDate = moment(query.startDate).startOf('d').toDate();
   const endDate = moment(query.endDate).endOf('d').toDate();
 
-  const auxiliaries = await exports.getAuxiliariesToPay(endDate);
+  const auxiliaries = await exports.getAuxiliariesToPay(endDate, credentials);
   if (auxiliaries.length === 0) return [];
 
   return exports.computeDraftPayByAuxiliary(auxiliaries, { startDate, endDate }, credentials);

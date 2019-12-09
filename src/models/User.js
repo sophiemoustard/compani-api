@@ -1,18 +1,25 @@
 const mongoose = require('mongoose');
+const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const moment = require('moment');
-const Boom = require('boom');
 
-const Role = require('./Role');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 
+const procedureSchema = mongoose.Schema({
+  task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
+  check: {
+    isDone: { type: Boolean, default: false },
+    at: { type: Date, default: null },
+  },
+}, { id: false });
 
 // User schema
 const UserSchema = mongoose.Schema({
@@ -37,8 +44,8 @@ const UserSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
     autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
+    required: true,
   },
-  employee_id: { type: Number, trim: true },
   sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
     link: { type: String, trim: true },
@@ -108,21 +115,13 @@ const UserSchema = mongoose.Schema({
       phoneNumber: String,
     },
   },
-  procedure: [{
-    task: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
-    check: {
-      isDone: { type: Boolean, default: false },
-      at: { type: Date, default: null },
-    },
-  }],
+  procedure: [procedureSchema],
   isConfirmed: { type: Boolean, default: false },
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
-    autopopulate: {
-      select: '-__v -createdAt -updatedAt',
-      maxDepth: 2,
-    },
+    autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 2 },
+    required: true,
   },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
   inactivityDate: { type: Date, default: null },
@@ -130,14 +129,12 @@ const UserSchema = mongoose.Schema({
   timestamps: true,
   toObject: { virtuals: true },
   toJSON: { virtuals: true },
+  id: false,
 });
 
 async function save(next) {
   try {
     const user = this;
-
-    const roleCount = await Role.countDocuments({ _id: user.role });
-    if (roleCount === 0) throw Boom.badRequest('Role does not exist');
 
     if (user.isModified('local.email')) {
       if (!validator.isEmail(user.local.email)) {
@@ -189,11 +186,38 @@ function setIsActive() {
   return isActive(this);
 }
 
+async function populateAfterSave(doc, next) {
+  try {
+    await doc
+      .populate({
+        path: 'role',
+        select: '-__v -createdAt -updatedAt',
+        populate: {
+          path: 'role.right_id',
+          select: 'description permission _id',
+        },
+      })
+      .populate({
+        path: 'company',
+        select: '-__v -createdAt -updatedAt',
+      })
+      .execPopulate();
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
+UserSchema.pre('find', validateQuery);
+UserSchema.pre('validate', validatePayload);
+UserSchema.post('save', populateAfterSave);
 
+UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);
 
 module.exports = mongoose.model('User', UserSchema);

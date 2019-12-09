@@ -2,9 +2,21 @@ const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const app = require('../../server');
 const CreditNote = require('../../src/models/CreditNote');
-const { populateDB, creditNotesList, creditNoteCustomer, creditNoteEvent, creditNoteUserList } = require('./seed/creditNotesSeed');
+const {
+  populateDB,
+  creditNotesList,
+  creditNoteCustomer,
+  creditNoteEvent,
+  creditNoteUserList,
+  creditNoteThirdPartyPayer,
+  otherCompanyCustomer,
+  otherCompanyThirdPartyPayer,
+  otherCompanyEvent,
+  otherCompanyUser,
+  otherCompanyCreditNote,
+} = require('./seed/creditNotesSeed');
 const { FIXED } = require('../../src/helpers/constants');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -35,7 +47,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       },
     }],
     subscription: {
-      _id: new ObjectID(),
+      _id: creditNoteCustomer.subscriptions[0]._id,
       service: {
         serviceId: new ObjectID(),
         nature: FIXED,
@@ -56,11 +68,11 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         method: 'POST',
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
-        payload: { ...payload, exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: new ObjectID() },
+        payload: { ...payload, exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: creditNoteThirdPartyPayer._id },
       });
 
       expect(response.statusCode).toBe(200);
-      const creditNotes = await CreditNote.find();
+      const creditNotes = await CreditNote.find({ company: authCompany });
       expect(creditNotes.filter(cn => cn.linkedCreditNote)).toBeDefined();
       expect(creditNotes.filter(cn => cn.linkedCreditNote).length).toEqual(2);
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
@@ -76,8 +88,91 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const creditNotes = await CreditNote.find();
+      const creditNotes = await CreditNote.find({ company: authCompany._id });
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
+    });
+
+    it('should return a 403 error if customer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: { ...payload, customer: otherCompanyCustomer._id },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer subscription is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: {
+          ...payload,
+          subscription: {
+            _id: otherCompanyCustomer.subscriptions[0]._id,
+            service: {
+              serviceId: new ObjectID(),
+              nature: FIXED,
+              name: 'titi',
+            },
+            vat: 5.5,
+          },
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if third party payer is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: {
+          ...payload,
+          exclTaxesTpp: 100,
+          inclTaxesTpp: 100,
+          thirdPartyPayer: otherCompanyThirdPartyPayer._id,
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if at least one event is not from same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: {
+          ...payload,
+          events: [{
+            eventId: creditNoteEvent._id,
+            auxiliary: creditNoteEvent.auxiliary,
+            startDate: creditNoteEvent.startDate,
+            endDate: creditNoteEvent.endDate,
+            serviceName: 'toto',
+            bills: {
+              inclTaxesCustomer: 10,
+              exclTaxesCustomer: 8,
+            },
+          }, {
+            eventId: otherCompanyEvent._id,
+            auxiliary: new ObjectID(),
+            startDate: otherCompanyEvent.startDate,
+            endDate: otherCompanyEvent.endDate,
+            serviceName: 'tata',
+            bills: {
+              inclTaxesCustomer: 10,
+              exclTaxesCustomer: 8,
+            },
+          }],
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const missingParams = [
@@ -192,7 +287,7 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
       authToken = await getToken('admin');
     });
 
-    it('should get all credit notes', async () => {
+    it('should get all credit notes (company A)', async () => {
       const creditNotesNumber = creditNotesList.length;
       const response = await app.inject({
         method: 'GET',
@@ -202,6 +297,19 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.creditNotes.length).toEqual(creditNotesNumber);
+    });
+
+    it('should get all credit notes (company B)', async () => {
+      authToken = await getTokenByCredentials(otherCompanyUser.local);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.creditNotes.length).toEqual(1);
     });
   });
 
@@ -256,6 +364,26 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
 
       expect(response.statusCode).toBe(200);
     });
+
+    it('should get credit note pdf', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/creditNotes/${creditNotesList[0]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 error if customer is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/creditNotes/${otherCompanyCreditNote._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -295,7 +423,7 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  const payload = {
+  let payload = {
     date: '2019-07-19T14:00:18',
     startDate: '2019-07-01T00:00:00',
     endDate: '2019-07-31T23:59:59',
@@ -330,6 +458,91 @@ describe('CREDIT NOTES ROUTES - PUT /creditNotes/:id', () => {
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if credit not origin is not from Compani', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[1]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer is not from same company', async () => {
+      payload = { customer: otherCompanyCustomer._id };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if third party payer is not from same company', async () => {
+      payload = { exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: otherCompanyThirdPartyPayer._id };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if at least one event is not from same company', async () => {
+      payload = {
+        events: [{
+          eventId: otherCompanyEvent._id,
+          auxiliary: new ObjectID(),
+          startDate: otherCompanyEvent.startDate,
+          endDate: otherCompanyEvent.endDate,
+          serviceName: 'tata',
+          bills: {
+            inclTaxesCustomer: 10,
+            exclTaxesCustomer: 8,
+          },
+        }],
+      };
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 403 error if customer subscription is not from same company', async () => {
+      payload = {
+        customer: creditNoteCustomer._id,
+        subscription: {
+          _id: otherCompanyCustomer.subscriptions[0]._id,
+          service: {
+            serviceId: new ObjectID(),
+            nature: FIXED,
+            name: 'titi',
+          },
+          vat: 5.5,
+        },
+      };
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+        payload,
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -373,6 +586,7 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
       });
       expect(response.statusCode).toBe(200);
     });
+
     it('should return a 404 error if credit does not exist', async () => {
       const response = await app.inject({
         method: 'DELETE',
@@ -380,6 +594,17 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if user is not from credit note company', async () => {
+      authToken = await getTokenByCredentials(otherCompanyUser.local);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
     });
   });
 

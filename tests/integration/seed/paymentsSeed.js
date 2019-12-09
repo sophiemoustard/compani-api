@@ -8,7 +8,7 @@ const PaymentNumber = require('../../../src/models/PaymentNumber');
 const Company = require('../../../src/models/Company');
 const User = require('../../../src/models/User');
 const { PAYMENT, REFUND } = require('../../../src/helpers/constants');
-const { populateDBForAuthentication, userList, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
 
 const paymentTppList = [
   {
@@ -107,6 +107,7 @@ const paymentCustomerList = [
 const paymentsList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903201',
     date: '2019-05-26T15:47:42',
     customer: paymentCustomerList[0]._id,
@@ -117,6 +118,7 @@ const paymentsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903202',
     date: '2019-05-24T15:47:42',
     customer: paymentCustomerList[0]._id,
@@ -126,6 +128,7 @@ const paymentsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903203',
     date: '2019-05-27T12:10:20',
     customer: paymentCustomerList[1]._id,
@@ -135,16 +138,6 @@ const paymentsList = [
     type: 'direct_debit',
   },
 ];
-
-const company = {
-  _id: new ObjectID(),
-  name: 'Alenvi',
-  tradeName: 'TT',
-  iban: 'paiement',
-  bic: 'money',
-  ics: 'kesako',
-  directDebitsFolderId: '1234567890',
-};
 
 const paymentUser = {
   _id: new ObjectID(),
@@ -156,43 +149,62 @@ const paymentUser = {
   company: authCompany._id,
 };
 
+const otherCompany = { _id: new ObjectID(), name: 'Test2 SAS', tradeName: 'Test2' };
+
+const userFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  refreshToken: uuidv4(),
+  identity: { firstname: 'toto', lastname: 'toto' },
+  role: rolesList.find(role => role.name === 'admin')._id,
+  local: { email: 'test_other_company@alenvi.io', password: '123456' },
+};
+
+const customerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  identity: { firstname: 'customer', lastname: 'toto' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
+};
+
+const tppFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  name: 'test',
+};
+
 const populateDB = async () => {
   await PaymentNumber.deleteMany({});
   await Payment.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
   await Customer.deleteMany({});
   await User.deleteMany({});
-
-  await populateDBForAuthentication();
-  await Customer.insertMany(paymentCustomerList);
-  await ThirdPartyPayer.insertMany(paymentTppList);
-  await Payment.insertMany(paymentsList);
-  await (new User(paymentUser).save());
-};
-
-const populateDBWithCompany = async () => {
-  await PaymentNumber.deleteMany({});
-  await Payment.deleteMany({});
-  await ThirdPartyPayer.deleteMany({});
-  await Customer.deleteMany({});
   await Company.deleteMany({});
 
   await populateDBForAuthentication();
+  await new Company(otherCompany).save();
   await Customer.insertMany(paymentCustomerList);
   await ThirdPartyPayer.insertMany(paymentTppList);
   await Payment.insertMany(paymentsList);
-  await new Company(company).save();
   await (new User(paymentUser).save());
-
-  const role = rolesList.find(r => r.name === 'admin');
-  const user = userList.find(u => u.role.toHexString() === role._id.toHexString());
-  await User.findOneAndUpdate({ _id: user._id }, { company: company._id });
+  await (new User(userFromOtherCompany).save());
+  await (new Customer(customerFromOtherCompany).save());
+  await (new ThirdPartyPayer(tppFromOtherCompany).save());
 };
 
 module.exports = {
   paymentsList,
   populateDB,
-  populateDBWithCompany,
   paymentCustomerList,
   paymentUser,
+  userFromOtherCompany,
+  customerFromOtherCompany,
+  tppFromOtherCompany,
 };

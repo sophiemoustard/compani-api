@@ -1,15 +1,16 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
+const { DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Event = require('../../../src/models/Event');
 const { rolesList, getUser } = require('./authenticationSeed');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const contractCustomer = {
   _id: new ObjectID(),
-  company: new ObjectID(),
+  company: authCompany._id,
   email: 'fake@test.com',
   identity: {
     title: 'mr',
@@ -47,6 +48,18 @@ const contractCustomer = {
   },
 };
 
+const otherCompanyContractUser = {
+  _id: new ObjectID(),
+  identity: { firstname: 'OCCU', lastname: 'OCCU' },
+  local: { email: 'other-company-contract-user@alenvi.io', password: '123456' },
+  inactivityDate: null,
+  employee_id: 12345678,
+  refreshToken: uuidv4(),
+  role: rolesList[0]._id,
+  contracts: [new ObjectID()],
+  company: otherCompany._id,
+};
+
 const contractUser = {
   _id: new ObjectID(),
   identity: { firstname: 'Test7', lastname: 'Test7' },
@@ -56,20 +69,54 @@ const contractUser = {
   refreshToken: uuidv4(),
   role: rolesList[0]._id,
   contracts: [new ObjectID()],
+  company: authCompany._id,
+};
+
+const otherCompanyContract = {
+  createdAt: '2018-12-04T16:34:04.144Z',
+  endDate: null,
+  user: otherCompanyContractUser._id,
+  startDate: '2018-12-03T23:00:00.000Z',
+  status: 'contract_with_company',
+  _id: otherCompanyContractUser.contracts[0],
+  company: otherCompany._id,
+  versions: [
+    {
+      createdAt: '2018-12-04T16:34:04.144Z',
+      endDate: null,
+      grossHourlyRate: 10.28,
+      startDate: '2018-12-03T23:00:00.000Z',
+      weeklyHours: 9,
+      _id: new ObjectID(),
+    },
+  ],
+};
+
+const customerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompanyContract._id,
+  identity: { firstname: 'customer', lastname: 'toto' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
 };
 
 const contractsList = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
-    endDate: null,
     user: contractUser._id,
     startDate: '2018-12-03T23:00:00.000Z',
     status: 'contract_with_company',
     _id: contractUser.contracts[0],
+    company: authCompany._id,
     versions: [
       {
         createdAt: '2018-12-04T16:34:04.144Z',
-        endDate: null,
         grossHourlyRate: 10.28,
         startDate: '2018-12-03T23:00:00.000Z',
         weeklyHours: 9,
@@ -80,6 +127,7 @@ const contractsList = [
   {
     createdAt: '2018-08-02T17:12:55.144Z',
     endDate: null,
+    company: authCompany._id,
     user: getUser('auxiliary')._id,
     startDate: '2018-08-02T17:12:55.144Z',
     status: 'contract_with_company',
@@ -102,6 +150,7 @@ const contractsList = [
     endDate: '2018-09-02T17:12:55.144Z',
     status: 'contract_with_company',
     _id: new ObjectID(),
+    company: authCompany._id,
     versions: [
       {
         createdAt: '2018-08-02T17:12:55.144Z',
@@ -118,6 +167,7 @@ const contractsList = [
 const contractEvents = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'internalHour',
     startDate: '2019-08-08T14:00:18.653Z',
@@ -132,8 +182,11 @@ const contractEvents = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'absence',
+    absence: PAID_LEAVE,
+    absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
     auxiliary: contractUser._id,
@@ -141,6 +194,7 @@ const contractEvents = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
     status: 'contract_with_company',
@@ -153,6 +207,7 @@ const contractEvents = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector: new ObjectID(),
     type: 'intervention',
     status: 'contract_with_company',
@@ -173,8 +228,10 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
   await new User(contractUser).save();
+  await new User(otherCompanyContractUser).save();
   await new Customer(contractCustomer).save();
-  await Contract.insertMany(contractsList);
+  await new Customer(customerFromOtherCompany).save();
+  await Contract.insertMany([...contractsList, otherCompanyContract]);
   await Event.insertMany(contractEvents);
 };
 
@@ -184,4 +241,7 @@ module.exports = {
   contractUser,
   contractCustomer,
   contractEvents,
+  otherCompanyContract,
+  customerFromOtherCompany,
+  otherCompanyContractUser,
 };

@@ -24,6 +24,7 @@ const user = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'coach')._id,
   inactivityDate: '2018-11-01T12:52:27.461Z',
+  company: authCompany._id,
 };
 
 const auxiliary = {
@@ -36,6 +37,7 @@ const auxiliary = {
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId,
   sector: sectorId,
+  company: authCompany._id,
 };
 
 const contract = {
@@ -47,6 +49,7 @@ const contract = {
   startDate: '2018-12-03T23:00:00.000Z',
   status: 'contract_with_company',
   _id: contractId,
+  company: authCompany._id,
   versions: [
     {
       createdAt: '2018-12-04T16:34:04',
@@ -61,6 +64,7 @@ const contract = {
 
 const event = {
   _id: new ObjectID(),
+  company: authCompany._id,
   type: 'intervention',
   status: 'contract_with_company',
   startDate: '2019-05-12T09:00:00',
@@ -68,6 +72,7 @@ const event = {
   auxiliary: auxiliaryId,
   customer: customerId,
   createdAt: '2019-05-01T09:00:00',
+  sector: new ObjectID(),
   subscription: subscriptionId,
 };
 
@@ -108,6 +113,7 @@ const service = {
   versions: [{
     defaultUnitAmount: 12,
     name: 'Service 1',
+    exemptFromCharges: false,
     startDate: '2019-01-16 17:58:15.519',
     vat: 12,
   }],

@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const uuidv4 = require('uuid/v4');
 const Event = require('../../../src/models/Event');
 const Customer = require('../../../src/models/Customer');
 const User = require('../../../src/models/User');
@@ -19,6 +20,8 @@ const {
   COMPANY_CONTRACT,
   HOURLY,
   CUSTOMER_CONTRACT,
+  PAID_LEAVE,
+  DAILY,
 } = require('../../../src/helpers/constants');
 
 const sector = {
@@ -32,7 +35,9 @@ const auxiliary = {
   identity: { firstname: 'Lola', lastname: 'Lili' },
   role: rolesList.find(role => role.name === 'admin')._id,
   local: { email: 'toto@alenvi.io', password: '1234567890' },
+  refreshToken: uuidv4(),
   sector: sector._id,
+  company: authCompany._id,
 };
 
 const customer = {
@@ -56,6 +61,9 @@ const company = {
   _id: new ObjectID(),
   name: 'Test',
   tradeName: 'TT',
+  customersConfig: {
+    billingPeriod: 'two_weeks',
+  },
 };
 
 const surcharge = {
@@ -71,7 +79,9 @@ const serviceList = [
     versions: [{
       name: 'Service 1',
       surcharge: surcharge._id,
+      exemptFromCharges: false,
       startDate: '2019-01-16 17:58:15.519',
+      defaultUnitAmount: 24,
     }],
     nature: HOURLY,
   },
@@ -83,6 +93,7 @@ const serviceList = [
       defaultUnitAmount: 24,
       name: 'Service 2',
       surcharge: surcharge._id,
+      exemptFromCharges: false,
       startDate: '2019-01-18 19:58:15.519',
       vat: 12,
     }],
@@ -190,8 +201,11 @@ const thirdPartyPayer = {
 const eventList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector,
     type: 'absence',
+    absence: PAID_LEAVE,
+    absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
     auxiliary,
@@ -199,6 +213,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector,
     type: 'intervention',
     status: 'contract_with_company',
@@ -211,6 +226,7 @@ const eventList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     sector,
     type: 'intervention',
     status: 'contract_with_company',
@@ -223,10 +239,18 @@ const eventList = [
   },
 ];
 
+const authBillService = {
+  serviceId: new ObjectID(),
+  name: 'Temps de qualité - autonomie',
+  nature: 'fixed',
+};
+
 const billsList = [
   {
     _id: new ObjectID(),
     date: '2019-05-29',
+    number: 'FACT-1905002',
+    company: authCompany._id,
     customer: customer._id,
     client: thirdPartyPayer._id,
     netInclTaxes: 75.96,
@@ -235,7 +259,7 @@ const billsList = [
       endDate: '2019-11-29',
       subscription: customer.subscriptions[0]._id,
       vat: 5.5,
-      service: { name: 'Temps de qualité - autonomie' },
+      service: authBillService,
       events: [{
         eventId: new ObjectID(),
         startDate: '2019-01-16T09:30:19.543Z',
@@ -244,6 +268,7 @@ const billsList = [
       }],
       hours: 8,
       unitExclTaxes: 9,
+      unitInclTaxes: 9.495,
       exclTaxes: 72,
       inclTaxes: 75.96,
       discount: 0,
@@ -252,6 +277,8 @@ const billsList = [
   {
     _id: new ObjectID(),
     date: '2019-05-25',
+    number: 'FACT-1905002',
+    company: authCompany._id,
     customer: customer._id,
     netInclTaxes: 101.28,
     subscriptions: [{
@@ -265,9 +292,10 @@ const billsList = [
         endDate: '2019-01-16T12:30:21.653Z',
         auxiliary: new ObjectID(),
       }],
-      service: { name: 'Temps de qualité - autonomie' },
+      service: authBillService,
       hours: 4,
       unitExclTaxes: 24,
+      unitInclTaxes: 25.32,
       exclTaxes: 96,
       inclTaxes: 101.28,
       discount: 0,
@@ -278,6 +306,7 @@ const billsList = [
 const paymentsList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903201',
     date: '2019-05-26T19:47:42',
     customer: customer._id,
@@ -288,6 +317,7 @@ const paymentsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903202',
     date: '2019-05-24T15:47:42',
     customer: customer._id,
@@ -297,6 +327,7 @@ const paymentsList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     number: 'REG-1903203',
     date: '2019-05-27T09:10:20',
     customer: customer._id,
@@ -486,20 +517,37 @@ const finalPayList = [
 const creditNotesList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     date: '2019-05-28',
     startDate: '2019-05-27',
     endDate: '2019-11-25',
     customer: customer._id,
     thirdPartyPayer: customerThirdPartyPayer._id,
-    exclTaxes: 100,
-    inclTaxes: 112,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
+    exclTaxesTpp: 10,
+    inclTaxesTpp: 90,
     events: [{
       eventId: new ObjectID(),
+      serviceName: 'Temps de qualité - autonomie',
       startDate: '2019-01-16T10:30:19.543Z',
       endDate: '2019-01-16T12:30:21.653Z',
       auxiliary: new ObjectID(),
+      bills: {
+        inclTaxesCustomer: 10,
+        exclTaxesCustomer: 8,
+      },
     }],
     origin: 'compani',
+    subscription: {
+      _id: customer.subscriptions[0]._id,
+      service: {
+        serviceId: new ObjectID(),
+        nature: 'fixed',
+        name: 'toto',
+      },
+      vat: 5.5,
+    },
   },
 ];
 

@@ -24,12 +24,7 @@ exports.createFolder = async (identity, parentFolderId) => {
     throw Boom.failedDependency('Google drive folder creation failed.');
   }
 
-  const folderLink = await Gdrive.getFileById({ fileId: folder.id });
-  if (!folderLink) {
-    throw Boom.notFound('Google drive folder not found.');
-  }
-
-  return { folder, folderLink };
+  return { folder };
 };
 
 exports.createFolderForCompany = async (companyName) => {
