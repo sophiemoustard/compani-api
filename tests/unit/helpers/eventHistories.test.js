@@ -30,9 +30,9 @@ describe('getEventHistories', () => {
       ],
     };
     getListQueryStub.returns(listQuery);
-    paginateStub.returns({});
+    paginateStub.returns([]);
     const result = await EventHistoryHelper.getEventHistories(query, credentials);
-    expect(result).toEqual({});
+    expect(result).toEqual([]);
     getListQueryStub.calledWithExactly(query, credentials);
     paginateStub.calledWithExactly(query, listQuery, query.createdAt, credentials);
   });

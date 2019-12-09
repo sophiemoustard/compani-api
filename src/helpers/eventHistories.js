@@ -9,6 +9,7 @@ const EventHistoryRepository = require('../repositories/EventHistoryRepository')
 exports.getEventHistories = async (query, credentials) => {
   const { createdAt } = query;
   const listQuery = exports.getListQuery(query, credentials);
+
   return EventHistoryRepository.paginate(listQuery, createdAt, credentials);
 };
 
