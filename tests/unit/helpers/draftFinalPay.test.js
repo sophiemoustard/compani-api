@@ -68,9 +68,13 @@ describe('getDraftFinalPayByAuxiliary', () => {
       _id: '1234567890',
       identity: { firstname: 'Hugo', lastname: 'Lloris' },
       sector: { name: 'La ruche' },
-      contracts: [
-        { status: 'contract_with_company', endDate: '2019-05-17T23:59:59', endReason: 'plus envie', endNotificationDate: '2019-05-12T23:59:59' },
-      ],
+      contracts: [{
+        startDate: '2019-03-02T00:00:00',
+        status: 'contract_with_company',
+        endDate: '2019-05-17T23:59:59',
+        endReason: 'plus envie',
+        endNotificationDate: '2019-05-12T23:59:59',
+      }],
       administrative: { mutualFund: { has: true } },
     };
     const events = { events: [[{ auxiliary: '1234567890' }]], absences: [] };
