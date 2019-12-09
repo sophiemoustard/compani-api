@@ -270,7 +270,7 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
   };
 };
 
-exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings, billingStartDate, endDate) => {
+exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingStartDate, endDate) => {
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(billingStartDate);
@@ -344,7 +344,6 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
 
       const draftBills = exports.getDraftBillsPerSubscription(
         eventsBySubscriptions[k].events,
-        customer,
         subscription,
         fundings,
         billingStartDate,
