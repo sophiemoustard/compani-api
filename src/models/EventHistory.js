@@ -9,10 +9,12 @@ const {
   EVENT_CANCELLATION_REASONS,
 } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
+const { validatePayload } = require('./preHooks/validate');
 
 const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE];
 
 const EventHistorySchema = mongoose.Schema({
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   action: { type: String, enum: EVENTS_HISTORY_ACTIONS },
   update: {
@@ -58,5 +60,7 @@ const EventHistorySchema = mongoose.Schema({
   auxiliaries: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   sectors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sector' }],
 }, { timestamps: true });
+
+EventHistorySchema.pre('validate', validatePayload);
 
 module.exports = mongoose.model('EventHistory', EventHistorySchema);
