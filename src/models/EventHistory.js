@@ -9,7 +9,7 @@ const {
   EVENT_CANCELLATION_REASONS,
 } = require('../helpers/constants');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
-const { validatePayload } = require('./preHooks/validate');
+const { validateQuery, validatePayload } = require('./preHooks/validate');
 
 const EVENTS_HISTORY_ACTIONS = [EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE];
 
@@ -62,5 +62,6 @@ const EventHistorySchema = mongoose.Schema({
 }, { timestamps: true });
 
 EventHistorySchema.pre('validate', validatePayload);
+EventHistorySchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('EventHistory', EventHistorySchema);

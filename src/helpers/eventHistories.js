@@ -1,17 +1,20 @@
 const moment = require('moment');
 const get = require('lodash/get');
+const { ObjectID } = require('mongodb');
 const EventHistory = require('../models/EventHistory');
 const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } = require('./constants');
 const UtilsHelper = require('./utils');
 
-exports.getListQuery = (query) => {
+exports.getListQuery = (query, credentials) => {
+  const queryCompany = { company: new ObjectID(get(credentials, 'company._id', null)) };
   const rules = [];
-  const { sectors, auxiliaries } = query;
+  const { sectors, auxiliaries, createdAt } = query;
 
   if (sectors) rules.push(...UtilsHelper.formatArrayOrStringQueryParam(sectors, 'sectors'));
   if (auxiliaries) rules.push(...UtilsHelper.formatArrayOrStringQueryParam(auxiliaries, 'auxiliaries'));
+  if (createdAt) rules.push({ createdAt: { $lte: createdAt } });
 
-  return rules.length > 0 ? { $or: rules } : {};
+  return rules.length > 0 ? { $and: [queryCompany, { $or: rules }] } : queryCompany;
 };
 
 exports.createEventHistory = async (payload, credentials, action) => {

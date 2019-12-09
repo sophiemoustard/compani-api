@@ -8,8 +8,9 @@ const { language } = translate;
 const list = async (req) => {
   try {
     const { createdAt } = req.query;
-    const query = getListQuery(req.query);
-    const eventHistories = await EventHistoryRepository.paginate(query, createdAt, req.auth.credentials);
+    const { credentials } = req.auth;
+    const query = getListQuery(req.query, credentials);
+    const eventHistories = await EventHistoryRepository.paginate(query, createdAt, credentials);
 
     return {
       message: translate[language].eventHistoriesFound,
