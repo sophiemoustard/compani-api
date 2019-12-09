@@ -1,12 +1,12 @@
 const Boom = require('boom');
 const translate = require('../helpers/translate');
-const EventHistoriesHelper = require('../helpers/eventHistories');
+const { getEventHistories } = require('../helpers/eventHistories');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const eventHistories = await EventHistoriesHelper.list(req.query, req.auth.credentials);
+    const eventHistories = await getEventHistories(req.query, req.auth.credentials);
     return {
       message: translate[language].eventHistoriesFound,
       data: { eventHistories },

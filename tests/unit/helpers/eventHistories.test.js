@@ -8,7 +8,7 @@ const EventHistory = require('../../../src/models/EventHistory');
 
 require('sinon-mongoose');
 
-describe('list', () => {
+describe('getEventHistories', () => {
   let getListQueryStub;
   let paginateStub;
   beforeEach(() => {
@@ -31,7 +31,7 @@ describe('list', () => {
     };
     getListQueryStub.returns(listQuery);
     paginateStub.returns({});
-    const result = await EventHistoryHelper.list(query, credentials);
+    const result = await EventHistoryHelper.getEventHistories(query, credentials);
     expect(result).toEqual({});
     getListQueryStub.calledWithExactly(query, credentials);
     paginateStub.calledWithExactly(query, listQuery, query.createdAt, credentials);
