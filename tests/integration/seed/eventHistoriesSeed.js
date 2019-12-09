@@ -46,6 +46,7 @@ const customer = {
 const eventHistoryList = [
   {
     _id: ObjectID(),
+    company: authCompany._id,
     action: 'event_creation',
     createdBy: user._id,
     sectors: [sector._id],
@@ -60,6 +61,7 @@ const eventHistoryList = [
   },
   {
     _id: ObjectID(),
+    company: authCompany._id,
     action: 'event_deletion',
     createdBy: user._id,
     sectors: [sector._id],
@@ -78,6 +80,7 @@ const eventHistoryList = [
   },
   {
     _id: ObjectID(),
+    company: authCompany._id,
     action: 'event_update',
     createdBy: user._id,
     sectors: [sector._id],
