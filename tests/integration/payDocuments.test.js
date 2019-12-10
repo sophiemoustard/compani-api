@@ -240,6 +240,30 @@ describe('PAY DOCUMENT ROUTES', () => {
         sinon.assert.calledWith(deleteFileStub, payDocumentsList[0].file.driveId);
         deleteFileStub.restore();
       });
+<<<<<<< HEAD
+=======
+
+      it('should return a 404 error if pay document does not exist', async () => {
+        const randomId = new ObjectID();
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/paydocuments/${randomId}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+
+      it('should not delete a pay document if user is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/paydocuments/${payDocumentsList[payDocumentsList.length - 1]._id.toHexString()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
+>>>>>>> COM-858 delete payDocuments
     });
 
     describe('Other role', () => {
