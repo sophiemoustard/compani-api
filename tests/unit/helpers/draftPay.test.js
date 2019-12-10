@@ -1619,11 +1619,15 @@ describe('computeDraftPayByAuxiliary', () => {
   });
 
   it('should return an empty array if no auxiliary', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     companyMock.expects('findOne').chain('lean').returns({});
     surchargeMock.expects('find').chain('lean').returns([]);
-    distanceMatrixMock.expects('find').chain('lean').returns([]);
+    distanceMatrixMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('lean')
+      .returns([]);
     const result = await DraftPayHelper.computeDraftPayByAuxiliary([], query, credentials);
 
     sinon.assert.calledOnce(getPreviousMonthPay);
@@ -1657,7 +1661,7 @@ describe('computeDraftPayByAuxiliary', () => {
   });
 
   it('should return draft pay by auxiliary', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaryId = new ObjectID();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] }];
@@ -1682,7 +1686,11 @@ describe('computeDraftPayByAuxiliary', () => {
     getPreviousMonthPay.returns(prevPay);
     companyMock.expects('findOne').chain('lean').returns({});
     surchargeMock.expects('find').chain('lean').returns([]);
-    distanceMatrixMock.expects('find').chain('lean').returns([]);
+    distanceMatrixMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('lean')
+      .returns([]);
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns({ _id: '1234567890' });
     const result = await DraftPayHelper.computeDraftPayByAuxiliary(auxiliaries, query, credentials);

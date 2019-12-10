@@ -7,6 +7,51 @@ const DistanceMatrixHelper = require('../../../src/helpers/distanceMatrix');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const maps = require('../../../src/models/Google/Maps');
 
+require('sinon-mongoose');
+
+describe('getDistanceMatrix', () => {
+  const params = {
+    origins: 'Washington, DC',
+    destinations: 'New York City, NY',
+    mode: 'DRIVING',
+  };
+  const distanceMatrix = {
+    data: {
+      rows: [{
+        elements: [{
+          distance: { value: 363998 },
+          duration: { value: 13790 },
+        }],
+      }],
+    },
+    status: 200,
+  };
+  const companyId = new ObjectID();
+  let DistanceMatrixModel;
+
+  beforeEach(() => {
+    DistanceMatrixModel = sinon.mock(DistanceMatrix);
+  });
+  afterEach(() => {
+    DistanceMatrixModel.restore();
+  });
+
+  it('should return a distance matrix', async () => {
+    const query = { ...params, company: companyId };
+    DistanceMatrixModel
+      .expects('find')
+      .withExactArgs(query)
+      .chain('lean')
+      .returns(distanceMatrix);
+
+    const credentials = { company: { _id: companyId } };
+    const result = await DistanceMatrixHelper.getDistanceMatrix(params, credentials);
+
+    expect(result).toEqual(distanceMatrix);
+    DistanceMatrixModel.verify();
+  });
+});
+
 describe('getOrCreateDistanceMatrix', () => {
   const distanceMatrixRequest = {
     origins: 'Washington, DC',
