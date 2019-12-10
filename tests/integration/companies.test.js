@@ -1,8 +1,10 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const { company, populateDB } = require('./seed/companiesSeed');
 const { MONTH } = require('../../src/helpers/constants');
+const GdriveStorageHelper = require('../../src/helpers/gdriveStorage');
 const Company = require('../../src/models/Company');
 const app = require('../../server');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
@@ -129,6 +131,13 @@ describe('COMPANIES ROUTES', () => {
 
       it('should create a new company', async () => {
         const companiesBefore = await Company.find().lean();
+        const createFolderForCompanyStub = sinon
+          .stub(GdriveStorageHelper, 'createFolderForCompany')
+          .returns({ id: '1234567890' });
+        const createFolderStub = sinon
+          .stub(GdriveStorageHelper, 'createFolder')
+          .returns({ id: '0987654321' });
+
         const response = await app.inject({
           method: 'POST',
           url: '/companies',
@@ -137,8 +146,14 @@ describe('COMPANIES ROUTES', () => {
         });
         expect(response.statusCode).toBe(200);
         expect(response.result.data.company).toBeDefined();
+        expect(response.result.data.company).toMatchObject({
+          folderId: '1234567890',
+          directDebitsFolderId: '0987654321',
+        });
         const companies = await Company.find().lean();
         expect(companies).toHaveLength(companiesBefore.length + 1);
+        createFolderForCompanyStub.restore();
+        createFolderStub.restore();
       });
 
       const missingParams = [

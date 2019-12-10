@@ -869,7 +869,9 @@ describe('USERS ROUTES', () => {
         fileName: 'mutual_fund_doc',
       };
       form = generateFormData(docPayload);
-      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
+      addFileStub = sinon
+        .stub(GdriveStorage, 'addFile')
+        .returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
     });
 
     afterEach(() => {
@@ -969,7 +971,9 @@ describe('USERS ROUTES', () => {
     const folderPayload = { parentFolderId: '0987654321' };
 
     beforeEach(() => {
-      createFolderStub = sinon.stub(GdriveStorage, 'createFolder').returns({ folder: { id: '1234567890', webViewLink: 'http://test.com' } });
+      createFolderStub = sinon
+        .stub(GdriveStorage, 'createFolder')
+        .returns({ id: '1234567890', webViewLink: 'http://test.com' });
     });
 
     afterEach(() => {
@@ -994,7 +998,11 @@ describe('USERS ROUTES', () => {
         expect(response.result.data.updatedUser).toBeDefined();
         expect(response.result.data.updatedUser.administrative.driveFolder)
           .toMatchObject({ driveId: '1234567890', link: 'http://test.com' });
-        sinon.assert.calledWithExactly(createFolderStub, sinon.match(usersSeedList[0].identity), folderPayload.parentFolderId);
+        sinon.assert.calledWithExactly(
+          createFolderStub,
+          sinon.match(usersSeedList[0].identity),
+          folderPayload.parentFolderId
+        );
       });
     });
 

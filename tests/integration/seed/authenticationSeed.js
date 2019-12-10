@@ -143,7 +143,15 @@ const coachRights = [
   'roles:read',
   'paydocuments:edit',
 ];
-const auxiliaryRights = ['config:read', 'pay:read', 'users:list', 'events:read', 'events:own:edit', 'customers:read', 'customers:edit'];
+const auxiliaryRights = [
+  'config:read',
+  'pay:read',
+  'users:list',
+  'events:read',
+  'events:own:edit',
+  'customers:read',
+  'customers:edit',
+];
 const planningReferentRights = [...auxiliaryRights, 'events:edit'];
 const helperRights = [];
 
@@ -197,7 +205,8 @@ const authCompany = {
   iban: '1234',
   bic: '5678',
   ics: '9876',
-  directDebitsFolderId: '1234',
+  folderId: '0987654321',
+  directDebitsFolderId: '1234567890',
   customersConfig: {
     billingPeriod: 'two_weeks',
   },

@@ -149,7 +149,13 @@ const paymentUser = {
   company: authCompany._id,
 };
 
-const otherCompany = { _id: new ObjectID(), name: 'Test2 SAS', tradeName: 'Test2' };
+const otherCompany = {
+  _id: new ObjectID(),
+  name: 'Test2 SAS',
+  tradeName: 'Test2',
+  folderId: '0987654321',
+  directDebitsFolderId: '1234567890',
+};
 
 const userFromOtherCompany = {
   _id: new ObjectID(),
