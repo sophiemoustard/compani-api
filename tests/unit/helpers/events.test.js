@@ -4,6 +4,8 @@ const Boom = require('boom');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
 const Event = require('../../../src/models/Event');
+const User = require('../../../src/models/User');
+const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const Repetition = require('../../../src/models/Repetition');
 const EventHelper = require('../../../src/helpers/events');
 const ContractHelper = require('../../../src/helpers/contracts');
@@ -11,6 +13,7 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EventHistoriesHelper = require('../../../src/helpers/eventHistories');
 const EventsValidationHelper = require('../../../src/helpers/eventsValidation');
+const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const {
   INTERVENTION,
@@ -1375,5 +1378,184 @@ describe('getContractWeekInfo', () => {
       moment('2019-11-20').endOf('w').toDate()
     );
     sinon.assert.calledWith(getContractInfo, versions[1], query, 4);
+  });
+});
+
+describe('workingStats', () => {
+  const auxiliaryId = new ObjectID();
+  const query = {
+    auxiliary: [auxiliaryId],
+    startDate: '2019-12-12',
+    endDate: '2019-12-15',
+  };
+  const distanceMatrix = {
+    data: {
+      rows: [{
+        elements: [{
+          distance: { value: 363998 },
+          duration: { value: 13790 },
+        }],
+      }],
+    },
+    status: 200,
+  };
+  const companyId = new ObjectID();
+  const credentials = { company: { _id: companyId } };
+  let UserModel;
+  let DistanceMatrixModel;
+  let getEventsToPayStub;
+  let getContractStub;
+  let getContractWeekInfoStub;
+  let getPayFromEventsStub;
+  let getPayFromAbsencesStub;
+  beforeEach(() => {
+    UserModel = sinon.mock(User);
+    DistanceMatrixModel = sinon.mock(DistanceMatrix);
+    getEventsToPayStub = sinon.stub(EventRepository, 'getEventsToPay');
+    getContractStub = sinon.stub(EventHelper, 'getContract');
+    getContractWeekInfoStub = sinon.stub(EventHelper, 'getContractWeekInfo');
+    getPayFromEventsStub = sinon.stub(DraftPayHelper, 'getPayFromEvents');
+    getPayFromAbsencesStub = sinon.stub(DraftPayHelper, 'getPayFromAbsences');
+  });
+  afterEach(() => {
+    UserModel.restore();
+    DistanceMatrixModel.restore();
+    getEventsToPayStub.restore();
+    getContractStub.restore();
+    getContractWeekInfoStub.restore();
+    getPayFromEventsStub.restore();
+    getPayFromAbsencesStub.restore();
+  });
+
+  it('should return working stats', async () => {
+    const contractId = new ObjectID();
+    const contracts = [{ _id: contractId }];
+    const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
+    UserModel
+      .expects('find')
+      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .chain('populate')
+      .chain('lean')
+      .returns(auxiliaries);
+
+    DistanceMatrixModel
+      .expects('find')
+      .withExactArgs({ company: companyId })
+      .chain('lean')
+      .returns(distanceMatrix);
+
+    const contract = { startDate: '2018-11-11', _id: contractId };
+    const contractInfo = { contractHours: 10, holidaysHours: 7 };
+    const hours = { workedHours: 12 };
+    const absencesHours = 3;
+    getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
+    getContractStub.returns(contract);
+    getContractWeekInfoStub.returns(contractInfo);
+    getPayFromEventsStub.returns(hours);
+    getPayFromAbsencesStub.returns(absencesHours);
+
+    const result = await EventHelper.workingStats(query, credentials);
+
+    const expectedResult = {};
+    expectedResult[auxiliaryId] = {
+      workedHours: hours.workedHours,
+      hoursToWork: 0,
+    };
+
+    expect(result).toEqual(expectedResult);
+    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
+    sinon.assert.calledWithExactly(getContractWeekInfoStub, contract, query);
+    sinon.assert.calledWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], query);
+    sinon.assert.calledWithExactly(getPayFromAbsencesStub, [], contract, query);
+    UserModel.verify();
+    DistanceMatrixModel.verify();
+  });
+
+  it('should return {} if no auxiliary', async () => {
+    UserModel
+      .expects('find')
+      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .chain('populate')
+      .chain('lean')
+      .returns([]);
+
+    DistanceMatrixModel
+      .expects('find')
+      .withExactArgs({ company: companyId })
+      .chain('lean')
+      .returns(distanceMatrix);
+
+    getEventsToPayStub.returns([]);
+
+
+    const result = await EventHelper.workingStats(query, credentials);
+    expect(result).toEqual({});
+
+    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [], companyId);
+    sinon.assert.notCalled(getContractStub);
+    sinon.assert.notCalled(getContractWeekInfoStub);
+    sinon.assert.notCalled(getPayFromEventsStub);
+    sinon.assert.notCalled(getPayFromAbsencesStub);
+    UserModel.verify();
+    DistanceMatrixModel.verify();
+  });
+
+  it('should return {} if no contract in auxiliaries', async () => {
+    UserModel
+      .expects('find')
+      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .chain('populate')
+      .chain('lean')
+      .returns([{ _id: auxiliaryId, firstname: 'toto' }]);
+
+    DistanceMatrixModel
+      .expects('find')
+      .withExactArgs({ company: companyId })
+      .chain('lean')
+      .returns(distanceMatrix);
+
+    getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
+
+    const result = await EventHelper.workingStats(query, credentials);
+    expect(result).toEqual({});
+
+    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    sinon.assert.notCalled(getContractStub);
+    sinon.assert.notCalled(getContractWeekInfoStub);
+    sinon.assert.notCalled(getPayFromEventsStub);
+    sinon.assert.notCalled(getPayFromAbsencesStub);
+    UserModel.verify();
+    DistanceMatrixModel.verify();
+  });
+
+  it('should return {} if contract not found', async () => {
+    const contracts = [{ _id: new ObjectID() }];
+    UserModel
+      .expects('find')
+      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .chain('populate')
+      .chain('lean')
+      .returns([{ _id: auxiliaryId, firstname: 'toto', contracts }]);
+
+    DistanceMatrixModel
+      .expects('find')
+      .withExactArgs({ company: companyId })
+      .chain('lean')
+      .returns(distanceMatrix);
+
+    getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId } }]);
+    getContractStub.returns();
+
+    const result = await EventHelper.workingStats(query, credentials);
+    expect(result).toEqual({});
+
+    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
+    sinon.assert.notCalled(getContractWeekInfoStub);
+    sinon.assert.notCalled(getPayFromEventsStub);
+    sinon.assert.notCalled(getPayFromAbsencesStub);
+    UserModel.verify();
+    DistanceMatrixModel.verify();
   });
 });
