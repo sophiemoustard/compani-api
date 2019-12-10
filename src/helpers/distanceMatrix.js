@@ -1,9 +1,7 @@
-const get = require('lodash/get');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const maps = require('../models/Google/Maps');
 
-exports.getOrCreateDistanceMatrix = async (params, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
+exports.getOrCreateDistanceMatrix = async (params, companyId) => {
   const distanceMatrix = await DistanceMatrix.findOne(params);
 
   if (distanceMatrix) return distanceMatrix;

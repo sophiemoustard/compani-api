@@ -24,7 +24,7 @@ describe('getOrCreateDistanceMatrix', () => {
     },
     status: 200,
   };
-  const credentials = { company: { _id: new ObjectID() } };
+  const companyId = new ObjectID();
   let findOne;
   let save;
   let getDistanceMatrix;
@@ -44,7 +44,7 @@ describe('getOrCreateDistanceMatrix', () => {
   it('should return the document already saved', async () => {
     findOne.returns({ duration: 13792 });
 
-    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, credentials);
+    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, companyId);
 
     sinon.assert.calledOnce(findOne);
     sinon.assert.notCalled(getDistanceMatrix);
@@ -58,7 +58,7 @@ describe('getOrCreateDistanceMatrix', () => {
     delete mapResult.data.rows[0].elements[0].distance;
     getDistanceMatrix.returns(mapResult);
 
-    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, credentials);
+    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, companyId);
 
     sinon.assert.calledOnce(getDistanceMatrix);
     sinon.assert.notCalled(save);
@@ -72,7 +72,7 @@ describe('getOrCreateDistanceMatrix', () => {
     delete mapResult.data.rows[0].elements[0].duration;
     getDistanceMatrix.returns(mapResult);
 
-    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, credentials);
+    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, companyId);
 
     sinon.assert.calledOnce(getDistanceMatrix);
     sinon.assert.notCalled(save);
@@ -86,7 +86,7 @@ describe('getOrCreateDistanceMatrix', () => {
     mapResult.status = 400;
     getDistanceMatrix.returns(mapResult);
 
-    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, credentials);
+    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, companyId);
 
     sinon.assert.calledOnce(getDistanceMatrix);
     sinon.assert.notCalled(save);
@@ -97,11 +97,11 @@ describe('getOrCreateDistanceMatrix', () => {
     findOne.returns(null);
     getDistanceMatrix.returns(distanceMatrixResult);
 
-    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, credentials);
+    const result = await DistanceMatrixHelper.getOrCreateDistanceMatrix(distanceMatrixRequest, companyId);
 
     sinon.assert.calledOnce(save);
     expect(result).toEqual(expect.objectContaining({
-      company: credentials.company._id,
+      company: companyId,
       _id: expect.any(Object),
       destinations: 'New York City, NY',
       distance: 363998,
