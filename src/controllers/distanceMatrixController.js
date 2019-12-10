@@ -6,12 +6,12 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrix(req.query, req.auth.credentials);
+    const distanceMatrices = await DistanceMatrixHelper.getDistanceMatrices(req.query, req.auth.credentials);
 
-    if (!distanceMatrix.length) return { message: translate[language].distanceMatrixNotFound };
+    if (!distanceMatrices.length) return { message: translate[language].distanceMatrixNotFound };
     return {
       message: translate[language].distanceMatrixFound,
-      data: { distanceMatrix },
+      data: { distanceMatrices },
     };
   } catch (e) {
     req.log('error', e);

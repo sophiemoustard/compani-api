@@ -346,12 +346,15 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 });
 
 exports.workingStats = async (query, credentials) => {
-  const ids = Array.isArray(query.auxiliary) ? query.auxiliary.map(id => new ObjectID(id)) : [new ObjectID(query.auxiliary)];
+  const ids = Array.isArray(query.auxiliary)
+    ? query.auxiliary.map(id => new ObjectID(id))
+    : [new ObjectID(query.auxiliary)];
   const auxiliaries = await User.find({ _id: { $in: ids } }).populate('contracts').lean();
   const companyId = _.get(credentials, 'company._id');
   const { startDate, endDate } = query;
   const distanceMatrix = await DistanceMatrix.find({ company: companyId }).lean();
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id), companyId);
+  const auxiliariesIds = auxiliaries.map(aux => aux._id);
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliariesIds, companyId);
 
   const workingStats = {};
   for (const auxiliary of auxiliaries) {

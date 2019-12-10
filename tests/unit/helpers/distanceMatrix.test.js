@@ -9,7 +9,7 @@ const maps = require('../../../src/models/Google/Maps');
 
 require('sinon-mongoose');
 
-describe('getDistanceMatrix', () => {
+describe('getDistanceMatrices', () => {
   const params = {
     origins: 'Washington, DC',
     destinations: 'New York City, NY',
@@ -45,7 +45,7 @@ describe('getDistanceMatrix', () => {
       .returns(distanceMatrix);
 
     const credentials = { company: { _id: companyId } };
-    const result = await DistanceMatrixHelper.getDistanceMatrix(params, credentials);
+    const result = await DistanceMatrixHelper.getDistanceMatrices(params, credentials);
 
     expect(result).toEqual(distanceMatrix);
     DistanceMatrixModel.verify();
