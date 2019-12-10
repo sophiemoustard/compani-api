@@ -14,8 +14,12 @@ exports.addFile = async (params) => {
 };
 
 exports.createFolder = async (identity, parentFolderId) => {
+  const name = typeof identity === 'string'
+    ? identity
+    : `${identity.lastname.toUpperCase()} ${identity.firstname || ''}`;
+
   const folder = await Gdrive.add({
-    name: `${identity.lastname.toUpperCase()} ${identity.firstname || ''}`,
+    name,
     parentFolderId,
     folder: true,
   });
@@ -24,7 +28,7 @@ exports.createFolder = async (identity, parentFolderId) => {
     throw Boom.failedDependency('Google drive folder creation failed.');
   }
 
-  return { folder };
+  return folder;
 };
 
 exports.createFolderForCompany = async (companyName) => {

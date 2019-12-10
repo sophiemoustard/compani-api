@@ -6,7 +6,6 @@ const nodemailer = require('nodemailer');
 const moment = require('moment');
 const uuidv4 = require('uuid/v4');
 const { clean } = require('../helpers/utils');
-const { populateRole } = require('../helpers/roles');
 const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentication');
@@ -343,7 +342,7 @@ const createDriveFolder = async (req) => {
 
     if (user.identity.firstname && user.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID;
-      const { folder } = await GdriveStorageHelper.createFolder(user.identity, parentFolderId);
+      const folder = await GdriveStorageHelper.createFolder(user.identity, parentFolderId);
 
       const folderPayload = {};
       folderPayload.administrative = user.administrative || { driveFolder: {} };
@@ -352,7 +351,11 @@ const createDriveFolder = async (req) => {
         link: folder.webViewLink,
       };
 
-      updatedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: folderPayload }, { new: true, autopopulate: false });
+      updatedUser = await User.findOneAndUpdate(
+        { _id: user._id },
+        { $set: folderPayload },
+        { new: true, autopopulate: false }
+      );
     }
 
     return {
