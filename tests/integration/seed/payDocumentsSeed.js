@@ -57,8 +57,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
 
-  await (new User(payDocumentUser)).save();
-  await (new User(userFromOtherCompany)).save();
+  await User.create([payDocumentUser, userFromOtherCompany]);
   await PayDocument.insertMany(payDocumentsList);
 };
 
