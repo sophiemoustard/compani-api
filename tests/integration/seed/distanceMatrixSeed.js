@@ -1,10 +1,11 @@
 const { ObjectID } = require('mongodb');
 const DistanceMatrix = require('../../../src/models/DistanceMatrix');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
 
 const distanceMatrixList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     origin: '42 Rue de la Procession 75015 Paris',
     destination: '37 Rue de Ponthieu 75008 Paris',
     mode: 'transit',
@@ -13,6 +14,7 @@ const distanceMatrixList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     origin: '105 BOULEVARD MURAT 75016 PARIS',
     destination: '122 Rue Edouard Vaillant, 92300 Levallois-Perret',
     mode: 'transit',
@@ -21,6 +23,7 @@ const distanceMatrixList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     origin: '53 BIS RUE DE BOULAINVILLIERS 75016 PARIS',
     destination: '105 BOULEVARD MURAT 75016 PARIS',
     mode: 'driving',

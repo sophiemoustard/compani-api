@@ -18,15 +18,11 @@ exports.plugin = {
             origins: Joi.string().required(),
             destinations: Joi.string().required(),
             mode: Joi.string().default('transit'),
-            language: Joi.string().default('fr-FR'),
-            departure_time: Joi.number().default(moment().hours(12).add(7, 'd').startOf('w')
-              .unix()), // UTC timestamp
-            arrival_time: Joi.number() // UTC timestamp
-          }).required()
+          }).required(),
         },
         auth: {
           strategy: 'jwt',
-        }
+        },
       },
       handler: getDistanceMatrix,
     });
