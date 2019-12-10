@@ -2,7 +2,8 @@ const Boom = require('boom');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
-const { addFile, createFolderForCompany } = require('../helpers/gdriveStorage');
+const { addFile } = require('../helpers/gdriveStorage');
+const CompanyHelper = require('../helpers/companies');
 const Company = require('../models/Company');
 const drive = require('../models/Google/Drive');
 
@@ -21,7 +22,11 @@ const update = async (req) => {
         'rhConfig.transportSubs._id': subId,
       }, { $set: flat(req.payload) }, { new: true });
     } else {
-      companyUpdated = await Company.findOneAndUpdate({ _id: req.params._id }, { $set: flat(req.payload) }, { new: true });
+      companyUpdated = await Company.findOneAndUpdate(
+        { _id: req.params._id },
+        { $set: flat(req.payload) },
+        { new: true }
+      );
     }
 
     if (!companyUpdated) {
@@ -82,11 +87,7 @@ const uploadFile = async (req) => {
 
 const create = async (req) => {
   try {
-    const newCompany = new Company(req.payload);
-
-    const folder = await createFolderForCompany(newCompany.name);
-    newCompany.folderId = folder.id;
-    await newCompany.save();
+    const newCompany = await CompanyHelper.createCompany(req.payload);
 
     return {
       message: translate[language].companyCreated,
