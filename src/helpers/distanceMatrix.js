@@ -1,7 +1,7 @@
 const DistanceMatrix = require('../models/DistanceMatrix');
 const maps = require('../models/Google/Maps');
 
-exports.getOrCreateDistanceMatrix = async (params) => {
+exports.getOrCreateDistanceMatrix = async (params, companyId) => {
   const distanceMatrix = await DistanceMatrix.findOne(params);
 
   if (distanceMatrix) return distanceMatrix;
@@ -15,6 +15,7 @@ exports.getOrCreateDistanceMatrix = async (params) => {
 
   const payload = new DistanceMatrix({
     ...params,
+    company: companyId,
     distance: res.data.rows[0].elements[0].distance.value,
     duration: res.data.rows[0].elements[0].duration.value,
   });

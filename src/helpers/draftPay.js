@@ -126,13 +126,13 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
   };
 };
 
-exports.getTransportInfo = async (distances, origins, destinations, mode) => {
+exports.getTransportInfo = async (distances, origins, destinations, mode, companyId) => {
   if (!origins || !destinations || !mode) return { distance: 0, duration: 0 };
   let distanceMatrix = distances.find(dm => dm.origins === origins && dm.destinations === destinations && dm.mode === mode);
 
   if (!distanceMatrix) {
     const query = { origins, destinations, mode };
-    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query);
+    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query, companyId);
     distances.push(distanceMatrix || { ...query, distance: 0, duration: 0 });
   }
 
@@ -155,7 +155,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
 
     if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, distance: paidKm };
 
-    const transport = await exports.getTransportInfo(distanceMatrix, origins, destinations, transportMode);
+    const transport = await exports.getTransportInfo(distanceMatrix, origins, destinations, transportMode, event.company);
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
     const pickTransportDuration = (transport.duration > breakDuration) || breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
