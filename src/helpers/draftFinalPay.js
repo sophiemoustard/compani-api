@@ -65,7 +65,7 @@ exports.getDraftFinalPay = async (query, credentials) => {
   const [company, surcharges, dm] = await Promise.all([
     Company.findOne().lean(),
     Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find().lean(),
+    DistanceMatrix.find({ company: companyId }).lean(),
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(a => a._id), companyId);

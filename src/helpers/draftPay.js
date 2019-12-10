@@ -434,7 +434,7 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne({ _id: companyId }).lean(),
     Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find().lean(),
+    DistanceMatrix.find({ company: companyId }).lean(),
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id), companyId);

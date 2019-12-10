@@ -1,13 +1,14 @@
 const Boom = require('boom');
-const DistanceMatrix = require('../models/DistanceMatrix');
+const DistanceMatrixHelper = require('../helpers/distanceMatrix');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const distanceMatrix = await DistanceMatrix.find(req.query);
+    const distanceMatrix = await DistanceMatrixHelper.getDistanceMatrix(req.query, req.auth.credentials);
 
+    if (!distanceMatrix.length) return { message: translate[language].distanceMatrixNotFound };
     return {
       message: translate[language].distanceMatrixFound,
       data: { distanceMatrix },

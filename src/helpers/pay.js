@@ -83,7 +83,7 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne({ _id: companyId }).lean(),
     Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find().lean(),
+    DistanceMatrix.find({ company: companyId }).lean(),
   ]);
 
   const prevPayList = await DraftPayHelper.getPreviousMonthPay([{ ...auxiliary, prevPay }], query, surcharges, distanceMatrix, companyId);
