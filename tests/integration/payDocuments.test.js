@@ -9,7 +9,7 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Gdrive = require('../../src/models/Google/Drive');
 const PayDocument = require('../../src/models/PayDocument');
-const { populateDB, payDocumentsList, payDocumentUser } = require('./seed/payDocumentsSeed');
+const { populateDB, payDocumentsList, payDocumentUser, userFromOtherCompany } = require('./seed/payDocumentsSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
@@ -91,6 +91,29 @@ describe('PAY DOCUMENT ROUTES', () => {
 
           expect(response.statusCode).toBe(400);
         });
+      });
+
+      it('should not create a new pay document if the user is not from the same company', async () => {
+        const docPayload = {
+          payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          driveFolderId: '09876543211',
+          fileName: 'pay-document',
+          nature: PAYSLIP,
+          date: new Date('2019-01-23').toISOString(),
+          user: userFromOtherCompany._id.toHexString(),
+          mimeType: 'application/pdf',
+        };
+
+        const form = generateFormData(docPayload);
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/paydocuments',
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
       });
     });
 

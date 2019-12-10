@@ -1,14 +1,14 @@
 const Boom = require('boom');
 
 const PayDocument = require('../models/PayDocument');
-const { createAndSave, removeFromDriveAndDb } = require('../helpers/payDocuments');
+const PayDocumentHelper = require('../helpers/payDocuments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const create = async (req) => {
   try {
-    const payDocument = await createAndSave(req.payload);
+    const payDocument = await PayDocumentHelper.create(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].payDocumentCreated,
@@ -42,7 +42,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    await removeFromDriveAndDb(req.params._id);
+    await PayDocumentHelper.removeFromDriveAndDb(req.params._id);
 
     return { message: translate[language].payDocumentDeleted };
   } catch (e) {
