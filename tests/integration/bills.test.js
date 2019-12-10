@@ -50,7 +50,6 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.draftBills).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          customerId: billCustomerList[0]._id,
           customer: expect.objectContaining({
             _id: billCustomerList[0]._id,
             identity: billCustomerList[0].identity,
@@ -108,7 +107,6 @@ describe('BILL ROUTES - POST /bills', () => {
   beforeEach(populateDB);
   const payload = [
     {
-      customerId: billCustomerList[0]._id,
       customer: {
         _id: billCustomerList[0]._id,
         identity: billCustomerList[0].identity,
@@ -134,7 +132,6 @@ describe('BILL ROUTES - POST /bills', () => {
               ],
               createdAt: '2019-05-03T08:33:56.144Z',
             },
-            identity: billCustomerList[0].identity,
             discount: 0,
             startDate: '2019-05-01T00:00:00.000Z',
             endDate: '2019-05-31T23:59:59.999Z',
@@ -180,7 +177,6 @@ describe('BILL ROUTES - POST /bills', () => {
                 ],
                 createdAt: '2019-05-03T08:33:56.144Z',
               },
-              identity: billCustomerList[0].identity,
               discount: 0,
               startDate: '2019-05-01T00:00:00.000Z',
               endDate: '2019-05-31T23:59:59.999Z',
@@ -242,7 +238,6 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should create new bill with vat 0 if service is not taxed', async () => {
       const draftBillPayload = [
         {
-          customerId: billCustomerList[0]._id,
           customer: {
             _id: billCustomerList[0]._id,
             identity: billCustomerList[0].identity,
@@ -276,7 +271,6 @@ describe('BILL ROUTES - POST /bills', () => {
                   ],
                   createdAt: '2019-05-03T08:33:56.144Z',
                 },
-                identity: billCustomerList[0].identity,
                 discount: 0,
                 startDate: '2019-05-01T00:00:00.000Z',
                 endDate: '2019-05-31T23:59:59.999Z',
@@ -319,7 +313,7 @@ describe('BILL ROUTES - POST /bills', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/bills',
-        payload: { bills: [{ ...payload[0], customerId: billCustomerList[2]._id }] },
+        payload: { bills: [{ ...payload[0], customer: { ...payload[0].customer, _id: billCustomerList[2]._id } }] },
         headers: { 'x-access-token': authToken },
       });
 

@@ -60,7 +60,7 @@ exports.authorizeBillsCreation = async (req) => {
   const { bills } = req.payload;
   const companyId = credentials.company._id;
 
-  const customersIds = [...new Set(bills.map(bill => bill.customerId))];
+  const customersIds = [...new Set(bills.map(bill => bill.customer._id))];
   const customerCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: companyId });
   if (customerCount !== customersIds.length) throw Boom.forbidden();
 
