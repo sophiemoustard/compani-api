@@ -8,9 +8,10 @@ const list = async (req) => {
   try {
     const distanceMatrices = await DistanceMatrixHelper.getDistanceMatrices(req.query, req.auth.credentials);
 
-    if (!distanceMatrices.length) return { message: translate[language].distanceMatrixNotFound };
     return {
-      message: translate[language].distanceMatrixFound,
+      message: distanceMatrices.length
+        ? translate[language].distanceMatrixFound
+        : translate[language].distanceMatrixNotFound,
       data: { distanceMatrices },
     };
   } catch (e) {

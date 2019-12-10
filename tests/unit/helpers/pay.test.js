@@ -243,6 +243,8 @@ describe('hoursBalanceDetail', () => {
   });
 
   it('should return 400 if no contract', async () => {
+    const events = [{ _id: new ObjectID() }];
+    const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
     try {
       PayModel
         .expects('findOne')
@@ -251,12 +253,10 @@ describe('hoursBalanceDetail', () => {
         .returns();
 
       getEventsToPayStub.returns([]);
-      const events = [{ _id: new ObjectID() }];
       getPreviousMonthPayStub.returns(prevPayList);
       getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events, absences: [] }]);
       getCustomerCountStub.returns(customersCount);
 
-      const auxiliary = { _id: auxiliaryId, contracts: { startDate: '2018-11-01' } };
       UserModel
         .expects('findOne')
         .withExactArgs({ _id: auxiliaryId })
@@ -267,7 +267,7 @@ describe('hoursBalanceDetail', () => {
         .expects('findOne')
         .withExactArgs({ auxiliary: auxiliaryId, month: prevMonth })
         .chain('lean')
-        .returns();
+        .returns(prevPay);
       CompanyModel
         .expects('findOne')
         .withExactArgs({ _id: companyId })
@@ -286,13 +286,12 @@ describe('hoursBalanceDetail', () => {
       getContractStub.returns();
 
       await PayHelper.hoursBalanceDetail(auxiliaryId, month, credentials);
-
+    } catch (e) {
+      expect(e).toEqual(Boom.badRequest());
       sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
       sinon.assert.calledWithExactly(getCustomerCountStub, events);
       sinon.assert.calledWithExactly(getPreviousMonthPayStub, [{ ...auxiliary, prevPay }], query, surcharges, distanceMatrix, companyId);
       sinon.assert.calledWithExactly(getContractStub, auxiliary.contracts, startDate, endDate);
-    } catch (e) {
-      expect(e).toEqual(Boom.badRequest());
     }
   });
 
