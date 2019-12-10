@@ -216,6 +216,8 @@ const otherCompany = {
   _id: new ObjectID(),
   name: 'Other test SAS',
   tradeName: 'Other test',
+  folderId: '0987654321',
+  directDebitsFolderId: '1234567890',
 };
 
 const userList = [
