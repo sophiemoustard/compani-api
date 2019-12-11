@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 
 const PayDocument = require('../models/PayDocument');
 const PayDocumentHelper = require('../helpers/payDocuments');
@@ -22,16 +23,13 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const payDocuments = await PayDocument.find(req.query);
-    if (payDocuments.length === 0) {
-      return {
-        message: translate[language].payDocumentsNotFound,
-        data: { payDocuments: [] },
-      };
-    }
+    const payDocuments = await PayDocument.find({
+      ...req.query,
+      company: get(req, 'auth.credentials.company._id', null),
+    });
 
     return {
-      message: translate[language].payDocumentsFound,
+      message: !payDocuments.length ? translate[language].payDocumentsNotFound : translate[language].payDocumentsFound,
       data: { payDocuments },
     };
   } catch (e) {
