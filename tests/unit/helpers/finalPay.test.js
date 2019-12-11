@@ -25,5 +25,6 @@ describe('createFinalPayList', () => {
 
     await FinalPayHelper.createFinalPayList(finalPayToCreate, credentials);
     sinon.assert.calledWithExactly(formatPayStub, finalPayToCreate[0], credentials.company._id);
+    FinalPayModel.verify();
   });
 });

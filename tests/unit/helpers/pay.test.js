@@ -116,6 +116,7 @@ describe('createPayList', () => {
 
     await PayHelper.createPayList(payToCreate, credentials);
     sinon.assert.calledWithExactly(formatPayStub, payToCreate[0], credentials.company._id);
+    PayModel.verify();
   });
 });
 
@@ -137,19 +138,19 @@ describe('getContract', () => {
     expect(result).toEqual({ status: COMPANY_CONTRACT, startDate: '2019-10-10', endDate: '2019-12-15' });
   });
 
-  it('should return no contract if it not a company contract', async () => {
+  it('should return no contract if not a company contract', async () => {
     const contracts = [{ status: CUSTOMER_CONTRACT, startDate: '2019-10-10' }];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeUndefined();
   });
 
-  it('should return no contract if it the contract has not yet started', async () => {
+  it('should return no contract if the contract has not yet started', async () => {
     const contracts = [{ status: COMPANY_CONTRACT, startDate: '2020-01-10' }];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeUndefined();
   });
 
-  it('should return no contract if it has a endDate which is before our query start date', async () => {
+  it('should return no contract if the contract has a endDate which is before our query start date', async () => {
     const contracts = [{ status: COMPANY_CONTRACT, startDate: '2019-10-10', endDate: '2019-10-12' }];
     const result = PayHelper.getContract(contracts, startDate, endDate);
     expect(result).toBeUndefined();
