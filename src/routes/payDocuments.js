@@ -5,6 +5,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 
 const { create, list, remove } = require('../controllers/payDocumentController');
 const { PAY_DOCUMENT_NATURES } = require('../models/PayDocument');
+const { authorizePayDocumentCreation } = require('./preHandlers/payDocuments');
 
 exports.plugin = {
   name: 'routes-pay-documents',
@@ -31,6 +32,7 @@ exports.plugin = {
             user: Joi.objectId().required(),
           }),
         },
+        pre: [{ method: authorizePayDocumentCreation }],
       },
       handler: create,
     });
