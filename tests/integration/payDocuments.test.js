@@ -243,8 +243,6 @@ describe('PAY DOCUMENT ROUTES', () => {
         sinon.assert.calledWith(deleteFileStub, payDocumentsList[0].file.driveId);
         deleteFileStub.restore();
       });
-<<<<<<< HEAD
-=======
 
       it('should return a 404 error if pay document does not exist', async () => {
         const randomId = new ObjectID();
@@ -266,7 +264,6 @@ describe('PAY DOCUMENT ROUTES', () => {
 
         expect(response.statusCode).toBe(403);
       });
->>>>>>> COM-858 delete payDocuments
     });
 
     describe('Other role', () => {

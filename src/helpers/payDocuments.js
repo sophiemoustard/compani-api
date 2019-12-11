@@ -2,9 +2,6 @@ const Boom = require('boom');
 const get = require('lodash/get');
 const PayDocument = require('../models/PayDocument');
 const GdriveStorage = require('./gdriveStorage');
-const translate = require('./translate');
-
-const { language } = translate;
 
 exports.create = async (payDocumentPayload, credentials) => {
   const uploadedFile = await GdriveStorage.addFile({
@@ -29,7 +26,5 @@ exports.create = async (payDocumentPayload, credentials) => {
 
 exports.removeFromDriveAndDb = async (payDocumentId) => {
   const deletedPayDocument = await PayDocument.findByIdAndRemove(payDocumentId);
-  if (!deletedPayDocument) return;
-
   return GdriveStorage.deleteFile(deletedPayDocument.file.driveId);
 };
