@@ -71,15 +71,16 @@ describe('removeFromDriveAndDb', () => {
     findByIdAndRemoveStub.restore();
   });
 
-  it('should return a 404 error if document does not exists', async () => {
-    findByIdAndRemoveStub.returns(null);
+  it('should not call deleteFile if document does not exists', async () => {
+    const deleteFileStub = sinon.stub(GdriveStorageHelper, 'deleteFile');
     const id = new ObjectID();
-    try {
-      await PayDocumentHelper.removeFromDriveAndDb(id);
-    } catch (e) {
-      expect(e).toEqual(Boom.notFound(translate[language].payDocumentNotFound));
-    }
+    findByIdAndRemoveStub.returns();
+
+    await PayDocumentHelper.removeFromDriveAndDb(id);
+
     sinon.assert.calledWith(findByIdAndRemoveStub, id);
+    sinon.assert.notCalled(deleteFileStub);
+    deleteFileStub.restore();
   });
 
   it('should remove document from db and drive', async () => {

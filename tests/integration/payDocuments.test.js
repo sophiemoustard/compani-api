@@ -240,17 +240,6 @@ describe('PAY DOCUMENT ROUTES', () => {
         sinon.assert.calledWith(deleteFileStub, payDocumentsList[0].file.driveId);
         deleteFileStub.restore();
       });
-
-      it('should return a 404 error if pay document does not exist', async () => {
-        const randomId = new ObjectID();
-        const response = await app.inject({
-          method: 'DELETE',
-          url: `/paydocuments/${randomId}`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(404);
-      });
     });
 
     describe('Other role', () => {
