@@ -1,10 +1,9 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateDB, auxiliary1, auxiliaryNotFromSameCompany } = require('./seed/paySeed');
+const { populateDB, auxiliary1, auxiliaryFromOtherCompany } = require('./seed/paySeed');
 const app = require('../../server');
 const Pay = require('../../src/models/Pay');
-const User = require('../../src/models/User');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -129,7 +128,7 @@ describe('PAY ROUTES - POST /pay', () => {
         method: 'POST',
         url: '/pay',
         headers: { 'x-access-token': authToken },
-        payload: [{ ...payload[0], auxiliary: new ObjectID(auxiliaryNotFromSameCompany._id) }],
+        payload: [{ ...payload[0], auxiliary: new ObjectID(auxiliaryFromOtherCompany._id) }],
       });
 
       expect(response.statusCode).toBe(403);

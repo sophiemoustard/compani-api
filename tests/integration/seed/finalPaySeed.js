@@ -8,7 +8,7 @@ const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const FinalPay = require('../../../src/models/FinalPay');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const contractId = new ObjectID();
 const auxiliaryId = new ObjectID();
@@ -38,6 +38,18 @@ const auxiliary = {
   contracts: contractId,
   sector: sectorId,
   company: authCompany._id,
+};
+
+const auxiliaryFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'toto', lastname: 'test' },
+  local: { email: 'othercompany@alenvi.io', password: '123456' },
+  employee_id: 9876543,
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  contracts: contractId,
+  sector: sectorId,
+  company: otherCompany._id,
 };
 
 const contract = {
@@ -136,8 +148,7 @@ const populateDB = async () => {
   await FinalPay.deleteMany({});
 
   await populateDBForAuthentication();
-  await (new User(user)).save();
-  await (new User(auxiliary)).save();
+  await User.create([user, auxiliary, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
@@ -145,4 +156,4 @@ const populateDB = async () => {
   await (new Sector(sector)).save();
 };
 
-module.exports = { populateDB };
+module.exports = { populateDB, auxiliary, auxiliaryFromOtherCompany };

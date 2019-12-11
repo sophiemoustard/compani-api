@@ -52,7 +52,7 @@ const auxiliary2 = {
   company: authCompany._id,
 };
 
-const auxiliaryNotFromSameCompany = {
+const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
   identity: { firstname: 'toto', lastname: 'test' },
   local: { email: 'othercompany@alenvi.io', password: '123456' },
@@ -177,7 +177,7 @@ const populateDB = async () => {
   await Pay.deleteMany({});
 
   await populateDBForAuthentication();
-  await User.create([user, auxiliary1, auxiliary2, auxiliaryNotFromSameCompany]);
+  await User.create([user, auxiliary1, auxiliary2, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
@@ -185,4 +185,4 @@ const populateDB = async () => {
   await (new Sector(sector)).save();
 };
 
-module.exports = { populateDB, auxiliary1, auxiliaryNotFromSameCompany };
+module.exports = { populateDB, auxiliary1, auxiliaryFromOtherCompany };
