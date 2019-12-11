@@ -31,7 +31,7 @@ exports.getCustomerFollowUp = async (req) => {
 
 exports.getCustomerFundingsMonitoring = async (req) => {
   try {
-    const customerFundingsMonitoring = await getCustomerFundingsMonitoring(req.query.customer);
+    const customerFundingsMonitoring = await getCustomerFundingsMonitoring(req.query.customer, req.auth.credentials);
 
     return {
       message: messages.statsFound,
