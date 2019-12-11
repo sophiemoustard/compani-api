@@ -50,11 +50,11 @@ exports.plugin = {
         auth: { scope: ['events:read'] },
         validate: {
           query: {
-            sector: [Joi.string().required(), Joi.array().items(Joi.string()).required()],
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
             month: Joi.string().required(),
           },
         },
-        // pre: [{ method: authorizeGetStats }],
+        pre: [{ method: authorizeGetStats }],
       },
       handler: getCustomerAndDurationMonitoring,
     });
