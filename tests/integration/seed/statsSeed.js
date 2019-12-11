@@ -9,13 +9,19 @@ const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
+const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
+const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED } = require('../../../src/helpers/constants');
 
-const sectorList = [{
-  _id: new ObjectID(),
-  company: authCompany._id,
-}];
+const sectorList = [
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    company: otherCompany._id,
+  },
+];
 
 const contractList = [{
   _id: new ObjectID(),
@@ -285,6 +291,7 @@ const populateDB = async () => {
 
 module.exports = {
   customerList,
+  sectorList,
   populateDB,
   populateDBWithEventsForFollowup,
   populateDBWithEventsForFundingsMonitoring,

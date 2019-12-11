@@ -6,7 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
-  getCustomerAndDurationMonitoring,
+  getCustomerAndDuration,
 } = require('../controllers/statController');
 const { authorizeGetStats } = require('./preHandlers/stats');
 
@@ -45,7 +45,7 @@ exports.plugin = {
 
     server.route({
       method: 'GET',
-      path: '/customer-duration-monitoring',
+      path: '/customer-duration',
       options: {
         auth: { scope: ['events:read'] },
         validate: {
@@ -56,7 +56,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeGetStats }],
       },
-      handler: getCustomerAndDurationMonitoring,
+      handler: getCustomerAndDuration,
     });
   },
 };

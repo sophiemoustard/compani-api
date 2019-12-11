@@ -5,6 +5,7 @@ const {
   populateDB,
   populateDBWithEventsForFollowup,
   populateDBWithEventsForFundingsMonitoring,
+  sectorList,
 } = require('./seed/statsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -99,6 +100,82 @@ describe('GET /stats/customer-fundings-monitoring', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/stats/customer-fundings-monitoring?customer=${customerList[0]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('GET /stats/customer-duration', () => {
+  let adminToken = null;
+
+  describe('Admin', () => {
+    beforeEach(populateDB);
+    beforeEach(populateDBWithEventsForFollowup);
+    beforeEach(async () => {
+      adminToken = await getToken('admin');
+    });
+
+    it('should get customer and duration stats', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration?month=072019&sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customerAndDuration[0]).toBeDefined();
+      expect(res.result.data.customerAndDuration[0].sector).toEqual(sectorList[0]._id);
+      expect(res.result.data.customerAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customerAndDuration[0].duration).toEqual(2.5);
+    });
+
+    it('should return 403 if sector is not from the same company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration?month=072019&sector=${sectorList[1]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should not get customer and duration stats as sector is missing', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/stats/customer-duration?month=072019',
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('should not get customer and duration stats as month is missing', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration?sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/stats/customer-duration?month=072019&sector=${sectorList[0]._id}`,
           headers: { 'x-access-token': authToken },
         });
 
