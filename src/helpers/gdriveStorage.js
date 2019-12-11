@@ -14,12 +14,8 @@ exports.addFile = async (params) => {
 };
 
 exports.createFolder = async (identity, parentFolderId) => {
-  const name = typeof identity === 'string'
-    ? identity
-    : `${identity.lastname.toUpperCase()} ${identity.firstname || ''}`;
-
   const folder = await Gdrive.add({
-    name,
+    name: typeof identity === 'string' ? identity : `${identity.lastname.toUpperCase()} ${identity.firstname || ''}`,
     parentFolderId,
     folder: true,
   });

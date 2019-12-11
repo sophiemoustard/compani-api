@@ -20,10 +20,7 @@ describe('createCompany', () => {
 
     await CompanyHelper.createCompany(payload);
 
-    sinon.assert.calledWithExactly(
-      createFolderForCompanyStub,
-      payload.name
-    );
+    sinon.assert.calledWithExactly(createFolderForCompanyStub, payload.name);
     sinon.assert.calledWithExactly(createFolderStub, 'direct debits', '1234567890');
     CompanyMock.verify();
     CompanyMock.restore();
