@@ -29,7 +29,7 @@ exports.create = async (payDocumentPayload, credentials) => {
 
 exports.removeFromDriveAndDb = async (payDocumentId) => {
   const deletedPayDocument = await PayDocument.findByIdAndRemove(payDocumentId);
-  if (!deletedPayDocument) throw Boom.notFound(translate[language].payDocumentNotFound);
+  if (!deletedPayDocument) return;
 
   return GdriveStorage.deleteFile(deletedPayDocument.file.driveId);
 };
