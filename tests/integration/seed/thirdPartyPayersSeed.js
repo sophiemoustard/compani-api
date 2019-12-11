@@ -18,6 +18,7 @@ const tppCompany = {
   iban: 'FR3514508000505917721779B12',
   bic: 'RTYUIKJHBFRG',
   ics: '12345678',
+  folderId: '0987654321',
   directDebitsFolderId: '1234567890',
   customersConfig: {
     billingPeriod: 'two_weeks',

@@ -17,8 +17,8 @@ const CompanySchema = mongoose.Schema({
   iban: { type: String },
   bic: { type: String },
   type: { type: String, enum: COMPANY_TYPES, default: COMPANY, required: true },
-  folderId: String,
-  directDebitsFolderId: String,
+  folderId: { type: String, required: true },
+  directDebitsFolderId: { type: String, required: true },
   rhConfig: {
     contractWithCompany: { grossHourlyRate: { type: Number, default: 0 } },
     contractWithCustomer: { grossHourlyRate: { type: Number, default: 0 } },
