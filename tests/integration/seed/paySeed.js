@@ -7,7 +7,7 @@ const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const Pay = require('../../../src/models/Pay');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const contractId1 = new ObjectID();
 const contractId2 = new ObjectID();
@@ -50,6 +50,18 @@ const auxiliary2 = {
   contracts: contractId2,
   sector: sectorId,
   company: authCompany._id,
+};
+
+const auxiliaryNotFromSameCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'toto', lastname: 'test' },
+  local: { email: 'othercompany@alenvi.io', password: '123456' },
+  employee_id: 9876543,
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  contracts: contractId2,
+  sector: sectorId,
+  company: otherCompany._id,
 };
 
 const contracts = [{
@@ -165,9 +177,7 @@ const populateDB = async () => {
   await Pay.deleteMany({});
 
   await populateDBForAuthentication();
-  await (new User(user)).save();
-  await (new User(auxiliary1)).save();
-  await (new User(auxiliary2)).save();
+  await User.create([user, auxiliary1, auxiliary2, auxiliaryNotFromSameCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
@@ -175,4 +185,4 @@ const populateDB = async () => {
   await (new Sector(sector)).save();
 };
 
-module.exports = { populateDB };
+module.exports = { populateDB, auxiliary1, auxiliaryNotFromSameCompany };

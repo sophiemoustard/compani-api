@@ -23,8 +23,8 @@ exports.formatSurchargeDetail = (detail) => {
   return surchargeDetail;
 };
 
-exports.formatPay = (draftPay) => {
-  const payload = cloneDeep(draftPay);
+exports.formatPay = (draftPay, companyId) => {
+  const payload = { ...cloneDeep(draftPay), company: companyId };
   const keys = [
     'surchargedAndNotExemptDetails',
     'surchargedAndExemptDetails',
@@ -41,10 +41,11 @@ exports.formatPay = (draftPay) => {
   return payload;
 };
 
-exports.createPayList = async (payToCreate) => {
+exports.createPayList = async (payToCreate, credentials) => {
   const list = [];
+  const companyId = get(credentials, 'company._id', null);
   for (const pay of payToCreate) {
-    list.push(new Pay(this.formatPay(pay)));
+    list.push(new Pay(this.formatPay(pay, companyId)));
   }
 
   await Pay.insertMany(list);

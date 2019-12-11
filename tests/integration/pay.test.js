@@ -1,9 +1,10 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateDB } = require('./seed/paySeed');
+const { populateDB, auxiliary1, auxiliaryNotFromSameCompany } = require('./seed/paySeed');
 const app = require('../../server');
 const Pay = require('../../src/models/Pay');
-const { getToken } = require('./seed/authenticationSeed');
+const User = require('../../src/models/User');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -58,7 +59,7 @@ describe('PAY ROUTES - POST /pay', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = [{
-    auxiliary: new ObjectID(),
+    auxiliary: auxiliary1._id,
     startDate: '2019-04-30T22:00:00',
     endDate: '2019-05-28T14:34:04',
     month: '05-2019',
@@ -121,6 +122,17 @@ describe('PAY ROUTES - POST /pay', () => {
 
       const payList = await Pay.find().lean();
       expect(payList.length).toEqual(1);
+    });
+
+    it('should not create a new pay if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/pay',
+        headers: { 'x-access-token': authToken },
+        payload: [{ ...payload[0], auxiliary: new ObjectID(auxiliaryNotFromSameCompany._id) }],
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     Object.keys(payload[0]).forEach((key) => {
