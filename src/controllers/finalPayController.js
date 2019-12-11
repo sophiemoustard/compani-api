@@ -21,7 +21,7 @@ const draftFinalPayList = async (req) => {
 
 const createList = async (req) => {
   try {
-    await createFinalPayList(req.payload);
+    await createFinalPayList(req.payload, req.auth.credentials);
 
     return { message: translate[language].finalPayListCreated };
   } catch (e) {

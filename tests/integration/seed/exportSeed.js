@@ -343,6 +343,7 @@ const paymentsList = [
 const payList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     additionalHours: 0,
     auxiliary,
     bonus: 0,
@@ -384,6 +385,7 @@ const payList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     additionalHours: 0,
     auxiliary,
     bonus: 0,
@@ -428,6 +430,7 @@ const payList = [
 const finalPayList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     additionalHours: 0,
     auxiliary,
     bonus: 0,
@@ -472,6 +475,7 @@ const finalPayList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     additionalHours: 0,
     auxiliary,
     bonus: 0,

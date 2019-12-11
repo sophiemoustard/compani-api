@@ -32,6 +32,7 @@ const hoursBalanceDetails = {
 };
 
 module.exports = {
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   additionalHours: { type: Number, min: 0, required: true },
   auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   bonus: { type: Number, min: 0, required: true },

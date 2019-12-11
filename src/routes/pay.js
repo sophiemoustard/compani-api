@@ -8,6 +8,8 @@ const {
   createList,
   getHoursBalanceDetails,
 } = require('../controllers/payController');
+const { authorizePayCreation } = require('./preHandlers/pay');
+
 
 exports.plugin = {
   name: 'routes-pay',
@@ -37,6 +39,7 @@ exports.plugin = {
             ...payValidation,
           })),
         },
+        pre: [{ method: authorizePayCreation }],
       },
       handler: createList,
     });
