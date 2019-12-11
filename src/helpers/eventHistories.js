@@ -15,14 +15,15 @@ exports.getEventHistories = async (query, credentials) => {
 
 exports.getListQuery = (query, credentials) => {
   const queryCompany = { company: new ObjectID(get(credentials, 'company._id', null)) };
-  const rules = [];
+  const andRules = [queryCompany];
+  const orRules = [];
   const { sectors, auxiliaries, createdAt } = query;
 
-  if (sectors) rules.push(...UtilsHelper.formatArrayOrStringQueryParam(sectors, 'sectors'));
-  if (auxiliaries) rules.push(...UtilsHelper.formatArrayOrStringQueryParam(auxiliaries, 'auxiliaries'));
-  if (createdAt) rules.push({ createdAt: { $lte: createdAt } });
+  if (sectors) orRules.push(...UtilsHelper.formatArrayOrStringQueryParam(sectors, 'sectors'));
+  if (auxiliaries) orRules.push(...UtilsHelper.formatArrayOrStringQueryParam(auxiliaries, 'auxiliaries'));
+  if (createdAt) andRules.push({ createdAt: { $lte: createdAt } });
 
-  return rules.length > 0 ? { $and: [queryCompany, { $or: rules }] } : queryCompany;
+  return orRules.length > 0 ? { $and: andRules.concat([{ $or: orRules }]) } : { $and: andRules };
 };
 
 exports.createEventHistory = async (payload, credentials, action) => {
