@@ -11,6 +11,7 @@ const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const PayHelper = require('../../../src/helpers/pay');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
+const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -34,6 +35,7 @@ describe('formatSurchargeDetail', () => {
 });
 
 describe('formatPay', () => {
+  const companyId = new ObjectID();
   let formatSurchargeDetail;
   beforeEach(() => {
     formatSurchargeDetail = sinon.stub(PayHelper, 'formatSurchargeDetail');
@@ -42,36 +44,39 @@ describe('formatPay', () => {
     formatSurchargeDetail.restore();
   });
 
-  it('return empty object if empty object given', () => {
-    const result = PayHelper.formatPay({});
-    expect(result).toEqual({});
+  it('should return only company if empty object given', () => {
+    const result = PayHelper.formatPay({}, companyId);
+    expect(result).toEqual({ company: companyId });
+    sinon.assert.notCalled(formatSurchargeDetail);
   });
 
   it('should format pay with surchargedAndExemptDetails', () => {
     const draftPay = { _id: 'toto', surchargedAndExemptDetails: { evenings: 3 } };
     formatSurchargeDetail.returns({ test: 1 });
 
-    const result = PayHelper.formatPay(draftPay);
+    const result = PayHelper.formatPay(draftPay, companyId);
     expect(result).toEqual({
+      company: companyId,
       _id: 'toto',
       surchargedAndExemptDetails: { test: 1 },
     });
-    sinon.assert.callCount(formatSurchargeDetail, 1);
+    sinon.assert.calledWithExactly(formatSurchargeDetail, draftPay.surchargedAndExemptDetails);
   });
 
   it('should format pay with diff', () => {
     const draftPay = { _id: 'toto', diff: { surchargedAndExemptDetails: { evenings: 3 } } };
     formatSurchargeDetail.returns({ test: 1 });
 
-    const result = PayHelper.formatPay(draftPay);
+    const result = PayHelper.formatPay(draftPay, companyId);
     expect(result).toEqual({
+      company: companyId,
       _id: 'toto',
       diff: { surchargedAndExemptDetails: { test: 1 } },
     });
-    sinon.assert.callCount(formatSurchargeDetail, 1);
+    sinon.assert.calledWithExactly(formatSurchargeDetail, draftPay.diff.surchargedAndExemptDetails);
   });
 
-  it('should format pay with dibothff', () => {
+  it('should format pay with both', () => {
     const draftPay = {
       _id: 'toto',
       diff: { surchargedAndExemptDetails: { evenings: 3 } },
@@ -79,13 +84,75 @@ describe('formatPay', () => {
     };
     formatSurchargeDetail.returns({ test: 1 });
 
-    const result = PayHelper.formatPay(draftPay);
+    const result = PayHelper.formatPay(draftPay, companyId);
     expect(result).toEqual({
+      company: companyId,
       _id: 'toto',
       diff: { surchargedAndExemptDetails: { test: 1 } },
       surchargedAndExemptDetails: { test: 1 },
     });
-    sinon.assert.callCount(formatSurchargeDetail, 2);
+    sinon.assert.calledWithExactly(formatSurchargeDetail, draftPay.surchargedAndExemptDetails);
+    sinon.assert.calledWithExactly(formatSurchargeDetail, draftPay.diff.surchargedAndExemptDetails);
+  });
+});
+
+describe('createPayList', () => {
+  const credentials = { company: { _id: new ObjectID() } };
+  let formatPayStub;
+  let PayModel;
+  beforeEach(() => {
+    formatPayStub = sinon.stub(PayHelper, 'formatPay');
+    PayModel = sinon.mock(Pay);
+  });
+  afterEach(() => {
+    formatPayStub.restore();
+    PayModel.restore();
+  });
+
+  it('should create pay', async () => {
+    const payToCreate = [{ _id: new ObjectID() }];
+    formatPayStub.returns(payToCreate[0]);
+    PayModel.expects('insertMany').withExactArgs([new Pay(payToCreate[0])]);
+
+    await PayHelper.createPayList(payToCreate, credentials);
+    sinon.assert.calledWithExactly(formatPayStub, payToCreate[0], credentials.company._id);
+  });
+});
+
+describe('getContract', () => {
+  const startDate = '2019-12-12';
+  const endDate = '2019-12-25';
+
+  it('should return a contract if it has no endDate', async () => {
+    const contracts = [{ status: COMPANY_CONTRACT, startDate: '2019-10-10' }];
+    const result = PayHelper.getContract(contracts, startDate, endDate);
+    expect(result).toBeDefined();
+    expect(result).toEqual({ status: COMPANY_CONTRACT, startDate: '2019-10-10' });
+  });
+
+  it('should return a contract if it has a endDate which is after our query startDate', async () => {
+    const contracts = [{ status: COMPANY_CONTRACT, startDate: '2019-10-10', endDate: '2019-12-15' }];
+    const result = PayHelper.getContract(contracts, startDate, endDate);
+    expect(result).toBeDefined();
+    expect(result).toEqual({ status: COMPANY_CONTRACT, startDate: '2019-10-10', endDate: '2019-12-15' });
+  });
+
+  it('should return no contract if it not a company contract', async () => {
+    const contracts = [{ status: CUSTOMER_CONTRACT, startDate: '2019-10-10' }];
+    const result = PayHelper.getContract(contracts, startDate, endDate);
+    expect(result).toBeUndefined();
+  });
+
+  it('should return no contract if it the contract has not yet started', async () => {
+    const contracts = [{ status: COMPANY_CONTRACT, startDate: '2020-01-10' }];
+    const result = PayHelper.getContract(contracts, startDate, endDate);
+    expect(result).toBeUndefined();
+  });
+
+  it('should return no contract if it has a endDate which is before our query start date', async () => {
+    const contracts = [{ status: COMPANY_CONTRACT, startDate: '2019-10-10', endDate: '2019-10-12' }];
+    const result = PayHelper.getContract(contracts, startDate, endDate);
+    expect(result).toBeUndefined();
   });
 });
 
