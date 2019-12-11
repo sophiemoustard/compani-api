@@ -51,7 +51,7 @@ describe('getListQuery', () => {
     const credentials = { company: { _id: new ObjectID() } };
     const result = EventHistoryHelper.getListQuery({}, credentials);
 
-    expect(result).toEqual({ company: credentials.company._id });
+    expect(result).toEqual({ $and: [{ company: credentials.company._id }] });
   });
 
   it('should format query with sectors', () => {
@@ -87,10 +87,11 @@ describe('getListQuery', () => {
     const query = { createdAt: '2019-10-11' };
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
+    console.log('result', result);
     expect(result).toEqual({
       $and: [
         { company: credentials.company._id },
-        { $or: [{ createdAt: { $lte: '2019-10-11' } }] },
+        { createdAt: { $lte: '2019-10-11' } },
       ],
     });
   });
@@ -105,13 +106,13 @@ describe('getListQuery', () => {
     expect(result).toEqual({
       $and: [
         { company: credentials.company._id },
+        { createdAt: { $lte: '2019-10-11' } },
         {
           $or: [
             { sectors: 'toto' },
             { sectors: 'tata' },
             { auxiliaries: 'toto' },
             { auxiliaries: 'tata' },
-            { createdAt: { $lte: '2019-10-11' } },
           ],
         },
       ],
