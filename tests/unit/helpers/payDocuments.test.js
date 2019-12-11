@@ -71,18 +71,6 @@ describe('removeFromDriveAndDb', () => {
     findByIdAndRemoveStub.restore();
   });
 
-  it('should not call deleteFile if document does not exists', async () => {
-    const deleteFileStub = sinon.stub(GdriveStorageHelper, 'deleteFile');
-    const id = new ObjectID();
-    findByIdAndRemoveStub.returns();
-
-    await PayDocumentHelper.removeFromDriveAndDb(id);
-
-    sinon.assert.calledWith(findByIdAndRemoveStub, id);
-    sinon.assert.notCalled(deleteFileStub);
-    deleteFileStub.restore();
-  });
-
   it('should remove document from db and drive', async () => {
     const deleteFileStub = sinon.stub(GdriveStorageHelper, 'deleteFile');
     const id = new ObjectID();
