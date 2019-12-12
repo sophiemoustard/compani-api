@@ -19,7 +19,7 @@ exports.getBill = async (req) => {
   }
 };
 
-exports.authorizeBillReading = async (req) => {
+exports.authorizeGetBill = async (req) => {
   const { credentials } = req.auth;
   const { bill } = req.pre;
   const canRead = credentials.scope.includes('bills:read');

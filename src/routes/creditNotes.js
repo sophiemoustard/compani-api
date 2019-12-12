@@ -12,7 +12,7 @@ const {
 } = require('../controllers/creditNoteController');
 const {
   getCreditNote,
-  authorizeCreditNoteReading,
+  authorizeGetCreditNote,
   authorizeCreditNoteCreationOrUpdate,
   authorizeCreditNoteDeletion,
 } = require('./preHandlers/creditNotes');
@@ -183,7 +183,7 @@ exports.plugin = {
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeCreditNoteReading },
+          { method: authorizeGetCreditNote },
         ],
       },
       handler: generateCreditNotePdf,
