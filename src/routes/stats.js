@@ -6,7 +6,7 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
-  getCustomerAndDuration,
+  getCustomersAndDuration,
 } = require('../controllers/statController');
 const { authorizeGetStats } = require('./preHandlers/stats');
 
@@ -56,7 +56,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeGetStats }],
       },
-      handler: getCustomerAndDuration,
+      handler: getCustomersAndDuration,
     });
   },
 };
