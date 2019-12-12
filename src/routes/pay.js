@@ -8,7 +8,7 @@ const {
   createList,
   getHoursBalanceDetails,
 } = require('../controllers/payController');
-const { authorizePayCreation } = require('./preHandlers/pay');
+const { authorizePayCreation, authorizeGetDetails } = require('./preHandlers/pay');
 
 
 exports.plugin = {
@@ -55,6 +55,7 @@ exports.plugin = {
             month: Joi.string().regex(/^([0]{1}[1-9]{1}|[1]{1}[0-2]{1})-[2]{1}[0]{1}[0-9]{2}$/).required(),
           },
         },
+        pre: [{ method: authorizeGetDetails }],
       },
       handler: getHoursBalanceDetails,
     });
