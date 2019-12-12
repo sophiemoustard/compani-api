@@ -15,10 +15,17 @@ module.exports = {
     next();
   },
   validateAggregation(next) {
+<<<<<<< HEAD
     if (get(this, 'options.allCompanies', null)) return next();
     const companyId = get(this, 'options.company', null);
     if (!companyId) next(Boom.badRequest());
     this.pipeline().unshift({ $match: { company: new ObjectID(companyId) } });
+=======
+    if (get(this, 'options.allCompanies', null)) next();
+    const companyId = get(this, 'options.company', null);
+    if (!companyId) next(Boom.badRequest());
+    this.pipeline().unshift({ $match: { company: companyId } });
+>>>>>>> COM-908 add prehandler for bills
     next();
   },
 };
