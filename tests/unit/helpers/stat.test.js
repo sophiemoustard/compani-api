@@ -164,3 +164,39 @@ describe('getCustomerFundingsMonitoring', () => {
     sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
   });
 });
+
+describe('getCustomersAndDurationBySector', () => {
+  let getCustomersAndDurationBySector;
+  beforeEach(() => {
+    getCustomersAndDurationBySector = sinon.stub(StatRepository, 'getCustomersAndDurationBySector');
+  });
+  afterEach(() => {
+    getCustomersAndDurationBySector.restore();
+  });
+
+  it('should format sector as array', async () => {
+    const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
+    getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
+    const result = await StatsHelper.getCustomersAndDurationBySector(query);
+
+    expect(result).toEqual({ cutomerCount: 9 });
+    sinon.assert.calledWithExactly(
+      getCustomersAndDurationBySector,
+      [new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      '102019'
+    );
+  });
+
+  it('should format array sector with objectId', async () => {
+    const query = { sector: ['5d1a40b7ecb0da251cfa4fea', '5d1a40b7ecb0da251cfa4fe9'], month: '102019' };
+    getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
+    const result = await StatsHelper.getCustomersAndDurationBySector(query);
+
+    expect(result).toEqual({ cutomerCount: 9 });
+    sinon.assert.calledWithExactly(
+      getCustomersAndDurationBySector,
+      [new ObjectID('5d1a40b7ecb0da251cfa4fea'), new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      '102019'
+    );
+  });
+});

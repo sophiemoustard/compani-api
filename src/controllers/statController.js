@@ -3,7 +3,7 @@ const Boom = require('boom');
 const translate = require('../helpers/translate');
 const User = require('../models/User');
 const { getCustomerFollowUp } = require('../repositories/CompanyRepository');
-const { getCustomerFundingsMonitoring } = require('../helpers/stats');
+const { getCustomerFundingsMonitoring, getCustomersAndDurationBySector } = require('../helpers/stats');
 
 const messages = translate[translate.language];
 
@@ -36,6 +36,20 @@ exports.getCustomerFundingsMonitoring = async (req) => {
     return {
       message: messages.statsFound,
       data: { customerFundingsMonitoring },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+exports.getCustomersAndDuration = async (req) => {
+  try {
+    const customerAndDuration = await getCustomersAndDurationBySector(req.query);
+
+    return {
+      message: messages.statsFound,
+      data: { customerAndDuration },
     };
   } catch (e) {
     req.log('error', e);

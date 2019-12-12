@@ -1,6 +1,7 @@
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Customer = require('../models/Customer');
+const User = require('../models/User');
 const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, INTERVENTION } = require('../helpers/constants');
 
 exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, splitEventsDate) => {
@@ -115,5 +116,62 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     ...matchAndPopulateFundings,
     ...matchEvents,
     ...formatFundings,
+  ]);
+};
+
+exports.getCustomersAndDurationBySector = async (sectors, month) => {
+  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
+  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
+
+  return User.aggregate([
+    { $match: { sector: { $in: sectors } } },
+    { $project: { _id: 1, sector: 1 } },
+    {
+      $lookup: {
+        from: 'events',
+        as: 'event',
+        let: { auxiliaryId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $gte: ['$startDate', minStartDate] },
+                  { $lt: ['$startDate', maxStartDate] },
+                  { $eq: ['$type', INTERVENTION] },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    },
+    { $unwind: { path: '$event' } },
+    {
+      $addFields: {
+        duration: { $divide: [{ $subtract: ['$event.endDate', '$event.startDate'] }, 1000 * 60 * 60] },
+      },
+    },
+    {
+      $group: {
+        _id: { sector: '$sector', customer: '$event.customer' },
+        duration: { $sum: '$duration' },
+      },
+    },
+    {
+      $group: {
+        _id: '$_id.sector',
+        duration: { $sum: '$duration' },
+        customerCount: { $sum: 1 },
+      },
+    },
+    {
+      $project: {
+        sector: '$_id',
+        duration: 1,
+        customerCount: 1,
+      },
+    },
   ]);
 };

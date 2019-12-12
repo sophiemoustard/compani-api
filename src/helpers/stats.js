@@ -1,3 +1,4 @@
+const { ObjectID } = require('mongodb');
 const moment = require('../extensions/moment');
 const StatRepository = require('../repositories/StatRepository');
 
@@ -25,7 +26,8 @@ exports.getCustomerFundingsMonitoring = async (customerId) => {
     maxStartDate: moment().endOf('month').toDate(),
   };
   const startOfCurrentMonth = moment().startOf('month').toDate();
-  const eventsGroupedByFundings = await StatRepository.getEventsGroupedByFundings(customerId, fundingsDate, eventsDate, startOfCurrentMonth);
+  const eventsGroupedByFundings = await StatRepository
+    .getEventsGroupedByFundings(customerId, fundingsDate, eventsDate, startOfCurrentMonth);
   const customerFundingsMonitoring = [];
 
   for (const funding of eventsGroupedByFundings) {
@@ -39,4 +41,10 @@ exports.getCustomerFundingsMonitoring = async (customerId) => {
   }
 
   return customerFundingsMonitoring;
+};
+
+exports.getCustomersAndDurationBySector = async (query) => {
+  const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
+
+  return StatRepository.getCustomersAndDurationBySector(sectors, query.month);
 };
