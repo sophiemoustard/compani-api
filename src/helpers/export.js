@@ -569,18 +569,19 @@ exports.formatHoursWithDiff = (pay, key) => {
 };
 
 exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const query = {
     endDate: { $lte: moment(endDate).endOf('M').toDate() },
     startDate: { $gte: moment(startDate).startOf('M').toDate() },
+    company: companyId,
   };
-  const companyId = get(credentials, 'company._id', null);
 
   const pays = await Pay.find(query)
     .sort({ startDate: 'desc' })
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name', match: { company: companyId } }, { path: 'contracts' }],
+      populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
     })
     .lean();
 
@@ -589,7 +590,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name', match: { company: companyId } }, { path: 'contracts' }],
+      populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
     })
     .lean();
 

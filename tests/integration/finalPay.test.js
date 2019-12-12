@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const { populateDB, auxiliary, auxiliaryFromOtherCompany } = require('./seed/finalPaySeed');
 const app = require('../../server');
 const FinalPay = require('../../src/models/FinalPay');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -123,7 +123,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const finalPayList = await FinalPay.find().lean();
+      const finalPayList = await FinalPay.find({ company: authCompany._id }).lean();
       expect(finalPayList.length).toEqual(1);
     });
 

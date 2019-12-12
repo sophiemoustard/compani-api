@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const paySchemaDefinition = require('./schemaDefinitions/pay');
-const { validatePayload } = require('./preHooks/validate');
+const { validatePayload, validateQuery } = require('./preHooks/validate');
 
 const FinalPaySchema = mongoose.Schema({
   ...paySchemaDefinition,
@@ -10,5 +10,6 @@ const FinalPaySchema = mongoose.Schema({
 }, { timestamps: true });
 
 FinalPaySchema.pre('validate', validatePayload);
+FinalPaySchema.pre('find', validateQuery);
 
 module.exports = mongoose.model('FinalPay', FinalPaySchema);
