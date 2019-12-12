@@ -458,13 +458,12 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
 
 exports.getAuxiliariesToPay = async (end, credentials) => {
   const contractRules = {
-    company: get(credentials, 'company._id', null),
     status: COMPANY_CONTRACT,
     startDate: { $lte: end },
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
 
-  return ContractRepository.getAuxiliariesToPay(contractRules, end, 'pays');
+  return ContractRepository.getAuxiliariesToPay(contractRules, end, 'pays', get(credentials, 'company._id', null));
 };
 
 exports.getDraftPay = async (query, credentials) => {
