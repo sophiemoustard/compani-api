@@ -163,7 +163,6 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
   });
 
   it('should return empty array if no service', async () => {
-    console.log(CUSTOMER_CONTRACT);
     const companyId = new ObjectID();
     ServiceMock
       .expects('find')
