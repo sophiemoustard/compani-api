@@ -14,6 +14,7 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
 const cloneDeep = require('lodash/cloneDeep');
 const moment = require('moment');
+const { CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
 
@@ -162,8 +163,14 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
   });
 
   it('should return empty array if no service', async () => {
+    console.log(CUSTOMER_CONTRACT);
     const companyId = new ObjectID();
-    ServiceMock.expects('find').chain('lean').once().returns([]);
+    ServiceMock
+      .expects('find')
+      .withExactArgs({ type: CUSTOMER_CONTRACT, company: companyId })
+      .chain('lean')
+      .once()
+      .returns([]);
     const credentials = { company: { _id: companyId } };
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
@@ -175,12 +182,17 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
     const companyId = new ObjectID();
     const services = [{ _id: '1234567890', nature: 'fixed', company: companyId }];
     const credentials = { company: { _id: companyId } };
-    ServiceMock.expects('find').chain('lean').once().returns(services);
+    ServiceMock
+      .expects('find')
+      .withExactArgs({ type: CUSTOMER_CONTRACT, company: companyId })
+      .chain('lean')
+      .once()
+      .returns(services);
     getCustomersWithSubscriptions.returns([]);
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWith(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] }, company: companyId });
+    sinon.assert.calledWith(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] } });
     sinon.assert.notCalled(subscriptionsAccepted);
     ServiceMock.verify();
   });
@@ -192,7 +204,12 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
       { identity: { firstname: 'Brigitte' }, company: companyId },
     ];
     const services = [{ _id: '1234567890', nature: 'fixed' }];
-    ServiceMock.expects('find').chain('lean').once().returns(services);
+    ServiceMock
+      .expects('find')
+      .withExactArgs({ type: CUSTOMER_CONTRACT, company: companyId })
+      .chain('lean')
+      .once()
+      .returns(services);
     getCustomersWithSubscriptions.returns(customers);
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
     const credentials = { company: { _id: companyId } };
@@ -203,7 +220,7 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
       { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { identity: { firstname: 'Brigitte' }, subscriptionsAccepted: true, company: companyId },
     ]);
-    sinon.assert.calledWith(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] }, company: companyId });
+    sinon.assert.calledWith(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] } });
     sinon.assert.calledTwice(subscriptionsAccepted);
     ServiceMock.verify();
   });
