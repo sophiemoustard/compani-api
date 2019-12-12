@@ -19,7 +19,7 @@ const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
 const UtilsHelper = require('./utils');
 const CustomerRepository = require('../repositories/CustomerRepository');
-const Counter = require('../models/Rum');
+const Rum = require('../models/Rum');
 
 const { language } = translate;
 
@@ -126,7 +126,7 @@ exports.generateRum = async () => {
     prefix: `R${moment().format('YYMM')}`,
   };
   const payload = { seq: 1 };
-  const number = await Counter.findOneAndUpdate(
+  const number = await Rum.findOneAndUpdate(
     query,
     { $inc: payload },
     { new: true, upsert: true, setDefaultsOnInsert: true }
