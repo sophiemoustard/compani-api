@@ -41,8 +41,8 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
   return EventRepository.getCustomerWithBilledEvents(query);
 };
 
-exports.getCustomers = async (query) => {
-  const customers = await CustomerRepository.getCustomersList(query);
+exports.getCustomers = async (query, credentials) => {
+  const customers = await CustomerRepository.getCustomersList(query, get(credentials, 'company._id', null));
   if (customers.length === 0) return [];
 
   for (let i = 0, l = customers.length; i < l; i++) {
@@ -68,8 +68,8 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   if (customerContractServices.length === 0) return [];
 
   const ids = customerContractServices.map(service => service._id);
-  const query = { 'subscriptions.service': { $in: ids }, company: companyId };
-  const customers = await CustomerRepository.getCustomersWithSubscriptions(query);
+  const query = { 'subscriptions.service': { $in: ids } };
+  const customers = await CustomerRepository.getCustomersWithSubscriptions(query, companyId);
   if (customers.length === 0) return [];
 
   for (let i = 0, l = customers.length; i < l; i++) {
@@ -85,12 +85,8 @@ exports.getCustomersWithIntervention = async (credentials) => {
 };
 
 exports.getCustomersWithSubscriptions = async (credentials) => {
-  const query = {
-    subscriptions: { $exists: true, $not: { $size: 0 } },
-    company: get(credentials, 'company._id'),
-  };
-
-  return CustomerRepository.getCustomersWithSubscriptions(query);
+  const query = { subscriptions: { $exists: true, $not: { $size: 0 } } };
+  return CustomerRepository.getCustomersWithSubscriptions(query, get(credentials, 'company._id', null));
 };
 
 exports.getCustomer = async (customerId, credentials) => {

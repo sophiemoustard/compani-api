@@ -6,6 +6,7 @@ const {
   populateDBWithEventsForFollowup,
   populateDBWithEventsForFundingsMonitoring,
   sectorList,
+  customerFromOtherCompany,
 } = require('./seed/statsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -27,6 +28,15 @@ describe('GET /stats/customer-follow-up', () => {
       expect(res.statusCode).toBe(200);
       expect(res.result.data.stats.length).toBe(1);
       expect(res.result.data.stats[0].totalHours).toBe(2.5);
+    });
+
+    it('should not get customer follow up if customer is not from the same company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-follow-up?customer=${customerFromOtherCompany._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(403);
     });
   });
 

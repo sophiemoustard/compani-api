@@ -13,10 +13,10 @@ module.exports = {
     if (!this.company) next(Boom.badRequest());
     next();
   },
-  validateAggregation() {
-    const companyId = get(this, 'options.companyId', null);
-    if (companyId) {
-      this.pipeline().unshift({ $match: { company: companyId } });
-    }
+  validateAggregation(next) {
+    const companyId = get(this, 'options.company', null);
+    if (!companyId) next(Boom.badRequest());
+    this.pipeline().unshift({ $match: { company: companyId } });
+    next();
   },
 };

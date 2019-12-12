@@ -118,7 +118,7 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
       ...matchEvents,
       ...formatFundings,
     ])
-    .option({ companyId });
+    .option({ company: companyId });
 };
 
 exports.getCustomersAndDurationBySector = async (sectors, month) => {
