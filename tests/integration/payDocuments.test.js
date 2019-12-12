@@ -186,6 +186,16 @@ describe('PAY DOCUMENT ROUTES', () => {
         const payDocumentsLength = await PayDocument.countDocuments({ company: authCompany._id });
         expect(response.result.data.payDocuments.length).toBe(payDocumentsLength);
       });
+
+      it('should not get all pay documents user is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/paydocuments?user=${userFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
+      });
     });
 
     describe('Other role', () => {

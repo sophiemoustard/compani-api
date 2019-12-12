@@ -21,3 +21,13 @@ exports.authorizePayDocumentDeletion = async (req) => {
 
   return null;
 };
+
+exports.authorizeGet = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  if (!req.query.user) return null;
+
+  const user = await User.findOne({ _id: req.query.user, company: companyId });
+  if (!user) throw Boom.forbidden();
+  return null;
+};
+
