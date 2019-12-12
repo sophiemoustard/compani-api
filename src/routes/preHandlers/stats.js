@@ -9,7 +9,7 @@ const { language } = translate;
 exports.authorizeGetStats = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (req.query.customer) {
-    const customer = await Customer.findById({ _id: req.query.customer }).lean();
+    const customer = await Customer.findById(req.query.customer).lean();
 
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
     if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
