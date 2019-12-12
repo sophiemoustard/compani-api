@@ -15,7 +15,7 @@ module.exports = {
     next();
   },
   validateAggregation(next) {
-    if (get(this, 'options.allCompanies', null)) next();
+    if (get(this, 'options.allCompanies', null)) return next();
     const companyId = get(this, 'options.company', null);
     if (!companyId) next(Boom.badRequest());
     this.pipeline().unshift({ $match: { company: new ObjectID(companyId) } });
