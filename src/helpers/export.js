@@ -570,15 +570,13 @@ exports.formatHoursWithDiff = (pay, key) => {
 
 exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  let pays = [];
-  let finalPays = [];
   const query = {
     endDate: { $lte: moment(endDate).endOf('M').toDate() },
     startDate: { $gte: moment(startDate).startOf('M').toDate() },
     company: companyId,
   };
 
-  pays = await Pay.find(query)
+  const pays = await Pay.find(query)
     .sort({ startDate: 'desc' })
     .populate({
       path: 'auxiliary',
@@ -587,7 +585,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
     })
     .lean();
 
-  finalPays = await FinalPay.find(query)
+  const finalPays = await FinalPay.find(query)
     .sort({ startDate: 'desc' })
     .populate({
       path: 'auxiliary',
