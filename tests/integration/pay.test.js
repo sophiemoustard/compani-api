@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const { populateDB, auxiliary1, auxiliaryFromOtherCompany } = require('./seed/paySeed');
 const app = require('../../server');
 const Pay = require('../../src/models/Pay');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -119,7 +119,7 @@ describe('PAY ROUTES - POST /pay', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const payList = await Pay.find().lean();
+      const payList = await Pay.find({ company: authCompany._id }).lean();
       expect(payList.length).toEqual(1);
     });
 

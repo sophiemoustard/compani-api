@@ -1,4 +1,5 @@
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 const expect = require('expect');
 const sinon = require('sinon');
 require('sinon-mongoose');
@@ -1246,19 +1247,8 @@ describe('exportPayAndFinalPayHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    const credentials = { company: 'qwertyuiop' };
-    PayMock.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns([]);
-    FinalPayMock.expects('find')
-      .chain('sort')
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns([]);
+    const credentials = { company: { _id: new ObjectID() } };
+
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(null, null, credentials);
 
     expect(exportArray).toEqual([header]);
@@ -1267,23 +1257,44 @@ describe('exportPayAndFinalPayHistory', () => {
   });
 
   it('should return an array with the header and 2 rows', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
+    const startDate = '2019-11-10';
+    const endDate = '2019-12-10';
+    const query = {
+      endDate: { $lte: moment(endDate).endOf('M').toDate() },
+      startDate: { $gte: moment(startDate).startOf('M').toDate() },
+      company: credentials.company._id,
+    };
     PayMock.expects('find')
+      .withExactArgs(query)
       .chain('sort')
+      .withExactArgs({ startDate: 'desc' })
       .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity sector contracts',
+        populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+      })
       .chain('lean')
       .once()
       .returns(pays);
     FinalPayMock.expects('find')
+      .withExactArgs(query)
       .chain('sort')
+      .withExactArgs({ startDate: 'desc' })
       .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity sector contracts',
+        populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+      })
       .chain('lean')
       .once()
       .returns(finalPays);
     formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
     formatSurchargedDetailsForExport.returnsArg(1);
 
-    const exportArray = await ExportHelper.exportPayAndFinalPayHistory(null, null, credentials);
+    const exportArray = await ExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);
 
     expect(exportArray).toEqual([
       header,
