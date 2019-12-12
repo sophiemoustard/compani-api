@@ -22,7 +22,7 @@ exports.authorizePayDocumentDeletion = async (req) => {
   return null;
 };
 
-exports.authorizeGet = async (req) => {
+exports.authorizeGetPayDocuments = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
   if (!req.query.user) return null;
 

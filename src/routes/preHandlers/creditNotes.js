@@ -21,7 +21,7 @@ exports.getCreditNote = async (req) => {
   }
 };
 
-exports.authorizeCreditNoteReading = async (req) => {
+exports.authorizeGetCreditNote = async (req) => {
   const { credentials } = req.auth;
   const { creditNote } = req.pre;
 

@@ -173,7 +173,7 @@ describe('PAY ROUTES - POST /pay', () => {
   });
 });
 
-describe('PAY ROUTES - GET /pay/draft', () => {
+describe('PAY ROUTES - GET /hours-balance-details', () => {
   let authToken = null;
   beforeEach(populateDB);
 

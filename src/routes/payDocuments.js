@@ -8,7 +8,7 @@ const { PAY_DOCUMENT_NATURES } = require('../models/PayDocument');
 const {
   authorizePayDocumentCreation,
   authorizePayDocumentDeletion,
-  authorizeGet,
+  authorizeGetPayDocuments,
 } = require('./preHandlers/payDocuments');
 
 exports.plugin = {
@@ -51,7 +51,7 @@ exports.plugin = {
             user: Joi.objectId(),
           }),
         },
-        pre: [{ method: authorizeGet }],
+        pre: [{ method: authorizeGetPayDocuments }],
       },
       handler: list,
     });
