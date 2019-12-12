@@ -2,7 +2,7 @@ const moment = require('moment');
 const Customer = require('../models/Customer');
 
 exports.getCustomerFundings = async companyId => Customer.aggregate([
-  { $match: { fundings: { $exists: true, $not: { $size: 0 } }, company: companyId } },
+  { $match: { fundings: { $exists: true, $not: { $size: 0 } } } },
   { $unwind: '$fundings' },
   {
     $addFields: {
@@ -33,9 +33,9 @@ exports.getCustomerFundings = async companyId => Customer.aggregate([
   {
     $project: { funding: '$fundings', identity: 1 },
   },
-]);
+]).option({ company: companyId });
 
-exports.getCustomersWithSubscriptions = async query => Customer.aggregate([
+exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.aggregate([
   { $match: query },
   { $unwind: { path: '$subscriptions', preserveNullAndEmptyArrays: true } },
   {
@@ -69,9 +69,9 @@ exports.getCustomersWithSubscriptions = async query => Customer.aggregate([
   },
   { $addFields: { 'customer.subscriptions': '$subscriptions' } },
   { $replaceRoot: { newRoot: '$customer' } },
-]);
+]).option({ company: companyId });
 
-exports.getCustomersList = async query => Customer.aggregate([
+exports.getCustomersList = async (query, companyId) => Customer.aggregate([
   { $match: query },
   { $unwind: { path: '$subscriptions', preserveNullAndEmptyArrays: true } },
   {
@@ -117,4 +117,4 @@ exports.getCustomersList = async query => Customer.aggregate([
       company: 1,
     },
   },
-]);
+]).option({ company: companyId });

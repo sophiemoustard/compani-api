@@ -4,7 +4,7 @@ const Customer = require('../models/Customer');
 const User = require('../models/User');
 const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, INTERVENTION } = require('../helpers/constants');
 
-exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, splitEventsDate) => {
+exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, splitEventsDate, companyId) => {
   const versionMatch = {
     startDate: { $lte: fundingsDate.maxStartDate },
     $or: [
@@ -112,11 +112,13 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     },
   ];
 
-  return Customer.aggregate([
-    ...matchAndPopulateFundings,
-    ...matchEvents,
-    ...formatFundings,
-  ]);
+  return Customer
+    .aggregate([
+      ...matchAndPopulateFundings,
+      ...matchEvents,
+      ...formatFundings,
+    ])
+    .option({ company: companyId });
 };
 
 exports.getCustomersAndDurationBySector = async (sectors, month) => {

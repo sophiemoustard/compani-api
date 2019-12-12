@@ -34,7 +34,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customers = await getCustomers({ ...req.query, company: get(req, 'auth.credentials.company._id', null) });
+    const customers = await getCustomers(req.query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,

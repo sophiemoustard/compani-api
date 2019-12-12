@@ -10,7 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED } = require('../../../src/helpers/constants');
+const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 
 const sectorList = [
   {
@@ -137,6 +137,20 @@ const customerList = [
     },
   },
 ];
+
+const customerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  identity: { lastname: 'toto' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
+};
 
 const eventListForFollowUp = [
   {
@@ -282,7 +296,7 @@ const populateDB = async () => {
   for (const user of userList) {
     await new User(user).save();
   }
-  await Customer.insertMany(customerList);
+  await Customer.insertMany(customerList.concat(customerFromOtherCompany));
   await Service.insertMany(serviceList);
   await Sector.insertMany(sectorList);
   await Contract.insertMany(contractList);
@@ -295,4 +309,5 @@ module.exports = {
   populateDB,
   populateDBWithEventsForFollowup,
   populateDBWithEventsForFundingsMonitoring,
+  customerFromOtherCompany,
 };
