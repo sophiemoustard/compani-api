@@ -12,7 +12,7 @@ exports.authorizePayCreation = async (req) => {
 
 exports.authorizeGetDetails = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const auxiliary = await User.findOne({ _id: req.query.auxiliary, company: companyId });
+  const auxiliary = await User.findOne({ _id: req.query.auxiliary, company: companyId }).lean();
   if (!auxiliary) throw Boom.forbidden();
   return null;
 };

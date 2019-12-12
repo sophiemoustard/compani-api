@@ -187,7 +187,7 @@ describe('PAY DOCUMENT ROUTES', () => {
         expect(response.result.data.payDocuments.length).toBe(payDocumentsLength);
       });
 
-      it('should not get all pay documents user is not from the same company', async () => {
+      it('should not get all pay documents if user is not from the same company', async () => {
         const response = await app.inject({
           method: 'GET',
           url: `/paydocuments?user=${userFromOtherCompany._id}`,
