@@ -1248,10 +1248,41 @@ describe('exportPayAndFinalPayHistory', () => {
 
   it('should return an array containing just the header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    PayMock.expects('find').never();
-    FinalPayMock.expects('find').never();
+    const startDate = '2019-11-10';
+    const endDate = '2019-12-10';
+    const query = {
+      endDate: { $lte: moment(endDate).endOf('M').toDate() },
+      startDate: { $gte: moment(startDate).startOf('M').toDate() },
+      company: credentials.company._id,
+    };
+    PayMock.expects('find')
+      .withExactArgs(query)
+      .chain('sort')
+      .withExactArgs({ startDate: 'desc' })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity sector contracts',
+        populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+      })
+      .chain('lean')
+      .once()
+      .returns([]);
+    FinalPayMock.expects('find')
+      .withExactArgs(query)
+      .chain('sort')
+      .withExactArgs({ startDate: 'desc' })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity sector contracts',
+        populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+      })
+      .chain('lean')
+      .once()
+      .returns([]);
 
-    const exportArray = await ExportHelper.exportPayAndFinalPayHistory(null, null, credentials);
+    const exportArray = await ExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);
 
     expect(exportArray).toEqual([header]);
     PayMock.verify();
