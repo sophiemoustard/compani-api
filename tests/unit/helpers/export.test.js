@@ -1248,6 +1248,8 @@ describe('exportPayAndFinalPayHistory', () => {
 
   it('should return an array containing just the header', async () => {
     const credentials = { company: { _id: new ObjectID() } };
+    PayMock.expects('find').never();
+    FinalPayMock.expects('find').never();
 
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(null, null, credentials);
 
