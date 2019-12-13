@@ -5,6 +5,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { list, listWithDetails } = require('../controllers/balanceController');
+const { authorizeGetDetails } = require('./preHandlers/balances');
 
 exports.plugin = {
   name: 'routes-balances',
@@ -35,6 +36,7 @@ exports.plugin = {
             customer: Joi.objectId().required(),
           },
         },
+        pre: [{ method: authorizeGetDetails }],
       },
       handler: listWithDetails,
     });

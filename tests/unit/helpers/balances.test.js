@@ -409,7 +409,7 @@ describe('getBalances', () => {
       { _id: { customer: customers[2] } },
     ];
     findBillsAmountsGroupedByClient.returns([]);
-    findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer, customerId, maxDate);
+    findCNAmountsGroupedByCustomer.returns(cnAmountsGroupedByCustomer);
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
 
