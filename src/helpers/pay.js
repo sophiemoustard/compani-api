@@ -91,7 +91,7 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
   if (!contract) throw Boom.badRequest();
 
-  const events = auxiliaryEvents[0] ? auxiliaryEvents[0] : { events: [], absenses: [] };
+  const events = auxiliaryEvents[0] ? auxiliaryEvents[0] : { events: [], absences: [] };
   const draft = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, contract, events, prevPayWithDiff, company, query, distanceMatrix, surcharges);
 
   return draft ? { ...draft, customersCount } : null;
