@@ -112,6 +112,7 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
+        pre: [{ method: authorizeCompanyUpdate }],
       },
     });
 
