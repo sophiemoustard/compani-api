@@ -1740,13 +1740,13 @@ describe('getAuxiliariesToPay', () => {
     sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        company: '1234567890',
         status: 'contract_with_company',
         startDate: { $lte: end },
         $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
       },
       end,
-      'pays'
+      'pays',
+      '1234567890'
     );
   });
 });

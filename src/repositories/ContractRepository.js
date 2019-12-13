@@ -2,7 +2,7 @@ const moment = require('moment');
 const Contract = require('../models/Contract');
 const { COMPANY_CONTRACT } = require('../helpers/constants');
 
-exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contract.aggregate([
+exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyId) => Contract.aggregate([
   { $match: { ...contractRules } },
   { $group: { _id: '$user', contracts: { $push: '$$ROOT' } } },
   {
@@ -67,7 +67,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection) => Contr
     },
   },
   { $unwind: { path: '$prevPay', preserveNullAndEmptyArrays: true } },
-]);
+]).option({ company: companyId });
 
 exports.getUserEndedCompanyContracts = async (contractUserId, companyId) => Contract.find(
   {

@@ -167,12 +167,12 @@ describe('getDraftPay', () => {
     sinon.assert.calledWith(
       getAuxiliariesToPay,
       {
-        company: '1234567890',
         status: 'contract_with_company',
         endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),
-      'finalpays'
+      'finalpays',
+      '1234567890'
     );
   });
 
@@ -221,12 +221,12 @@ describe('getDraftPay', () => {
     sinon.assert.calledWith(
       getAuxiliariesToPay,
       {
-        company: credentials.company._id,
         status: 'contract_with_company',
         endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),
-      'finalpays'
+      'finalpays',
+      credentials.company._id
     );
     sinon.assert.calledWith(
       getDraftFinalPayByAuxiliary,
