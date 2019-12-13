@@ -15,6 +15,7 @@ const {
   eventList,
   billThirdPartyPayer,
   otherCompanyBillThirdPartyPayer,
+  customerFromOtherCompany,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
@@ -60,6 +61,16 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
           }),
         }),
       ]));
+    });
+
+    it('should not return all draft bills if customer is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/bills/drafts?${qs.stringify(query)}&customer=${customerFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const falsyAssertions = [
@@ -527,6 +538,16 @@ describe('BILL ROUTES - GET /bills', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.bills.length).toBe(billsList.length);
+    });
+
+    it('should not get all bills if customer is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/bills?customer=${customerFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
   });
 

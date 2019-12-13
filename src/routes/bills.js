@@ -9,7 +9,7 @@ const {
   list,
   generateBillPdf,
 } = require('../controllers/billsController');
-const { getBill, authorizeGetBill, authorizeBillsCreation } = require('./preHandlers/bills');
+const { getBill, authorizeGetBill, authorizeGetBillPdf, authorizeBillsCreation } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
@@ -29,6 +29,7 @@ exports.plugin = {
             customer: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeGetBill }],
       },
       handler: draftBillsList,
     });
@@ -45,6 +46,7 @@ exports.plugin = {
             customer: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeGetBill }],
       },
       handler: list,
     });
@@ -58,7 +60,7 @@ exports.plugin = {
         },
         pre: [
           { method: getBill, assign: 'bill' },
-          { method: authorizeGetBill },
+          { method: authorizeGetBillPdf },
         ],
       },
       handler: generateBillPdf,
