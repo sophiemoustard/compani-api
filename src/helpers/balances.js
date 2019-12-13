@@ -92,12 +92,12 @@ exports.getBalancesFromPayments = (payment) => {
   return bill;
 };
 
-exports.getBalances = async (credentials, customerId = null, maxDate = null) => {
+exports.getBalances = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const bills = await BillRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
-  const customerCNAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(companyId, customerId, maxDate);
-  const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId, customerId, maxDate);
-  const payments = await PaymentRepository.findAmountsGroupedByClient(companyId, customerId, maxDate);
+  const bills = await BillRepository.findAmountsGroupedByClient(companyId);
+  const customerCNAggregation = await CreditNoteRepository.findAmountsGroupedByCustomer(companyId);
+  const tppCNAggregation = await CreditNoteRepository.findAmountsGroupedByTpp(companyId);
+  const payments = await PaymentRepository.findAmountsGroupedByClient(companyId);
 
   const balances = [];
   const clients = [];

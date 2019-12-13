@@ -73,30 +73,9 @@ describe('BALANCES ROUTES - GET /balances', () => {
         }),
       ]));
     });
-
-    it('should not get all clients balances is customer si not from the same company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/balances?customer=${customerFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
   });
 
   describe('Other roles', () => {
-    it('should return customer balance if I am its helper', async () => {
-      const helper = balanceUserList[0];
-      const helperToken = await getTokenByCredentials(helper.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/balances?customer=${helper.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
