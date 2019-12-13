@@ -365,17 +365,17 @@ describe('getBalances', () => {
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
 
-    const balances = await BalanceHelper.getBalances(credentials);
+    const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
     expect(balances).toEqual([]);
 
     sinon.assert.notCalled(getBalance);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id);
+    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
   it('should return balances from bills', async () => {
@@ -389,17 +389,17 @@ describe('getBalances', () => {
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
 
-    const balances = await BalanceHelper.getBalances(credentials);
+    const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
     expect(balances).toEqual(billsAmountsGroupedByClient);
 
     sinon.assert.callCount(getBalance, billsAmountsGroupedByClient.length);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id);
+    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
   it('should return balances from customer credit notes', async () => {
@@ -413,17 +413,17 @@ describe('getBalances', () => {
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns([]);
 
-    const balances = await BalanceHelper.getBalances(credentials);
+    const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
     expect(balances).toEqual(cnAmountsGroupedByCustomer);
 
     sinon.assert.notCalled(getBalance);
     sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByCustomer.length);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id);
+    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
   it('should return balances from TPP credit notes', async () => {
@@ -436,17 +436,17 @@ describe('getBalances', () => {
     findCNAmountsGroupedByTpp.returns(cnAmountsGroupedByTpp);
     findPaymentsAmountsGroupedByClient.returns([]);
 
-    const balances = await BalanceHelper.getBalances(credentials);
+    const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
     expect(balances).toEqual(cnAmountsGroupedByTpp);
 
     sinon.assert.notCalled(getBalance);
     sinon.assert.callCount(getBalancesFromCreditNotes, cnAmountsGroupedByTpp.length);
     sinon.assert.notCalled(getBalancesFromPayments);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id);
+    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
   it('should return balances from payments', async () => {
@@ -462,17 +462,17 @@ describe('getBalances', () => {
     findCNAmountsGroupedByTpp.returns([]);
     findPaymentsAmountsGroupedByClient.returns(paymentsAmountsGroupedByClient);
 
-    const balances = await BalanceHelper.getBalances(credentials);
+    const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
     expect(balances).toEqual(paymentsAmountsGroupedByClient);
 
     sinon.assert.notCalled(getBalance);
     sinon.assert.notCalled(getBalancesFromCreditNotes);
     sinon.assert.callCount(getBalancesFromPayments, paymentsAmountsGroupedByClient.length);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id);
+    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 
   it('should return balances from bills, credit notes and payments', async () => {
@@ -507,7 +507,7 @@ describe('getBalances', () => {
       { _id: { customer: customers[1], tpp: tpps[1] } },
     ];
 
-    const balances = await BalanceHelper.getBalances(credentials);
+    const balances = await BalanceHelper.getBalances(credentials, customerId, maxDate);
 
     expect(balances).toEqual(expect.arrayContaining(allAmounts));
     expect(balances.length).toEqual(allAmounts.length);
@@ -515,10 +515,10 @@ describe('getBalances', () => {
     sinon.assert.callCount(getBalance, 3);
     sinon.assert.callCount(getBalancesFromCreditNotes, 1);
     sinon.assert.callCount(getBalancesFromPayments, 1);
-    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id);
-    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id);
-    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id);
+    sinon.assert.calledWithExactly(findBillsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByCustomer, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findCNAmountsGroupedByTpp, credentials.company._id, customerId, maxDate);
+    sinon.assert.calledWithExactly(findPaymentsAmountsGroupedByClient, credentials.company._id, customerId, maxDate);
   });
 });
 

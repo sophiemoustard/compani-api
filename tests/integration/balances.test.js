@@ -1,5 +1,12 @@
 const expect = require('expect');
-const { populateDB, balanceCustomerList, balanceThirdPartyPayer, balanceBillList, balanceUserList, customerFromOtherCompany } = require('./seed/balanceSeed');
+const {
+  populateDB,
+  balanceCustomerList,
+  balanceThirdPartyPayer,
+  balanceBillList,
+  balanceUserList,
+  customerFromOtherCompany,
+} = require('./seed/balanceSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const app = require('../../server');
 
@@ -108,14 +115,17 @@ describe('BALANCES ROUTES - GET /details', () => {
     });
 
     it('should get all clients balances', async () => {
+      const customerId = balanceCustomerList[0]._id;
       const response = await app.inject({
         method: 'GET',
-        url: `/balances/details?customer=${helper.customers[0]}&startDate=2019-10-10&endDate=2019-11-10`,
+        url: `/balances/details?customer=${customerId}&startDate=2019-10-10&endDate=2019-11-10`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.balances).toBeDefined();
+      expect(response.result.data.balances
+        .every(b => b.customer._id.toHexString() === customerId.toHexString())).toBeTruthy();
       expect(response.result.data.bills).toBeDefined();
       expect(response.result.data.payments).toBeDefined();
       expect(response.result.data.creditNotes).toBeDefined();
