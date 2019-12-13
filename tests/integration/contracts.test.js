@@ -19,6 +19,7 @@ const {
   otherCompanyContract,
   customerFromOtherCompany,
   otherCompanyContractUser,
+  userFromOtherCompany,
 } = require('./seed/contractsSeed');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
@@ -65,6 +66,28 @@ describe('CONTRACTS ROUTES', () => {
       expect(response.result.data.contracts).toBeDefined();
       expect(response.result.data.contracts.length)
         .toBe(contractsList.filter(contract => contract.user === user._id).length);
+    });
+
+    it('should not return the contracts if user is not from the company', async () => {
+      authToken = await getToken('auxiliary');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/contracts?user=${userFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not return the contracts if customer is not from the company', async () => {
+      authToken = await getToken('auxiliary');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/contracts?user=${customerFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const roles = [

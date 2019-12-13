@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 const Contract = require('../../models/Contract');
 const User = require('../../models/User');
 const Customer = require('../../models/Customer');
@@ -43,4 +44,12 @@ exports.authorizeContractUpdate = async (req) => {
   if (!req.path.match(/upload/) && !!contract.endDate) throw Boom.forbidden();
 
   return null;
+};
+
+exports.authorizeGetContract = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId });
+  const user = await User.findOne({ _id: req.query.user, company: companyId });
+  if ((customer || !req.query.customer) && (user || !req.query.user)) return null;
+  throw Boom.forbidden();
 };

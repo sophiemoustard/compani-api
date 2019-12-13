@@ -17,7 +17,7 @@ const {
   receiveSignatureEvents,
   getStaffRegister,
 } = require('../controllers/contractController');
-const { getContract, authorizeContractUpdate, authorizeContractCreation } = require('./preHandlers/contracts');
+const { getContract, authorizeContractUpdate, authorizeContractCreation, authorizeGetContract } = require('./preHandlers/contracts');
 
 exports.plugin = {
   name: 'contract-routes',
@@ -36,6 +36,7 @@ exports.plugin = {
             endDate: Joi.date(),
           }),
         },
+        pre: [{ method: authorizeGetContract }],
       },
       handler: list,
     });

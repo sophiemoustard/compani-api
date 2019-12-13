@@ -92,6 +92,18 @@ const otherCompanyContract = {
   ],
 };
 
+const userFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Test7', lastname: 'Test7' },
+  local: { email: 'test@othercompany.io', password: '123456' },
+  inactivityDate: null,
+  employee_id: 123456789,
+  refreshToken: uuidv4(),
+  role: rolesList[0]._id,
+  contracts: [new ObjectID()],
+  company: otherCompany._id,
+};
+
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompanyContract._id,
@@ -227,8 +239,7 @@ const populateDB = async () => {
   await Event.deleteMany({});
 
   await populateDBForAuthentication();
-  await new User(contractUser).save();
-  await new User(otherCompanyContractUser).save();
+  await User.insertMany([contractUser, otherCompanyContractUser, userFromOtherCompany]);
   await new Customer(contractCustomer).save();
   await new Customer(customerFromOtherCompany).save();
   await Contract.insertMany([...contractsList, otherCompanyContract]);
@@ -244,4 +255,5 @@ module.exports = {
   otherCompanyContract,
   customerFromOtherCompany,
   otherCompanyContractUser,
+  userFromOtherCompany,
 };
