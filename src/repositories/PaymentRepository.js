@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const Payment = require('../models/Payment');
 
 exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMax = null) => {
-  const rules = [{ company: new ObjectID(companyId) }];
+  const rules = [];
   if (customerId) rules.push({ customer: new ObjectID(customerId) });
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
@@ -41,7 +41,7 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
         payments: 1,
       },
     },
-  ]);
+  ]).option({ company: companyId });
 
   return paymentsAmounts;
 };

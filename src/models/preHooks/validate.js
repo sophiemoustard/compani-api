@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const get = require('lodash/get');
+const { ObjectID } = require('mongodb');
 
 module.exports = {
   validateQuery(next) {
@@ -14,9 +15,10 @@ module.exports = {
     next();
   },
   validateAggregation(next) {
+    if (get(this, 'options.allCompanies', null)) return next();
     const companyId = get(this, 'options.company', null);
     if (!companyId) next(Boom.badRequest());
-    this.pipeline().unshift({ $match: { company: companyId } });
+    this.pipeline().unshift({ $match: { company: new ObjectID(companyId) } });
     next();
   },
 };
