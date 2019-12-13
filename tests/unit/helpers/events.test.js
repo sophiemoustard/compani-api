@@ -713,7 +713,6 @@ describe('deleteList', () => {
     const startDate = '2019-10-10';
     const endDate = '2019-10-19';
     const query = {
-      company: credentials.company._id,
       customer: customerId,
       startDate: { $gte: moment('2019-10-10').toDate(), $lte: moment('2019-10-19').endOf('d').toDate() },
     };
@@ -755,7 +754,7 @@ describe('deleteList', () => {
       },
     ];
     EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true })
+      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
       .once()
       .returns(0);
 
@@ -765,7 +764,7 @@ describe('deleteList', () => {
 
     await EventHelper.deleteList(customerId, startDate, endDate, credentials);
     sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
-    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
+    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
     sinon.assert.notCalled(deleteRepetitionStub);
   });
 
@@ -774,7 +773,6 @@ describe('deleteList', () => {
     const query = {
       customer: customerId,
       startDate: { $gte: moment('2019-10-07').toDate() },
-      company: credentials.company._id,
     };
     const repetitionParentId = new ObjectID();
     const events = [
@@ -815,7 +813,7 @@ describe('deleteList', () => {
       },
     ];
     EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true })
+      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
       .once()
       .returns(0);
 
@@ -827,7 +825,7 @@ describe('deleteList', () => {
 
     await EventHelper.deleteList(customerId, startDate, undefined, credentials);
     sinon.assert.calledWithExactly(deleteEventsStub, eventsGroupedByParentId[0].events, credentials);
-    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
+    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
     sinon.assert.calledWithExactly(deleteRepetitionStub, eventsGroupedByParentId[1].events[0], credentials);
   });
 
@@ -836,7 +834,6 @@ describe('deleteList', () => {
     const query = {
       customer: customerId,
       startDate: { $gte: moment('2019-10-07').toDate() },
-      company: credentials.company._id,
     };
     const repetitionParentId = new ObjectID();
     const events = [
@@ -860,7 +857,7 @@ describe('deleteList', () => {
       },
     ];
     EventModel.expects('countDocuments')
-      .withExactArgs({ ...query, isBilled: true })
+      .withExactArgs({ ...query, isBilled: true, company: credentials.company._id })
       .once()
       .returns(0);
 
@@ -871,7 +868,7 @@ describe('deleteList', () => {
 
     await EventHelper.deleteList(customerId, startDate, undefined, credentials);
     sinon.assert.notCalled(deleteEventsStub);
-    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query);
+    sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
     sinon.assert.calledWithExactly(
       deleteRepetitionStub,
       { ...eventsGroupedByParentId[0].events[0], repetition: { frequency: EVERY_WEEK, parentId: eventsGroupedByParentId[0].events[0].repetition.parentId } },

@@ -11,7 +11,7 @@ const {
   NOT_INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
 
-const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
+const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregate([
   { $match: rules },
   {
     $lookup: {
@@ -93,11 +93,11 @@ const getEventsGroupedBy = async (rules, groupById) => Event.aggregate([
       events: { $push: '$$ROOT' },
     },
   },
-]);
+]).option({ company: companyId });
 
-exports.getEventsGroupedByAuxiliaries = async rules => getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] });
+exports.getEventsGroupedByAuxiliaries = async (rules, companyId) => getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] }, companyId);
 
-exports.getEventsGroupedByCustomers = async rules => getEventsGroupedBy(rules, '$customer._id');
+exports.getEventsGroupedByCustomers = async (rules, companyId) => getEventsGroupedBy(rules, '$customer._id', companyId);
 
 exports.getEventList = rules => Event.find(rules)
   .populate({
@@ -168,7 +168,6 @@ exports.updateEvent = async (eventId, set, unset, credentials) => Event
 
 exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
   const rules = [
-    { company: new ObjectID(companyId) },
     { type: { $in: [INTERVENTION, INTERNAL_HOUR] } },
     {
       $or: [
@@ -252,7 +251,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
       },
     },
     { $sort: { startDate: -1 } },
-  ]);
+  ]).option({ company: companyId });
 };
 
 exports.getAbsencesForExport = async (start, end, credentials) => {
@@ -274,7 +273,6 @@ exports.getCustomerSubscriptions = (contract, companyId) => Event.aggregate([
   {
     $match: {
       $and: [
-        { company: new ObjectID(companyId) },
         { startDate: { $gt: new Date(contract.endDate) } },
         { auxiliary: new ObjectID(contract.user) },
         { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
@@ -319,9 +317,9 @@ exports.getCustomerSubscriptions = (contract, companyId) => Event.aggregate([
       sub: 1,
     },
   },
-]);
+]).option({ company: companyId });
 
-exports.getEventsGroupedByParentId = async rules => Event.aggregate([
+exports.getEventsGroupedByParentId = async (rules, companyId) => Event.aggregate([
   { $match: rules },
   {
     $group: {
@@ -334,23 +332,21 @@ exports.getEventsGroupedByParentId = async rules => Event.aggregate([
   {
     $group: { _id: '$_id', events: { $push: '$events' } },
   },
-]);
+]).option({ company: companyId });
 
 
 exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds, companyId) => exports.getEventsGroupedByParentId({
   startDate: { $gt: maxDate },
   auxiliary,
-  company: new ObjectID(companyId),
   subscription: { $in: subIds },
   $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
-});
+}, companyId);
 
 exports.getEventsExceptInterventions = async (startDate, auxiliary, companyId) => exports.getEventsGroupedByParentId({
   startDate: { $gt: startDate },
   auxiliary,
-  company: new ObjectID(companyId),
   subscription: { $exists: false },
-});
+}, companyId);
 
 exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({
   type: ABSENCE,
@@ -362,7 +358,6 @@ exports.getAbsences = async (auxiliaryId, maxEndDate, companyId) => Event.find({
 
 exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
   const rules = [
-    { company: new ObjectID(companyId) },
     { startDate: { $lt: end } },
     { endDate: { $gt: start } },
     {
@@ -473,12 +468,11 @@ exports.getEventsToPay = async (start, end, auxiliaries, companyId) => {
   return Event.aggregate([
     ...match,
     ...group,
-  ]);
+  ]).option({ company: companyId });
 };
 
 exports.getEventsToBill = async (dates, customerId, companyId) => {
   const rules = [
-    { company: new ObjectID(companyId) },
     { endDate: { $lt: dates.endDate } },
     { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
     { auxiliary: { $exists: true, $ne: '' } },
@@ -574,10 +568,10 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
       },
     },
     { $sort: { 'customer.identity.lastname': 1 } },
-  ]);
+  ]).option({ company: companyId });
 };
 
-exports.getCustomersFromEvent = async query => Event.aggregate([
+exports.getCustomersFromEvent = async (query, companyId) => Event.aggregate([
   { $match: query },
   {
     $lookup: {
@@ -649,9 +643,9 @@ exports.getCustomersFromEvent = async query => Event.aggregate([
   },
   { $addFields: { 'customer.subscriptions': '$subscriptions' } },
   { $replaceRoot: { newRoot: '$customer' } },
-]);
+]).option({ company: companyId });
 
-exports.getCustomerWithBilledEvents = async query => Event.aggregate([
+exports.getCustomersWithBilledEvents = async (query, companyId) => Event.aggregate([
   { $match: query },
   { $group: { _id: { SUBS: '$subscription', CUSTOMER: '$customer', TPP: '$bills.thirdPartyPayer' } } },
   {
@@ -732,7 +726,13 @@ exports.getCustomerWithBilledEvents = async query => Event.aggregate([
       'sub.service.version': 0,
     },
   },
-  { $group: { _id: { CUS: '$customer' }, subscriptions: { $addToSet: '$sub' }, thirdPartyPayers: { $addToSet: '$thirdPartyPayer' } } },
+  {
+    $group: {
+      _id: { CUS: '$customer' },
+      subscriptions: { $addToSet: '$sub' },
+      thirdPartyPayers: { $addToSet: '$thirdPartyPayer' },
+    },
+  },
   {
     $project: {
       _id: '$_id.CUS._id',
@@ -741,12 +741,11 @@ exports.getCustomerWithBilledEvents = async query => Event.aggregate([
       thirdPartyPayers: 1,
     },
   },
-]);
+]).option({ company: companyId });
 
 exports.getCustomersWithIntervention = async companyId => Event.aggregate([
   {
     $match: {
-      company: new ObjectID(companyId),
       type: INTERVENTION,
       $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
     },
@@ -763,4 +762,4 @@ exports.getCustomersWithIntervention = async companyId => Event.aggregate([
   { $unwind: { path: '$customer' } },
   { $replaceRoot: { newRoot: '$customer' } },
   { $project: { _id: 1, identity: { firstname: 1, lastname: 1 } } },
-]);
+]).option({ company: companyId });

@@ -278,7 +278,7 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
   if (await Event.countDocuments({ ...query, isBilled: true }) > 0) throw Boom.conflict('Some events are already billed');
 
-  const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query);
+  const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(_.omit(query, 'company'), companyId);
   for (const group of eventsGroupedByParentId) {
     if (!group._id || endDate) await exports.deleteEvents(group.events, credentials);
     else {

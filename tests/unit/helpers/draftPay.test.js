@@ -1746,7 +1746,7 @@ describe('getAuxiliariesToPay', () => {
       },
       end,
       'pays',
-      '1234567890'
+      credentials.company._id
     );
   });
 });

@@ -43,23 +43,26 @@ describe('getCustomerBySector', () => {
     const queryBySector = { ...query, endDate, sector };
     await CustomerHelper.getCustomerBySector(queryBySector, credentials);
     sinon.assert.calledWith(getListQuery, { startDate, endDate, sector, type: 'intervention' });
-    sinon.assert.calledWith(getCustomersFromEvent, { ...query, company: companyId });
+    sinon.assert.calledWith(getCustomersFromEvent, query, companyId);
   });
 });
 
 describe('getCustomersWithBilledEvents', () => {
-  let getCustomerWithBilledEvents;
+  let getCustomersWithBilledEvents;
   beforeEach(() => {
-    getCustomerWithBilledEvents = sinon.stub(EventRepository, 'getCustomerWithBilledEvents');
+    getCustomersWithBilledEvents = sinon.stub(EventRepository, 'getCustomersWithBilledEvents');
   });
   afterEach(() => {
-    getCustomerWithBilledEvents.restore();
+    getCustomersWithBilledEvents.restore();
   });
 
   it('should return customer by sector', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     await CustomerHelper.getCustomersWithBilledEvents(credentials);
-    sinon.assert.calledWith(getCustomerWithBilledEvents, { isBilled: true, type: 'intervention', company: credentials.company._id });
+    sinon.assert.calledWith(
+      getCustomersWithBilledEvents,
+      { isBilled: true, type: 'intervention' }, credentials.company._id
+    );
   });
 });
 

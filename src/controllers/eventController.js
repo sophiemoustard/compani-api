@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const moment = require('moment');
+const omit = require('lodash/omit');
 const translate = require('../helpers/translate');
 const EventsHelper = require('../helpers/events');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
@@ -16,9 +17,9 @@ const list = async (req) => {
 
     let events;
     if (groupBy === CUSTOMER) {
-      events = await getEventsGroupedByCustomers(query);
+      events = await getEventsGroupedByCustomers(omit(query, 'company'), query.company);
     } else if (groupBy === AUXILIARY) {
-      events = await getEventsGroupedByAuxiliaries(query);
+      events = await getEventsGroupedByAuxiliaries(omit(query, 'company'), query.company);
     } else {
       events = await getEventList(query);
       events = await EventsHelper.populateEvents(events);
