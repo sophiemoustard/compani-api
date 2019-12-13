@@ -6,10 +6,9 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   draftBillsList,
   createBills,
-  list,
   generateBillPdf,
 } = require('../controllers/billsController');
-const { getBill, authorizeGetBill, authorizeBillsCreation } = require('./preHandlers/bills');
+const { getBill, authorizeGetBill, authorizeGetBillPdf, authorizeBillsCreation } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
@@ -29,24 +28,9 @@ exports.plugin = {
             customer: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeGetBill }],
       },
       handler: draftBillsList,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/',
-      options: {
-        auth: { scope: ['bills:read', 'customer-{query.customer}'] },
-        validate: {
-          query: {
-            endDate: Joi.date(),
-            startDate: Joi.date(),
-            customer: Joi.objectId(),
-          },
-        },
-      },
-      handler: list,
     });
 
     server.route({
@@ -58,7 +42,7 @@ exports.plugin = {
         },
         pre: [
           { method: getBill, assign: 'bill' },
-          { method: authorizeGetBill },
+          { method: authorizeGetBillPdf },
         ],
       },
       handler: generateBillPdf,

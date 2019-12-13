@@ -39,20 +39,6 @@ const createBills = async (req) => {
   }
 };
 
-const list = async (req) => {
-  try {
-    const bills = await BillHelper.getBills(req.query, req.auth.credentials);
-
-    return {
-      message: bills.length ? translate[language].billsFound : translate[language].billsNotFound,
-      data: { bills },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const generateBillPdf = async (req, h) => {
   try {
     const bill = await Bill.findOne({ _id: req.params._id, origin: COMPANI })
@@ -79,6 +65,5 @@ const generateBillPdf = async (req, h) => {
 module.exports = {
   draftBillsList,
   createBills,
-  list,
   generateBillPdf,
 };
