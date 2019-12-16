@@ -22,10 +22,11 @@ exports.getEvent = async (req) => {
 
 exports.authorizeEventDeletion = async (req) => {
   const { credentials } = req.auth;
-  const event = req.pre.event || req.payload;
+  const { event } = req.pre;
 
   const canEditEvent = credentials.scope.includes('events:edit');
-  const isOwnEvent = credentials.scope.includes('events:own:edit') && event.auxiliary === credentials._id;
+  const isOwnEvent = event.auxiliary && credentials.scope.includes('events:own:edit') &&
+    event.auxiliary.toHexString() === credentials._id;
   if (!canEditEvent && !isOwnEvent) throw Boom.forbidden();
 
   return null;
