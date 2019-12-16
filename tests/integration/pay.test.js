@@ -1,6 +1,12 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateDB, auxiliary1, auxiliaryFromOtherCompany } = require('./seed/paySeed');
+const {
+  populateDB,
+  auxiliary1,
+  auxiliaryFromOtherCompany,
+  sectorId,
+  sectorFromOtherCompany,
+} = require('./seed/paySeed');
 const app = require('../../server');
 const Pay = require('../../src/models/Pay');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
@@ -217,6 +223,59 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/pay/hours-balance-details?auxiliary=${auxiliary1._id}&month=10-2019`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PAY ROUTES - GET /hours-to-work', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should get hours to work by sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectorId}&month=122018`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursToWork).toBeDefined();
+    });
+
+    it('should not get hours to work if user is not from the same company as sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectorFromOtherCompany._id}&month=122018`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/pay/hours-to-work?sector=${sectorId}&month=122018`,
           headers: { 'x-access-token': authToken },
         });
 
