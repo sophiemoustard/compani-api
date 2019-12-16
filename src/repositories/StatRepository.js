@@ -2,7 +2,13 @@ const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Customer = require('../models/Customer');
 const User = require('../models/User');
-const { HOURLY, MONTHLY, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID, INTERVENTION } = require('../helpers/constants');
+const {
+  HOURLY,
+  MONTHLY,
+  INVOICED_AND_PAID,
+  INVOICED_AND_NOT_PAID,
+  INTERVENTION,
+} = require('../helpers/constants');
 
 exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, splitEventsDate, companyId) => {
   const versionMatch = {
@@ -94,8 +100,12 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
   const formatFundings = [
     {
       $addFields: {
-        prevMonthEvents: { $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', splitEventsDate] } } },
-        currentMonthEvents: { $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', splitEventsDate] } } },
+        prevMonthEvents: {
+          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', splitEventsDate] } },
+        },
+        currentMonthEvents: {
+          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', splitEventsDate] } },
+        },
       },
     },
     {
@@ -142,6 +152,13 @@ exports.getCustomersAndDurationBySector = async (sectors, month) => {
                   { $gte: ['$startDate', minStartDate] },
                   { $lt: ['$startDate', maxStartDate] },
                   { $eq: ['$type', INTERVENTION] },
+                  {
+                    $or: [
+                      { $eq: ['$isCancelled', false] },
+                      { $eq: ['$cancel.condition', INVOICED_AND_NOT_PAID] },
+                      { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
+                    ],
+                  },
                 ],
               },
             },
