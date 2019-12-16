@@ -1,7 +1,5 @@
 const sinon = require('sinon');
 const flat = require('flat');
-const Boom = require('boom');
-const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Company = require('../../../src/models/Company');
 const CompanyHelper = require('../../../src/helpers/companies');
@@ -47,7 +45,7 @@ describe('uploadFile', () => {
     CompanyModel.restore();
     addStub.restore();
     getFileByIdStub.restore();
-});
+  });
 
   it('should upload a file', async () => {
     const payload = { fileName: 'mandat_signe', contractWithCompany: 'true' };
@@ -76,16 +74,6 @@ describe('uploadFile', () => {
       type: undefined,
     });
     sinon.assert.calledWithExactly(getFileByIdStub, { fileId: uploadedFile.id });
-  });
-
-  it('should return a 403 if payload does not contain the right fields', async () => {
-    try {
-      CompanyModel.expects('findOneAndUpdate').never();
-      await CompanyHelper.uploadFile({}, {});
-      sinon.assert.notCalled(addStub);
-      sinon.assert.notCalled(getFileByIdStub);
-    } catch (e) {
-      expect(e).toEqual(Boom.forbidden('Upload not allowed'));
-    }
+    CompanyModel.verify();
   });
 });

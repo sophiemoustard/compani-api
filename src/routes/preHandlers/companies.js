@@ -19,7 +19,6 @@ exports.companyExists = async (req) => {
 
 exports.authorizeCompanyUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  if (!companyId) throw Boom.forbidden();
-  if (req.params._id === companyId.toHexString()) return null;
-  throw Boom.forbidden();
+  if (!companyId || req.params._id !== companyId.toHexString()) throw Boom.forbidden();
+  return null;
 };
