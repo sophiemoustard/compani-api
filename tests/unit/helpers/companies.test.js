@@ -48,7 +48,7 @@ describe('uploadFile', () => {
   });
 
   it('should upload a file', async () => {
-    const payload = { fileName: 'mandat_signe', contractWithCompany: 'true' };
+    const payload = { fileName: 'mandat_signe', file: 'true', type: 'contractWithCompany' };
     const params = { _id: new ObjectID(), driveId: new ObjectID() };
     const uploadedFile = { id: new ObjectID() };
     const driveFileInfo = { webViewLink: 'test' };

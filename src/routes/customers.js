@@ -455,18 +455,17 @@ exports.plugin = {
           },
           payload: Joi.object({
             fileName: Joi.string().required(),
-            signedQuote: Joi.any(),
-            signedMandate: Joi.any(),
-            financialCertificates: Joi.any(),
+            file: Joi.any().required(),
+            type: Joi.string().valid('signedQuote', 'signedMandate', 'financialCertificates').required(),
             quoteId: Joi.string().when(
-              'signedQuote',
-              { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }
+              'type',
+              { is: 'signedQuote', then: Joi.required(), otherwise: Joi.forbidden() }
             ),
             mandateId: Joi.string().when(
-              'signedMandate',
-              { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }
+              'type',
+              { is: 'signedMandate', then: Joi.required(), otherwise: Joi.forbidden() }
             ),
-          }).or('signedQuote', 'signedMandate', 'financialCertificates'),
+          }),
         },
         pre: [{ method: authorizeCustomerGetAndUpdate }],
       },

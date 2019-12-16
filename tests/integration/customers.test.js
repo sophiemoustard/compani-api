@@ -1961,8 +1961,9 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         fileName: 'mandat_signe',
+        file: 'true',
+        type: 'signedMandate',
         mandateId: customer.payment.mandates[0]._id.toHexString(),
-        signedMandate: '',
       };
       const form = generateFormData(payload);
 
@@ -1985,8 +1986,9 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const customer = customersList[customersList.length - 1];
       const payload = {
         fileName: 'mandat_signe',
+        file: 'true',
+        type: 'signedMandate',
         mandateId: customer.payment.mandates[0]._id.toHexString(),
-        signedMandate: '',
       };
       const form = generateFormData(payload);
 
@@ -2007,8 +2009,9 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         fileName: 'devis_signe',
+        file: 'true',
+        type: 'signedQuote',
         quoteId: customer.quotes[0]._id.toHexString(),
-        signedQuote: '',
       };
       const form = generateFormData(payload);
 
@@ -2031,8 +2034,9 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const customer = customersList[customersList.length - 1];
       const payload = {
         fileName: 'devis_signe',
+        file: 'true',
+        type: 'signedQuote',
         quoteId: customer.quotes[0]._id.toHexString(),
-        signedQuote: '',
       };
       const form = generateFormData(payload);
 
@@ -2052,8 +2056,9 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
       const customer = customersList[0];
       const payload = {
+        file: 'true',
+        type: 'financialCertificates',
         fileName: 'financialCertificate',
-        financialCertificates: '',
       };
       const form = generateFormData(payload);
 
@@ -2069,13 +2074,14 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       sinon.assert.calledOnce(getFileByIdStub);
     });
 
-    it('should not upload a financial certificate if customer is not fromn the same company', async () => {
+    it('should not upload a financial certificate if customer is not  the same company', async () => {
       addStub.returns({ id: 'fakeFileDriveId' });
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
 
       const payload = {
+        file: 'true',
+        type: 'financialCertificates',
         fileName: 'financialCertificate',
-        financialCertificates: '',
       };
       const form = generateFormData(payload);
 
@@ -2092,7 +2098,8 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
     describe('Other roles', () => {
       const payload = {
         fileName: 'financialCertificate',
-        financialCertificates: '',
+        file: 'true',
+        type: 'financialCertificates'
       };
 
       it('should upload a financial certificate if I am its helper', async () => {

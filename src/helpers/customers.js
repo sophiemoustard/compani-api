@@ -210,12 +210,12 @@ const uploadFinancialCertificate = async (customerId, file) => Customer.updateOn
   { new: true, autopopulate: false }
 );
 
-exports.createAndSaveFile = async (docKeys, params, payload) => {
+exports.createAndSaveFile = async (params, payload) => {
   const uploadedFile = await GdriveStorageHelper.addFile({
     driveFolderId: params.driveId,
-    name: payload.fileName || payload[docKeys[0]].hapi.filename,
+    name: payload.fileName || payload.file.hapi.filename,
     type: payload['Content-Type'],
-    body: payload[docKeys[0]],
+    body: payload.file,
   });
 
   let driveFileInfo = null;
@@ -226,7 +226,7 @@ exports.createAndSaveFile = async (docKeys, params, payload) => {
   }
 
   let file;
-  switch (docKeys[0]) {
+  switch (payload.type) {
     case 'signedQuote':
       file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
       await uploadQuote(params._id, payload.quoteId, file);

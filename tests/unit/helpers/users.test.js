@@ -256,44 +256,44 @@ describe('createAndSaveFile', () => {
   });
 
   it('upload a file on drive and save info to user', async () => {
-    const administrativeKey = 'cni';
     const params = { _id: new ObjectID(), driveId: '1234567890' };
     const payload = {
       fileName: 'test',
+      file: 'true',
+      type: 'cni',
       'Content-type': 'application/pdf',
-      cni: 'Ceci est un fichier',
     };
 
-    const result = await UsersHelper.createAndSaveFile(administrativeKey, params, payload);
+    const result = await UsersHelper.createAndSaveFile(params, payload);
 
     expect(result).toEqual(uploadedFile);
     sinon.assert.calledWithExactly(addFileStub, {
       driveFolderId: params.driveId,
       name: payload.fileName,
       type: payload['Content-Type'],
-      body: payload[administrativeKey],
+      body: payload.file,
     });
-    sinon.assert.calledWithExactly(saveFileStub, params._id, administrativeKey, { driveId: uploadedFile.id, link: uploadedFile.webViewLink });
+    sinon.assert.calledWithExactly(saveFileStub, params._id, payload.type, { driveId: uploadedFile.id, link: uploadedFile.webViewLink });
     sinon.assert.notCalled(saveCertificateDriveIdStub);
   });
 
   it('upload a certificate file on drive and save info to user', async () => {
-    const administrativeKey = 'certificates';
     const params = { _id: new ObjectID(), driveId: '1234567890' };
     const payload = {
       fileName: 'test',
+      type: 'certificates',
       'Content-type': 'application/pdf',
-      certificates: 'Ceci est un fichier',
+      file: 'Ceci est un fichier',
     };
 
-    const result = await UsersHelper.createAndSaveFile(administrativeKey, params, payload);
+    const result = await UsersHelper.createAndSaveFile(params, payload);
 
     expect(result).toEqual(uploadedFile);
     sinon.assert.calledWithExactly(addFileStub, {
       driveFolderId: params.driveId,
       name: payload.fileName,
       type: payload['Content-Type'],
-      body: payload[administrativeKey],
+      body: payload.file,
     });
     sinon.assert.calledWithExactly(saveCertificateDriveIdStub, params._id, { driveId: uploadedFile.id, link: uploadedFile.webViewLink });
     sinon.assert.notCalled(saveFileStub);
