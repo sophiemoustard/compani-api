@@ -40,32 +40,27 @@ describe('CUSTOMERS ROUTES', () => {
     adminToken = await getToken('admin');
   });
 
-  const payload = {
-    identity: { title: 'mr', lastname: 'leboncoin' },
-    contact: {
-      primaryAddress: {
-        street: '37 rue de Ponthieu',
-        zipCode: '75008',
-        city: 'Paris',
-      },
-      secondaryAddress: {
-        street: '27 rue des Renaudes',
-        zipCode: '75017',
-        city: 'Paris',
-      },
-    },
-  };
-
   describe('POST /customers', () => {
+    const payload = {
+      identity: { title: 'mr', lastname: 'leboncoin' },
+      contact: {
+        primaryAddress: {
+          street: '37 rue de Ponthieu',
+          zipCode: '75008',
+          city: 'Paris',
+          fullAddress: '37 rue de Ponthieu 75008 Paris',
+          location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+        },
+      },
+    };
+
     it('should create a new customer', async () => {
       const customersBefore = await customersList.filter(customer => customer.company === authCompany._id);
       const res = await app.inject({
         method: 'POST',
         url: '/customers',
         payload,
-        headers: {
-          'x-access-token': adminToken,
-        },
+        headers: { 'x-access-token': adminToken },
       });
 
       expect(res.statusCode).toBe(200);
@@ -78,11 +73,6 @@ describe('CUSTOMERS ROUTES', () => {
             zipCode: payload.contact.primaryAddress.zipCode,
             city: payload.contact.primaryAddress.city,
           },
-          secondaryAddress: {
-            street: payload.contact.secondaryAddress.street,
-            zipCode: payload.contact.secondaryAddress.zipCode,
-            city: payload.contact.secondaryAddress.city,
-          },
         },
       });
       expect(res.result.data.customer.payment.mandates).toBeDefined();
@@ -92,7 +82,16 @@ describe('CUSTOMERS ROUTES', () => {
       expect(customers).toHaveLength(customersBefore.length + 1);
     });
 
-    const missingParams = ['identity.lastname', 'contact.primaryAddress.street', 'contact.primaryAddress.zipCode', 'contact.primaryAddress.city'];
+    const missingParams = [
+      'identity.lastname',
+      'identity.title',
+      'contact.primaryAddress.street',
+      'contact.primaryAddress.zipCode',
+      'contact.primaryAddress.city',
+      'contact.primaryAddress.fullAddress',
+      'contact.primaryAddress.location.type',
+      'contact.primaryAddress.location.coordinates',
+    ];
     missingParams.forEach((paramPath) => {
       it(`should return a 400 error if missing '${paramPath}' parameter`, async () => {
         const res = await app.inject({
@@ -138,7 +137,8 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company.toHexString() === authCompany._id.toHexString());
+      const areAllCustomersFromCompany = res.result.data.customers
+        .every(customer => customer.company.toHexString() === authCompany._id.toHexString());
       expect(areAllCustomersFromCompany).toBe(true);
       const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(res.result.data.customers).toHaveLength(customers.length);
@@ -173,7 +173,8 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
-      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      const areAllCustomersFromCompany = res.result.data.customers
+        .every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
       expect(areAllCustomersFromCompany).toBe(true);
       expect(res.result.data.customers).toHaveLength(1);
     });
@@ -373,7 +374,8 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
 
-      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      const areAllCustomersFromCompany = res.result.data.customers
+        .every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
       expect(areAllCustomersFromCompany).toBe(true);
     });
   });
@@ -636,7 +638,7 @@ describe('CUSTOMERS ROUTES', () => {
         headers: { 'x-access-token': adminToken },
       });
       expect(res.statusCode).toBe(200);
-      sinon.assert.calledWith(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
+      sinon.assert.calledWithExactly(deleteFileStub, { fileId: customersList[3].driveFolder.driveId });
       deleteFileStub.restore();
       const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(customers.length).toBe(customersBefore.length - 1);

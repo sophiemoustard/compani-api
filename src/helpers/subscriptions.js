@@ -123,7 +123,7 @@ exports.updateSubscription = async (params, payload) => {
 };
 
 exports.addSubscription = async (customerId, payload) => {
-  const customer = await Customer.findById(customerId);
+  const customer = await Customer.findById(customerId).lean();
   if (customer.subscriptions && customer.subscriptions.length > 0) {
     const isServiceAlreadySubscribed = customer.subscriptions
       .find(subscription => subscription.service.toHexString() === payload.service);
@@ -141,7 +141,7 @@ exports.addSubscription = async (customerId, payload) => {
   return exports.populateSubscriptionsServices(updatedCustomer);
 };
 
-exports.deleteSubsctiption = async (customerId, subscriptionId) => Customer.findOneAndUpdate(
+exports.deleteSubscription = async (customerId, subscriptionId) => Customer.updateOne(
   { _id: customerId },
   { $pull: { subscriptions: { _id: subscriptionId } } }
 );
@@ -150,4 +150,4 @@ exports.createSubscriptionHistory = async (customerId, payload) => Customer.find
   { _id: customerId },
   { $push: { subscriptionsHistory: payload } },
   { new: true, select: { identity: 1, subscriptionsHistory: 1 }, autopopulate: false }
-);
+).lean();

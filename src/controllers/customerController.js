@@ -212,7 +212,7 @@ const addSubscription = async (req) => {
   }
 };
 
-const deleteSubsctiption = async (req) => {
+const deleteSubscription = async (req) => {
   try {
     await SubscriptionHelper.deleteSubscription(req.params._id, req.params.subscriptionId);
 
@@ -583,7 +583,7 @@ module.exports = {
   update,
   addSubscription,
   updateSubscription,
-  deleteSubsctiption,
+  deleteSubscription,
   getMandates,
   updateMandate,
   createDriveFolder,

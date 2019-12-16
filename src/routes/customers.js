@@ -17,7 +17,7 @@ const {
   remove,
   addSubscription,
   updateSubscription,
-  deleteSubsctiption,
+  deleteSubscription,
   getMandates,
   updateMandate,
   createDriveFolder,
@@ -64,7 +64,7 @@ exports.plugin = {
                 fullAddress: Joi.string().required(),
                 location: Joi.object().keys({
                   type: Joi.string().required(),
-                  coordinates: Joi.array().required(),
+                  coordinates: Joi.array().length(2).required(),
                 }).required(),
               }).required(),
             }).required(),
@@ -290,7 +290,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: deleteSubsctiption,
+      handler: deleteSubscription,
     });
 
     server.route({
@@ -546,6 +546,7 @@ exports.plugin = {
             fundingId: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
+            subscription: Joi.objectId().required(),
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),

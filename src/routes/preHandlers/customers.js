@@ -40,21 +40,23 @@ exports.authorizeCustomerUpdate = async (req) => {
 
   if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
-  if (req.payload.referent) {
-    const referent = await User.findOne({ _id: req.payload.referent, company: companyId }).lean();
-    if (!referent) throw Boom.forbidden();
-  }
+  if (req.payload) {
+    if (req.payload.referent) {
+      const referent = await User.findOne({ _id: req.payload.referent, company: companyId }).lean();
+      if (!referent) throw Boom.forbidden();
+    }
 
-  if (req.payload.service) {
-    const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
-    if (!service) throw Boom.forbidden();
-  }
+    if (req.payload.service) {
+      const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
+      if (!service) throw Boom.forbidden();
+    }
 
-  if (req.payload.thirdPartypayer) {
-    const thirdPartypayer = await ThirdPartyPayer
-      .findOne({ _id: req.payload.thirdPartypayer, company: companyId })
-      .lean();
-    if (!thirdPartypayer) throw Boom.forbidden();
+    if (req.payload.thirdPartypayer) {
+      const thirdPartypayer = await ThirdPartyPayer
+        .findOne({ _id: req.payload.thirdPartypayer, company: companyId })
+        .lean();
+      if (!thirdPartypayer) throw Boom.forbidden();
+    }
   }
 
   return null;
@@ -70,7 +72,7 @@ exports.authorizeCustomerGet = async (req) => {
     if (customer.company.toHexString() === companyId.toHexString()) return null;
   }
 
-  if (req.query.sector) {
+  if (req.query && req.query.sector) {
     const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
     const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
     if (sectors.length !== sectorsCount) throw Boom.forbidden();

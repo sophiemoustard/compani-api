@@ -84,19 +84,18 @@ describe('getCustomers', () => {
   it('should return empty array if no customer', async () => {
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
-    const query = { role: 'qwertyuiop' };
     getCustomersList.returns([]);
-    const result = await CustomerHelper.getCustomers(query, credentials);
+    const result = await CustomerHelper.getCustomers(credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(getCustomersList, query, companyId);
+    sinon.assert.calledWithExactly(getCustomersList, companyId);
     sinon.assert.notCalled(subscriptionsAccepted);
     sinon.assert.notCalled(formatIdentity);
   });
 
   it('should return customers', async () => {
     const companyId = new ObjectID();
-    const query = { role: 'qwertyuiop', company: companyId };
+    const credentials = { company: { _id: companyId } };
     const customers = [
       { identity: { firstname: 'Emmanuel' }, company: companyId },
       { company: companyId },
@@ -105,12 +104,13 @@ describe('getCustomers', () => {
     formatIdentity.callsFake(id => id.firstname);
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
 
-    const result = await CustomerHelper.getCustomers(query);
+    const result = await CustomerHelper.getCustomers(credentials);
 
     expect(result).toEqual([
       { identity: { firstname: 'Emmanuel', fullName: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { subscriptionsAccepted: true, company: companyId },
     ]);
+    sinon.assert.calledWithExactly(getCustomersList, companyId);
     sinon.assert.calledTwice(subscriptionsAccepted);
     sinon.assert.calledOnce(formatIdentity);
   });
