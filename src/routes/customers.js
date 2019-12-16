@@ -47,33 +47,22 @@ exports.plugin = {
         auth: { scope: ['customers:create'] },
         validate: {
           payload: Joi.object().keys({
-            referent: Joi.objectId().allow(null, ''),
             identity: Joi.object().keys({
               title: Joi.string().valid(CIVILITY_OPTIONS).required(),
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string().required(),
-            }).min(1),
+            }).required(),
             contact: Joi.object().keys({
               primaryAddress: Joi.object().keys({
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
-                fullAddress: Joi.string(),
+                fullAddress: Joi.string().required(),
                 location: Joi.object().keys({
-                  type: Joi.string(),
-                  coordinates: Joi.array(),
-                }),
-              }),
-              secondaryAddress: Joi.object().keys({
-                street: Joi.string().allow('', null),
-                zipCode: Joi.string().allow('', null),
-                city: Joi.string().allow('', null),
-                fullAddress: Joi.string().allow('', null),
-                location: Joi.object().keys({
-                  type: Joi.string().allow('', null),
-                  coordinates: Joi.array().allow([], null),
-                }),
-              }),
+                  type: Joi.string().required(),
+                  coordinates: Joi.array().required(),
+                }).required(),
+              }).required(),
             }).required(),
           }),
         },
