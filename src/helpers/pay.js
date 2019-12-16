@@ -128,13 +128,13 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
 exports.getHoursToWorkBySector = async (query, credentials) => {
   const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
 
-  const contractsBySector = await UserRepository.getContractsAndAbsencesBySectorFromAuxiliaries(
+  const contractsAndEventsBySector = await UserRepository.getContractsAndAbsencesBySectorFromAuxiliaries(
     query.month,
     sectors,
     get(credentials, 'company._id', null)
   );
 
-  return contractsBySector.map((sector) => {
+  return contractsAndEventsBySector.map((sector) => {
     const contractQuery = {
       startDate: moment(query.month, 'MMYYYY').startOf('M').toDate(),
       endDate: moment(query.month, 'MMYYYY').endOf('M').toDate(),
