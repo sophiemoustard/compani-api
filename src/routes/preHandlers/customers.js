@@ -27,31 +27,25 @@ exports.getCustomer = async (req) => {
   }
 };
 
-exports.validateCustomerCompany = async (params, companyId) => {
-  let customer;
-  if (params.subscriptionId) {
-    customer = await Customer.findOne({ _id: params._id, 'subscriptions._id': params.subscriptionId }).lean();
-    if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
-  } else if (params.mandateId) {
-    customer = await Customer.findOne({ _id: params._id, 'payment.mandates._id': params.mandateId }).lean();
-    if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
-  } else if (params.fundingId) {
-    customer = await Customer.findOne({ _id: params._id, 'fundings._id': params.fundingId }).lean();
-    if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
-  } else if (params.quoteId) {
-    customer = await Customer.findOne({ _id: params._id, 'quotes._id': params.quoteId }).lean();
-    if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
-  } else {
-    customer = await Customer.findById(params._id).lean();
-    if (!customer) throw Boom.notFound(translate[language].customerNotFound);
+exports.validateCustomerCompany = async (params, payload, companyId) => {
+  const query = { _id: params._id };
+  if (params.subscriptionId) query.subscriptions._id = params.subscriptionId;
+  else if (params.mandateId) query.payment.mandates._id = params.mandateId;
+  else if (params.quoteId) query.quotes._id = params.quoteId;
+  else if (params.fundingId) {
+    query.fundings._id = params.fundingId;
+    if (payload && payload.subscription) query.subscriptions._id = query.subscription;
   }
+
+  const customer = await Customer.findOne(query).lean();
+  if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
 
   if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 };
 
 exports.authorizeCustomerUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  await exports.validateCustomerCompany(req.params, companyId);
+  await exports.validateCustomerCompany(req.params, req.payload, companyId);
 
   if (req.payload) {
     if (req.payload.referent) {
@@ -78,7 +72,7 @@ exports.authorizeCustomerUpdate = async (req) => {
 exports.authorizeCustomerGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
 
-  if (req.params) await exports.validateCustomerCompany(req.params, companyId);
+  if (req.params) await exports.validateCustomerCompany(req.params, req.payload, companyId);
 
   if (req.query && req.query.sector) {
     const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
