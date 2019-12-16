@@ -47,7 +47,6 @@ const getHoursBalanceDetails = async (req) => {
 
 const getHoursToWork = async (req) => {
   try {
-    console.log('MEH');
     const hoursToWork = await getHoursToWorkBySector(req.query, req.auth.credentials);
 
     return {
