@@ -11,7 +11,7 @@ const Service = require('../models/Service');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
-const SusbscriptionHelper = require('../helpers/subscriptions');
+const SubscriptionHelper = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/customers');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
@@ -187,7 +187,7 @@ const update = async (req) => {
 
 const updateSubscription = async (req) => {
   try {
-    const customer = await SusbscriptionHelper.updateSubscription(req.params, req.payload);
+    const customer = await SubscriptionHelper.updateSubscription(req.params, req.payload);
 
     return {
       message: translate[language].customerSubscriptionUpdated,
@@ -201,43 +201,11 @@ const updateSubscription = async (req) => {
 
 const addSubscription = async (req) => {
   try {
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    const serviceId = req.payload.service;
-    const subscribedService = await Service.findOne({ _id: serviceId });
-
-    if (!subscribedService) return Boom.notFound(translate[language].serviceNotFound);
-
-    const customer = await Customer.findById(req.params._id);
-    if (customer.subscriptions && customer.subscriptions.length > 0) {
-      const isServiceAlreadySubscribed = customer.subscriptions
-        .find(subscription => subscription.service.toHexString() === serviceId);
-      if (isServiceAlreadySubscribed) return Boom.conflict(translate[language].serviceAlreadySubscribed);
-    }
-
-    const updatedCustomer = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { subscriptions: req.payload } },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-        autopopulate: false,
-      }
-    )
-      .populate({
-        path: 'subscriptions.service',
-        match: { company: companyId },
-        populate: { path: 'versions.surcharge', match: { company: companyId } },
-      })
-      .lean();
-
-    const { subscriptions } = SusbscriptionHelper.populateSubscriptionsServices(updatedCustomer);
+    const customer = await SubscriptionHelper.addSubscription(req.params._id, req.payload);
 
     return {
       message: translate[language].customerSubscriptionAdded,
-      data: {
-        customer: pick(updatedCustomer, ['_id', 'identity.lastname', 'identity.firstname']),
-        subscriptions,
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);

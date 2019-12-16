@@ -1,12 +1,16 @@
 const moment = require('moment');
+const Boom = require('boom');
 const pickBy = require('lodash/pickBy');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const map = require('lodash/map');
 const isEqual = require('lodash/isEqual');
 const Customer = require('../models/Customer');
+const translate = require('../helpers/translate');
 const UtilsHelper = require('../helpers/utils');
 const { CIVILITY_LIST } = require('./constants');
+
+const { language } = translate;
 
 exports.populateServices = (service) => {
   if (!service || service.version) return;
@@ -116,4 +120,23 @@ exports.updateSubscription = async (params, payload) => {
     .lean();
 
   return exports.populateSubscriptionsServices(customer);
+};
+
+exports.addSubscription = async (customerId, payload) => {
+  const customer = await Customer.findById(customerId);
+  if (customer.subscriptions && customer.subscriptions.length > 0) {
+    const isServiceAlreadySubscribed = customer.subscriptions
+      .find(subscription => subscription.service.toHexString() === payload.service);
+    if (isServiceAlreadySubscribed) return Boom.conflict(translate[language].serviceAlreadySubscribed);
+  }
+
+  const updatedCustomer = await Customer.findOneAndUpdate(
+    { _id: customerId },
+    { $push: { subscriptions: payload } },
+    { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
+  )
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .lean();
+
+  return exports.populateSubscriptionsServices(updatedCustomer);
 };
