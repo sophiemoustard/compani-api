@@ -865,8 +865,9 @@ describe('USERS ROUTES', () => {
     let addFileStub;
     beforeEach(() => {
       docPayload = {
-        mutualFund: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         fileName: 'mutual_fund_doc',
+        type: 'mutualFund',
+        file: 'true',
       };
       form = generateFormData(docPayload);
       addFileStub = sinon
@@ -913,7 +914,7 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(403);
       });
 
-      const wrongParams = ['mutualFund', 'fileName'];
+      const wrongParams = ['type', 'file', 'fileName'];
       wrongParams.forEach((param) => {
         it(`should return a 400 error if missing '${param}' parameter`, async () => {
           form = generateFormData(omit(docPayload, param));

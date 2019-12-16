@@ -418,11 +418,11 @@ exports.plugin = {
         },
         validate: {
           payload: Joi.object({
-            ...driveUploadKeys.reduce((obj, key) => Object.assign(obj, { [key]: Joi.any() }), {}),
             date: Joi.date(),
             fileName: Joi.string().required(),
-          })
-            .or([driveUploadKeys]),
+            type: Joi.string().required().valid(driveUploadKeys),
+            file: Joi.any().required(),
+          }),
           params: {
             _id: Joi.objectId().required(),
             driveId: Joi.string().required(),

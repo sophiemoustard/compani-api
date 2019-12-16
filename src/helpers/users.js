@@ -74,21 +74,21 @@ exports.saveFile = async (userId, administrativeKey, fileInfo) => {
   await User.findOneAndUpdate({ _id: userId }, { $set: flat(payload) }, { new: true, autopopulate: false });
 };
 
-exports.createAndSaveFile = async (administrativeKey, params, payload) => {
+exports.createAndSaveFile = async (params, payload) => {
   const uploadedFile = await GdriveStorage.addFile({
     driveFolderId: params.driveId,
-    name: payload.fileName || payload[administrativeKey].hapi.filename,
+    name: payload.fileName || payload.type.hapi.filename,
     type: payload['Content-Type'],
-    body: payload[administrativeKey],
+    body: payload.file,
   });
 
   const file = { driveId: uploadedFile.id, link: uploadedFile.webViewLink };
-  switch (administrativeKey) {
+  switch (payload.type) {
     case 'certificates':
       await exports.saveCertificateDriveId(params._id, file);
       break;
     default:
-      await exports.saveFile(params._id, administrativeKey, file);
+      await exports.saveFile(params._id, payload.type, file);
       break;
   }
 

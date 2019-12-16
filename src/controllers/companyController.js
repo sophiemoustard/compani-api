@@ -2,10 +2,8 @@ const Boom = require('boom');
 const flat = require('flat');
 
 const translate = require('../helpers/translate');
-const { addFile } = require('../helpers/gdriveStorage');
 const CompanyHelper = require('../helpers/companies');
 const Company = require('../models/Company');
-const drive = require('../models/Google/Drive');
 
 const { language } = translate;
 
@@ -50,35 +48,8 @@ const update = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = [
-      'contractWithCompany',
-      'contractWithCompanyVersion',
-      'contractWithCustomer',
-      'contractWithCustomerVersion',
-      'debitMandate',
-      'quote',
-    ];
-    const keys = Object.keys(req.payload).filter(key => allowedFields.indexOf(key) !== -1);
-    if (keys.length === 0) return Boom.forbidden('Upload not allowed');
-
-    const uploadedFile = await addFile({
-      driveFolderId: req.params.driveId,
-      name: req.payload.fileName || req.payload[keys[0]].hapi.filename,
-      type: req.payload['Content-Type'],
-      body: req.payload[keys[0]],
-    });
-    const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
-    const configKey = (keys[0].match(/contract/i)) ? 'rhConfig' : 'customersConfig';
-    const payload = {
-      [configKey]: {
-        templates: {
-          [keys[0]]: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
-        },
-      },
-    };
-
-    await Company.findOneAndUpdate({ _id: req.params._id }, { $set: flat(payload) }, { new: true });
-    return { message: translate[language].fileCreated, data: { uploadedFile } };
+    const company = await CompanyHelper.uploadFile(req.payload, req.params);
+    return { message: translate[language].fileCreated, data: { company } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
