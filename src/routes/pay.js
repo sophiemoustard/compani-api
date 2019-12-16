@@ -7,6 +7,7 @@ const {
   draftPayList,
   createList,
   getHoursBalanceDetails,
+  getHoursToWork,
 } = require('../controllers/payController');
 const { authorizePayCreation, authorizeGetDetails } = require('./preHandlers/pay');
 
@@ -58,6 +59,21 @@ exports.plugin = {
         pre: [{ method: authorizeGetDetails }],
       },
       handler: getHoursBalanceDetails,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/hours-to-work',
+      options: {
+        auth: { scope: ['pay:read'] },
+        validate: {
+          query: {
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            month: Joi.string().required(),
+          },
+        },
+      },
+      handler: getHoursToWork,
     });
   },
 };

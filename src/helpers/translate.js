@@ -201,6 +201,7 @@ module.exports = {
 
     /* Pay */
     payListCreated: 'Pay list created.',
+    hoursToWorkFound: 'Hours to work found.',
 
     /* Final pay */
     finalPayListCreated: 'Final pay list created.',
@@ -417,6 +418,7 @@ module.exports = {
 
     /* Pay */
     payListCreated: 'Liste de paie créée',
+    hoursToWorkFound: 'Heures à travailler.',
 
     /* Final pay */
     finalPayListCreated: 'Liste des stc créée',
