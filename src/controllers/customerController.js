@@ -267,7 +267,8 @@ const generateMandateSignatureRequest = async (req) => {
     const customer = await Customer.findById(req.params._id);
     if (!customer) return Boom.notFound();
 
-    const mandateIndex = customer.payment.mandates.findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
+    const mandateIndex = customer.payment.mandates
+      .findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
     if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
 
     const doc = await generateSignatureRequest({
@@ -388,7 +389,7 @@ const uploadFile = async (req) => {
 
 const deleteCertificates = async (req) => {
   try {
-    await CustomerHelper.deleteCertificates(req.payload.driveId);
+    await CustomerHelper.deleteCertificates(req.params._id, req.payload.driveId);
 
     return { message: translate[language].customerFinancialCertificateRemoved };
   } catch (e) {
