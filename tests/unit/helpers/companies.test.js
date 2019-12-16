@@ -63,7 +63,8 @@ describe('uploadFile', () => {
     };
     CompanyModel
       .expects('findOneAndUpdate')
-      .withExactArgs({ _id: params._id }, { $set: flat(companyPayload) }, { new: true });
+      .withExactArgs({ _id: params._id }, { $set: flat(companyPayload) }, { new: true })
+      .chain('lean');
 
     await CompanyHelper.uploadFile(payload, params);
     sinon.assert.calledWithExactly(addStub, {
