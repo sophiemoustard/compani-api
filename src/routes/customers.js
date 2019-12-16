@@ -139,11 +139,6 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['customers:read'] },
-        validate: {
-          query: Joi.object().keys({
-            _id: [Joi.array().items(Joi.objectId()), Joi.objectId()],
-          }),
-        },
       },
       handler: list,
     });

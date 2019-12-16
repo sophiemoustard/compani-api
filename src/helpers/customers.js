@@ -41,8 +41,8 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
   return EventRepository.getCustomersWithBilledEvents(query, companyId);
 };
 
-exports.getCustomers = async (query, credentials) => {
-  const customers = await CustomerRepository.getCustomersList(query, get(credentials, 'company._id', null));
+exports.getCustomers = async (credentials) => {
+  const customers = await CustomerRepository.getCustomersList(get(credentials, 'company._id', null));
   if (customers.length === 0) return [];
 
   for (let i = 0, l = customers.length; i < l; i++) {

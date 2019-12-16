@@ -71,8 +71,7 @@ exports.getCustomersWithSubscriptions = async (query, companyId) => Customer.agg
   { $replaceRoot: { newRoot: '$customer' } },
 ]).option({ company: companyId });
 
-exports.getCustomersList = async (query, companyId) => Customer.aggregate([
-  { $match: query },
+exports.getCustomersList = async companyId => Customer.aggregate([
   { $unwind: { path: '$subscriptions', preserveNullAndEmptyArrays: true } },
   {
     $lookup: {
