@@ -115,8 +115,15 @@ exports.plugin = {
         validate: {
           payload: {
             fileName: Joi.string().required(),
-            type: Joi.string().required(),
-            file: Joi.any(),
+            type: Joi.string().required().valid([
+              'contractWithCompany',
+              'contractWithCompanyVersion',
+              'contractWithCustomer',
+              'contractWithCustomerVersion',
+              'debitMandate',
+              'quote',
+            ]),
+            file: Joi.any().required(),
           },
         },
         pre: [{ method: authorizeCompanyUpdate }],

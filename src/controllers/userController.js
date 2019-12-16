@@ -281,28 +281,7 @@ const checkResetPasswordToken = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = [
-      'idCardRecto',
-      'idCardVerso',
-      'passport',
-      'residencePermitRecto',
-      'residencePermitVerso',
-      'healthAttest',
-      'certificates',
-      'phoneInvoice',
-      'navigoInvoice',
-      'transportInvoice',
-      'mutualFund',
-      'vitalCard',
-      'medicalCertificate',
-    ];
-    const administrativeKey = Object.keys(req.payload).find(key => allowedFields.includes(key));
-    if (!administrativeKey) {
-      return Boom.forbidden(translate[language].uploadNotAllowed);
-    }
-
-    const uploadedFile = await createAndSaveFile(administrativeKey, req.params, req.payload);
-
+    const uploadedFile = await createAndSaveFile(req.params, req.payload);
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);

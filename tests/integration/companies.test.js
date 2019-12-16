@@ -125,7 +125,8 @@ describe('COMPANIES ROUTES', () => {
 
         const payload = {
           fileName: 'mandat_signe',
-          contractWithCompany: 'true',
+          file: 'true',
+          type: 'contractWithCompany',
         };
         const form = generateFormData(payload);
         const response = await app.inject({
@@ -142,6 +143,8 @@ describe('COMPANIES ROUTES', () => {
       it('should not upload file if the user is not from the same company', async () => {
         const payload = {
           fileName: 'mandat_signe',
+          file: 'true',
+          type: 'contractWithCompany',
         };
         const form = generateFormData(payload);
 

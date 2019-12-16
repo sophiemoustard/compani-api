@@ -867,6 +867,8 @@ describe('USERS ROUTES', () => {
       docPayload = {
         mutualFund: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         fileName: 'mutual_fund_doc',
+        type: 'fileName',
+        file: 'true',
       };
       form = generateFormData(docPayload);
       addFileStub = sinon
