@@ -116,8 +116,8 @@ const removeContractVersion = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const uploadedFile = await ContractHelper.uploadFile(req.params, req.payload);
-    return { message: translate[language].fileCreated, data: { uploadedFile } };
+    const contract = await ContractHelper.uploadFile(req.params, req.payload);
+    return { message: translate[language].fileCreated, data: { contract } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

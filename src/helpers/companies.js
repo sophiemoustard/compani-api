@@ -30,5 +30,5 @@ exports.uploadFile = async (payload, params) => {
       },
     },
   };
-  return Company.findOneAndUpdate({ _id: params._id }, { $set: flat(companyPayload) }, { new: true });
+  return Company.findOneAndUpdate({ _id: params._id }, { $set: flat(companyPayload) }, { new: true }).lean();
 };

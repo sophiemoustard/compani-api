@@ -789,3 +789,41 @@ describe('getContractInfo', () => {
     );
   });
 });
+
+describe('uploadFile', () => {
+  let createAndSaveFileStub;
+  beforeEach(() => {
+    createAndSaveFileStub = sinon.stub(ContractHelper, 'createAndSaveFile');
+  });
+  afterEach(() => {
+    createAndSaveFileStub.restore();
+  });
+
+  it('should upload a file', async () => {
+    const params = { driveId: 'fakeDriveId', _id: new ObjectID() };
+    const payload = {
+      signedContract: 'test',
+      fileName: 'test',
+      customer: '12345',
+      status: 'test',
+      versionId: '12345',
+    };
+    createAndSaveFileStub.returns({ name: 'test' });
+    const version = {
+      customer: payload.customer,
+      contractId: params._id,
+      _id: payload.versionId,
+      status: payload.status,
+    };
+    const fileInfo = {
+      auxiliaryDriveId: params.driveId,
+      name: payload.fileName,
+      type: payload['Content-Type'],
+      body: payload.signedContract,
+    };
+    const result = await ContractHelper.uploadFile(params, payload);
+    expect(result).toBeDefined();
+    expect(result).toEqual({ name: 'test' });
+    sinon.assert.calledWithExactly(createAndSaveFileStub, version, fileInfo);
+  });
+});

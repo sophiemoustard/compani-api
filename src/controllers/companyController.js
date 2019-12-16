@@ -48,8 +48,8 @@ const update = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const uploadedFile = await CompanyHelper.uploadFile(req.payload, req.params);
-    return { message: translate[language].fileCreated, data: { uploadedFile } };
+    const company = await CompanyHelper.uploadFile(req.payload, req.params);
+    return { message: translate[language].fileCreated, data: { company } };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);

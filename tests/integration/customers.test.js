@@ -8,6 +8,7 @@ const has = require('lodash/has');
 const cloneDeep = require('lodash/cloneDeep');
 const { generateFormData } = require('./utils');
 const GetStream = require('get-stream');
+const fs = require('fs');
 
 const app = require('../../server');
 const {
@@ -1961,7 +1962,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const customer = customersList[1];
       const payload = {
         fileName: 'mandat_signe',
-        file: 'true',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedMandate',
         mandateId: customer.payment.mandates[0]._id.toHexString(),
       };
@@ -1986,7 +1987,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const customer = customersList[customersList.length - 1];
       const payload = {
         fileName: 'mandat_signe',
-        file: 'true',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedMandate',
         mandateId: customer.payment.mandates[0]._id.toHexString(),
       };
@@ -2009,7 +2010,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const customer = customersList[0];
       const payload = {
         fileName: 'devis_signe',
-        file: 'true',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedQuote',
         quoteId: customer.quotes[0]._id.toHexString(),
       };
@@ -2034,7 +2035,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       const customer = customersList[customersList.length - 1];
       const payload = {
         fileName: 'devis_signe',
-        file: 'true',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'signedQuote',
         quoteId: customer.quotes[0]._id.toHexString(),
       };
@@ -2056,7 +2057,7 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
       const customer = customersList[0];
       const payload = {
-        file: 'true',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'financialCertificates',
         fileName: 'financialCertificate',
       };
@@ -2074,12 +2075,12 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
       sinon.assert.calledOnce(getFileByIdStub);
     });
 
-    it('should not upload a financial certificate if customer is not  the same company', async () => {
+    it('should not upload a financial certificate if customer is not from the same company', async () => {
       addStub.returns({ id: 'fakeFileDriveId' });
       getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
 
       const payload = {
-        file: 'true',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
         type: 'financialCertificates',
         fileName: 'financialCertificate',
       };
@@ -2096,16 +2097,14 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
     });
 
     describe('Other roles', () => {
-      const payload = {
-        fileName: 'financialCertificate',
-        file: 'true',
-        type: 'financialCertificates'
-      };
-
       it('should upload a financial certificate if I am its helper', async () => {
+        const payload = {
+          fileName: 'financialCertificate',
+          file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+          type: 'financialCertificates',
+        };
         addStub.returns({ id: 'fakeFileDriveId' });
         getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
-
         const helper = userList[0];
         const helperToken = await getTokenByCredentials(helper.local);
         const customerId = helper.customers[0];
@@ -2129,6 +2128,11 @@ describe('CUSTOMER FILE UPLOAD ROUTES', () => {
 
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          const payload = {
+            fileName: 'financialCertificate',
+            file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+            type: 'financialCertificates',
+          };
           addStub.returns({ id: 'fakeFileDriveId' });
           getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
 
