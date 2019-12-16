@@ -7,7 +7,6 @@ const path = require('path');
 const os = require('os');
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
-const Service = require('../models/Service');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
@@ -213,21 +212,9 @@ const addSubscription = async (req) => {
   }
 };
 
-const removeSubscription = async (req) => {
+const deleteSubsctiption = async (req) => {
   try {
-    await Customer.findByIdAndUpdate(
-      { _id: req.params._id },
-      { $pull: { subscriptions: { _id: req.params.subscriptionId } } },
-      {
-        select: {
-          'identity.firstname': 1,
-          'identity.lastname': 1,
-          subscriptions: 1,
-          customerId: 1,
-        },
-        autopopulate: false,
-      }
-    );
+    await SubscriptionHelper.deleteSubscription(req.params._id, req.params.subscriptionId);
 
     return { message: translate[language].customerSubscriptionRemoved };
   } catch (e) {
@@ -606,7 +593,7 @@ module.exports = {
   update,
   addSubscription,
   updateSubscription,
-  removeSubscription,
+  deleteSubsctiption,
   getMandates,
   updateMandate,
   createDriveFolder,

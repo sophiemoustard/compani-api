@@ -140,3 +140,8 @@ exports.addSubscription = async (customerId, payload) => {
 
   return exports.populateSubscriptionsServices(updatedCustomer);
 };
+
+exports.deleteSubsctiption = async (customerId, subscriptionId) => Customer.findOneAndUpdate(
+  { _id: customerId },
+  { $pull: { subscriptions: { _id: subscriptionId } } }
+);

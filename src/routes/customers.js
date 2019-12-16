@@ -17,7 +17,7 @@ const {
   remove,
   addSubscription,
   updateSubscription,
-  removeSubscription,
+  deleteSubsctiption,
   getMandates,
   updateMandate,
   createDriveFolder,
@@ -290,7 +290,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: removeSubscription,
+      handler: deleteSubsctiption,
     });
 
     server.route({
