@@ -446,30 +446,6 @@ const createCustomerQuote = async (req) => {
   }
 };
 
-const removeCustomerQuote = async (req) => {
-  try {
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'quotes._id': req.params.quoteId },
-      { $pull: { quotes: { _id: req.params.quoteId } } },
-      {
-        select: { firstname: 1, lastname: 1, quotes: 1 },
-        autopopulate: false,
-      }
-    );
-
-    if (!customer) {
-      return Boom.notFound(translate[language].customerNotFound);
-    }
-
-    return {
-      message: translate[language].customerQuoteRemoved,
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const createDriveFolder = async (req) => {
   try {
     const customer = await Customer.findOne(
@@ -722,7 +698,6 @@ module.exports = {
   createDriveFolder,
   getCustomerQuotes,
   createCustomerQuote,
-  removeCustomerQuote,
   uploadFile,
   updateCertificates,
   generateMandateSignatureRequest,

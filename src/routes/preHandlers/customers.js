@@ -5,6 +5,7 @@ const Customer = require('../../models/Customer');
 const User = require('../../models/User');
 const Sector = require('../../models/Sector');
 const Service = require('../../models/Service');
+const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 
 const { language } = translate;
 
@@ -41,6 +42,13 @@ exports.authorizeCustomerUpdate = async (req) => {
   if (req.payload.service) {
     const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
     if (!service) throw Boom.forbidden();
+  }
+
+  if (req.payload.thirdPartypayer) {
+    const thirdPartypayer = await ThirdPartyPayer
+      .findOne({ _id: req.payload.thirdPartypayer, company: companyId })
+      .lean();
+    if (!thirdPartypayer) throw Boom.forbidden();
   }
 
   return null;

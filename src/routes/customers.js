@@ -23,7 +23,6 @@ const {
   createDriveFolder,
   getCustomerQuotes,
   createCustomerQuote,
-  removeCustomerQuote,
   uploadFile,
   updateCertificates,
   generateMandateSignatureRequest,
@@ -391,23 +390,6 @@ exports.plugin = {
     });
 
     server.route({
-      method: 'DELETE',
-      path: '/{_id}/quotes/{quoteId}',
-      options: {
-        auth: { scope: ['customers:administrative:edit'] },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            quoteId: Joi.objectId().required(),
-          },
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: removeCustomerQuote,
-    });
-
-
-    server.route({
       method: 'POST',
       path: '/{_id}/drivefolder',
       options: {
@@ -420,7 +402,7 @@ exports.plugin = {
             parentFolderId: Joi.string(),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: createDriveFolder,
     });
@@ -456,7 +438,7 @@ exports.plugin = {
             ),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
     });
 
@@ -473,7 +455,7 @@ exports.plugin = {
             }),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateCertificates,
     });
@@ -489,7 +471,7 @@ exports.plugin = {
             mandateId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: saveSignedMandate,
     });
@@ -519,7 +501,7 @@ exports.plugin = {
             }).required(),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: createHistorySubscription,
     });
@@ -550,7 +532,7 @@ exports.plugin = {
             })),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: createFunding,
     });
@@ -566,7 +548,6 @@ exports.plugin = {
             fundingId: Joi.objectId().required(),
           },
           payload: Joi.object().keys({
-            subscription: Joi.objectId().required(),
             folderNumber: Joi.string(),
             endDate: Joi.date(),
             startDate: Joi.date().required(),
@@ -577,7 +558,7 @@ exports.plugin = {
             customerParticipationRate: Joi.number().default(0),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateFunding,
     });
@@ -593,7 +574,7 @@ exports.plugin = {
             fundingId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: removeFunding,
     });
