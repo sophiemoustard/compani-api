@@ -38,7 +38,7 @@ const {
   getCustomer,
   authorizeCustomerDelete,
   authorizeCustomerUpdate,
-  authorizeCustomerGetAndUpdate,
+  authorizeCustomerGet,
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 
@@ -173,6 +173,7 @@ exports.plugin = {
             endDate: Joi.date(),
           }),
         },
+        pre: [{ method: authorizeCustomerGet }],
       },
       handler: listBySector,
     });
@@ -212,7 +213,7 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerGet }],
       },
       handler: show,
     });
@@ -226,7 +227,6 @@ exports.plugin = {
           params: { _id: Joi.objectId().required() },
         },
         pre: [
-          { method: authorizeCustomerGetAndUpdate },
           { method: getCustomer, assign: 'customer' },
           { method: authorizeCustomerDelete },
         ],
@@ -251,7 +251,7 @@ exports.plugin = {
             }),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: addSubscription,
     });
@@ -273,7 +273,7 @@ exports.plugin = {
             sundays: Joi.number(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateSubscription,
     });
@@ -289,7 +289,7 @@ exports.plugin = {
             subscriptionId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: removeSubscription,
     });
@@ -304,7 +304,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerGet }],
       },
       handler: getMandates,
     });
@@ -320,7 +320,7 @@ exports.plugin = {
             mandateId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateMandate,
     });
@@ -346,7 +346,7 @@ exports.plugin = {
             redirectDecline: Joi.string(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: generateMandateSignatureRequest,
     });
@@ -361,7 +361,7 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerGet }],
       },
       handler: getCustomerQuotes,
     });
@@ -385,7 +385,7 @@ exports.plugin = {
             })).required(),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: createCustomerQuote,
     });
@@ -401,7 +401,7 @@ exports.plugin = {
             quoteId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: removeCustomerQuote,
     });

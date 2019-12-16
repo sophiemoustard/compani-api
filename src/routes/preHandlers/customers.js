@@ -3,6 +3,8 @@ const get = require('lodash/get');
 const translate = require('../../helpers/translate');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');
+const Sector = require('../../models/Sector');
+const Service = require('../../models/Service');
 
 const { language } = translate;
 
@@ -32,19 +34,33 @@ exports.authorizeCustomerUpdate = async (req) => {
   if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 
   if (req.payload.referent) {
-    const referent = await User.findOne({ _id: req.payload.referent, company: companyId });
+    const referent = await User.findOne({ _id: req.payload.referent, company: companyId }).lean();
     if (!referent) throw Boom.forbidden();
+  }
+
+  if (req.payload.service) {
+    const service = await Service.findOne({ _id: req.payload.service, company: companyId }).lean();
+    if (!service) throw Boom.forbidden();
   }
 
   return null;
 };
 
-exports.authorizeCustomerGetAndUpdate = async (req) => {
+exports.authorizeCustomerGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findById(req.params._id).lean();
-  if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
-  if (customer.company.toHexString() === companyId.toHexString()) return null;
+  if (req.params._id) {
+    const customer = await Customer.findById(req.params._id).lean();
+    if (!customer) throw Boom.notFound(translate[language].customerNotFound);
+
+    if (customer.company.toHexString() === companyId.toHexString()) return null;
+  }
+
+  if (req.query.sector) {
+    const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
+    const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
+    if (sectors.length !== sectorsCount) throw Boom.forbidden();
+  }
 
   throw Boom.forbidden();
 };
