@@ -27,18 +27,31 @@ exports.getCustomer = async (req) => {
   }
 };
 
-exports.authorizeCustomerUpdate = async (req) => {
-  const companyId = get(req, 'auth.credentials.company._id', null);
+exports.validateCustomerCompany = async (params, companyId) => {
   let customer;
-  if (req.params.subscriptionId) {
-    customer = await Customer.findOne({ _id: req.params._id, 'subscriptions._id': req.params.subscriptionId }).lean();
+  if (params.subscriptionId) {
+    customer = await Customer.findOne({ _id: params._id, 'subscriptions._id': params.subscriptionId }).lean();
+    if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
+  } else if (params.mandateId) {
+    customer = await Customer.findOne({ _id: params._id, 'payment.mandates._id': params.mandateId }).lean();
+    if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
+  } else if (params.fundingId) {
+    customer = await Customer.findOne({ _id: params._id, 'fundings._id': params.fundingId }).lean();
+    if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
+  } else if (params.quoteId) {
+    customer = await Customer.findOne({ _id: params._id, 'quotes._id': params.quoteId }).lean();
     if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
   } else {
-    customer = await Customer.findById(req.params._id).lean();
+    customer = await Customer.findById(params._id).lean();
     if (!customer) throw Boom.notFound(translate[language].customerNotFound);
   }
 
   if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
+};
+
+exports.authorizeCustomerUpdate = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  await exports.validateCustomerCompany(req.params, companyId);
 
   if (req.payload) {
     if (req.payload.referent) {
@@ -65,12 +78,7 @@ exports.authorizeCustomerUpdate = async (req) => {
 exports.authorizeCustomerGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
 
-  if (req.params._id) {
-    const customer = await Customer.findById(req.params._id).lean();
-    if (!customer) throw Boom.notFound(translate[language].customerNotFound);
-
-    if (customer.company.toHexString() === companyId.toHexString()) return null;
-  }
+  if (req.params) await exports.validateCustomerCompany(req.params, companyId);
 
   if (req.query && req.query.sector) {
     const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
@@ -78,7 +86,7 @@ exports.authorizeCustomerGet = async (req) => {
     if (sectors.length !== sectorsCount) throw Boom.forbidden();
   }
 
-  throw Boom.forbidden();
+  return null;
 };
 
 exports.authorizeCustomerDelete = async (req) => {

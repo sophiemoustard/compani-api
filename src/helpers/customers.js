@@ -105,12 +105,8 @@ exports.getCustomer = async (customerId, credentials) => {
   customer = SubscriptionsHelper.populateSubscriptionsServices(customer);
   customer = SubscriptionsHelper.subscriptionsAccepted(customer);
 
-  const fundingsVersions = [];
   if (customer.fundings && customer.fundings.length > 0) {
-    for (const funding of customer.fundings) {
-      fundingsVersions.push(FundingsHelper.populateFundings(funding, customer));
-    }
-    customer.fundings = fundingsVersions;
+    customer.fundings = await FundingsHelper.populateFundingsList(customer);
   }
 
   return customer;

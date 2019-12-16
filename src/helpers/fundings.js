@@ -32,15 +32,21 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
     });
 };
 
-exports.populateFundings = (funding, customer) => {
+exports.populateFundingsList = (customer) => {
+  if (!customer.fundings) return customer;
+
+  return {
+    ...customer,
+    fundings: customer.fundings.map(fund => exports.populateFunding(fund, customer.subscriptions)),
+  };
+};
+
+exports.populateFunding = (funding, subscriptions) => {
   if (!funding) return false;
 
-  const sub = customer.subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
-  if (get(sub, 'service.versions')) {
-    funding.subscription = { ...sub, service: populateServices(sub.service) };
-  } else {
-    funding.subscription = { ...sub };
-  }
+  const sub = subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
+  if (get(sub, 'service.versions')) funding.subscription = { ...sub, service: populateServices(sub.service) };
+  else funding.subscription = { ...sub };
 
   return funding;
 };

@@ -16,7 +16,7 @@ const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/eSign');
 const CustomerHelper = require('../helpers/customers');
-const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
+const FundingHelper = require('../helpers/fundings');
 
 const { language } = translate;
 
@@ -226,24 +226,16 @@ const deleteSubscription = async (req) => {
 const getMandates = async (req) => {
   try {
     const customer = await Customer.findOne(
-      {
-        _id: req.params._id,
-        subscriptions: { $exists: true },
-      },
-      { 'identity.firstname': 1, 'identity.lastname': 1, 'payment.mandates': 1 },
+      { _id: req.params._id, 'payment.mandates': { $exists: true } },
+      { identity: 1, 'payment.mandates': 1 },
       { autopopulate: false }
     ).lean();
 
-    if (!customer) {
-      return Boom.notFound(translate[language].customerNotFound);
-    }
+    if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     return {
       message: translate[language].customerMandatesFound,
-      data: {
-        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-        mandates: customer.payment.mandates,
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -257,19 +249,12 @@ const updateMandate = async (req) => {
     const customer = await Customer.findOneAndUpdate(
       { _id: req.params._id, 'payment.mandates._id': req.params.mandateId },
       { $set: flat(payload) },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, 'payment.mandates': 1 },
-        autopopulate: false,
-      }
+      { new: true, select: { identity: 1, 'payment.mandates': 1 }, autopopulate: false }
     ).lean();
 
     return {
       message: translate[language].customerMandateUpdated,
-      data: {
-        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-        mandates: customer.payment.mandates,
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -312,18 +297,16 @@ const generateMandateSignatureRequest = async (req) => {
 
 const getCustomerQuotes = async (req) => {
   try {
-    const quotes = await Customer.findOne(
+    const customer = await Customer.findOne(
       { _id: req.params._id, quotes: { $exists: true } },
-      { 'identity.firstname': 1, 'identity.lastname': 1, quotes: 1 },
+      { identity: 1, quotes: 1 },
       { autopopulate: false }
     ).lean();
-    if (!quotes) return Boom.notFound();
+    if (!customer) return Boom.notFound();
+
     return {
       message: translate[language].customerQuotesFound,
-      data: {
-        user: pick(quotes, ['_id', 'identity']),
-        quotes: quotes.quotes,
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -333,26 +316,24 @@ const getCustomerQuotes = async (req) => {
 
 const createCustomerQuote = async (req) => {
   try {
-    const query = { quoteNumber: { prefix: `DEV${moment().format('MMYY')}` } };
     const payload = { quoteNumber: { seq: 1 } };
-    const number = await QuoteNumber.findOneAndUpdate(flat(query), { $inc: flat(payload) }, { new: true, upsert: true, setDefaultsOnInsert: true });
+    const number = await QuoteNumber.findOneAndUpdate(
+      { quoteNumber: { prefix: `DEV${moment().format('MMYY')}` } },
+      { $inc: flat(payload) },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
     const quoteNumber = `${number.quoteNumber.prefix}-${number.quoteNumber.seq.toString().padStart(3, '0')}`;
     req.payload.quoteNumber = quoteNumber;
-    const newQuote = await Customer.findOneAndUpdate({ _id: req.params._id }, { $push: { quotes: req.payload } }, {
-      new: true,
-      select: {
-        'identity.firstname': 1,
-        'identity.lastname': 1,
-        quotes: 1,
-      },
-      autopopulate: false,
-    });
+
+    const customer = await Customer.findOneAndUpdate(
+      { _id: req.params._id },
+      { $push: { quotes: req.payload } },
+      { new: true, select: { identity: 1, quotes: 1 }, autopopulate: false }
+    );
+
     return {
       message: translate[language].customerQuoteAdded,
-      data: {
-        user: pick(newQuote, ['_id', 'identity']),
-        quote: newQuote.quotes.find(quote => quoteNumber === quote.quoteNumber),
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -474,32 +455,22 @@ const createHistorySubscription = async (req) => {
 
 const createFunding = async (req) => {
   try {
-    const check = await checkSubscriptionFunding(req.params._id, req.payload);
+    const check = await FundingHelper.checkSubscriptionFunding(req.params._id, req.payload);
     if (!check) return Boom.conflict(translate[language].customerFundingConflict);
-    const customer = await Customer.findOneAndUpdate(
+    let customer = await Customer.findOneAndUpdate(
       { _id: req.params._id },
       { $push: { fundings: req.payload } },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
-        autopopulate: false,
-      }
+      { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
     )
       .populate({ path: 'subscriptions.service' })
       .populate({ path: 'fundings.thirdPartyPayer' })
       .lean();
 
-    if (!customer) return Boom.notFound(translate[language].customerNotFound);
-
-    let funding = customer.fundings[customer.fundings.length - 1];
-    funding = populateFundings(funding, customer);
+    customer = await FundingHelper.populateFundingsList(customer);
 
     return {
       message: translate[language].customerFundingCreated,
-      data: {
-        customer: pick(customer, ['_id', 'identity']),
-        funding,
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -510,11 +481,16 @@ const createFunding = async (req) => {
 const updateFunding = async (req) => {
   try {
     if (req.payload.careDays) {
-      const checkFundingPayload = { _id: req.params.fundingId, subscription: req.payload.subscription, versions: [req.payload] };
-      const check = await checkSubscriptionFunding(req.params._id, checkFundingPayload);
+      const checkFundingPayload = {
+        _id: req.params.fundingId,
+        subscription: req.payload.subscription,
+        versions: [req.payload],
+      };
+      const check = await FundingHelper.checkSubscriptionFunding(req.params._id, checkFundingPayload);
       if (!check) return Boom.conflict(translate[language].customerFundingConflict);
     }
-    const customer = await Customer.findOneAndUpdate(
+
+    let customer = await Customer.findOneAndUpdate(
       { _id: req.params._id, 'fundings._id': req.params.fundingId },
       { $push: { 'fundings.$.versions': req.payload } },
       {
@@ -526,18 +502,11 @@ const updateFunding = async (req) => {
       .populate({ path: 'subscriptions.service' })
       .populate({ path: 'fundings.thirdPartyPayer' })
       .lean();
-
-    if (!customer) return Boom.notFound(translate[language].customerFundingNotFound);
-
-    let funding = customer.fundings.find(fund => fund._id.toHexString() === req.params.fundingId);
-    funding = populateFundings(funding, customer);
+    customer = await FundingHelper.populateFundingsList(customer);
 
     return {
       message: translate[language].customerFundingUpdated,
-      data: {
-        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-        funding,
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
