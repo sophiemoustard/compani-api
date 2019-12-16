@@ -223,3 +223,9 @@ exports.formatPDF = (creditNote, company) => {
     },
   };
 };
+
+exports.removeCreditNote = async (creditNote, credentials, params) => {
+  await exports.updateEventAndFundingHistory(creditNote.events, true, credentials);
+  await CreditNote.findByIdAndRemove(params._id);
+  if (creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(creditNote.linkedCreditNote);
+};

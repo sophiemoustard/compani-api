@@ -4,13 +4,7 @@ const get = require('lodash/get');
 const CreditNote = require('../models/CreditNote');
 const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const {
-  updateEventAndFundingHistory,
-  createCreditNotes,
-  updateCreditNotes,
-  getCreditNotes,
-  formatPDF,
-} = require('../helpers/creditNotes');
+const CreditNoteHelper = require('../helpers/creditNotes');
 const { generatePdf } = require('../helpers/pdf');
 const { COMPANI } = require('../helpers/constants');
 
@@ -18,7 +12,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const creditNotes = await getCreditNotes(req.query, req.auth.credentials);
+    const creditNotes = await CreditNoteHelper.getCreditNotes(req.query, req.auth.credentials);
 
     return {
       message: creditNotes.length === 0
@@ -34,7 +28,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    await createCreditNotes(req.payload, req.auth.credentials);
+    await CreditNoteHelper.createCreditNotes(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteCreated,
@@ -47,7 +41,11 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedCreditNote = await updateCreditNotes(req.pre.creditNote, req.payload, req.auth.credentials);
+    const updatedCreditNote = await CreditNoteHelper.updateCreditNotes(
+      req.pre.creditNote,
+      req.payload,
+      req.auth.credentials
+    );
 
     return {
       message: translate[language].creditNoteUpdated,
@@ -61,10 +59,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    await updateEventAndFundingHistory(req.pre.creditNote.events, true, req.auth.credentials);
-    await CreditNote.findByIdAndRemove(req.params._id);
-    if (req.pre.creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(req.pre.creditNote.linkedCreditNote);
-
+    await CreditNoteHelper.removeCreditNote();
     return {
       message: translate[language].creditNoteDeleted,
     };
@@ -97,7 +92,7 @@ const generateCreditNotePdf = async (req, h) => {
     if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
 
     const company = await Company.findOne();
-    const data = formatPDF(creditNote, company);
+    const data = CreditNoteHelper.formatPDF(creditNote, company);
     const pdf = await generatePdf(data, './src/data/creditNote.html');
 
     return h.response(pdf)

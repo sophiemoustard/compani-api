@@ -745,3 +745,60 @@ describe('updateCreditNotes', () => {
     );
   });
 });
+
+describe('removeCreditNote', () => {
+  let updateEventAndFundingHistoryStub;
+  let findByIdAndRemoveStub;
+  const creditNote = {
+    _id: new ObjectID(),
+    number: 1,
+    events: [{
+      auxiliary: {
+        identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
+      },
+      startDate: '2019-04-29T06:00:00.000Z',
+      endDate: '2019-04-29T15:00:00.000Z',
+      serviceName: 'Toto',
+      bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
+    }],
+    customer: {
+      identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
+      contact: { primaryAddress: { fullAddress: 'La ruche' } },
+      subscriptions: [{ _id: new ObjectID(), service: { versions: [{ name: 'Toto' }] } }],
+    },
+    date: '2019-04-29T22:00:00.000Z',
+    exclTaxesCustomer: 221,
+    inclTaxesCustomer: 234,
+    exclTaxesTpp: 21,
+    inclTaxesTpp: 34,
+  };
+  const credentials = { company: { _id: new ObjectID() } };
+  const params = { _id: new ObjectID() };
+  beforeEach(() => {
+    updateEventAndFundingHistoryStub = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
+    findByIdAndRemoveStub = sinon.stub(CreditNote, 'findByIdAndRemove');
+  });
+
+  afterEach(() => {
+    updateEventAndFundingHistoryStub.restore();
+    findByIdAndRemoveStub.restore();
+  });
+
+  it('should delete a credit note', async () => {
+    await CreditNoteHelper.removeCreditNote(creditNote, credentials, params);
+    sinon.assert.calledWithExactly(updateEventAndFundingHistoryStub, creditNote.events, true, credentials);
+    sinon.assert.calledOnce(updateEventAndFundingHistoryStub);
+    sinon.assert.calledWithExactly(findByIdAndRemoveStub, params._id);
+    sinon.assert.calledOnce(findByIdAndRemoveStub);
+  });
+
+  it('should delete the linked creditNote if it has one', async () => {
+    creditNote.linkedCreditNote = new ObjectID();
+    await CreditNoteHelper.removeCreditNote(creditNote, credentials, params);
+    sinon.assert.calledWithExactly(updateEventAndFundingHistoryStub, creditNote.events, true, credentials);
+    sinon.assert.calledOnce(updateEventAndFundingHistoryStub);
+    sinon.assert.calledWithExactly(findByIdAndRemoveStub, params._id);
+    sinon.assert.calledWithExactly(findByIdAndRemoveStub, creditNote.linkedCreditNote);
+    sinon.assert.calledTwice(findByIdAndRemoveStub);
+  });
+});
