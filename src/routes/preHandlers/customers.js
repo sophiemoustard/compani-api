@@ -1,5 +1,6 @@
 const Boom = require('boom');
 const get = require('lodash/get');
+const { ObjectID } = require('mongodb');
 const translate = require('../../helpers/translate');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');
@@ -28,17 +29,17 @@ exports.getCustomer = async (req) => {
 };
 
 exports.validateCustomerCompany = async (params, payload, companyId) => {
-  const query = { _id: params._id };
-  if (params.subscriptionId) query.subscriptions._id = params.subscriptionId;
-  else if (params.mandateId) query.payment.mandates._id = params.mandateId;
-  else if (params.quoteId) query.quotes._id = params.quoteId;
+  let query = { _id: params._id };
+  if (params.subscriptionId) query = { ...query, 'subscriptions._id': params.subscriptionId };
+  else if (params.mandateId) query = { ...query, 'payment.mandates._id': params.mandateId };
+  else if (params.quoteId) query = { ...query, 'quotes._id': params.quoteId };
   else if (params.fundingId) {
-    query.fundings._id = params.fundingId;
-    if (payload && payload.subscription) query.subscriptions._id = query.subscription;
+    query = { ...query, 'fundings._id': params.fundingId };
+    if (payload && payload.subscription) query = { ...query, 'subscriptions._id': payload.subscription };
   }
 
   const customer = await Customer.findOne(query).lean();
-  if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
+  if (!customer) throw Boom.notFound(translate[language].customerNotFound);
 
   if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 };

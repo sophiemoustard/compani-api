@@ -195,7 +195,11 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWithExactly(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] } }, companyId);
+    sinon.assert.calledWithExactly(
+      getCustomersWithSubscriptions,
+      { 'subscriptions.service': { $in: ['1234567890'] } },
+      companyId
+    );
     sinon.assert.notCalled(subscriptionsAccepted);
     ServiceMock.verify();
   });
@@ -223,7 +227,11 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
       { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { identity: { firstname: 'Brigitte' }, subscriptionsAccepted: true, company: companyId },
     ]);
-    sinon.assert.calledWithExactly(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] } }, companyId);
+    sinon.assert.calledWithExactly(
+      getCustomersWithSubscriptions,
+      { 'subscriptions.service': { $in: ['1234567890'] } },
+      companyId
+    );
     sinon.assert.calledTwice(subscriptionsAccepted);
     ServiceMock.verify();
   });
@@ -239,7 +247,7 @@ describe('getCustomersWithIntervention', () => {
   });
 
   it('should return an array of customers', async () => {
-    const customer = { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'test' } }
+    const customer = { _id: new ObjectID(), identity: { firstname: 'toto', lastname: 'test' } };
     getCustomersWithInterventionStub.returns([customer]);
     const credentials = { company: { _id: new ObjectID() } };
     const result = await CustomerHelper.getCustomersWithIntervention(credentials);
@@ -254,18 +262,18 @@ describe('getCustomer', () => {
   let CustomerMock;
   let populateSubscriptionsServices;
   let subscriptionsAccepted;
-  let populateFundings;
+  let populateFundingsList;
   beforeEach(() => {
     CustomerMock = sinon.mock(Customer);
     populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
     subscriptionsAccepted = sinon.stub(SubscriptionsHelper, 'subscriptionsAccepted');
-    populateFundings = sinon.stub(FundingsHelper, 'populateFundings');
+    populateFundingsList = sinon.stub(FundingsHelper, 'populateFundingsList');
   });
   afterEach(() => {
     CustomerMock.restore();
     populateSubscriptionsServices.restore();
     subscriptionsAccepted.restore();
-    populateFundings.restore();
+    populateFundingsList.restore();
   });
 
   it('should return null if no customer', async () => {
@@ -309,7 +317,7 @@ describe('getCustomer', () => {
     sinon.assert.calledOnce(subscriptionsAccepted);
   });
 
-  it('should return customer', async () => {
+  it('should return customer with fundings', async () => {
     const customerId = 'qwertyuiop';
 
     const customer = { identity: { firstname: 'Emmanuel' }, fundings: [{ _id: '1234' }, { _id: '09876' }] };
@@ -323,14 +331,17 @@ describe('getCustomer', () => {
       .returns(customer);
     populateSubscriptionsServices.callsFake(cus => ({ ...cus, subscriptions: 2 }));
     subscriptionsAccepted.callsFake(cus => ({ ...cus, subscriptionsAccepted: true }));
-    populateFundings.returnsArg(0);
+    populateFundingsList.returnsArg(0);
 
     await CustomerHelper.getCustomer(customerId);
 
     CustomerMock.verify();
-    sinon.assert.calledOnce(populateSubscriptionsServices);
-    sinon.assert.calledOnce(subscriptionsAccepted);
-    sinon.assert.calledTwice(populateFundings);
+    sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
+    sinon.assert.calledWithExactly(subscriptionsAccepted, { ...customer, subscriptions: 2 });
+    sinon.assert.calledWithExactly(
+      populateFundingsList,
+      { ...customer, subscriptions: 2, subscriptionsAccepted: true }
+    );
   });
 });
 
@@ -588,7 +599,10 @@ describe('updateCustomer', () => {
 
     sinon.assert.calledWithExactly(
       updateMany,
-      { 'address.fullAddress': customer.contact.primaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+      {
+        'address.fullAddress': customer.contact.primaryAddress.fullAddress,
+        startDate: { $gte: moment().startOf('day').toDate() },
+      },
       { $set: { address: payload.contact.primaryAddress } },
       { new: true }
     );
@@ -632,7 +646,10 @@ describe('updateCustomer', () => {
 
     sinon.assert.calledWithExactly(
       updateMany,
-      { 'address.fullAddress': customer.contact.secondaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+      {
+        'address.fullAddress': customer.contact.secondaryAddress.fullAddress,
+        startDate: { $gte: moment().startOf('day').toDate() },
+      },
       { $set: { address: payload.contact.secondaryAddress } },
       { new: true }
     );
@@ -718,7 +735,10 @@ describe('updateCustomer', () => {
 
     sinon.assert.calledWithExactly(
       updateMany,
-      { 'address.fullAddress': customer.contact.secondaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
+      {
+        'address.fullAddress': customer.contact.secondaryAddress.fullAddress,
+        startDate: { $gte: moment().startOf('day').toDate() },
+      },
       { $set: { address: customer.contact.primaryAddress } },
       { new: true }
     );
@@ -730,16 +750,10 @@ describe('updateCustomer', () => {
   it('should update a customer', async () => {
     const customerId = 'qwertyuiop';
     const customer = {
-      identity: {
-        firstname: 'Jake',
-        lastname: 'Peralta',
-      },
+      identity: { firstname: 'Jake', lastname: 'Peralta' },
     };
     const payload = {
-      identity: {
-        firstname: 'Raymond',
-        lastname: 'Holt',
-      },
+      identity: { firstname: 'Raymond', lastname: 'Holt' },
     };
 
     const customerResult = cloneDeep(customer);

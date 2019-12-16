@@ -106,7 +106,7 @@ exports.getCustomer = async (customerId, credentials) => {
   customer = SubscriptionsHelper.subscriptionsAccepted(customer);
 
   if (customer.fundings && customer.fundings.length > 0) {
-    customer.fundings = await FundingsHelper.populateFundingsList(customer);
+    customer = await FundingsHelper.populateFundingsList(customer);
   }
 
   return customer;
