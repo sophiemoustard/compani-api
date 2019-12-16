@@ -9,7 +9,7 @@ const {
   getHoursBalanceDetails,
   getHoursToWork,
 } = require('../controllers/payController');
-const { authorizePayCreation, authorizeGetDetails } = require('./preHandlers/pay');
+const { authorizePayCreation, authorizeGetDetails, authorizeGetHoursToWork } = require('./preHandlers/pay');
 
 
 exports.plugin = {
@@ -72,6 +72,7 @@ exports.plugin = {
             month: Joi.string().required(),
           },
         },
+        pre: [{ method: authorizeGetHoursToWork }],
       },
       handler: getHoursToWork,
     });
