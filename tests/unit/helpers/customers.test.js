@@ -42,24 +42,27 @@ describe('getCustomerBySector', () => {
 
     const queryBySector = { ...query, endDate, sector };
     await CustomerHelper.getCustomerBySector(queryBySector, credentials);
-    sinon.assert.calledWith(getListQuery, { startDate, endDate, sector, type: 'intervention' });
-    sinon.assert.calledWith(getCustomersFromEvent, { ...query, company: companyId });
+    sinon.assert.calledWithExactly(getListQuery, { startDate, endDate, sector, type: 'intervention' }, credentials);
+    sinon.assert.calledWithExactly(getCustomersFromEvent, query, companyId);
   });
 });
 
 describe('getCustomersWithBilledEvents', () => {
-  let getCustomerWithBilledEvents;
+  let getCustomersWithBilledEvents;
   beforeEach(() => {
-    getCustomerWithBilledEvents = sinon.stub(EventRepository, 'getCustomerWithBilledEvents');
+    getCustomersWithBilledEvents = sinon.stub(EventRepository, 'getCustomersWithBilledEvents');
   });
   afterEach(() => {
-    getCustomerWithBilledEvents.restore();
+    getCustomersWithBilledEvents.restore();
   });
 
   it('should return customer by sector', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     await CustomerHelper.getCustomersWithBilledEvents(credentials);
-    sinon.assert.calledWith(getCustomerWithBilledEvents, { isBilled: true, type: 'intervention', company: credentials.company._id });
+    sinon.assert.calledWithExactly(
+      getCustomersWithBilledEvents,
+      { isBilled: true, type: 'intervention' }, credentials.company._id
+    );
   });
 });
 
@@ -80,12 +83,13 @@ describe('getCustomers', () => {
 
   it('should return empty array if no customer', async () => {
     const companyId = new ObjectID();
-    const query = { role: 'qwertyuiop', company: companyId };
+    const credentials = { company: { _id: companyId } };
+    const query = { role: 'qwertyuiop' };
     getCustomersList.returns([]);
-    const result = await CustomerHelper.getCustomers(query);
+    const result = await CustomerHelper.getCustomers(query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWith(getCustomersList, query);
+    sinon.assert.calledWithExactly(getCustomersList, query, companyId);
     sinon.assert.notCalled(subscriptionsAccepted);
     sinon.assert.notCalled(formatIdentity);
   });
@@ -191,7 +195,7 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
     const result = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWith(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] } });
+    sinon.assert.calledWithExactly(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] } }, companyId);
     sinon.assert.notCalled(subscriptionsAccepted);
     ServiceMock.verify();
   });
@@ -219,7 +223,7 @@ describe('getCustomersWithCustomerContractSubscriptions', () => {
       { identity: { firstname: 'Emmanuel' }, subscriptionsAccepted: true, company: companyId },
       { identity: { firstname: 'Brigitte' }, subscriptionsAccepted: true, company: companyId },
     ]);
-    sinon.assert.calledWith(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] } });
+    sinon.assert.calledWithExactly(getCustomersWithSubscriptions, { 'subscriptions.service': { $in: ['1234567890'] } }, companyId);
     sinon.assert.calledTwice(subscriptionsAccepted);
     ServiceMock.verify();
   });
@@ -582,7 +586,7 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateMany,
       { 'address.fullAddress': customer.contact.primaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
       { $set: { address: payload.contact.primaryAddress } },
@@ -626,7 +630,7 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateMany,
       { 'address.fullAddress': customer.contact.secondaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
       { $set: { address: payload.contact.secondaryAddress } },
@@ -712,7 +716,7 @@ describe('updateCustomer', () => {
 
     const result = await CustomerHelper.updateCustomer(customerId, payload);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateMany,
       { 'address.fullAddress': customer.contact.secondaryAddress.fullAddress, startDate: { $gte: moment().startOf('day').toDate() } },
       { $set: { address: customer.contact.primaryAddress } },

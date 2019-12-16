@@ -172,7 +172,7 @@ describe('getDraftPay', () => {
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),
       'finalpays',
-      '1234567890'
+      credentials.company._id
     );
   });
 

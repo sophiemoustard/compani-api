@@ -270,7 +270,10 @@ describe('CUSTOMERS ROUTES', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.customers).toBeDefined();
-      const areAllCustomersFromCompany = res.result.data.customers.every(customer => customer.company._id.toHexString() === otherCompany._id.toHexString());
+      const areAllCustomersFromCompany = res.result.data.customers.every(async (customer) => {
+        const customerFromDB = await Customer.find({ _id: customer._id, company: otherCompany._id });
+        return customerFromDB;
+      });
       expect(areAllCustomersFromCompany).toBe(true);
     });
   });

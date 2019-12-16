@@ -31,14 +31,14 @@ exports.getCustomerBySector = async (query, credentials) => {
     sector: query.sector,
   }, credentials);
   const companyId = get(credentials, 'company._id', null);
-  return EventRepository.getCustomersFromEvent({ ...queryCustomer, company: new ObjectID(companyId) });
+  return EventRepository.getCustomersFromEvent(queryCustomer, companyId);
 };
 
 exports.getCustomersWithBilledEvents = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const query = { isBilled: true, type: INTERVENTION, company: new ObjectID(companyId) };
+  const query = { isBilled: true, type: INTERVENTION };
 
-  return EventRepository.getCustomerWithBilledEvents(query);
+  return EventRepository.getCustomersWithBilledEvents(query, companyId);
 };
 
 exports.getCustomers = async (query, credentials) => {
