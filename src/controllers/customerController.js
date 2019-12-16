@@ -16,25 +16,14 @@ const { generateRum } = require('../helpers/customers');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/eSign');
-const {
-  createAndSaveFile,
-  getCustomersFirstIntervention,
-  getCustomerBySector,
-  getCustomersWithBilledEvents,
-  getCustomers,
-  getCustomersWithCustomerContractSubscriptions,
-  getCustomersWithIntervention,
-  getCustomer,
-  updateCustomer,
-  getCustomersWithSubscriptions,
-} = require('../helpers/customers');
+const CustomerHelper = require('../helpers/customers');
 const { checkSubscriptionFunding, populateFundings } = require('../helpers/fundings');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const customers = await getCustomers(req.auth.credentials);
+    const customers = await CustomerHelper.getCustomers(req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -50,7 +39,7 @@ const listWithFirstIntervention = async (req) => {
   try {
     const { query, auth } = req;
     const companyId = get(auth, 'credentials.company._id', null);
-    const customers = await getCustomersFirstIntervention(query, companyId);
+    const customers = await CustomerHelper.getCustomersFirstIntervention(query, companyId);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -64,7 +53,7 @@ const listWithFirstIntervention = async (req) => {
 
 const listWithSubscriptions = async (req) => {
   try {
-    const customers = await getCustomersWithSubscriptions(req.auth.credentials);
+    const customers = await CustomerHelper.getCustomersWithSubscriptions(req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -78,7 +67,7 @@ const listWithSubscriptions = async (req) => {
 
 const listBySector = async (req) => {
   try {
-    const customers = await getCustomerBySector(req.query, req.auth.credentials);
+    const customers = await CustomerHelper.getCustomerBySector(req.query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -93,7 +82,7 @@ const listBySector = async (req) => {
 const listWithBilledEvents = async (req) => {
   try {
     const { credentials } = req.auth;
-    const customers = await getCustomersWithBilledEvents(credentials);
+    const customers = await CustomerHelper.getCustomersWithBilledEvents(credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -107,7 +96,7 @@ const listWithBilledEvents = async (req) => {
 
 const listWithCustomerContractSubscriptions = async (req) => {
   try {
-    const customers = await getCustomersWithCustomerContractSubscriptions(req.auth.credentials);
+    const customers = await CustomerHelper.getCustomersWithCustomerContractSubscriptions(req.auth.credentials);
 
     return {
       message: translate[language].customersFound,
@@ -121,7 +110,7 @@ const listWithCustomerContractSubscriptions = async (req) => {
 
 const listWithIntervention = async (req) => {
   try {
-    const customers = await getCustomersWithIntervention(req.auth.credentials);
+    const customers = await CustomerHelper.getCustomersWithIntervention(req.auth.credentials);
     return {
       message: customers.length > 0 ? translate[language].customersFound : translate[language].customersNotFound,
       data: { customers },
@@ -134,7 +123,7 @@ const listWithIntervention = async (req) => {
 
 const show = async (req) => {
   try {
-    const customer = await getCustomer(req.params._id, req.auth.credentials);
+    const customer = await CustomerHelper.getCustomer(req.params._id, req.auth.credentials);
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
     return {
@@ -183,15 +172,12 @@ const remove = async (req) => {
 
 const update = async (req) => {
   try {
-    const customerUpdated = await updateCustomer(req.params._id, req.payload);
-    if (!customerUpdated) {
-      return Boom.notFound(translate[language].customerNotFound);
-    }
+    const customer = await CustomerHelper.updateCustomer(req.params._id, req.payload);
+    if (!customer) Boom.notFound(translate[language].customerNotFound);
+
     return {
       message: translate[language].customerUpdated,
-      data: {
-        customer: customerUpdated,
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -210,10 +196,7 @@ const updateSubscription = async (req) => {
         autopopulate: false,
       }
     )
-      .populate({
-        path: 'subscriptions.service',
-        populate: { path: 'versions.surcharge' },
-      })
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
       .lean();
 
     if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
@@ -243,7 +226,8 @@ const addSubscription = async (req) => {
 
     const customer = await Customer.findById(req.params._id);
     if (customer.subscriptions && customer.subscriptions.length > 0) {
-      const isServiceAlreadySubscribed = customer.subscriptions.find(subscription => subscription.service.toHexString() === serviceId);
+      const isServiceAlreadySubscribed = customer.subscriptions
+        .find(subscription => subscription.service.toHexString() === serviceId);
       if (isServiceAlreadySubscribed) return Boom.conflict(translate[language].serviceAlreadySubscribed);
     }
 
@@ -342,10 +326,6 @@ const updateMandate = async (req) => {
       }
     ).lean();
 
-    if (!customer) {
-      return Boom.notFound(translate[language].customerMandateNotFound);
-    }
-
     return {
       message: translate[language].customerMandateUpdated,
       data: {
@@ -396,11 +376,7 @@ const getCustomerQuotes = async (req) => {
   try {
     const quotes = await Customer.findOne(
       { _id: req.params._id, quotes: { $exists: true } },
-      {
-        'identity.firstname': 1,
-        'identity.lastname': 1,
-        quotes: 1,
-      },
+      { 'identity.firstname': 1, 'identity.lastname': 1, quotes: 1 },
       { autopopulate: false }
     ).lean();
     if (!quotes) return Boom.notFound();
@@ -491,24 +467,11 @@ const uploadFile = async (req) => {
   }
 };
 
-const updateCertificates = async (req) => {
+const deleteCertificates = async (req) => {
   try {
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: req.payload },
-      {
-        select: { firstname: 1, lastname: 1, financialCertificates: 1 },
-        autopopulate: false,
-      }
-    );
+    await CustomerHelper.deleteCertificates(req.payload.driveId);
 
-    if (!customer) {
-      return Boom.notFound(translate[language].customerNotFound);
-    }
-
-    return {
-      message: translate[language].customerFinancialCertificateRemoved,
-    };
+    return { message: translate[language].customerFinancialCertificateRemoved };
   } catch (e) {
     req.log('error', e);
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
@@ -699,7 +662,7 @@ module.exports = {
   getCustomerQuotes,
   createCustomerQuote,
   uploadFile,
-  updateCertificates,
+  deleteCertificates,
   generateMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,

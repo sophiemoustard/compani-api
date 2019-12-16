@@ -24,7 +24,7 @@ const {
   getCustomerQuotes,
   createCustomerQuote,
   uploadFile,
-  updateCertificates,
+  deleteCertificates,
   generateMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
@@ -450,14 +450,12 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: Joi.object().keys({
-            financialCertificates: Joi.object().keys({
-              driveId: Joi.string().required(),
-            }),
+            driveId: Joi.string().required(),
           }),
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: updateCertificates,
+      handler: deleteCertificates,
     });
 
     server.route({

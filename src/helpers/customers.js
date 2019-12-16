@@ -1,6 +1,5 @@
 const flat = require('flat');
 const Boom = require('boom');
-const { ObjectID } = require('mongodb');
 const crypto = require('crypto');
 const moment = require('moment');
 const has = require('lodash/has');
@@ -10,8 +9,8 @@ const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const Event = require('../models/Event');
-const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
+const EventRepository = require('../repositories/EventRepository');
 const translate = require('../helpers/translate');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
@@ -243,3 +242,8 @@ exports.createAndSaveFile = async (params, payload) => {
 
   return uploadedFile;
 };
+
+exports.deleteCertificates = (customerId, driveId) => Promise.all([
+  Drive.deleteFile({ fileId: driveId }),
+  Customer.findOneAndUpdate({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
+]);
