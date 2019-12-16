@@ -15,15 +15,10 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['bills:read', 'customer-{query.customer}'] },
-        validate: {
-          query: {
-            date: Joi.date(),
-            customer: Joi.objectId(),
-          },
-        },
       },
       handler: list,
     });
+
     server.route({
       method: 'GET',
       path: '/details',
