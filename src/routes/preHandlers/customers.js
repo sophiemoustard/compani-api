@@ -29,8 +29,14 @@ exports.getCustomer = async (req) => {
 
 exports.authorizeCustomerUpdate = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findById(req.params._id).lean();
-  if (!customer) throw Boom.notFound(translate[language].customerNotFound);
+  let customer;
+  if (req.params.subscriptionId) {
+    customer = await Customer.findOne({ _id: req.params._id, 'subscriptions._id': req.params.subscriptionId }).lean();
+    if (!customer) throw Boom.notFound(translate[language].customerSubscriptionsNotFound);
+  } else {
+    customer = await Customer.findById(req.params._id).lean();
+    if (!customer) throw Boom.notFound(translate[language].customerNotFound);
+  }
 
   if (customer.company.toHexString() !== companyId.toHexString()) throw Boom.forbidden();
 

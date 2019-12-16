@@ -11,7 +11,7 @@ const Service = require('../models/Service');
 const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
-const { populateSubscriptionsServices } = require('../helpers/subscriptions');
+const SusbscriptionHelper = require('../helpers/subscriptions');
 const { generateRum } = require('../helpers/customers');
 const { createFolder, addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
@@ -187,28 +187,11 @@ const update = async (req) => {
 
 const updateSubscription = async (req) => {
   try {
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'subscriptions._id': req.params.subscriptionId },
-      { $push: { 'subscriptions.$.versions': req.payload } },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, subscriptions: 1 },
-        autopopulate: false,
-      }
-    )
-      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-      .lean();
-
-    if (!customer) return Boom.notFound(translate[language].customerSubscriptionsNotFound);
-
-    const { subscriptions } = populateSubscriptionsServices(customer);
+    const customer = await SusbscriptionHelper.updateSubscription(req.params, req.payload);
 
     return {
       message: translate[language].customerSubscriptionUpdated,
-      data: {
-        customer: pick(customer, ['_id', 'identity.lastname', 'identity.firstname']),
-        subscriptions,
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -247,7 +230,7 @@ const addSubscription = async (req) => {
       })
       .lean();
 
-    const { subscriptions } = populateSubscriptionsServices(updatedCustomer);
+    const { subscriptions } = SusbscriptionHelper.populateSubscriptionsServices(updatedCustomer);
 
     return {
       message: translate[language].customerSubscriptionAdded,
@@ -455,7 +438,7 @@ const createDriveFolder = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const uploadedFile = await createAndSaveFile(req.params, req.payload);
+    const uploadedFile = await CustomerHelper.createAndSaveFile(req.params, req.payload);
 
     return {
       message: translate[language].fileCreated,

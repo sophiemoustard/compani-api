@@ -105,3 +105,15 @@ exports.exportSubscriptions = async (credentials) => {
 
   return data;
 };
+
+exports.updateSubscription = async (params, payload) => {
+  const customer = await Customer.findOneAndUpdate(
+    { _id: params._id, 'subscriptions._id': params.subscriptionId },
+    { $push: { 'subscriptions.$.versions': payload } },
+    { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
+  )
+    .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+    .lean();
+
+  return exports.populateSubscriptionsServices(customer);
+};
