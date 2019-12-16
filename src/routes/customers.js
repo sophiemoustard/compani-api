@@ -34,7 +34,12 @@ const {
   removeFunding,
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
-const { getCustomer, authorizeCustomerDelete, authorizeCustomerGetAndUpdate } = require('./preHandlers/customers');
+const {
+  getCustomer,
+  authorizeCustomerDelete,
+  authorizeCustomerUpdate,
+  authorizeCustomerGetAndUpdate,
+} = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 
 exports.plugin = {
@@ -111,20 +116,20 @@ exports.plugin = {
                 }),
               }),
               accessCodes: Joi.string().allow('', null),
-            }),
+            }).min(1),
             followUp: Joi.object().keys({
               environment: Joi.string().allow('', null),
               objectives: Joi.string().allow('', null),
               misc: Joi.string().allow('', null),
-            }),
+            }).min(1),
             payment: Joi.object().keys({
               bankAccountOwner: Joi.string(),
               iban: Joi.string(),
               bic: Joi.string(),
-            }),
+            }).min(1),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: update,
     });
