@@ -112,6 +112,13 @@ exports.plugin = {
           allow: 'multipart/form-data',
           maxBytes: 5242880,
         },
+        validate: {
+          payload: {
+            fileName: Joi.string().required(),
+            type: Joi.string().required(),
+            file: Joi.any(),
+          },
+        },
         pre: [{ method: authorizeCompanyUpdate }],
       },
     });

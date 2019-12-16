@@ -13,32 +13,22 @@ exports.createCompany = async (companyPayload) => {
 };
 
 exports.uploadFile = async (payload, params) => {
-  const allowedFields = [
-    'contractWithCompany',
-    'contractWithCompanyVersion',
-    'contractWithCustomer',
-    'contractWithCustomerVersion',
-    'debitMandate',
-    'quote',
-  ];
-  const keys = Object.keys(payload).filter(key => allowedFields.indexOf(key) !== -1);
-  if (keys.length === 0) return Boom.forbidden('Upload not allowed');
+  const { fileName, type, file } = payload;
 
   const uploadedFile = await addFile({
     driveFolderId: params.driveId,
-    name: payload.fileName || payload[keys[0]].hapi.filename,
+    name: fileName,
     type: payload['Content-Type'],
-    body: payload[keys[0]],
+    body: file,
   });
   const driveFileInfo = await drive.getFileById({ fileId: uploadedFile.id });
-  const configKey = (keys[0].match(/contract/i)) ? 'rhConfig' : 'customersConfig';
+  const configKey = (type.match(/contract/i)) ? 'rhConfig' : 'customersConfig';
   const companyPayload = {
     [configKey]: {
       templates: {
-        [keys[0]]: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
+        [type]: { driveId: uploadedFile.id, link: driveFileInfo.webViewLink },
       },
     },
   };
-
   return Company.findOneAndUpdate({ _id: params._id }, { $set: flat(companyPayload) }, { new: true });
 };
