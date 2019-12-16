@@ -460,21 +460,11 @@ const saveSignedMandate = async (req) => {
 
 const createHistorySubscription = async (req) => {
   try {
-    const customer = await Customer.findOneAndUpdate({ _id: req.params._id }, { $push: { subscriptionsHistory: req.payload } }, {
-      new: true,
-      select: {
-        'identity.firstname': 1,
-        'identity.lastname': 1,
-        subscriptionsHistory: 1,
-      },
-      autopopulate: false,
-    });
+    const customer = await SubscriptionHelper.createSubscriptionHistory(req.params._id, req.payload);
+
     return {
       message: translate[language].customerSubscriptionHistoryAdded,
-      data: {
-        customer: pick(customer, ['_id', 'identity']),
-        subscriptionHistory: customer.subscriptionsHistory.find(sub => moment(sub.approvalDate).isSame(moment(), 'day')),
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);

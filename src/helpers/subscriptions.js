@@ -49,7 +49,7 @@ exports.subscriptionsAccepted = (customer) => {
         return { service: get(subscription, 'service.name'), ...version };
       });
 
-      const lastSubscriptionHistory = [...customer.subscriptionsHistory].sort((a, b) => new Date(b.approvalDate) - new Date(a.approvalDate))[0];
+      const lastSubscriptionHistory = UtilsHelper.getLastVersion(customer.subscriptionsHistory, 'approvalDate');
       const lastSubscriptions = lastSubscriptionHistory.subscriptions
         .map(sub => pick(sub, ['unitTTCRate', 'estimatedWeeklyVolume', 'evenings', 'sundays', 'service']));
       customer.subscriptionsAccepted = isEqual(subscriptions, lastSubscriptions);
@@ -144,4 +144,10 @@ exports.addSubscription = async (customerId, payload) => {
 exports.deleteSubsctiption = async (customerId, subscriptionId) => Customer.findOneAndUpdate(
   { _id: customerId },
   { $pull: { subscriptions: { _id: subscriptionId } } }
+);
+
+exports.createSubscriptionHistory = async (customerId, payload) => Customer.findOneAndUpdate(
+  { _id: customerId },
+  { $push: { subscriptionsHistory: payload } },
+  { new: true, select: { identity: 1, subscriptionsHistory: 1 }, autopopulate: false }
 );
