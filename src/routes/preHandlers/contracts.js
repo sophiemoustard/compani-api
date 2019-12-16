@@ -53,3 +53,10 @@ exports.authorizeGetContract = async (req) => {
   if ((customer || !req.query.customer) && (user || !req.query.user)) return null;
   throw Boom.forbidden();
 };
+
+exports.authorizeUpload = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId });
+  if (!customer && req.query.customer) throw Boom.forbidden();
+  return null;
+};

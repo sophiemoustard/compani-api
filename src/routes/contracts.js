@@ -17,7 +17,13 @@ const {
   receiveSignatureEvents,
   getStaffRegister,
 } = require('../controllers/contractController');
-const { getContract, authorizeContractUpdate, authorizeContractCreation, authorizeGetContract } = require('./preHandlers/contracts');
+const {
+  getContract,
+  authorizeContractUpdate,
+  authorizeContractCreation,
+  authorizeGetContract,
+  authorizeUpload,
+} = require('./preHandlers/contracts');
 
 exports.plugin = {
   name: 'contract-routes',
@@ -254,6 +260,7 @@ exports.plugin = {
         },
         pre: [
           { method: getContract, assign: 'contract' },
+          { method: authorizeUpload },
           { method: authorizeContractUpdate },
         ],
       },
