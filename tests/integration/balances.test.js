@@ -16,7 +16,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('BALANCES ROUTES - GET /balances', () => {
+describe('BALANCES ROUTES - GET /', () => {
   let authToken = null;
   beforeEach(populateDB);
 
