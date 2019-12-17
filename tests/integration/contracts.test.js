@@ -556,9 +556,9 @@ describe('CONTRACTS ROUTES', () => {
     });
 
     const roles = [
-      { name: 'helper', expectedCode: 403, callCount: 0 },
-      { name: 'auxiliary', expectedCode: 403, callCount: 0 },
-      { name: 'coach', expectedCode: 200, callCount: 1 },
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
     ];
 
     roles.forEach((role) => {
