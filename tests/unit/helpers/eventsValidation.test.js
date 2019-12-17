@@ -11,6 +11,7 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const {
   INTERVENTION,
   ABSENCE,
+  UNAVAILABILITY,
   INTERNAL_HOUR,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
@@ -433,6 +434,89 @@ describe('hasConflicts', () => {
     await EventsValidationHelper.hasConflicts(event);
 
     sinon.assert.calledWith(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', event.company, ABSENCE);
+  });
+});
+
+describe('isAbsent', () => {
+  let getAuxiliaryEventsBetweenDates;
+  beforeEach(() => {
+    getAuxiliaryEventsBetweenDates = sinon.stub(EventRepository, 'getAuxiliaryEventsBetweenDates');
+  });
+  afterEach(() => {
+    getAuxiliaryEventsBetweenDates.restore();
+  });
+
+  it('should return true if event has conflicts with an absence', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2019-10-02T09:00:00.000Z',
+      endDate: '2019-10-02T11:00:00.000Z',
+      auxiliary: new ObjectID(),
+    };
+
+    getAuxiliaryEventsBetweenDates.returns([
+      { _id: new ObjectID(), startDate: '2019-10-02T08:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z', type: ABSENCE },
+    ]);
+    const result = await EventsValidationHelper.isAbsent(event);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return true if event has conflicts with an unavailability', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2019-10-02T09:00:00.000Z',
+      endDate: '2019-10-02T11:00:00.000Z',
+      auxiliary: new ObjectID(),
+    };
+
+    getAuxiliaryEventsBetweenDates.returns([
+      {
+        _id: new ObjectID(),
+        startDate: '2019-10-02T08:00:00.000Z',
+        endDate: '2019-10-02T12:00:00.000Z',
+        type: UNAVAILABILITY,
+      },
+    ]);
+    const result = await EventsValidationHelper.hasConflicts(event);
+
+    expect(result).toBeTruthy();
+  });
+
+  it('should return false if event does not have conflicts', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2019-10-02T15:00:00.000Z',
+      endDate: '2019-10-02T16:00:00.000Z',
+      auxiliary: new ObjectID(),
+    };
+
+    getAuxiliaryEventsBetweenDates.returns([
+      { _id: event._id, startDate: '2019-10-03T08:00:00.000Z', endDate: '2019-10-03T12:00:00.000Z', type: ABSENCE },
+    ]);
+    const result = await EventsValidationHelper.hasConflicts(event);
+
+    expect(result).toBeFalsy();
+  });
+
+  it('should return false if it has conflict but not with an absence', async () => {
+    const event = {
+      _id: new ObjectID(),
+      startDate: '2019-10-02T15:00:00.000Z',
+      endDate: '2019-10-02T16:00:00.000Z',
+      auxiliary: new ObjectID(),
+    };
+
+    getAuxiliaryEventsBetweenDates.returns([
+      {
+        _id: event._id,
+        startDate: '2019-10-03T08:00:00.000Z',
+        endDate: '2019-10-03T12:00:00.000Z',
+        type: INTERVENTION,
+      },
+    ]);
+    const result = await EventsValidationHelper.hasConflicts(event);
+    expect(result).toBeFalsy();
   });
 });
 

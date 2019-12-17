@@ -137,7 +137,7 @@ exports.countAuxiliaryEventsBetweenDates = (filters) => {
   return Event.countDocuments(query);
 };
 
-exports.getAuxiliaryEventsBetweenDates = (auxiliary, startDate, endDate, companyId, type = null) => {
+exports.getAuxiliaryEventsBetweenDates = async (auxiliary, startDate, endDate, companyId, type = null) => {
   const query = {
     auxiliary,
     startDate: { $lt: endDate },
