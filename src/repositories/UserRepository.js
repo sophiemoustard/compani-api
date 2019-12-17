@@ -20,7 +20,7 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
               $expr: { $and: [{ $eq: ['$user', '$$auxiliaryId'] }] },
               startDate: { $lte: maxStartDate },
               status: COMPANY_CONTRACT,
-              $or: [{ endDate: { $exists: false } }, { endDate: { $gte: maxStartDate } }],
+              $or: [{ endDate: { $exists: false } }, { endDate: { $gte: minStartDate } }],
             },
           },
         ],
@@ -36,7 +36,11 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
           {
             $match: {
               $expr: { $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }] },
-              startDate: { $gte: minStartDate, $lte: maxStartDate },
+              $or: [
+                { startDate: { $gte: minStartDate, $lte: maxStartDate } },
+                { endDate: { $gte: minStartDate, $lte: maxStartDate } },
+                { startDate: { $lte: minStartDate }, endDate: { $gte: maxStartDate } },
+              ],
               type: ABSENCE,
             },
           },
