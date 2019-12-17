@@ -802,7 +802,8 @@ describe('uploadFile', () => {
   it('should upload a file', async () => {
     const params = { driveId: 'fakeDriveId', _id: new ObjectID() };
     const payload = {
-      signedContract: 'test',
+      file: 'test',
+      type: 'signedContract',
       fileName: 'test',
       customer: '12345',
       status: 'test',
@@ -819,7 +820,7 @@ describe('uploadFile', () => {
       auxiliaryDriveId: params.driveId,
       name: payload.fileName,
       type: payload['Content-Type'],
-      body: payload.signedContract,
+      body: payload.file,
     };
     const result = await ContractHelper.uploadFile(params, payload);
     expect(result).toBeDefined();

@@ -3,6 +3,9 @@ const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
 const get = require('lodash/get');
+const fs = require('fs');
+const GetStream = require('get-stream');
+const path = require('path');
 const app = require('../../server');
 const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
@@ -10,16 +13,19 @@ const Contract = require('../../src/models/Contract');
 const Customer = require('../../src/models/Customer');
 const User = require('../../src/models/User');
 const Event = require('../../src/models/Event');
+const Drive = require('../../src/models/Google/Drive');
 const {
   populateDB,
   contractsList,
-  contractUser,
+  contractUsers,
   contractCustomer,
   contractEvents,
   otherCompanyContract,
   customerFromOtherCompany,
   otherCompanyContractUser,
+  userFromOtherCompany,
 } = require('./seed/contractsSeed');
+const { generateFormData } = require('./utils');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../src/helpers/constants');
 const EsignHelper = require('../../src/helpers/eSign');
 const { getToken, getUser, authCompany } = require('./seed/authenticationSeed');
@@ -67,6 +73,28 @@ describe('CONTRACTS ROUTES', () => {
         .toBe(contractsList.filter(contract => contract.user === user._id).length);
     });
 
+    it('should not return the contracts if user is not from the company', async () => {
+      authToken = await getToken('auxiliary');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/contracts?user=${userFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it('should not return the contracts if customer is not from the company', async () => {
+      authToken = await getToken('auxiliary');
+      const response = await app.inject({
+        method: 'GET',
+        url: `/contracts?user=${customerFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
     const roles = [
       { name: 'admin', expectedCode: 200 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -97,7 +125,7 @@ describe('CONTRACTS ROUTES', () => {
         grossHourlyRate: 10.43,
         startDate: '2019-01-18T15:46:30.636Z',
       }],
-      user: contractUser._id,
+      user: contractUsers[0]._id,
     };
 
     it('should create contract (company contract)', async () => {
@@ -131,7 +159,7 @@ describe('CONTRACTS ROUTES', () => {
             grossHourlyRate: 10.43,
             startDate: '2019-01-18T15:46:30.636Z',
           }],
-          user: contractUser._id,
+          user: contractUsers[0]._id,
           status: CUSTOMER_CONTRACT,
           customer: contractCustomer._id,
         },
@@ -169,7 +197,7 @@ describe('CONTRACTS ROUTES', () => {
             meta: { auxiliaryDriveId: '1234567890' },
           },
         }],
-        user: contractUser._id,
+        user: contractUsers[0]._id,
         status: CUSTOMER_CONTRACT,
         customer: contractCustomer._id,
       };
@@ -197,7 +225,7 @@ describe('CONTRACTS ROUTES', () => {
       const customerContractPayload = {
         startDate: '2019-01-18T15:46:30.636Z',
         versions: [{ grossHourlyRate: 10.43, startDate: '2019-01-18T15:46:30.636Z' }],
-        user: contractUser._id,
+        user: contractUsers[0]._id,
         customer: customerFromOtherCompany._id,
         status: 'contract_with_customer',
       };
@@ -335,7 +363,7 @@ describe('CONTRACTS ROUTES', () => {
       const payload = { endDate: moment().toDate() };
       const response = await app.inject({
         method: 'PUT',
-        url: `/contracts/${contractsList[2]._id}`,
+        url: `/contracts/${contractsList[4]._id}`,
         headers: { 'x-access-token': authToken },
         payload,
       });
@@ -436,6 +464,125 @@ describe('CONTRACTS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+
+  describe('GET /{_id}/gdrive/{driveId}/upload', () => { 
+    const fakeDriveId = 'fakeDriveId';
+    let addStub;
+    let getFileByIdStub;
+
+    beforeEach(async () => {
+      addStub = sinon.stub(Drive, 'add');
+      getFileByIdStub = sinon.stub(Drive, 'getFileById');
+    });
+
+    afterEach(() => {
+      addStub.restore();
+      getFileByIdStub.restore();
+    });
+
+    it('should upload a company contract', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+      const payload = {
+        fileName: 'contrat_signe',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+        type: 'signedContract',
+        status: COMPANY_CONTRACT,
+        contractId: contractsList[0]._id.toHexString(),
+        versionId: contractsList[0].versions[0]._id.toHexString(),
+      };
+      const form = generateFormData(payload);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/contracts/${contractsList[0]._id}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      sinon.assert.calledOnce(addStub);
+      sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    it('should upload a customer contract', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+      const payload = {
+        fileName: 'contrat_signe',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+        type: 'signedContract',
+        status: COMPANY_CONTRACT,
+        contractId: contractsList[0]._id.toHexString(),
+        versionId: contractsList[0].versions[0]._id.toHexString(),
+        customer: contractCustomer._id.toHexString(),
+      };
+      const form = generateFormData(payload);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/contracts/${contractsList[1]._id}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      sinon.assert.calledOnce(addStub);
+      sinon.assert.calledOnce(getFileByIdStub);
+    });
+
+    it('should not upload a customer contract if customer is not from the same company', async () => {
+      addStub.returns({ id: 'fakeFileDriveId' });
+      getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+      const payload = {
+        fileName: 'contrat_signe',
+        file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+        type: 'signedContract',
+        status: CUSTOMER_CONTRACT,
+        contractId: contractsList[0]._id.toHexString(),
+        versionId: contractsList[0].versions[0]._id.toHexString(),
+        customer: customerFromOtherCompany._id.toHexString(),
+      };
+      const form = generateFormData(payload);
+      const response = await app.inject({
+        method: 'POST',
+        url: `/contracts/${contractsList[2]._id}/gdrive/${fakeDriveId}/upload`,
+        payload: await GetStream(form),
+        headers: { ...form.getHeaders(), 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const roleToken = await getToken(role.name);
+        addStub.returns({ id: 'fakeFileDriveId' });
+        getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+        const payload = {
+          fileName: 'contrat_signe',
+          file: fs.createReadStream(path.join(__dirname, 'assets/test_upload.png')),
+          type: 'signedContract',
+          status: COMPANY_CONTRACT,
+          contractId: contractsList[0]._id.toHexString(),
+          versionId: contractsList[0].versions[0]._id.toHexString(),
+        };
+        const form = generateFormData(payload);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/contracts/${contractsList[0]._id}/gdrive/${fakeDriveId}/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': roleToken },
+        });
+
+        expect(response.statusCode).toEqual(role.expectedCode);
       });
     });
   });
