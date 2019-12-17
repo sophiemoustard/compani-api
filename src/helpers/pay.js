@@ -49,16 +49,15 @@ exports.createPayList = async (payToCreate, credentials) => {
   await Pay.insertMany(list);
 };
 
-exports.getContract = (contracts, startDate, endDate) =>
-  contracts.find((cont) => {
-    const isCompanyContract = cont.status === COMPANY_CONTRACT;
-    if (!isCompanyContract) return false;
+exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
+  const isCompanyContract = cont.status === COMPANY_CONTRACT;
+  if (!isCompanyContract) return false;
 
-    const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
-    if (!contractStarted) return false;
+  const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
+  if (!contractStarted) return false;
 
-    return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
-  });
+  return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
+});
 
 exports.getCustomerCount = (events) => {
   const eventsGroupedByCustomer = keyBy(flatten(events), 'customer._id');
@@ -68,12 +67,8 @@ exports.getCustomerCount = (events) => {
 
 exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const startDate = moment(month, 'MM-YYYY')
-    .startOf('M')
-    .toDate();
-  const endDate = moment(month, 'MM-YYYY')
-    .endOf('M')
-    .toDate();
+  const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
+  const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
   const auxiliaryEvents = await EventRepository.getEventsToPay(
     startDate,
     endDate,
@@ -85,12 +80,8 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
   if (pay) return { ...pay, customersCount };
 
-  const auxiliary = await User.findOne({ _id: auxiliaryId })
-    .populate('contracts')
-    .lean();
-  const prevMonth = moment(month, 'MM-YYYY')
-    .subtract(1, 'M')
-    .format('MM-YYYY');
+  const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
+  const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
   const prevPay = await Pay.findOne({ month: prevMonth, auxiliary: auxiliaryId }).lean();
   const query = { startDate, endDate };
   const [company, surcharges, distanceMatrix] = await Promise.all([

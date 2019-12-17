@@ -418,7 +418,7 @@ module.exports = {
 
     /* Pay */
     payListCreated: 'Liste de paie créée',
-    hoursToWorkFound: 'Heures à travailler.',
+    hoursToWorkFound: 'Heures à travailler trouvées.',
 
     /* Final pay */
     finalPayListCreated: 'Liste des stc créée',

@@ -161,17 +161,9 @@ const service = {
   nature: 'hourly',
 };
 
-const sector = {
-  name: 'Toto',
-  _id: sectorId,
-  company: authCompany._id,
-};
+const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
 
-const sectorFromOtherCompany = {
-  _id: new ObjectID(),
-  name: 'Titi',
-  company: otherCompany._id,
-};
+const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
 
 const populateDB = async () => {
   await User.deleteMany({});

@@ -2,7 +2,7 @@ const moment = require('moment');
 const User = require('../models/User');
 const { ABSENCE, COMPANY_CONTRACT } = require('../helpers/constants');
 
-exports.getContractsAndAbsencesBySectorFromAuxiliaries = async (month, sectors) => {
+exports.getContractsAndAbsencesBySectorFromAuxiliaries = async (month, sectors, companyId = null) => {
   const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
@@ -43,11 +43,10 @@ exports.getContractsAndAbsencesBySectorFromAuxiliaries = async (month, sectors) 
               $expr: {
                 $and: [
                   { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                  { $gte: ['$startDate', minStartDate] },
-                  { $lt: ['$startDate', maxStartDate] },
-                  { $eq: ['$type', ABSENCE] },
                 ],
               },
+              startDate: { $gte: minStartDate, $lte: maxStartDate },
+              type: ABSENCE,
             },
           },
         ],
@@ -59,5 +58,5 @@ exports.getContractsAndAbsencesBySectorFromAuxiliaries = async (month, sectors) 
         contracts: { $push: '$contracts' },
       },
     },
-  ]);
+  ]).option({ company: companyId });
 };
