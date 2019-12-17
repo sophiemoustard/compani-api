@@ -116,37 +116,41 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   return draft ? { ...draft, customersCount } : null;
 };
 
+exports.computeHoursToWork = (month, contracts) => {
+  const contractQuery = {
+    startDate: moment(month, 'MMYYYY').startOf('M').toDate(),
+    endDate: moment(month, 'MMYYYY').endOf('M').toDate(),
+  };
+  const contractsInfoSum = { contractHours: 0, holidaysHours: 0, absencesHours: 0 };
+
+  for (const contract of contracts) {
+    const contractInfo = DraftPayHelper.getContractMonthInfo(contract, contractQuery);
+    contractsInfoSum.contractHours += contractInfo.contractHours;
+    contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
+    if (contract.absences.length) {
+      contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(contract.absences, contract, contractQuery);
+    }
+  }
+
+  return Math.max(contractsInfoSum.contractHours - contractsInfoSum.holidaysHours - contractsInfoSum.absencesHours, 0);
+};
+
 exports.getHoursToWorkBySector = async (query, credentials) => {
+  const hoursToWorkBySector = [];
   const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
 
-  const contractsAndEventsBySector = await UserRepository.getContractsAndAbsencesBySectorFromAuxiliaries(
+  const contractsAndEventsBySector = await UserRepository.getContractsAndAbsencesBySector(
     query.month,
     sectors,
     get(credentials, 'company._id', null)
   );
 
-  return contractsAndEventsBySector.map((sector) => {
-    const contractQuery = {
-      startDate: moment(query.month, 'MMYYYY').startOf('M').toDate(),
-      endDate: moment(query.month, 'MMYYYY').endOf('M').toDate(),
-    };
-    const contractsInfoSum = { contractHours: 0, holidaysHours: 0, absencesHours: 0 };
-
-    for (const contract of sector.contracts) {
-      const contractInfo = DraftPayHelper.getContractMonthInfo(contract, contractQuery);
-      contractsInfoSum.contractHours += contractInfo.contractHours;
-      contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
-      if (contract.absences.length) {
-        contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(contract.absences, contract, contractQuery);
-      }
-    }
-
-    return {
+  for (const sector of contractsAndEventsBySector) {
+    hoursToWorkBySector.push({
       sector: sector._id,
-      hoursToWork: Math.max(
-        contractsInfoSum.contractHours - contractsInfoSum.holidaysHours - contractsInfoSum.absencesHours,
-        0
-      ),
-    };
-  });
+      hoursToWork: exports.computeHoursToWork(query.month, sector.contracts),
+    });
+  }
+
+  return hoursToWorkBySector;
 };

@@ -20,7 +20,9 @@ exports.authorizeGetDetails = async (req) => {
 
 exports.authorizeGetHoursToWork = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const sector = await Sector.findOne({ _id: req.query.sector, company: companyId }).lean();
-  if (!sector) throw Boom.forbidden();
+  const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
+  const sectorsCount = await Sector.countDocuments({ _id: { $in: sectors }, company: companyId });
+  if (sectorsCount !== sectors.length) throw Boom.forbidden();
+
   return null;
 };
