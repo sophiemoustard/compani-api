@@ -213,11 +213,7 @@ const deleteSubscription = async (req) => {
 
 const getMandates = async (req) => {
   try {
-    const customer = await Customer.findOne(
-      { _id: req.params._id, 'payment.mandates': { $exists: true } },
-      { identity: 1, 'payment.mandates': 1 },
-      { autopopulate: false }
-    ).lean();
+    const customer = await CustomerHelper.getMandates(req.params._id);
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
@@ -233,12 +229,7 @@ const getMandates = async (req) => {
 
 const updateMandate = async (req) => {
   try {
-    const payload = { 'payment.mandates.$': { ...req.payload } };
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'payment.mandates._id': req.params.mandateId },
-      { $set: flat(payload) },
-      { new: true, select: { identity: 1, 'payment.mandates': 1 }, autopopulate: false }
-    ).lean();
+    const customer = await CustomerHelper.updateMandate(req.params._id, req.params.mandateId, req.payload);
 
     return {
       message: translate[language].customerMandateUpdated,

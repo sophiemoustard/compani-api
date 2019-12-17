@@ -815,5 +815,60 @@ describe('createCustomer', () => {
     expect(result.driveFolder.driveId).toEqual('1234567890');
     sinon.assert.calledOnce(generateRum);
     sinon.assert.calledWithExactly(createFolder, { lastname: 'Bear', firstname: 'Teddy' }, 'qwertyuiop');
+    CompanyMock.verify();
+  });
+});
+
+describe('getMandates', () => {
+  let CustomerMock;
+  beforeEach(() => {
+    CustomerMock = sinon.mock(Customer);
+  });
+  afterEach(() => {
+    CustomerMock.restore();
+  });
+
+  it('should return customer mandates', async () => {
+    const customerId = (new ObjectID()).toHexString();
+    CustomerMock.expects('findOne')
+      .withExactArgs(
+        { _id: customerId, 'payment.mandates': { $exists: true } },
+        { identity: 1, 'payment.mandates': 1 },
+        { autopopulate: false }
+      )
+      .chain('lean')
+      .once();
+
+    await CustomerHelper.getMandates(customerId);
+
+    CustomerMock.verify();
+  });
+});
+
+describe('updateMandate', () => {
+  let CustomerMock;
+  beforeEach(() => {
+    CustomerMock = sinon.mock(Customer);
+  });
+  afterEach(() => {
+    CustomerMock.restore();
+  });
+
+  it('should update customer mandates', async () => {
+    const customerId = (new ObjectID()).toHexString();
+    const mandateId = '1234567890';
+    const payload = { startDate: '2019-12-12T00:00:00' };
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: customerId, 'payment.mandates._id': mandateId },
+        { $set: flat({ 'payment.mandates.$': { payload } }) },
+        { new: true, select: { identity: 1, 'payment.mandates': 1 }, autopopulate: false }
+      )
+      .chain('lean')
+      .once();
+
+    await CustomerHelper.updateMandate(customerId, mandateId, payload);
+
+    CustomerMock.verify();
   });
 });
