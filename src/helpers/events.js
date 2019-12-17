@@ -240,7 +240,8 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
       { _id: { $in: ids } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     ),
-    Repetition.updateMany({ auxiliary: contract.user }, { $unset: { auxiliary: '' } })
+    Repetition.updateMany({ auxiliary: contract.user, type: 'intervention' }, { $unset: { auxiliary: '' } }),
+    Repetition.deleteMany({ auxiliary: contract.user, $or: [{ type: 'unavailability' }, { type: 'internalHour' }] })
   );
 
   return Promise.all(promises);
