@@ -15,7 +15,7 @@ exports.getCreditNote = async (req) => {
       _id: req.params._id,
       company: get(req, 'auth.credentials.company._id', null),
     }).lean();
-    if (!creditNote) throw Boom.notFound(translate[language].eventNotFound);
+    if (!creditNote) throw Boom.notFound(translate[language].creditNoteNotFound);
 
     return creditNote;
   } catch (e) {
@@ -24,7 +24,7 @@ exports.getCreditNote = async (req) => {
   }
 };
 
-exports.authorizeGetCreditNote = async (req) => {
+exports.authorizeGetCreditNotePdf = async (req) => {
   const { credentials } = req.auth;
   const { creditNote } = req.pre;
 
@@ -38,6 +38,14 @@ exports.authorizeGetCreditNote = async (req) => {
   return null;
 };
 
+exports.authorizeGetCreditNotes = async (req) => {
+  const { credentials } = req.auth;
+  console.log(credentials.company._id);
+  const customer = await Customer.findOne({ _id: req.query.customer, company: credentials.company._id }).lean();
+  console.log(customer);
+  if (req.query.customer && !customer) throw Boom.forbidden();
+  return null;
+};
 
 exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const { credentials } = req.auth;

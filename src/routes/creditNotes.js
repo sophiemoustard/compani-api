@@ -12,7 +12,8 @@ const {
 } = require('../controllers/creditNoteController');
 const {
   getCreditNote,
-  authorizeGetCreditNote,
+  authorizeGetCreditNotes,
+  authorizeGetCreditNotePdf,
   authorizeCreditNoteCreationOrUpdate,
 } = require('./preHandlers/creditNotes');
 
@@ -90,6 +91,9 @@ exports.plugin = {
             customer: Joi.objectId(),
           },
         },
+        pre: [
+          { method: authorizeGetCreditNotes },
+        ],
       },
     });
 
@@ -181,7 +185,7 @@ exports.plugin = {
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeGetCreditNote },
+          { method: authorizeGetCreditNotePdf },
         ],
       },
       handler: generateCreditNotePdf,

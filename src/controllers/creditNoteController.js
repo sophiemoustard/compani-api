@@ -59,7 +59,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    await CreditNoteHelper.removeCreditNote();
+    await CreditNoteHelper.removeCreditNote(req.pre.creditNote, req.auth.credentials, req.params);
     return {
       message: translate[language].creditNoteDeleted,
     };
