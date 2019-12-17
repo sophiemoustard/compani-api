@@ -167,6 +167,7 @@ describe('getCustomerFundingsMonitoring', () => {
 
 describe('getCustomersAndDurationBySector', () => {
   let getCustomersAndDurationBySector;
+  const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     getCustomersAndDurationBySector = sinon.stub(StatRepository, 'getCustomersAndDurationBySector');
   });
@@ -177,26 +178,28 @@ describe('getCustomersAndDurationBySector', () => {
   it('should format sector as array', async () => {
     const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
     getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
-    const result = await StatsHelper.getCustomersAndDurationBySector(query);
+    const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
 
     expect(result).toEqual({ cutomerCount: 9 });
     sinon.assert.calledWithExactly(
       getCustomersAndDurationBySector,
       [new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
-      '102019'
+      '102019',
+      credentials.company._id
     );
   });
 
   it('should format array sector with objectId', async () => {
     const query = { sector: ['5d1a40b7ecb0da251cfa4fea', '5d1a40b7ecb0da251cfa4fe9'], month: '102019' };
     getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
-    const result = await StatsHelper.getCustomersAndDurationBySector(query);
+    const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
 
     expect(result).toEqual({ cutomerCount: 9 });
     sinon.assert.calledWithExactly(
       getCustomersAndDurationBySector,
       [new ObjectID('5d1a40b7ecb0da251cfa4fea'), new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
-      '102019'
+      '102019',
+      credentials.company._id
     );
   });
 });
