@@ -24,7 +24,7 @@ const {
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  generateMandateSignatureRequest,
+  getMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
   createFunding,
@@ -346,7 +346,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: generateMandateSignatureRequest,
+      handler: getMandateSignatureRequest,
     });
 
     server.route({

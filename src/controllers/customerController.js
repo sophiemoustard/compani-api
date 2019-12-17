@@ -12,9 +12,9 @@ const Drive = require('../models/Google/Drive');
 const SubscriptionHelper = require('../helpers/subscriptions');
 const { addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
-const { generateSignatureRequest } = require('../helpers/eSign');
 const CustomerHelper = require('../helpers/customers');
 const FundingHelper = require('../helpers/fundings');
+const MandatesHelper = require('../helpers/mandates');
 
 const { language } = translate;
 
@@ -213,7 +213,7 @@ const deleteSubscription = async (req) => {
 
 const getMandates = async (req) => {
   try {
-    const customer = await CustomerHelper.getMandates(req.params._id);
+    const customer = await MandatesHelper.getMandates(req.params._id);
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
@@ -229,7 +229,7 @@ const getMandates = async (req) => {
 
 const updateMandate = async (req) => {
   try {
-    const customer = await CustomerHelper.updateMandate(req.params._id, req.params.mandateId, req.payload);
+    const customer = await MandatesHelper.updateMandate(req.params._id, req.params.mandateId, req.payload);
 
     return {
       message: translate[language].customerMandateUpdated,
@@ -241,33 +241,13 @@ const updateMandate = async (req) => {
   }
 };
 
-const generateMandateSignatureRequest = async (req) => {
+const getMandateSignatureRequest = async (req) => {
   try {
-    const customer = await Customer.findById(req.params._id);
-    if (!customer) return Boom.notFound();
+    const signatureRequest = await MandatesHelper.getSignatureRequest();
 
-    const mandateIndex = customer.payment.mandates
-      .findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
-    if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
-
-    const doc = await generateSignatureRequest({
-      templateId: req.payload.fileId,
-      fields: req.payload.fields,
-      title: `MANDAT SEPA ${customer.payment.mandates[mandateIndex].rum}`,
-      signers: [{
-        id: '1',
-        name: req.payload.customer.name,
-        email: req.payload.customer.email,
-      }],
-      redirect: req.payload.redirect,
-      redirectDecline: req.payload.redirectDecline,
-    });
-    if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-    customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
-    await customer.save();
     return {
       message: translate[language].signatureRequestCreated,
-      data: { signatureRequest: { embeddedUrl: doc.data.signers[0].embedded_signing_url } },
+      data: { signatureRequest },
     };
   } catch (e) {
     req.log('error', e);
@@ -508,7 +488,7 @@ module.exports = {
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  generateMandateSignatureRequest,
+  getMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
   createFunding,
