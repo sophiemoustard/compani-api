@@ -163,6 +163,28 @@ describe('formatRepeatedPayload', () => {
     sinon.assert.notCalled(hasConflicts);
     sinon.assert.calledWithExactly(isAbsentStub, { ...payload, _id: event._id });
   });
+
+  it('should return null if event is an unavailability and auxiliary is absent', async () => {
+    const day = moment('2019-07-17', 'YYYY-MM-DD');
+    const event = {
+      _id: new ObjectID(),
+      startDate: moment('2019-07-14').startOf('d'),
+      endDate: moment('2019-07-15').startOf('d'),
+      type: 'unavailability',
+    };
+    const step = day.diff(event.startDate, 'd');
+    const payload = {
+      ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
+      startDate: moment(event.startDate).add(step, 'd'),
+      endDate: moment(event.endDate).add(step, 'd'),
+    };
+    isAbsentStub.returns(true);
+    const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
+
+    expect(result).toBeNull();
+    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.calledWithExactly(isAbsentStub, { ...payload, _id: event._id });
+  });
 });
 
 describe('createRepetitionsEveryDay', () => {
