@@ -6,6 +6,7 @@ const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
 const GdriveStorageHelper = require('./gdriveStorage');
+const Company = require('../models/Company');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const Event = require('../models/Event');
@@ -183,7 +184,8 @@ exports.updateCustomer = async (customerId, customerPayload) => {
 exports.createCustomer = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const rum = await exports.generateRum();
-  const folder = await GdriveStorageHelper.createFolder(payload.identity, process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID);
+  const company = await Company.findOne({ _id: companyId }).lean();
+  const folder = await GdriveStorageHelper.createFolder(payload.identity, company.customersFolderId);
 
   const customer = {
     ...payload,

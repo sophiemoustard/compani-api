@@ -5,6 +5,7 @@ const flat = require('flat');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
+const Company = require('../../../src/models/Company');
 const CustomerHelper = require('../../../src/helpers/customers');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const EventsHelper = require('../../../src/helpers/events');
@@ -780,15 +781,18 @@ describe('createCustomer', () => {
   let generateRum;
   let createFolder;
   let create;
+  let CompanyMock;
   beforeEach(() => {
     generateRum = sinon.stub(CustomerHelper, 'generateRum');
     createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
     create = sinon.stub(Customer, 'create');
+    CompanyMock = sinon.mock(Company);
   });
   afterEach(() => {
     generateRum.restore();
     createFolder.restore();
     create.restore();
+    CompanyMock.restore();
   });
 
   it('should create customer and drive folder', async () => {
@@ -797,6 +801,11 @@ describe('createCustomer', () => {
     generateRum.returns('poiuytrewq');
     createFolder.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
     create.returnsArg(0);
+    CompanyMock.expects('findOne')
+      .withExactArgs({ _id: '1234567890' })
+      .chain('lean')
+      .once()
+      .returns({ _id: '1234567890', customersFolderId: 'qwertyuiop' });
 
     const result = await CustomerHelper.createCustomer(payload, credentials);
 
@@ -805,10 +814,6 @@ describe('createCustomer', () => {
     expect(result.driveFolder.link).toEqual('http://qwertyuiop');
     expect(result.driveFolder.driveId).toEqual('1234567890');
     sinon.assert.calledOnce(generateRum);
-    sinon.assert.calledWithExactly(
-      createFolder,
-      { lastname: 'Bear', firstname: 'Teddy' },
-      process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID
-    );
+    sinon.assert.calledWithExactly(createFolder, { lastname: 'Bear', firstname: 'Teddy' }, 'qwertyuiop');
   });
 });

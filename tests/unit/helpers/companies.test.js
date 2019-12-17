@@ -1,4 +1,5 @@
 const sinon = require('sinon');
+const expect = require('expect');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Company = require('../../../src/models/Company');
@@ -9,26 +10,39 @@ const Drive = require('../../../src/models/Google/Drive');
 require('sinon-mongoose');
 
 describe('createCompany', () => {
-  it('should create a company', async () => {
-    const CompanyMock = sinon.mock(Company);
-    const createFolderForCompanyStub = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
-    const createFolderStub = sinon.stub(GdriveStorageHelper, 'createFolder');
-    const payload = { name: 'Test SAS', tradeName: 'Test' };
+  let CompanyMock;
+  let createFolderForCompanyStub;
+  let createFolderStub;
+  beforeEach(() => {
+    CompanyMock = sinon.mock(Company);
+    createFolderForCompanyStub = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
+    createFolderStub = sinon.stub(GdriveStorageHelper, 'createFolder');
+  });
+  afterEach(() => {
+    CompanyMock.restore();
+    createFolderForCompanyStub.restore();
+    createFolderStub.restore();
+  });
 
+  it('should create a company', async () => {
+    const payload = { name: 'Test SAS', tradeName: 'Test' };
+    const createdCompany = {
+      ...payload,
+      folderId: '1234567890',
+      directDebitsFolderId: '0987654321',
+      customersFolderId: 'qwertyuiop',
+    };
     createFolderForCompanyStub.returns({ id: '1234567890' });
-    createFolderStub.returns({ id: '0987654321' });
-    CompanyMock
-      .expects('create')
-      .withExactArgs({ ...payload, folderId: '1234567890', directDebitsFolderId: '0987654321' });
+    createFolderStub.onCall(0).returns({ id: '0987654321' });
+    createFolderStub.onCall(1).returns({ id: 'qwertyuiop' });
+    CompanyMock.expects('create').withExactArgs(createdCompany);
 
     await CompanyHelper.createCompany(payload);
 
     sinon.assert.calledWithExactly(createFolderForCompanyStub, payload.name);
     sinon.assert.calledWithExactly(createFolderStub, 'direct debits', '1234567890');
+    sinon.assert.calledWithExactly(createFolderStub, 'customers', '1234567890');
     CompanyMock.verify();
-    CompanyMock.restore();
-    createFolderForCompanyStub.restore();
-    createFolderStub.restore();
   });
 });
 
