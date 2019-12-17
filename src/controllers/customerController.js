@@ -36,9 +36,7 @@ const list = async (req) => {
 
 const listWithFirstIntervention = async (req) => {
   try {
-    const { query, auth } = req;
-    const companyId = get(auth, 'credentials.company._id', null);
-    const customers = await CustomerHelper.getCustomersFirstIntervention(query, companyId);
+    const customers = await CustomerHelper.getCustomersFirstIntervention(req.query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -80,8 +78,7 @@ const listBySector = async (req) => {
 
 const listWithBilledEvents = async (req) => {
   try {
-    const { credentials } = req.auth;
-    const customers = await CustomerHelper.getCustomersWithBilledEvents(credentials);
+    const customers = await CustomerHelper.getCustomersWithBilledEvents(req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -110,6 +107,7 @@ const listWithCustomerContractSubscriptions = async (req) => {
 const listWithIntervention = async (req) => {
   try {
     const customers = await CustomerHelper.getCustomersWithIntervention(req.auth.credentials);
+
     return {
       message: customers.length > 0 ? translate[language].customersFound : translate[language].customersNotFound,
       data: { customers },

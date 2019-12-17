@@ -52,7 +52,8 @@ exports.getCustomers = async (credentials) => {
   return customers;
 };
 
-exports.getCustomersFirstIntervention = async (query, companyId) => {
+exports.getCustomersFirstIntervention = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const customers = await Customer.find({ ...query, company: companyId }, { _id: 1 })
     // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })

@@ -132,6 +132,7 @@ describe('getCustomersFirstIntervention', () => {
     ];
 
     const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const query = { company: companyId };
     CustomerMock
       .expects('find')
@@ -142,7 +143,7 @@ describe('getCustomersFirstIntervention', () => {
       .returns(customers)
       .once();
 
-    const result = await CustomerHelper.getCustomersFirstIntervention(query, companyId);
+    const result = await CustomerHelper.getCustomersFirstIntervention(query, credentials);
     expect(result).toEqual({
       123456: { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },
       '0987': { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
