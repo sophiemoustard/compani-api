@@ -1,6 +1,5 @@
 const Boom = require('boom');
 const flat = require('flat');
-const get = require('lodash/get');
 const pick = require('lodash/pick');
 const moment = require('moment');
 const path = require('path');
@@ -11,8 +10,7 @@ const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
 const SubscriptionHelper = require('../helpers/subscriptions');
-const { generateRum } = require('../helpers/customers');
-const { createFolder, addFile } = require('../helpers/gdriveStorage');
+const { addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
 const { generateSignatureRequest } = require('../helpers/eSign');
 const CustomerHelper = require('../helpers/customers');
@@ -135,19 +133,11 @@ const show = async (req) => {
 
 const create = async (req) => {
   try {
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    if (!companyId) return Boom.forbidden();
-    const mandate = { rum: await generateRum() };
-    const payload = {
-      ...req.payload,
-      company: companyId,
-      payment: { mandates: [mandate] },
-    };
-    const newCustomer = new Customer(payload);
-    await newCustomer.save();
+    const customer = await CustomerHelper.createCustomer(req.payload, req.auth.credentials);
+
     return {
       message: translate[language].customerCreated,
-      data: { customer: newCustomer },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -340,37 +330,6 @@ const createCustomerQuote = async (req) => {
   }
 };
 
-const createDriveFolder = async (req) => {
-  try {
-    const customer = await Customer.findOne(
-      { _id: req.params._id },
-      { 'identity.firstname': 1, 'identity.lastname': 1, company: 1 }
-    );
-    if (customer.identity.lastname) {
-      const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID;
-      const folder = await createFolder(customer.identity, parentFolderId);
-      customer.driveFolder = { driveId: folder.id, link: folder.webViewLink };
-      await customer.save();
-    }
-
-    return {
-      message: translate[language].customerUpdated,
-      data: { updatedCustomer: customer },
-    };
-  } catch (e) {
-    req.log('error', e);
-    if (e.output && e.output.statusCode === 424) {
-      return Boom.failedDependency(translate[language].googleDriveFolderCreationFailed);
-    }
-
-    if (e.output && e.output.statusCode === 404) {
-      return Boom.notFound(translate[language].googleDriveFolderNotFound);
-    }
-
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const uploadFile = async (req) => {
   try {
     const uploadedFile = await CustomerHelper.createAndSaveFile(req.params, req.payload);
@@ -554,7 +513,6 @@ module.exports = {
   deleteSubscription,
   getMandates,
   updateMandate,
-  createDriveFolder,
   getCustomerQuotes,
   createCustomerQuote,
   uploadFile,

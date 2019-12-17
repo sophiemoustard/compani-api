@@ -9,6 +9,7 @@ const CustomerHelper = require('../../../src/helpers/customers');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const EventsHelper = require('../../../src/helpers/events');
 const UtilsHelper = require('../../../src/helpers/utils');
+const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
@@ -772,5 +773,42 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateMany);
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
+  });
+});
+
+describe('createCustomer', () => {
+  let generateRum;
+  let createFolder;
+  let create;
+  beforeEach(() => {
+    generateRum = sinon.stub(CustomerHelper, 'generateRum');
+    createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+    create = sinon.stub(Customer, 'create');
+  });
+  afterEach(() => {
+    generateRum.restore();
+    createFolder.restore();
+    create.restore();
+  });
+
+  it('should create customer and drive folder', async () => {
+    const credentials = { company: { _id: '1234567890' } };
+    const payload = { identity: { lastname: 'Bear', firstname: 'Teddy' } };
+    generateRum.returns('poiuytrewq');
+    createFolder.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
+    create.returnsArg(0);
+
+    const result = await CustomerHelper.createCustomer(payload, credentials);
+
+    expect(result.identity.lastname).toEqual('Bear');
+    expect(result.payment.mandates[0].rum).toEqual('poiuytrewq');
+    expect(result.driveFolder.link).toEqual('http://qwertyuiop');
+    expect(result.driveFolder.driveId).toEqual('1234567890');
+    sinon.assert.calledOnce(generateRum);
+    sinon.assert.calledWithExactly(
+      createFolder,
+      { lastname: 'Bear', firstname: 'Teddy' },
+      process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID
+    );
   });
 });

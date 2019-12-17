@@ -180,6 +180,21 @@ exports.updateCustomer = async (customerId, customerPayload) => {
   return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 
+exports.createCustomer = async (payload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const rum = await exports.generateRum();
+  const folder = await GdriveStorageHelper.createFolder(payload.identity, process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID);
+
+  const customer = {
+    ...payload,
+    company: companyId,
+    payment: { mandates: [{ rum }] },
+    driveFolder: { driveId: folder.id, link: folder.webViewLink },
+  };
+
+  return Customer.create(customer);
+};
+
 const uploadQuote = async (customerId, quoteId, file) => {
   const payload = { 'quotes.$': { _id: quoteId, drive: { ...file } } };
 
