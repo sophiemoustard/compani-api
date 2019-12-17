@@ -318,7 +318,7 @@ describe('addSubscription', () => {
     CustomerMock.verify();
   });
 
-  it('should add the second  subscription', async () => {
+  it('should add the second subscription', async () => {
     const customerId = new ObjectID();
     const customer = { _id: customerId, subscriptions: [{ service: new ObjectID() }] };
     const payload = { service: (new ObjectID()).toHexString(), estimatedWeeklyVolume: 10 };
@@ -359,16 +359,7 @@ describe('addSubscription', () => {
         .chain('lean')
         .once()
         .returns(customer);
-      CustomerMock.expects('findOneAndUpdate')
-        .withExactArgs(
-          { _id: customerId },
-          { $push: { subscriptions: payload } },
-          { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
-        )
-        .chain('populate')
-        .withExactArgs({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
-        .chain('lean')
-        .never();
+      CustomerMock.expects('findOneAndUpdate').never();
 
       await SubscriptionsHelper.addSubscription(customerId, payload);
     } catch (e) {
