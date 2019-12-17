@@ -48,15 +48,16 @@ exports.authorizeContractUpdate = async (req) => {
 
 exports.authorizeGetContract = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId });
-  const user = await User.findOne({ _id: req.query.user, company: companyId });
-  if ((customer || !req.query.customer) && (user || !req.query.user)) return null;
-  throw Boom.forbidden();
+  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
+  const user = await User.findOne({ _id: req.query.user, company: companyId }).lean();
+  if (req.query.customer && !customer) throw Boom.forbidden();
+  if (req.query.user && !user) throw Boom.forbidden();
+  return null;
 };
 
 exports.authorizeUpload = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findOne({ _id: req.payload.customer, company: companyId });
-  if (!customer && req.payload.customer) throw Boom.forbidden();
+  const customer = await Customer.findOne({ _id: req.payload.customer, company: companyId }).lean();
+  if (req.payload.customer && !customer) throw Boom.forbidden();
   return null;
 };
