@@ -475,6 +475,7 @@ describe('unassignInterventionsOnContractEnd', () => {
   let createEventHistoryOnUpdate;
   let updateManyEvent;
   let updateManyRepetition;
+  let deleteManyRepetition;
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
@@ -517,6 +518,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     updateManyEvent = sinon.stub(Event, 'updateMany');
     updateManyRepetition = sinon.stub(Repetition, 'updateMany');
+    deleteManyRepetition = sinon.stub(Repetition, 'deleteMany');
   });
   afterEach(() => {
     getCustomerSubscriptions.restore();
@@ -524,6 +526,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     createEventHistoryOnUpdate.restore();
     updateManyEvent.restore();
     updateManyRepetition.restore();
+    deleteManyRepetition.restore();
   });
 
   it('should unassign future events linked to company contract', async () => {
@@ -545,7 +548,14 @@ describe('unassignInterventionsOnContractEnd', () => {
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWith(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+    );
+    sinon.assert.calledWith(
+      deleteManyRepetition,
+      { auxiliary: userId, $or: [{ type: 'unavailability' }, { type: 'internalHour' }] }
+    );
   });
 
   it('should create event history for repetition', async () => {
@@ -563,7 +573,14 @@ describe('unassignInterventionsOnContractEnd', () => {
       { _id: { $in: [interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWith(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+    );
+    sinon.assert.calledWith(
+      deleteManyRepetition,
+      { auxiliary: userId, $or: [{ type: 'unavailability' }, { type: 'internalHour' }] }
+    );
   });
 
   it('should create event history for non repeated event', async () => {
@@ -581,7 +598,14 @@ describe('unassignInterventionsOnContractEnd', () => {
       { _id: { $in: [interventions[0].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWith(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+    );
+    sinon.assert.calledWith(
+      deleteManyRepetition,
+      { auxiliary: userId, $or: [{ type: 'unavailability' }, { type: 'internalHour' }] }
+    );
   });
 
   it('should unassign future events linked to corresponding customer contract', async () => {
@@ -603,7 +627,14 @@ describe('unassignInterventionsOnContractEnd', () => {
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWith(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+    );
+    sinon.assert.calledWith(
+      deleteManyRepetition,
+      { auxiliary: userId, $or: [{ type: 'unavailability' }, { type: 'internalHour' }] }
+    );
   });
 });
 
