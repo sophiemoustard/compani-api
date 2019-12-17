@@ -127,6 +127,8 @@ describe('CUSTOMERS ROUTES', () => {
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           const authToken = await getToken(role.name);
+          addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
+
           const response = await app.inject({
             method: 'POST',
             url: '/customers',

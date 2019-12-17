@@ -243,7 +243,7 @@ const updateMandate = async (req) => {
 
 const getMandateSignatureRequest = async (req) => {
   try {
-    const signatureRequest = await MandatesHelper.getSignatureRequest();
+    const signatureRequest = await MandatesHelper.getSignatureRequest(req.params._id, req.params.mandateId, req.payload);
 
     return {
       message: translate[language].signatureRequestCreated,
