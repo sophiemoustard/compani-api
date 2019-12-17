@@ -29,7 +29,7 @@ const {
   createHistorySubscription,
   createFunding,
   updateFunding,
-  removeFunding,
+  deleteFunding,
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
 const {
@@ -556,7 +556,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: removeFunding,
+      handler: deleteFunding,
     });
   },
 };

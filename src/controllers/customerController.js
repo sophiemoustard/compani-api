@@ -1,12 +1,10 @@
 const Boom = require('boom');
-const flat = require('flat');
 const pick = require('lodash/pick');
 const moment = require('moment');
 const path = require('path');
 const os = require('os');
 const translate = require('../helpers/translate');
 const Customer = require('../models/Customer');
-const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
 const SubscriptionHelper = require('../helpers/subscriptions');
@@ -372,18 +370,7 @@ const createHistorySubscription = async (req) => {
 
 const createFunding = async (req) => {
   try {
-    const check = await FundingHelper.checkSubscriptionFunding(req.params._id, req.payload);
-    if (!check) return Boom.conflict(translate[language].customerFundingConflict);
-    let customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { fundings: req.payload } },
-      { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
-    )
-      .populate({ path: 'subscriptions.service' })
-      .populate({ path: 'fundings.thirdPartyPayer' })
-      .lean();
-
-    customer = await FundingHelper.populateFundingsList(customer);
+    const customer = await FundingHelper.createFunding(req.params._id, req.payload);
 
     return {
       message: translate[language].customerFundingCreated,
@@ -397,29 +384,7 @@ const createFunding = async (req) => {
 
 const updateFunding = async (req) => {
   try {
-    if (req.payload.careDays) {
-      const checkFundingPayload = {
-        _id: req.params.fundingId,
-        subscription: req.payload.subscription,
-        versions: [req.payload],
-      };
-      const check = await FundingHelper.checkSubscriptionFunding(req.params._id, checkFundingPayload);
-      if (!check) return Boom.conflict(translate[language].customerFundingConflict);
-    }
-
-    let customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'fundings._id': req.params.fundingId },
-      { $push: { 'fundings.$.versions': req.payload } },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
-        autopopulate: false,
-      }
-    )
-      .populate({ path: 'subscriptions.service' })
-      .populate({ path: 'fundings.thirdPartyPayer' })
-      .lean();
-    customer = await FundingHelper.populateFundingsList(customer);
+    const customer = await FundingHelper.updateFunding(req.params._id, req.params.fundingId, req.payload);
 
     return {
       message: translate[language].customerFundingUpdated,
@@ -431,19 +396,9 @@ const updateFunding = async (req) => {
   }
 };
 
-const removeFunding = async (req) => {
+const deleteFunding = async (req) => {
   try {
-    await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: { fundings: { _id: req.params.fundingId } } },
-      {
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
-        autopopulate: false,
-      }
-    )
-      .populate({ path: 'subscriptions.service' })
-      .populate({ path: 'fundings.thirdPartyPayer' })
-      .lean();
+    await FundingHelper.deleteFunding(req.params._id, req.params.fundingId);
 
     return {
       message: translate[language].customerFundingRemoved,
@@ -481,5 +436,5 @@ module.exports = {
   createHistorySubscription,
   createFunding,
   updateFunding,
-  removeFunding,
+  deleteFunding,
 };
