@@ -37,6 +37,7 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
             $match: {
               $expr: { $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }] },
               $or: [
+                { startDate: { $gte: minStartDate }, endDate: { $lte: maxStartDate } },
                 { startDate: { $gte: minStartDate, $lte: maxStartDate } },
                 { endDate: { $gte: minStartDate, $lte: maxStartDate } },
                 { startDate: { $lte: minStartDate }, endDate: { $gte: maxStartDate } },
