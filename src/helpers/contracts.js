@@ -340,15 +340,11 @@ exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => 
 });
 
 exports.uploadFile = async (params, payload) => {
-  const allowedFields = ['signedContract', 'signedVersion'];
-  const administrativeKeys = Object.keys(payload).filter(key => allowedFields.indexOf(key) !== -1);
-  if (administrativeKeys.length === 0) return Boom.badRequest(translate[language].uploadNotAllowed);
-
   const fileInfo = {
     auxiliaryDriveId: params.driveId,
     name: payload.fileName,
     type: payload['Content-Type'],
-    body: payload[administrativeKeys[0]],
+    body: payload.file,
   };
   const version = {
     customer: payload.customer,

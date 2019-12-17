@@ -56,7 +56,7 @@ exports.authorizeGetContract = async (req) => {
 
 exports.authorizeUpload = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId });
-  if (!customer && req.query.customer) throw Boom.forbidden();
+  const customer = await Customer.findOne({ _id: req.payload.customer, company: companyId });
+  if (!customer && req.payload.customer) throw Boom.forbidden();
   return null;
 };

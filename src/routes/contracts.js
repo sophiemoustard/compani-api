@@ -255,7 +255,8 @@ exports.plugin = {
             versionId: Joi.objectId().required(),
             customer: Joi.objectId().when('status', { is: CUSTOMER_CONTRACT, then: Joi.required(), else: Joi.forbidden() }),
             status: Joi.string().required().valid(CONTRACT_STATUS),
-            signedContract: Joi.any(),
+            file: Joi.any().required(),
+            type: Joi.string().required(),
           }),
         },
         pre: [
