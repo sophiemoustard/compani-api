@@ -1,15 +1,6 @@
 const Boom = require('boom');
-const pick = require('lodash/pick');
-const moment = require('moment');
-const path = require('path');
-const os = require('os');
 const translate = require('../helpers/translate');
-const Customer = require('../models/Customer');
-const ESign = require('../models/ESign');
-const Drive = require('../models/Google/Drive');
 const SubscriptionHelper = require('../helpers/subscriptions');
-const { addFile } = require('../helpers/gdriveStorage');
-const { createAndReadFile } = require('../helpers/file');
 const CustomerHelper = require('../helpers/customers');
 const FundingHelper = require('../helpers/fundings');
 const MandatesHelper = require('../helpers/mandates');
@@ -314,39 +305,11 @@ const deleteCertificates = async (req) => {
 
 const saveSignedMandate = async (req) => {
   try {
-    const customer = await Customer.findById(req.params._id);
-    if (!customer) {
-      return Boom.notFound();
-    }
-    const mandateIndex = customer.payment.mandates.findIndex(doc => doc._id.toHexString() === req.params.mandateId);
-    if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
-    const everSignDoc = await ESign.getDocument(customer.payment.mandates[mandateIndex].everSignId);
-    if (everSignDoc.data.error) return Boom.notFound(translate[language].documentNotFound);
-    if (!everSignDoc.data.log.some(type => type.event === 'document_signed')) return Boom.serverUnavailable();
-    const finalPDF = await ESign.downloadFinalDocument(customer.payment.mandates[mandateIndex].everSignId);
-    const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-    const file = await createAndReadFile(finalPDF.data, tmpPath);
-    const uploadedFile = await addFile({
-      driveFolderId: customer.driveFolder.driveId,
-      name: customer.payment.mandates[mandateIndex].rum,
-      type: 'application/pdf',
-      body: file,
-    });
-    const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
-    customer.payment.mandates[mandateIndex].drive = {
-      driveId: uploadedFile.id,
-      link: driveFileInfo.webViewLink,
-    };
-    customer.payment.mandates[mandateIndex].signedAt = moment.utc().toDate();
-
-    await customer.save();
+    const customer = await MandatesHelper.saveSignedMandate();
 
     return {
       message: translate[language].signedDocumentSaved,
-      data: {
-        user: pick(customer, ['_id', 'identity']),
-        mandate: customer.payment.mandates.find(mandate => req.params.mandateId === mandate._id.toHexString()),
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);

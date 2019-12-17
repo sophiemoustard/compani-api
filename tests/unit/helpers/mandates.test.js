@@ -3,8 +3,12 @@ const expect = require('expect');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Customer = require('../../../src/models/Customer');
+const Drive = require('../../../src/models/Google/Drive');
+const ESign = require('../../../src/models/ESign');
+const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const MandatesHelper = require('../../../src/helpers/mandates');
 const ESignHelper = require('../../../src/helpers/eSign');
+const FileHelper = require('../../../src/helpers/file');
 
 require('sinon-mongoose');
 
@@ -113,7 +117,6 @@ describe('getSignatureRequest', () => {
 
   it('should throw error if error on generate', async () => {
     try {
-
       const customerId = (new ObjectID()).toHexString();
       const mandateId = new ObjectID();
       const payload = {
@@ -140,6 +143,125 @@ describe('getSignatureRequest', () => {
       await MandatesHelper.getSignatureRequest(customerId, mandateId.toHexString(), payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
+      CustomerMock.verify();
+    }
+  });
+});
+
+describe('saveSignedMandate', () => {
+  let CustomerMock;
+  let getDocument;
+  let downloadFinalDocument;
+  let createAndReadFile;
+  let addFile;
+  let getFileById;
+  beforeEach(() => {
+    CustomerMock = sinon.mock(Customer);
+    getDocument = sinon.stub(ESign, 'getDocument');
+    downloadFinalDocument = sinon.stub(ESign, 'downloadFinalDocument');
+    createAndReadFile = sinon.stub(FileHelper, 'createAndReadFile');
+    addFile = sinon.stub(GdriveStorageHelper, 'addFile');
+    getFileById = sinon.stub(Drive, 'getFileById');
+  });
+  afterEach(() => {
+    CustomerMock.restore();
+    getDocument.restore();
+    downloadFinalDocument.restore();
+    createAndReadFile.restore();
+    addFile.restore();
+    getFileById.restore();
+  });
+
+  it('should save signed mandate', async () => {
+    const customerId = '1234567890';
+    const mandateId = new ObjectID();
+    const customer = {
+      _id: customerId,
+      payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },
+      driveFolder: { driveId: 'driveFolder' },
+    };
+    CustomerMock.expects('findOne')
+      .withExactArgs({ _id: customerId })
+      .chain('lean')
+      .once()
+      .returns(customer);
+    getDocument.returns({ data: { log: [{ event: 'document_signed' }] } });
+    downloadFinalDocument.returns({ data: 'data' });
+    createAndReadFile.returns('file');
+    addFile.returns({ id: 'fileId' });
+    getFileById.returns({ webViewLink: 'webViewLink' });
+    CustomerMock.expects('findOneAndUpdate')
+      .chain('lean')
+      .once()
+      .returns(customer);
+
+    await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());
+
+    sinon.assert.calledWithExactly(getDocument, 'everSignId');
+    sinon.assert.calledWithExactly(downloadFinalDocument, 'everSignId');
+    sinon.assert.called(createAndReadFile);
+    sinon.assert.calledWithExactly(
+      addFile,
+      { driveFolderId: 'driveFolder', name: 'rum', type: 'application/pdf', body: 'file' }
+    );
+    sinon.assert.calledWithExactly(getFileById, { fileId: 'fileId' });
+    CustomerMock.verify();
+  });
+
+  it('should throw an error if esign returns an error', async () => {
+    try {
+      const customerId = '1234567890';
+      const mandateId = new ObjectID();
+      const customer = {
+        _id: customerId,
+        payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },
+        driveFolder: { driveId: 'driveFolder' },
+      };
+      CustomerMock.expects('findOne')
+        .withExactArgs({ _id: customerId })
+        .chain('lean')
+        .once()
+        .returns(customer);
+      getDocument.returns({ data: { error: 'error', log: [{ event: 'document_signed' }] } });
+      CustomerMock.expects('findOneAndUpdate').never();
+
+      await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(404);
+      sinon.assert.calledWithExactly(getDocument, 'everSignId');
+      sinon.assert.notCalled(downloadFinalDocument);
+      sinon.assert.notCalled(createAndReadFile);
+      sinon.assert.notCalled(addFile);
+      sinon.assert.notCalled(getFileById);
+      CustomerMock.verify();
+    }
+  });
+
+  it('should throw an error if no signed doc in esign response', async () => {
+    try {
+      const customerId = '1234567890';
+      const mandateId = new ObjectID();
+      const customer = {
+        _id: customerId,
+        payment: { mandates: [{ _id: mandateId, everSignId: 'everSignId', rum: 'rum' }] },
+        driveFolder: { driveId: 'driveFolder' },
+      };
+      CustomerMock.expects('findOne')
+        .withExactArgs({ _id: customerId })
+        .chain('lean')
+        .once()
+        .returns(customer);
+      getDocument.returns({ data: { log: [{ event: 'document_not_signed' }] } });
+      CustomerMock.expects('findOneAndUpdate').never();
+
+      await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(503);
+      sinon.assert.calledWithExactly(getDocument, 'everSignId');
+      sinon.assert.notCalled(downloadFinalDocument);
+      sinon.assert.notCalled(createAndReadFile);
+      sinon.assert.notCalled(addFile);
+      sinon.assert.notCalled(getFileById);
       CustomerMock.verify();
     }
   });
