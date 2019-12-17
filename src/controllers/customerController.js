@@ -15,6 +15,7 @@ const { createAndReadFile } = require('../helpers/file');
 const CustomerHelper = require('../helpers/customers');
 const FundingHelper = require('../helpers/fundings');
 const MandatesHelper = require('../helpers/mandates');
+const QuoteHelper = require('../helpers/quotes');
 
 const { language } = translate;
 
@@ -243,7 +244,11 @@ const updateMandate = async (req) => {
 
 const getMandateSignatureRequest = async (req) => {
   try {
-    const signatureRequest = await MandatesHelper.getSignatureRequest(req.params._id, req.params.mandateId, req.payload);
+    const signatureRequest = await MandatesHelper.getSignatureRequest(
+      req.params._id,
+      req.params.mandateId,
+      req.payload
+    );
 
     return {
       message: translate[language].signatureRequestCreated,
@@ -257,11 +262,7 @@ const getMandateSignatureRequest = async (req) => {
 
 const getCustomerQuotes = async (req) => {
   try {
-    const customer = await Customer.findOne(
-      { _id: req.params._id, quotes: { $exists: true } },
-      { identity: 1, quotes: 1 },
-      { autopopulate: false }
-    ).lean();
+    const customer = await QuoteHelper.getQuotes(req.params._id);
     if (!customer) return Boom.notFound();
 
     return {
@@ -276,20 +277,7 @@ const getCustomerQuotes = async (req) => {
 
 const createCustomerQuote = async (req) => {
   try {
-    const payload = { quoteNumber: { seq: 1 } };
-    const number = await QuoteNumber.findOneAndUpdate(
-      { quoteNumber: { prefix: `DEV${moment().format('MMYY')}` } },
-      { $inc: flat(payload) },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    const quoteNumber = `${number.quoteNumber.prefix}-${number.quoteNumber.seq.toString().padStart(3, '0')}`;
-    req.payload.quoteNumber = quoteNumber;
-
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { quotes: req.payload } },
-      { new: true, select: { identity: 1, quotes: 1 }, autopopulate: false }
-    );
+    const customer = await QuoteHelper.createQuote(req.params._id, req.payload);
 
     return {
       message: translate[language].customerQuoteAdded,
