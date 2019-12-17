@@ -87,7 +87,6 @@ describe('getListQuery', () => {
     const query = { createdAt: '2019-10-11' };
     const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    console.log('result', result);
     expect(result).toEqual({
       $and: [
         { company: credentials.company._id },

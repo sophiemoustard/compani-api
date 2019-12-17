@@ -1,6 +1,5 @@
 const flat = require('flat');
 const Boom = require('boom');
-const { ObjectID } = require('mongodb');
 const crypto = require('crypto');
 const moment = require('moment');
 const has = require('lodash/has');
@@ -10,8 +9,8 @@ const GdriveStorageHelper = require('./gdriveStorage');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const Event = require('../models/Event');
-const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
+const EventRepository = require('../repositories/EventRepository');
 const translate = require('../helpers/translate');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
@@ -41,8 +40,8 @@ exports.getCustomersWithBilledEvents = async (credentials) => {
   return EventRepository.getCustomersWithBilledEvents(query, companyId);
 };
 
-exports.getCustomers = async (query, credentials) => {
-  const customers = await CustomerRepository.getCustomersList(query, get(credentials, 'company._id', null));
+exports.getCustomers = async (credentials) => {
+  const customers = await CustomerRepository.getCustomersList(get(credentials, 'company._id', null));
   if (customers.length === 0) return [];
 
   for (let i = 0, l = customers.length; i < l; i++) {
@@ -106,12 +105,8 @@ exports.getCustomer = async (customerId, credentials) => {
   customer = SubscriptionsHelper.populateSubscriptionsServices(customer);
   customer = SubscriptionsHelper.subscriptionsAccepted(customer);
 
-  const fundingsVersions = [];
   if (customer.fundings && customer.fundings.length > 0) {
-    for (const funding of customer.fundings) {
-      fundingsVersions.push(FundingsHelper.populateFundings(funding, customer));
-    }
-    customer.fundings = fundingsVersions;
+    customer = await FundingsHelper.populateFundingsList(customer);
   }
 
   return customer;
@@ -243,3 +238,8 @@ exports.createAndSaveFile = async (params, payload) => {
 
   return uploadedFile;
 };
+
+exports.deleteCertificates = (customerId, driveId) => Promise.all([
+  Drive.deleteFile({ fileId: driveId }),
+  Customer.findOneAndUpdate({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
+]);

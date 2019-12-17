@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const moment = require('moment');
 const get = require('lodash/get');
+const has = require('lodash/has');
 const Customer = require('../models/Customer');
 const { populateServices } = require('./subscriptions');
 const UtilsHelper = require('./utils');
@@ -18,7 +19,8 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   *     - or the 2 fundings are on the same period but not the same days
   */
   return customer.fundings
-    .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() && checkedFunding._id !== fund._id.toHexString())
+    .filter(fund => checkedFunding.subscription === fund.subscription.toHexString() &&
+      checkedFunding._id !== fund._id.toHexString())
     .every((fund) => {
       const lastVersion = UtilsHelper.getLastVersion(fund.versions, 'createdAt');
 
@@ -32,15 +34,21 @@ exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
     });
 };
 
-exports.populateFundings = (funding, customer) => {
+exports.populateFundingsList = (customer) => {
+  if (!customer.fundings) return customer;
+
+  return {
+    ...customer,
+    fundings: customer.fundings.map(fund => exports.populateFunding(fund, customer.subscriptions)),
+  };
+};
+
+exports.populateFunding = (funding, subscriptions) => {
   if (!funding) return false;
 
-  const sub = customer.subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
-  if (get(sub, 'service.versions')) {
-    funding.subscription = { ...sub, service: populateServices(sub.service) };
-  } else {
-    funding.subscription = { ...sub };
-  }
+  const sub = subscriptions.find(sb => sb._id.toHexString() === funding.subscription.toHexString());
+  if (has(sub, 'service.versions')) funding.subscription = { ...sub, service: populateServices(sub.service) };
+  else funding.subscription = { ...sub };
 
   return funding;
 };
@@ -83,7 +91,7 @@ exports.exportFundings = async (credentials) => {
       funding = UtilsHelper.mergeLastVersionWithBaseObject(funding, 'createdAt');
 
       const nature = FUNDING_NATURES.find(nat => nat.value === funding.nature);
-      const lastServiceVersion = funding.subscription && funding.subscription.service && funding.subscription.service.versions
+      const lastServiceVersion = has(funding, 'subscription.service.versions')
         ? UtilsHelper.getLastVersion(funding.subscription.service.versions, 'startDate')
         : null;
       const frequency = FUNDING_FREQUENCIES.find(freq => freq.value === funding.frequency);
