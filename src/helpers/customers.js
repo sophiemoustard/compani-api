@@ -256,3 +256,8 @@ exports.createAndSaveFile = async (params, payload) => {
 
   return uploadedFile;
 };
+
+exports.deleteCertificates = (customerId, driveId) => Promise.all([
+  Drive.deleteFile({ fileId: driveId }),
+  Customer.updateOne({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
+]);

@@ -1,14 +1,7 @@
-
 const flat = require('flat');
 const Boom = require('boom');
 const Customer = require('../models/Customer');
-const Drive = require('../models/Google/Drive');
 const ESignHelper = require('../helpers/eSign');
-
-exports.deleteCertificates = (customerId, driveId) => Promise.all([
-  Drive.deleteFile({ fileId: driveId }),
-  Customer.findOneAndUpdate({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
-]);
 
 exports.getMandates = async customerId => Customer.findOne(
   { _id: customerId, 'payment.mandates': { $exists: true } },

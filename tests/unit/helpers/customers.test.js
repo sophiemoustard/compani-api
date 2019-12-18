@@ -6,6 +6,7 @@ const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Company = require('../../../src/models/Company');
+const Drive = require('../../../src/models/Google/Drive');
 const CustomerHelper = require('../../../src/helpers/customers');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const EventsHelper = require('../../../src/helpers/events');
@@ -816,5 +817,27 @@ describe('createCustomer', () => {
     sinon.assert.calledOnce(generateRum);
     sinon.assert.calledWithExactly(createFolder, { lastname: 'Bear', firstname: 'Teddy' }, 'qwertyuiop');
     CompanyMock.verify();
+  });
+});
+
+describe('deleteCertificates', () => {
+  let deleteFile;
+  let updateOne;
+  beforeEach(() => {
+    deleteFile = sinon.stub(Drive, 'deleteFile');
+    updateOne = sinon.stub(Customer, 'updateOne');
+  });
+  afterEach(() => {
+    deleteFile.restore();
+    updateOne.restore();
+  });
+
+  it('should delete file and update customer', async () => {
+    const customerId = '1234567890';
+    const driveId = 'qwertyuiop';
+    await CustomerHelper.deleteCertificates(customerId, driveId);
+
+    sinon.assert.calledWithExactly(deleteFile, { fileId: driveId });
+    sinon.assert.calledWithExactly(updateOne, { _id: customerId }, { $pull: { financialCertificates: { driveId } } });
   });
 });
