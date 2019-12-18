@@ -11,7 +11,9 @@ const {
   EVERY_WEEK,
   EVERY_TWO_WEEKS,
   ABSENCE,
+  UNAVAILABILITY,
   INTERVENTION,
+  INTERNAL_HOUR,
 } = require('./constants');
 const Event = require('../models/Event');
 const Repetition = require('../models/Repetition');
@@ -23,16 +25,16 @@ momentRange.extendMoment(moment);
 
 exports.formatRepeatedPayload = async (event, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
-  const payload = {
+  let payload = {
     ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
   };
+  const hasConflicts = await EventsValidationHelper.hasConflicts(payload);
 
-  if (event.type === INTERVENTION && event.auxiliary && await EventsValidationHelper.hasConflicts(payload)) {
-    delete payload.auxiliary;
-    payload.repetition.frequency = NEVER;
-  }
+  if (event.type === INTERVENTION && event.auxiliary && hasConflicts) {
+    payload = { ...omit(payload, 'auxiliary'), 'repetition.frequency': NEVER };
+  } else if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
 
   return new Event(payload);
 };
@@ -44,7 +46,8 @@ exports.createRepetitionsEveryDay = async (payload) => {
   const repeatedEvents = [];
 
   for (let i = 0, l = range.length; i < l; i++) {
-    repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
+    const repeatedEvent = await exports.formatRepeatedPayload(payload, range[i]);
+    if (repeatedEvent) repeatedEvents.push(repeatedEvent);
   }
 
   await Event.insertMany(repeatedEvents);
@@ -58,7 +61,10 @@ exports.createRepetitionsEveryWeekDay = async (payload) => {
 
   for (let i = 0, l = range.length; i < l; i++) {
     const day = moment(range[i]).day();
-    if (day !== 0 && day !== 6) repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
+    if (day !== 0 && day !== 6) {
+      const repeatedEvent = await exports.formatRepeatedPayload(payload, range[i]);
+      if (repeatedEvent) repeatedEvents.push(repeatedEvent);
+    }
   }
 
   await Event.insertMany(repeatedEvents);
@@ -71,7 +77,8 @@ exports.createRepetitionsByWeek = async (payload, step) => {
   const repeatedEvents = [];
 
   for (let i = 0, l = range.length; i < l; i++) {
-    repeatedEvents.push(await exports.formatRepeatedPayload(payload, range[i]));
+    const repeatedEvent = await exports.formatRepeatedPayload(payload, range[i]);
+    if (repeatedEvent) repeatedEvents.push(repeatedEvent);
   }
 
   await Event.insertMany(repeatedEvents);

@@ -42,7 +42,10 @@ describe('updateEvent', () => {
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     updateRepetition = sinon.stub(EventsRepetitionHelper, 'updateRepetition');
     updateEvent = sinon.stub(EventRepository, 'updateEvent');
-    deleteConflictInternalHoursAndUnavailabilities = sinon.stub(EventHelper, 'deleteConflictInternalHoursAndUnavailabilities');
+    deleteConflictInternalHoursAndUnavailabilities = sinon.stub(
+      EventHelper,
+      'deleteConflictInternalHoursAndUnavailabilities'
+    );
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
@@ -59,7 +62,11 @@ describe('updateEvent', () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, type: INTERVENTION, auxiliary, repetition: { frequency: 'every_week' } };
-    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString(), shouldUpdateRepetition: true };
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      auxiliary: auxiliary.toHexString(),
+      shouldUpdateRepetition: true,
+    };
 
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
@@ -98,14 +105,14 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
+    sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
       auxiliaryId.toHexString(),
       credentials
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       deleteConflictInternalHoursAndUnavailabilities,
       { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
       auxiliaryId.toHexString(),
@@ -168,17 +175,22 @@ describe('updateEvent', () => {
     const eventId = new ObjectID();
     const auxiliary = new ObjectID();
     const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      shouldUpdateRepetition: false,
+      auxiliary: auxiliary.toHexString()
+    };
 
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateEvent,
       eventId,
-      { ...payload, 'repetition.frequency': NEVER }
+      { ...payload, 'repetition.frequency': NEVER },
+      null,
+      credentials
     );
-
     sinon.assert.notCalled(updateRepetition);
   });
 
@@ -193,7 +205,11 @@ describe('updateEvent', () => {
       cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
-    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      shouldUpdateRepetition: false,
+      auxiliary: auxiliary.toHexString(),
+    };
 
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
@@ -219,7 +235,11 @@ describe('updateEvent', () => {
       cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
       auxiliary,
     };
-    const payload = { startDate: '2019-01-21T09:38:18', shouldUpdateRepetition: false, auxiliary: auxiliary.toHexString() };
+    const payload = {
+      startDate: '2019-01-21T09:38:18',
+      shouldUpdateRepetition: false,
+      auxiliary: auxiliary.toHexString(),
+    };
 
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
@@ -319,7 +339,6 @@ describe('listForCreditNotes', () => {
     expect(result).toBeDefined();
     expect(result).toBe(events);
   });
-
 });
 
 
@@ -475,10 +494,11 @@ describe('unassignInterventionsOnContractEnd', () => {
   let createEventHistoryOnUpdate;
   let updateManyEvent;
   let updateManyRepetition;
+  let deleteManyRepetition;
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
-  const credentials = { _id: userId };
+  const credentials = { _id: userId, company: { _id: new ObjectID() } };
   const aggregation = [{
     customer: { _id: customerId },
     sub: { _id: 'qwerty', service: { type: COMPANY_CONTRACT } },
@@ -517,6 +537,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     updateManyEvent = sinon.stub(Event, 'updateMany');
     updateManyRepetition = sinon.stub(Repetition, 'updateMany');
+    deleteManyRepetition = sinon.stub(Repetition, 'deleteMany');
   });
   afterEach(() => {
     getCustomerSubscriptions.restore();
@@ -524,6 +545,7 @@ describe('unassignInterventionsOnContractEnd', () => {
     createEventHistoryOnUpdate.restore();
     updateManyEvent.restore();
     updateManyRepetition.restore();
+    deleteManyRepetition.restore();
   });
 
   it('should unassign future events linked to company contract', async () => {
@@ -533,19 +555,27 @@ describe('unassignInterventionsOnContractEnd', () => {
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.called(getCustomerSubscriptions);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getUnassignedInterventions,
       contract.endDate,
       contract.user,
-      [aggregation[0].sub._id]
+      [aggregation[0].sub._id],
+      credentials.company._id
     );
     sinon.assert.calledTwice(createEventHistoryOnUpdate);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWithExactly(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+    );
+    sinon.assert.calledWithExactly(
+      deleteManyRepetition,
+      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
+    );
   });
 
   it('should create event history for repetition', async () => {
@@ -554,16 +584,30 @@ describe('unassignInterventionsOnContractEnd', () => {
     getUnassignedInterventions.returns([interventions[1]]);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       createEventHistoryOnUpdate,
-      { misc: 'toto', startDate: '2019-10-02T11:00:00.000Z', endDate: '2019-10-02T13:00:00.000Z', shouldUpdateRepetition: true }
+      {
+        misc: 'toto',
+        startDate: '2019-10-02T11:00:00.000Z',
+        endDate: '2019-10-02T13:00:00.000Z',
+        shouldUpdateRepetition: true,
+      },
+      interventions[1].events[0],
+      credentials
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWithExactly(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+    );
+    sinon.assert.calledWithExactly(
+      deleteManyRepetition,
+      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
+    );
   });
 
   it('should create event history for non repeated event', async () => {
@@ -572,38 +616,64 @@ describe('unassignInterventionsOnContractEnd', () => {
     getUnassignedInterventions.returns([interventions[0]]);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       createEventHistoryOnUpdate,
-      { misc: undefined, startDate: '2019-10-02T10:00:00.000Z', endDate: '2019-10-02T12:00:00.000Z' }
+      {
+        misc: undefined,
+        startDate: '2019-10-02T10:00:00.000Z',
+        endDate: '2019-10-02T12:00:00.000Z',
+      },
+      interventions[0].events[0],
+      credentials
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWithExactly(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+    );
+    sinon.assert.calledWithExactly(
+      deleteManyRepetition,
+      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
+    );
   });
 
   it('should unassign future events linked to corresponding customer contract', async () => {
-    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
+    const contract = {
+      status: CUSTOMER_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: userId,
+      customer: customerId,
+    };
     getCustomerSubscriptions.returns(aggregation);
     getUnassignedInterventions.returns(interventions);
 
     await EventHelper.unassignInterventionsOnContractEnd(contract, credentials);
     sinon.assert.called(getCustomerSubscriptions);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getUnassignedInterventions,
       contract.endDate,
       contract.user,
-      [aggregation[1].sub._id]
+      [aggregation[1].sub._id],
+      credentials.company._id
     );
     sinon.assert.calledTwice(createEventHistoryOnUpdate);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateManyEvent,
       { _id: { $in: [interventions[0].events[0]._id, interventions[1].events[0]._id] } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     );
-    sinon.assert.calledWith(updateManyRepetition, { auxiliary: userId }, { $unset: { auxiliary: '' } });
+    sinon.assert.calledWithExactly(
+      updateManyRepetition,
+      { auxiliary: userId, type: 'intervention' }, { $unset: { auxiliary: '' } }
+    );
+    sinon.assert.calledWithExactly(
+      deleteManyRepetition,
+      { auxiliary: userId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } }
+    );
   });
 });
 
@@ -613,7 +683,7 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
   let deleteMany;
   const customerId = new ObjectID();
   const userId = new ObjectID();
-  const credentials = { _id: userId };
+  const credentials = { _id: userId, company: { _id: new ObjectID() } };
   const events = [
     {
       _id: new ObjectID(),
@@ -653,9 +723,14 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     getEventsExceptInterventions.returns(events);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWith(getEventsExceptInterventions, '2019-10-02T08:00:00.000Z', userId);
+    sinon.assert.calledWithExactly(
+      getEventsExceptInterventions,
+      '2019-10-02T08:00:00.000Z',
+      userId,
+      credentials.company._id
+    );
     sinon.assert.calledTwice(createEventHistoryOnDelete);
-    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
+    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
   });
 
   it('should create event history for repetition', async () => {
@@ -663,8 +738,8 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     getEventsExceptInterventions.returns([events[1]]);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWith(createEventHistoryOnDelete, events[1].events[0], credentials);
-    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[1].events[0]._id] } });
+    sinon.assert.calledWithExactly(createEventHistoryOnDelete, events[1].events[0], credentials);
+    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: [events[1].events[0]._id] } });
   });
 
   it('should create event history for non repeated event', async () => {
@@ -672,18 +747,28 @@ describe('removeEventsExceptInterventionsOnContractEnd', () => {
     getEventsExceptInterventions.returns([events[0]]);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWith(createEventHistoryOnDelete, events[0].events[0], credentials);
-    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id] } });
+    sinon.assert.calledWithExactly(createEventHistoryOnDelete, events[0].events[0], credentials);
+    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: [events[0].events[0]._id] } });
   });
 
   it('should remove future non-intervention events linked to corresponding customer contract', async () => {
-    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
+    const contract = {
+      status: CUSTOMER_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: userId,
+      customer: customerId,
+    };
     getEventsExceptInterventions.returns(events);
 
     await EventHelper.removeEventsExceptInterventionsOnContractEnd(contract, credentials);
-    sinon.assert.calledWith(getEventsExceptInterventions, '2019-10-02T08:00:00.000Z', userId);
+    sinon.assert.calledWithExactly(
+      getEventsExceptInterventions,
+      '2019-10-02T08:00:00.000Z',
+      userId,
+      credentials.company._id
+    );
     sinon.assert.calledTwice(createEventHistoryOnDelete);
-    sinon.assert.calledWith(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
+    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: [events[0].events[0]._id, events[1].events[0]._id] } });
   });
 });
 
@@ -871,7 +956,10 @@ describe('deleteList', () => {
     sinon.assert.calledWithExactly(getEventsGroupedByParentIdStub, query, credentials.company._id);
     sinon.assert.calledWithExactly(
       deleteRepetitionStub,
-      { ...eventsGroupedByParentId[0].events[0], repetition: { frequency: EVERY_WEEK, parentId: eventsGroupedByParentId[0].events[0].repetition.parentId } },
+      {
+        ...eventsGroupedByParentId[0].events[0],
+        repetition: { frequency: EVERY_WEEK, parentId: eventsGroupedByParentId[0].events[0].repetition.parentId },
+      },
       credentials
     );
   });
@@ -884,7 +972,7 @@ describe('updateAbsencesOnContractEnd', () => {
 
   const customerId = new ObjectID();
   const userId = new ObjectID();
-  const credentials = { _id: userId };
+  const credentials = { _id: userId, company: { _id: new ObjectID() } };
 
   const absences = [
     {
@@ -913,20 +1001,25 @@ describe('updateAbsencesOnContractEnd', () => {
     getAbsences.returns(absences);
 
     await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
-    sinon.assert.calledWith(getAbsences, userId, maxEndDate);
+    sinon.assert.calledWithExactly(getAbsences, userId, maxEndDate, credentials.company._id);
     sinon.assert.calledOnce(createEventHistoryOnUpdate);
-    sinon.assert.calledWith(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
+    sinon.assert.calledWithExactly(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
   });
 
   it('should update future absences events linked to corresponding customer contract', async () => {
-    const contract = { status: CUSTOMER_CONTRACT, endDate: '2019-10-02T08:00:00.000Z', user: userId, customer: customerId };
+    const contract = {
+      status: CUSTOMER_CONTRACT,
+      endDate: '2019-10-02T08:00:00.000Z',
+      user: userId,
+      customer: customerId,
+    };
     const maxEndDate = moment(contract.endDate).hour(22).startOf('h');
     getAbsences.returns(absences);
 
     await EventHelper.updateAbsencesOnContractEnd(userId, contract.endDate, credentials);
-    sinon.assert.calledWith(getAbsences, userId, maxEndDate);
+    sinon.assert.calledWithExactly(getAbsences, userId, maxEndDate, credentials.company._id);
     sinon.assert.calledOnce(createEventHistoryOnUpdate);
-    sinon.assert.calledWith(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
+    sinon.assert.calledWithExactly(updateMany, { _id: { $in: [absences[0]._id] } }, { $set: { endDate: maxEndDate } });
   });
 });
 
@@ -949,7 +1042,10 @@ describe('createEvent', () => {
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     createRepetitions = sinon.stub(EventsRepetitionHelper, 'createRepetitions');
     getEvent = sinon.stub(EventRepository, 'getEvent');
-    deleteConflictInternalHoursAndUnavailabilities = sinon.stub(EventHelper, 'deleteConflictInternalHoursAndUnavailabilities');
+    deleteConflictInternalHoursAndUnavailabilities = sinon.stub(
+      EventHelper,
+      'deleteConflictInternalHoursAndUnavailabilities'
+    );
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
   });
   afterEach(() => {
@@ -1088,7 +1184,7 @@ describe('unassignConflictInterventions', () => {
     getEventsInConflicts.returns(events);
     await EventHelper.unassignConflictInterventions(dates, auxiliaryId, credentials);
 
-    getEventsInConflicts.calledWith(dates, auxiliaryId, [INTERVENTION]);
+    getEventsInConflicts.calledWithExactly(dates, auxiliaryId, [INTERVENTION]);
     sinon.assert.callCount(updateEvent, events.length);
   });
 });
@@ -1123,8 +1219,8 @@ describe('deleteEvent', () => {
     const result = await EventHelper.deleteEvent(event, credentials);
 
     expect(result).toEqual(event);
-    sinon.assert.calledWith(createEventHistoryOnDelete, deletionInfo, credentials);
-    sinon.assert.calledWith(deleteOne, { _id: event._id });
+    sinon.assert.calledWithExactly(createEventHistoryOnDelete, deletionInfo, credentials);
+    sinon.assert.calledWithExactly(deleteOne, { _id: event._id });
   });
 
   it('should not delete event if it is billed', async () => {
@@ -1165,7 +1261,7 @@ describe('deleteEvents', () => {
     await EventHelper.deleteEvents(events, credentials);
 
     sinon.assert.callCount(createEventHistoryOnDelete, events.length);
-    sinon.assert.calledWith(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
+    sinon.assert.calledWithExactly(deleteMany, { _id: { $in: ['1234567890', 'qwertyuiop', 'asdfghjkl'] } });
   });
 
   it('should not delete event if at least one is billed', async () => {
@@ -1326,7 +1422,7 @@ describe('updateEventsInternalHourType', () => {
     await EventHelper.updateEventsInternalHourType(eventsStartDate, internalHour._id, defaultInternalHourId);
 
     sinon.assert.calledOnce(updateMany);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateMany,
       {
         type: INTERNAL_HOUR,
@@ -1369,12 +1465,12 @@ describe('getContractWeekInfo', () => {
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(26);
     expect(result.workedDaysRatio).toBe(1 / 4);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-11-20').startOf('w').toDate(),
       moment('2019-11-20').endOf('w').toDate()
     );
-    sinon.assert.calledWith(getContractInfo, versions[1], query, 4);
+    sinon.assert.calledWithExactly(getContractInfo, versions[1], query, 4);
   });
 });
 
