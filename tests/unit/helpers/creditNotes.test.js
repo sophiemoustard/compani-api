@@ -890,10 +890,9 @@ describe('generateCreditNotePdf', () => {
         .chain('lean')
         .returns();
       await CreditNoteHelper.generateCreditNotePdf(params, credentials);
-      sinon.assert.notCalled(formatPDFStub);
-      sinon.assert.notCalled(generatePdfStub);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].creditNoteNotFound));
+    } finally {
       sinon.assert.notCalled(formatPDFStub);
       sinon.assert.notCalled(generatePdfStub);
     }
@@ -922,10 +921,9 @@ describe('generateCreditNotePdf', () => {
         .chain('lean')
         .returns({ origin: OGUST });
       await CreditNoteHelper.generateCreditNotePdf(params, credentials);
-      sinon.assert.notCalled(formatPDFStub);
-      sinon.assert.notCalled(generatePdfStub);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest(translate[language].creditNoteNotCompani));
+    } finally {
       sinon.assert.notCalled(formatPDFStub);
       sinon.assert.notCalled(generatePdfStub);
     }

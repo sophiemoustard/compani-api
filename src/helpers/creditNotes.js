@@ -241,21 +241,17 @@ exports.generateCreditNotePdf = async (params, credentials) => {
     .populate({
       path: 'customer',
       select: '_id identity contact subscriptions',
-      populate: {
-        path: 'subscriptions.service',
-      },
+      populate: { path: 'subscriptions.service' },
     })
-    .populate({
-      path: 'thirdPartyPayer',
-      select: '_id name address',
-    })
+    .populate({ path: 'thirdPartyPayer', select: '_id name address' })
     .populate({ path: 'events.auxiliary', select: 'identity' })
     .lean();
 
-  if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-  if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
+  if (!creditNote) throw Boom.notFound(translate[language].creditNoteNotFound);
+  if (creditNote.origin !== COMPANI) throw Boom.badRequest(translate[language].creditNoteNotCompani);
 
   const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
   const data = exports.formatPDF(creditNote, company);
+
   return { pdf: PdfHelper.generatePdf(data, './src/data/creditNote.html'), creditNoteNumber: creditNote.number };
 };

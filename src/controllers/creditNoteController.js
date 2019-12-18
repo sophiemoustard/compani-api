@@ -65,7 +65,7 @@ const remove = async (req) => {
 
 const generateCreditNotePdf = async (req, h) => {
   try {
-    const { pdf, creditNoteNumber } = CreditNoteHelper.generateCreditNotePdf(req.params, h, req.auth.credentials);
+    const { pdf, creditNoteNumber } = CreditNoteHelper.generateCreditNotePdf(req.params, req.auth.credentials);
     return h.response(pdf)
       .header('content-disposition', `inline; filename=${creditNoteNumber}.pdf`)
       .type('application/pdf');
