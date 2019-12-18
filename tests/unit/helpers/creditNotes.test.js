@@ -1,15 +1,21 @@
 const { ObjectID } = require('mongodb');
+const Boom = require('boom');
 const expect = require('expect');
 const sinon = require('sinon');
 const FundingHistory = require('../../../src/models/FundingHistory');
 const CreditNoteNumber = require('../../../src/models/CreditNoteNumber');
 const CreditNote = require('../../../src/models/CreditNote');
+const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const CreditNoteHelper = require('../../../src/helpers/creditNotes');
 const UtilsHelper = require('../../../src/helpers/utils');
+const translate = require('../../../src/helpers/translate');
 const PdfHelper = require('../../../src/helpers/pdf');
 const SubscriptionHelper = require('../../../src/helpers/subscriptions');
+const { COMPANI, OGUST } = require('../../../src/helpers/constants');
 const moment = require('moment');
+
+const { language } = translate;
 
 require('sinon-mongoose');
 
@@ -748,7 +754,7 @@ describe('updateCreditNotes', () => {
 
 describe('removeCreditNote', () => {
   let updateEventAndFundingHistoryStub;
-  let findByIdAndRemoveStub;
+  let deleteOneStub;
   const creditNote = {
     _id: new ObjectID(),
     number: 1,
@@ -776,20 +782,21 @@ describe('removeCreditNote', () => {
   const params = { _id: new ObjectID() };
   beforeEach(() => {
     updateEventAndFundingHistoryStub = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
-    findByIdAndRemoveStub = sinon.stub(CreditNote, 'findByIdAndRemove');
+    deleteOneStub = sinon.stub(CreditNote, 'deleteOne');
   });
 
   afterEach(() => {
     updateEventAndFundingHistoryStub.restore();
-    findByIdAndRemoveStub.restore();
+    deleteOneStub.restore();
   });
 
   it('should delete a credit note', async () => {
     await CreditNoteHelper.removeCreditNote(creditNote, credentials, params);
+    console.log('test');
     sinon.assert.calledWithExactly(updateEventAndFundingHistoryStub, creditNote.events, true, credentials);
     sinon.assert.calledOnce(updateEventAndFundingHistoryStub);
-    sinon.assert.calledWithExactly(findByIdAndRemoveStub, params._id);
-    sinon.assert.calledOnce(findByIdAndRemoveStub);
+    sinon.assert.calledWithExactly(deleteOneStub, { _id: params._id });
+    sinon.assert.calledOnce(deleteOneStub);
   });
 
   it('should delete the linked creditNote if it has one', async () => {
@@ -797,8 +804,135 @@ describe('removeCreditNote', () => {
     await CreditNoteHelper.removeCreditNote(creditNote, credentials, params);
     sinon.assert.calledWithExactly(updateEventAndFundingHistoryStub, creditNote.events, true, credentials);
     sinon.assert.calledOnce(updateEventAndFundingHistoryStub);
-    sinon.assert.calledWithExactly(findByIdAndRemoveStub, params._id);
-    sinon.assert.calledWithExactly(findByIdAndRemoveStub, creditNote.linkedCreditNote);
-    sinon.assert.calledTwice(findByIdAndRemoveStub);
+    sinon.assert.calledWithExactly(deleteOneStub, { _id: params._id });
+    sinon.assert.calledWithExactly(deleteOneStub, { _id: creditNote.linkedCreditNote });
+    sinon.assert.calledTwice(deleteOneStub);
+  });
+});
+
+describe('generateCreditNotePdf', () => {
+  let CreditNoteModel;
+  let CompanyModel;
+  let formatPDFStub;
+  let generatePdfStub;
+
+  const params = { _id: new ObjectID() };
+  const credentials = { company: { _id: new ObjectID() } };
+  beforeEach(() => {
+    CreditNoteModel = sinon.mock(CreditNote);
+    CompanyModel = sinon.mock(Company);
+    formatPDFStub = sinon.stub(CreditNoteHelper, 'formatPDF');
+    generatePdfStub = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    CreditNoteModel.restore();
+    CompanyModel.restore();
+    formatPDFStub.restore();
+    generatePdfStub.restore();
+  });
+
+  it('should generate a pdf', async () => {
+    const creditNote = { origin: COMPANI, number: '12345' };
+    CreditNoteModel
+      .expects('findOne')
+      .withExactArgs({ _id: params._id })
+      .chain('populate')
+      .withExactArgs({
+        path: 'customer',
+        select: '_id identity contact subscriptions',
+        populate: {
+          path: 'subscriptions.service',
+        },
+      })
+      .chain('populate')
+      .withExactArgs({
+        path: 'thirdPartyPayer',
+        select: '_id name address',
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'events.auxiliary', select: 'identity' })
+      .chain('lean')
+      .returns(creditNote);
+
+    const company = { _id: credentials.company._id };
+    CompanyModel.expects('findOne')
+      .withExactArgs({ _id: credentials.company._id })
+      .chain('lean')
+      .returns(company);
+
+    const data = { name: 'creditNotePdf' };
+    formatPDFStub.returns(data);
+    generatePdfStub.returns({ title: 'creditNote' });
+
+    const result = await CreditNoteHelper.generateCreditNotePdf(params, credentials);
+
+    expect(result).toEqual({ pdf: { title: 'creditNote' }, creditNoteNumber: creditNote.number });
+    sinon.assert.calledWithExactly(formatPDFStub, creditNote, company);
+    sinon.assert.calledWithExactly(generatePdfStub, data, './src/data/creditNote.html');
+  });
+
+  it('should return a 404 if creditnote is not found', async () => {
+    try {
+      CreditNoteModel
+        .expects('findOne')
+        .withExactArgs({ _id: params._id })
+        .chain('populate')
+        .withExactArgs({
+          path: 'customer',
+          select: '_id identity contact subscriptions',
+          populate: {
+            path: 'subscriptions.service',
+          },
+        })
+        .chain('populate')
+        .withExactArgs({
+          path: 'thirdPartyPayer',
+          select: '_id name address',
+        })
+        .chain('populate')
+        .withExactArgs({ path: 'events.auxiliary', select: 'identity' })
+        .chain('lean')
+        .returns();
+      await CreditNoteHelper.generateCreditNotePdf(params, credentials);
+      sinon.assert.notCalled(formatPDFStub);
+      sinon.assert.notCalled(generatePdfStub);
+    } catch (e) {
+      expect(e).toEqual(Boom.notFound(translate[language].creditNoteNotFound));
+      sinon.assert.notCalled(formatPDFStub);
+      sinon.assert.notCalled(generatePdfStub);
+    }
+  });
+
+  it('should return a 500 if creditnote origin is not compani', async () => {
+    try {
+      CreditNoteModel
+        .expects('findOne')
+        .withExactArgs({ _id: params._id })
+        .chain('populate')
+        .withExactArgs({
+          path: 'customer',
+          select: '_id identity contact subscriptions',
+          populate: {
+            path: 'subscriptions.service',
+          },
+        })
+        .chain('populate')
+        .withExactArgs({
+          path: 'thirdPartyPayer',
+          select: '_id name address',
+        })
+        .chain('populate')
+        .withExactArgs({ path: 'events.auxiliary', select: 'identity' })
+        .chain('lean')
+        .returns({ origin: OGUST });
+      await CreditNoteHelper.generateCreditNotePdf(params, credentials);
+      sinon.assert.notCalled(formatPDFStub);
+      sinon.assert.notCalled(generatePdfStub);
+    } catch (e) {
+      expect(e).toEqual(Boom.badRequest(translate[language].creditNoteNotCompani));
+      sinon.assert.notCalled(formatPDFStub);
+      sinon.assert.notCalled(generatePdfStub);
+    }
   });
 });

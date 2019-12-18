@@ -616,6 +616,15 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
       });
       expect(response.statusCode).toBe(404);
     });
+
+    it('should return a 403 error if credit not origin is not COMPANI', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/creditNotes/${creditNotesList[1]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {

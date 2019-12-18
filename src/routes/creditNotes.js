@@ -15,6 +15,7 @@ const {
   authorizeGetCreditNotes,
   authorizeGetCreditNotePdf,
   authorizeCreditNoteCreationOrUpdate,
+  authorizeCreditNoteDeletion,
 } = require('./preHandlers/creditNotes');
 
 const { SERVICE_NATURES } = require('../models/Service');
@@ -110,6 +111,7 @@ exports.plugin = {
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },
+          { method: authorizeCreditNoteDeletion },
         ],
       },
     });

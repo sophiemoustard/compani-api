@@ -40,9 +40,7 @@ exports.authorizeGetCreditNotePdf = async (req) => {
 
 exports.authorizeGetCreditNotes = async (req) => {
   const { credentials } = req.auth;
-  console.log(credentials.company._id);
   const customer = await Customer.findOne({ _id: req.query.customer, company: credentials.company._id }).lean();
-  console.log(customer);
   if (req.query.customer && !customer) throw Boom.forbidden();
   return null;
 };
@@ -77,5 +75,13 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
     if (eventsCount !== eventsIds.length) throw Boom.forbidden();
   }
 
+  return null;
+};
+
+exports.authorizeCreditNoteDeletion = async (req) => {
+  const { creditNote } = req.pre;
+  if (creditNote && creditNote.origin !== COMPANI) {
+    throw Boom.forbidden(translate[language].creditNoteNotCompani);
+  }
   return null;
 };
