@@ -34,10 +34,8 @@ exports.formatRepeatedPayload = async (event, momentDay) => {
 
   if (event.type === INTERVENTION && event.auxiliary && hasConflicts) {
     payload = { ...omit(payload, 'auxiliary'), 'repetition.frequency': NEVER };
-  } else if ((event.type === INTERNAL_HOUR || event.type === UNAVAILABILITY)
-    && await EventsValidationHelper.hasConflicts(payload)) {
-    return null;
-  }
+  } else if (([INTERNAL_HOUR, UNAVAILABILITY].includes(event.type)) && hasConflicts) return null;
+
   return new Event(payload);
 };
 
