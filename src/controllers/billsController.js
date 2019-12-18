@@ -49,7 +49,7 @@ const generateBillPdf = async (req, h) => {
     if (!bill) throw Boom.notFound('Bill not found');
     if (bill.origin !== COMPANI) return Boom.badRequest(translate[language].billNotCompani);
 
-    const company = await Company.findOne();
+    const company = await Company.findOne({ _id: get(req, 'auth.credentials.company._id', null) });
     const data = BillHelper.formatPDF(bill, company);
     const pdf = await generatePdf(data, './src/data/bill.html');
 
