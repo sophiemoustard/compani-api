@@ -792,21 +792,16 @@ describe('removeCreditNote', () => {
 
   it('should delete a credit note', async () => {
     await CreditNoteHelper.removeCreditNote(creditNote, credentials, params);
-    console.log('test');
     sinon.assert.calledWithExactly(updateEventAndFundingHistoryStub, creditNote.events, true, credentials);
-    sinon.assert.calledOnce(updateEventAndFundingHistoryStub);
     sinon.assert.calledWithExactly(deleteOneStub, { _id: params._id });
-    sinon.assert.calledOnce(deleteOneStub);
   });
 
   it('should delete the linked creditNote if it has one', async () => {
     creditNote.linkedCreditNote = new ObjectID();
     await CreditNoteHelper.removeCreditNote(creditNote, credentials, params);
     sinon.assert.calledWithExactly(updateEventAndFundingHistoryStub, creditNote.events, true, credentials);
-    sinon.assert.calledOnce(updateEventAndFundingHistoryStub);
-    sinon.assert.calledWithExactly(deleteOneStub, { _id: params._id });
-    sinon.assert.calledWithExactly(deleteOneStub, { _id: creditNote.linkedCreditNote });
-    sinon.assert.calledTwice(deleteOneStub);
+    expect(deleteOneStub.getCall(0).calledWithExactly(deleteOneStub, { _id: params._id }));
+    expect(deleteOneStub.getCall(1).calledWithExactly(deleteOneStub, { _id: creditNote.linkedCreditNote }));
   });
 });
 
