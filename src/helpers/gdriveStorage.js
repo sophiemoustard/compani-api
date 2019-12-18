@@ -20,9 +20,7 @@ exports.createFolder = async (identity, parentFolderId) => {
     folder: true,
   });
 
-  if (!folder) {
-    throw Boom.failedDependency('Google drive folder creation failed.');
-  }
+  if (!folder) throw Boom.failedDependency('Google drive folder creation failed.');
 
   return folder;
 };

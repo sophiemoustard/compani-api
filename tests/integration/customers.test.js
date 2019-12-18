@@ -41,6 +41,14 @@ describe('CUSTOMERS ROUTES', () => {
   });
 
   describe('POST /customers', () => {
+    let addStub;
+    beforeEach(() => {
+      addStub = sinon.stub(Drive, 'add');
+    });
+    afterEach(() => {
+      addStub.restore();
+    });
+
     const payload = {
       identity: { title: 'mr', lastname: 'leboncoin' },
       contact: {
@@ -56,6 +64,8 @@ describe('CUSTOMERS ROUTES', () => {
 
     it('should create a new customer', async () => {
       const customersBefore = await customersList.filter(customer => customer.company === authCompany._id);
+      addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
+
       const res = await app.inject({
         method: 'POST',
         url: '/customers',
@@ -78,6 +88,7 @@ describe('CUSTOMERS ROUTES', () => {
       expect(res.result.data.customer.payment.mandates).toBeDefined();
       expect(res.result.data.customer.payment.mandates.length).toEqual(1);
       expect(res.result.data.customer.payment.mandates[0].rum).toBeDefined();
+      expect(res.result.data.customer.driveFolder).toEqual({ driveId: '1234567890', link: 'http://qwertyuiop' });
       const customers = await Customer.find({ company: authCompany._id }).lean();
       expect(customers).toHaveLength(customersBefore.length + 1);
     });
@@ -116,6 +127,8 @@ describe('CUSTOMERS ROUTES', () => {
       roles.forEach((role) => {
         it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
           const authToken = await getToken(role.name);
+          addStub.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
+
           const response = await app.inject({
             method: 'POST',
             url: '/customers',

@@ -1,6 +1,5 @@
 const Boom = require('boom');
 const flat = require('flat');
-const get = require('lodash/get');
 const pick = require('lodash/pick');
 const moment = require('moment');
 const path = require('path');
@@ -11,12 +10,11 @@ const QuoteNumber = require('../models/QuoteNumber');
 const ESign = require('../models/ESign');
 const Drive = require('../models/Google/Drive');
 const SubscriptionHelper = require('../helpers/subscriptions');
-const { generateRum } = require('../helpers/customers');
-const { createFolder, addFile } = require('../helpers/gdriveStorage');
+const { addFile } = require('../helpers/gdriveStorage');
 const { createAndReadFile } = require('../helpers/file');
-const { generateSignatureRequest } = require('../helpers/eSign');
 const CustomerHelper = require('../helpers/customers');
 const FundingHelper = require('../helpers/fundings');
+const MandatesHelper = require('../helpers/mandates');
 
 const { language } = translate;
 
@@ -36,9 +34,7 @@ const list = async (req) => {
 
 const listWithFirstIntervention = async (req) => {
   try {
-    const { query, auth } = req;
-    const companyId = get(auth, 'credentials.company._id', null);
-    const customers = await CustomerHelper.getCustomersFirstIntervention(query, companyId);
+    const customers = await CustomerHelper.getCustomersFirstIntervention(req.query, req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -80,8 +76,7 @@ const listBySector = async (req) => {
 
 const listWithBilledEvents = async (req) => {
   try {
-    const { credentials } = req.auth;
-    const customers = await CustomerHelper.getCustomersWithBilledEvents(credentials);
+    const customers = await CustomerHelper.getCustomersWithBilledEvents(req.auth.credentials);
 
     return {
       message: customers.length === 0 ? translate[language].customersNotFound : translate[language].customersFound,
@@ -110,6 +105,7 @@ const listWithCustomerContractSubscriptions = async (req) => {
 const listWithIntervention = async (req) => {
   try {
     const customers = await CustomerHelper.getCustomersWithIntervention(req.auth.credentials);
+
     return {
       message: customers.length > 0 ? translate[language].customersFound : translate[language].customersNotFound,
       data: { customers },
@@ -137,19 +133,11 @@ const show = async (req) => {
 
 const create = async (req) => {
   try {
-    const companyId = get(req, 'auth.credentials.company._id', null);
-    if (!companyId) return Boom.forbidden();
-    const mandate = { rum: await generateRum() };
-    const payload = {
-      ...req.payload,
-      company: companyId,
-      payment: { mandates: [mandate] },
-    };
-    const newCustomer = new Customer(payload);
-    await newCustomer.save();
+    const customer = await CustomerHelper.createCustomer(req.payload, req.auth.credentials);
+
     return {
       message: translate[language].customerCreated,
-      data: { customer: newCustomer },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -225,11 +213,7 @@ const deleteSubscription = async (req) => {
 
 const getMandates = async (req) => {
   try {
-    const customer = await Customer.findOne(
-      { _id: req.params._id, 'payment.mandates': { $exists: true } },
-      { identity: 1, 'payment.mandates': 1 },
-      { autopopulate: false }
-    ).lean();
+    const customer = await MandatesHelper.getMandates(req.params._id);
 
     if (!customer) return Boom.notFound(translate[language].customerNotFound);
 
@@ -245,12 +229,7 @@ const getMandates = async (req) => {
 
 const updateMandate = async (req) => {
   try {
-    const payload = { 'payment.mandates.$': { ...req.payload } };
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'payment.mandates._id': req.params.mandateId },
-      { $set: flat(payload) },
-      { new: true, select: { identity: 1, 'payment.mandates': 1 }, autopopulate: false }
-    ).lean();
+    const customer = await MandatesHelper.updateMandate(req.params._id, req.params.mandateId, req.payload);
 
     return {
       message: translate[language].customerMandateUpdated,
@@ -262,33 +241,13 @@ const updateMandate = async (req) => {
   }
 };
 
-const generateMandateSignatureRequest = async (req) => {
+const getMandateSignatureRequest = async (req) => {
   try {
-    const customer = await Customer.findById(req.params._id);
-    if (!customer) return Boom.notFound();
+    const signatureRequest = await MandatesHelper.getSignatureRequest(req.params._id, req.params.mandateId, req.payload);
 
-    const mandateIndex = customer.payment.mandates
-      .findIndex(mandate => mandate._id.toHexString() === req.params.mandateId);
-    if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
-
-    const doc = await generateSignatureRequest({
-      templateId: req.payload.fileId,
-      fields: req.payload.fields,
-      title: `MANDAT SEPA ${customer.payment.mandates[mandateIndex].rum}`,
-      signers: [{
-        id: '1',
-        name: req.payload.customer.name,
-        email: req.payload.customer.email,
-      }],
-      redirect: req.payload.redirect,
-      redirectDecline: req.payload.redirectDecline,
-    });
-    if (doc.data.error) return Boom.badRequest(`Eversign: ${doc.data.error.type}`);
-    customer.payment.mandates[mandateIndex].everSignId = doc.data.document_hash;
-    await customer.save();
     return {
       message: translate[language].signatureRequestCreated,
-      data: { signatureRequest: { embeddedUrl: doc.data.signers[0].embedded_signing_url } },
+      data: { signatureRequest },
     };
   } catch (e) {
     req.log('error', e);
@@ -338,37 +297,6 @@ const createCustomerQuote = async (req) => {
     };
   } catch (e) {
     req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
-const createDriveFolder = async (req) => {
-  try {
-    const customer = await Customer.findOne(
-      { _id: req.params._id },
-      { 'identity.firstname': 1, 'identity.lastname': 1, company: 1 }
-    );
-    if (customer.identity.lastname) {
-      const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_CUSTOMERS_FOLDER_ID;
-      const folder = await createFolder(customer.identity, parentFolderId);
-      customer.driveFolder = { driveId: folder.id, link: folder.webViewLink };
-      await customer.save();
-    }
-
-    return {
-      message: translate[language].customerUpdated,
-      data: { updatedCustomer: customer },
-    };
-  } catch (e) {
-    req.log('error', e);
-    if (e.output && e.output.statusCode === 424) {
-      return Boom.failedDependency(translate[language].googleDriveFolderCreationFailed);
-    }
-
-    if (e.output && e.output.statusCode === 404) {
-      return Boom.notFound(translate[language].googleDriveFolderNotFound);
-    }
-
     return Boom.isBoom(e) ? e : Boom.badImplementation(e);
   }
 };
@@ -556,12 +484,11 @@ module.exports = {
   deleteSubscription,
   getMandates,
   updateMandate,
-  createDriveFolder,
   getCustomerQuotes,
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  generateMandateSignatureRequest,
+  getMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
   createFunding,

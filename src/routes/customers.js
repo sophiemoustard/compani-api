@@ -20,12 +20,11 @@ const {
   deleteSubscription,
   getMandates,
   updateMandate,
-  createDriveFolder,
   getCustomerQuotes,
   createCustomerQuote,
   uploadFile,
   deleteCertificates,
-  generateMandateSignatureRequest,
+  getMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
   createFunding,
@@ -347,7 +346,7 @@ exports.plugin = {
         },
         pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: generateMandateSignatureRequest,
+      handler: getMandateSignatureRequest,
     });
 
     server.route({
@@ -387,24 +386,6 @@ exports.plugin = {
         pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: createCustomerQuote,
-    });
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/drivefolder',
-      options: {
-        auth: { scope: ['customers:administrative:edit'] },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-          payload: Joi.object().keys({
-            parentFolderId: Joi.string(),
-          }),
-        },
-        pre: [{ method: authorizeCustomerUpdate }],
-      },
-      handler: createDriveFolder,
     });
 
     server.route({

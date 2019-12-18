@@ -17,6 +17,7 @@ const company = {
   customersConfig: {
     billingPeriod: 'two_weeks',
   },
+  customersFolderId: 'mnbvcxz',
 };
 
 const populateDB = async () => {

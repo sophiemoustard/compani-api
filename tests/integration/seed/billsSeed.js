@@ -38,6 +38,7 @@ const company = {
   ics: '12345678',
   folderId: '0987654321',
   directDebitsFolderId: '1234567890',
+  customersFolderId: 'mnbvcxz',
 };
 
 const otherCompanyBillThirdPartyPayer = {

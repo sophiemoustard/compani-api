@@ -5,10 +5,13 @@ const flat = require('flat');
 const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
+const Company = require('../../../src/models/Company');
+const Drive = require('../../../src/models/Google/Drive');
 const CustomerHelper = require('../../../src/helpers/customers');
 const FundingsHelper = require('../../../src/helpers/fundings');
 const EventsHelper = require('../../../src/helpers/events');
 const UtilsHelper = require('../../../src/helpers/utils');
+const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const SubscriptionsHelper = require('../../../src/helpers/subscriptions');
 const EventRepository = require('../../../src/repositories/EventRepository');
 const CustomerRepository = require('../../../src/repositories/CustomerRepository');
@@ -132,6 +135,7 @@ describe('getCustomersFirstIntervention', () => {
     ];
 
     const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const query = { company: companyId };
     CustomerMock
       .expects('find')
@@ -142,7 +146,7 @@ describe('getCustomersFirstIntervention', () => {
       .returns(customers)
       .once();
 
-    const result = await CustomerHelper.getCustomersFirstIntervention(query, companyId);
+    const result = await CustomerHelper.getCustomersFirstIntervention(query, credentials);
     expect(result).toEqual({
       123456: { _id: '123456', firstIntervention: { _id: 'poiuy', startDate: '2019-09-10T00:00:00' } },
       '0987': { _id: '0987', firstIntervention: { _id: 'sdfg', startDate: '2019-09-10T00:00:00' } },
@@ -771,5 +775,69 @@ describe('updateCustomer', () => {
     sinon.assert.notCalled(updateMany);
     sinon.assert.notCalled(generateRum);
     expect(result).toBe(customerResult);
+  });
+});
+
+describe('createCustomer', () => {
+  let generateRum;
+  let createFolder;
+  let create;
+  let CompanyMock;
+  beforeEach(() => {
+    generateRum = sinon.stub(CustomerHelper, 'generateRum');
+    createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+    create = sinon.stub(Customer, 'create');
+    CompanyMock = sinon.mock(Company);
+  });
+  afterEach(() => {
+    generateRum.restore();
+    createFolder.restore();
+    create.restore();
+    CompanyMock.restore();
+  });
+
+  it('should create customer and drive folder', async () => {
+    const credentials = { company: { _id: '1234567890' } };
+    const payload = { identity: { lastname: 'Bear', firstname: 'Teddy' } };
+    generateRum.returns('poiuytrewq');
+    createFolder.returns({ id: '1234567890', webViewLink: 'http://qwertyuiop' });
+    create.returnsArg(0);
+    CompanyMock.expects('findOne')
+      .withExactArgs({ _id: '1234567890' })
+      .chain('lean')
+      .once()
+      .returns({ _id: '1234567890', customersFolderId: 'qwertyuiop' });
+
+    const result = await CustomerHelper.createCustomer(payload, credentials);
+
+    expect(result.identity.lastname).toEqual('Bear');
+    expect(result.payment.mandates[0].rum).toEqual('poiuytrewq');
+    expect(result.driveFolder.link).toEqual('http://qwertyuiop');
+    expect(result.driveFolder.driveId).toEqual('1234567890');
+    sinon.assert.calledOnce(generateRum);
+    sinon.assert.calledWithExactly(createFolder, { lastname: 'Bear', firstname: 'Teddy' }, 'qwertyuiop');
+    CompanyMock.verify();
+  });
+});
+
+describe('deleteCertificates', () => {
+  let deleteFile;
+  let updateOne;
+  beforeEach(() => {
+    deleteFile = sinon.stub(Drive, 'deleteFile');
+    updateOne = sinon.stub(Customer, 'updateOne');
+  });
+  afterEach(() => {
+    deleteFile.restore();
+    updateOne.restore();
+  });
+
+  it('should delete file and update customer', async () => {
+    const customerId = '1234567890';
+    const driveId = 'qwertyuiop';
+    await CustomerHelper.deleteCertificates(customerId, driveId);
+
+    sinon.assert.calledWithExactly(deleteFile, { fileId: driveId });
+    sinon.assert.calledWithExactly(updateOne, { _id: customerId }, { $pull: { financialCertificates: { driveId } } });
   });
 });

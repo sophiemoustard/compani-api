@@ -1,5 +1,4 @@
 const flat = require('flat');
-const Boom = require('boom');
 const Company = require('../models/Company');
 const GdriveStorageHelper = require('./gdriveStorage');
 const { addFile } = require('../helpers/gdriveStorage');
@@ -7,9 +6,17 @@ const drive = require('../models/Google/Drive');
 
 exports.createCompany = async (companyPayload) => {
   const companyFolder = await GdriveStorageHelper.createFolderForCompany(companyPayload.name);
-  const directDebitsFolder = await GdriveStorageHelper.createFolder('direct debits', companyFolder.id);
+  const [directDebitsFolder, customersFolder] = await Promise.all([
+    GdriveStorageHelper.createFolder('direct debits', companyFolder.id),
+    GdriveStorageHelper.createFolder('customers', companyFolder.id),
+  ]);
 
-  return Company.create({ ...companyPayload, directDebitsFolderId: directDebitsFolder.id, folderId: companyFolder.id });
+  return Company.create({
+    ...companyPayload,
+    directDebitsFolderId: directDebitsFolder.id,
+    folderId: companyFolder.id,
+    customersFolderId: customersFolder.id,
+  });
 };
 
 exports.uploadFile = async (payload, params) => {

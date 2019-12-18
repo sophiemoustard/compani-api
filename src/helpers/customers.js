@@ -6,6 +6,7 @@ const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
 const GdriveStorageHelper = require('./gdriveStorage');
+const Company = require('../models/Company');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const Event = require('../models/Event');
@@ -52,7 +53,8 @@ exports.getCustomers = async (credentials) => {
   return customers;
 };
 
-exports.getCustomersFirstIntervention = async (query, companyId) => {
+exports.getCustomersFirstIntervention = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const customers = await Customer.find({ ...query, company: companyId }, { _id: 1 })
     // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
@@ -179,6 +181,22 @@ exports.updateCustomer = async (customerId, customerPayload) => {
   return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 
+exports.createCustomer = async (payload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const rum = await exports.generateRum();
+  const company = await Company.findOne({ _id: companyId }).lean();
+  const folder = await GdriveStorageHelper.createFolder(payload.identity, company.customersFolderId);
+
+  const customer = {
+    ...payload,
+    company: companyId,
+    payment: { mandates: [{ rum }] },
+    driveFolder: { driveId: folder.id, link: folder.webViewLink },
+  };
+
+  return Customer.create(customer);
+};
+
 const uploadQuote = async (customerId, quoteId, file) => {
   const payload = { 'quotes.$': { _id: quoteId, drive: { ...file } } };
 
@@ -241,5 +259,5 @@ exports.createAndSaveFile = async (params, payload) => {
 
 exports.deleteCertificates = (customerId, driveId) => Promise.all([
   Drive.deleteFile({ fileId: driveId }),
-  Customer.findOneAndUpdate({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
+  Customer.updateOne({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
 ]);
