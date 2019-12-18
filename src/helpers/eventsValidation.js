@@ -75,23 +75,6 @@ exports.hasConflicts = async (event) => {
   });
 };
 
-exports.isAbsent = async (event) => {
-  const { _id, auxiliary, startDate, endDate } = event;
-
-  const auxiliaryEvents = await EventRepository.getAuxiliaryEventsBetweenDates(
-    auxiliary,
-    startDate,
-    endDate,
-    event.company
-  );
-
-  return auxiliaryEvents.some((ev) => {
-    if ((_id && _id.toHexString() === ev._id.toHexString())
-      || (ev.type !== ABSENCE && ev.type !== UNAVAILABILITY)) return false;
-    return true;
-  });
-};
-
 const isOneDayEvent = event => moment(event.startDate).isSame(event.endDate, 'day');
 const eventHasAuxiliarySector = (event, user) => event.sector === user.sector.toHexString();
 const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary && payload.auxiliary !== eventFromDB.auxiliary.toHexString();

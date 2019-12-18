@@ -21,14 +21,11 @@ require('sinon-mongoose');
 
 describe('formatRepeatedPayload', () => {
   let hasConflicts;
-  let isAbsentStub;
   beforeEach(() => {
     hasConflicts = sinon.stub(EventsValidationHelper, 'hasConflicts');
-    isAbsentStub = sinon.stub(EventsValidationHelper, 'isAbsent');
   });
   afterEach(() => {
     hasConflicts.restore();
-    isAbsentStub.restore();
   });
 
   it('should format event with auxiliary', async () => {
@@ -42,7 +39,7 @@ describe('formatRepeatedPayload', () => {
     };
     const step = day.diff(event.startDate, 'd');
     const payload = {
-      ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
+      ...omit(event, '_id'),
       startDate: moment(event.startDate).add(step, 'd'),
       endDate: moment(event.endDate).add(step, 'd'),
     };
@@ -54,7 +51,6 @@ describe('formatRepeatedPayload', () => {
     expect(result.endDate).toEqual(moment('2019-07-18').startOf('d').toDate());
     expect(result.auxiliary).toEqual(auxiliaryId);
     sinon.assert.calledWithExactly(hasConflicts, payload);
-    sinon.assert.notCalled(isAbsentStub);
   });
 
   it('should format intervention without auxiliary', async () => {
@@ -69,7 +65,7 @@ describe('formatRepeatedPayload', () => {
     };
     const step = day.diff(event.startDate, 'd');
     const payload = {
-      ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
+      ...omit(event, '_id'),
       startDate: moment(event.startDate).add(step, 'd'),
       endDate: moment(event.endDate).add(step, 'd'),
     };
@@ -82,7 +78,6 @@ describe('formatRepeatedPayload', () => {
     expect(result.auxiliary).not.toBeDefined();
     expect(result.repetition.frequency).toEqual('never');
     sinon.assert.calledWithExactly(hasConflicts, payload);
-    sinon.assert.notCalled(isAbsentStub);
   });
 
   it('should format internal hour with auxiliary', async () => {
@@ -97,17 +92,16 @@ describe('formatRepeatedPayload', () => {
     };
     const step = day.diff(event.startDate, 'd');
     const payload = {
-      ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
+      ...omit(event, '_id'),
       startDate: moment(event.startDate).add(step, 'd'),
       endDate: moment(event.endDate).add(step, 'd'),
     };
-    isAbsentStub.returns(false);
+    hasConflicts.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
 
     expect(result).toBeDefined();
     expect(result.auxiliary).toBeDefined();
-    sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWithExactly(isAbsentStub, { ...payload, _id: event._id });
+    sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
   it('should not called hasConflicts if event is not affected', async () => {
@@ -123,7 +117,6 @@ describe('formatRepeatedPayload', () => {
     expect(result).toBeDefined();
     expect(result.auxiliary).not.toBeDefined();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.notCalled(isAbsentStub);
   });
 
   it('should return null if user is absent ', async () => {
@@ -139,7 +132,6 @@ describe('formatRepeatedPayload', () => {
     expect(result).toBeDefined();
     expect(result.auxiliary).not.toBeDefined();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.notCalled(isAbsentStub);
   });
 
   it('should return null if event is an internal hour and auxiliary is absent', async () => {
@@ -152,16 +144,15 @@ describe('formatRepeatedPayload', () => {
     };
     const step = day.diff(event.startDate, 'd');
     const payload = {
-      ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
+      ...omit(event, '_id'),
       startDate: moment(event.startDate).add(step, 'd'),
       endDate: moment(event.endDate).add(step, 'd'),
     };
-    isAbsentStub.returns(true);
+    hasConflicts.returns(true);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
 
     expect(result).toBeNull();
-    sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWithExactly(isAbsentStub, { ...payload, _id: event._id });
+    sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
   it('should return null if event is an unavailability and auxiliary is absent', async () => {
@@ -174,16 +165,15 @@ describe('formatRepeatedPayload', () => {
     };
     const step = day.diff(event.startDate, 'd');
     const payload = {
-      ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
+      ...omit(event, '_id'),
       startDate: moment(event.startDate).add(step, 'd'),
       endDate: moment(event.endDate).add(step, 'd'),
     };
-    isAbsentStub.returns(true);
+    hasConflicts.returns(true);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
 
     expect(result).toBeNull();
-    sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWithExactly(isAbsentStub, { ...payload, _id: event._id });
+    sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 });
 

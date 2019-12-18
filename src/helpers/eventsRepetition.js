@@ -35,7 +35,7 @@ exports.formatRepeatedPayload = async (event, momentDay) => {
     delete payload.auxiliary;
     payload.repetition.frequency = NEVER;
   } else if ((event.type === INTERNAL_HOUR || event.type === UNAVAILABILITY)
-    && await EventsValidationHelper.isAbsent({ ...payload, _id: event._id })) {
+    && await EventsValidationHelper.hasConflicts(payload)) {
     return null;
   }
   return new Event(payload);
