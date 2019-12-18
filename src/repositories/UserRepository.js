@@ -3,8 +3,8 @@ const User = require('../models/User');
 const { ABSENCE, COMPANY_CONTRACT } = require('../helpers/constants');
 
 exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
-  const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
-  const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
+  const minDate = moment(month, 'MMYYYY').startOf('month').toDate();
+  const maxDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
   return User.aggregate([
     { $match: { sector: { $in: sectors } } },
@@ -18,9 +18,9 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
           {
             $match: {
               $expr: { $and: [{ $eq: ['$user', '$$auxiliaryId'] }] },
-              startDate: { $lte: maxStartDate },
+              startDate: { $lte: maxDate },
               status: COMPANY_CONTRACT,
-              $or: [{ endDate: { $exists: false } }, { endDate: { $gte: minStartDate } }],
+              $or: [{ endDate: { $exists: false } }, { endDate: { $gte: minDate } }],
             },
           },
         ],
@@ -36,12 +36,8 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
           {
             $match: {
               $expr: { $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }] },
-              $or: [
-                { startDate: { $gte: minStartDate }, endDate: { $lte: maxStartDate } },
-                { startDate: { $gte: minStartDate, $lte: maxStartDate } },
-                { endDate: { $gte: minStartDate, $lte: maxStartDate } },
-                { startDate: { $lte: minStartDate }, endDate: { $gte: maxStartDate } },
-              ],
+              startDate: { $lte: maxDate },
+              endDate: { $gte: minDate },
               type: ABSENCE,
             },
           },
