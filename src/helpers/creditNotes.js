@@ -252,6 +252,7 @@ exports.generateCreditNotePdf = async (params, credentials) => {
 
   const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
   const data = exports.formatPDF(creditNote, company);
+  const pdf = await PdfHelper.generatePdf(data, './src/data/creditNote.html');
 
-  return { pdf: PdfHelper.generatePdf(data, './src/data/creditNote.html'), creditNoteNumber: creditNote.number };
+  return { pdf, creditNoteNumber: creditNote.number };
 };
