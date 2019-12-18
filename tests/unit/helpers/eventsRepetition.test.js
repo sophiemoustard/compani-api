@@ -111,12 +111,17 @@ describe('formatRepeatedPayload', () => {
       endDate: moment('2019-07-15').startOf('d'),
       type: 'intervention',
     };
-
+    const step = day.diff(event.startDate, 'd');
+    const payload = {
+      ...omit(event, '_id'),
+      startDate: moment(event.startDate).add(step, 'd'),
+      endDate: moment(event.endDate).add(step, 'd'),
+    };
+    hasConflicts.returns(false);
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
-
     expect(result).toBeDefined();
     expect(result.auxiliary).not.toBeDefined();
-    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
   it('should return null if user is absent ', async () => {
@@ -126,12 +131,17 @@ describe('formatRepeatedPayload', () => {
       endDate: moment('2019-07-15').startOf('d'),
       type: 'intervention',
     };
-
+    const step = day.diff(event.startDate, 'd');
+    const payload = {
+      ...omit(event, '_id'),
+      startDate: moment(event.startDate).add(step, 'd'),
+      endDate: moment(event.endDate).add(step, 'd'),
+    };
     const result = await EventsRepetitionHelper.formatRepeatedPayload(event, day);
 
     expect(result).toBeDefined();
     expect(result.auxiliary).not.toBeDefined();
-    sinon.assert.notCalled(hasConflicts);
+    sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
   it('should return null if event is an internal hour and auxiliary is absent', async () => {

@@ -85,7 +85,7 @@ describe('updateEvent', () => {
     updateEvent.returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWith(updateEvent, eventId, payload, null, credentials);
+    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.notCalled(updateRepetition);
   });
 

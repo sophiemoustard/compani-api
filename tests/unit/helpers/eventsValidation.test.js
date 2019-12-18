@@ -11,7 +11,6 @@ const EventRepository = require('../../../src/repositories/EventRepository');
 const {
   INTERVENTION,
   ABSENCE,
-  UNAVAILABILITY,
   INTERNAL_HOUR,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,

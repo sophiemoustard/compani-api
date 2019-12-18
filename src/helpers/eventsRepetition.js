@@ -25,15 +25,15 @@ momentRange.extendMoment(moment);
 
 exports.formatRepeatedPayload = async (event, momentDay) => {
   const step = momentDay.diff(event.startDate, 'd');
-  const payload = {
+  let payload = {
     ...cloneDeep(omit(event, '_id')), // cloneDeep necessary to copy repetition
     startDate: moment(event.startDate).add(step, 'd'),
     endDate: moment(event.endDate).add(step, 'd'),
   };
+  const hasConflicts = await EventsValidationHelper.hasConflicts(payload);
 
-  if (event.type === INTERVENTION && event.auxiliary && await EventsValidationHelper.hasConflicts(cloneDeep(payload))) {
-    delete payload.auxiliary;
-    payload.repetition.frequency = NEVER;
+  if (event.type === INTERVENTION && event.auxiliary && hasConflicts) {
+    payload = { ...omit(payload, 'auxiliary'), 'repetition.frequency': NEVER };
   } else if ((event.type === INTERNAL_HOUR || event.type === UNAVAILABILITY)
     && await EventsValidationHelper.hasConflicts(payload)) {
     return null;
