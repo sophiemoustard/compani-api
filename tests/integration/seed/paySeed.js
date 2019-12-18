@@ -73,7 +73,7 @@ const contracts = [{
   company: authCompany._id,
   versions: [
     {
-      createdAt: '2018-12-04T16:34:04',
+      createdAt: '2018-12-03T16:34:04',
       endDate: null,
       grossHourlyRate: 10.28,
       startDate: '2018-12-03T23:00:00.000Z',
@@ -161,11 +161,9 @@ const service = {
   nature: 'hourly',
 };
 
-const sector = {
-  name: 'Toto',
-  _id: sectorId,
-  company: authCompany._id,
-};
+const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
+
+const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
 
 const populateDB = async () => {
   await User.deleteMany({});
@@ -182,7 +180,13 @@ const populateDB = async () => {
   await (new Service(service)).save();
   await (new Event(event)).save();
   await Contract.insertMany(contracts);
-  await (new Sector(sector)).save();
+  await Sector.create([sector, sectorFromOtherCompany]);
 };
 
-module.exports = { populateDB, auxiliary1, auxiliaryFromOtherCompany };
+module.exports = {
+  populateDB,
+  auxiliary1,
+  auxiliaryFromOtherCompany,
+  sectorId,
+  sectorFromOtherCompany,
+};

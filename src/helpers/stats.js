@@ -49,8 +49,8 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   return customerFundingsMonitoring;
 };
 
-exports.getCustomersAndDurationBySector = async (query) => {
+exports.getCustomersAndDurationBySector = async (query, credentials) => {
   const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
 
-  return StatRepository.getCustomersAndDurationBySector(sectors, query.month);
+  return StatRepository.getCustomersAndDurationBySector(sectors, query.month, get(credentials, 'company._id', null));
 };

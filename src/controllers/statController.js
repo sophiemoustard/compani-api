@@ -45,7 +45,7 @@ exports.getCustomerFundingsMonitoring = async (req) => {
 
 exports.getCustomersAndDuration = async (req) => {
   try {
-    const customerAndDuration = await getCustomersAndDurationBySector(req.query);
+    const customerAndDuration = await getCustomersAndDurationBySector(req.query, req.auth.credentials);
 
     return {
       message: messages.statsFound,

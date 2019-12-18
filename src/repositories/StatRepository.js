@@ -131,7 +131,7 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     .option({ company: companyId });
 };
 
-exports.getCustomersAndDurationBySector = async (sectors, month) => {
+exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
   const minStartDate = moment(month, 'MMYYYY').startOf('month').toDate();
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
@@ -192,5 +192,5 @@ exports.getCustomersAndDurationBySector = async (sectors, month) => {
         customerCount: 1,
       },
     },
-  ]);
+  ]).option({ company: companyId });
 };
