@@ -1,7 +1,6 @@
 const expect = require('expect');
 const sinon = require('sinon');
 const moment = require('moment');
-const cloneDeep = require('lodash/cloneDeep');
 const omit = require('lodash/omit');
 const { ObjectID } = require('mongodb');
 const Event = require('../../../src/models/Event');
@@ -124,7 +123,7 @@ describe('formatRepeatedPayload', () => {
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
-  it('should return null if user is absent ', async () => {
+  it('should return null if event has conflict', async () => {
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
       startDate: moment('2019-07-14').startOf('d'),
@@ -144,7 +143,7 @@ describe('formatRepeatedPayload', () => {
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
-  it('should return null if event is an internal hour and auxiliary is absent', async () => {
+  it('should return null if event is an internal hour and auxiliary has conflict', async () => {
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
       _id: new ObjectID(),
@@ -165,7 +164,7 @@ describe('formatRepeatedPayload', () => {
     sinon.assert.calledWithExactly(hasConflicts, payload);
   });
 
-  it('should return null if event is an unavailability and auxiliary is absent', async () => {
+  it('should return null if event is an unavailability and auxiliary has conflict', async () => {
     const day = moment('2019-07-17', 'YYYY-MM-DD');
     const event = {
       _id: new ObjectID(),
