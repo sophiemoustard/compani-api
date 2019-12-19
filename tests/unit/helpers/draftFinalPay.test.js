@@ -42,12 +42,12 @@ describe('getContractMonthInfo', () => {
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(52);
     expect(result.workedDaysRatio).toBe(1 / 4);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-05-06').startOf('M').toDate(),
       moment('2019-05-06').endOf('M').toDate()
     );
-    sinon.assert.calledWith(getContractInfo, [{ endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 }], query, 4);
+    sinon.assert.calledWithExactly(getContractInfo, [{ endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 }], query, 4);
   });
 });
 
@@ -164,7 +164,7 @@ describe('getDraftPay', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual([]);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
         status: 'contract_with_company',
@@ -218,7 +218,7 @@ describe('getDraftPay', () => {
     companyMock.verify();
     surchargeMock.verify();
     distanceMatrixMock.verify();
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
         status: 'contract_with_company',
@@ -228,7 +228,7 @@ describe('getDraftPay', () => {
       'finalpays',
       credentials.company._id
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDraftFinalPayByAuxiliary,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
       {

@@ -432,7 +432,7 @@ describe('hasConflicts', () => {
 
     await EventsValidationHelper.hasConflicts(event);
 
-    sinon.assert.calledWith(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', event.company, ABSENCE);
+    sinon.assert.calledWithExactly(getAuxiliaryEventsBetweenDates, auxiliaryId, '2019-10-02T09:00:00.000Z', '2019-10-02T11:00:00.000Z', event.company, ABSENCE);
   });
 });
 
@@ -524,7 +524,7 @@ describe('isCreationAllowed', () => {
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWith(checkContracts, event, user);
+    sinon.assert.calledWithExactly(checkContracts, event, user);
   });
 
   it('should return false as event is not absence and has conflicts', async () => {
@@ -550,8 +550,8 @@ describe('isCreationAllowed', () => {
 
     UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user);
+    sinon.assert.calledWithExactly(hasConflicts, event);
+    sinon.assert.calledWithExactly(checkContracts, event, user);
   });
 
   it('should return false if auxiliary sector is not event sector', async () => {
@@ -577,8 +577,8 @@ describe('isCreationAllowed', () => {
 
     UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user);
+    sinon.assert.calledWithExactly(hasConflicts, event);
+    sinon.assert.calledWithExactly(checkContracts, event, user);
   });
 
   it('should return true', async () => {
@@ -605,8 +605,8 @@ describe('isCreationAllowed', () => {
 
     UserModel.verify();
     expect(result).toBeTruthy();
-    sinon.assert.calledWith(hasConflicts, event);
-    sinon.assert.calledWith(checkContracts, event, user);
+    sinon.assert.calledWithExactly(hasConflicts, event);
+    sinon.assert.calledWithExactly(checkContracts, event, user);
   });
 });
 
@@ -762,7 +762,7 @@ describe('isEditionAllowed', () => {
     UserModel.verify();
     expect(result).toBeFalsy();
     sinon.assert.notCalled(hasConflicts);
-    sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
   });
 
   it('should return false as event is not absence and has conflicts', async () => {
@@ -793,8 +793,8 @@ describe('isEditionAllowed', () => {
 
     UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.calledWith(hasConflicts, { ...eventFromDB, ...payload });
-    sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+    sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
+    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
   });
 
   it('should return true as intervention is repeated and repetition should be updated', async () => {
@@ -889,8 +889,8 @@ describe('isEditionAllowed', () => {
 
     UserModel.verify();
     expect(result).toBeFalsy();
-    sinon.assert.calledWith(hasConflicts, { ...eventFromDB, ...payload });
-    sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+    sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
+    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
   });
 
   it('should return true', async () => {
@@ -921,8 +921,8 @@ describe('isEditionAllowed', () => {
 
     UserModel.verify();
     expect(result).toBeTruthy();
-    sinon.assert.calledWith(hasConflicts, { ...eventFromDB, ...payload });
-    sinon.assert.calledWith(checkContracts, { ...eventFromDB, ...payload }, user);
+    sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
+    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
   });
 });
 

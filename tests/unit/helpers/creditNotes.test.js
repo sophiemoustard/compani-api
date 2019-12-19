@@ -325,7 +325,7 @@ describe('formatPDF', () => {
     const result = CreditNoteHelper.formatPDF(creditNote, {});
 
     expect(result).toEqual(expectedResult);
-    sinon.assert.calledWith(formatEventSurchargesForPdf, [{ percentage: 30 }]);
+    sinon.assert.calledWithExactly(formatEventSurchargesForPdf, [{ percentage: 30 }]);
   });
 
   it('should format correct credit note PDF with events for tpp', () => {

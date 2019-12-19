@@ -209,7 +209,7 @@ describe('getUser', () => {
 
     await UsersHelper.getUser(userId);
 
-    sinon.assert.calledWith(populateRole, [{ _id: rightId }], { onlyGrantedRights: true });
+    sinon.assert.calledWithExactly(populateRole, [{ _id: rightId }], { onlyGrantedRights: true });
     userMock.verify();
   });
 
@@ -578,11 +578,11 @@ describe('updateUserInactivityDate', () => {
     countDocuments.returns(0);
 
     await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       countDocuments,
       { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateOne,
       { _id: userId },
       { $set: { inactivityDate: moment(endDate).add('1', 'month').startOf('M').toDate() } }
@@ -597,7 +597,7 @@ describe('updateUserInactivityDate', () => {
     countDocuments.returns(2);
 
     await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       countDocuments,
       { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
     );

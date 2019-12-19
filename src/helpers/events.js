@@ -217,7 +217,12 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
-  const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds, companyId);
+  const unassignedInterventions = await EventRepository.getUnassignedInterventions(
+    contract.endDate,
+    contract.user,
+    correspondingSubsIds,
+    companyId
+  );
   const promises = [];
   const ids = [];
 

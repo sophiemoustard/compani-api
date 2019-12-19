@@ -344,7 +344,7 @@ describe('formatSubscriptionData', () => {
         },
       ],
     }));
-    sinon.assert.calledWith(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
+    sinon.assert.calledWithExactly(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
     getMatchingVersionStub.restore();
   });
 });
@@ -1182,7 +1182,7 @@ describe('formatPDF', () => {
 
     expect(result).toEqual(expectedResult);
     sinon.assert.calledOnce(formatEventsForPdf);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventsForPdf,
       bill.subscriptions[0].events,
       bill.subscriptions[0].service

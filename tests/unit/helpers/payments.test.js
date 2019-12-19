@@ -222,7 +222,7 @@ describe('generateXML', () => {
     sinon.assert.calledOnce(createDocumentStub);
     sinon.assert.calledWithExactly(createDocumentStub);
     sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWith(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 0, sum: 0 });
+    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 0, sum: 0 });
     sinon.assert.calledOnce(generateSEPAXmlStub);
     sinon.assert.notCalled(generatePaymentInfoStub);
     sinon.assert.notCalled(addTransactionInfoStub);
@@ -240,7 +240,7 @@ describe('generateXML', () => {
     sinon.assert.calledOnce(createDocumentStub);
     sinon.assert.calledWithExactly(createDocumentStub);
     sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWith(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 190 });
+    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 190 });
 
     sinon.assert.calledOnce(generatePaymentInfoStub);
     sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);
@@ -261,7 +261,7 @@ describe('generateXML', () => {
     sinon.assert.calledOnce(createDocumentStub);
     sinon.assert.calledWithExactly(createDocumentStub);
     sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWith(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 120 });
+    sinon.assert.calledWithExactly(generateSEPAHeaderStub, { ...generateSEPAHeaderArgument, txNumber: 1, sum: 120 });
 
     sinon.assert.calledOnce(generatePaymentInfoStub);
     sinon.assert.calledWithExactly(generatePaymentInfoStub, generateRecurPaymentsInfoArgument);
@@ -286,7 +286,7 @@ describe('generateXML', () => {
     sinon.assert.calledOnce(createDocumentStub);
     sinon.assert.calledWithExactly(createDocumentStub);
     sinon.assert.calledOnce(generateSEPAHeaderStub);
-    sinon.assert.calledWith(generateSEPAHeaderStub, generateSEPAHeaderArgument);
+    sinon.assert.calledWithExactly(generateSEPAHeaderStub, generateSEPAHeaderArgument);
 
     sinon.assert.calledTwice(generatePaymentInfoStub);
     sinon.assert.calledWithExactly(generatePaymentInfoStub, generateFirstPaymentsInfoArgument);

@@ -116,7 +116,7 @@ describe('createContract', () => {
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
-    sinon.assert.calledWith(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
@@ -155,7 +155,7 @@ describe('createContract', () => {
 
     const result = await ContractHelper.createContract(payload, credentials);
 
-    sinon.assert.calledWith(generateSignatureRequestStub, contract.versions[0].signature);
+    sinon.assert.calledWithExactly(generateSignatureRequestStub, contract.versions[0].signature);
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
@@ -190,7 +190,7 @@ describe('createContract', () => {
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
-    sinon.assert.calledWith(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
     expect(result).toEqual(expect.objectContaining(contract));
     ContractMock.verify();
     UserMock.verify();
@@ -280,11 +280,11 @@ describe('endContract', () => {
 
     const result = await ContractHelper.endContract(contract._id.toHexString(), payload, credentials);
 
-    sinon.assert.calledWith(updateUserInactivityDate, contract.user, payload.endDate, credentials);
-    sinon.assert.calledWith(unassignInterventionsOnContractEnd, updatedContract, credentials);
-    sinon.assert.calledWith(unassignReferentOnContractEnd, updatedContract);
-    sinon.assert.calledWith(removeEventsExceptInterventionsOnContractEnd, updatedContract, credentials);
-    sinon.assert.calledWith(updateAbsencesOnContractEnd, updatedContract.user, updatedContract.endDate, credentials);
+    sinon.assert.calledWithExactly(updateUserInactivityDate, contract.user, payload.endDate, credentials);
+    sinon.assert.calledWithExactly(unassignInterventionsOnContractEnd, updatedContract, credentials);
+    sinon.assert.calledWithExactly(unassignReferentOnContractEnd, updatedContract);
+    sinon.assert.calledWithExactly(removeEventsExceptInterventionsOnContractEnd, updatedContract, credentials);
+    sinon.assert.calledWithExactly(updateAbsencesOnContractEnd, updatedContract.user, updatedContract.endDate, credentials);
     expect(result).toMatchObject(updatedContract);
     ContractMock.verify();
   });
@@ -390,7 +390,7 @@ describe('createVersion', () => {
     await ContractHelper.createVersion(contract._id.toHexString(), newVersion);
 
     ContractMock.verify();
-    sinon.assert.calledWith(generateSignatureRequest, { templateId: '1234567890' });
+    sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });
   });
 
   it('should throw on signature generation error', async () => {
@@ -411,7 +411,7 @@ describe('createVersion', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
     } finally {
-      sinon.assert.calledWith(generateSignatureRequest, { templateId: '1234567890' });
+      sinon.assert.calledWithExactly(generateSignatureRequest, { templateId: '1234567890' });
       ContractMock.verify();
     }
   });
@@ -523,6 +523,7 @@ describe('updateVersion', () => {
   });
 
   it('should update version', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
     const contract = {
       startDate: '2019-09-09T00:00:00',
@@ -541,10 +542,10 @@ describe('updateVersion', () => {
       .once()
       .returns(contract);
 
-    await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
+    await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate, credentials);
 
-    sinon.assert.calledWith(canUpdateVersion, contract, versionToUpdate, 0);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(canUpdateVersion, contract, versionToUpdate, 0, credentials);
+    sinon.assert.calledWithExactly(
       formatVersionEditionPayload,
       { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' },
       versionToUpdate,
@@ -554,6 +555,7 @@ describe('updateVersion', () => {
   });
 
   it('should update version and unset', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
     const contract = {
       startDate: '2019-09-09T00:00:00',
@@ -575,10 +577,10 @@ describe('updateVersion', () => {
       .once()
       .returns(contract);
 
-    await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
+    await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate, credentials);
 
-    sinon.assert.calledWith(canUpdateVersion, contract, versionToUpdate, 0);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(canUpdateVersion, contract, versionToUpdate, 0, credentials);
+    sinon.assert.calledWithExactly(
       formatVersionEditionPayload,
       { _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' },
       versionToUpdate,
@@ -588,6 +590,7 @@ describe('updateVersion', () => {
   });
 
   it('should update first version and contract', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
     try {
       const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00' };
       const contract = {
@@ -598,7 +601,12 @@ describe('updateVersion', () => {
       ContractMock.expects('findOneAndUpdate').never();
       canUpdateVersion.returns(false);
 
-      await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
+      await ContractHelper.updateVersion(
+        contractId.toHexString(),
+        versionId.toHexString(),
+        versionToUpdate,
+        credentials
+      );
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
     } finally {
@@ -649,16 +657,16 @@ describe('deleteVersion', () => {
     findOneContract.returns(contract);
     const credentials = { company: { _id: new ObjectID() }};
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
-    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+    sinon.assert.calledWithExactly(
       countAuxiliaryEventsBetweenDates,
       { auxiliary: 'toot', startDate: '2019-09-09', status: 'ok', company: credentials.company._id }
     );
     sinon.assert.notCalled(saveContract);
-    sinon.assert.calledWith(deleteOne, { _id: contractId.toHexString() });
-    sinon.assert.calledWith(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
+    sinon.assert.calledWithExactly(deleteOne, { _id: contractId.toHexString() });
+    sinon.assert.calledWithExactly(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
     sinon.assert.notCalled(updateOneCustomer);
-    sinon.assert.calledWith(deleteFile, '123456789');
+    sinon.assert.calledWithExactly(deleteFile, '123456789');
   });
 
   it('should throw forbidden error as deletion is not allowed', async () => {
@@ -675,7 +683,7 @@ describe('deleteVersion', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(403);
     } finally {
-      sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+      sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
       sinon.assert.notCalled(saveContract);
       sinon.assert.called(countAuxiliaryEventsBetweenDates);
       sinon.assert.notCalled(deleteOne);
@@ -694,12 +702,12 @@ describe('deleteVersion', () => {
     findOneContract.returns(contract);
 
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
-    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+    sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
     sinon.assert.called(saveContract);
     sinon.assert.notCalled(deleteOne);
     sinon.assert.notCalled(updateOneUser);
     sinon.assert.notCalled(updateOneCustomer);
-    sinon.assert.calledWith(deleteFile, '123456789');
+    sinon.assert.calledWithExactly(deleteFile, '123456789');
   });
 
   it('should delete customer contract', async () => {
@@ -712,12 +720,12 @@ describe('deleteVersion', () => {
     findOneContract.returns(contract);
 
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
-    sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+    sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
     sinon.assert.notCalled(saveContract);
-    sinon.assert.calledWith(deleteOne, { _id: contractId.toHexString() });
-    sinon.assert.calledWith(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
-    sinon.assert.calledWith(updateOneCustomer, { _id: 'qwer' }, { $pull: { contracts: contractId } });
-    sinon.assert.calledWith(deleteFile, '123456789');
+    sinon.assert.calledWithExactly(deleteOne, { _id: contractId.toHexString() });
+    sinon.assert.calledWithExactly(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
+    sinon.assert.calledWithExactly(updateOneCustomer, { _id: 'qwer' }, { $pull: { contracts: contractId } });
+    sinon.assert.calledWithExactly(deleteFile, '123456789');
   });
 });
 
@@ -741,7 +749,7 @@ describe('getContractInfo', () => {
     expect(result.contractHours).toBe(8);
     expect(result.workedDaysRatio).toBe(0.4);
     expect(result.holidaysHours).toBe(0);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-06-03').toDate(),
       moment('2019-06-07').toDate()
@@ -756,7 +764,7 @@ describe('getContractInfo', () => {
     const result = ContractHelper.getContractInfo(versions, query, { businessDays: 10, sundays: 0, holidays: 0 });
 
     expect(result).toBeDefined();
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-06-03').startOf('d').toDate(),
       moment('2019-06-09').toDate()
@@ -788,7 +796,7 @@ describe('getContractInfo', () => {
     expect(result.contractHours).toBe(12);
     expect(result.workedDaysRatio).toBe(0.5);
     expect(result.holidaysHours).toBe(4);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-05-04').startOf('d').toDate(),
       moment('2019-05-10').toDate()
