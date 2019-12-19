@@ -39,9 +39,7 @@ exports.list = async (query, credentials) => {
   } else if (groupBy === AUXILIARY) {
     return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, _.get(credentials, 'company._id'));
   }
-  const test = await EventRepository.getEventList(eventsQuery);
-  console.log(test);
-  return exports.populateEvents(test);
+  return exports.populateEvents(await EventRepository.getEventList(eventsQuery));
 };
 
 exports.createEvent = async (payload, credentials) => {
