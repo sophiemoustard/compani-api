@@ -374,6 +374,7 @@ describe('hoursBalanceDetail', () => {
       await PayHelper.hoursBalanceDetail(auxiliaryId, month, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest());
+    } finally {
       sinon.assert.calledWithExactly(getEventsToPayStub, startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
       sinon.assert.calledWithExactly(getCustomerCountStub, events);
       sinon.assert.calledWithExactly(

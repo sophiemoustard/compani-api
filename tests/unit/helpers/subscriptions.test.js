@@ -364,6 +364,7 @@ describe('addSubscription', () => {
       await SubscriptionsHelper.addSubscription(customerId, payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
+    } finally {
       sinon.assert.notCalled(populateSubscriptionsServices);
       CustomerMock.verify();
     }

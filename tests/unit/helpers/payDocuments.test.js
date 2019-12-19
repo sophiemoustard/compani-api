@@ -40,13 +40,14 @@ describe('create', () => {
       await PayDocumentHelper.create(payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive: File not uploaded'));
+    } finally {
+      sinon.assert.calledWith(addFileStub, {
+        driveFolderId: '1234567890',
+        name: 'test',
+        type: 'application/pdf',
+        body: 'stream',
+      });
     }
-    sinon.assert.calledWith(addFileStub, {
-      driveFolderId: '1234567890',
-      name: 'test',
-      type: 'application/pdf',
-      body: 'stream',
-    });
   });
 
   it('should save document to drive and db', async () => {

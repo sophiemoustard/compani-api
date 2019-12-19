@@ -64,5 +64,6 @@ describe('createQuote', () => {
 
     await QuoteHelper.createQuote(customerId, payload);
     CustomerMock.verify();
+    QuoteNumberMock.verify();
   });
 });

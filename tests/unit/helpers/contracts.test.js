@@ -314,6 +314,7 @@ describe('endContract', () => {
       await ContractHelper.endContract(contractId.toHexString(), payload, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(409);
+    } finally {
       sinon.assert.notCalled(updateUserInactivityDate);
       sinon.assert.notCalled(unassignInterventionsOnContractEnd);
       sinon.assert.notCalled(unassignReferentOnContractEnd);
@@ -409,6 +410,7 @@ describe('createVersion', () => {
       await ContractHelper.createVersion(contract._id.toHexString(), newVersion);
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
+    } finally {
       sinon.assert.calledWith(generateSignatureRequest, { templateId: '1234567890' });
       ContractMock.verify();
     }
@@ -599,6 +601,7 @@ describe('updateVersion', () => {
       await ContractHelper.updateVersion(contractId.toHexString(), versionId.toHexString(), versionToUpdate);
     } catch (e) {
       expect(e.output.statusCode).toEqual(422);
+    } finally {
       sinon.assert.notCalled(formatVersionEditionPayload);
       ContractMock.verify();
     }
@@ -647,7 +650,10 @@ describe('deleteVersion', () => {
     const credentials = { company: { _id: new ObjectID() }};
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
     sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
-    sinon.assert.calledWith(countAuxiliaryEventsBetweenDates, { auxiliary: 'toot', startDate: '2019-09-09', status: 'ok', company: credentials.company._id });
+    sinon.assert.calledWith(
+      countAuxiliaryEventsBetweenDates,
+      { auxiliary: 'toot', startDate: '2019-09-09', status: 'ok', company: credentials.company._id }
+    );
     sinon.assert.notCalled(saveContract);
     sinon.assert.calledWith(deleteOne, { _id: contractId.toHexString() });
     sinon.assert.calledWith(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
@@ -662,13 +668,13 @@ describe('deleteVersion', () => {
         user: 'toot',
         versions: [{ _id: versionId, auxiliaryDoc: { driveId: '123456789' } }],
       };
-      countAuxiliaryEventsBetweenDates.returns(0);
+      countAuxiliaryEventsBetweenDates.returns(1);
       findOneContract.returns(contract);
 
       await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString());
     } catch (e) {
       expect(e.output.statusCode).toEqual(403);
-
+    } finally {
       sinon.assert.calledWith(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
       sinon.assert.notCalled(saveContract);
       sinon.assert.called(countAuxiliaryEventsBetweenDates);

@@ -143,6 +143,7 @@ describe('getSignatureRequest', () => {
       await MandatesHelper.getSignatureRequest(customerId, mandateId.toHexString(), payload);
     } catch (e) {
       expect(e.output.statusCode).toEqual(400);
+    } finally {
       CustomerMock.verify();
     }
   });
@@ -228,6 +229,7 @@ describe('saveSignedMandate', () => {
       await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());
     } catch (e) {
       expect(e.output.statusCode).toEqual(404);
+    } finally {
       sinon.assert.calledWithExactly(getDocument, 'everSignId');
       sinon.assert.notCalled(downloadFinalDocument);
       sinon.assert.notCalled(createAndReadFile);
@@ -257,6 +259,7 @@ describe('saveSignedMandate', () => {
       await MandatesHelper.saveSignedMandate(customerId, mandateId.toHexString());
     } catch (e) {
       expect(e.output.statusCode).toEqual(503);
+    } finally {
       sinon.assert.calledWithExactly(getDocument, 'everSignId');
       sinon.assert.notCalled(downloadFinalDocument);
       sinon.assert.notCalled(createAndReadFile);
