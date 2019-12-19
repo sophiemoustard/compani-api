@@ -13,7 +13,7 @@ exports.authorizePaymentGet = async (req) => {
     const customer = await Customer.findOne({
       _id: req.query.customer,
       company: get(req, 'auth.credentials.company._id', null),
-    });
+    }).lean();
     if (!customer) throw Boom.forbidden();
     return null;
   } catch (e) {
@@ -70,7 +70,7 @@ exports.authorizePaymentCreation = async (req) => {
     const { credentials } = req.auth;
     const payment = req.payload;
 
-    const customer = await Customer.findById(payment.customer);
+    const customer = await Customer.findById(payment.customer).lean();
     if (!customer) throw Boom.forbidden();
     if (customer.company.toHexString() !== get(credentials, 'company._id', null).toHexString()) throw Boom.forbidden();
 
