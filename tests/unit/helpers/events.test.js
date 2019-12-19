@@ -26,9 +26,87 @@ const {
   EVERY_WEEK,
   INVOICED_AND_NOT_PAID,
   CUSTOMER_INITIATIVE,
+  AUXILIARY,
+  CUSTOMER,
 } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
+
+describe('list', () => {
+  let getEventsGroupedByCustomersStub;
+  let getEventsGroupedByAuxiliariesStub;
+  let populateEventsStub;
+  let getEventListStub;
+  let getListQueryStub;
+
+  beforeEach(() => {
+    getEventsGroupedByCustomersStub = sinon.stub(EventRepository, 'getEventsGroupedByCustomers');
+    getEventsGroupedByAuxiliariesStub = sinon.stub(EventRepository, 'getEventsGroupedByAuxiliaries');
+    populateEventsStub = sinon.stub(EventHelper, 'populateEvents');
+    getEventListStub = sinon.stub(EventRepository, 'getEventList');
+    getListQueryStub = sinon.stub(EventHelper, 'getListQuery');
+  });
+
+  afterEach(() => {
+    getEventsGroupedByCustomersStub.restore();
+    getEventsGroupedByAuxiliariesStub.restore();
+    populateEventsStub.restore();
+    getEventListStub.restore();
+    getListQueryStub.restore();
+  });
+  const companyId = new ObjectID();
+  const credentials = { company: { _id: companyId } };
+
+  it('should list events grouped by customer', async () => {
+    const query = { groupBy: CUSTOMER };
+    const eventsQuery = {};
+    getListQueryStub.returns(eventsQuery);
+    const events = [{ type: 'intervention' }];
+    getEventsGroupedByCustomersStub.returns(events);
+
+    const result = await EventHelper.list(query, credentials);
+
+    expect(result).toEqual(events);
+    sinon.assert.calledWithExactly(getEventsGroupedByCustomersStub, eventsQuery, companyId);
+    sinon.assert.notCalled(getEventsGroupedByAuxiliariesStub);
+    sinon.assert.notCalled(getEventListStub);
+    sinon.assert.notCalled(populateEventsStub);
+  });
+
+  it('should list events grouped by auxiliary', async () => {
+    const query = { groupBy: AUXILIARY };
+    const eventsQuery = {};
+    getListQueryStub.returns(eventsQuery);
+    const events = [{ type: 'intervention' }];
+    getEventsGroupedByAuxiliariesStub.returns(events);
+
+    const result = await EventHelper.list(query, credentials);
+
+    expect(result).toEqual(events);
+    sinon.assert.notCalled(getEventsGroupedByCustomersStub);
+    sinon.assert.calledWithExactly(getEventsGroupedByAuxiliariesStub, eventsQuery, companyId);
+    sinon.assert.notCalled(getEventListStub);
+    sinon.assert.notCalled(populateEventsStub);
+  });
+
+  it('should list events', async () => {
+    const query = {};
+    const eventsQuery = {};
+    getListQueryStub.returns(eventsQuery);
+    const events = [{ type: 'intervention' }];
+    getEventListStub.returns(events);
+    const populatedEvents = [{ type: 'intervention', customer: new ObjectID() }];
+    populateEventsStub.returns(populatedEvents);
+
+    const result = await EventHelper.list(query, credentials);
+
+    expect(result).toEqual(populatedEvents);
+    sinon.assert.notCalled(getEventsGroupedByAuxiliariesStub);
+    sinon.assert.notCalled(getEventsGroupedByCustomersStub);
+    sinon.assert.calledWithExactly(getEventListStub, eventsQuery);
+    sinon.assert.calledWithExactly(populateEventsStub, events);
+  });
+});
 
 describe('updateEvent', () => {
   let createEventHistoryOnUpdate;

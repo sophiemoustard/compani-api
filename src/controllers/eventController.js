@@ -1,30 +1,16 @@
 const Boom = require('boom');
 const moment = require('moment');
-const omit = require('lodash/omit');
 const translate = require('../helpers/translate');
 const EventsHelper = require('../helpers/events');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
 const { deleteRepetition } = require('../helpers/eventsRepetition');
-const { ABSENCE, AUXILIARY, CUSTOMER } = require('../helpers/constants');
-const { getEventsGroupedByAuxiliaries, getEventsGroupedByCustomers, getEventList } = require('../repositories/EventRepository');
+const { ABSENCE } = require('../helpers/constants');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const query = EventsHelper.getListQuery(req.query, req.auth.credentials);
-    const { groupBy } = req.query;
-
-    let events;
-    if (groupBy === CUSTOMER) {
-      events = await getEventsGroupedByCustomers(omit(query, 'company'), query.company);
-    } else if (groupBy === AUXILIARY) {
-      events = await getEventsGroupedByAuxiliaries(omit(query, 'company'), query.company);
-    } else {
-      events = await getEventList(query);
-      events = await EventsHelper.populateEvents(events);
-    }
-
+    const events = await EventsHelper.list(req.query, req.auth.credentials);
     return {
       message: events.length === 0 ? translate[language].eventsNotFound : translate[language].eventsFound,
       data: { events },
