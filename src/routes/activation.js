@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+const { authorizeActivationCodeCreate, authorizeActivationCodeGet } = require('./preHandlers/activationCode');
 const { createActivationCode, checkActivationCode } = require('../controllers/activationCodeController');
 
 exports.plugin = {
@@ -18,6 +19,7 @@ exports.plugin = {
             user: Joi.objectId().required(),
           }),
         },
+        pre: [{ method: authorizeActivationCodeCreate }],
       },
       handler: createActivationCode,
     });
@@ -32,6 +34,7 @@ exports.plugin = {
           }),
         },
         auth: false,
+        pre: [{ method: authorizeActivationCodeGet }],
       },
       handler: checkActivationCode,
     });
