@@ -3,7 +3,15 @@ const moment = require('moment');
 const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const app = require('../../server');
-const { paymentsList, populateDB, paymentCustomerList, paymentUser, userFromOtherCompany, customerFromOtherCompany, tppFromOtherCompany } = require('./seed/paymentsSeed');
+const {
+  paymentsList,
+  populateDB,
+  paymentCustomerList,
+  paymentUser,
+  userFromOtherCompany,
+  customerFromOtherCompany,
+  tppFromOtherCompany,
+} = require('./seed/paymentsSeed');
 const { PAYMENT, REFUND } = require('../../src/helpers/constants');
 const translate = require('../../src/helpers/translate');
 const Payment = require('../../src/models/Payment');
@@ -35,6 +43,25 @@ describe('PAYMENTS ROUTES', () => {
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data.payments.length).toBe(paymentsList.length);
+    });
+
+    it('should get all payments from a user between two dates', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/payments?customer=${paymentCustomerList[0]._id}&startDate=2019-05-25&endDate=2019-05-30`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.payments.length).toBe(1);
+    });
+
+    it('should not get all payments if customer is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/payments?customer=${customerFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(403);
     });
   });
 
@@ -275,7 +302,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(400);
     });
   });
 

@@ -9,7 +9,13 @@ const {
   createList,
   update,
 } = require('../controllers/paymentController');
-const { getPayment, authorizePaymentUpdate, authorizePaymentsListCreation, authorizePaymentCreation } = require('./preHandlers/payments');
+const {
+  getPayment,
+  authorizePaymentUpdate,
+  authorizePaymentsListCreation,
+  authorizePaymentCreation,
+  authorizePaymentGet,
+} = require('./preHandlers/payments');
 const { PAYMENT_NATURES, PAYMENT_TYPES } = require('../models/Payment');
 
 exports.plugin = {
@@ -27,6 +33,7 @@ exports.plugin = {
             customer: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizePaymentGet }],
       },
       handler: list,
     });
@@ -61,7 +68,6 @@ exports.plugin = {
             date: Joi.date().required(),
             customer: Joi.objectId().required(),
             customerInfo: Joi.object(),
-            client: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
             nature: Joi.string().valid(PAYMENT_NATURES).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),
