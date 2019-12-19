@@ -865,6 +865,8 @@ describe('generateCreditNotePdf', () => {
     expect(result).toEqual({ pdf: { title: 'creditNote' }, creditNoteNumber: creditNote.number });
     sinon.assert.calledWithExactly(formatPDFStub, creditNote, company);
     sinon.assert.calledWithExactly(generatePdfStub, data, './src/data/creditNote.html');
+    CreditNoteModel.verify();
+    CompanyModel.verify();
   });
 
   it('should return a 404 if creditnote is not found', async () => {
@@ -895,6 +897,8 @@ describe('generateCreditNotePdf', () => {
     } finally {
       sinon.assert.notCalled(formatPDFStub);
       sinon.assert.notCalled(generatePdfStub);
+      CreditNoteModel.verify();
+      CompanyModel.verify();
     }
   });
 
@@ -926,6 +930,8 @@ describe('generateCreditNotePdf', () => {
     } finally {
       sinon.assert.notCalled(formatPDFStub);
       sinon.assert.notCalled(generatePdfStub);
+      CreditNoteModel.verify();
+      CompanyModel.verify();
     }
   });
 });
