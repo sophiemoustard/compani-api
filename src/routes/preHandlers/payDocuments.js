@@ -13,7 +13,7 @@ exports.authorizePayDocumentCreation = async (req) => {
 
 exports.authorizePayDocumentDeletion = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const payDocument = await PayDocument.findById(req.params._id);
+  const payDocument = await PayDocument.findById(req.params._id).lean();
   if (!payDocument) throw Boom.notFound();
 
   const user = await User.findOne({ _id: payDocument.user, company: companyId }).lean();
@@ -24,10 +24,9 @@ exports.authorizePayDocumentDeletion = async (req) => {
 
 exports.authorizeGetPayDocuments = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  if (!req.query.user) return null;
-
   const user = await User.findOne({ _id: req.query.user, company: companyId }).lean();
   if (!user) throw Boom.forbidden();
+
   return null;
 };
 

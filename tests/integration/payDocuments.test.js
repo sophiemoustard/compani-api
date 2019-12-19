@@ -178,7 +178,7 @@ describe('PAY DOCUMENT ROUTES', () => {
       it('should get all pay documents', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/paydocuments',
+          url: `/paydocuments?user=${payDocumentUser._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -220,7 +220,7 @@ describe('PAY DOCUMENT ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/paydocuments',
+            url: `/paydocuments?user=${payDocumentUser._id.toHexString()}`,
             headers: { 'x-access-token': authToken },
           });
 
