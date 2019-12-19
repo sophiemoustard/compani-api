@@ -1,6 +1,5 @@
 const Boom = require('boom');
 const get = require('lodash/get');
-const { ObjectID } = require('mongodb');
 const translate = require('../../helpers/translate');
 const Customer = require('../../models/Customer');
 const User = require('../../models/User');

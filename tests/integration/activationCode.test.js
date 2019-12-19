@@ -1,7 +1,13 @@
 const expect = require('expect');
 const pick = require('lodash/pick');
 const app = require('../../server');
-const { populateDB, activationCode, activationCodeUser } = require('./seed/activationCodeSeed');
+const {
+  populateDB,
+  activationCode,
+  activationCodeUser,
+  userFromOtherCompany,
+  activationCodeFromOtherCompany,
+} = require('./seed/activationCodeSeed');
 const ActivationCode = require('../../src/models/ActivationCode');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -41,7 +47,7 @@ describe('ACTIVATION CODE ROUTES', () => {
       }));
     });
 
-    it("should return a 400 error if 'user' is missing", async () => {
+    it('should return a 400 error if user is missing', async () => {
       const res = await app.inject({
         method: 'POST',
         url: '/activation',
@@ -50,6 +56,18 @@ describe('ACTIVATION CODE ROUTES', () => {
       });
 
       expect(res.statusCode).toBe(400);
+    });
+
+    it('should return a 404 error if user is not from the same company', async () => {
+      const payload = { user: userFromOtherCompany._id };
+      const res = await app.inject({
+        method: 'POST',
+        url: '/activation',
+        payload,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(res.statusCode).toBe(404);
     });
   });
 
@@ -91,6 +109,16 @@ describe('ACTIVATION CODE ROUTES', () => {
       });
 
       expect(res.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if code is not from the company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/activation/${activationCodeFromOtherCompany.code}`,
+        headers: { 'x-access-token': token },
+      });
+
+      expect(res.statusCode).toBe(403);
     });
   });
 });
