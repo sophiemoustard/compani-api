@@ -57,6 +57,7 @@ describe('checkActivationCode', () => {
 
     const result = await ActivationCodeHelper.checkActivationCode(params);
     expect(result).toEqual({ ...code, token: '4321' });
+    ActivationCodeModel.verify();
   });
 
   it('should check activation code even if isConfirmed is not defined', async () => {
@@ -72,6 +73,7 @@ describe('checkActivationCode', () => {
 
     const result = await ActivationCodeHelper.checkActivationCode(params);
     expect(result).toEqual({ ...code, token: '4321' });
+    ActivationCodeModel.verify();
   });
 
   it('should return a 500 if user is confirmed', async () => {
@@ -87,10 +89,11 @@ describe('checkActivationCode', () => {
       encodeStub.returns('4321');
 
       await ActivationCodeHelper.checkActivationCode(params);
-      sinon.assert.notCalled(encodeStub);
     } catch (e) {
       expect(e).toEqual(Boom.badData());
+    } finally {
       sinon.assert.notCalled(encodeStub);
+      ActivationCodeModel.verify();
     }
   });
 });

@@ -20,7 +20,7 @@ exports.checkActivationCode = async (params) => {
     .populate({ path: 'user', select: '_id isConfirmed local.email' })
     .lean();
 
-  if (get(code, 'user.isConfirmed', false)) return Boom.badData();
+  if (get(code, 'user.isConfirmed', false)) throw Boom.badData();
 
   // 2 days expire
   const expireTime = 604800;
