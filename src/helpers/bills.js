@@ -102,25 +102,25 @@ exports.updateEvents = async (eventsToUpdate) => {
   await Promise.all(promises);
 };
 
-exports.updateFundingHistories = async (histories) => {
+exports.updateFundingHistories = async (histories, companyId) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
     if (histories[id].amountTTC) {
       promises.push(FundingHistory.findOneAndUpdate(
-        { fundingId: id },
+        { fundingId: id, company: companyId },
         { $inc: { amountTTC: histories[id].amountTTC } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else if (histories[id].careHours) {
       promises.push(FundingHistory.findOneAndUpdate(
-        { fundingId: id },
+        { fundingId: id, company: companyId },
         { $inc: { careHours: histories[id].careHours } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else {
       for (const month of Object.keys(histories[id])) {
         promises.push(FundingHistory.findOneAndUpdate(
-          { fundingId: id, month },
+          { fundingId: id, month, company: companyId },
           { $inc: { careHours: histories[id][month].careHours } },
           { new: true, upsert: true, setDefaultsOnInsert: true }
         ));
@@ -167,7 +167,7 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   }
 
   await BillNumber.findOneAndUpdate({ prefix: number.prefix }, { $set: { seq: number.seq } });
-  await exports.updateFundingHistories(fundingHistories);
+  await exports.updateFundingHistories(fundingHistories, companyId);
   await exports.updateEvents(eventsToUpdate);
   await Promise.all(promises);
 };

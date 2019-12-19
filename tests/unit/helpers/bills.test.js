@@ -80,7 +80,8 @@ describe('formatAndCreateBills', () => {
   });
 
   it('should create customer and third party payer bills', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const number = { prefix: 'FACT-1911', seq: 1 };
     const customerBill = billsData[0].customerBills.bills[0];
     const tppBill = billsData[0].thirdPartyPayerBills[0].bills[0];
@@ -158,21 +159,22 @@ describe('formatAndCreateBills', () => {
       billsData[0].customerBills,
       billsData[0].customer,
       number,
-      credentials.company._id
+      companyId
     );
     sinon.assert.calledWithExactly(
       formatThirdPartyPayerBillsStub,
       billsData[0].thirdPartyPayerBills,
       billsData[0].customer,
       number,
-      credentials.company._id
+      companyId
     );
-    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {});
+    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
     sinon.assert.calledWithExactly(updateEventsStub, { ...customerBillingInfo.billedEvents, ...tppBillingInfo.billedEvents });
   });
 
   it('should create customer bill', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const number = { prefix: 'FACT-1911', seq: 1 };
     const customerBill = billsData[0].customerBills.bills[0];
     const customerServiceVersion = customerBill.subscription.service.versions[0];
@@ -219,15 +221,16 @@ describe('formatAndCreateBills', () => {
       billsData[0].customerBills,
       billsData[0].customer,
       number,
-      credentials.company._id
+      companyId
     );
     sinon.assert.notCalled(formatThirdPartyPayerBillsStub);
-    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {});
+    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
     sinon.assert.calledWithExactly(updateEventsStub, { ...customerBillingInfo.billedEvents });
   });
 
   it('should create third party payer bill', async () => {
-    const credentials = { company: { _id: new ObjectID() } };
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
     const number = { prefix: 'FACT-1911', seq: 1 };
     const tppBill = billsData[0].thirdPartyPayerBills[0].bills[0];
     const tppServiceVersion = tppBill.subscription.service.versions[0];
@@ -278,7 +281,7 @@ describe('formatAndCreateBills', () => {
       number,
       credentials.company._id
     );
-    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {});
+    sinon.assert.calledWithExactly(updateFundingHistoriesStub, {}, companyId);
     sinon.assert.calledWithExactly(updateEventsStub, { ...tppBillingInfo.billedEvents });
   });
 });
