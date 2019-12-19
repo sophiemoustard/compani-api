@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validatePayload, validateQuery } = require('./preHooks/validate');
+const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const DistanceMatrixSchema = mongoose.Schema({
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
@@ -14,5 +14,6 @@ const DistanceMatrixSchema = mongoose.Schema({
 
 DistanceMatrixSchema.pre('validate', validatePayload);
 DistanceMatrixSchema.pre('find', validateQuery);
+DistanceMatrixSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('DistanceMatrix', DistanceMatrixSchema);

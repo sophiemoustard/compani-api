@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const User = require('./User');
-const { validateQuery, validatePayload } = require('./preHooks/validate');
+const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SectorSchema = mongoose.Schema({
   name: String,
@@ -19,6 +19,7 @@ const countAuxiliaries = async (docs) => {
 
 SectorSchema.pre('find', validateQuery);
 SectorSchema.pre('validate', validatePayload);
+SectorSchema.pre('aggregate', validateAggregation);
 SectorSchema.post('find', countAuxiliaries);
 
 module.exports = mongoose.model('Sector', SectorSchema);
