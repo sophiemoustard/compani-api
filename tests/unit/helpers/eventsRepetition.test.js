@@ -308,7 +308,7 @@ describe('createRepetitions', () => {
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
     sinon.assert.notCalled(findOneAndUpdate);
-    sinon.assert.calledWith(createRepetitionsByWeek, payload, 1);
+    sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, 1);
     sinon.assert.called(saveRepetition);
   });
 
@@ -318,7 +318,7 @@ describe('createRepetitions', () => {
     await EventsRepetitionHelper.createRepetitions(event, payload);
 
     sinon.assert.notCalled(findOneAndUpdate);
-    sinon.assert.calledWith(createRepetitionsByWeek, payload, 2);
+    sinon.assert.calledWithExactly(createRepetitionsByWeek, payload, 2);
     sinon.assert.called(saveRepetition);
   });
 });
@@ -354,7 +354,7 @@ describe('updateRepetition', () => {
     const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       findEvent,
       {
         'repetition.parentId': 'qwertyuiop',
@@ -365,7 +365,7 @@ describe('updateRepetition', () => {
     );
     sinon.assert.calledThrice(hasConflicts);
     sinon.assert.calledThrice(findOneAndUpdateEvent);
-    sinon.assert.calledWith(updateRepetitions, payload, 'qwertyuiop');
+    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
   });
 
   it('should unassign intervention in conflict', async () => {
@@ -379,7 +379,7 @@ describe('updateRepetition', () => {
     const credentials = { company: { _id: new ObjectID() } };
     await EventsRepetitionHelper.updateRepetition(event, payload, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       hasConflicts,
       {
         _id: '123456',
@@ -389,12 +389,12 @@ describe('updateRepetition', () => {
         company: credentials.company._id,
       }
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       findOneAndUpdateEvent,
       { _id: '123456' },
       { $set: { _id: '123456', startDate: '2019-03-24T10:00:00.000Z', endDate: '2019-03-24T11:00:00.000Z' }, $unset: { auxiliary: '', repetition: '' } }
     );
-    sinon.assert.calledWith(updateRepetitions, payload, 'qwertyuiop');
+    sinon.assert.calledWithExactly(updateRepetitions, payload, 'qwertyuiop');
   });
 });
 
@@ -424,8 +424,8 @@ describe('deleteRepetition', () => {
     const result = await EventsRepetitionHelper.deleteRepetition(event, credentials);
 
     expect(result).toEqual(event);
-    sinon.assert.calledWith(createEventHistoryOnDelete, event, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(createEventHistoryOnDelete, event, credentials);
+    sinon.assert.calledWithExactly(
       deleteMany,
       {
         'repetition.parentId': parentId,
@@ -434,7 +434,7 @@ describe('deleteRepetition', () => {
         company: credentials.company._id,
       }
     );
-    sinon.assert.calledWith(deleteOne, { parentId });
+    sinon.assert.calledWithExactly(deleteOne, { parentId });
   });
 
   it('should not delete repetition as event is absence', async () => {

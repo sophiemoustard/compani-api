@@ -40,19 +40,20 @@ describe('create', () => {
       await PayDocumentHelper.create(payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive: File not uploaded'));
+    } finally {
+      sinon.assert.calledWithExactly(addFileStub, {
+        driveFolderId: '1234567890',
+        name: 'test',
+        type: 'application/pdf',
+        body: 'stream',
+      });
     }
-    sinon.assert.calledWith(addFileStub, {
-      driveFolderId: '1234567890',
-      name: 'test',
-      type: 'application/pdf',
-      body: 'stream',
-    });
   });
 
   it('should save document to drive and db', async () => {
     addFileStub.returns({ id: '0987654321', webViewLink: 'http://test.com/test.pdf' });
     await PayDocumentHelper.create(payload, credentials);
-    sinon.assert.calledWith(addFileStub, {
+    sinon.assert.calledWithExactly(addFileStub, {
       driveFolderId: '1234567890',
       name: 'test',
       type: 'application/pdf',
@@ -77,8 +78,8 @@ describe('removeFromDriveAndDb', () => {
     const doc = { file: { driveId: '1234567890', link: 'http://test.com/test.pdf' } };
     findByIdAndRemoveStub.returns(doc);
     await PayDocumentHelper.removeFromDriveAndDb(id);
-    sinon.assert.calledWith(findByIdAndRemoveStub, id);
-    sinon.assert.calledWith(deleteFileStub, doc.file.driveId);
+    sinon.assert.calledWithExactly(findByIdAndRemoveStub, id);
+    sinon.assert.calledWithExactly(deleteFileStub, doc.file.driveId);
     deleteFileStub.restore();
   });
 });

@@ -76,6 +76,7 @@ describe('createFolder', () => {
       await GdriveStorageHelper.createFolder(identity, parentFolderId);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive folder creation failed.'));
+    } finally {
       sinon.assert.calledWithExactly(addStub, {
         name: `${identity.lastname.toUpperCase()} ${identity.firstname || ''}`,
         parentFolderId,
@@ -119,6 +120,7 @@ describe('createFolderForCompany', () => {
       await GdriveStorageHelper.createFolderForCompany(identity);
     } catch (e) {
       expect(e).toEqual(Boom.failedDependency('Google drive folder creation failed.'));
+    } finally {
       sinon.assert.calledWithExactly(addStub, {
         name: identity,
         parentFolderId: '0987654321',

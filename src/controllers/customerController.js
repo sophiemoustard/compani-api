@@ -1,20 +1,10 @@
 const Boom = require('boom');
-const flat = require('flat');
-const pick = require('lodash/pick');
-const moment = require('moment');
-const path = require('path');
-const os = require('os');
 const translate = require('../helpers/translate');
-const Customer = require('../models/Customer');
-const QuoteNumber = require('../models/QuoteNumber');
-const ESign = require('../models/ESign');
-const Drive = require('../models/Google/Drive');
 const SubscriptionHelper = require('../helpers/subscriptions');
-const { addFile } = require('../helpers/gdriveStorage');
-const { createAndReadFile } = require('../helpers/file');
 const CustomerHelper = require('../helpers/customers');
 const FundingHelper = require('../helpers/fundings');
 const MandatesHelper = require('../helpers/mandates');
+const QuoteHelper = require('../helpers/quotes');
 
 const { language } = translate;
 
@@ -243,7 +233,11 @@ const updateMandate = async (req) => {
 
 const getMandateSignatureRequest = async (req) => {
   try {
-    const signatureRequest = await MandatesHelper.getSignatureRequest(req.params._id, req.params.mandateId, req.payload);
+    const signatureRequest = await MandatesHelper.getSignatureRequest(
+      req.params._id,
+      req.params.mandateId,
+      req.payload
+    );
 
     return {
       message: translate[language].signatureRequestCreated,
@@ -257,11 +251,7 @@ const getMandateSignatureRequest = async (req) => {
 
 const getCustomerQuotes = async (req) => {
   try {
-    const customer = await Customer.findOne(
-      { _id: req.params._id, quotes: { $exists: true } },
-      { identity: 1, quotes: 1 },
-      { autopopulate: false }
-    ).lean();
+    const customer = await QuoteHelper.getQuotes(req.params._id);
     if (!customer) return Boom.notFound();
 
     return {
@@ -276,20 +266,7 @@ const getCustomerQuotes = async (req) => {
 
 const createCustomerQuote = async (req) => {
   try {
-    const payload = { quoteNumber: { seq: 1 } };
-    const number = await QuoteNumber.findOneAndUpdate(
-      { quoteNumber: { prefix: `DEV${moment().format('MMYY')}` } },
-      { $inc: flat(payload) },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    const quoteNumber = `${number.quoteNumber.prefix}-${number.quoteNumber.seq.toString().padStart(3, '0')}`;
-    req.payload.quoteNumber = quoteNumber;
-
-    const customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { quotes: req.payload } },
-      { new: true, select: { identity: 1, quotes: 1 }, autopopulate: false }
-    );
+    const customer = await QuoteHelper.createQuote(req.params._id, req.payload);
 
     return {
       message: translate[language].customerQuoteAdded,
@@ -328,39 +305,11 @@ const deleteCertificates = async (req) => {
 
 const saveSignedMandate = async (req) => {
   try {
-    const customer = await Customer.findById(req.params._id);
-    if (!customer) {
-      return Boom.notFound();
-    }
-    const mandateIndex = customer.payment.mandates.findIndex(doc => doc._id.toHexString() === req.params.mandateId);
-    if (mandateIndex === -1) return Boom.notFound(translate[language].customerMandateNotFound);
-    const everSignDoc = await ESign.getDocument(customer.payment.mandates[mandateIndex].everSignId);
-    if (everSignDoc.data.error) return Boom.notFound(translate[language].documentNotFound);
-    if (!everSignDoc.data.log.some(type => type.event === 'document_signed')) return Boom.serverUnavailable();
-    const finalPDF = await ESign.downloadFinalDocument(customer.payment.mandates[mandateIndex].everSignId);
-    const tmpPath = path.join(os.tmpdir(), `signedDoc-${moment().format('DDMMYYYY-HHmm')}.pdf`);
-    const file = await createAndReadFile(finalPDF.data, tmpPath);
-    const uploadedFile = await addFile({
-      driveFolderId: customer.driveFolder.driveId,
-      name: customer.payment.mandates[mandateIndex].rum,
-      type: 'application/pdf',
-      body: file,
-    });
-    const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
-    customer.payment.mandates[mandateIndex].drive = {
-      driveId: uploadedFile.id,
-      link: driveFileInfo.webViewLink,
-    };
-    customer.payment.mandates[mandateIndex].signedAt = moment.utc().toDate();
-
-    await customer.save();
+    const customer = await MandatesHelper.saveSignedMandate();
 
     return {
       message: translate[language].signedDocumentSaved,
-      data: {
-        user: pick(customer, ['_id', 'identity']),
-        mandate: customer.payment.mandates.find(mandate => req.params.mandateId === mandate._id.toHexString()),
-      },
+      data: { customer },
     };
   } catch (e) {
     req.log('error', e);
@@ -384,18 +333,7 @@ const createHistorySubscription = async (req) => {
 
 const createFunding = async (req) => {
   try {
-    const check = await FundingHelper.checkSubscriptionFunding(req.params._id, req.payload);
-    if (!check) return Boom.conflict(translate[language].customerFundingConflict);
-    let customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $push: { fundings: req.payload } },
-      { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
-    )
-      .populate({ path: 'subscriptions.service' })
-      .populate({ path: 'fundings.thirdPartyPayer' })
-      .lean();
-
-    customer = await FundingHelper.populateFundingsList(customer);
+    const customer = await FundingHelper.createFunding(req.params._id, req.payload);
 
     return {
       message: translate[language].customerFundingCreated,
@@ -409,29 +347,7 @@ const createFunding = async (req) => {
 
 const updateFunding = async (req) => {
   try {
-    if (req.payload.careDays) {
-      const checkFundingPayload = {
-        _id: req.params.fundingId,
-        subscription: req.payload.subscription,
-        versions: [req.payload],
-      };
-      const check = await FundingHelper.checkSubscriptionFunding(req.params._id, checkFundingPayload);
-      if (!check) return Boom.conflict(translate[language].customerFundingConflict);
-    }
-
-    let customer = await Customer.findOneAndUpdate(
-      { _id: req.params._id, 'fundings._id': req.params.fundingId },
-      { $push: { 'fundings.$.versions': req.payload } },
-      {
-        new: true,
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
-        autopopulate: false,
-      }
-    )
-      .populate({ path: 'subscriptions.service' })
-      .populate({ path: 'fundings.thirdPartyPayer' })
-      .lean();
-    customer = await FundingHelper.populateFundingsList(customer);
+    const customer = await FundingHelper.updateFunding(req.params._id, req.params.fundingId, req.payload);
 
     return {
       message: translate[language].customerFundingUpdated,
@@ -443,19 +359,9 @@ const updateFunding = async (req) => {
   }
 };
 
-const removeFunding = async (req) => {
+const deleteFunding = async (req) => {
   try {
-    await Customer.findOneAndUpdate(
-      { _id: req.params._id },
-      { $pull: { fundings: { _id: req.params.fundingId } } },
-      {
-        select: { 'identity.firstname': 1, 'identity.lastname': 1, fundings: 1, subscriptions: 1 },
-        autopopulate: false,
-      }
-    )
-      .populate({ path: 'subscriptions.service' })
-      .populate({ path: 'fundings.thirdPartyPayer' })
-      .lean();
+    await FundingHelper.deleteFunding(req.params._id, req.params.fundingId);
 
     return {
       message: translate[language].customerFundingRemoved,
@@ -493,5 +399,5 @@ module.exports = {
   createHistorySubscription,
   createFunding,
   updateFunding,
-  removeFunding,
+  deleteFunding,
 };

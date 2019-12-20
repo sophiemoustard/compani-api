@@ -5,8 +5,11 @@ const has = require('lodash/has');
 const Customer = require('../models/Customer');
 const { populateServices } = require('./subscriptions');
 const UtilsHelper = require('./utils');
+const translate = require('./translate');
 const { DAYS_INDEX, FUNDING_FREQUENCIES, FUNDING_NATURES, CIVILITY_LIST } = require('./constants');
 const CustomerRepository = require('../repositories/CustomerRepository');
+
+const { language } = translate;
 
 exports.checkSubscriptionFunding = async (customerId, checkedFunding) => {
   const customer = await Customer.findOne({ _id: customerId }).lean();
@@ -123,3 +126,41 @@ exports.exportFundings = async (credentials) => {
 
   return data;
 };
+
+exports.createFunding = async (customerId, payload) => {
+  const check = await exports.checkSubscriptionFunding(customerId, payload);
+  if (!check) throw Boom.conflict(translate[language].customerFundingConflict);
+
+  const customer = await Customer.findOneAndUpdate(
+    { _id: customerId },
+    { $push: { fundings: payload } },
+    { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
+  )
+    .populate({ path: 'subscriptions.service' })
+    .populate({ path: 'fundings.thirdPartyPayer' })
+    .lean();
+
+  return exports.populateFundingsList(customer);
+};
+
+exports.updateFunding = async (customerId, fundingId, payload) => {
+  const checkFundingPayload = { _id: fundingId, subscription: payload.subscription, versions: [payload] };
+  const check = await exports.checkSubscriptionFunding(customerId, checkFundingPayload);
+  if (!check) return Boom.conflict(translate[language].customerFundingConflict);
+
+  const customer = await Customer.findOneAndUpdate(
+    { _id: customerId, 'fundings._id': fundingId },
+    { $push: { 'fundings.$.versions': payload } },
+    { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
+  )
+    .populate({ path: 'subscriptions.service' })
+    .populate({ path: 'fundings.thirdPartyPayer' })
+    .lean();
+
+  return exports.populateFundingsList(customer);
+};
+
+exports.deleteFunding = async (customerId, fundingId) => Customer.updateOne(
+  { _id: customerId },
+  { $pull: { fundings: { _id: fundingId } } }
+);

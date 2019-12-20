@@ -22,9 +22,6 @@ const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
-const translate = require('../helpers/translate');
-
-const { language } = translate;
 
 exports.getContractList = async (query, credentials) => {
   const rules = [{ company: get(credentials, 'company._id', null) }];

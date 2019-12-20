@@ -65,9 +65,9 @@ describe('removeInternalHour', () => {
       await InternalHoursHelper.removeInternalHour(internalHour, date);
     } catch (e) {
       expect(e).toEqual(Boom.badImplementation('No default internal hour set'));
+    } finally {
+      InternalHourMock.verify();
+      sinon.assert.notCalled(updateEventsInternalHourTypeStub);
     }
-
-    InternalHourMock.verify();
-    sinon.assert.notCalled(updateEventsInternalHourTypeStub);
   });
 });
