@@ -404,6 +404,15 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users[0]).toHaveProperty('isActive');
         expect(res.result.data.users[0].isActive).toBeTruthy();
       });
+
+      it('should return a 403 if not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/active?email=${userFromOtherCompany.local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {

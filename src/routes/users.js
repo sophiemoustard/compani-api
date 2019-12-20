@@ -130,10 +130,9 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.objectId(),
-            customers: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeUserGet }],
       },
       handler: activeList,
     });

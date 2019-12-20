@@ -40,6 +40,7 @@ exports.authorizeUserPost = (req) => {
 
 exports.authorizeUserGet = async (req) => {
   const { credentials } = req.auth;
+  if (!req.query.email) return null;
   const user = await User.findOne({ email: req.query.email, company: get(credentials, 'company._id', null) });
   if (!user) throw Boom.forbidden();
   return null;
