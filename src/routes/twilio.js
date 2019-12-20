@@ -1,8 +1,8 @@
 'use strict';
 
 const Joi = require('joi');
-
 const { send } = require('../controllers/twilioController');
+const { authorizeSendSms } = require('./preHandlers/twilio');
 
 exports.plugin = {
   name: 'routes-twilio',
@@ -18,6 +18,9 @@ exports.plugin = {
             body: Joi.string().required(),
           }).required(),
         },
+        pre: [
+          { method: authorizeSendSms },
+        ],
       },
       handler: send,
     });
