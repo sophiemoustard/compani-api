@@ -99,9 +99,9 @@ exports.plugin = {
           query: {
             startDate: Joi.date(),
             endDate: Joi.date(),
-            auxiliary: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
-            customer: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
+            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            sector: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            customer: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
             type: Joi.string(),
             groupBy: Joi.string(),
             status: Joi.string(),
@@ -141,7 +141,7 @@ exports.plugin = {
           query: {
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
-            auxiliary: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())).required(),
           },
         },
         pre: [{ method: authorizeEventGet }],
