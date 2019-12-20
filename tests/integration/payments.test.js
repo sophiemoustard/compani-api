@@ -120,7 +120,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         payload,
         headers: { 'x-access-token': authToken },
       });
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
     });
 
     it('it should not create a payment if client is not from the same company', async () => {

@@ -265,14 +265,14 @@ describe('PAY DOCUMENT ROUTES', () => {
         expect(response.statusCode).toBe(404);
       });
 
-      it('should not delete a pay document if user is not from the same company', async () => {
+      it('should not delete a pay document if it is not from the same company', async () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/paydocuments/${payDocumentsList[payDocumentsList.length - 1]._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
-        expect(response.statusCode).toBe(403);
+        expect(response.statusCode).toBe(404);
       });
     });
 
