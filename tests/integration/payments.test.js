@@ -7,7 +7,6 @@ const {
   paymentsList,
   populateDB,
   paymentCustomerList,
-  paymentUser,
   userFromOtherCompany,
   customerFromOtherCompany,
   tppFromOtherCompany,
@@ -23,78 +22,6 @@ const { language } = translate;
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
     expect(process.env.NODE_ENV).toBe('test');
-  });
-});
-
-describe('PAYMENTS ROUTES', () => {
-  let authToken = null;
-  beforeEach(populateDB);
-
-  describe('GET /payments', () => {
-    beforeEach(async () => {
-      authToken = await getToken('admin');
-    });
-
-    it('should get all payments', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/payments',
-        headers: { 'x-access-token': authToken },
-      });
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.payments.length).toBe(paymentsList.length);
-    });
-
-    it('should get all payments from a user between two dates', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/payments?customer=${paymentCustomerList[0]._id}&startDate=2019-05-25&endDate=2019-05-30`,
-        headers: { 'x-access-token': authToken },
-      });
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.payments.length).toBe(1);
-    });
-
-    it('should not get all payments if customer is not from the same company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/payments?customer=${customerFromOtherCompany._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-      expect(response.statusCode).toBe(403);
-    });
-  });
-
-  describe('Other roles', () => {
-    it('should return customer payments if I am its helper', async () => {
-      const helper = paymentUser;
-      const helperToken = await getTokenByCredentials(helper.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/payments?customer=${helper.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/payments',
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
   });
 });
 
@@ -126,7 +53,9 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         expect(response.statusCode).toBe(200);
         expect(response.result.message).toBe(translate[language].paymentCreated);
         expect(response.result.data.payment).toEqual(expect.objectContaining(payload));
-        expect(response.result.data.payment.number).toBe(payload.nature === PAYMENT ? `REG-${moment().format('YYMM')}001` : `REMB-${moment().format('YYMM')}001`);
+        expect(response.result.data.payment.number).toBe(payload.nature === PAYMENT
+          ? `REG-${moment().format('YYMM')}001`
+          : `REMB-${moment().format('YYMM')}001`);
         const payments = await Payment.find({ company: authCompany._id }).lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
