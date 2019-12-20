@@ -26,11 +26,7 @@ describe('TWILIO ROUTES', () => {
   });
 
   it('should send a SMS to user from company', async () => {
-    const payload = {
-      to: `+33${twilioUser.contact.phone.substring(1)}`,
-      from: '+33789763256',
-      body: 'Ceci est un test',
-    };
+    const payload = { to: `+33${twilioUser.contact.phone.substring(1)}`, body: 'Ceci est un test' };
     const response = await app.inject({
       method: 'POST',
       url: '/sms',
@@ -44,11 +40,7 @@ describe('TWILIO ROUTES', () => {
   });
 
   it('should throw error if phone is not in the same company', async () => {
-    const payload = {
-      to: `+33${twilioUserFromOtherCompany.contact.phone.substring(1)}`,
-      from: '+33789763256',
-      body: 'Ceci est un test',
-    };
+    const payload = { to: `+33${twilioUserFromOtherCompany.contact.phone.substring(1)}`, body: 'Ceci est un test' };
     const response = await app.inject({
       method: 'POST',
       url: '/sms',
@@ -60,11 +52,7 @@ describe('TWILIO ROUTES', () => {
   });
 
   it('should throw error id phone does not exist', async () => {
-    const payload = {
-      to: '+33676543243',
-      from: '+33789763256',
-      body: 'Ceci est un test',
-    };
+    const payload = { to: '+33676543243', body: 'Ceci est un test' };
     const response = await app.inject({
       method: 'POST',
       url: '/sms',
@@ -75,17 +63,9 @@ describe('TWILIO ROUTES', () => {
     expect(response.statusCode).toBe(404);
   });
 
-  const missingParams = [
-    { path: 'to' },
-    { path: 'from' },
-    { path: 'body' },
-  ];
+  const missingParams = [{ path: 'to' }, { path: 'from' }, { path: 'body' }];
   missingParams.forEach((test) => {
-    const payload = {
-      to: `+33${twilioUser.contact.phone}`,
-      from: '+33789763256',
-      body: 'Ceci est un test',
-    };
+    const payload = { to: `+33${twilioUser.contact.phone}`, body: 'Ceci est un test' };
     it(`should return a 400 error if missing '${test.path}' parameter`, async () => {
       const response = await app.inject({
         method: 'POST',

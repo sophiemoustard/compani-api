@@ -14,7 +14,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             to: Joi.string().required(),
-            from: Joi.string().required(),
             body: Joi.string().required(),
           }).required(),
         },
