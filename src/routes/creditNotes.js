@@ -12,7 +12,6 @@ const {
 } = require('../controllers/creditNoteController');
 const {
   getCreditNote,
-  authorizeGetCreditNotes,
   authorizeGetCreditNotePdf,
   authorizeCreditNoteCreationOrUpdate,
   authorizeCreditNoteDeletion,
