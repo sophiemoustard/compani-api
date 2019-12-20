@@ -126,7 +126,7 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if auxiliary is not from the same company', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events?customer=${auxiliaryFromOtherCompany._id}`,
+          url: `/events?auxiliary=${auxiliaryFromOtherCompany._id}`,
           headers: { 'x-access-token': authToken },
         });
 
@@ -136,7 +136,7 @@ describe('EVENTS ROUTES', () => {
       it('should return a 403 if sector is not from the same company', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: `/events?customer=${sectors[2]._id}`,
+          url: `/events?sector=${sectors[2]._id}`,
           headers: { 'x-access-token': authToken },
         });
 
