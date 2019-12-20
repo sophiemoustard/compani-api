@@ -38,13 +38,6 @@ exports.authorizeGetCreditNotePdf = async (req) => {
   return null;
 };
 
-exports.authorizeGetCreditNotes = async (req) => {
-  const { credentials } = req.auth;
-  const customer = await Customer.findOne({ _id: req.query.customer, company: credentials.company._id }).lean();
-  if (req.query.customer && !customer) throw Boom.forbidden();
-  return null;
-};
-
 exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const { credentials } = req.auth;
   const { creditNote } = req.pre;

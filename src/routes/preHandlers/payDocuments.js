@@ -2,6 +2,9 @@ const Boom = require('boom');
 const get = require('lodash/get');
 const User = require('../../models/User');
 const PayDocument = require('../../models/PayDocument');
+const translate = require('../../helpers/translate');
+
+const { language } = translate;
 
 exports.authorizePayDocumentCreation = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
@@ -13,8 +16,8 @@ exports.authorizePayDocumentCreation = async (req) => {
 
 exports.authorizePayDocumentDeletion = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const payDocument = await PayDocument.findById(req.params._id).lean();
-  if (!payDocument) throw Boom.notFound();
+  const payDocument = await PayDocument.findOne({ _id: req.params._id, company: companyId }).lean();
+  if (!payDocument) throw Boom.notFound(translate[language].payDocumentsNotFound);
 
   const user = await User.findOne({ _id: payDocument.user, company: companyId }).lean();
   if (!user) throw Boom.forbidden();

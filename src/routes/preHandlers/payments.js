@@ -54,15 +54,14 @@ exports.authorizePaymentCreation = async (req) => {
   try {
     const { credentials } = req.auth;
     const payment = req.payload;
+    const companyId = get(credentials, 'company._id', null).toHexString();
 
-    const customer = await Customer.findById(payment.customer).lean();
+    const customer = await Customer.findOne({ _id: payment.customer, company: companyId }).lean();
     if (!customer) throw Boom.forbidden();
-    if (customer.company.toHexString() !== get(credentials, 'company._id', null).toHexString()) throw Boom.forbidden();
 
     if (payment.client) {
-      const tpp = await ThirdPartyPayer.findById(payment.client);
+      const tpp = await ThirdPartyPayer.findOne({ _id: payment.client, company: companyId }).lean();
       if (!tpp) throw Boom.forbidden();
-      if (tpp.company.toHexString() !== get(credentials, 'company._id', null).toHexString()) throw Boom.forbidden();
     }
 
     return null;
