@@ -36,6 +36,7 @@ const {
   authorizeEventCreation,
   authorizeEventUpdate,
   authorizeEventDeletion,
+  authorizeEventDeletionList,
 } = require('./preHandlers/events');
 
 exports.plugin = {
@@ -231,6 +232,7 @@ exports.plugin = {
             endDate: Joi.date(),
           }),
         },
+        pre: [{ method: authorizeEventDeletionList }],
       },
       handler: deleteList,
     });

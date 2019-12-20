@@ -82,3 +82,10 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
   return null;
 };
+
+exports.authorizeEventDeletionList = async (req) => {
+  const { credentials } = req.auth;
+  const customer = await Customer.findOne({ _id: req.query.customer, company: get(credentials, 'company._id', null) });
+  if (!customer) throw Boom.forbidden();
+  return null;
+};

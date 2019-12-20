@@ -833,6 +833,15 @@ describe('EVENTS ROUTES', () => {
         });
         expect(response.statusCode).toBe(409);
       });
+
+      it('should return a 403 if customer is not from the company', async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events?customer=${customerFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {
