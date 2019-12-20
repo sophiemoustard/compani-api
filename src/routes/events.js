@@ -38,6 +38,7 @@ const {
   authorizeEventDeletion,
   authorizeEventDeletionList,
   authorizeEventGet,
+  authorizeEventForCreditNoteGet,
 } = require('./preHandlers/events');
 
 exports.plugin = {
@@ -125,6 +126,7 @@ exports.plugin = {
             isBilled: Joi.boolean().required(),
           },
         },
+        pre: [{ method: authorizeEventForCreditNoteGet }],
       },
       handler: listForCreditNotes,
     });

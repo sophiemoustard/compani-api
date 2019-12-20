@@ -2,6 +2,7 @@ const Boom = require('boom');
 const get = require('lodash/get');
 const Event = require('../../models/Event');
 const Customer = require('../../models/Customer');
+const ThirdPartyPayer = require('../../models/ThirdPartyPayer');
 const Sector = require('../../models/Sector');
 const User = require('../../models/User');
 const InternalHour = require('../../models/InternalHour');
@@ -40,6 +41,19 @@ exports.authorizeEventGet = async (req) => {
     const sectorsIds = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];
     const sectorCount = await Sector.countDocuments({ _id: { $in: sectorsIds }, company: companyId });
     if (sectorCount !== sectorsIds.length) throw Boom.forbidden();
+  }
+
+  return null;
+};
+
+exports.authorizeEventForCreditNoteGet = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId });
+  if (!customer) throw Boom.forbidden();
+
+  if (req.query.thirdPartyPayer) {
+    const tpp = await ThirdPartyPayer.findOne({ _id: req.query.thirdPartyPayer, company: companyId });
+    if (!tpp) throw Boom.forbidden();
   }
 
   return null;

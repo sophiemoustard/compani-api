@@ -16,6 +16,7 @@ const {
   customerFromOtherCompany,
   auxiliaryFromOtherCompany,
   internalHourFromOtherCompany,
+  thirdPartyPayerFromOtherCompany,
 } = require('./seed/eventsSeed');
 const { getToken, authCompany } = require('./seed/authenticationSeed');
 const app = require('../../server');
@@ -259,6 +260,42 @@ describe('EVENTS ROUTES', () => {
 
           expect(response.statusCode).toBe(400);
         });
+      });
+
+      it('should return a 403 if customer is not from the same company', async () => {
+        const query = {
+          startDate: moment('2019-01-01').toDate(),
+          endDate: moment('2019-01-20').toDate(),
+          customer: customerFromOtherCompany._id.toHexString(),
+          thirdPartyPayer: thirdPartyPayer._id.toHexString(),
+          isBilled: true,
+        };
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if tpp is not from the same company', async () => {
+        const query = {
+          startDate: moment('2019-01-01').toDate(),
+          endDate: moment('2019-01-20').toDate(),
+          customer: customerAuxiliary._id.toHexString(),
+          thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
+          isBilled: true,
+        };
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
       });
     });
 
