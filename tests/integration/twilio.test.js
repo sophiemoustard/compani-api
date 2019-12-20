@@ -2,7 +2,8 @@ const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const { getToken, populateDBForAuthentication } = require('./seed/authenticationSeed');
+const { validate } = require('../../src/helpers/authentication');
+const { getToken, populateDBForAuthentication, userList, rolesList } = require('./seed/authenticationSeed');
 const { twilioUser, twilioUserFromOtherCompany, populateDB } = require('./seed/twilioSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
@@ -27,6 +28,9 @@ describe('TWILIO ROUTES', () => {
 
   it('should send a SMS to user from company', async () => {
     const payload = { to: `+33${twilioUser.contact.phone.substring(1)}`, body: 'Ceci est un test' };
+    const admin = userList.find(u => u.role === rolesList.find(r => r.name === 'admin')._id);
+    const { credentials } = await validate(admin);
+    credentials._id = credentials._id.toHexString();
     const response = await app.inject({
       method: 'POST',
       url: '/sms',
@@ -36,7 +40,12 @@ describe('TWILIO ROUTES', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.result.data.sms).toBe('SMS SENT !');
-    sinon.assert.calledWithExactly(TwilioHelperStub, payload.to, payload.from, payload.body);
+    sinon.assert.calledWith(
+      TwilioHelperStub,
+      payload.to,
+      payload.body,
+      credentials
+    );
   });
 
   it('should throw error if phone is not in the same company', async () => {
@@ -63,7 +72,7 @@ describe('TWILIO ROUTES', () => {
     expect(response.statusCode).toBe(404);
   });
 
-  const missingParams = [{ path: 'to' }, { path: 'from' }, { path: 'body' }];
+  const missingParams = [{ path: 'to' }, { path: 'body' }];
   missingParams.forEach((test) => {
     const payload = { to: `+33${twilioUser.contact.phone}`, body: 'Ceci est un test' };
     it(`should return a 400 error if missing '${test.path}' parameter`, async () => {

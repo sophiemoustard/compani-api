@@ -25,10 +25,7 @@ const validate = async (decoded) => {
       scope: [`user-${decoded._id}`, user.role.name, ...rights, ...customersScopes],
     };
 
-    return {
-      isValid: true,
-      credentials,
-    };
+    return { isValid: true, credentials };
   } catch (e) {
     console.error(e);
     return {
