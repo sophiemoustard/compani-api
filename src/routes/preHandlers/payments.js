@@ -7,21 +7,6 @@ const translate = require('../../helpers/translate');
 
 const { language } = translate;
 
-exports.authorizePaymentGet = async (req) => {
-  try {
-    if (!req.query.customer) return null;
-    const customer = await Customer.findOne({
-      _id: req.query.customer,
-      company: get(req, 'auth.credentials.company._id', null),
-    }).lean();
-    if (!customer) throw Boom.forbidden();
-    return null;
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 exports.getPayment = async (req) => {
   try {
     const payment = await Payment.findOne({ _id: req.params._id }).lean();
