@@ -1,9 +1,10 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
 const User = require('../../../src/models/User');
+const Customer = require('../../../src/models/Customer');
 const Company = require('../../../src/models/Company');
 const Task = require('../../../src/models/Task');
-const { rolesList, populateDBForAuthentication } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, otherCompany } = require('./authenticationSeed');
 
 const company = {
   _id: new ObjectID(),
@@ -31,6 +32,21 @@ const company = {
 const task = {
   _id: new ObjectID(),
   name: 'Test',
+};
+
+const customerFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { title: 'mr', firstname: 'toto', lastname: 'test' },
+  company: otherCompany._id,
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0123456789',
+    accessCodes: 'porte c3po',
+  },
 };
 
 const usersSeedList = [
@@ -124,9 +140,11 @@ const populateDB = async () => {
   await User.deleteMany({});
   await Company.deleteMany({});
   await Task.deleteMany({});
+  await Customer.deleteMany({});
 
   await populateDBForAuthentication();
   await User.create(usersSeedList);
+  await Customer.create(customerFromOtherCompany);
   await new Company(company).save();
   await new Task(task).save();
 };
@@ -137,4 +155,5 @@ module.exports = {
   populateDB,
   isInList,
   isExistingRole,
+  customerFromOtherCompany,
 };

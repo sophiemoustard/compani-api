@@ -11,6 +11,7 @@ const {
   populateDB,
   isExistingRole,
   isInList,
+  customerFromOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, userList, getTokenByCredentials } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
@@ -109,6 +110,17 @@ describe('USERS ROUTES', () => {
           expect(response).toThrow('NoRole');
           expect(response.statusCode).toBe(409);
         });
+      });
+
+      it('should return a 403 if customer is not from the same company', async () => {
+        const payload = { ...userPayload, customer: customerFromOtherCompany };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
       });
     });
 
