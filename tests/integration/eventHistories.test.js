@@ -4,9 +4,11 @@ const {
   populateDB,
   eventHistoryList,
   eventHistoryAuxiliary,
+  eventHistoryAuxiliary2,
   auxiliaryFromOtherCompany,
   sectorFromOtherCompany,
   sector,
+  sector2,
 } = require('./seed/eventHistoriesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -67,7 +69,7 @@ describe('EVENT HISTORY ROUTES', () => {
     it('should return a list of event histories from auxiliaries ids', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/eventhistories?auxiliaries=${[eventHistoryAuxiliary._id.toHexString()]}`,
+        url: `/eventhistories?auxiliaries=${eventHistoryAuxiliary._id.toHexString()}&auxiliaries=${eventHistoryAuxiliary2._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -81,7 +83,7 @@ describe('EVENT HISTORY ROUTES', () => {
     it('should return a list of event histories from sectors ids', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/eventhistories?sectors=${[sector._id.toHexString()]}`,
+        url: `/eventhistories?sectors=${sector._id.toHexString()}&sectors=${sector2._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 

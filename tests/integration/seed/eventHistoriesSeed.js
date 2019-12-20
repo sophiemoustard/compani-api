@@ -24,7 +24,21 @@ const eventHistoryAuxiliary = {
   refreshToken: uuidv4(),
 };
 
+const eventHistoryAuxiliary2 = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Mimi2', lastname: 'Mita' },
+  local: { email: 'lili2@alenvi.io', password: '123456' },
+  role: rolesList[2]._id,
+  company: authCompany._id,
+  refreshToken: uuidv4(),
+};
+
 const sector = {
+  _id: new ObjectID(),
+  company: authCompany._id,
+};
+
+const sector2 = {
   _id: new ObjectID(),
   company: authCompany._id,
 };
@@ -121,9 +135,11 @@ const populateDB = async () => {
   await EventHistory.insertMany(eventHistoryList);
   await (new User(user)).save();
   await (new User(eventHistoryAuxiliary)).save();
+  await (new User(eventHistoryAuxiliary2)).save();
   await (new User(auxiliaryFromOtherCompany)).save();
   await (new Customer(customer)).save();
   await (new Sector(sector)).save();
+  await (new Sector(sector2)).save();
   await (new Sector(sectorFromOtherCompany)).save();
 };
 
@@ -131,7 +147,9 @@ module.exports = {
   populateDB,
   eventHistoryList,
   eventHistoryAuxiliary,
+  eventHistoryAuxiliary2,
   auxiliaryFromOtherCompany,
   sectorFromOtherCompany,
   sector,
+  sector2,
 };
