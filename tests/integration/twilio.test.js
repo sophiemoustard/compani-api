@@ -2,8 +2,7 @@ const expect = require('expect');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
-const { validate } = require('../../src/helpers/authentication');
-const { getToken, populateDBForAuthentication, userList, rolesList } = require('./seed/authenticationSeed');
+const { getToken, populateDBForAuthentication, authCompany } = require('./seed/authenticationSeed');
 const { twilioUser, twilioUserFromOtherCompany, populateDB } = require('./seed/twilioSeed');
 const TwilioHelper = require('../../src/helpers/twilio');
 
@@ -28,9 +27,7 @@ describe('TWILIO ROUTES', () => {
 
   it('should send a SMS to user from company', async () => {
     const payload = { to: `+33${twilioUser.contact.phone.substring(1)}`, body: 'Ceci est un test' };
-    const admin = userList.find(u => u.role === rolesList.find(r => r.name === 'admin')._id);
-    const { credentials } = await validate(admin);
-    credentials._id = credentials._id.toHexString();
+    const credentials = { company: { _id: authCompany._id } };
     const response = await app.inject({
       method: 'POST',
       url: '/sms',
@@ -44,7 +41,7 @@ describe('TWILIO ROUTES', () => {
       TwilioHelperStub,
       payload.to,
       payload.body,
-      credentials
+      sinon.match(credentials)
     );
   });
 
