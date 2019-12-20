@@ -2,6 +2,7 @@ const Boom = require('boom');
 const get = require('lodash/get');
 const Event = require('../../models/Event');
 const Customer = require('../../models/Customer');
+const Sector = require('../../models/Sector');
 const User = require('../../models/User');
 const InternalHour = require('../../models/InternalHour');
 const translate = require('../../helpers/translate');
@@ -73,6 +74,11 @@ exports.checkEventCreationOrUpdate = async (req) => {
     if (!auxiliary) throw Boom.forbidden();
     const eventSector = req.payload.sector || event.sector;
     if (auxiliary.sector.toHexString() !== eventSector) throw Boom.forbidden();
+  }
+
+  if (req.payload.sector) {
+    const sector = await Sector.findOne(({ _id: req.payload.sector, company: companyId })).lean();
+    if (!sector) throw Boom.forbidden();
   }
 
   if (req.payload.internalHour) {

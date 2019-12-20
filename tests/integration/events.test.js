@@ -687,6 +687,22 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toEqual(403);
       });
+
+      it('should return a 403 if sector is not from the same company', async () => {
+        const event = eventsList[0];
+        const payload = {
+          sector: sectors[2]._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
 
     describe('Other roles', () => {

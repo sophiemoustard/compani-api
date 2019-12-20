@@ -50,7 +50,12 @@ const sectors = [{
   _id: new ObjectID(),
   name: '',
   company: authCompany._id,
-}];
+},
+{
+  _id: new ObjectID(),
+  name: '',
+  company: otherCompany._id,
+}]];
 
 const eventAuxiliary = {
   _id: auxiliaryId,
