@@ -50,6 +50,11 @@ const sectors = [{
   _id: new ObjectID(),
   name: '',
   company: authCompany._id,
+},
+{
+  _id: new ObjectID(),
+  name: '',
+  company: otherCompany._id,
 }];
 
 const eventAuxiliary = {
@@ -78,6 +83,11 @@ const auxiliaryFromOtherCompany = {
 const thirdPartyPayer = {
   _id: new ObjectID(),
   company: authCompany._id,
+};
+
+const thirdPartyPayerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
 };
 
 const service = {
@@ -356,6 +366,7 @@ const populateDB = async () => {
   await (new Customer(customerAuxiliary)).save();
   await (new Customer(customerFromOtherCompany)).save();
   await (new ThirdPartyPayer(thirdPartyPayer)).save();
+  await (new ThirdPartyPayer(thirdPartyPayerFromOtherCompany)).save();
   await (new Service(service)).save();
   await (new Service(serviceFromOtherCompany)).save();
   await (new InternalHour(internalHour)).save();
@@ -386,4 +397,5 @@ module.exports = {
   auxiliaryFromOtherCompany,
   internalHourFromOtherCompany,
   serviceFromOtherCompany,
+  thirdPartyPayerFromOtherCompany,
 };
