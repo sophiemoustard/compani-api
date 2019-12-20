@@ -43,7 +43,7 @@ describe('TWILIO ROUTES', () => {
     sinon.assert.calledWithExactly(TwilioHelperStub, payload.to, payload.from, payload.body);
   });
 
-  it('should throw error id phone is not in the same company', async () => {
+  it('should throw error if phone is not in the same company', async () => {
     const payload = {
       to: `+33${twilioUserFromOtherCompany.contact.phone.substring(1)}`,
       from: '+33789763256',
