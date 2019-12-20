@@ -11,13 +11,15 @@ const {
   populateDB,
   isExistingRole,
   isInList,
+  customerFromOtherCompany,
+  userFromOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, userList, getTokenByCredentials } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -109,6 +111,17 @@ describe('USERS ROUTES', () => {
           expect(response).toThrow('NoRole');
           expect(response.statusCode).toBe(409);
         });
+      });
+
+      it('should return a 403 if customer is not from the same company', async () => {
+        const payload = { ...userPayload, customer: customerFromOtherCompany };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
       });
     });
 
@@ -287,13 +300,22 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users[0].role.name).toEqual('coach');
       });
 
-      it("should not get users if role given doesn't exist", async () => {
+      it('should not get users if role given doesn\'t exist', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/users?role=Babouin',
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(404);
+      });
+
+      it('should return a 403 if not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?email=${userFromOtherCompany.local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
       });
     });
 
@@ -381,6 +403,15 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users[0].role.name).toEqual('auxiliary');
         expect(res.result.data.users[0]).toHaveProperty('isActive');
         expect(res.result.data.users[0].isActive).toBeTruthy();
+      });
+
+      it('should return a 403 if not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/active?email=${userFromOtherCompany.local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
       });
     });
 
@@ -537,6 +568,16 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(404);
+      });
+
+      it('should return a 403 error if user is not from the same company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userFromOtherCompany._id}`,
+          payload: {},
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
       });
     });
 

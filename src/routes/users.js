@@ -22,7 +22,7 @@ const {
   createDriveFolder,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
+const { getUser, authorizeUserUpdate, authorizeUserGet, authorizeUserCreation } = require('./preHandlers/users');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -100,6 +100,7 @@ exports.plugin = {
             customers: Joi.array(),
           }).required(),
         },
+        pre: [{ method: authorizeUserCreation }],
       },
       handler: create,
     });
@@ -113,10 +114,9 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.objectId(),
-            customers: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeUserGet }],
       },
       handler: list,
     });
@@ -130,10 +130,9 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.objectId(),
-            customers: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeUserGet }],
       },
       handler: activeList,
     });
