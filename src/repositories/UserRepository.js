@@ -45,6 +45,27 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
       },
     },
     {
+      $addFields: {
+        'contracts.absences': {
+          $filter: {
+            input: '$contracts.absences',
+            as: 'absence',
+            cond: {
+              $and: [
+                { $gte: ['$$absence.endDate', '$contracts.startDate'] },
+                {
+                  $or: [
+                    { $eq: [{ $type: '$contracts.endDate' }, 'missing'] },
+                    { $lte: ['$$absence.startDate', '$contracts.endDate'] },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
       $group: {
         _id: '$sector',
         contracts: { $push: '$contracts' },
