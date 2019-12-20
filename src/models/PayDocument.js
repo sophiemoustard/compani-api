@@ -6,7 +6,7 @@ const {
   PAYSLIP,
   CERTIFICATE,
 } = require('../helpers/constants');
-const { validatePayload, validateQuery } = require('./preHooks/validate');
+const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const PAY_DOCUMENT_NATURES = [PAYSLIP, CERTIFICATE, OTHER];
 
@@ -20,6 +20,7 @@ const PayDocumentSchema = mongoose.Schema({
 
 PayDocumentSchema.pre('validate', validatePayload);
 PayDocumentSchema.pre('find', validateQuery);
+PayDocumentSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('PayDocument', PayDocumentSchema);
 module.exports.PAY_DOCUMENT_NATURES = PAY_DOCUMENT_NATURES;

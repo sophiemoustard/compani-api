@@ -17,7 +17,7 @@ const {
   auxiliaryFromOtherCompany,
   internalHourFromOtherCompany,
 } = require('./seed/eventsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../src/helpers/constants');
 const Repetition = require('../../src/models/Repetition');
@@ -804,7 +804,7 @@ describe('EVENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(await Repetition.find({})).toHaveLength(0);
+        expect(await Repetition.find({ company: authCompany._id })).toHaveLength(0);
       });
 
 

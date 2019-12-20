@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validateQuery, validatePayload } = require('./preHooks/validate');
+const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SurchargeSchema = mongoose.Schema({
   name: String,
@@ -19,5 +19,6 @@ const SurchargeSchema = mongoose.Schema({
 
 SurchargeSchema.pre('validate', validatePayload);
 SurchargeSchema.pre('find', validateQuery);
+SurchargeSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Surcharge', SurchargeSchema);

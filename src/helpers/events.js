@@ -24,10 +24,23 @@ const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const EventRepository = require('../repositories/EventRepository');
+const { AUXILIARY, CUSTOMER } = require('../helpers/constants');
 
 momentRange.extendMoment(moment);
 
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
+
+exports.list = async (query, credentials) => {
+  const eventsQuery = exports.getListQuery(query, credentials);
+  const { groupBy } = query;
+
+  if (groupBy === CUSTOMER) {
+    return EventRepository.getEventsGroupedByCustomers(eventsQuery, _.get(credentials, 'company._id'));
+  } else if (groupBy === AUXILIARY) {
+    return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, _.get(credentials, 'company._id'));
+  }
+  return exports.populateEvents(await EventRepository.getEventList(eventsQuery));
+};
 
 exports.createEvent = async (payload, credentials) => {
   const companyId = _.get(credentials, 'company._id', null);

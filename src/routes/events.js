@@ -31,7 +31,12 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
-const { getEvent, authorizeEventCreation, authorizeEventUpdate, authorizeEventDeletion } = require('./preHandlers/events');
+const {
+  getEvent,
+  authorizeEventCreation,
+  authorizeEventUpdate,
+  authorizeEventDeletion,
+} = require('./preHandlers/events');
 
 exports.plugin = {
   name: 'routes-event',
