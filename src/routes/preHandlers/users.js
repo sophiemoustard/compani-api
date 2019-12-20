@@ -35,7 +35,7 @@ exports.authorizeUserUpdate = async (req) => {
   throw Boom.forbidden();
 };
 
-exports.authorizeUserPost = (req) => {
+exports.authorizeUserCreation = (req) => {
   const { credentials } = req.auth;
   const customerId = req.payload.customer;
   if (!customerId) return null;
