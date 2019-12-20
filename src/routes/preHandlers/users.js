@@ -26,7 +26,7 @@ exports.authorizeUserUpdate = async (req) => {
   const companyId = get(credentials, 'company._id', null);
 
   if (get(req, 'payload.sector', null)) {
-    const sector = await Sector.findOne({ _id: req.payload.sector, company: companyId });
+    const sector = await Sector.findOne({ _id: req.payload.sector, company: companyId }).lean();
     if (!sector) throw Boom.forbidden();
   }
 
@@ -40,7 +40,7 @@ exports.authorizeUserPost = (req) => {
   const customerId = req.payload.customer;
   if (!customerId) return null;
 
-  const customer = Customer.findOne({ _id: customerId, company: get(credentials, 'company._id', null) });
+  const customer = Customer.findOne({ _id: customerId, company: get(credentials, 'company._id', null) }).lean();
   if (!customer) throw Boom.forbidden();
   return null;
 };
@@ -48,7 +48,7 @@ exports.authorizeUserPost = (req) => {
 exports.authorizeUserGet = async (req) => {
   const { credentials } = req.auth;
   if (!req.query.email) return null;
-  const user = await User.findOne({ email: req.query.email, company: get(credentials, 'company._id', null) });
+  const user = await User.findOne({ email: req.query.email, company: get(credentials, 'company._id', null) }).lean();
   if (!user) throw Boom.forbidden();
   return null;
 };
