@@ -57,6 +57,7 @@ describe('populateSurcharge', () => {
 describe('populateFundings', () => {
   let FundingHistoryMock;
   let mergeLastVersionWithBaseObjectStub;
+
   beforeEach(() => {
     FundingHistoryMock = sinon.mock(FundingHistory);
     mergeLastVersionWithBaseObjectStub = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject');
@@ -67,11 +68,13 @@ describe('populateFundings', () => {
   });
 
   it('should return empty array if input empty', async () => {
-    const result = await DraftBillsHelper.populateFundings([], new Date());
+    const companyId = new ObjectID();
+    const result = await DraftBillsHelper.populateFundings([], new Date(), null, companyId);
     expect(result).toEqual([]);
   });
 
   it('should populate third party payer funding', async () => {
+    const companyId = new ObjectID();
     const tppId = new ObjectID();
     const fundings = [{ thirdPartyPayer: tppId, _id: new ObjectID(), versions: [] }];
     const tpps = [{ _id: tppId, billingMode: BILLING_DIRECT }];
@@ -84,7 +87,7 @@ describe('populateFundings', () => {
       .chain('lean')
       .resolves(null);
 
-    const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps);
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
     expect(result).toBeDefined();
     expect(result[0].thirdPartyPayer).toBeDefined();
@@ -94,6 +97,7 @@ describe('populateFundings', () => {
   });
 
   it('should populate funding history with once frequency and history', async () => {
+    const companyId = new ObjectID();
     const fundingId = new ObjectID();
     const tppId = new ObjectID();
     const fundings = [{
@@ -113,7 +117,7 @@ describe('populateFundings', () => {
       .chain('lean')
       .resolves(returnedHistory);
 
-    const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps);
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
@@ -123,6 +127,7 @@ describe('populateFundings', () => {
   });
 
   it('should populate funding history with once frequency and without history', async () => {
+    const companyId = new ObjectID();
     const fundingId = new ObjectID();
     const tppId = new ObjectID();
     const fundings = [{
@@ -140,7 +145,7 @@ describe('populateFundings', () => {
       .chain('lean')
       .resolves(null);
 
-    const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps);
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
@@ -150,6 +155,7 @@ describe('populateFundings', () => {
   });
 
   it('should populate funding history with monthly frequency', async () => {
+    const companyId = new ObjectID();
     const fundingId = new ObjectID();
     const tppId = new ObjectID();
     const fundings = [{
@@ -168,10 +174,10 @@ describe('populateFundings', () => {
 
     FundingHistoryMock
       .expects('find')
-      .withArgs({ fundingId: fundings[0]._id })
+      .withArgs({ fundingId: fundings[0]._id, company: companyId })
       .resolves(returnedHistories);
 
-    const result = await DraftBillsHelper.populateFundings(fundings, new Date('2019/03/10'), tpps);
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date('2019/03/10'), tpps, companyId);
 
     expect(result).toBeDefined();
     expect(result[0].history).toBeDefined();
@@ -184,6 +190,7 @@ describe('populateFundings', () => {
   });
 
   it('shouldn\'t populate third party payer funding if billing mode is indirect', async () => {
+    const companyId = new ObjectID();
     const tppIndirectId = new ObjectID();
     const fundings = [
       { thirdPartyPayer: tppIndirectId, _id: new ObjectID(), versions: [] },
@@ -192,7 +199,7 @@ describe('populateFundings', () => {
     const funding = { ...omit(fundings[0], ['versions']) };
     mergeLastVersionWithBaseObjectStub.returns(funding);
 
-    const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps);
+    const result = await DraftBillsHelper.populateFundings(fundings, new Date(), tpps, companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual([]);
@@ -939,8 +946,8 @@ describe('getDraftBillsList', () => {
     sinon.assert.calledWithExactly(getEventsToBill, dates, null, credentials.company._id);
     sinon.assert.calledWithExactly(populateSurcharge.firstCall, { _id: '1234567890' });
     sinon.assert.calledWithExactly(populateSurcharge.secondCall, { _id: '0987654321' });
-    sinon.assert.calledWithExactly(populateFundings.firstCall, [{ nature: 'hourly' }], '2019-12-25T07:00:00', null);
-    sinon.assert.calledWithExactly(populateFundings.secondCall, [{ nature: 'fixed' }], '2019-12-25T07:00:00', null);
+    sinon.assert.calledWithExactly(populateFundings.firstCall, [{ nature: 'hourly' }], '2019-12-25T07:00:00', null, companyId);
+    sinon.assert.calledWithExactly(populateFundings.secondCall, [{ nature: 'fixed' }], '2019-12-25T07:00:00', null, companyId);
     sinon.assert.calledWithExactly(
       getDraftBillsPerSubscription.firstCall,
       [{ type: 'intervention', _id: '1234' }],

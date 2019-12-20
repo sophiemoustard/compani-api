@@ -32,7 +32,7 @@ exports.populateSurcharge = async (subscription) => {
  * Funding version frequency = ONCE : there is only ONE history
  * Funding version frequency = MONTHLY : there is one history PER MONTH
  */
-exports.populateFundings = async (fundings, endDate, tppList) => {
+exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
   const populatedFundings = [];
   for (let i = 0, l = fundings.length; i < l; i++) {
     const funding = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
@@ -45,7 +45,7 @@ exports.populateFundings = async (fundings, endDate, tppList) => {
       if (history) funding.history = [history];
       else funding.history = [{ careHours: 0, amountTTC: 0, fundingId: funding._id }];
     } else {
-      const history = await FundingHistory.find({ fundingId: funding._id });
+      const history = await FundingHistory.find({ fundingId: funding._id, company: companyId });
       if (history) funding.history = history;
       if (history.length === 0 || !history) funding.history = [];
       if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {
@@ -340,7 +340,7 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await exports.populateSurcharge(eventsBySubscriptions[k].subscription);
       let { fundings } = eventsBySubscriptions[k];
-      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList) : null;
+      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList, companyId) : null;
 
       const draftBills = exports.getDraftBillsPerSubscription(
         eventsBySubscriptions[k].events,
