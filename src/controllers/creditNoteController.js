@@ -1,24 +1,12 @@
 const Boom = require('boom');
-
-const get = require('lodash/get');
-const CreditNote = require('../models/CreditNote');
-const Company = require('../models/Company');
 const translate = require('../helpers/translate');
-const {
-  updateEventAndFundingHistory,
-  createCreditNotes,
-  updateCreditNotes,
-  getCreditNotes,
-  formatPDF,
-} = require('../helpers/creditNotes');
-const { generatePdf } = require('../helpers/pdf');
-const { COMPANI } = require('../helpers/constants');
+const CreditNoteHelper = require('../helpers/creditNotes');
 
 const { language } = translate;
 
 const list = async (req) => {
   try {
-    const creditNotes = await getCreditNotes(req.query, req.auth.credentials);
+    const creditNotes = await CreditNoteHelper.getCreditNotes(req.query, req.auth.credentials);
 
     return {
       message: creditNotes.length === 0
@@ -34,7 +22,7 @@ const list = async (req) => {
 
 const create = async (req) => {
   try {
-    await createCreditNotes(req.payload, req.auth.credentials);
+    await CreditNoteHelper.createCreditNotes(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].creditNoteCreated,
@@ -47,7 +35,11 @@ const create = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedCreditNote = await updateCreditNotes(req.pre.creditNote, req.payload, req.auth.credentials);
+    const updatedCreditNote = await CreditNoteHelper.updateCreditNotes(
+      req.pre.creditNote,
+      req.payload,
+      req.auth.credentials
+    );
 
     return {
       message: translate[language].creditNoteUpdated,
@@ -61,10 +53,7 @@ const update = async (req) => {
 
 const remove = async (req) => {
   try {
-    await updateEventAndFundingHistory(req.pre.creditNote.events, true, req.auth.credentials);
-    await CreditNote.findByIdAndRemove(req.params._id);
-    if (req.pre.creditNote.linkedCreditNote) await CreditNote.findByIdAndRemove(req.pre.creditNote.linkedCreditNote);
-
+    await CreditNoteHelper.removeCreditNote(req.pre.creditNote, req.auth.credentials, req.params);
     return {
       message: translate[language].creditNoteDeleted,
     };
@@ -76,32 +65,10 @@ const remove = async (req) => {
 
 const generateCreditNotePdf = async (req, h) => {
   try {
-    const creditNote = await CreditNote.findOne({ _id: req.params._id })
-      .populate({
-        path: 'customer',
-        select: '_id identity contact subscriptions',
-        populate: {
-          path: 'subscriptions.service',
-          match: { company: get(req, 'auth.credentials.company._id', null) },
-        },
-      })
-      .populate({
-        path: 'thirdPartyPayer',
-        select: '_id name address',
-        match: { company: get(req, 'auth.credentials.company._id', null) },
-      })
-      .populate({ path: 'events.auxiliary', select: 'identity' })
-      .lean();
-
-    if (!creditNote) return Boom.notFound(translate[language].creditNoteNotFound);
-    if (creditNote.origin !== COMPANI) return Boom.badRequest(translate[language].creditNoteNotCompani);
-
-    const company = await Company.findOne();
-    const data = formatPDF(creditNote, company);
-    const pdf = await generatePdf(data, './src/data/creditNote.html');
+    const { pdf, creditNoteNumber } = await CreditNoteHelper.generateCreditNotePdf(req.params, req.auth.credentials);
 
     return h.response(pdf)
-      .header('content-disposition', `inline; filename=${creditNote.number}.pdf`)
+      .header('content-disposition', `inline; filename=${creditNoteNumber}.pdf`)
       .type('application/pdf');
   } catch (e) {
     req.log('error', e);

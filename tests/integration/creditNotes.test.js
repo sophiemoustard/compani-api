@@ -311,6 +311,16 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.creditNotes.length).toEqual(1);
     });
+
+    it('should not get all credit notes if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/creditNotes?customer=${otherCompanyCustomer._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   describe('Other roles', () => {
@@ -375,14 +385,14 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 403 error if customer is not from the same company', async () => {
+    it('should return a 404 error if customer is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/creditNotes/${otherCompanyCreditNote._id}/pdfs`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -596,12 +606,21 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if user is not from credit note company', async () => {
+    it('should return a 404 error if user is not from credit note company', async () => {
       authToken = await getTokenByCredentials(otherCompanyUser.local);
 
       const response = await app.inject({
         method: 'DELETE',
         url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if credit not origin is not COMPANI', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/creditNotes/${creditNotesList[1]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(403);
