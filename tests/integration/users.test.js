@@ -12,13 +12,14 @@ const {
   isExistingRole,
   isInList,
   customerFromOtherCompany,
+  userFromOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, userList, getTokenByCredentials } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -299,13 +300,22 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users[0].role.name).toEqual('coach');
       });
 
-      it("should not get users if role given doesn't exist", async () => {
+      it('should not get users if role given doesn\'t exist', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/users?role=Babouin',
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(404);
+      });
+
+      it('should return a 403 if not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?email=${userFromOtherCompany.local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
       });
     });
 

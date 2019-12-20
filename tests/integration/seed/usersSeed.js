@@ -49,6 +49,17 @@ const customerFromOtherCompany = {
   },
 };
 
+const userFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'test', lastname: 'toto' },
+  local: { email: 'othercompany@alenvi.io', password: '123456' },
+  role: rolesList.find(role => role.name === 'helper')._id,
+  refreshToken: uuidv4(),
+  company: otherCompany._id,
+  procedure: [{ task: task._id }],
+  inactivityDate: null,
+};
+
 const usersSeedList = [
   {
     _id: new ObjectID(),
@@ -143,7 +154,7 @@ const populateDB = async () => {
   await Customer.deleteMany({});
 
   await populateDBForAuthentication();
-  await User.create(usersSeedList);
+  await User.create(usersSeedList.concat(userFromOtherCompany));
   await Customer.create(customerFromOtherCompany);
   await new Company(company).save();
   await new Task(task).save();
@@ -156,4 +167,5 @@ module.exports = {
   isInList,
   isExistingRole,
   customerFromOtherCompany,
+  userFromOtherCompany,
 };

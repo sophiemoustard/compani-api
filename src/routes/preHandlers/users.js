@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 const User = require('../../models/User');
 const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
@@ -27,12 +28,19 @@ exports.authorizeUserUpdate = (req) => {
   throw Boom.forbidden();
 };
 
-exports.authorizeUserGet = (req) => {
+exports.authorizeUserPost = (req) => {
   const { credentials } = req.auth;
   const customerId = req.payload.customer;
   if (!customerId) return null;
 
   const customer = Customer.findOne({ _id: customerId, company: get(credentials, 'company._id', null) });
   if (!customer) throw Boom.forbidden();
+  return null;
+};
+
+exports.authorizeUserGet = async (req) => {
+  const { credentials } = req.auth;
+  const user = await User.findOne({ email: req.query.email, company: get(credentials, 'company._id', null) });
+  if (!user) throw Boom.forbidden();
   return null;
 };
