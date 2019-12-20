@@ -48,11 +48,11 @@ exports.authorizeEventGet = async (req) => {
 
 exports.authorizeEventForCreditNoteGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId });
+  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
   if (!customer) throw Boom.forbidden();
 
   if (req.query.thirdPartyPayer) {
-    const tpp = await ThirdPartyPayer.findOne({ _id: req.query.thirdPartyPayer, company: companyId });
+    const tpp = await ThirdPartyPayer.findOne({ _id: req.query.thirdPartyPayer, company: companyId }).lean();
     if (!tpp) throw Boom.forbidden();
   }
 
@@ -129,7 +129,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
 exports.authorizeEventDeletionList = async (req) => {
   const { credentials } = req.auth;
-  const customer = await Customer.findOne({ _id: req.query.customer, company: get(credentials, 'company._id', null) });
+  const customer = await Customer.findOne({ _id: req.query.customer, company: get(credentials, 'company._id', null) }).lean();
   if (!customer) throw Boom.forbidden();
   return null;
 };
