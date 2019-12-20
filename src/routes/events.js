@@ -132,6 +132,23 @@ exports.plugin = {
     });
 
     server.route({
+      method: 'GET',
+      path: '/working-stats',
+      handler: getWorkingStats,
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: {
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+            auxiliary: [Joi.objectId().required(), Joi.array().items(Joi.objectId()).required()],
+          },
+        },
+        pre: [{ method: authorizeEventGet }],
+      },
+    });
+
+    server.route({
       method: 'PUT',
       path: '/{_id}',
       options: {
@@ -239,22 +256,6 @@ exports.plugin = {
         pre: [{ method: authorizeEventDeletionList }],
       },
       handler: deleteList,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/working-stats',
-      handler: getWorkingStats,
-      options: {
-        auth: { scope: ['events:read'] },
-        validate: {
-          query: {
-            startDate: Joi.date().required(),
-            endDate: Joi.date().required(),
-            auxiliary: [Joi.objectId().required(), Joi.array().items(Joi.objectId()).required()],
-          },
-        },
-      },
     });
   },
 };

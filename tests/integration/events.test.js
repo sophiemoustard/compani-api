@@ -329,6 +329,72 @@ describe('EVENTS ROUTES', () => {
     });
   });
 
+  describe('GET /events/working-stats', () => {
+    const startDate = moment('2019-01-18');
+    const endDate = moment('2019-01-20');
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should return working stats for an auxiliary', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.workingStats).toBeDefined();
+      });
+
+      it('should return working stats for auxiliaries', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('should return a 403 if auxiliary is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/working-stats?auxiliary=${auxiliaryFromOtherCompany._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
   describe('POST /events', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
@@ -613,7 +679,6 @@ describe('EVENTS ROUTES', () => {
       });
     });
   });
-
 
   describe('PUT /events/{_id}', () => {
     describe('Admin', () => {
