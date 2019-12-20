@@ -74,7 +74,8 @@ describe('EVENT HISTORY ROUTES', () => {
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.eventHistories).toBeDefined();
       response.result.data.eventHistories.forEach((history) => {
-        expect(history.auxiliaries.some(aux => aux._id.toHexString() === eventHistoryAuxiliaries[0]._id.toHexString())).toBeTruthy();
+        expect(history.auxiliaries.every(aux => aux._id.toHexString() === eventHistoryAuxiliaries[0]._id.toHexString()
+          || aux._id.toHexString() === eventHistoryAuxiliaries[1]._id.toHexString())).toBeTruthy();
       });
     });
 
@@ -88,7 +89,8 @@ describe('EVENT HISTORY ROUTES', () => {
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.eventHistories).toBeDefined();
       response.result.data.eventHistories.forEach((history) => {
-        expect(history.sectors.some(sectorId => sectorId.toHexString() === sectors[0]._id.toHexString())).toBeTruthy();
+        expect(history.sectors.every(sectorId => sectorId.toHexString() === sectors[0]._id.toHexString()
+          || sectorId.toHexString() === sectors[1]._id.toHexString())).toBeTruthy();
       });
     });
 
