@@ -111,6 +111,36 @@ describe('EVENTS ROUTES', () => {
         expect(response.statusCode).toEqual(200);
         expect(response.result.data.events).toEqual([]);
       });
+
+      it('should return a 403 if customer is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?customer=${customerFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if auxiliary is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?customer=${auxiliaryFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if sector is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?customer=${sectors[2]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
 
     describe('Other roles', () => {
@@ -851,9 +881,10 @@ describe('EVENTS ROUTES', () => {
       });
 
       it('should return a 403 if customer is not from the company', async () => {
+        const startDate = '2019-01-01';
         const response = await app.inject({
           method: 'DELETE',
-          url: `/events?customer=${customerFromOtherCompany._id}`,
+          url: `/events?customer=${customerFromOtherCompany._id}&startDate=${startDate}`,
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(403);

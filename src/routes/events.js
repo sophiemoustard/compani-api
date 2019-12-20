@@ -37,6 +37,7 @@ const {
   authorizeEventUpdate,
   authorizeEventDeletion,
   authorizeEventDeletionList,
+  authorizeEventGet,
 } = require('./preHandlers/events');
 
 exports.plugin = {
@@ -105,6 +106,7 @@ exports.plugin = {
             status: Joi.string(),
           },
         },
+        pre: [{ method: authorizeEventGet }],
       },
       handler: list,
     });
