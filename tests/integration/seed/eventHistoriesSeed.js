@@ -4,7 +4,7 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
 const EventHistory = require('../../../src/models/EventHistory');
-const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const user = {
   _id: new ObjectID(),
@@ -27,6 +27,11 @@ const eventHistoryAuxiliary = {
 const sector = {
   _id: new ObjectID(),
   company: authCompany._id,
+};
+
+const sectorFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
 };
 
 const customer = {
@@ -96,6 +101,15 @@ const eventHistoryList = [
   },
 ];
 
+const auxiliaryFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'test', lastname: 'Mita' },
+  local: { email: 'otherCompany@alenvi.io', password: '123456' },
+  role: rolesList[2]._id,
+  company: otherCompany._id,
+  refreshToken: uuidv4(),
+}
+
 const populateDB = async () => {
   await Customer.deleteMany({});
   await User.deleteMany({});
@@ -107,12 +121,17 @@ const populateDB = async () => {
   await EventHistory.insertMany(eventHistoryList);
   await (new User(user)).save();
   await (new User(eventHistoryAuxiliary)).save();
+  await (new User(auxiliaryFromOtherCompany)).save();
   await (new Customer(customer)).save();
   await (new Sector(sector)).save();
+  await (new Sector(sectorFromOtherCompany)).save();
 };
 
 module.exports = {
   populateDB,
   eventHistoryList,
   eventHistoryAuxiliary,
+  auxiliaryFromOtherCompany,
+  sectorFromOtherCompany,
+  sector,
 };

@@ -3,6 +3,7 @@
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 const { list } = require('../controllers/eventHistoryController');
+const { authorizeEventsHistoriesGet } = require('./preHandlers/eventHistories');
 
 exports.plugin = {
   name: 'routes-event-history',
@@ -18,6 +19,7 @@ exports.plugin = {
             createdAt: Joi.date(),
           },
         },
+        pre: [{ method: authorizeEventsHistoriesGet }],
       },
       handler: list,
     });

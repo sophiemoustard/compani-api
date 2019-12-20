@@ -1,6 +1,13 @@
 const expect = require('expect');
 const app = require('../../server');
-const { populateDB, eventHistoryList, eventHistoryAuxiliary } = require('./seed/eventHistoriesSeed');
+const {
+  populateDB,
+  eventHistoryList,
+  eventHistoryAuxiliary,
+  auxiliaryFromOtherCompany,
+  sectorFromOtherCompany,
+  sector,
+} = require('./seed/eventHistoriesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
@@ -29,7 +36,7 @@ describe('EVENT HISTORY ROUTES', () => {
       expect(response.result.data.eventHistories.length).toEqual(eventHistoryList.length);
     });
 
-    it('should return a list of event histories', async () => {
+    it('should return a list of event histories from an auxiliaryId', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/eventhistories?auxiliaries=${eventHistoryAuxiliary._id.toHexString()}`,
@@ -43,6 +50,48 @@ describe('EVENT HISTORY ROUTES', () => {
       });
     });
 
+    it('should return a list of event histories from a sector id', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/eventhistories?sectors=${sector._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.eventHistories).toBeDefined();
+      response.result.data.eventHistories.forEach((history) => {
+        expect(history.sectors.some(sectorId => sectorId.toHexString() === sector._id.toHexString())).toBeTruthy();
+      });
+    });
+
+    it('should return a list of event histories from auxiliaries ids', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/eventhistories?auxiliaries=${[eventHistoryAuxiliary._id.toHexString()]}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.eventHistories).toBeDefined();
+      response.result.data.eventHistories.forEach((history) => {
+        expect(history.auxiliaries.some(aux => aux._id.toHexString() === eventHistoryAuxiliary._id.toHexString())).toBeTruthy();
+      });
+    });
+
+    it('should return a list of event histories from sectors ids', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/eventhistories?sectors=${[sector._id.toHexString()]}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(200);
+      expect(response.result.data.eventHistories).toBeDefined();
+      response.result.data.eventHistories.forEach((history) => {
+        expect(history.sectors.some(sectorId => sectorId.toHexString() === sector._id.toHexString())).toBeTruthy();
+      });
+    });
+
     it('should return a 400 if invalid query', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -51,6 +100,26 @@ describe('EVENT HISTORY ROUTES', () => {
       });
 
       expect(response.statusCode).toEqual(400);
+    });
+
+    it('should return a 403 if at least one auxiliary is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/eventhistories?auxiliaries=${auxiliaryFromOtherCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(403);
+    });
+
+    it('should return a 403 if at least one sector is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/eventhistories?sectors=${sectorFromOtherCompany._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(403);
     });
   });
 });
