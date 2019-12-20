@@ -6,8 +6,8 @@ const { language } = translate;
 
 const send = async (req) => {
   try {
-    const { to, from, body } = req.payload;
-    const sms = await TwilioHelper.sendMessage(to, from, body);
+    const sms = await TwilioHelper.sendMessage(req.payload.to, req.payload.body, req.auth.credentials);
+
     return {
       message: translate[language].smsSent,
       data: { sms },

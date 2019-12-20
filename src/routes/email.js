@@ -4,6 +4,7 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const { sendWelcome } = require('../controllers/emailController');
+const { authorizeSendEmail } = require('./preHandlers/email');
 
 exports.plugin = {
   name: 'routes-email',
@@ -20,6 +21,9 @@ exports.plugin = {
             }).required(),
           }),
         },
+        pre: [
+          { method: authorizeSendEmail },
+        ],
       },
       handler: sendWelcome,
     });
