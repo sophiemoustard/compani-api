@@ -6,7 +6,14 @@ const Boom = require('boom');
 
 const Payment = require('../models/Payment');
 const PaymentNumber = require('../models/PaymentNumber');
-const { REFUND, PAYMENT, DIRECT_DEBIT, PAYMENT_TYPES_LIST, PAYMENT_NATURE_LIST, CIVILITY_LIST } = require('./constants');
+const {
+  REFUND,
+  PAYMENT,
+  DIRECT_DEBIT,
+  PAYMENT_TYPES_LIST,
+  PAYMENT_NATURE_LIST,
+  CIVILITY_LIST,
+} = require('./constants');
 const XmlHelper = require('../helpers/xml');
 const UtilsHelper = require('./utils');
 
