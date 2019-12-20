@@ -1,6 +1,7 @@
 const Boom = require('boom');
 const get = require('lodash/get');
 const User = require('../../models/User');
+const Sector = require('../../models/Sector');
 const Customer = require('../../models/Customer');
 const translate = require('../../helpers/translate');
 
@@ -19,11 +20,17 @@ exports.getUser = async (req) => {
   }
 };
 
-exports.authorizeUserUpdate = (req) => {
+exports.authorizeUserUpdate = async (req) => {
   const { credentials } = req.auth;
   const user = req.pre.user || req.payload;
+  const companyId = get(credentials, 'company._id', null);
 
-  if (user.company.toHexString() === credentials.company._id.toHexString()) return null;
+  if (get(req, 'payload.sector', null)) {
+    const sector = await Sector.findOne({ _id: req.payload.sector, company: companyId });
+    if (!sector) throw Boom.forbidden();
+  }
+
+  if (user.company.toHexString() === companyId.toHexString()) return null;
 
   throw Boom.forbidden();
 };

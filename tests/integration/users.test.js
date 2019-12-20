@@ -569,6 +569,16 @@ describe('USERS ROUTES', () => {
         });
         expect(res.statusCode).toBe(404);
       });
+
+      it('should return a 403 error if user is not from the same company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userFromOtherCompany._id}`,
+          payload: {},
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
+      });
     });
 
     describe('Other roles', () => {
