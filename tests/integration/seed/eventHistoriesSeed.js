@@ -15,33 +15,29 @@ const user = {
   refreshToken: uuidv4(),
 };
 
-const eventHistoryAuxiliary = {
+const eventHistoryAuxiliaries = [{
   _id: new ObjectID(),
   identity: { firstname: 'Mimi', lastname: 'Mita' },
   local: { email: 'lili@alenvi.io', password: '123456' },
   role: rolesList[2]._id,
   company: authCompany._id,
   refreshToken: uuidv4(),
-};
-
-const eventHistoryAuxiliary2 = {
+}, {
   _id: new ObjectID(),
   identity: { firstname: 'Mimi2', lastname: 'Mita' },
   local: { email: 'lili2@alenvi.io', password: '123456' },
   role: rolesList[2]._id,
   company: authCompany._id,
   refreshToken: uuidv4(),
-};
+}];
 
-const sector = {
+const sectors = [{
   _id: new ObjectID(),
   company: authCompany._id,
-};
-
-const sector2 = {
+}, {
   _id: new ObjectID(),
   company: authCompany._id,
-};
+}];
 
 const sectorFromOtherCompany = {
   _id: new ObjectID(),
@@ -68,14 +64,14 @@ const eventHistoryList = [
     company: authCompany._id,
     action: 'event_creation',
     createdBy: user._id,
-    sectors: [sector._id],
-    auxiliaries: [eventHistoryAuxiliary._id],
+    sectors: [sectors[0]._id],
+    auxiliaries: [eventHistoryAuxiliaries[0]._id],
     event: {
       type: 'intervention',
       startDate: '2019-01-20T09:38:18',
       endDate: '2019-01-20T11:38:18',
       customer: customer._id,
-      auxiliary: eventHistoryAuxiliary._id,
+      auxiliary: eventHistoryAuxiliaries[0]._id,
     },
   },
   {
@@ -83,8 +79,8 @@ const eventHistoryList = [
     company: authCompany._id,
     action: 'event_deletion',
     createdBy: user._id,
-    sectors: [sector._id],
-    auxiliaries: [eventHistoryAuxiliary._id],
+    sectors: [sectors[0]._id],
+    auxiliaries: [eventHistoryAuxiliaries[0]._id],
     event: {
       type: 'internalHour',
       startDate: '2019-01-20T09:38:18',
@@ -93,7 +89,7 @@ const eventHistoryList = [
         name: 'Réunion',
         _id: new ObjectID(),
       },
-      auxiliary: eventHistoryAuxiliary._id,
+      auxiliary: eventHistoryAuxiliaries[0]._id,
       misc: 'Je suis une note',
     },
   },
@@ -102,14 +98,14 @@ const eventHistoryList = [
     company: authCompany._id,
     action: 'event_update',
     createdBy: user._id,
-    sectors: [sector._id],
-    auxiliaries: [eventHistoryAuxiliary._id],
+    sectors: [sectors[0]._id],
+    auxiliaries: [eventHistoryAuxiliaries[0]._id],
     event: {
       type: 'absence',
       startDate: '2019-01-20T09:38:18',
       endDate: '2019-01-20T11:38:18',
       absence: 'leave',
-      auxiliary: eventHistoryAuxiliary._id,
+      auxiliary: eventHistoryAuxiliaries[0]._id,
       misc: 'Je suis une note',
     },
   },
@@ -134,22 +130,18 @@ const populateDB = async () => {
 
   await EventHistory.insertMany(eventHistoryList);
   await (new User(user)).save();
-  await (new User(eventHistoryAuxiliary)).save();
-  await (new User(eventHistoryAuxiliary2)).save();
+  await User.create(eventHistoryAuxiliaries);
   await (new User(auxiliaryFromOtherCompany)).save();
   await (new Customer(customer)).save();
-  await (new Sector(sector)).save();
-  await (new Sector(sector2)).save();
+  await Sector.create(sectors);
   await (new Sector(sectorFromOtherCompany)).save();
 };
 
 module.exports = {
   populateDB,
   eventHistoryList,
-  eventHistoryAuxiliary,
-  eventHistoryAuxiliary2,
+  eventHistoryAuxiliaries,
   auxiliaryFromOtherCompany,
   sectorFromOtherCompany,
-  sector,
-  sector2,
+  sectors,
 };

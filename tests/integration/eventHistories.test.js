@@ -3,12 +3,10 @@ const app = require('../../server');
 const {
   populateDB,
   eventHistoryList,
-  eventHistoryAuxiliary,
-  eventHistoryAuxiliary2,
+  eventHistoryAuxiliaries,
   auxiliaryFromOtherCompany,
   sectorFromOtherCompany,
-  sector,
-  sector2,
+  sectors,
 } = require('./seed/eventHistoriesSeed');
 const { getToken } = require('./seed/authenticationSeed');
 
@@ -41,63 +39,63 @@ describe('EVENT HISTORY ROUTES', () => {
     it('should return a list of event histories from an auxiliaryId', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/eventhistories?auxiliaries=${eventHistoryAuxiliary._id.toHexString()}`,
+        url: `/eventhistories?auxiliaries=${eventHistoryAuxiliaries[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.eventHistories).toBeDefined();
       response.result.data.eventHistories.forEach((history) => {
-        expect(history.auxiliaries.some(aux => aux._id.toHexString() === eventHistoryAuxiliary._id.toHexString())).toBeTruthy();
+        expect(history.auxiliaries.some(aux => aux._id.toHexString() === eventHistoryAuxiliaries[0]._id.toHexString())).toBeTruthy();
       });
     });
 
     it('should return a list of event histories from a sector id', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/eventhistories?sectors=${sector._id.toHexString()}`,
+        url: `/eventhistories?sectors=${sectors[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.eventHistories).toBeDefined();
       response.result.data.eventHistories.forEach((history) => {
-        expect(history.sectors.some(sectorId => sectorId.toHexString() === sector._id.toHexString())).toBeTruthy();
+        expect(history.sectors.some(sectorId => sectorId.toHexString() === sectors[0]._id.toHexString())).toBeTruthy();
       });
     });
 
     it('should return a list of event histories from auxiliaries ids', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/eventhistories?auxiliaries=${eventHistoryAuxiliary._id.toHexString()}&auxiliaries=${eventHistoryAuxiliary2._id.toHexString()}`,
+        url: `/eventhistories?auxiliaries=${eventHistoryAuxiliaries[0]._id.toHexString()}&auxiliaries=${eventHistoryAuxiliaries[1]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.eventHistories).toBeDefined();
       response.result.data.eventHistories.forEach((history) => {
-        expect(history.auxiliaries.some(aux => aux._id.toHexString() === eventHistoryAuxiliary._id.toHexString())).toBeTruthy();
+        expect(history.auxiliaries.some(aux => aux._id.toHexString() === eventHistoryAuxiliaries[0]._id.toHexString())).toBeTruthy();
       });
     });
 
     it('should return a list of event histories from sectors ids', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/eventhistories?sectors=${sector._id.toHexString()}&sectors=${sector2._id.toHexString()}`,
+        url: `/eventhistories?sectors=${sectors[0]._id.toHexString()}&sectors=${sectors[1]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toEqual(200);
       expect(response.result.data.eventHistories).toBeDefined();
       response.result.data.eventHistories.forEach((history) => {
-        expect(history.sectors.some(sectorId => sectorId.toHexString() === sector._id.toHexString())).toBeTruthy();
+        expect(history.sectors.some(sectorId => sectorId.toHexString() === sectors[0]._id.toHexString())).toBeTruthy();
       });
     });
 
     it('should return a 400 if invalid query', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/eventhistories?auxiliary=${eventHistoryAuxiliary._id.toHexString()}`,
+        url: `/eventhistories?auxiliary=${eventHistoryAuxiliaries[0]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
 
