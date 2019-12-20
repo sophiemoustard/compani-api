@@ -311,30 +311,9 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.creditNotes.length).toEqual(1);
     });
-
-    it('should not get all credit notes if user is not from the same company', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: `/creditNotes?customer=${otherCompanyCustomer._id}`,
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
   });
 
   describe('Other roles', () => {
-    it('should return customer creditnotes if I am its helper', async () => {
-      const helper = creditNoteUserList[0];
-      const helperToken = await getTokenByCredentials(helper.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/creditNotes?customer=${helper.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },

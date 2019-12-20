@@ -84,17 +84,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { scope: ['bills:read', 'customer-{query.customer}'] },
-        validate: {
-          query: {
-            startDate: Joi.date(),
-            endDate: Joi.date(),
-            customer: Joi.objectId(),
-          },
-        },
-        pre: [
-          { method: authorizeGetCreditNotes },
-        ],
+        auth: { scope: ['bills:read'] },
       },
     });
 
