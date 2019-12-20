@@ -52,11 +52,11 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
             as: 'absence',
             cond: {
               $and: [
-                { $gte: ['$$absence.startDate', '$contracts.startDate'] },
+                { $gte: ['$$absence.endDate', '$contracts.startDate'] },
                 {
                   $or: [
                     { $eq: [{ $type: '$contracts.endDate' }, 'missing'] },
-                    { $lte: ['$$absence.endDate', '$contracts.endDate'] },
+                    { $lte: ['$$absence.startDate', '$contracts.endDate'] },
                   ],
                 },
               ],
