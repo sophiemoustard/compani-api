@@ -71,8 +71,12 @@ exports.authorizeCustomerUpdate = async (req) => {
 
 exports.authorizeCustomerGet = async (req) => {
   const companyId = get(req, 'auth.credentials.company._id', null);
-
   if (req.params) await exports.validateCustomerCompany(req.params, req.payload, companyId);
+  return null;
+};
+
+exports.authorizeCustomerGetBySector = async (req) => {
+  const companyId = get(req, 'auth.credentials.company._id', null);
 
   if (req.query && req.query.sector) {
     const sectors = Array.isArray(req.query.sector) ? req.query.sector : [req.query.sector];

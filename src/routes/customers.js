@@ -37,6 +37,7 @@ const {
   authorizeCustomerDelete,
   authorizeCustomerUpdate,
   authorizeCustomerGet,
+  authorizeCustomerGetBySector,
 } = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 
@@ -171,7 +172,7 @@ exports.plugin = {
             endDate: Joi.date(),
           }),
         },
-        pre: [{ method: authorizeCustomerGet }],
+        pre: [{ method: authorizeCustomerGetBySector }],
       },
       handler: listBySector,
     });

@@ -35,9 +35,9 @@ exports.list = async (query, credentials) => {
   const { groupBy } = query;
 
   if (groupBy === CUSTOMER) {
-    return EventRepository.getEventsGroupedByCustomers(eventsQuery, _.get(credentials, 'company._id'));
+    return EventRepository.getEventsGroupedByCustomers(eventsQuery, _.get(credentials, 'company._id', null));
   } else if (groupBy === AUXILIARY) {
-    return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, _.get(credentials, 'company._id'));
+    return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, _.get(credentials, 'company._id', null));
   }
   return exports.populateEvents(await EventRepository.getEventList(eventsQuery));
 };
