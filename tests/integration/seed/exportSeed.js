@@ -58,6 +58,7 @@ const customer = {
 };
 
 const company = {
+  prefixNumber: 103,
   _id: new ObjectID(),
   name: 'Test',
   tradeName: 'TT',

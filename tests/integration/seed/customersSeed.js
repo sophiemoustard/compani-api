@@ -234,6 +234,7 @@ const otherCompanyCustomer = {
   _id: otherCompanyCustomerId,
   name: 'notFromCompany',
   email: 'test@test.io',
+  prefixNumber: 103,
   identity: {
     title: 'mr',
     firstname: 'test',

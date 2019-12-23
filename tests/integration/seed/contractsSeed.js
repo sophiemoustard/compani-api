@@ -58,6 +58,7 @@ const otherCompanyContractUser = {
   role: rolesList[0]._id,
   contracts: [new ObjectID()],
   company: otherCompany._id,
+  prefixNumber: 103,
 };
 
 const contractUsers = [{

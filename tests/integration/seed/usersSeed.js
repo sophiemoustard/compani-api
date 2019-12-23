@@ -27,6 +27,7 @@ const company = {
   customersConfig: {
     billingPeriod: 'two_weeks',
   },
+  prefixNumber: 103,
 };
 
 const task = {

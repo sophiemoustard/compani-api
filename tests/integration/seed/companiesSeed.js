@@ -18,6 +18,7 @@ const company = {
     billingPeriod: 'two_weeks',
   },
   customersFolderId: 'mnbvcxz',
+  prefixNumber: 103,
 };
 
 const populateDB = async () => {
