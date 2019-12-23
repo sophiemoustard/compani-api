@@ -95,7 +95,8 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
   },
 ]).option({ company: companyId });
 
-exports.getEventsGroupedByAuxiliaries = async (rules, companyId) => getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] }, companyId);
+exports.getEventsGroupedByAuxiliaries = async (rules, companyId) =>
+  getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] }, companyId);
 
 exports.getEventsGroupedByCustomers = async (rules, companyId) => getEventsGroupedBy(rules, '$customer._id', companyId);
 
