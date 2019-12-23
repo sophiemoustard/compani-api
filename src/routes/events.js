@@ -54,7 +54,7 @@ exports.plugin = {
             type: Joi.string().required().valid(EVENT_TYPES),
             startDate: Joi.date().required(),
             endDate: Joi.date().required().greater(Joi.ref('startDate')),
-            auxiliary: Joi.objectId(), // Unassigned event
+            auxiliary: Joi.objectId(),
             customer: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             address: Joi.object().keys({
               street: Joi.string(),
@@ -66,14 +66,15 @@ exports.plugin = {
                 coordinates: Joi.array().allow([], null),
               },
             }),
-            sector: Joi.objectId().required(),
+            sector: Joi.objectId(),
             misc: Joi.string().allow(null, '').when('absence', { is: Joi.exist().valid(OTHER), then: Joi.required() }),
             subscription: Joi.objectId().when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
             internalHour: Joi.objectId().when('type', { is: Joi.valid(INTERNAL_HOUR), then: Joi.required() }),
             absence: Joi.string().valid(ABSENCE_TYPES)
               .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() })
               .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
-            absenceNature: Joi.string().valid(ABSENCE_NATURES).when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
+            absenceNature: Joi.string().valid(ABSENCE_NATURES)
+              .when('type', { is: Joi.valid(ABSENCE), then: Joi.required() }),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
               link: Joi.string(),
@@ -83,7 +84,7 @@ exports.plugin = {
             }),
             status: Joi.string().valid(CONTRACT_STATUS)
               .when('type', { is: Joi.valid(INTERVENTION), then: Joi.required() }),
-          }).when(Joi.object({ type: Joi.valid(ABSENCE), absence: Joi.valid(ILLNESS) }).unknown(), { then: Joi.object({ attachment: Joi.required() }) }),
+          }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeEventCreation }],
       },
@@ -159,7 +160,7 @@ exports.plugin = {
             startDate: Joi.date(),
             endDate: Joi.date().greater(Joi.ref('startDate')),
             auxiliary: Joi.objectId(),
-            sector: Joi.string().required(),
+            sector: Joi.string(),
             address: Joi.object().keys({
               street: Joi.string().allow(null, '').default(''),
               zipCode: Joi.string().allow(null, '').default(''),
@@ -172,7 +173,8 @@ exports.plugin = {
             }),
             subscription: Joi.objectId(),
             internalHour: Joi.objectId(),
-            absence: Joi.string().valid(ABSENCE_TYPES).when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
+            absence: Joi.string().valid(ABSENCE_TYPES)
+              .when('absenceNature', { is: Joi.valid(HOURLY), then: Joi.valid(UNJUSTIFIED) }),
             absenceNature: Joi.string().valid(ABSENCE_NATURES),
             attachment: Joi.object().keys({
               driveId: Joi.string(),
@@ -198,7 +200,9 @@ exports.plugin = {
             isBilled: Joi.boolean(),
             status: Joi.string().valid(CONTRACT_STATUS),
             bills: Joi.object(),
-          }).and('startDate', 'endDate'),
+          })
+            .and('startDate', 'endDate')
+            .xor('auxiliary', 'sector'),
         },
         pre: [
           { method: getEvent, assign: 'event' },
