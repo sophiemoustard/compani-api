@@ -359,6 +359,16 @@ describe('EVENTS ROUTES', () => {
         expect(response.statusCode).toEqual(200);
       });
 
+      it('should return working stats for all auxiliaries', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/working-stats?startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+      });
+
       it('should return a 403 if auxiliary is not from the same company', async () => {
         const response = await app.inject({
           method: 'GET',

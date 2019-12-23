@@ -4,6 +4,7 @@ const { ObjectID } = require('mongodb');
 require('sinon-mongoose');
 
 const Repetition = require('../../../src/models/Repetition');
+const Company = require('../../../src/models/Company');
 const Event = require('../../../src/models/Event');
 const EventsRepetitionHelper = require('../../../src/helpers/eventsRepetition');
 const EmailHelper = require('../../../src/helpers/email');
@@ -12,6 +13,7 @@ const eventRepetitions = require('../../../src/jobs/eventRepetitions');
 describe('method', () => {
   let EventMock;
   let RepetitionMock;
+  let CompanyMock;
   let CreateFutureEventBasedOnRepetitionStub;
   let EmailHelperStub;
   let eventRepetitionsOnCompleteStub;
@@ -20,6 +22,7 @@ describe('method', () => {
 
   beforeEach(() => {
     RepetitionMock = sinon.mock(Repetition);
+    CompanyMock = sinon.mock(Company);
     EventMock = sinon.mock(Event);
     CreateFutureEventBasedOnRepetitionStub = sinon.stub(EventsRepetitionHelper, 'createFutureEventBasedOnRepetition');
     EmailHelperStub = sinon.stub(EmailHelper, 'completeEventRepScriptEmail');
@@ -30,6 +33,7 @@ describe('method', () => {
   afterEach(() => {
     EventMock.restore();
     RepetitionMock.restore();
+    CompanyMock.restore();
     CreateFutureEventBasedOnRepetitionStub.restore();
     EmailHelperStub.restore();
     eventRepetitionsOnCompleteStub.restore();
@@ -59,10 +63,16 @@ describe('method', () => {
 
     it(`should create a J+90 event for ${freq.type} repetition object`, async () => {
       const server = 'server';
+      const companyId = new ObjectID();
+
+      CompanyMock
+        .expects('find')
+        .withExactArgs({})
+        .returns([{ _id: companyId }]);
 
       RepetitionMock
         .expects('find')
-        .withArgs({ startDate: { $lt: fakeDate } })
+        .withExactArgs({ startDate: { $lt: fakeDate }, company: companyId })
         .chain('lean')
         .once()
         .returns(repetition);
@@ -96,6 +106,7 @@ describe('method', () => {
       sinon.assert.calledWith(CreateFutureEventBasedOnRepetitionStub, repetition[0]);
       RepetitionMock.verify();
       EventMock.verify();
+      CompanyMock.verify();
       sinon.assert.calledWith(eventRepetitionsOnCompleteStub, server, [futureEvent], []);
     });
   });
@@ -118,9 +129,15 @@ describe('method', () => {
       parentId: '5d84f869b7e67963c65236a9',
     }];
 
+    const companyId = new ObjectID();
+    CompanyMock
+      .expects('find')
+      .withExactArgs({})
+      .returns([{ _id: companyId }]);
+
     RepetitionMock
       .expects('find')
-      .withArgs({ startDate: { $lt: fakeDate } })
+      .withExactArgs({ startDate: { $lt: fakeDate }, company: companyId })
       .chain('lean')
       .once()
       .returns(repetition);
@@ -130,6 +147,7 @@ describe('method', () => {
     await eventRepetitions.method(server);
 
     RepetitionMock.verify();
+    CompanyMock.verify();
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
     sinon.assert.calledWith(eventRepetitionsOnCompleteStub, server, [], [repetition[0]._id]);
   });
