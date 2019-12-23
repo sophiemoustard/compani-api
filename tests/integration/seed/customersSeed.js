@@ -227,111 +227,112 @@ const customersList = [
       phone: '0612345678',
     },
   },
-  {
-    company: otherCompany._id,
-    _id: otherCompanyCustomerId,
-    name: 'notFromCompany',
-    email: 'test@test.io',
-    identity: {
-      title: 'mr',
-      firstname: 'test',
-      lastname: 'test',
+];
+
+const otherCompanyCustomer = {
+  company: otherCompany._id,
+  _id: otherCompanyCustomerId,
+  name: 'notFromCompany',
+  email: 'test@test.io',
+  identity: {
+    title: 'mr',
+    firstname: 'test',
+    lastname: 'test',
+  },
+  driveFolder: { driveId: '09876543' },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de Ponthieu 75018 Paris',
+      zipCode: '75018',
+      city: 'Paris',
     },
-    driveFolder: { driveId: '09876543' },
-    contact: {
-      primaryAddress: {
-        fullAddress: '37 rue de Ponthieu 75018 Paris',
-        zipCode: '75018',
-        city: 'Paris',
-      },
-      phone: '0698765432',
-    },
-    subscriptions: [
-      {
-        _id: new ObjectID(),
-        service: customerServiceList[0]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
-      },
-      {
-        _id: new ObjectID(),
-        service: customerServiceList[1]._id,
-        versions: [{
-          unitTTCRate: 12,
-          estimatedWeeklyVolume: 12,
-          evenings: 2,
-          sundays: 1,
-        }],
-      },
-    ],
-    subscriptionsHistory: [{
-      subscriptions: [{
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-        service: 'Service 1',
-      }, {
-        unitTTCRate: 12,
-        estimatedWeeklyVolume: 12,
-        evenings: 2,
-        sundays: 1,
-        service: 'Service 2',
-      }],
-      helper: {
-        firstname: 'Vladimir',
-        lastname: 'Poutine',
-        title: 'mr',
-      },
-      approvalDate: '2018-01-01T10:00:00.000+01:00',
-    }],
-    payment: {
-      bankAccountOwner: 'David gaudu',
-      iban: '',
-      bic: '',
-      mandates: [
-        {
-          _id: new ObjectID(),
-          rum: 'R012345678903456789',
-        },
-      ],
-    },
-    quotes: [{
+    phone: '0698765432',
+  },
+  subscriptions: [
+    {
       _id: new ObjectID(),
-      subscriptions: [{
-        serviceName: 'Test',
-        unitTTCRate: 23,
-        estimatedWeeklyVolume: 3,
-      }, {
-        serviceName: 'Test2',
-        unitTTCRate: 30,
-        estimatedWeeklyVolume: 10,
+      service: customerServiceList[0]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
       }],
+    },
+    {
+      _id: new ObjectID(),
+      service: customerServiceList[1]._id,
+      versions: [{
+        unitTTCRate: 12,
+        estimatedWeeklyVolume: 12,
+        evenings: 2,
+        sundays: 1,
+      }],
+    },
+  ],
+  subscriptionsHistory: [{
+    subscriptions: [{
+      unitTTCRate: 12,
+      estimatedWeeklyVolume: 12,
+      evenings: 2,
+      sundays: 1,
+      service: 'Service 1',
+    }, {
+      unitTTCRate: 12,
+      estimatedWeeklyVolume: 12,
+      evenings: 2,
+      sundays: 1,
+      service: 'Service 2',
     }],
-    fundings: [
+    helper: {
+      firstname: 'Vladimir',
+      lastname: 'Poutine',
+      title: 'mr',
+    },
+    approvalDate: '2018-01-01T10:00:00.000+01:00',
+  }],
+  payment: {
+    bankAccountOwner: 'David gaudu',
+    iban: '',
+    bic: '',
+    mandates: [
       {
         _id: new ObjectID(),
-        nature: FIXED,
-        thirdPartyPayer: customerThirdPartyPayer._id,
-        subscription: subId,
-        versions: [{
-          folderNumber: 'D123456',
-          startDate: moment.utc().toDate(),
-          frequency: ONCE,
-          endDate: moment.utc().add(6, 'months').toDate(),
-          effectiveDate: moment.utc().toDate(),
-          amountTTC: 120,
-          customerParticipationRate: 10,
-          careDays: [0, 1, 2, 3, 4, 5, 6],
-        }],
+        rum: 'R012345678903456789',
       },
     ],
   },
-];
+  quotes: [{
+    _id: new ObjectID(),
+    subscriptions: [{
+      serviceName: 'Test',
+      unitTTCRate: 23,
+      estimatedWeeklyVolume: 3,
+    }, {
+      serviceName: 'Test2',
+      unitTTCRate: 30,
+      estimatedWeeklyVolume: 10,
+    }],
+  }],
+  fundings: [
+    {
+      _id: new ObjectID(),
+      nature: FIXED,
+      thirdPartyPayer: customerThirdPartyPayer._id,
+      subscription: subId,
+      versions: [{
+        folderNumber: 'D123456',
+        startDate: moment.utc().toDate(),
+        frequency: ONCE,
+        endDate: moment.utc().add(6, 'months').toDate(),
+        effectiveDate: moment.utc().toDate(),
+        amountTTC: 120,
+        customerParticipationRate: 10,
+        careDays: [0, 1, 2, 3, 4, 5, 6],
+      }],
+    },
+  ],
+};
 
 const userList = [
   {
@@ -466,7 +467,7 @@ const populateDB = async () => {
   await populateDBForAuthentication();
   await (new ThirdPartyPayer(customerThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);
-  await Customer.insertMany(customersList);
+  await Customer.insertMany([...customersList, otherCompanyCustomer]);
   await Event.insertMany(eventList);
   for (const user of userList) {
     await (new User(user).save());
@@ -479,5 +480,5 @@ module.exports = {
   populateDB,
   customerServiceList,
   customerThirdPartyPayer,
-  otherCompanyCustomerId,
+  otherCompanyCustomer,
 };

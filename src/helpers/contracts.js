@@ -238,7 +238,7 @@ exports.createAndSaveFile = async (version, fileInfo) => {
     const customer = await Customer.findOne({ _id: version.customer }).lean();
     fileInfo.customerDriveId = customer.driveFolder.driveId;
   }
-  const payload = await exports.uploadFile(fileInfo, version.status);
+  const payload = await exports.addFile(fileInfo, version.status);
 
   return Contract.findOneAndUpdate(
     { _id: version.contractId },
@@ -250,7 +250,7 @@ exports.createAndSaveFile = async (version, fileInfo) => {
   );
 };
 
-exports.uploadFile = async (fileInfo, status) => {
+exports.addFile = async (fileInfo, status) => {
   if (status === COMPANY_CONTRACT) {
     const uploadedFile = await GDriveStorageHelper.addFile({ ...fileInfo, driveFolderId: fileInfo.auxiliaryDriveId });
     const driveFileInfo = await Drive.getFileById({ fileId: uploadedFile.id });
@@ -283,7 +283,7 @@ exports.saveCompletedContract = async (everSignDoc) => {
 
   let payload = {};
   if (everSignDoc.data.meta.type === CUSTOMER_CONTRACT) {
-    payload = await exports.uploadFile({
+    payload = await exports.addFile({
       auxiliaryDriveId: everSignDoc.data.meta.auxiliaryDriveId,
       customerDriveId: everSignDoc.data.meta.customerDriveId,
       name: everSignDoc.data.title,
@@ -291,7 +291,7 @@ exports.saveCompletedContract = async (everSignDoc) => {
       body: file,
     }, CUSTOMER_CONTRACT);
   } else {
-    payload = await exports.uploadFile({
+    payload = await exports.addFile({
       auxiliaryDriveId: everSignDoc.data.meta.auxiliaryDriveId,
       name: everSignDoc.data.title,
       type: 'application/pdf',
@@ -335,3 +335,19 @@ exports.getMatchingVersionsList = (versions, query) => versions.filter((ver) => 
 
   return isStartedOnEndDate && !isEndedOnStartDate;
 });
+
+exports.uploadFile = async (params, payload) => {
+  const fileInfo = {
+    auxiliaryDriveId: params.driveId,
+    name: payload.fileName,
+    type: payload['Content-Type'],
+    body: payload.file,
+  };
+  const version = {
+    customer: payload.customer,
+    contractId: params._id,
+    _id: payload.versionId,
+    status: payload.status,
+  };
+  return exports.createAndSaveFile(version, fileInfo);
+};

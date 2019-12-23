@@ -3,9 +3,40 @@ const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventHistoryHelper = require('../../../src/helpers/eventHistories');
+const EventHistoryRepository = require('../../../src/repositories/EventHistoryRepository');
 const EventHistory = require('../../../src/models/EventHistory');
 
 require('sinon-mongoose');
+
+describe('getEventHistories', () => {
+  let getListQueryStub;
+  let paginateStub;
+  beforeEach(() => {
+    getListQueryStub = sinon.stub(EventHistoryHelper, 'getListQuery');
+    paginateStub = sinon.stub(EventHistoryRepository, 'paginate');
+  });
+  afterEach(() => {
+    getListQueryStub.restore();
+    paginateStub.restore();
+  });
+
+  it('should get event histories', async () => {
+    const query = { createdAt: '2019-11-10' };
+    const credentials = { company: { _id: new ObjectID() } };
+    const listQuery = {
+      $and: [
+        { company: credentials.company._id },
+        { $or: [{ createdAt: { $lte: '2019-11-10' } }] },
+      ],
+    };
+    getListQueryStub.returns(listQuery);
+    paginateStub.returns([]);
+    const result = await EventHistoryHelper.getEventHistories(query, credentials);
+    expect(result).toEqual([]);
+    getListQueryStub.calledWithExactly(query, credentials);
+    paginateStub.calledWithExactly(query, listQuery, query.createdAt, credentials);
+  });
+});
 
 describe('getListQuery', () => {
   let formatArrayOrStringQueryParam;
@@ -16,35 +47,75 @@ describe('getListQuery', () => {
     formatArrayOrStringQueryParam.restore();
   });
 
-  it('should return empty object if no query', () => {
-    const result = EventHistoryHelper.getListQuery({});
+  it('should return at least company if no query', () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const result = EventHistoryHelper.getListQuery({}, credentials);
 
-    expect(result).toEqual({});
+    expect(result).toEqual({ $and: [{ company: credentials.company._id }] });
   });
 
   it('should format query with sectors', () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const query = { sectors: ['toto', 'tata'] };
     formatArrayOrStringQueryParam.returns([{ sectors: 'toto' }, { sectors: 'tata' }]);
-    const result = EventHistoryHelper.getListQuery(query);
+    const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({ $or: [{ sectors: 'toto' }, { sectors: 'tata' }] });
+    expect(result).toEqual({
+      $and: [
+        { company: credentials.company._id },
+        { $or: [{ sectors: 'toto' }, { sectors: 'tata' }] },
+      ],
+    });
   });
 
   it('should format query with auxiliaries', () => {
+    const credentials = { company: { _id: new ObjectID() } };
     const query = { auxiliaries: ['toto', 'tata'] };
     formatArrayOrStringQueryParam.returns([{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }]);
-    const result = EventHistoryHelper.getListQuery(query);
+    const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({ $or: [{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }] });
+    expect(result).toEqual({
+      $and: [
+        { company: credentials.company._id },
+        { $or: [{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }] },
+      ],
+    });
   });
 
-  it('should format query with sectors and auxiliaries', () => {
-    const query = { sectors: ['toto', 'tata'], auxiliaries: ['toto', 'tata'] };
+  it('should format query with createdAt', () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const query = { createdAt: '2019-10-11' };
+    const result = EventHistoryHelper.getListQuery(query, credentials);
+
+    expect(result).toEqual({
+      $and: [
+        { company: credentials.company._id },
+        { createdAt: { $lte: '2019-10-11' } },
+      ],
+    });
+  });
+
+  it('should format query with sectors and auxiliaries and createdAt', () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const query = { sectors: ['toto', 'tata'], auxiliaries: ['toto', 'tata'], createdAt: '2019-10-11' };
     formatArrayOrStringQueryParam.onCall(0).returns([{ sectors: 'toto' }, { sectors: 'tata' }]);
     formatArrayOrStringQueryParam.onCall(1).returns([{ auxiliaries: 'toto' }, { auxiliaries: 'tata' }]);
-    const result = EventHistoryHelper.getListQuery(query);
+    const result = EventHistoryHelper.getListQuery(query, credentials);
 
-    expect(result).toEqual({ $or: [{ sectors: 'toto' }, { sectors: 'tata' }, { auxiliaries: 'toto' }, { auxiliaries: 'tata' }] });
+    expect(result).toEqual({
+      $and: [
+        { company: credentials.company._id },
+        { createdAt: { $lte: '2019-10-11' } },
+        {
+          $or: [
+            { sectors: 'toto' },
+            { sectors: 'tata' },
+            { auxiliaries: 'toto' },
+            { auxiliaries: 'tata' },
+          ],
+        },
+      ],
+    });
   });
 });
 
@@ -80,7 +151,7 @@ describe('createEventHistoryOnCreate', () => {
     const credentials = { _id: new ObjectID() };
     await EventHistoryHelper.createEventHistoryOnCreate(payload, credentials);
 
-    sinon.assert.calledWith(createEventHistory, payload, credentials, 'event_creation');
+    sinon.assert.calledWithExactly(createEventHistory, payload, credentials, 'event_creation');
   });
 });
 
@@ -98,7 +169,7 @@ describe('createEventHistoryOnDelete', () => {
     const credentials = { _id: new ObjectID() };
     await EventHistoryHelper.createEventHistoryOnDelete(payload, credentials);
 
-    sinon.assert.calledWith(createEventHistory, payload, credentials, 'event_deletion');
+    sinon.assert.calledWithExactly(createEventHistory, payload, credentials, 'event_deletion');
   });
 });
 
@@ -136,13 +207,14 @@ describe('createEventHistoryOnUpdate', () => {
       customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond' };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForAuxiliaryUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {
@@ -174,13 +246,14 @@ describe('createEventHistoryOnUpdate', () => {
       customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond' };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForDatesUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {
@@ -214,13 +287,14 @@ describe('createEventHistoryOnUpdate', () => {
       customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond' };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForCancelUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {
@@ -252,13 +326,14 @@ describe('createEventHistoryOnUpdate', () => {
       customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond' };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForHoursUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {
@@ -292,13 +367,14 @@ describe('createEventHistoryOnUpdate', () => {
       customer: new ObjectID('5d3aba5866ec0f0e97cd031f'),
       type: 'intervention',
     };
-    const credentials = { _id: 'james bond' };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForCancelUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {
@@ -314,9 +390,10 @@ describe('createEventHistoryOnUpdate', () => {
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForDatesUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {
@@ -348,13 +425,14 @@ describe('createEventHistoryOnUpdate', () => {
       type: 'intervention',
       repetition: { frequency: 'every_two_weeks' },
     };
-    const credentials = { _id: 'james bond' };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForAuxiliaryUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {
@@ -389,13 +467,14 @@ describe('createEventHistoryOnUpdate', () => {
       type: 'internalHour',
       internalHour: { name: 'meeting' },
     };
-    const credentials = { _id: 'james bond' };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForAuxiliaryUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {
@@ -430,13 +509,14 @@ describe('createEventHistoryOnUpdate', () => {
       type: 'absence',
       absence: 'leave',
     };
-    const credentials = { _id: 'james bond' };
+    const credentials = { _id: 'james bond', company: { _id: new ObjectID() } };
 
     await EventHistoryHelper.createEventHistoryOnUpdate(payload, event, credentials);
 
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       formatEventHistoryForAuxiliaryUpdate,
       {
+        company: credentials.company._id,
         createdBy: 'james bond',
         action: 'event_update',
         event: {

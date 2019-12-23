@@ -4,7 +4,7 @@ const moment = require('moment');
 const Bill = require('../models/Bill');
 
 exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMax = null) => {
-  const rules = [{ company: new ObjectID(companyId) }];
+  const rules = [];
   if (customerId) rules.push({ customer: new ObjectID(customerId) });
   if (dateMax) rules.push({ date: { $lt: new Date(dateMax) } });
 
@@ -42,7 +42,7 @@ exports.findAmountsGroupedByClient = async (companyId, customerId = null, dateMa
         billed: 1,
       },
     },
-  ]);
+  ]).option({ company: companyId });
 
   return billsAmounts;
 };
@@ -85,4 +85,4 @@ exports.findBillsAndHelpersByCustomer = async () => Bill.aggregate([
       helpers: { identity: 1, local: 1, company: 1 },
     },
   },
-]);
+]).option({ allCompanies: true });

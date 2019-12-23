@@ -28,7 +28,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
   let authToken = null;
   beforeEach(populateDB);
 
-  const payload = {
+  const payloadWithEvents = {
     date: '2019-07-19T14:00:18',
     startDate: '2019-07-01T00:00:00',
     endDate: '2019-07-15T00:00:00',
@@ -46,6 +46,15 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         exclTaxesCustomer: 8,
       },
     }],
+  };
+
+  const payloadWithSubscription = {
+    date: '2019-07-19T14:00:18',
+    startDate: '2019-07-01T00:00:00',
+    endDate: '2019-07-15T00:00:00',
+    customer: creditNoteCustomer._id,
+    exclTaxesCustomer: 100,
+    inclTaxesCustomer: 112,
     subscription: {
       _id: creditNoteCustomer.subscriptions[0]._id,
       service: {
@@ -62,13 +71,18 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       authToken = await getToken('admin');
     });
 
-    it('should create two new credit note', async () => {
+    it('should create two new credit notes with linked events', async () => {
       const initialCreditNotesNumber = creditNotesList.length;
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
-        payload: { ...payload, exclTaxesTpp: 100, inclTaxesTpp: 100, thirdPartyPayer: creditNoteThirdPartyPayer._id },
+        payload: {
+          ...payloadWithEvents,
+          exclTaxesTpp: 100,
+          inclTaxesTpp: 100,
+          thirdPartyPayer: creditNoteThirdPartyPayer._id,
+        },
       });
 
       expect(response.statusCode).toBe(200);
@@ -78,13 +92,48 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
       expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
     });
 
-    it('should create one credit note', async () => {
+    it('should create two new credit notes with subscription', async () => {
       const initialCreditNotesNumber = creditNotesList.length;
       const response = await app.inject({
         method: 'POST',
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
-        payload: { ...payload },
+        payload: {
+          ...payloadWithSubscription,
+          exclTaxesTpp: 100,
+          inclTaxesTpp: 100,
+          thirdPartyPayer: creditNoteThirdPartyPayer._id,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const creditNotes = await CreditNote.find({ company: authCompany });
+      expect(creditNotes.filter(cn => cn.linkedCreditNote)).toBeDefined();
+      expect(creditNotes.filter(cn => cn.linkedCreditNote).length).toEqual(2);
+      expect(creditNotes.length).toEqual(initialCreditNotesNumber + 2);
+    });
+
+    it('should create one credit note with linked events', async () => {
+      const initialCreditNotesNumber = creditNotesList.length;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: { ...payloadWithEvents },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const creditNotes = await CreditNote.find({ company: authCompany._id });
+      expect(creditNotes.length).toEqual(initialCreditNotesNumber + 1);
+    });
+
+    it('should create one credit note with subscription', async () => {
+      const initialCreditNotesNumber = creditNotesList.length;
+      const response = await app.inject({
+        method: 'POST',
+        url: '/creditNotes',
+        headers: { 'x-access-token': authToken },
+        payload: { ...payloadWithEvents },
       });
 
       expect(response.statusCode).toBe(200);
@@ -97,7 +146,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         method: 'POST',
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
-        payload: { ...payload, customer: otherCompanyCustomer._id },
+        payload: { ...payloadWithEvents, customer: otherCompanyCustomer._id },
       });
 
       expect(response.statusCode).toBe(403);
@@ -109,7 +158,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
         payload: {
-          ...payload,
+          ...payloadWithSubscription,
           subscription: {
             _id: otherCompanyCustomer.subscriptions[0]._id,
             service: {
@@ -131,7 +180,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
         payload: {
-          ...payload,
+          ...payloadWithSubscription,
           exclTaxesTpp: 100,
           inclTaxesTpp: 100,
           thirdPartyPayer: otherCompanyThirdPartyPayer._id,
@@ -147,7 +196,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
         url: '/creditNotes',
         headers: { 'x-access-token': authToken },
         payload: {
-          ...payload,
+          ...payloadWithEvents,
           events: [{
             eventId: creditNoteEvent._id,
             auxiliary: creditNoteEvent.auxiliary,
@@ -178,63 +227,63 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
     const missingParams = [
       {
         paramName: 'date',
-        payload: { ...payload },
+        payload: { ...payloadWithEvents },
         update() {
           delete this.payload[this.paramName];
         },
       },
       {
         paramName: 'customer',
-        payload: { ...payload },
+        payload: { ...payloadWithEvents },
         update() {
           delete this.payload[this.paramName];
         },
       },
       {
         paramName: 'events.eventId',
-        payload: { ...payload },
+        payload: { ...payloadWithEvents },
         update() {
           delete this.payload.events[0].eventId;
         },
       },
       {
         paramName: 'events.auxiliary',
-        payload: { ...payload },
+        payload: { ...payloadWithEvents },
         update() {
           delete this.payload.events[0].auxiliary;
         },
       },
       {
         paramName: 'events.serviceName',
-        payload: { ...payload },
+        payload: { ...payloadWithEvents },
         update() {
           delete this.payload.events[0].serviceName;
         },
       },
       {
         paramName: 'events.startDate',
-        payload: { ...payload },
+        payload: { ...payloadWithEvents },
         update() {
           delete this.payload.events[0].startDate;
         },
       },
       {
         paramName: 'events.endDate',
-        payload: { ...payload },
+        payload: { ...payloadWithEvents },
         update() {
           delete this.payload.events[0].endDate;
         },
       },
       {
         paramName: 'events.bills',
-        payload: { ...payload },
+        payload: { ...payloadWithEvents },
         update() {
           delete this.payload.events[0].bills;
         },
       },
       {
         paramName: 'subscription.service',
-        payload: { ...payload },
+        payload: { ...payloadWithSubscription },
         update() {
           delete this.payload.subscription.service;
         },
@@ -269,7 +318,7 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
           method: 'POST',
           url: '/creditNotes',
           headers: { 'x-access-token': authToken },
-          payload: { ...payload },
+          payload: { ...payloadWithEvents },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);
@@ -314,17 +363,6 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes', () => {
   });
 
   describe('Other roles', () => {
-    it('should return customer creditnotes if I am its helper', async () => {
-      const helper = creditNoteUserList[0];
-      const helperToken = await getTokenByCredentials(helper.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/creditNotes?customer=${helper.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
     const roles = [
       { name: 'helper', expectedCode: 403 },
       { name: 'auxiliary', expectedCode: 403 },
@@ -375,14 +413,14 @@ describe('CREDIT NOTES ROUTES - GET /creditNotes/pdfs', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('should return a 403 error if customer is not from the same company', async () => {
+    it('should return a 404 error if customer is not from the same company', async () => {
       const response = await app.inject({
         method: 'GET',
         url: `/creditNotes/${otherCompanyCreditNote._id}/pdfs`,
         headers: { 'x-access-token': authToken },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
   });
 
@@ -596,12 +634,21 @@ describe('CREDIT NOTES ROUTES - DELETE /creditNotes/:id', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return a 403 error if user is not from credit note company', async () => {
+    it('should return a 404 error if user is not from credit note company', async () => {
       authToken = await getTokenByCredentials(otherCompanyUser.local);
 
       const response = await app.inject({
         method: 'DELETE',
         url: `/creditNotes/${creditNotesList[0]._id.toHexString()}`,
+        headers: { 'x-access-token': authToken },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return a 403 error if credit not origin is not COMPANI', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/creditNotes/${creditNotesList[1]._id.toHexString()}`,
         headers: { 'x-access-token': authToken },
       });
       expect(response.statusCode).toBe(403);

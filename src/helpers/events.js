@@ -24,10 +24,23 @@ const Repetition = require('../models/Repetition');
 const User = require('../models/User');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const EventRepository = require('../repositories/EventRepository');
+const { AUXILIARY, CUSTOMER } = require('../helpers/constants');
 
 momentRange.extendMoment(moment);
 
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
+
+exports.list = async (query, credentials) => {
+  const eventsQuery = exports.getListQuery(query, credentials);
+  const { groupBy } = query;
+
+  if (groupBy === CUSTOMER) {
+    return EventRepository.getEventsGroupedByCustomers(eventsQuery, _.get(credentials, 'company._id', null));
+  } else if (groupBy === AUXILIARY) {
+    return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, _.get(credentials, 'company._id', null));
+  }
+  return exports.populateEvents(await EventRepository.getEventList(eventsQuery));
+};
 
 exports.createEvent = async (payload, credentials) => {
   const companyId = _.get(credentials, 'company._id', null);
@@ -217,7 +230,12 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
-  const unassignedInterventions = await EventRepository.getUnassignedInterventions(contract.endDate, contract.user, correspondingSubsIds, companyId);
+  const unassignedInterventions = await EventRepository.getUnassignedInterventions(
+    contract.endDate,
+    contract.user,
+    correspondingSubsIds,
+    companyId
+  );
   const promises = [];
   const ids = [];
 
@@ -240,7 +258,8 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
       { _id: { $in: ids } },
       { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
     ),
-    Repetition.updateMany({ auxiliary: contract.user }, { $unset: { auxiliary: '' } })
+    Repetition.updateMany({ auxiliary: contract.user, type: INTERVENTION }, { $unset: { auxiliary: '' } }),
+    Repetition.deleteMany({ auxiliary: contract.user, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } })
   );
 
   return Promise.all(promises);
@@ -273,12 +292,15 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
   const query = {
     customer: new ObjectID(customer),
     startDate: { $gte: moment(startDate).toDate() },
-    company: new ObjectID(companyId),
   };
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
-  if (await Event.countDocuments({ ...query, isBilled: true }) > 0) throw Boom.conflict('Some events are already billed');
+  if (await Event.countDocuments({
+    ...query,
+    company: new ObjectID(companyId),
+    isBilled: true,
+  }) > 0) throw Boom.conflict('Some events are already billed');
 
-  const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query);
+  const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query, companyId);
   for (const group of eventsGroupedByParentId) {
     if (!group._id || endDate) await exports.deleteEvents(group.events, credentials);
     else {
@@ -346,12 +368,15 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 });
 
 exports.workingStats = async (query, credentials) => {
-  const ids = Array.isArray(query.auxiliary) ? query.auxiliary.map(id => new ObjectID(id)) : [new ObjectID(query.auxiliary)];
+  const ids = Array.isArray(query.auxiliary)
+    ? query.auxiliary.map(id => new ObjectID(id))
+    : [new ObjectID(query.auxiliary)];
   const auxiliaries = await User.find({ _id: { $in: ids } }).populate('contracts').lean();
-
+  const companyId = _.get(credentials, 'company._id');
   const { startDate, endDate } = query;
-  const distanceMatrix = await DistanceMatrix.find().lean();
-  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id), _.get(credentials, 'company._id'));
+  const distanceMatrix = await DistanceMatrix.find({ company: companyId }).lean();
+  const auxiliariesIds = auxiliaries.map(aux => aux._id);
+  const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliariesIds, companyId);
 
   const workingStats = {};
   for (const auxiliary of auxiliaries) {

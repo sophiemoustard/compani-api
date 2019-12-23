@@ -12,6 +12,7 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const DraftPayHelper = require('./draftPay');
 const EventRepository = require('../repositories/EventRepository');
+const UserRepository = require('../repositories/UserRepository');
 const { COMPANY_CONTRACT } = require('./constants');
 
 exports.formatSurchargeDetail = (detail) => {
@@ -23,12 +24,9 @@ exports.formatSurchargeDetail = (detail) => {
   return surchargeDetail;
 };
 
-exports.formatPay = (draftPay) => {
-  const payload = cloneDeep(draftPay);
-  const keys = [
-    'surchargedAndNotExemptDetails',
-    'surchargedAndExemptDetails',
-  ];
+exports.formatPay = (draftPay, companyId) => {
+  const payload = { ...cloneDeep(draftPay), company: companyId };
+  const keys = ['surchargedAndNotExemptDetails', 'surchargedAndExemptDetails'];
   for (const key of keys) {
     if (draftPay[key]) {
       payload[key] = exports.formatSurchargeDetail(draftPay[key]);
@@ -41,10 +39,11 @@ exports.formatPay = (draftPay) => {
   return payload;
 };
 
-exports.createPayList = async (payToCreate) => {
+exports.createPayList = async (payToCreate, credentials) => {
   const list = [];
+  const companyId = get(credentials, 'company._id', null);
   for (const pay of payToCreate) {
-    list.push(new Pay(this.formatPay(pay)));
+    list.push(new Pay(this.formatPay(pay, companyId)));
   }
 
   await Pay.insertMany(list);
@@ -70,7 +69,12 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
   const endDate = moment(month, 'MM-YYYY').endOf('M').toDate();
-  const auxiliaryEvents = await EventRepository.getEventsToPay(startDate, endDate, [new ObjectID(auxiliaryId)], companyId);
+  const auxiliaryEvents = await EventRepository.getEventsToPay(
+    startDate,
+    endDate,
+    [new ObjectID(auxiliaryId)],
+    companyId
+  );
   const customersCount = auxiliaryEvents[0] ? exports.getCustomerCount(auxiliaryEvents[0].events) : 0;
 
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
@@ -83,16 +87,70 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne({ _id: companyId }).lean(),
     Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find().lean(),
+    DistanceMatrix.find({ company: companyId }).lean(),
   ]);
 
-  const prevPayList = await DraftPayHelper.getPreviousMonthPay([{ ...auxiliary, prevPay }], query, surcharges, distanceMatrix, companyId);
+  const prevPayList = await DraftPayHelper.getPreviousMonthPay(
+    [{ ...auxiliary, prevPay }],
+    query,
+    surcharges,
+    distanceMatrix,
+    companyId
+  );
   const prevPayWithDiff = prevPayList.length ? prevPayList[0] : null;
   const contract = exports.getContract(auxiliary.contracts, startDate, endDate);
   if (!contract) throw Boom.badRequest();
 
   const events = auxiliaryEvents[0] ? auxiliaryEvents[0] : { events: [], absences: [] };
-  const draft = await DraftPayHelper.computeAuxiliaryDraftPay(auxiliary, contract, events, prevPayWithDiff, company, query, distanceMatrix, surcharges);
+  const draft = await DraftPayHelper.computeAuxiliaryDraftPay(
+    auxiliary,
+    contract,
+    events,
+    prevPayWithDiff,
+    company,
+    query,
+    distanceMatrix,
+    surcharges
+  );
 
   return draft ? { ...draft, customersCount } : null;
+};
+
+exports.computeHoursToWork = (month, contracts) => {
+  const contractQuery = {
+    startDate: moment(month, 'MMYYYY').startOf('M').toDate(),
+    endDate: moment(month, 'MMYYYY').endOf('M').toDate(),
+  };
+  const contractsInfoSum = { contractHours: 0, holidaysHours: 0, absencesHours: 0 };
+
+  for (const contract of contracts) {
+    const contractInfo = DraftPayHelper.getContractMonthInfo(contract, contractQuery);
+    contractsInfoSum.contractHours += contractInfo.contractHours;
+    contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
+    if (contract.absences.length) {
+      contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(contract.absences, contract, contractQuery);
+    }
+  }
+
+  return Math.max(contractsInfoSum.contractHours - contractsInfoSum.holidaysHours - contractsInfoSum.absencesHours, 0);
+};
+
+exports.getHoursToWorkBySector = async (query, credentials) => {
+  const hoursToWorkBySector = [];
+  const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
+
+  const contractsAndEventsBySector = await UserRepository.getContractsAndAbsencesBySector(
+    query.month,
+    sectors,
+    get(credentials, 'company._id', null)
+  );
+
+  for (const sector of contractsAndEventsBySector) {
+    hoursToWorkBySector.push({
+      sector: sector._id,
+      hoursToWork: exports.computeHoursToWork(query.month, sector.contracts),
+    });
+  }
+
+  return hoursToWorkBySector;
 };

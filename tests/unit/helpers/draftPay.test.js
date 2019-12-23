@@ -45,12 +45,12 @@ describe('getContractMonthInfo', () => {
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(104);
     expect(result.workedDaysRatio).toBe(1 / 4);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-05-06').startOf('M').toDate(),
       moment('2019-05-06').endOf('M').toDate()
     );
-    sinon.assert.calledWith(getContractInfo, versions[1], query, 4);
+    sinon.assert.calledWithExactly(getContractInfo, versions[1], query, 4);
   });
 });
 
@@ -368,6 +368,7 @@ describe('getSurchargeSplit', () => {
 });
 
 describe('getTransportInfo', () => {
+  const companyId = new ObjectID();
   let getOrCreateDistanceMatrix;
   beforeEach(() => {
     getOrCreateDistanceMatrix = sinon.stub(DistanceMatrixHelper, 'getOrCreateDistanceMatrix');
@@ -378,7 +379,7 @@ describe('getTransportInfo', () => {
 
   it('should return 0 if no origins', async () => {
     const distances = [];
-    const result = await DraftPayHelper.getTransportInfo(distances, null, 'lalal', 'repos');
+    const result = await DraftPayHelper.getTransportInfo(distances, null, 'lalal', 'repos', companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ distance: 0, duration: 0 });
@@ -386,7 +387,7 @@ describe('getTransportInfo', () => {
 
   it('should return 0 if no destination', async () => {
     const distances = [];
-    const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', null, 'repos');
+    const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', null, 'repos', companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ distance: 0, duration: 0 });
@@ -394,7 +395,7 @@ describe('getTransportInfo', () => {
 
   it('should return 0 if no mode', async () => {
     const distances = [];
-    const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'repos', null);
+    const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'repos', null, companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ distance: 0, duration: 0 });
@@ -408,7 +409,7 @@ describe('getTransportInfo', () => {
       duration: 120,
       distance: 2000,
     }];
-    const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'paradis', 'repos');
+    const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'paradis', 'repos', companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({ distance: 2, duration: 2 });
@@ -417,9 +418,15 @@ describe('getTransportInfo', () => {
   it('should call google maps api as no data found in database', async () => {
     const distances = [{ origins: 'lilili', destinations: 'enfer', mode: 'boulot', duration: 120 }];
     getOrCreateDistanceMatrix.resolves({ duration: 120, distance: 3000 });
-    const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'paradis', 'repos');
+    const result = await DraftPayHelper.getTransportInfo(distances, 'lalal', 'paradis', 'repos', companyId);
 
     expect(result).toBeDefined();
+    const query = {
+      origins: 'lalal',
+      destinations: 'paradis',
+      mode: 'repos',
+    };
+    sinon.assert.calledWithExactly(getOrCreateDistanceMatrix, query, companyId);
     expect(result).toEqual({ duration: 2, distance: 3 });
   });
 });
@@ -526,6 +533,7 @@ describe('getPaidTransportInfo', () => {
         administrative: { transportInvoice: { transportType: 'private' } },
       },
       address: { fullAddress: 'jébobolà' },
+      company: new ObjectID(),
     };
     const prevEvent = {
       hasFixedService: false,
@@ -537,7 +545,7 @@ describe('getPaidTransportInfo', () => {
     const result = await DraftPayHelper.getPaidTransportInfo(event, prevEvent, []);
 
     expect(result).toBeDefined();
-    sinon.assert.calledWith(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving');
+    sinon.assert.calledWithExactly(getTransportInfo, [], 'tamalou', 'jébobolà', 'driving', event.company);
   });
 
   it('should compute transit transport', async () => {
@@ -689,7 +697,7 @@ describe('getEventHours', () => {
     const result = await DraftPayHelper.getEventHours(event, prevEvent, service, details, distanceMatrix);
     expect(result).toBeDefined();
     expect(result).toEqual({ surcharged: 10, notSurcharged: 2.5, paidTransportHours: 0.5 });
-    sinon.assert.calledWith(getSurchargeSplit, event, { sunday: 10 }, details, { distance: 12, duration: 30 });
+    sinon.assert.calledWithExactly(getSurchargeSplit, event, { sunday: 10 }, details, { distance: 12, duration: 30 });
   });
 });
 
@@ -868,7 +876,7 @@ describe('getPayFromEvents', () => {
     const result = await DraftPayHelper.getPayFromEvents(events, auxiliary, [], surcharges, query);
 
     expect(result).toBeDefined();
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getMatchingVersion,
       '2019-07-12T09:00:00',
       { versions: [{ startDate: '2019-02-22T00:00:00' }], surcharge: surchargeId },
@@ -921,7 +929,7 @@ describe('getPayFromEvents', () => {
       internalHours: 0,
       paidTransportHours: 2,
     });
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getEventHours,
       { ...events[0][0], auxiliary },
       false,
@@ -976,7 +984,7 @@ describe('getPayFromEvents', () => {
       paidTransportHours: 3,
       internalHours: 0,
     });
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getEventHours,
       { ...events[0][0], auxiliary },
       false,
@@ -1023,7 +1031,7 @@ describe('getPayFromEvents', () => {
       internalHours: 5,
       paidTransportHours: 2,
     });
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getEventHours,
       { ...events[0][0], auxiliary },
       false,
@@ -1199,7 +1207,7 @@ describe('getPayFromAbsences', () => {
     const result = DraftPayHelper.getPayFromAbsences(absences, contract, query);
 
     expect(result).toBeDefined();
-    sinon.assert.calledWith(getMatchingVersion.getCall(0), moment(query.startDate).startOf('d'), contract, 'startDate');
+    sinon.assert.calledWithExactly(getMatchingVersion.getCall(0), moment(query.startDate).startOf('d'), contract, 'startDate');
   });
 });
 
@@ -1308,7 +1316,7 @@ describe('computeAuxiliaryDraftPay', () => {
       overtimeHours: 0,
       additionalHours: 0,
     });
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       computeBalance,
       auxiliary,
       { startDate: '2019-05-13T00:00:00', status: 'contract_with_company' },
@@ -1611,11 +1619,15 @@ describe('computeDraftPayByAuxiliary', () => {
   });
 
   it('should return an empty array if no auxiliary', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     companyMock.expects('findOne').chain('lean').returns({});
     surchargeMock.expects('find').chain('lean').returns([]);
-    distanceMatrixMock.expects('find').chain('lean').returns([]);
+    distanceMatrixMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('lean')
+      .returns([]);
     const result = await DraftPayHelper.computeDraftPayByAuxiliary([], query, credentials);
 
     sinon.assert.calledOnce(getPreviousMonthPay);
@@ -1649,7 +1661,7 @@ describe('computeDraftPayByAuxiliary', () => {
   });
 
   it('should return draft pay by auxiliary', async () => {
-    const credentials = { company: 'qwertyuiop' };
+    const credentials = { company: { _id: new ObjectID() } };
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
     const auxiliaryId = new ObjectID();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] }];
@@ -1674,7 +1686,11 @@ describe('computeDraftPayByAuxiliary', () => {
     getPreviousMonthPay.returns(prevPay);
     companyMock.expects('findOne').chain('lean').returns({});
     surchargeMock.expects('find').chain('lean').returns([]);
-    distanceMatrixMock.expects('find').chain('lean').returns([]);
+    distanceMatrixMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('lean')
+      .returns([]);
     computeAuxiliaryDraftPay.returns({ hoursBalance: 120 });
     getContract.returns({ _id: '1234567890' });
     const result = await DraftPayHelper.computeDraftPayByAuxiliary(auxiliaries, query, credentials);
@@ -1684,7 +1700,7 @@ describe('computeDraftPayByAuxiliary', () => {
     companyMock.verify();
     surchargeMock.verify();
     distanceMatrixMock.verify();
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       computeAuxiliaryDraftPay,
       { _id: auxiliaryId, sector: { name: 'Abeilles' }, contracts: [{ _id: '1234567890' }] },
       { _id: '1234567890' },
@@ -1721,16 +1737,16 @@ describe('getAuxiliariesToPay', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual(auxiliaries);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        company: '1234567890',
         status: 'contract_with_company',
         startDate: { $lte: end },
         $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
       },
       end,
-      'pays'
+      'pays',
+      credentials.company._id
     );
   });
 });
@@ -1754,7 +1770,7 @@ describe('getDraftPay', () => {
     const result = await DraftPayHelper.getDraftPay(query, credentials);
 
     expect(result).toEqual([]);
-    sinon.assert.calledWith(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate(), credentials);
+    sinon.assert.calledWithExactly(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate(), credentials);
     sinon.assert.notCalled(computeDraftPayByAuxiliary);
   });
 
@@ -1765,8 +1781,8 @@ describe('getDraftPay', () => {
     getAuxiliariesToPay.returns(auxiliaries);
     await DraftPayHelper.getDraftPay(query, credentials);
 
-    sinon.assert.calledWith(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate(), credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(getAuxiliariesToPay, moment(query.endDate).endOf('d').toDate(), credentials);
+    sinon.assert.calledWithExactly(
       computeDraftPayByAuxiliary,
       auxiliaries,
       { startDate: moment(query.startDate).startOf('d').toDate(), endDate: moment(query.endDate).endOf('d').toDate() },

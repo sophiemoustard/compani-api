@@ -1,17 +1,17 @@
 const flat = require('flat');
 const Boom = require('boom');
-const { ObjectID } = require('mongodb');
 const crypto = require('crypto');
 const moment = require('moment');
 const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
 const GdriveStorageHelper = require('./gdriveStorage');
+const Company = require('../models/Company');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const Event = require('../models/Event');
-const EventRepository = require('../repositories/EventRepository');
 const Drive = require('../models/Google/Drive');
+const EventRepository = require('../repositories/EventRepository');
 const translate = require('../helpers/translate');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
 const EventsHelper = require('./events');
@@ -19,7 +19,7 @@ const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
 const UtilsHelper = require('./utils');
 const CustomerRepository = require('../repositories/CustomerRepository');
-const Counter = require('../models/Rum');
+const Rum = require('../models/Rum');
 
 const { language } = translate;
 
@@ -31,18 +31,18 @@ exports.getCustomerBySector = async (query, credentials) => {
     sector: query.sector,
   }, credentials);
   const companyId = get(credentials, 'company._id', null);
-  return EventRepository.getCustomersFromEvent({ ...queryCustomer, company: new ObjectID(companyId) });
+  return EventRepository.getCustomersFromEvent(queryCustomer, companyId);
 };
 
 exports.getCustomersWithBilledEvents = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const query = { isBilled: true, type: INTERVENTION, company: new ObjectID(companyId) };
+  const query = { isBilled: true, type: INTERVENTION };
 
-  return EventRepository.getCustomerWithBilledEvents(query);
+  return EventRepository.getCustomersWithBilledEvents(query, companyId);
 };
 
-exports.getCustomers = async (query) => {
-  const customers = await CustomerRepository.getCustomersList(query);
+exports.getCustomers = async (credentials) => {
+  const customers = await CustomerRepository.getCustomersList(get(credentials, 'company._id', null));
   if (customers.length === 0) return [];
 
   for (let i = 0, l = customers.length; i < l; i++) {
@@ -53,7 +53,8 @@ exports.getCustomers = async (query) => {
   return customers;
 };
 
-exports.getCustomersFirstIntervention = async (query, companyId) => {
+exports.getCustomersFirstIntervention = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const customers = await Customer.find({ ...query, company: companyId }, { _id: 1 })
     // need the match as it is a virtual populate
     .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
@@ -68,8 +69,8 @@ exports.getCustomersWithCustomerContractSubscriptions = async (credentials) => {
   if (customerContractServices.length === 0) return [];
 
   const ids = customerContractServices.map(service => service._id);
-  const query = { 'subscriptions.service': { $in: ids }, company: companyId };
-  const customers = await CustomerRepository.getCustomersWithSubscriptions(query);
+  const query = { 'subscriptions.service': { $in: ids } };
+  const customers = await CustomerRepository.getCustomersWithSubscriptions(query, companyId);
   if (customers.length === 0) return [];
 
   for (let i = 0, l = customers.length; i < l; i++) {
@@ -85,12 +86,8 @@ exports.getCustomersWithIntervention = async (credentials) => {
 };
 
 exports.getCustomersWithSubscriptions = async (credentials) => {
-  const query = {
-    subscriptions: { $exists: true, $not: { $size: 0 } },
-    company: get(credentials, 'company._id'),
-  };
-
-  return CustomerRepository.getCustomersWithSubscriptions(query);
+  const query = { subscriptions: { $exists: true, $not: { $size: 0 } } };
+  return CustomerRepository.getCustomersWithSubscriptions(query, get(credentials, 'company._id', null));
 };
 
 exports.getCustomer = async (customerId, credentials) => {
@@ -110,12 +107,8 @@ exports.getCustomer = async (customerId, credentials) => {
   customer = SubscriptionsHelper.populateSubscriptionsServices(customer);
   customer = SubscriptionsHelper.subscriptionsAccepted(customer);
 
-  const fundingsVersions = [];
   if (customer.fundings && customer.fundings.length > 0) {
-    for (const funding of customer.fundings) {
-      fundingsVersions.push(FundingsHelper.populateFundings(funding, customer));
-    }
-    customer.fundings = fundingsVersions;
+    customer = await FundingsHelper.populateFundingsList(customer);
   }
 
   return customer;
@@ -126,7 +119,7 @@ exports.generateRum = async () => {
     prefix: `R${moment().format('YYMM')}`,
   };
   const payload = { seq: 1 };
-  const number = await Counter.findOneAndUpdate(
+  const number = await Rum.findOneAndUpdate(
     query,
     { $inc: payload },
     { new: true, upsert: true, setDefaultsOnInsert: true }
@@ -188,6 +181,22 @@ exports.updateCustomer = async (customerId, customerPayload) => {
   return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
 };
 
+exports.createCustomer = async (payload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const rum = await exports.generateRum();
+  const company = await Company.findOne({ _id: companyId }).lean();
+  const folder = await GdriveStorageHelper.createFolder(payload.identity, company.customersFolderId);
+
+  const customer = {
+    ...payload,
+    company: companyId,
+    payment: { mandates: [{ rum }] },
+    driveFolder: { driveId: folder.id, link: folder.webViewLink },
+  };
+
+  return Customer.create(customer);
+};
+
 const uploadQuote = async (customerId, quoteId, file) => {
   const payload = { 'quotes.$': { _id: quoteId, drive: { ...file } } };
 
@@ -214,12 +223,12 @@ const uploadFinancialCertificate = async (customerId, file) => Customer.updateOn
   { new: true, autopopulate: false }
 );
 
-exports.createAndSaveFile = async (docKeys, params, payload) => {
+exports.createAndSaveFile = async (params, payload) => {
   const uploadedFile = await GdriveStorageHelper.addFile({
     driveFolderId: params.driveId,
-    name: payload.fileName || payload[docKeys[0]].hapi.filename,
+    name: payload.fileName || payload.file.hapi.filename,
     type: payload['Content-Type'],
-    body: payload[docKeys[0]],
+    body: payload.file,
   });
 
   let driveFileInfo = null;
@@ -230,7 +239,7 @@ exports.createAndSaveFile = async (docKeys, params, payload) => {
   }
 
   let file;
-  switch (docKeys[0]) {
+  switch (payload.type) {
     case 'signedQuote':
       file = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
       await uploadQuote(params._id, payload.quoteId, file);
@@ -247,3 +256,8 @@ exports.createAndSaveFile = async (docKeys, params, payload) => {
 
   return uploadedFile;
 };
+
+exports.deleteCertificates = (customerId, driveId) => Promise.all([
+  Drive.deleteFile({ fileId: driveId }),
+  Customer.updateOne({ _id: customerId }, { $pull: { financialCertificates: { driveId } } }),
+]);

@@ -1,7 +1,5 @@
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
-const fs = require('fs');
-const path = require('path');
 const GetStream = require('get-stream');
 const sinon = require('sinon');
 const omit = require('lodash/omit');
@@ -13,13 +11,15 @@ const {
   populateDB,
   isExistingRole,
   isInList,
+  customerFromOtherCompany,
+  userFromOtherCompany,
 } = require('./seed/usersSeed');
 const { getToken, userList, getTokenByCredentials } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
 describe('NODE ENV', () => {
-  it("should be 'test'", () => {
+  it('should be \'test\'', () => {
     expect(process.env.NODE_ENV).toBe('test');
   });
 });
@@ -111,6 +111,17 @@ describe('USERS ROUTES', () => {
           expect(response).toThrow('NoRole');
           expect(response.statusCode).toBe(409);
         });
+      });
+
+      it('should return a 403 if customer is not from the same company', async () => {
+        const payload = { ...userPayload, customer: customerFromOtherCompany };
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(400);
       });
     });
 
@@ -240,6 +251,7 @@ describe('USERS ROUTES', () => {
           url: '/users',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(userList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
@@ -254,6 +266,7 @@ describe('USERS ROUTES', () => {
           url: '/users',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(usersSeedList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
@@ -268,6 +281,7 @@ describe('USERS ROUTES', () => {
           url: '/users?role=coach',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
@@ -283,19 +297,41 @@ describe('USERS ROUTES', () => {
           url: '/users?role=coach',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
         expect(res.result.data.users[0].role.name).toEqual('coach');
       });
 
-      it("should not get users if role given doesn't exist", async () => {
+      it('should not get users if role given doesn\'t exist', async () => {
         const res = await app.inject({
           method: 'GET',
           url: '/users?role=Babouin',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(404);
+      });
+
+      it('should return a 403 if email not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?email=${userFromOtherCompany.local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return a 403 if customer not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?customers=${customerFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(403);
       });
     });
 
@@ -383,6 +419,15 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users[0].role.name).toEqual('auxiliary');
         expect(res.result.data.users[0]).toHaveProperty('isActive');
         expect(res.result.data.users[0].isActive).toBeTruthy();
+      });
+
+      it('should return a 403 if not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users/active?email=${userFromOtherCompany.local.email}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
       });
     });
 
@@ -539,6 +584,16 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(404);
+      });
+
+      it('should return a 403 error if user is not from the same company', async () => {
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userFromOtherCompany._id}`,
+          payload: {},
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(403);
       });
     });
 
@@ -865,11 +920,14 @@ describe('USERS ROUTES', () => {
     let addFileStub;
     beforeEach(() => {
       docPayload = {
-        mutualFund: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
         fileName: 'mutual_fund_doc',
+        type: 'mutualFund',
+        file: 'true',
       };
       form = generateFormData(docPayload);
-      addFileStub = sinon.stub(GdriveStorage, 'addFile').returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
+      addFileStub = sinon
+        .stub(GdriveStorage, 'addFile')
+        .returns({ id: 'qwerty', webViewLink: 'http://test.com/file.pdf' });
     });
 
     afterEach(() => {
@@ -911,7 +969,7 @@ describe('USERS ROUTES', () => {
         expect(response.statusCode).toBe(403);
       });
 
-      const wrongParams = ['mutualFund', 'fileName'];
+      const wrongParams = ['type', 'file', 'fileName'];
       wrongParams.forEach((param) => {
         it(`should return a 400 error if missing '${param}' parameter`, async () => {
           form = generateFormData(omit(docPayload, param));
@@ -969,7 +1027,9 @@ describe('USERS ROUTES', () => {
     const folderPayload = { parentFolderId: '0987654321' };
 
     beforeEach(() => {
-      createFolderStub = sinon.stub(GdriveStorage, 'createFolder').returns({ folder: { id: '1234567890', webViewLink: 'http://test.com' } });
+      createFolderStub = sinon
+        .stub(GdriveStorage, 'createFolder')
+        .returns({ id: '1234567890', webViewLink: 'http://test.com' });
     });
 
     afterEach(() => {
@@ -994,7 +1054,11 @@ describe('USERS ROUTES', () => {
         expect(response.result.data.updatedUser).toBeDefined();
         expect(response.result.data.updatedUser.administrative.driveFolder)
           .toMatchObject({ driveId: '1234567890', link: 'http://test.com' });
-        sinon.assert.calledWithExactly(createFolderStub, sinon.match(usersSeedList[0].identity), folderPayload.parentFolderId);
+        sinon.assert.calledWithExactly(
+          createFolderStub,
+          sinon.match(usersSeedList[0].identity),
+          folderPayload.parentFolderId
+        );
       });
     });
 

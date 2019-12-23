@@ -1,11 +1,9 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 const PayDocument = require('../models/PayDocument');
 const GdriveStorage = require('./gdriveStorage');
-const translate = require('./translate');
 
-const { language } = translate;
-
-const createAndSave = async (payDocumentPayload) => {
+exports.create = async (payDocumentPayload, credentials) => {
   const uploadedFile = await GdriveStorage.addFile({
     driveFolderId: payDocumentPayload.driveFolderId,
     name: payDocumentPayload.fileName || payDocumentPayload.payDoc.hapi.fileName,
@@ -16,6 +14,7 @@ const createAndSave = async (payDocumentPayload) => {
 
   const { id: driveId, webViewLink: link } = uploadedFile;
   const payDocument = new PayDocument({
+    company: get(credentials, 'company._id', null),
     date: payDocumentPayload.date,
     nature: payDocumentPayload.nature,
     user: payDocumentPayload.user,
@@ -25,11 +24,7 @@ const createAndSave = async (payDocumentPayload) => {
   return payDocument.save();
 };
 
-const removeFromDriveAndDb = async (payDocumentId) => {
+exports.removeFromDriveAndDb = async (payDocumentId) => {
   const deletedPayDocument = await PayDocument.findByIdAndRemove(payDocumentId);
-  if (!deletedPayDocument) throw Boom.notFound(translate[language].payDocumentNotFound);
-
   return GdriveStorage.deleteFile(deletedPayDocument.file.driveId);
 };
-
-module.exports = { createAndSave, removeFromDriveAndDb };

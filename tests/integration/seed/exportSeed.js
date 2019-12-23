@@ -64,6 +64,9 @@ const company = {
   customersConfig: {
     billingPeriod: 'two_weeks',
   },
+  folderId: '0987654321',
+  directDebitsFolderId: '1234567890',
+  customersFolderId: 'mnbvcxz',
 };
 
 const surcharge = {
@@ -341,6 +344,7 @@ const paymentsList = [
 const payList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     additionalHours: 0,
     auxiliary,
     bonus: 0,
@@ -382,6 +386,7 @@ const payList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     additionalHours: 0,
     auxiliary,
     bonus: 0,
@@ -426,6 +431,7 @@ const payList = [
 const finalPayList = [
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     additionalHours: 0,
     auxiliary,
     bonus: 0,
@@ -470,6 +476,7 @@ const finalPayList = [
   },
   {
     _id: new ObjectID(),
+    company: authCompany._id,
     additionalHours: 0,
     auxiliary,
     bonus: 0,

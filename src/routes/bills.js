@@ -6,10 +6,9 @@ Joi.objectId = require('joi-objectid')(Joi);
 const {
   draftBillsList,
   createBills,
-  list,
   generateBillPdf,
 } = require('../controllers/billsController');
-const { getBill, authorizeBillReading, authorizeBillsCreation } = require('./preHandlers/bills');
+const { getBill, authorizeGetBill, authorizeGetBillPdf, authorizeBillsCreation } = require('./preHandlers/bills');
 const { COMPANY_BILLING_PERIODS } = require('../models/Company');
 
 exports.plugin = {
@@ -29,24 +28,9 @@ exports.plugin = {
             customer: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeGetBill }],
       },
       handler: draftBillsList,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/',
-      options: {
-        auth: { scope: ['bills:read', 'customer-{query.customer}'] },
-        validate: {
-          query: {
-            endDate: Joi.date(),
-            startDate: Joi.date(),
-            customer: Joi.objectId(),
-          },
-        },
-      },
-      handler: list,
     });
 
     server.route({
@@ -58,7 +42,7 @@ exports.plugin = {
         },
         pre: [
           { method: getBill, assign: 'bill' },
-          { method: authorizeBillReading },
+          { method: authorizeGetBillPdf },
         ],
       },
       handler: generateBillPdf,
@@ -72,7 +56,6 @@ exports.plugin = {
         validate: {
           payload: {
             bills: Joi.array().items(Joi.object({
-              customerId: Joi.objectId(),
               customer: Joi.object().required(),
               endDate: Joi.date().required(),
               customerBills: Joi.object({
@@ -106,7 +89,6 @@ exports.plugin = {
                   exclTaxes: Joi.number().required(),
                   vat: Joi.number().required(),
                   discountEdition: Joi.boolean(),
-                  identity: Joi.object(),
                 })),
                 shouldBeSent: Joi.boolean(),
                 total: Joi.number(),
@@ -141,7 +123,6 @@ exports.plugin = {
                   vat: Joi.number().required(),
                   discountEdition: Joi.boolean(),
                   externalBilling: Joi.boolean(),
-                  identity: Joi.object(),
                 })),
                 total: Joi.number(),
               })),

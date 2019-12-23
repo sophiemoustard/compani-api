@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-const has = require('lodash/has');
+const get = require('lodash/get');
 const { COMPANI, OGUST } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
 const { SERVICE_NATURES } = require('./Service');
-const { validatePayload, validateQuery } = require('./preHooks/validate');
+const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const CREDIT_NOTE_ORIGINS = [COMPANI, OGUST];
 
@@ -74,13 +74,13 @@ const CreditNoteSchema = mongoose.Schema(
           type: String,
           enum: SERVICE_NATURES,
           required() {
-            return has(this.subscription, 'service.serviceId');
+            return get(this.subscription, 'service.serviceId', false);
           },
         },
         name: {
           type: String,
           required() {
-            return has(this.subscription, 'service.serviceId');
+            return get(this.subscription, 'service.serviceId', false);
           },
         },
       },
@@ -97,6 +97,7 @@ const CreditNoteSchema = mongoose.Schema(
 
 CreditNoteSchema.pre('validate', validatePayload);
 CreditNoteSchema.pre('find', validateQuery);
+CreditNoteSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('CreditNote', CreditNoteSchema);
 module.exports.CREDIT_NOTE_ORIGINS = CREDIT_NOTE_ORIGINS;

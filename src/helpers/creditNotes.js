@@ -1,5 +1,8 @@
 const moment = require('moment');
+const Boom = require('boom');
 const get = require('lodash/get');
+const translate = require('../helpers/translate');
+const Company = require('../models/Company');
 const Event = require('../models/Event');
 const CreditNote = require('../models/CreditNote');
 const CreditNoteNumber = require('../models/CreditNoteNumber');
@@ -8,6 +11,9 @@ const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
 const SubscriptionsHelper = require('./subscriptions');
 const { HOURLY, CIVILITY_LIST } = require('./constants');
+const { COMPANI } = require('../helpers/constants');
+
+const { language } = translate;
 
 exports.getCreditNotes = async (query, credentials) => {
   const { startDate, endDate, ...creditNoteQuery } = query;
@@ -222,4 +228,31 @@ exports.formatPDF = (creditNote, company) => {
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
     },
   };
+};
+
+exports.removeCreditNote = async (creditNote, credentials, params) => {
+  await exports.updateEventAndFundingHistory(creditNote.events, true, credentials);
+  await CreditNote.deleteOne({ _id: params._id });
+  if (creditNote.linkedCreditNote) await CreditNote.deleteOne({ _id: creditNote.linkedCreditNote });
+};
+
+exports.generateCreditNotePdf = async (params, credentials) => {
+  const creditNote = await CreditNote.findOne({ _id: params._id })
+    .populate({
+      path: 'customer',
+      select: '_id identity contact subscriptions',
+      populate: { path: 'subscriptions.service' },
+    })
+    .populate({ path: 'thirdPartyPayer', select: '_id name address' })
+    .populate({ path: 'events.auxiliary', select: 'identity' })
+    .lean();
+
+  if (!creditNote) throw Boom.notFound(translate[language].creditNoteNotFound);
+  if (creditNote.origin !== COMPANI) throw Boom.badRequest(translate[language].creditNoteNotCompani);
+
+  const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
+  const data = exports.formatPDF(creditNote, company);
+  const pdf = await PdfHelper.generatePdf(data, './src/data/creditNote.html');
+
+  return { pdf, creditNoteNumber: creditNote.number };
 };

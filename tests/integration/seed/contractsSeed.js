@@ -60,7 +60,7 @@ const otherCompanyContractUser = {
   company: otherCompany._id,
 };
 
-const contractUser = {
+const contractUsers = [{
   _id: new ObjectID(),
   identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test7@alenvi.io', password: '123456' },
@@ -70,7 +70,18 @@ const contractUser = {
   role: rolesList[0]._id,
   contracts: [new ObjectID()],
   company: authCompany._id,
-};
+},
+{
+  _id: new ObjectID(),
+  identity: { firstname: 'Test', lastname: 'Toto' },
+  local: { email: 'tototest@alenvi.io', password: '123456' },
+  inactivityDate: null,
+  employee_id: 12345678,
+  refreshToken: uuidv4(),
+  role: rolesList[0]._id,
+  contracts: [new ObjectID()],
+  company: authCompany._id,
+}];
 
 const otherCompanyContract = {
   createdAt: '2018-12-04T16:34:04.144Z',
@@ -92,6 +103,18 @@ const otherCompanyContract = {
   ],
 };
 
+const userFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'Test7', lastname: 'Test7' },
+  local: { email: 'test@othercompany.io', password: '123456' },
+  inactivityDate: null,
+  employee_id: 123456789,
+  refreshToken: uuidv4(),
+  role: rolesList[0]._id,
+  contracts: [new ObjectID()],
+  company: otherCompany._id,
+};
+
 const customerFromOtherCompany = {
   _id: new ObjectID(),
   company: otherCompanyContract._id,
@@ -109,11 +132,47 @@ const customerFromOtherCompany = {
 const contractsList = [
   {
     createdAt: '2018-12-04T16:34:04.144Z',
-    user: contractUser._id,
+    user: contractUsers[0]._id,
     startDate: '2018-12-03T23:00:00.000Z',
     status: 'contract_with_company',
-    _id: contractUser.contracts[0],
+    _id: contractUsers[0].contracts[0],
     company: authCompany._id,
+    versions: [
+      {
+        createdAt: '2018-12-04T16:34:04.144Z',
+        grossHourlyRate: 10.28,
+        startDate: '2018-12-03T23:00:00.000Z',
+        weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2018-12-04T16:34:04.144Z',
+    user: contractUsers[1]._id,
+    startDate: '2018-12-03T23:00:00.000Z',
+    status: 'contract_with_customer',
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: contractCustomer._id,
+    versions: [
+      {
+        createdAt: '2018-12-04T16:34:04.144Z',
+        grossHourlyRate: 10.28,
+        startDate: '2018-12-03T23:00:00.000Z',
+        weeklyHours: 9,
+        _id: new ObjectID(),
+      },
+    ],
+  },
+  {
+    createdAt: '2018-12-04T16:34:04.144Z',
+    user: contractUsers[1]._id,
+    startDate: '2018-12-03T23:00:00.000Z',
+    status: 'contract_with_customer',
+    _id: new ObjectID(),
+    company: authCompany._id,
+    customer: customerFromOtherCompany._id,
     versions: [
       {
         createdAt: '2018-12-04T16:34:04.144Z',
@@ -172,7 +231,7 @@ const contractEvents = [
     type: 'internalHour',
     startDate: '2019-08-08T14:00:18.653Z',
     endDate: '2019-08-08T16:00:18.653Z',
-    auxiliary: contractUser._id,
+    auxiliary: contractUsers[0]._id,
     customer: contractCustomer._id,
     createdAt: '2019-01-05T15:24:18.653Z',
     internalHour: {
@@ -189,7 +248,7 @@ const contractEvents = [
     absenceNature: DAILY,
     startDate: '2019-01-19T14:00:18.653Z',
     endDate: '2019-01-19T17:00:18.653Z',
-    auxiliary: contractUser._id,
+    auxiliary: contractUsers[0]._id,
     createdAt: '2019-01-11T08:38:18.653Z',
   },
   {
@@ -200,7 +259,7 @@ const contractEvents = [
     status: 'contract_with_company',
     startDate: '2019-01-16T09:30:19.543Z',
     endDate: '2019-01-16T11:30:21.653Z',
-    auxiliary: contractUser._id,
+    auxiliary: contractUsers[0]._id,
     customer: contractCustomer._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: contractCustomer.subscriptions[0]._id,
@@ -213,7 +272,7 @@ const contractEvents = [
     status: 'contract_with_company',
     startDate: '2019-01-17T14:30:19.543Z',
     endDate: '2019-01-17T16:30:19.543Z',
-    auxiliary: contractUser._id,
+    auxiliary: contractUsers[0]._id,
     customer: contractCustomer._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: contractCustomer.subscriptions[0]._id,
@@ -227,8 +286,7 @@ const populateDB = async () => {
   await Event.deleteMany({});
 
   await populateDBForAuthentication();
-  await new User(contractUser).save();
-  await new User(otherCompanyContractUser).save();
+  await User.insertMany([...contractUsers, otherCompanyContractUser, userFromOtherCompany]);
   await new Customer(contractCustomer).save();
   await new Customer(customerFromOtherCompany).save();
   await Contract.insertMany([...contractsList, otherCompanyContract]);
@@ -238,10 +296,11 @@ const populateDB = async () => {
 module.exports = {
   contractsList,
   populateDB,
-  contractUser,
+  contractUsers,
   contractCustomer,
   contractEvents,
   otherCompanyContract,
   customerFromOtherCompany,
   otherCompanyContractUser,
+  userFromOtherCompany,
 };

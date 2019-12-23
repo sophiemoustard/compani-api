@@ -14,23 +14,55 @@ const payDocumentUser = {
   company: authCompany._id,
 };
 
+const otherCompanyId = new ObjectID();
+
+const userFromOtherCompany = {
+  company: otherCompanyId,
+  _id: new ObjectID(),
+  identity: {
+    firstname: 'test',
+    lastname: 'toto',
+  },
+  local: { email: 'test@alenvi.io', password: '1234' },
+  role: rolesList[1]._id,
+  refreshToken: uuidv4(),
+};
+
 const payDocumentsList = [{
   _id: new ObjectID(),
+  user: payDocumentUser._id,
+  company: authCompany._id,
   nature: PAYSLIP,
   date: new Date('2019-01-01'),
   file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
-}, {
+},
+{
   _id: new ObjectID(),
+  company: authCompany._id,
+  user: payDocumentUser._id,
   nature: CERTIFICATE,
   date: new Date('2019-01-02'),
   file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
-}, {
+},
+{
   _id: new ObjectID(),
+  company: authCompany._id,
+  user: payDocumentUser._id,
   nature: OTHER,
   date: new Date('2019-01-03'),
   file: { driveId: 'qwertyuiop', link: 'http://wertyuiop.oiuytre' },
-}, {
+},
+{
   _id: new ObjectID(),
+  company: authCompany._id,
+  user: payDocumentUser._id,
+  nature: OTHER,
+  date: new Date('2019-01-04'),
+},
+{
+  _id: new ObjectID(),
+  user: userFromOtherCompany._id,
+  company: otherCompanyId,
   nature: OTHER,
   date: new Date('2019-01-04'),
 }];
@@ -41,7 +73,7 @@ const populateDB = async () => {
 
   await populateDBForAuthentication();
 
-  await (new User(payDocumentUser)).save();
+  await User.create([payDocumentUser, userFromOtherCompany]);
   await PayDocument.insertMany(payDocumentsList);
 };
 
@@ -49,4 +81,5 @@ module.exports = {
   populateDB,
   payDocumentsList,
   payDocumentUser,
+  userFromOtherCompany,
 };

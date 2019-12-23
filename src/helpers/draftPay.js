@@ -126,13 +126,13 @@ exports.getSurchargeSplit = (event, surcharge, surchargeDetails, paidTransport) 
   };
 };
 
-exports.getTransportInfo = async (distances, origins, destinations, mode) => {
+exports.getTransportInfo = async (distances, origins, destinations, mode, companyId) => {
   if (!origins || !destinations || !mode) return { distance: 0, duration: 0 };
   let distanceMatrix = distances.find(dm => dm.origins === origins && dm.destinations === destinations && dm.mode === mode);
 
   if (!distanceMatrix) {
     const query = { origins, destinations, mode };
-    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query);
+    distanceMatrix = await DistanceMatrixHelper.getOrCreateDistanceMatrix(query, companyId);
     distances.push(distanceMatrix || { ...query, distance: 0, duration: 0 });
   }
 
@@ -155,7 +155,7 @@ exports.getPaidTransportInfo = async (event, prevEvent, distanceMatrix) => {
 
     if (!origins || !destinations || !transportMode) return { duration: paidTransportDuration, distance: paidKm };
 
-    const transport = await exports.getTransportInfo(distanceMatrix, origins, destinations, transportMode);
+    const transport = await exports.getTransportInfo(distanceMatrix, origins, destinations, transportMode, event.company);
     const breakDuration = moment(event.startDate).diff(moment(prevEvent.endDate), 'minutes');
     const pickTransportDuration = (transport.duration > breakDuration) || breakDuration > (transport.duration + 15);
     paidTransportDuration = pickTransportDuration ? transport.duration : breakDuration;
@@ -434,7 +434,7 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
   const [company, surcharges, distanceMatrix] = await Promise.all([
     Company.findOne({ _id: companyId }).lean(),
     Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find().lean(),
+    DistanceMatrix.find({ company: companyId }).lean(),
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(startDate, endDate, auxiliaries.map(aux => aux._id), companyId);
@@ -458,13 +458,12 @@ exports.computeDraftPayByAuxiliary = async (auxiliaries, query, credentials) => 
 
 exports.getAuxiliariesToPay = async (end, credentials) => {
   const contractRules = {
-    company: get(credentials, 'company._id', null),
     status: COMPANY_CONTRACT,
     startDate: { $lte: end },
     $or: [{ endDate: null }, { endDate: { $exists: false } }, { endDate: { $gt: end } }],
   };
 
-  return ContractRepository.getAuxiliariesToPay(contractRules, end, 'pays');
+  return ContractRepository.getAuxiliariesToPay(contractRules, end, 'pays', get(credentials, 'company._id', null));
 };
 
 exports.getDraftPay = async (query, credentials) => {

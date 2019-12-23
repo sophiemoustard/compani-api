@@ -22,7 +22,7 @@ const {
   createDriveFolder,
 } = require('../controllers/userController');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
-const { getUser, authorizeUserUpdate } = require('./preHandlers/users');
+const { getUser, authorizeUserUpdate, authorizeUserGet, authorizeUserCreation } = require('./preHandlers/users');
 
 const driveUploadKeys = [
   'idCardRecto',
@@ -100,6 +100,7 @@ exports.plugin = {
             customers: Joi.array(),
           }).required(),
         },
+        pre: [{ method: authorizeUserCreation }],
       },
       handler: create,
     });
@@ -113,10 +114,10 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.objectId(),
-            customers: Joi.objectId(),
+            customers: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
           },
         },
+        pre: [{ method: authorizeUserGet }],
       },
       handler: list,
     });
@@ -130,10 +131,9 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
-            sector: Joi.objectId(),
-            customers: Joi.objectId(),
           },
         },
+        pre: [{ method: authorizeUserGet }],
       },
       handler: activeList,
     });
@@ -418,11 +418,11 @@ exports.plugin = {
         },
         validate: {
           payload: Joi.object({
-            ...driveUploadKeys.reduce((obj, key) => Object.assign(obj, { [key]: Joi.any() }), {}),
             date: Joi.date(),
             fileName: Joi.string().required(),
-          })
-            .or([driveUploadKeys]),
+            type: Joi.string().required().valid(driveUploadKeys),
+            file: Joi.any().required(),
+          }),
           params: {
             _id: Joi.objectId().required(),
             driveId: Joi.string().required(),

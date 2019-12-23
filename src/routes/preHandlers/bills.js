@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 const Bill = require('../../models/Bill');
 const Customer = require('../../models/Customer');
 const Event = require('../../models/Event');
@@ -19,7 +20,15 @@ exports.getBill = async (req) => {
   }
 };
 
-exports.authorizeBillReading = async (req) => {
+exports.authorizeGetBill = async (req) => {
+  if (!req.query.customer) return null;
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  const customer = await Customer.findOne({ _id: req.query.customer, company: companyId }).lean();
+  if (!customer) throw Boom.forbidden();
+  return null;
+};
+
+exports.authorizeGetBillPdf = async (req) => {
   const { credentials } = req.auth;
   const { bill } = req.pre;
   const canRead = credentials.scope.includes('bills:read');
@@ -60,7 +69,7 @@ exports.authorizeBillsCreation = async (req) => {
   const { bills } = req.payload;
   const companyId = credentials.company._id;
 
-  const customersIds = [...new Set(bills.map(bill => bill.customerId))];
+  const customersIds = [...new Set(bills.map(bill => bill.customer._id))];
   const customerCount = await Customer.countDocuments({ _id: { $in: customersIds }, company: companyId });
   if (customerCount !== customersIds.length) throw Boom.forbidden();
 

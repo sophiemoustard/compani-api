@@ -41,8 +41,23 @@ describe('exportFundings', () => {
     sinon.assert.notCalled(getLastVersion);
     sinon.assert.notCalled(formatFloatForExport);
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prénom', 'Tiers payeur', 'Nature', 'Service', 'Date de début', 'Date de fin',
-      'Numéro de dossier', 'Fréquence', 'Montant TTC', 'Montant unitaire TTC', 'Nombre d\'heures', 'Jours', 'Participation du bénéficiaire']);
+    expect(result[0]).toMatchObject([
+      'Titre',
+      'Nom',
+      'Prénom',
+      'Tiers payeur',
+      'Nature',
+      'Service',
+      'Date de début',
+      'Date de fin',
+      'Numéro de dossier',
+      'Fréquence',
+      'Montant TTC',
+      'Montant unitaire TTC',
+      'Nombre d\'heures',
+      'Jours',
+      'Participation du bénéficiaire',
+    ]);
   });
 
   it('should return customer info', async () => {
@@ -117,8 +132,23 @@ describe('exportFundings', () => {
     sinon.assert.callCount(formatFloatForExport, 4);
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', 'Forfaitaire', '', '15/07/2018', '15/07/2018', 'Toto', 'Une seule fois', 'F-12', 'F-14', 'F-3',
-      'Mardi Vendredi Samedi ', 'F-90']);
+    expect(result[1]).toMatchObject([
+      '',
+      '',
+      '',
+      '',
+      'Forfaitaire',
+      '',
+      '15/07/2018',
+      '15/07/2018',
+      'Toto',
+      'Une seule fois',
+      'F-12',
+      'F-14',
+      'F-3',
+      'Mardi Vendredi Samedi ',
+      'F-90',
+    ]);
   });
 });
 
@@ -155,6 +185,8 @@ describe('checkSubscriptionFunding', () => {
       await FundingsHelper.checkSubscriptionFunding(customerId, checkedFunding);
     } catch (e) {
       expect(e).toEqual(Boom.notFound('Error while checking subscription funding: customer not found.'));
+    } finally {
+      CustomerModel.verify();
     }
   });
 
@@ -310,7 +342,7 @@ describe('checkSubscriptionFunding', () => {
     CustomerModel.verify();
   });
 
-  it('should return false if checkedFunding has a careDays in common with other fundings are on the same period', async () => {
+  it('should return false if checkedFunding has careDays in common with other fundings on same period', async () => {
     const customerId = new ObjectID();
     const fundings = [
       {
@@ -367,5 +399,148 @@ describe('checkSubscriptionFunding', () => {
 
     expect(res).toBe(false);
     CustomerModel.verify();
+  });
+});
+
+describe('createFunding', () => {
+  let checkSubscriptionFunding;
+  let CustomerMock;
+  let populateFundingsList;
+  beforeEach(() => {
+    checkSubscriptionFunding = sinon.stub(FundingsHelper, 'checkSubscriptionFunding');
+    CustomerMock = sinon.mock(Customer);
+    populateFundingsList = sinon.stub(FundingsHelper, 'populateFundingsList');
+  });
+  afterEach(() => {
+    checkSubscriptionFunding.restore();
+    CustomerMock.restore();
+    populateFundingsList.restore();
+  });
+
+  it('should create funding if no conflict', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = { subscription: '1234567890' };
+    const customer = { _id: customerId };
+
+    checkSubscriptionFunding.returns(true);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: customerId },
+        { $push: { fundings: payload } },
+        { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'subscriptions.service' })
+      .chain('populate')
+      .withExactArgs({ path: 'fundings.thirdPartyPayer' })
+      .chain('lean')
+      .once()
+      .returns(customer);
+
+    await FundingsHelper.createFunding(customerId, payload);
+
+    sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, payload);
+    sinon.assert.calledWithExactly(populateFundingsList, customer);
+    CustomerMock.verify();
+  });
+
+  it('should throw an error if conflict', async () => {
+    const customerId = 'qwertyuiop';
+    const payload = { subscription: '1234567890' };
+
+    try {
+      checkSubscriptionFunding.returns(false);
+      CustomerMock.expects('findOneAndUpdate').never();
+      await FundingsHelper.createFunding(customerId, payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+    } finally {
+      sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, payload);
+      sinon.assert.notCalled(populateFundingsList);
+      CustomerMock.verify();
+    }
+  });
+});
+
+describe('updateFunding', () => {
+  let checkSubscriptionFunding;
+  let CustomerMock;
+  let populateFundingsList;
+  beforeEach(() => {
+    checkSubscriptionFunding = sinon.stub(FundingsHelper, 'checkSubscriptionFunding');
+    CustomerMock = sinon.mock(Customer);
+    populateFundingsList = sinon.stub(FundingsHelper, 'populateFundingsList');
+  });
+  afterEach(() => {
+    checkSubscriptionFunding.restore();
+    CustomerMock.restore();
+    populateFundingsList.restore();
+  });
+
+  it('should update funding if no conflict', async () => {
+    const customerId = 'qwertyuiop';
+    const fundingId = 'mnbvcxz';
+    const payload = { subscription: '1234567890' };
+    const customer = { _id: customerId };
+    const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{ subscription: '1234567890' }] };
+
+    checkSubscriptionFunding.returns(true);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: customerId, 'fundings._id': fundingId },
+        { $push: { 'fundings.$.versions': payload } },
+        { new: true, select: { identity: 1, fundings: 1, subscriptions: 1 }, autopopulate: false }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'subscriptions.service' })
+      .chain('populate')
+      .withExactArgs({ path: 'fundings.thirdPartyPayer' })
+      .chain('lean')
+      .once()
+      .returns(customer);
+
+    await FundingsHelper.updateFunding(customerId, fundingId, payload);
+
+    sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, checkPayload);
+    sinon.assert.calledWithExactly(populateFundingsList, customer);
+    CustomerMock.verify();
+  });
+
+  it('should throw an error if conflict', async () => {
+    const customerId = 'qwertyuiop';
+    const fundingId = 'mnbvcxz';
+    const payload = { subscription: '1234567890' };
+    const checkPayload = { _id: fundingId, subscription: '1234567890', versions: [{ subscription: '1234567890' }] };
+
+    try {
+      checkSubscriptionFunding.returns(false);
+      CustomerMock.expects('findOneAndUpdate').never();
+      await FundingsHelper.updateFunding(customerId, fundingId, payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+    } finally {
+      sinon.assert.calledWithExactly(checkSubscriptionFunding, customerId, checkPayload);
+      sinon.assert.notCalled(populateFundingsList);
+      CustomerMock.verify();
+    }
+  });
+});
+
+describe('deleteFunding', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Customer, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should delete funding', async () => {
+    await FundingsHelper.deleteFunding('1234567890', 'asdfghjkl');
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: '1234567890' },
+      { $pull: { fundings: { _id: 'asdfghjkl' } } }
+    );
   });
 });

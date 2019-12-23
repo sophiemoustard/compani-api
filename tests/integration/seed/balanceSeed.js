@@ -8,7 +8,7 @@ const Service = require('../../../src/models/Service');
 const Bill = require('../../../src/models/Bill');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const User = require('../../../src/models/User');
-const { populateDBForAuthentication, rolesList, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, rolesList, authCompany, otherCompany } = require('./authenticationSeed');
 
 const balanceThirdPartyPayer = {
   _id: new ObjectID(),
@@ -34,7 +34,9 @@ const company = {
   iban: 'FR3514508000505917721779B12',
   bic: 'RTYUIKJHBFRG',
   ics: '12345678',
+  folderId: '0987654321',
   directDebitsFolderId: '1234567890',
+  customersFolderId: 'mnbvcxz',
 };
 
 const customerServiceList = [
@@ -234,6 +236,25 @@ const balanceUserList = [
   },
 ];
 
+const customerFromOtherCompany = {
+  _id: new ObjectID(),
+  company: otherCompany._id,
+  email: 'test@othercompany.com',
+  identity: {
+    title: 'mr',
+    firstname: 'test',
+    lastname: 'toto',
+  },
+  contact: {
+    primaryAddress: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+    },
+    phone: '0612345678',
+  },
+};
+
 const populateDB = async () => {
   await Service.deleteMany({});
   await Company.deleteMany({});
@@ -247,7 +268,7 @@ const populateDB = async () => {
   await (new Company(company)).save();
   await (new ThirdPartyPayer(balanceThirdPartyPayer)).save();
   await Service.insertMany(customerServiceList);
-  await Customer.insertMany(balanceCustomerList);
+  await Customer.insertMany(balanceCustomerList.concat(customerFromOtherCompany));
   await Bill.insertMany(balanceBillList);
   for (const user of balanceUserList) {
     await (new User(user).save());
@@ -260,4 +281,5 @@ module.exports = {
   balanceBillList,
   balanceThirdPartyPayer,
   balanceUserList,
+  customerFromOtherCompany,
 };

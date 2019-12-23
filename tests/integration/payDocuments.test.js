@@ -9,8 +9,8 @@ const { ObjectID } = require('mongodb');
 const app = require('../../server');
 const Gdrive = require('../../src/models/Google/Drive');
 const PayDocument = require('../../src/models/PayDocument');
-const { populateDB, payDocumentsList, payDocumentUser } = require('./seed/payDocumentsSeed');
-const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { populateDB, payDocumentsList, payDocumentUser, userFromOtherCompany } = require('./seed/payDocumentsSeed');
+const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { PAYSLIP } = require('../../src/helpers/constants');
 const { generateFormData } = require('./utils');
@@ -48,6 +48,7 @@ describe('PAY DOCUMENT ROUTES', () => {
         });
 
         const form = generateFormData(docPayload);
+        const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id }).lean();
 
         const response = await app.inject({
           method: 'POST',
@@ -62,8 +63,8 @@ describe('PAY DOCUMENT ROUTES', () => {
           date: new Date(docPayload.date),
           file: { driveId: '1234567890', link: 'http://test.com/file.pdf' },
         });
-        const payDocuments = await PayDocument.find({}).lean();
-        expect(payDocuments.length).toBe(payDocumentsList.length + 1);
+        const payDocumentsLength = await PayDocument.countDocuments({ company: authCompany._id }).lean();
+        expect(payDocumentsLength).toBe(payDocumentsLengthBefore + 1);
         sinon.assert.calledOnce(addFileStub);
         addFileStub.restore();
         addStub.restore();
@@ -91,6 +92,29 @@ describe('PAY DOCUMENT ROUTES', () => {
 
           expect(response.statusCode).toBe(400);
         });
+      });
+
+      it('should not create a new pay document if the user is not from the same company', async () => {
+        const docPayload = {
+          payDoc: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
+          driveFolderId: '09876543211',
+          fileName: 'pay-document',
+          nature: PAYSLIP,
+          date: new Date('2019-01-23').toISOString(),
+          user: userFromOtherCompany._id.toHexString(),
+          mimeType: 'application/pdf',
+        };
+
+        const form = generateFormData(docPayload);
+
+        const response = await app.inject({
+          method: 'POST',
+          url: '/paydocuments',
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
       });
     });
 
@@ -154,12 +178,23 @@ describe('PAY DOCUMENT ROUTES', () => {
       it('should get all pay documents', async () => {
         const response = await app.inject({
           method: 'GET',
-          url: '/paydocuments',
+          url: `/paydocuments?user=${payDocumentUser._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.result.data.payDocuments.length).toBe(payDocumentsList.length);
+        const payDocumentsLength = await PayDocument.countDocuments({ company: authCompany._id });
+        expect(response.result.data.payDocuments.length).toBe(payDocumentsLength);
+      });
+
+      it('should not get all pay documents if user is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/paydocuments?user=${userFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(403);
       });
     });
 
@@ -185,7 +220,7 @@ describe('PAY DOCUMENT ROUTES', () => {
           authToken = await getToken(role.name);
           const response = await app.inject({
             method: 'GET',
-            url: '/paydocuments',
+            url: `/paydocuments?user=${payDocumentUser._id.toHexString()}`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -205,6 +240,7 @@ describe('PAY DOCUMENT ROUTES', () => {
 
       it('should delete a pay document', async () => {
         const deleteFileStub = sinon.stub(GdriveStorage, 'deleteFile');
+        const payDocumentsLengthBefore = await PayDocument.countDocuments({ company: authCompany._id });
         const response = await app.inject({
           method: 'DELETE',
           url: `/paydocuments/${payDocumentsList[0]._id.toHexString()}`,
@@ -212,8 +248,8 @@ describe('PAY DOCUMENT ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const payDocuments = await PayDocument.find({}).lean();
-        expect(payDocuments.length).toBe(payDocumentsList.length - 1);
+        const payDocumentsLength = await PayDocument.countDocuments({ company: authCompany._id });
+        expect(payDocumentsLength).toBe(payDocumentsLengthBefore - 1);
         sinon.assert.calledWith(deleteFileStub, payDocumentsList[0].file.driveId);
         deleteFileStub.restore();
       });
@@ -223,6 +259,16 @@ describe('PAY DOCUMENT ROUTES', () => {
         const response = await app.inject({
           method: 'DELETE',
           url: `/paydocuments/${randomId}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(404);
+      });
+
+      it('should not delete a pay document if it is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/paydocuments/${payDocumentsList[payDocumentsList.length - 1]._id.toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
 

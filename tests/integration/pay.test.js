@@ -1,9 +1,15 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateDB } = require('./seed/paySeed');
+const {
+  populateDB,
+  auxiliary1,
+  auxiliaryFromOtherCompany,
+  sectorId,
+  sectorFromOtherCompany,
+} = require('./seed/paySeed');
 const app = require('../../server');
 const Pay = require('../../src/models/Pay');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -58,7 +64,7 @@ describe('PAY ROUTES - POST /pay', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = [{
-    auxiliary: new ObjectID(),
+    auxiliary: auxiliary1._id,
     startDate: '2019-04-30T22:00:00',
     endDate: '2019-05-28T14:34:04',
     month: '05-2019',
@@ -119,8 +125,19 @@ describe('PAY ROUTES - POST /pay', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const payList = await Pay.find().lean();
+      const payList = await Pay.find({ company: authCompany._id }).lean();
       expect(payList.length).toEqual(1);
+    });
+
+    it('should not create a new pay if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/pay',
+        headers: { 'x-access-token': authToken },
+        payload: [{ ...payload[0], auxiliary: new ObjectID(auxiliaryFromOtherCompany._id) }],
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     Object.keys(payload[0]).forEach((key) => {
@@ -154,6 +171,112 @@ describe('PAY ROUTES - POST /pay', () => {
           url: '/pay',
           headers: { 'x-access-token': authToken },
           payload,
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PAY ROUTES - GET /hours-balance-details', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should get hours balance details', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?auxiliary=${auxiliary1._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursBalanceDetail).toBeDefined();
+    });
+
+    it('should not get hours balance details if user is not from the same company as auxiliary', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaryFromOtherCompany._id}&month=10-2019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/pay/hours-balance-details?auxiliary=${auxiliary1._id}&month=10-2019`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('PAY ROUTES - GET /hours-to-work', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should get hours to work by sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectorId}&month=122018`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursToWork).toBeDefined();
+    });
+
+    it('should not get hours to work if user is not from the same company as sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectorFromOtherCompany._id}&month=122018`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/pay/hours-to-work?sector=${sectorId}&month=122018`,
+          headers: { 'x-access-token': authToken },
         });
 
         expect(response.statusCode).toBe(role.expectedCode);

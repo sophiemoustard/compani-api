@@ -148,10 +148,10 @@ describe('getUsersList', () => {
       await UsersHelper.getUsersList(query, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.notFound(translate[language].roleNotFound));
+    } finally {
+      RoleMock.verify();
+      UserMock.verify();
     }
-
-    RoleMock.verify();
-    UserMock.verify();
   });
 });
 
@@ -209,7 +209,7 @@ describe('getUser', () => {
 
     await UsersHelper.getUser(userId);
 
-    sinon.assert.calledWith(populateRole, [{ _id: rightId }], { onlyGrantedRights: true });
+    sinon.assert.calledWithExactly(populateRole, [{ _id: rightId }], { onlyGrantedRights: true });
     userMock.verify();
   });
 
@@ -231,8 +231,9 @@ describe('getUser', () => {
 
       await UsersHelper.getUser(userId);
     } catch (e) {
-      userMock.verify();
       expect(e.output.statusCode).toEqual(404);
+    } finally {
+      userMock.verify();
     }
   });
 });
@@ -256,44 +257,44 @@ describe('createAndSaveFile', () => {
   });
 
   it('upload a file on drive and save info to user', async () => {
-    const administrativeKey = 'cni';
     const params = { _id: new ObjectID(), driveId: '1234567890' };
     const payload = {
       fileName: 'test',
+      file: 'true',
+      type: 'cni',
       'Content-type': 'application/pdf',
-      cni: 'Ceci est un fichier',
     };
 
-    const result = await UsersHelper.createAndSaveFile(administrativeKey, params, payload);
+    const result = await UsersHelper.createAndSaveFile(params, payload);
 
     expect(result).toEqual(uploadedFile);
     sinon.assert.calledWithExactly(addFileStub, {
       driveFolderId: params.driveId,
       name: payload.fileName,
       type: payload['Content-Type'],
-      body: payload[administrativeKey],
+      body: payload.file,
     });
-    sinon.assert.calledWithExactly(saveFileStub, params._id, administrativeKey, { driveId: uploadedFile.id, link: uploadedFile.webViewLink });
+    sinon.assert.calledWithExactly(saveFileStub, params._id, payload.type, { driveId: uploadedFile.id, link: uploadedFile.webViewLink });
     sinon.assert.notCalled(saveCertificateDriveIdStub);
   });
 
   it('upload a certificate file on drive and save info to user', async () => {
-    const administrativeKey = 'certificates';
     const params = { _id: new ObjectID(), driveId: '1234567890' };
     const payload = {
       fileName: 'test',
+      type: 'certificates',
       'Content-type': 'application/pdf',
-      certificates: 'Ceci est un fichier',
+      file: 'Ceci est un fichier',
     };
 
-    const result = await UsersHelper.createAndSaveFile(administrativeKey, params, payload);
+    const result = await UsersHelper.createAndSaveFile(params, payload);
 
     expect(result).toEqual(uploadedFile);
     sinon.assert.calledWithExactly(addFileStub, {
       driveFolderId: params.driveId,
       name: payload.fileName,
       type: payload['Content-Type'],
-      body: payload[administrativeKey],
+      body: payload.file,
     });
     sinon.assert.calledWithExactly(saveCertificateDriveIdStub, params._id, { driveId: uploadedFile.id, link: uploadedFile.webViewLink });
     sinon.assert.notCalled(saveFileStub);
@@ -447,6 +448,7 @@ describe('createUser', () => {
       await UsersHelper.createUser(payload, credentials);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Role does not exist'));
+    } finally {
       RoleMock.verify();
       UserMock.verify();
       sinon.assert.notCalled(populateRoleStub);
@@ -576,11 +578,11 @@ describe('updateUserInactivityDate', () => {
     countDocuments.returns(0);
 
     await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       countDocuments,
       { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       updateOne,
       { _id: userId },
       { $set: { inactivityDate: moment(endDate).add('1', 'month').startOf('M').toDate() } }
@@ -595,7 +597,7 @@ describe('updateUserInactivityDate', () => {
     countDocuments.returns(2);
 
     await UsersHelper.updateUserInactivityDate(userId, endDate, credentials);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       countDocuments,
       { user: userId, company: '1234567890', $or: [{ endDate: { $exists: false } }, { endDate: null }] }
     );

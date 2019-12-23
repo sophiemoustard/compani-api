@@ -1,5 +1,12 @@
 const expect = require('expect');
-const { populateDB, balanceCustomerList, balanceThirdPartyPayer, balanceBillList, balanceUserList } = require('./seed/balanceSeed');
+const {
+  populateDB,
+  balanceCustomerList,
+  balanceThirdPartyPayer,
+  balanceBillList,
+  balanceUserList,
+  customerFromOtherCompany,
+} = require('./seed/balanceSeed');
 const { getToken, getTokenByCredentials } = require('./seed/authenticationSeed');
 const app = require('../../server');
 
@@ -9,7 +16,7 @@ describe('NODE ENV', () => {
   });
 });
 
-describe('BALANCES ROUTES - GET /balances', () => {
+describe('BALANCES ROUTES - GET /', () => {
   let authToken = null;
   beforeEach(populateDB);
 
@@ -76,12 +83,71 @@ describe('BALANCES ROUTES - GET /balances', () => {
   });
 
   describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/balances',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('BALANCES ROUTES - GET /details', () => {
+  let authToken = null;
+  const helper = balanceUserList[0];
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should get all clients balances', async () => {
+      const customerId = balanceCustomerList[0]._id;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/balances/details?customer=${customerId}&startDate=2019-10-10&endDate=2019-11-10`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.balances).toBeDefined();
+      expect(response.result.data.balances
+        .every(b => b.customer._id.toHexString() === customerId.toHexString())).toBeTruthy();
+      expect(response.result.data.bills).toBeDefined();
+      expect(response.result.data.payments).toBeDefined();
+      expect(response.result.data.creditNotes).toBeDefined();
+    });
+
+    it('should not get all clients balances is customer si not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/balances/details?customer=${customerFromOtherCompany._id}&startDate=2019-10-10&endDate=2019-11-10`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
     it('should return customer balance if I am its helper', async () => {
-      const helper = balanceUserList[0];
       const helperToken = await getTokenByCredentials(helper.local);
       const res = await app.inject({
         method: 'GET',
-        url: `/balances?customer=${helper.customers[0]}`,
+        url: `/balances/details?customer=${helper.customers[0]}&startDate=2019-10-10&endDate=2019-11-10`,
         headers: { 'x-access-token': helperToken },
       });
       expect(res.statusCode).toBe(200);
@@ -98,7 +164,7 @@ describe('BALANCES ROUTES - GET /balances', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: '/balances',
+          url: `/balances/details?customer=${helper.customers[0]}&startDate=2019-10-10&endDate=2019-11-10`,
           headers: { 'x-access-token': authToken },
         });
 

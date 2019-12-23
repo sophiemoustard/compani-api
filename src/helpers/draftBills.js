@@ -32,7 +32,7 @@ exports.populateSurcharge = async (subscription) => {
  * Funding version frequency = ONCE : there is only ONE history
  * Funding version frequency = MONTHLY : there is one history PER MONTH
  */
-exports.populateFundings = async (fundings, endDate, tppList) => {
+exports.populateFundings = async (fundings, endDate, tppList, companyId) => {
   const populatedFundings = [];
   for (let i = 0, l = fundings.length; i < l; i++) {
     const funding = utils.mergeLastVersionWithBaseObject(fundings[i], 'createdAt');
@@ -45,7 +45,7 @@ exports.populateFundings = async (fundings, endDate, tppList) => {
       if (history) funding.history = [history];
       else funding.history = [{ careHours: 0, amountTTC: 0, fundingId: funding._id }];
     } else {
-      const history = await FundingHistory.find({ fundingId: funding._id });
+      const history = await FundingHistory.find({ fundingId: funding._id, company: companyId });
       if (history) funding.history = history;
       if (history.length === 0 || !history) funding.history = [];
       if (!history.some(his => his.month === moment(endDate).format('MM/YYYY'))) {
@@ -65,7 +65,9 @@ exports.populateFundings = async (fundings, endDate, tppList) => {
 exports.getMatchingFunding = (date, fundings) => {
   const filteredByDateFundings = fundings.filter(fund => moment(fund.startDate).isSameOrBefore(date) &&
     (!fund.endDate || moment(fund.endDate).isAfter(date)));
-  if (moment(date).startOf('d').isHoliday()) return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
+  if (moment(date).startOf('d').isHoliday()) {
+    return filteredByDateFundings.find(funding => funding.careDays.includes(7)) || null;
+  }
 
   return filteredByDateFundings.find(funding => funding.careDays.includes(moment(date).isoWeekday() - 1)) || null;
 };
@@ -99,7 +101,12 @@ exports.getMatchingHistory = (event, funding) => {
   let history = funding.history.find(his => his.month === moment(event.startDate).format('MM/YYYY'));
   if (history) return history;
 
-  funding.history.push({ careHours: 0, amountTTC: 0, fundingId: funding._id, month: moment(event.startDate).format('MM/YYYY') });
+  funding.history.push({
+    careHours: 0,
+    amountTTC: 0,
+    fundingId: funding._id,
+    month: moment(event.startDate).format('MM/YYYY'),
+  });
   history = funding.history.find(his => his.month === moment(event.startDate).format('MM/YYYY'));
   return history;
 };
@@ -119,7 +126,11 @@ exports.getHourlyFundingSplit = (event, funding, service, price) => {
     chargedTime = (history.careHours + (time / 60) > funding.careHours)
       ? (funding.careHours - history.careHours) * 60
       : time;
-    thirdPartyPayerPrice = exports.getThirdPartyPayerPrice(chargedTime, fundingExclTaxes, funding.customerParticipationRate);
+    thirdPartyPayerPrice = exports.getThirdPartyPayerPrice(
+      chargedTime,
+      fundingExclTaxes,
+      funding.customerParticipationRate
+    );
     history.careHours = (history.careHours + (time / 60) > funding.careHours)
       ? funding.careHours
       : history.careHours + (chargedTime / 60);
@@ -259,19 +270,29 @@ exports.formatDraftBillsForTPP = (tppPrices, tpp, event, eventPrice, service) =>
   };
 };
 
-exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings, billingStartDate, endDate) => {
+exports.getDraftBillsPerSubscription = (events, subscription, fundings, billingStartDate, endDate) => {
   let customerPrices = { exclTaxes: 0, inclTaxes: 0, hours: 0, eventsList: [] };
   let thirdPartyPayerPrices = {};
   let startDate = moment(billingStartDate);
   const { unitTTCRate } = utils.getLastVersion(subscription.versions, 'createdAt');
   for (const event of events) {
     const matchingService = utils.getMatchingVersion(event.startDate, subscription.service, 'startDate');
-    const matchingFunding = fundings && fundings.length > 0 ? exports.getMatchingFunding(event.startDate, fundings) : null;
+    const matchingFunding = fundings && fundings.length > 0
+      ? exports.getMatchingFunding(event.startDate, fundings)
+      : null;
     const eventPrice = exports.getEventBilling(event, unitTTCRate, matchingService, matchingFunding);
 
-    if (eventPrice.customerPrice) customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
+    if (eventPrice.customerPrice) {
+      customerPrices = exports.formatDraftBillsForCustomer(customerPrices, event, eventPrice, matchingService);
+    }
     if (matchingFunding && eventPrice.thirdPartyPayerPrice) {
-      thirdPartyPayerPrices = exports.formatDraftBillsForTPP(thirdPartyPayerPrices, matchingFunding.thirdPartyPayer, event, eventPrice, matchingService);
+      thirdPartyPayerPrices = exports.formatDraftBillsForTPP(
+        thirdPartyPayerPrices,
+        matchingFunding.thirdPartyPayer,
+        event,
+        eventPrice,
+        matchingService
+      );
     }
     if (moment(event.startDate).isBefore(startDate)) startDate = moment(event.startDate);
   }
@@ -281,7 +302,6 @@ exports.getDraftBillsPerSubscription = (events, customer, subscription, fundings
   const draftBillInfo = {
     _id: mongoose.Types.ObjectId(),
     subscription,
-    identity: customer.identity,
     discount: 0,
     startDate: startDate.toDate(),
     endDate: moment(endDate, 'YYYYMMDD').toDate(),
@@ -320,9 +340,15 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
     for (let k = 0, L = eventsBySubscriptions.length; k < L; k++) {
       const subscription = await exports.populateSurcharge(eventsBySubscriptions[k].subscription);
       let { fundings } = eventsBySubscriptions[k];
-      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList) : null;
+      fundings = fundings ? await exports.populateFundings(fundings, dates.endDate, thirdPartyPayersList, companyId) : null;
 
-      const draftBills = exports.getDraftBillsPerSubscription(eventsBySubscriptions[k].events, customer, subscription, fundings, billingStartDate, dates.endDate);
+      const draftBills = exports.getDraftBillsPerSubscription(
+        eventsBySubscriptions[k].events,
+        subscription,
+        fundings,
+        billingStartDate,
+        dates.endDate
+      );
       if (draftBills.customer) customerDraftBills.push(draftBills.customer);
       if (draftBills.thirdPartyPayer) {
         for (const tpp of Object.keys(draftBills.thirdPartyPayer)) {
@@ -333,7 +359,6 @@ exports.getDraftBillsList = async (dates, billingStartDate, credentials, custome
     }
 
     const groupedByCustomerBills = {
-      customerId: customer._id,
       customer,
       endDate: dates.endDate,
       customerBills: {

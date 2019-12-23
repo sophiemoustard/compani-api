@@ -12,7 +12,7 @@ const {
 } = require('../controllers/creditNoteController');
 const {
   getCreditNote,
-  authorizeCreditNoteReading,
+  authorizeGetCreditNotePdf,
   authorizeCreditNoteCreationOrUpdate,
   authorizeCreditNoteDeletion,
 } = require('./preHandlers/creditNotes');
@@ -83,14 +83,7 @@ exports.plugin = {
       path: '/',
       handler: list,
       options: {
-        auth: { scope: ['bills:read', 'customer-{query.customer}'] },
-        validate: {
-          query: {
-            startDate: Joi.date(),
-            endDate: Joi.date(),
-            customer: Joi.objectId(),
-          },
-        },
+        auth: { scope: ['bills:read'] },
       },
     });
 
@@ -183,7 +176,7 @@ exports.plugin = {
         },
         pre: [
           { method: getCreditNote, assign: 'creditNote' },
-          { method: authorizeCreditNoteReading },
+          { method: authorizeGetCreditNotePdf },
         ],
       },
       handler: generateCreditNotePdf,

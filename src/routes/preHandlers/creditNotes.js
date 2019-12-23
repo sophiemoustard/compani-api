@@ -11,8 +11,11 @@ const { language } = translate;
 
 exports.getCreditNote = async (req) => {
   try {
-    const creditNote = await CreditNote.findOne({ _id: req.params._id }).lean();
-    if (!creditNote) throw Boom.notFound(translate[language].eventNotFound);
+    const creditNote = await CreditNote.findOne({
+      _id: req.params._id,
+      company: get(req, 'auth.credentials.company._id', null),
+    }).lean();
+    if (!creditNote) throw Boom.notFound(translate[language].creditNoteNotFound);
 
     return creditNote;
   } catch (e) {
@@ -21,7 +24,7 @@ exports.getCreditNote = async (req) => {
   }
 };
 
-exports.authorizeCreditNoteReading = async (req) => {
+exports.authorizeGetCreditNotePdf = async (req) => {
   const { credentials } = req.auth;
   const { creditNote } = req.pre;
 
@@ -34,7 +37,6 @@ exports.authorizeCreditNoteReading = async (req) => {
 
   return null;
 };
-
 
 exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
   const { credentials } = req.auth;
@@ -70,13 +72,9 @@ exports.authorizeCreditNoteCreationOrUpdate = async (req) => {
 };
 
 exports.authorizeCreditNoteDeletion = async (req) => {
-  const { credentials } = req.auth;
   const { creditNote } = req.pre;
-
-  if (creditNote.company.toHexString() === credentials.company._id.toHexString()) return null;
-
   if (creditNote && creditNote.origin !== COMPANI) {
     throw Boom.forbidden(translate[language].creditNoteNotCompani);
   }
-  throw Boom.forbidden();
+  return null;
 };

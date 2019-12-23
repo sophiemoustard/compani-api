@@ -1,4 +1,5 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 const Company = require('../../models/Company');
 const translate = require('../../helpers/translate');
 
@@ -17,10 +18,7 @@ exports.companyExists = async (req) => {
 };
 
 exports.authorizeCompanyUpdate = async (req) => {
-  if (!req.auth.credentials.company || !req.auth.credentials.company._id) throw Boom.forbidden();
-  const companyId = req.auth.credentials.company._id;
-
-  if (req.params._id === companyId.toHexString()) return null;
-
-  throw Boom.forbidden();
+  const companyId = get(req, 'auth.credentials.company._id', null);
+  if (!companyId || req.params._id !== companyId.toHexString()) throw Boom.forbidden();
+  return null;
 };

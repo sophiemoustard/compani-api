@@ -15,6 +15,7 @@ const {
   eventList,
   billThirdPartyPayer,
   otherCompanyBillThirdPartyPayer,
+  customerFromOtherCompany,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
@@ -50,7 +51,6 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.draftBills).toEqual(expect.arrayContaining([
         expect.objectContaining({
-          customerId: billCustomerList[0]._id,
           customer: expect.objectContaining({
             _id: billCustomerList[0]._id,
             identity: billCustomerList[0].identity,
@@ -61,6 +61,16 @@ describe('BILL ROUTES - GET /bills/drafts', () => {
           }),
         }),
       ]));
+    });
+
+    it('should not return all draft bills if customer is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/bills/drafts?${qs.stringify(query)}&customer=${customerFromOtherCompany._id}`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     const falsyAssertions = [
@@ -108,7 +118,6 @@ describe('BILL ROUTES - POST /bills', () => {
   beforeEach(populateDB);
   const payload = [
     {
-      customerId: billCustomerList[0]._id,
       customer: {
         _id: billCustomerList[0]._id,
         identity: billCustomerList[0].identity,
@@ -134,7 +143,6 @@ describe('BILL ROUTES - POST /bills', () => {
               ],
               createdAt: '2019-05-03T08:33:56.144Z',
             },
-            identity: billCustomerList[0].identity,
             discount: 0,
             startDate: '2019-05-01T00:00:00.000Z',
             endDate: '2019-05-31T23:59:59.999Z',
@@ -180,7 +188,6 @@ describe('BILL ROUTES - POST /bills', () => {
                 ],
                 createdAt: '2019-05-03T08:33:56.144Z',
               },
-              identity: billCustomerList[0].identity,
               discount: 0,
               startDate: '2019-05-01T00:00:00.000Z',
               endDate: '2019-05-31T23:59:59.999Z',
@@ -242,7 +249,6 @@ describe('BILL ROUTES - POST /bills', () => {
     it('should create new bill with vat 0 if service is not taxed', async () => {
       const draftBillPayload = [
         {
-          customerId: billCustomerList[0]._id,
           customer: {
             _id: billCustomerList[0]._id,
             identity: billCustomerList[0].identity,
@@ -276,7 +282,6 @@ describe('BILL ROUTES - POST /bills', () => {
                   ],
                   createdAt: '2019-05-03T08:33:56.144Z',
                 },
-                identity: billCustomerList[0].identity,
                 discount: 0,
                 startDate: '2019-05-01T00:00:00.000Z',
                 endDate: '2019-05-31T23:59:59.999Z',
@@ -319,7 +324,7 @@ describe('BILL ROUTES - POST /bills', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/bills',
-        payload: { bills: [{ ...payload[0], customerId: billCustomerList[2]._id }] },
+        payload: { bills: [{ ...payload[0], customer: { ...payload[0].customer, _id: billCustomerList[2]._id } }] },
         headers: { 'x-access-token': authToken },
       });
 
@@ -493,84 +498,6 @@ describe('BILL ROUTES - GET /bills/pdfs', () => {
         const response = await app.inject({
           method: 'GET',
           url: `/bills/${authBillsList[0]._id}/pdfs`,
-          headers: { 'x-access-token': authToken },
-        });
-
-        expect(response.statusCode).toBe(role.expectedCode);
-      });
-    });
-  });
-});
-
-describe('BILL ROUTES - GET /bills', () => {
-  let authToken = null;
-  beforeEach(populateDB);
-
-  describe('Admin', () => {
-    beforeEach(async () => {
-      authToken = await getToken('admin');
-    });
-
-    it('should get all bills (company A)', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/bills',
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.bills.length).toBe(authBillsList.length);
-    });
-
-    it('should get all bills (company B)', async () => {
-      authToken = await getTokenByCredentials(billUserList[4].local);
-
-      const response = await app.inject({
-        method: 'GET',
-        url: '/bills',
-        headers: { 'x-access-token': authToken },
-      });
-
-      expect(response.statusCode).toBe(200);
-      expect(response.result.data.bills.length).toBe(billsList.length);
-    });
-  });
-
-  describe('Other roles', () => {
-    it('should return customer bills if I am its helper (company A)', async () => {
-      const helper = billUserList[0];
-      const helperToken = await getTokenByCredentials(helper.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/bills?customer=${helper.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
-    it('should return customer bills if I am its helper (company B)', async () => {
-      const helper = billUserList[2];
-      const helperToken = await getTokenByCredentials(helper.local);
-      const res = await app.inject({
-        method: 'GET',
-        url: `/bills?customer=${helper.customers[0]}`,
-        headers: { 'x-access-token': helperToken },
-      });
-      expect(res.statusCode).toBe(200);
-    });
-
-    const roles = [
-      { name: 'helper', expectedCode: 403 },
-      { name: 'auxiliary', expectedCode: 403 },
-      { name: 'coach', expectedCode: 200 },
-    ];
-
-    roles.forEach((role) => {
-      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
-        authToken = await getToken(role.name);
-        const response = await app.inject({
-          method: 'GET',
-          url: '/bills',
           headers: { 'x-access-token': authToken },
         });
 

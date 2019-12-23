@@ -7,19 +7,6 @@ const translate = require('../helpers/translate');
 
 const { language } = translate;
 
-const list = async (req) => {
-  try {
-    const payments = await PaymentHelper.getPayments(req.query, req.auth.credentials);
-    return {
-      message: payments.length === 0 ? translate[language].paymentsNotFound : translate[language].paymentsFound,
-      data: { payments },
-    };
-  } catch (e) {
-    req.log('error', e);
-    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
-  }
-};
-
 const create = async (req) => {
   try {
     const { payload, auth } = req;
@@ -38,6 +25,7 @@ const create = async (req) => {
 const createList = async (req, h) => {
   try {
     const [payments] = await PaymentHelper.savePayments(req.payload, req.auth.credentials);
+
     return h.file(payments, { confine: false });
   } catch (e) {
     req.log('error', e);
@@ -51,7 +39,7 @@ const update = async (req) => {
       { _id: req.params._id },
       { $set: flat(req.payload) },
       { new: true }
-    );
+    ).lean();
 
     if (!payment) return Boom.notFound(translate[language].paymentNotFound);
 
@@ -66,7 +54,6 @@ const update = async (req) => {
 };
 
 module.exports = {
-  list,
   create,
   createList,
   update,

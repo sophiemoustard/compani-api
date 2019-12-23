@@ -16,8 +16,9 @@ const {
   customerFromOtherCompany,
   auxiliaryFromOtherCompany,
   internalHourFromOtherCompany,
+  thirdPartyPayerFromOtherCompany,
 } = require('./seed/eventsSeed');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 const app = require('../../server');
 const { INTERVENTION, ABSENCE, UNAVAILABILITY, INTERNAL_HOUR, ILLNESS, DAILY } = require('../../src/helpers/constants');
 const Repetition = require('../../src/models/Repetition');
@@ -110,6 +111,36 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toEqual(200);
         expect(response.result.data.events).toEqual([]);
+      });
+
+      it('should return a 403 if customer is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?customer=${customerFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if auxiliary is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?auxiliary=${auxiliaryFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if sector is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events?sector=${sectors[2]._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
       });
     });
 
@@ -230,6 +261,42 @@ describe('EVENTS ROUTES', () => {
           expect(response.statusCode).toBe(400);
         });
       });
+
+      it('should return a 403 if customer is not from the same company', async () => {
+        const query = {
+          startDate: moment('2019-01-01').toDate(),
+          endDate: moment('2019-01-20').toDate(),
+          customer: customerFromOtherCompany._id.toHexString(),
+          thirdPartyPayer: thirdPartyPayer._id.toHexString(),
+          isBilled: true,
+        };
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+
+      it('should return a 403 if tpp is not from the same company', async () => {
+        const query = {
+          startDate: moment('2019-01-01').toDate(),
+          endDate: moment('2019-01-20').toDate(),
+          customer: customerAuxiliary._id.toHexString(),
+          thirdPartyPayer: thirdPartyPayerFromOtherCompany._id.toHexString(),
+          isBilled: true,
+        };
+
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/credit-notes?${qs.stringify(query)}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
 
     describe('Other roles', () => {
@@ -253,6 +320,72 @@ describe('EVENTS ROUTES', () => {
           const response = await app.inject({
             method: 'GET',
             url: `/events/credit-notes?${qs.stringify(query)}`,
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
+  describe('GET /events/working-stats', () => {
+    const startDate = moment('2019-01-18');
+    const endDate = moment('2019-01-20');
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should return working stats for an auxiliary', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+        expect(response.result.data.workingStats).toBeDefined();
+      });
+
+      it('should return working stats for auxiliaries', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(200);
+      });
+
+      it('should return a 403 if auxiliary is not from the same company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: `/events/working-stats?auxiliary=${auxiliaryFromOtherCompany._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
+    });
+
+    describe('Other roles', () => {
+      beforeEach(populateDB);
+
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'planningReferent', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = role.customCredentials ? await getUserToken(role.customCredentials) : await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: `/events/working-stats?auxiliary=${eventAuxiliary._id}&startDate=${startDate.toDate()}&endDate=${endDate.toDate()}`,
             headers: { 'x-access-token': authToken },
           });
 
@@ -547,7 +680,6 @@ describe('EVENTS ROUTES', () => {
     });
   });
 
-
   describe('PUT /events/{_id}', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
@@ -687,6 +819,22 @@ describe('EVENTS ROUTES', () => {
 
         expect(response.statusCode).toEqual(403);
       });
+
+      it('should return a 403 if sector is not from the same company', async () => {
+        const event = eventsList[0];
+        const payload = {
+          sector: sectors[2]._id.toHexString(),
+        };
+
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/events/${event._id.toHexString()}`,
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toEqual(403);
+      });
     });
 
     describe('Other roles', () => {
@@ -804,7 +952,7 @@ describe('EVENTS ROUTES', () => {
         });
 
         expect(response.statusCode).toBe(200);
-        expect(await Repetition.find({})).toHaveLength(0);
+        expect(await Repetition.find({ company: authCompany._id })).toHaveLength(0);
       });
 
 
@@ -832,6 +980,16 @@ describe('EVENTS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(409);
+      });
+
+      it('should return a 403 if customer is not from the company', async () => {
+        const startDate = '2019-01-01';
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/events?customer=${customerFromOtherCompany._id}&startDate=${startDate}`,
+          headers: { 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(403);
       });
     });
 

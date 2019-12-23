@@ -1,22 +1,12 @@
-const randomize = require('randomatic');
 const Boom = require('boom');
-const get = require('lodash/get');
-const { encode } = require('../helpers/authentication');
-const ActivationCode = require('../models/ActivationCode');
 const translate = require('../helpers/translate');
+const activationCodeHelper = require('../helpers/activationCode');
 
 const { language } = translate;
 
 const createActivationCode = async (req) => {
   try {
-    const payload = {
-      ...req.payload,
-      code: req.payload.code || randomize('0000'),
-      firstSMS: Date.now(),
-    };
-    const activationCode = new ActivationCode(payload);
-    await activationCode.save();
-
+    const activationCode = await activationCodeHelper.createActivationCode(req.payload, req.auth.credentials);
     return { message: translate[language].activationCodeCreated, data: { activationCode } };
   } catch (e) {
     req.log('error', e);
@@ -26,21 +16,10 @@ const createActivationCode = async (req) => {
 
 const checkActivationCode = async (req) => {
   try {
-    const code = await ActivationCode
-      .findOne({ code: req.params.code })
-      .populate({ path: 'user', select: '_id isConfirmed local.email' })
-      .lean();
-    if (!code) return Boom.notFound(translate[language].activationCodeNotFoundOrInvalid);
-    if (get(code, 'user.isConfirmed', false)) return Boom.badData();
-
-    // 2 days expire
-    const expireTime = 604800;
-    const tokenPayload = { _id: code.user._id, userEmail: get(code, 'user.local.email') };
-    const token = encode(tokenPayload, expireTime);
-
+    const activationCode = await activationCodeHelper.checkActivationCode(req.params);
     return {
       message: translate[language].activationCodeValidated,
-      data: { activationCode: { ...code, token } },
+      data: { activationCode },
     };
   } catch (e) {
     req.log('error', e);

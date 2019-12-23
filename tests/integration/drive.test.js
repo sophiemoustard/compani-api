@@ -42,6 +42,7 @@ describe('DRIVE ROUTES', () => {
         const payload = {
           file: fs.createReadStream(path.join(__dirname, 'assets/test_esign.pdf')),
           fileName: 'absence',
+          type: 'absence'
         };
         const form = generateFormData(payload);
         const response = await app.inject({

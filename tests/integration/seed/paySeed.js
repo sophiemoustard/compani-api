@@ -7,7 +7,7 @@ const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
 const Pay = require('../../../src/models/Pay');
-const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const contractId1 = new ObjectID();
 const contractId2 = new ObjectID();
@@ -52,6 +52,18 @@ const auxiliary2 = {
   company: authCompany._id,
 };
 
+const auxiliaryFromOtherCompany = {
+  _id: new ObjectID(),
+  identity: { firstname: 'toto', lastname: 'test' },
+  local: { email: 'othercompany@alenvi.io', password: '123456' },
+  employee_id: 9876543,
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
+  contracts: contractId2,
+  sector: sectorId,
+  company: otherCompany._id,
+};
+
 const contracts = [{
   createdAt: '2018-12-04T16:34:04',
   user: auxiliaryId1,
@@ -61,7 +73,7 @@ const contracts = [{
   company: authCompany._id,
   versions: [
     {
-      createdAt: '2018-12-04T16:34:04',
+      createdAt: '2018-12-03T16:34:04',
       endDate: null,
       grossHourlyRate: 10.28,
       startDate: '2018-12-03T23:00:00.000Z',
@@ -149,11 +161,9 @@ const service = {
   nature: 'hourly',
 };
 
-const sector = {
-  name: 'Toto',
-  _id: sectorId,
-  company: authCompany._id,
-};
+const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
+
+const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
 
 const populateDB = async () => {
   await User.deleteMany({});
@@ -165,14 +175,18 @@ const populateDB = async () => {
   await Pay.deleteMany({});
 
   await populateDBForAuthentication();
-  await (new User(user)).save();
-  await (new User(auxiliary1)).save();
-  await (new User(auxiliary2)).save();
+  await User.create([user, auxiliary1, auxiliary2, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
   await Contract.insertMany(contracts);
-  await (new Sector(sector)).save();
+  await Sector.create([sector, sectorFromOtherCompany]);
 };
 
-module.exports = { populateDB };
+module.exports = {
+  populateDB,
+  auxiliary1,
+  auxiliaryFromOtherCompany,
+  sectorId,
+  sectorFromOtherCompany,
+};

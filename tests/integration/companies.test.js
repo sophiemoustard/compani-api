@@ -1,11 +1,16 @@
 const expect = require('expect');
 const omit = require('lodash/omit');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 const { company, populateDB } = require('./seed/companiesSeed');
 const { MONTH } = require('../../src/helpers/constants');
+const GdriveStorageHelper = require('../../src/helpers/gdriveStorage');
 const Company = require('../../src/models/Company');
+const Drive = require('../../src/models/Google/Drive');
 const app = require('../../server');
-const { getToken, authCompany } = require('./seed/authenticationSeed');
+const { getToken, authCompany, otherCompany } = require('./seed/authenticationSeed');
+const { generateFormData } = require('./utils');
+const GetStream = require('get-stream');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -93,6 +98,67 @@ describe('COMPANIES ROUTES', () => {
     });
   });
 
+  describe('POST /{_id}/gdrive/{driveId}/upload', () => {
+    const fakeDriveId = 'fakeDriveId';
+    let addStub;
+    let getFileByIdStub;
+
+    beforeEach(() => {
+      addStub = sinon.stub(Drive, 'add');
+      getFileByIdStub = sinon.stub(Drive, 'getFileById');
+    });
+
+    afterEach(() => {
+      addStub.restore();
+      getFileByIdStub.restore();
+    });
+
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should upload a file', async () => {
+        addStub.returns({ id: 'fakeFileDriveId' });
+        getFileByIdStub.returns({ webViewLink: 'fakeWebViewLink' });
+
+        const payload = {
+          fileName: 'mandat_signe',
+          file: 'true',
+          type: 'contractWithCompany',
+        };
+        const form = generateFormData(payload);
+        const response = await app.inject({
+          method: 'POST',
+          url: `/companies/${authCompany._id}/gdrive/${fakeDriveId}/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toEqual(200);
+        sinon.assert.calledOnce(addStub);
+        sinon.assert.calledOnce(getFileByIdStub);
+      });
+
+      it('should not upload file if the user is not from the same company', async () => {
+        const payload = {
+          fileName: 'mandat_signe',
+          file: 'true',
+          type: 'contractWithCompany',
+        };
+        const form = generateFormData(payload);
+
+        const response = await app.inject({
+          method: 'POST',
+          url: `/companies/${otherCompany._id}/gdrive/${fakeDriveId}/upload`,
+          payload: await GetStream(form),
+          headers: { ...form.getHeaders(), 'x-access-token': authToken },
+        });
+        expect(response.statusCode).toBe(403);
+      });
+    });
+  });
+
   describe('POST /companies', () => {
     const payload = {
       name: 'Test SARL',
@@ -129,6 +195,13 @@ describe('COMPANIES ROUTES', () => {
 
       it('should create a new company', async () => {
         const companiesBefore = await Company.find().lean();
+        const createFolderForCompanyStub = sinon
+          .stub(GdriveStorageHelper, 'createFolderForCompany')
+          .returns({ id: '1234567890' });
+        const createFolderStub = sinon
+          .stub(GdriveStorageHelper, 'createFolder')
+          .returns({ id: '0987654321' });
+
         const response = await app.inject({
           method: 'POST',
           url: '/companies',
@@ -137,8 +210,14 @@ describe('COMPANIES ROUTES', () => {
         });
         expect(response.statusCode).toBe(200);
         expect(response.result.data.company).toBeDefined();
+        expect(response.result.data.company).toMatchObject({
+          folderId: '1234567890',
+          directDebitsFolderId: '0987654321',
+        });
         const companies = await Company.find().lean();
         expect(companies).toHaveLength(companiesBefore.length + 1);
+        createFolderForCompanyStub.restore();
+        createFolderStub.restore();
       });
 
       const missingParams = [

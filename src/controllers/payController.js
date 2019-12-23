@@ -1,7 +1,7 @@
 const Boom = require('boom');
 const translate = require('../helpers/translate');
 const { getDraftPay } = require('../helpers/draftPay');
-const { createPayList, hoursBalanceDetail } = require('../helpers/pay');
+const { createPayList, hoursBalanceDetail, getHoursToWorkBySector } = require('../helpers/pay');
 
 const { language } = translate;
 
@@ -21,7 +21,7 @@ const draftPayList = async (req) => {
 
 const createList = async (req) => {
   try {
-    await createPayList(req.payload);
+    await createPayList(req.payload, req.auth.credentials);
 
     return { message: translate[language].payListCreated };
   } catch (e) {
@@ -45,8 +45,23 @@ const getHoursBalanceDetails = async (req) => {
   }
 };
 
+const getHoursToWork = async (req) => {
+  try {
+    const hoursToWork = await getHoursToWorkBySector(req.query, req.auth.credentials);
+
+    return {
+      message: translate[language].hoursToWorkFound,
+      data: { hoursToWork },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   draftPayList,
   createList,
   getHoursBalanceDetails,
+  getHoursToWork,
 };

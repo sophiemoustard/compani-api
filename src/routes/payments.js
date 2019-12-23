@@ -4,33 +4,21 @@ const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 const {
-  list,
   create,
   createList,
   update,
 } = require('../controllers/paymentController');
-const { getPayment, authorizePaymentUpdate, authorizePaymentsListCreation, authorizePaymentCreation } = require('./preHandlers/payments');
+const {
+  getPayment,
+  authorizePaymentUpdate,
+  authorizePaymentsListCreation,
+  authorizePaymentCreation,
+} = require('./preHandlers/payments');
 const { PAYMENT_NATURES, PAYMENT_TYPES } = require('../models/Payment');
 
 exports.plugin = {
   name: 'routes-payments',
   register: async (server) => {
-    server.route({
-      method: 'GET',
-      path: '/',
-      options: {
-        auth: { scope: ['payments:edit', 'customer-{query.customer}'] },
-        validate: {
-          query: {
-            endDate: Joi.date(),
-            startDate: Joi.date(),
-            customer: Joi.objectId(),
-          },
-        },
-      },
-      handler: list,
-    });
-
     server.route({
       method: 'POST',
       path: '/',
@@ -61,7 +49,6 @@ exports.plugin = {
             date: Joi.date().required(),
             customer: Joi.objectId().required(),
             customerInfo: Joi.object(),
-            client: Joi.objectId(),
             netInclTaxes: Joi.number().required(),
             nature: Joi.string().valid(PAYMENT_NATURES).required(),
             type: Joi.string().valid(PAYMENT_TYPES).required(),

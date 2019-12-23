@@ -1,9 +1,9 @@
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
-const { populateDB } = require('./seed/finalPaySeed');
+const { populateDB, auxiliary, auxiliaryFromOtherCompany } = require('./seed/finalPaySeed');
 const app = require('../../server');
 const FinalPay = require('../../src/models/FinalPay');
-const { getToken } = require('./seed/authenticationSeed');
+const { getToken, authCompany } = require('./seed/authenticationSeed');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -59,7 +59,7 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = [{
-    auxiliary: new ObjectID(),
+    auxiliary: auxiliary._id,
     startDate: '2019-04-30T22:00:00.000Z',
     endDate: '2019-05-28T14:34:04.000Z',
     endReason: 'resignation',
@@ -123,8 +123,19 @@ describe('FINAL PAY ROUTES - POST /finalpay', () => {
 
       expect(response.statusCode).toBe(200);
 
-      const finalPayList = await FinalPay.find().lean();
+      const finalPayList = await FinalPay.find({ company: authCompany._id }).lean();
       expect(finalPayList.length).toEqual(1);
+    });
+
+    it('should not create a new final pay if user is not from the same company', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/finalpay',
+        headers: { 'x-access-token': authToken },
+        payload: [{ ...payload[0], auxiliary: auxiliaryFromOtherCompany._id }],
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     Object.keys(payload[0]).forEach((key) => {

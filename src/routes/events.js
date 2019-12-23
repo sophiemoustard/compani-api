@@ -31,7 +31,15 @@ const {
   ABSENCE_TYPES,
   REPETITION_FREQUENCIES,
 } = require('../models/Event');
-const { getEvent, authorizeEventCreation, authorizeEventUpdate, authorizeEventDeletion } = require('./preHandlers/events');
+const {
+  getEvent,
+  authorizeEventCreation,
+  authorizeEventUpdate,
+  authorizeEventDeletion,
+  authorizeEventDeletionList,
+  authorizeEventGet,
+  authorizeEventForCreditNoteGet,
+} = require('./preHandlers/events');
 
 exports.plugin = {
   name: 'routes-event',
@@ -91,14 +99,15 @@ exports.plugin = {
           query: {
             startDate: Joi.date(),
             endDate: Joi.date(),
-            auxiliary: [Joi.array().items(Joi.string()), Joi.string()],
-            sector: [Joi.array().items(Joi.string()), Joi.string()],
-            customer: [Joi.array().items(Joi.string()), Joi.string()],
+            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            sector: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
+            customer: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
             type: Joi.string(),
             groupBy: Joi.string(),
             status: Joi.string(),
           },
         },
+        pre: [{ method: authorizeEventGet }],
       },
       handler: list,
     });
@@ -117,8 +126,26 @@ exports.plugin = {
             isBilled: Joi.boolean().required(),
           },
         },
+        pre: [{ method: authorizeEventForCreditNoteGet }],
       },
       handler: listForCreditNotes,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/working-stats',
+      handler: getWorkingStats,
+      options: {
+        auth: { scope: ['events:read'] },
+        validate: {
+          query: {
+            startDate: Joi.date().required(),
+            endDate: Joi.date().required(),
+            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())).required(),
+          },
+        },
+        pre: [{ method: authorizeEventGet }],
+      },
     });
 
     server.route({
@@ -226,24 +253,9 @@ exports.plugin = {
             endDate: Joi.date(),
           }),
         },
+        pre: [{ method: authorizeEventDeletionList }],
       },
       handler: deleteList,
-    });
-
-    server.route({
-      method: 'GET',
-      path: '/working-stats',
-      handler: getWorkingStats,
-      options: {
-        auth: { scope: ['events:read'] },
-        validate: {
-          query: {
-            startDate: Joi.date().required(),
-            endDate: Joi.date().required(),
-            auxiliary: [Joi.objectId().required(), Joi.array().items(Joi.objectId()).required()],
-          },
-        },
-      },
     });
   },
 };

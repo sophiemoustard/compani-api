@@ -7,7 +7,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const balances = await getBalances(req.auth.credentials, req.query.customer, req.query.date);
+    const balances = await getBalances(req.auth.credentials);
 
     const filteredBalances = balances.filter(client => client.balance < -1 || client.balance > 1);
 

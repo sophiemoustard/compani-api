@@ -24,7 +24,7 @@ describe('DISTANCE MATRIX ROUTES', () => {
         headers: { 'x-access-token': authToken },
       });
       expect(res.statusCode).toBe(200);
-      expect(res.result.data.distanceMatrix).toHaveLength(distanceMatrixList.length);
+      expect(res.result.data.distanceMatrices).toHaveLength(distanceMatrixList.length);
     });
   });
 });

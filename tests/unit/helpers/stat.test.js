@@ -28,15 +28,26 @@ describe('getCustomerFundingsMonitoring', () => {
 
   it('should return empty array if no fundings', async () => {
     const customerId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
     getEventsGroupedByFundingsStub.returns([]);
-    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId);
+    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId, credentials);
     expect(fundingsMonitoring).toEqual([]);
-    sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
+    sinon.assert.calledWithExactly(
+      getEventsGroupedByFundingsStub,
+      customerId,
+      fundingsDate,
+      eventsDate,
+      moment().startOf('month').toDate(),
+      companyId
+    );
   });
 
   it('should return info if no events', async () => {
     const customerId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
     getEventsGroupedByFundingsStub.returns([{
       thirdPartyPayer: { name: 'Tiers payeur' },
@@ -47,7 +58,7 @@ describe('getCustomerFundingsMonitoring', () => {
       prevMonthEvents: [],
       currentMonthEvents: [],
     }]);
-    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId);
+    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId, credentials);
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
@@ -55,7 +66,14 @@ describe('getCustomerFundingsMonitoring', () => {
       plannedCareHours: 5,
       prevMonthCareHours: 0,
     }]);
-    sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
+    sinon.assert.calledWithExactly(
+      getEventsGroupedByFundingsStub,
+      customerId,
+      fundingsDate,
+      eventsDate,
+      moment().startOf('month').toDate(),
+      companyId
+    );
   });
 
   it('should return stats on care hours', async () => {
@@ -98,9 +116,11 @@ describe('getCustomerFundingsMonitoring', () => {
       ],
     }];
     const customerId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
     getEventsGroupedByFundingsStub.returns(eventsGroupedByFundings);
-    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId);
+    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId, credentials);
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
@@ -108,7 +128,14 @@ describe('getCustomerFundingsMonitoring', () => {
       plannedCareHours: 5,
       prevMonthCareHours: 3.5,
     }]);
-    sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
+    sinon.assert.calledWithExactly(
+      getEventsGroupedByFundingsStub,
+      customerId,
+      fundingsDate,
+      eventsDate,
+      moment().startOf('month').toDate(),
+      companyId
+    );
   });
 
   it('should return -1 for previous month if funding starts on current month', async () => {
@@ -160,9 +187,11 @@ describe('getCustomerFundingsMonitoring', () => {
       ],
     }];
     const customerId = new ObjectID();
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
 
     getEventsGroupedByFundingsStub.returns(eventsGroupedByFundings);
-    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId);
+    const fundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customerId, credentials);
 
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
@@ -170,6 +199,52 @@ describe('getCustomerFundingsMonitoring', () => {
       plannedCareHours: 5,
       prevMonthCareHours: -1,
     }]);
-    sinon.assert.calledWith(getEventsGroupedByFundingsStub, customerId, fundingsDate, eventsDate);
+    sinon.assert.calledWithExactly(
+      getEventsGroupedByFundingsStub,
+      customerId,
+      fundingsDate,
+      eventsDate,
+      moment().startOf('month').toDate(),
+      companyId
+    );
+  });
+});
+
+describe('getCustomersAndDurationBySector', () => {
+  let getCustomersAndDurationBySector;
+  const credentials = { company: { _id: new ObjectID() } };
+  beforeEach(() => {
+    getCustomersAndDurationBySector = sinon.stub(StatRepository, 'getCustomersAndDurationBySector');
+  });
+  afterEach(() => {
+    getCustomersAndDurationBySector.restore();
+  });
+
+  it('should format sector as array', async () => {
+    const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
+    getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
+    const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
+
+    expect(result).toEqual({ cutomerCount: 9 });
+    sinon.assert.calledWithExactly(
+      getCustomersAndDurationBySector,
+      [new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      '102019',
+      credentials.company._id
+    );
+  });
+
+  it('should format array sector with objectId', async () => {
+    const query = { sector: ['5d1a40b7ecb0da251cfa4fea', '5d1a40b7ecb0da251cfa4fe9'], month: '102019' };
+    getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
+    const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
+
+    expect(result).toEqual({ cutomerCount: 9 });
+    sinon.assert.calledWithExactly(
+      getCustomersAndDurationBySector,
+      [new ObjectID('5d1a40b7ecb0da251cfa4fea'), new ObjectID('5d1a40b7ecb0da251cfa4fe9')],
+      '102019',
+      credentials.company._id
+    );
   });
 });

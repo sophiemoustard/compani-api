@@ -194,7 +194,16 @@ describe('exportSubscriptions', () => {
     const result = await SubscriptionsHelper.exportSubscriptions(credentials);
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Titre', 'Nom', 'Prénom', 'Service', 'Prix unitaire TTC', 'Volume hebdomadaire estimatif', 'Dont soirées', 'Dont dimanches']);
+    expect(result[0]).toMatchObject([
+      'Titre',
+      'Nom',
+      'Prénom',
+      'Service',
+      'Prix unitaire TTC',
+      'Volume hebdomadaire estimatif',
+      'Dont soirées',
+      'Dont dimanches',
+    ]);
   });
 
   it('should return subscriptions info', async () => {
@@ -223,5 +232,193 @@ describe('exportSubscriptions', () => {
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
     expect(result[1]).toMatchObject(['M.', 'AUTONOMIE', '', 'Service', 'F-12', 'F-4', 9, 2]);
+  });
+});
+
+describe('updateSubscription', () => {
+  let CustomerMock;
+  let populateSubscriptionsServices;
+  beforeEach(() => {
+    CustomerMock = sinon.mock(Customer);
+    populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
+  });
+  afterEach(() => {
+    CustomerMock.restore();
+    populateSubscriptionsServices.restore();
+  });
+
+  it('should update subscription', async () => {
+    const customerId = new ObjectID();
+    const subscriptionId = new ObjectID();
+    const params = { _id: customerId.toHexString(), subscriptionId: subscriptionId.toHexString() };
+    const payload = { evenings: 2 };
+    const customer = {
+      _id: customerId,
+      subscriptions: [{ _id: subscriptionId, evenings: 2, service: new ObjectID() }],
+    };
+
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: customerId.toHexString(), 'subscriptions._id': subscriptionId.toHexString() },
+        { $push: { 'subscriptions.$.versions': payload } },
+        { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .chain('lean')
+      .once()
+      .returns(customer);
+    populateSubscriptionsServices.returns(customer);
+
+    const result = await SubscriptionsHelper.updateSubscription(params, payload);
+    expect(result).toEqual(customer);
+    sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
+    CustomerMock.verify();
+  });
+});
+
+describe('addSubscription', () => {
+  let CustomerMock;
+  let populateSubscriptionsServices;
+  beforeEach(() => {
+    CustomerMock = sinon.mock(Customer);
+    populateSubscriptionsServices = sinon.stub(SubscriptionsHelper, 'populateSubscriptionsServices');
+  });
+  afterEach(() => {
+    CustomerMock.restore();
+    populateSubscriptionsServices.restore();
+  });
+
+  it('should add this first subscription', async () => {
+    const customerId = new ObjectID();
+    const customer = { _id: customerId };
+    const payload = { service: new ObjectID(), estimatedWeeklyVolume: 10 };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: customerId },
+        { $push: { subscriptions: payload } },
+        { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .chain('lean')
+      .once()
+      .returns(customer);
+    populateSubscriptionsServices.returns(customer);
+
+    const result = await SubscriptionsHelper.addSubscription(customerId, payload);
+    expect(result).toEqual(customer);
+    sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
+    CustomerMock.verify();
+  });
+
+  it('should add the second subscription', async () => {
+    const customerId = new ObjectID();
+    const customer = { _id: customerId, subscriptions: [{ service: new ObjectID() }] };
+    const payload = { service: (new ObjectID()).toHexString(), estimatedWeeklyVolume: 10 };
+
+    CustomerMock.expects('findById')
+      .withExactArgs(customerId)
+      .chain('lean')
+      .once()
+      .returns(customer);
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: customerId },
+        { $push: { subscriptions: payload } },
+        { new: true, select: { identity: 1, subscriptions: 1 }, autopopulate: false }
+      )
+      .chain('populate')
+      .withExactArgs({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
+      .chain('lean')
+      .once()
+      .returns(customer);
+    populateSubscriptionsServices.returns(customer);
+
+    const result = await SubscriptionsHelper.addSubscription(customerId, payload);
+    expect(result).toEqual(customer);
+    sinon.assert.calledWithExactly(populateSubscriptionsServices, customer);
+    CustomerMock.verify();
+  });
+
+  it('should throw an error if service is already subscribed', async () => {
+    try {
+      const customerId = new ObjectID();
+      const serviceId = new ObjectID();
+      const customer = { _id: customerId, subscriptions: [{ service: serviceId }] };
+      const payload = { service: serviceId.toHexString(), estimatedWeeklyVolume: 10 };
+
+      CustomerMock.expects('findById')
+        .withExactArgs(customerId)
+        .chain('lean')
+        .once()
+        .returns(customer);
+      CustomerMock.expects('findOneAndUpdate').never();
+
+      await SubscriptionsHelper.addSubscription(customerId, payload);
+    } catch (e) {
+      expect(e.output.statusCode).toEqual(409);
+    } finally {
+      sinon.assert.notCalled(populateSubscriptionsServices);
+      CustomerMock.verify();
+    }
+  });
+});
+
+describe('deleteSubscription', () => {
+  let updateOne;
+  beforeEach(() => {
+    updateOne = sinon.stub(Customer, 'updateOne');
+  });
+  afterEach(() => {
+    updateOne.restore();
+  });
+
+  it('should delete subscription', async () => {
+    const customerId = new ObjectID();
+    const subscriptionId = new ObjectID();
+
+    await SubscriptionsHelper.deleteSubscription(customerId.toHexString(), subscriptionId.toHexString());
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: customerId.toHexString() },
+      { $pull: { subscriptions: { _id: subscriptionId.toHexString() } } }
+    );
+  });
+});
+
+describe('createSubscriptionHistory', () => {
+  let CustomerMock;
+  beforeEach(() => {
+    CustomerMock = sinon.mock(Customer);
+  });
+  afterEach(() => {
+    CustomerMock.restore();
+  });
+
+  it('should create subscription history', async () => {
+    const customerId = new ObjectID();
+    const payload = { evenings: 2 };
+    const customer = { _id: customerId };
+
+    CustomerMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: customerId.toHexString() },
+        { $push: { subscriptionsHistory: payload } },
+        { new: true, select: { identity: 1, subscriptionsHistory: 1 }, autopopulate: false }
+      )
+      .chain('lean')
+      .once()
+      .returns(customer);
+
+    const result = await SubscriptionsHelper.createSubscriptionHistory(customerId.toHexString(), payload);
+    expect(result).toEqual(customer);
+    CustomerMock.verify();
   });
 });

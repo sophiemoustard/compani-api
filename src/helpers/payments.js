@@ -6,7 +6,14 @@ const Boom = require('boom');
 
 const Payment = require('../models/Payment');
 const PaymentNumber = require('../models/PaymentNumber');
-const { REFUND, PAYMENT, DIRECT_DEBIT, PAYMENT_TYPES_LIST, PAYMENT_NATURE_LIST, CIVILITY_LIST } = require('./constants');
+const {
+  REFUND,
+  PAYMENT,
+  DIRECT_DEBIT,
+  PAYMENT_TYPES_LIST,
+  PAYMENT_NATURE_LIST,
+  CIVILITY_LIST,
+} = require('./constants');
 const XmlHelper = require('../helpers/xml');
 const UtilsHelper = require('./utils');
 
@@ -117,18 +124,18 @@ exports.formatPayment = async (payment, company) => {
 
 exports.savePayments = async (payload, credentials) => {
   const { company } = credentials;
-  if (!company || !company.name || !company.iban || !company.bic || !company.ics || !company.directDebitsFolderId) throw Boom.badRequest('Missing mandatory company info !');
+  if (!company || !company.name || !company.iban || !company.bic || !company.ics || !company.directDebitsFolderId) {
+    throw Boom.badRequest('Missing mandatory company info !');
+  }
+
   const promises = [];
   const firstPayments = [];
   const recurPayments = [];
   for (let payment of payload) {
     payment = await exports.formatPayment(payment, company);
-    const countPayments = await Payment.countDocuments({ customer: payment.customer, type: DIRECT_DEBIT, rum: payment.rum });
-    if (countPayments === 0) {
-      firstPayments.push(payment);
-    } else {
-      recurPayments.push(payment);
-    }
+    const count = await Payment.countDocuments({ customer: payment.customer, type: DIRECT_DEBIT, rum: payment.rum });
+    if (count === 0) firstPayments.push(payment);
+    else recurPayments.push(payment);
 
     const savedPayment = new Payment(payment);
     promises.push(savedPayment.save());

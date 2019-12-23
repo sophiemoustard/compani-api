@@ -17,24 +17,28 @@ const {
   remove,
   addSubscription,
   updateSubscription,
-  removeSubscription,
+  deleteSubscription,
   getMandates,
   updateMandate,
-  createDriveFolder,
   getCustomerQuotes,
   createCustomerQuote,
-  removeCustomerQuote,
   uploadFile,
-  updateCertificates,
-  generateMandateSignatureRequest,
+  deleteCertificates,
+  getMandateSignatureRequest,
   saveSignedMandate,
   createHistorySubscription,
   createFunding,
   updateFunding,
-  removeFunding,
+  deleteFunding,
 } = require('../controllers/customerController');
 const { FUNDING_FREQUENCIES, FUNDING_NATURES } = require('../models/Customer');
-const { getCustomer, authorizeCustomerDelete, authorizeCustomerGetAndUpdate } = require('./preHandlers/customers');
+const {
+  getCustomer,
+  authorizeCustomerDelete,
+  authorizeCustomerUpdate,
+  authorizeCustomerGet,
+  authorizeCustomerGetBySector,
+} = require('./preHandlers/customers');
 const { CIVILITY_OPTIONS } = require('../models/schemaDefinitions/identity');
 
 exports.plugin = {
@@ -47,33 +51,22 @@ exports.plugin = {
         auth: { scope: ['customers:create'] },
         validate: {
           payload: Joi.object().keys({
-            referent: Joi.objectId().allow(null, ''),
             identity: Joi.object().keys({
               title: Joi.string().valid(CIVILITY_OPTIONS).required(),
               firstname: Joi.string().allow(null, ''),
               lastname: Joi.string().required(),
-            }).min(1),
+            }).required(),
             contact: Joi.object().keys({
               primaryAddress: Joi.object().keys({
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
-                fullAddress: Joi.string(),
+                fullAddress: Joi.string().required(),
                 location: Joi.object().keys({
-                  type: Joi.string(),
-                  coordinates: Joi.array(),
-                }),
-              }),
-              secondaryAddress: Joi.object().keys({
-                street: Joi.string().allow('', null),
-                zipCode: Joi.string().allow('', null),
-                city: Joi.string().allow('', null),
-                fullAddress: Joi.string().allow('', null),
-                location: Joi.object().keys({
-                  type: Joi.string().allow('', null),
-                  coordinates: Joi.array().allow([], null),
-                }),
-              }),
+                  type: Joi.string().required(),
+                  coordinates: Joi.array().length(2).required(),
+                }).required(),
+              }).required(),
             }).required(),
           }),
         },
@@ -122,20 +115,20 @@ exports.plugin = {
                 }),
               }),
               accessCodes: Joi.string().allow('', null),
-            }),
+            }).min(1),
             followUp: Joi.object().keys({
               environment: Joi.string().allow('', null),
               objectives: Joi.string().allow('', null),
               misc: Joi.string().allow('', null),
-            }),
+            }).min(1),
             payment: Joi.object().keys({
               bankAccountOwner: Joi.string(),
               iban: Joi.string(),
               bic: Joi.string(),
-            }),
+            }).min(1),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: update,
     });
@@ -145,11 +138,6 @@ exports.plugin = {
       path: '/',
       options: {
         auth: { scope: ['customers:read'] },
-        validate: {
-          query: Joi.object().keys({
-            _id: [Joi.array().items(Joi.objectId()), Joi.objectId()],
-          }),
-        },
       },
       handler: list,
     });
@@ -184,6 +172,7 @@ exports.plugin = {
             endDate: Joi.date(),
           }),
         },
+        pre: [{ method: authorizeCustomerGetBySector }],
       },
       handler: listBySector,
     });
@@ -223,7 +212,7 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerGet }],
       },
       handler: show,
     });
@@ -237,7 +226,6 @@ exports.plugin = {
           params: { _id: Joi.objectId().required() },
         },
         pre: [
-          { method: authorizeCustomerGetAndUpdate },
           { method: getCustomer, assign: 'customer' },
           { method: authorizeCustomerDelete },
         ],
@@ -262,7 +250,7 @@ exports.plugin = {
             }),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: addSubscription,
     });
@@ -284,7 +272,7 @@ exports.plugin = {
             sundays: Joi.number(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateSubscription,
     });
@@ -300,9 +288,9 @@ exports.plugin = {
             subscriptionId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: removeSubscription,
+      handler: deleteSubscription,
     });
 
     server.route({
@@ -315,7 +303,7 @@ exports.plugin = {
             _id: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerGet }],
       },
       handler: getMandates,
     });
@@ -331,7 +319,7 @@ exports.plugin = {
             mandateId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateMandate,
     });
@@ -357,9 +345,9 @@ exports.plugin = {
             redirectDecline: Joi.string(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: generateMandateSignatureRequest,
+      handler: getMandateSignatureRequest,
     });
 
     server.route({
@@ -372,7 +360,7 @@ exports.plugin = {
             _id: Joi.objectId(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerGet }],
       },
       handler: getCustomerQuotes,
     });
@@ -396,44 +384,9 @@ exports.plugin = {
             })).required(),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: createCustomerQuote,
-    });
-
-    server.route({
-      method: 'DELETE',
-      path: '/{_id}/quotes/{quoteId}',
-      options: {
-        auth: { scope: ['customers:administrative:edit'] },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-            quoteId: Joi.objectId().required(),
-          },
-        },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
-      },
-      handler: removeCustomerQuote,
-    });
-
-
-    server.route({
-      method: 'POST',
-      path: '/{_id}/drivefolder',
-      options: {
-        auth: { scope: ['customers:administrative:edit'] },
-        validate: {
-          params: {
-            _id: Joi.objectId().required(),
-          },
-          payload: Joi.object().keys({
-            parentFolderId: Joi.string(),
-          }),
-        },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
-      },
-      handler: createDriveFolder,
     });
 
     server.route({
@@ -455,20 +408,19 @@ exports.plugin = {
           },
           payload: Joi.object({
             fileName: Joi.string().required(),
-            signedQuote: Joi.any(),
-            signedMandate: Joi.any(),
-            financialCertificates: Joi.any(),
+            file: Joi.any().required(),
+            type: Joi.string().valid('signedQuote', 'signedMandate', 'financialCertificates').required(),
             quoteId: Joi.string().when(
-              'signedQuote',
-              { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }
+              'type',
+              { is: 'signedQuote', then: Joi.required(), otherwise: Joi.forbidden() }
             ),
             mandateId: Joi.string().when(
-              'signedMandate',
-              { is: Joi.exist(), then: Joi.required(), otherwise: Joi.forbidden() }
+              'type',
+              { is: 'signedMandate', then: Joi.required(), otherwise: Joi.forbidden() }
             ),
-          }).or('signedQuote', 'signedMandate', 'financialCertificates'),
+          }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
     });
 
@@ -480,14 +432,12 @@ exports.plugin = {
         validate: {
           params: { _id: Joi.objectId().required() },
           payload: Joi.object().keys({
-            financialCertificates: Joi.object().keys({
-              driveId: Joi.string().required(),
-            }),
+            driveId: Joi.string().required(),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: updateCertificates,
+      handler: deleteCertificates,
     });
 
     server.route({
@@ -501,7 +451,7 @@ exports.plugin = {
             mandateId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: saveSignedMandate,
     });
@@ -531,7 +481,7 @@ exports.plugin = {
             }).required(),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: createHistorySubscription,
     });
@@ -562,7 +512,7 @@ exports.plugin = {
             })),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: createFunding,
     });
@@ -589,7 +539,7 @@ exports.plugin = {
             customerParticipationRate: Joi.number().default(0),
           }),
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
       handler: updateFunding,
     });
@@ -605,9 +555,9 @@ exports.plugin = {
             fundingId: Joi.objectId().required(),
           },
         },
-        pre: [{ method: authorizeCustomerGetAndUpdate }],
+        pre: [{ method: authorizeCustomerUpdate }],
       },
-      handler: removeFunding,
+      handler: deleteFunding,
     });
   },
 };

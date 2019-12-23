@@ -9,7 +9,7 @@ const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { AUXILIARY, PLANNING_REFERENT, COMPANY_CONTRACT } = require('../helpers/constants');
-const { validateQuery, validatePayload } = require('./preHooks/validate');
+const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
 const SALT_WORK_FACTOR = 10;
 
@@ -120,7 +120,7 @@ const UserSchema = mongoose.Schema({
   company: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company',
-    autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 2 },
+    autopopulate: { select: '-__v -updatedAt', maxDepth: 2 },
     required: true,
   },
   customers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }],
@@ -215,6 +215,7 @@ UserSchema.pre('save', save);
 UserSchema.pre('findOneAndUpdate', findOneAndUpdate);
 UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validatePayload);
+UserSchema.pre('aggregate', validateAggregation);
 UserSchema.post('save', populateAfterSave);
 
 UserSchema.plugin(mongooseLeanVirtuals);

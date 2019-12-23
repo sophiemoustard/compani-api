@@ -42,12 +42,12 @@ describe('getContractMonthInfo', () => {
     expect(result).toBeDefined();
     expect(result.contractHours).toBe(52);
     expect(result.workedDaysRatio).toBe(1 / 4);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
       moment('2019-05-06').startOf('M').toDate(),
       moment('2019-05-06').endOf('M').toDate()
     );
-    sinon.assert.calledWith(getContractInfo, [{ endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 }], query, 4);
+    sinon.assert.calledWithExactly(getContractInfo, [{ endDate: '2019-05-17', startDate: '2019-05-04', weeklyHours: 24 }], query, 4);
   });
 });
 
@@ -164,21 +164,21 @@ describe('getDraftPay', () => {
 
     expect(result).toBeDefined();
     expect(result).toEqual([]);
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        company: '1234567890',
         status: 'contract_with_company',
         endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),
-      'finalpays'
+      'finalpays',
+      credentials.company._id
     );
   });
 
   it('should return draft pay', async () => {
     const query = { startDate: '2019-05-01T00:00:00', endDate: '2019-05-31T23:59:59' };
-    const credentials = { company: { _id: '1234567890' } };
+    const credentials = { company: { _id: new ObjectID() } };
     const auxiliaryId = new ObjectID();
     const auxiliaries = [{ _id: auxiliaryId, sector: { name: 'Abeilles' } }];
     const payData = [
@@ -202,7 +202,11 @@ describe('getDraftPay', () => {
     getAuxiliariesToPay.returns(auxiliaries);
     getEventsToPay.returns(payData);
     surchargeMock.expects('find').chain('lean').returns([]);
-    distanceMatrixMock.expects('find').chain('lean').returns([]);
+    distanceMatrixMock
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('lean')
+      .returns([]);
     findPay.returns(existingPay);
     getPreviousMonthPay.returns(prevPay);
     companyMock.expects('findOne').chain('lean').returns({});
@@ -214,17 +218,17 @@ describe('getDraftPay', () => {
     companyMock.verify();
     surchargeMock.verify();
     distanceMatrixMock.verify();
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getAuxiliariesToPay,
       {
-        company: '1234567890',
         status: 'contract_with_company',
         endDate: { $exists: true, $lte: moment(query.endDate).endOf('d').toDate(), $gte: moment(query.startDate).startOf('d').toDate() },
       },
       moment('2019-05-31T23:59:59').endOf('d').toDate(),
-      'finalpays'
+      'finalpays',
+      credentials.company._id
     );
-    sinon.assert.calledWith(
+    sinon.assert.calledWithExactly(
       getDraftFinalPayByAuxiliary,
       { _id: auxiliaryId, sector: { name: 'Abeilles' } },
       {

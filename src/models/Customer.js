@@ -3,7 +3,7 @@ const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
 const Boom = require('boom');
 const get = require('lodash/get');
 const has = require('lodash/has');
-const { validateQuery, validatePayload } = require('./preHooks/validate');
+const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 const {
   MONTHLY,
   ONCE,
@@ -154,6 +154,7 @@ CustomerSchema.virtual('firstIntervention', {
   options: { sort: { startDate: 1 } },
 });
 
+CustomerSchema.pre('aggregate', validateAggregation);
 CustomerSchema.pre('find', validateQuery);
 CustomerSchema.pre('validate', validatePayload);
 CustomerSchema.pre('remove', removeCustomer);

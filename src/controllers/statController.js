@@ -3,13 +3,13 @@ const Boom = require('boom');
 const translate = require('../helpers/translate');
 const User = require('../models/User');
 const { getCustomerFollowUp } = require('../repositories/CompanyRepository');
-const { getCustomerFundingsMonitoring } = require('../helpers/stats');
+const { getCustomerFundingsMonitoring, getCustomersAndDurationBySector } = require('../helpers/stats');
 
 const messages = translate[translate.language];
 
 exports.getCustomerFollowUp = async (req) => {
   try {
-    let followUp = await getCustomerFollowUp(req.query.customer);
+    let followUp = await getCustomerFollowUp(req.query.customer, req.auth.credentials);
     if (followUp.length === 0) {
       return {
         message: messages.statsNotFound,
@@ -31,11 +31,25 @@ exports.getCustomerFollowUp = async (req) => {
 
 exports.getCustomerFundingsMonitoring = async (req) => {
   try {
-    const customerFundingsMonitoring = await getCustomerFundingsMonitoring(req.query.customer);
+    const customerFundingsMonitoring = await getCustomerFundingsMonitoring(req.query.customer, req.auth.credentials);
 
     return {
       message: messages.statsFound,
       data: { customerFundingsMonitoring },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+exports.getCustomersAndDuration = async (req) => {
+  try {
+    const customerAndDuration = await getCustomersAndDurationBySector(req.query, req.auth.credentials);
+
+    return {
+      message: messages.statsFound,
+      data: { customerAndDuration },
     };
   } catch (e) {
     req.log('error', e);

@@ -6,7 +6,6 @@ const nodemailer = require('nodemailer');
 const moment = require('moment');
 const uuidv4 = require('uuid/v4');
 const { clean } = require('../helpers/utils');
-const { populateRole } = require('../helpers/roles');
 const { sendinBlueTransporter, testTransporter } = require('../helpers/nodemailer');
 const translate = require('../helpers/translate');
 const { encode } = require('../helpers/authentication');
@@ -282,28 +281,7 @@ const checkResetPasswordToken = async (req) => {
 
 const uploadFile = async (req) => {
   try {
-    const allowedFields = [
-      'idCardRecto',
-      'idCardVerso',
-      'passport',
-      'residencePermitRecto',
-      'residencePermitVerso',
-      'healthAttest',
-      'certificates',
-      'phoneInvoice',
-      'navigoInvoice',
-      'transportInvoice',
-      'mutualFund',
-      'vitalCard',
-      'medicalCertificate',
-    ];
-    const administrativeKey = Object.keys(req.payload).find(key => allowedFields.includes(key));
-    if (!administrativeKey) {
-      return Boom.forbidden(translate[language].uploadNotAllowed);
-    }
-
-    const uploadedFile = await createAndSaveFile(administrativeKey, req.params, req.payload);
-
+    const uploadedFile = await createAndSaveFile(req.params, req.payload);
     return { message: translate[language].fileCreated, data: { uploadedFile } };
   } catch (e) {
     req.log('error', e);
@@ -343,7 +321,7 @@ const createDriveFolder = async (req) => {
 
     if (user.identity.firstname && user.identity.lastname) {
       const parentFolderId = req.payload.parentFolderId || process.env.GOOGLE_DRIVE_AUXILIARIES_FOLDER_ID;
-      const { folder } = await GdriveStorageHelper.createFolder(user.identity, parentFolderId);
+      const folder = await GdriveStorageHelper.createFolder(user.identity, parentFolderId);
 
       const folderPayload = {};
       folderPayload.administrative = user.administrative || { driveFolder: {} };
@@ -352,7 +330,11 @@ const createDriveFolder = async (req) => {
         link: folder.webViewLink,
       };
 
-      updatedUser = await User.findOneAndUpdate({ _id: user._id }, { $set: folderPayload }, { new: true, autopopulate: false });
+      updatedUser = await User.findOneAndUpdate(
+        { _id: user._id },
+        { $set: folderPayload },
+        { new: true, autopopulate: false }
+      );
     }
 
     return {

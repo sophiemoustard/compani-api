@@ -51,7 +51,6 @@ exports.getDraftFinalPay = async (query, credentials) => {
   const end = moment(query.endDate).endOf('d').toDate();
   const companyId = get(credentials, 'company._id', null);
   const contractRules = {
-    company: companyId,
     status: COMPANY_CONTRACT,
     endDate: {
       $exists: true,
@@ -59,13 +58,13 @@ exports.getDraftFinalPay = async (query, credentials) => {
       $gte: moment(query.startDate).startOf('d').toDate(),
     },
   };
-  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, end, 'finalpays');
+  const auxiliaries = await ContractRepository.getAuxiliariesToPay(contractRules, end, 'finalpays', companyId);
   if (auxiliaries.length === 0) return [];
 
   const [company, surcharges, dm] = await Promise.all([
-    Company.findOne().lean(),
+    Company.findOne({ _id: companyId }).lean(),
     Surcharge.find({ company: companyId }).lean(),
-    DistanceMatrix.find().lean(),
+    DistanceMatrix.find({ company: companyId }).lean(),
   ]);
 
   const eventsByAuxiliary = await EventRepository.getEventsToPay(start, end, auxiliaries.map(a => a._id), companyId);

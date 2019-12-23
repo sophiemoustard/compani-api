@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { validatePayload, validateQuery } = require('./preHooks/validate');
+const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const {
   PAYMENT,
@@ -28,6 +28,7 @@ const PaymentSchema = mongoose.Schema({
 
 PaymentSchema.pre('validate', validatePayload);
 PaymentSchema.pre('find', validateQuery);
+PaymentSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Payment', PaymentSchema);
 module.exports.PAYMENT_NATURES = PAYMENT_NATURES;

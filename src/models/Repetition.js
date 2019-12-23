@@ -5,7 +5,7 @@ const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource
 const { CONTRACT_STATUS } = require('./Contract');
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 
-const { validatePayload } = require('./preHooks/validate');
+const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const RepetitionSchema = mongoose.Schema({
   type: { type: String, enum: EVENT_TYPES },
@@ -26,5 +26,7 @@ const RepetitionSchema = mongoose.Schema({
 }, { timestamps: true });
 
 RepetitionSchema.pre('validate', validatePayload);
+RepetitionSchema.pre('find', validateQuery);
+RepetitionSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Repetition', RepetitionSchema);

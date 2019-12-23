@@ -1,14 +1,15 @@
 const Boom = require('boom');
+const get = require('lodash/get');
 
 const PayDocument = require('../models/PayDocument');
-const { createAndSave, removeFromDriveAndDb } = require('../helpers/payDocuments');
+const PayDocumentHelper = require('../helpers/payDocuments');
 const translate = require('../helpers/translate');
 
 const { language } = translate;
 
 const create = async (req) => {
   try {
-    const payDocument = await createAndSave(req.payload);
+    const payDocument = await PayDocumentHelper.create(req.payload, req.auth.credentials);
 
     return {
       message: translate[language].payDocumentCreated,
@@ -22,16 +23,13 @@ const create = async (req) => {
 
 const list = async (req) => {
   try {
-    const payDocuments = await PayDocument.find(req.query);
-    if (payDocuments.length === 0) {
-      return {
-        message: translate[language].payDocumentsNotFound,
-        data: { payDocuments: [] },
-      };
-    }
+    const payDocuments = await PayDocument.find({
+      ...req.query,
+      company: get(req, 'auth.credentials.company._id', null),
+    });
 
     return {
-      message: translate[language].payDocumentsFound,
+      message: !payDocuments.length ? translate[language].payDocumentsNotFound : translate[language].payDocumentsFound,
       data: { payDocuments },
     };
   } catch (e) {
@@ -42,7 +40,7 @@ const list = async (req) => {
 
 const remove = async (req) => {
   try {
-    await removeFromDriveAndDb(req.params._id);
+    await PayDocumentHelper.removeFromDriveAndDb(req.params._id);
 
     return { message: translate[language].payDocumentDeleted };
   } catch (e) {

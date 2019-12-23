@@ -1,7 +1,13 @@
+const get = require('lodash/get');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const maps = require('../models/Google/Maps');
 
-exports.getOrCreateDistanceMatrix = async (params) => {
+exports.getDistanceMatrices = async (params, credentials) => {
+  const query = { ...params, company: get(credentials, 'company._id', null) };
+  return DistanceMatrix.find(query).lean();
+};
+
+exports.getOrCreateDistanceMatrix = async (params, companyId) => {
   const distanceMatrix = await DistanceMatrix.findOne(params);
 
   if (distanceMatrix) return distanceMatrix;
@@ -15,6 +21,7 @@ exports.getOrCreateDistanceMatrix = async (params) => {
 
   const payload = new DistanceMatrix({
     ...params,
+    company: companyId,
     distance: res.data.rows[0].elements[0].distance.value,
     duration: res.data.rows[0].elements[0].duration.value,
   });
