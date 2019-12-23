@@ -1,5 +1,4 @@
 const sinon = require('sinon');
-const expect = require('expect');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const Company = require('../../../src/models/Company');
@@ -35,7 +34,15 @@ describe('createCompany', () => {
     createFolderForCompanyStub.returns({ id: '1234567890' });
     createFolderStub.onCall(0).returns({ id: '0987654321' });
     createFolderStub.onCall(1).returns({ id: 'qwertyuiop' });
-    CompanyMock.expects('create').withExactArgs(createdCompany);
+    CompanyMock.expects('find')
+      .chain('sort')
+      .withExactArgs({ prefixNumber: -1 })
+      .chain('limit')
+      .withExactArgs(1)
+      .chain('lean')
+      .once()
+      .returns([{ _id: new ObjectID(), prefixNumber: 345 }]);
+    CompanyMock.expects('create').withExactArgs({ ...createdCompany, prefixNumber: 346 }).once();
 
     await CompanyHelper.createCompany(payload);
 
