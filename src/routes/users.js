@@ -114,6 +114,7 @@ exports.plugin = {
           query: {
             role: [Joi.array(), Joi.string()],
             email: Joi.string().email(),
+            customers: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
           },
         },
         pre: [{ method: authorizeUserGet }],
