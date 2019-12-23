@@ -152,7 +152,7 @@ exports.formatEventHistoryForAuxiliaryUpdate = (mainInfo, payload, event) => {
 exports.formatEventHistoryForDatesUpdate = (mainInfo, payload, event) => {
   const datesUpdateHistory = {
     ...mainInfo,
-    sectors: [payload.sector],
+    sectors: payload.sector ? [payload.sector] : [],
     update: {
       startDate: { from: event.startDate, to: payload.startDate },
     },
@@ -173,7 +173,7 @@ exports.formatEventHistoryForDatesUpdate = (mainInfo, payload, event) => {
 exports.formatEventHistoryForHoursUpdate = (mainInfo, payload, event) => {
   const hoursUpdateHistory = {
     ...mainInfo,
-    sectors: [payload.sector],
+    sectors: payload.sector ? [payload.sector] : [],
     update: {
       startHour: { from: event.startDate, to: payload.startDate },
       endHour: { from: event.endDate, to: payload.endDate },
@@ -192,7 +192,7 @@ exports.formatEventHistoryForCancelUpdate = (mainInfo, payload) => {
   const { cancel } = payload;
   const datesUpdateHistory = {
     ...mainInfo,
-    sectors: [payload.sector],
+    sectors: payload.sector ? [payload.sector] : [],
     update: { cancel },
   };
 

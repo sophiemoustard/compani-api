@@ -110,8 +110,6 @@ exports.checkEventCreationOrUpdate = async (req) => {
   if (req.payload.auxiliary) {
     const auxiliary = await User.findOne(({ _id: req.payload.auxiliary, company: companyId })).lean();
     if (!auxiliary) throw Boom.forbidden();
-    const eventSector = req.payload.sector || event.sector;
-    if (auxiliary.sector.toHexString() !== eventSector) throw Boom.forbidden();
   }
 
   if (req.payload.sector) {
