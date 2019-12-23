@@ -305,7 +305,7 @@ const deleteCertificates = async (req) => {
 
 const saveSignedMandate = async (req) => {
   try {
-    const customer = await MandatesHelper.saveSignedMandate();
+    const customer = await MandatesHelper.saveSignedMandate(req.params._id, req.params.mandateId);
 
     return {
       message: translate[language].signedDocumentSaved,

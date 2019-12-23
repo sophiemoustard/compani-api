@@ -71,7 +71,7 @@ exports.saveSignedMandate = async (customerId, mandateId) => {
   const drive = { driveId: uploadedFile.id, link: driveFileInfo.webViewLink };
 
   await Customer.findOneAndUpdate(
-    { _id: customerId },
+    { _id: customerId, 'payment.mandates._id': mandateId },
     { $set: flat({ 'payment.mandates.$': { drive, signedAt: moment().toDate() } }) }
   ).lean();
 };
