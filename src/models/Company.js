@@ -10,6 +10,7 @@ const COMPANY_TYPES = [COMPANY, ASSOCIATION];
 const CompanySchema = mongoose.Schema({
   name: { type: String, unique: true, required: true },
   tradeName: { type: String, maxLength: 11, required: true },
+  prefixNumber: { type: Number, required: true, unique: true },
   address: addressSchemaDefinition,
   rcs: { type: String },
   rna: { type: String },
