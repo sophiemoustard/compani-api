@@ -141,7 +141,7 @@ exports.plugin = {
           query: {
             startDate: Joi.date().required(),
             endDate: Joi.date().required(),
-            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())).required(),
+            auxiliary: Joi.alternatives().try(Joi.objectId(), Joi.array().items(Joi.objectId())),
           },
         },
         pre: [{ method: authorizeEventGet }],

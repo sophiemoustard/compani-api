@@ -1,4 +1,5 @@
 const expect = require('expect');
+const omit = require('lodash/omit');
 const sinon = require('sinon');
 const Boom = require('boom');
 const { ObjectID } = require('mongodb');
@@ -1592,7 +1593,7 @@ describe('workingStats', () => {
     const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
     UserModel
       .expects('find')
-      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
       .chain('populate')
       .chain('lean')
       .returns(auxiliaries);
@@ -1631,13 +1632,17 @@ describe('workingStats', () => {
     DistanceMatrixModel.verify();
   });
 
-  it('should return {} if no auxiliary', async () => {
+  it('should return workingstats for all auxiliaries if no auxiliary is specified', async () => {
+    const contractId = new ObjectID();
+    const contracts = [{ _id: contractId }];
+    const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
+    const queryWithoutAuxiliary = omit(query, 'auxiliary');
     UserModel
       .expects('find')
-      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .withExactArgs({ company: companyId })
       .chain('populate')
       .chain('lean')
-      .returns([]);
+      .returns(auxiliaries);
 
     DistanceMatrixModel
       .expects('find')
@@ -1645,25 +1650,38 @@ describe('workingStats', () => {
       .chain('lean')
       .returns(distanceMatrix);
 
-    getEventsToPayStub.returns([]);
+    const contract = { startDate: '2018-11-11', _id: contractId };
+    const contractInfo = { contractHours: 10, holidaysHours: 7 };
+    const hours = { workedHours: 12 };
+    const absencesHours = 3;
+    getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events: [], absences: [] }]);
+    getContractStub.returns(contract);
+    getContractWeekInfoStub.returns(contractInfo);
+    getPayFromEventsStub.returns(hours);
+    getPayFromAbsencesStub.returns(absencesHours);
 
+    const result = await EventHelper.workingStats(queryWithoutAuxiliary, credentials);
+    const expectedResult = {};
+    expectedResult[auxiliaryId] = {
+      workedHours: hours.workedHours,
+      hoursToWork: 0,
+    };
 
-    const result = await EventHelper.workingStats(query, credentials);
-    expect(result).toEqual({});
-
-    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [], companyId);
-    sinon.assert.notCalled(getContractStub);
-    sinon.assert.notCalled(getContractWeekInfoStub);
-    sinon.assert.notCalled(getPayFromEventsStub);
-    sinon.assert.notCalled(getPayFromAbsencesStub);
+    expect(result).toEqual(expectedResult);
+    sinon.assert.calledWithExactly(getEventsToPayStub, query.startDate, query.endDate, [auxiliaryId], companyId);
+    sinon.assert.calledWithExactly(getContractStub, contracts, query.startDate, query.endDate);
+    sinon.assert.calledWithExactly(getContractWeekInfoStub, contract, queryWithoutAuxiliary);
+    sinon.assert.calledWithExactly(getPayFromEventsStub, [], auxiliaries[0], distanceMatrix, [], queryWithoutAuxiliary);
+    sinon.assert.calledWithExactly(getPayFromAbsencesStub, [], contract, queryWithoutAuxiliary);
     UserModel.verify();
     DistanceMatrixModel.verify();
+
   });
 
   it('should return {} if no contract in auxiliaries', async () => {
     UserModel
       .expects('find')
-      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
       .chain('populate')
       .chain('lean')
       .returns([{ _id: auxiliaryId, firstname: 'toto' }]);
@@ -1692,7 +1710,7 @@ describe('workingStats', () => {
     const contracts = [{ _id: new ObjectID() }];
     UserModel
       .expects('find')
-      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
       .chain('populate')
       .chain('lean')
       .returns([{ _id: auxiliaryId, firstname: 'toto', contracts }]);
