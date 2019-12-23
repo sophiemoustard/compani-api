@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const has = require('lodash/has');
+const get = require('lodash/get');
 const { COMPANI, OGUST } = require('../helpers/constants');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const billEventSurchargesSchemaDefinition = require('./schemaDefinitions/billEventSurcharges');
@@ -74,13 +74,13 @@ const CreditNoteSchema = mongoose.Schema(
           type: String,
           enum: SERVICE_NATURES,
           required() {
-            return has(this.subscription, 'service.serviceId');
+            return get(this.subscription, 'service.serviceId', false);
           },
         },
         name: {
           type: String,
           required() {
-            return has(this.subscription, 'service.serviceId');
+            return get(this.subscription, 'service.serviceId', false);
           },
         },
       },
