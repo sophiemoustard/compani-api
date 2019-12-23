@@ -46,9 +46,19 @@ exports.authorizeUserCreation = (req) => {
 };
 
 exports.authorizeUserGet = async (req) => {
-  const { credentials } = req.auth;
-  if (!req.query.email) return null;
-  const user = await User.findOne({ email: req.query.email, company: get(credentials, 'company._id', null) }).lean();
-  if (!user) throw Boom.forbidden();
+  const { auth, query } = req;
+  const companyId = get(auth.credentials, 'company._id', null);
+
+  if (query.email) {
+    const user = await User.findOne({ email: query.email, company: companyId }).lean();
+    if (!user) throw Boom.forbidden();
+  }
+
+  if (query.customers) {
+    const customers = Array.isArray(query.customers) ? query.customers : [query.customers];
+    const customersCount = await Customer.countDocuments({ _id: { $in: customers }, company: companyId });
+    if (customersCount !== customers.length) throw Boom.forbidden();
+  }
+
   return null;
 };

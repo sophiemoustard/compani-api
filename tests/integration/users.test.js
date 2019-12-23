@@ -251,6 +251,7 @@ describe('USERS ROUTES', () => {
           url: '/users',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(userList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
@@ -265,6 +266,7 @@ describe('USERS ROUTES', () => {
           url: '/users',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(usersSeedList.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
@@ -279,6 +281,7 @@ describe('USERS ROUTES', () => {
           url: '/users?role=coach',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
@@ -294,6 +297,7 @@ describe('USERS ROUTES', () => {
           url: '/users?role=coach',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
         expect(res.result.data.users[0]).toHaveProperty('role');
@@ -306,15 +310,27 @@ describe('USERS ROUTES', () => {
           url: '/users?role=Babouin',
           headers: { 'x-access-token': authToken },
         });
+
         expect(res.statusCode).toBe(404);
       });
 
-      it('should return a 403 if not from the same company', async () => {
+      it('should return a 403 if email not from the same company', async () => {
         const res = await app.inject({
           method: 'GET',
           url: `/users?email=${userFromOtherCompany.local.email}`,
           headers: { 'x-access-token': authToken },
         });
+
+        expect(res.statusCode).toBe(403);
+      });
+
+      it('should return a 403 if customer not from the same company', async () => {
+        const res = await app.inject({
+          method: 'GET',
+          url: `/users?customers=${customerFromOtherCompany._id}`,
+          headers: { 'x-access-token': authToken },
+        });
+
         expect(res.statusCode).toBe(403);
       });
     });

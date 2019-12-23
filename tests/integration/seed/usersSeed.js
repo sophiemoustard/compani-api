@@ -58,6 +58,7 @@ const userFromOtherCompany = {
   company: otherCompany._id,
   procedure: [{ task: task._id }],
   inactivityDate: null,
+  customers: [customerFromOtherCompany._id],
 };
 
 const usersSeedList = [
