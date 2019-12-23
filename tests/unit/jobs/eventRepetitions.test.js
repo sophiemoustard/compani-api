@@ -106,6 +106,7 @@ describe('method', () => {
       sinon.assert.calledWith(CreateFutureEventBasedOnRepetitionStub, repetition[0]);
       RepetitionMock.verify();
       EventMock.verify();
+      CompanyMock.verify();
       sinon.assert.calledWith(eventRepetitionsOnCompleteStub, server, [futureEvent], []);
     });
   });
@@ -146,6 +147,7 @@ describe('method', () => {
     await eventRepetitions.method(server);
 
     RepetitionMock.verify();
+    CompanyMock.verify();
     sinon.assert.calledWith(serverLogStub, ['error', 'cron', 'jobs'], error);
     sinon.assert.calledWith(eventRepetitionsOnCompleteStub, server, [], [repetition[0]._id]);
   });
