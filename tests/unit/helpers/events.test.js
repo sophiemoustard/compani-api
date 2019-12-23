@@ -1592,7 +1592,7 @@ describe('workingStats', () => {
     const auxiliaries = [{ _id: auxiliaryId, firstname: 'toto', contracts }];
     UserModel
       .expects('find')
-      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
       .chain('populate')
       .chain('lean')
       .returns(auxiliaries);
@@ -1634,7 +1634,7 @@ describe('workingStats', () => {
   it('should return {} if no auxiliary', async () => {
     UserModel
       .expects('find')
-      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
       .chain('populate')
       .chain('lean')
       .returns([]);
@@ -1663,7 +1663,7 @@ describe('workingStats', () => {
   it('should return {} if no contract in auxiliaries', async () => {
     UserModel
       .expects('find')
-      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
       .chain('populate')
       .chain('lean')
       .returns([{ _id: auxiliaryId, firstname: 'toto' }]);
@@ -1692,7 +1692,7 @@ describe('workingStats', () => {
     const contracts = [{ _id: new ObjectID() }];
     UserModel
       .expects('find')
-      .withExactArgs({ _id: { $in: query.auxiliary } })
+      .withExactArgs({ company: companyId, _id: { $in: query.auxiliary } })
       .chain('populate')
       .chain('lean')
       .returns([{ _id: auxiliaryId, firstname: 'toto', contracts }]);
