@@ -114,14 +114,14 @@ describe('USERS ROUTES', () => {
       });
 
       it('should return a 403 if customer is not from the same company', async () => {
-        const payload = { ...userPayload, customer: customerFromOtherCompany };
+        const payload = { ...userPayload, customers: [customerFromOtherCompany] };
         const response = await app.inject({
           method: 'POST',
           url: '/users',
           payload,
           headers: { 'x-access-token': authToken },
         });
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(403);
       });
     });
 

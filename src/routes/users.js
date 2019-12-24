@@ -65,6 +65,7 @@ exports.plugin = {
         auth: { scope: ['users:edit'] },
         validate: {
           payload: Joi.object().keys({
+            company: Joi.objectId(),
             sector: Joi.objectId(),
             local: {
               email: Joi.string().email().required(),
