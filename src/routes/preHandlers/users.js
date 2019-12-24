@@ -47,6 +47,10 @@ exports.authorizeUserCreation = async (req) => {
     if (customersCount !== customers.length) throw Boom.forbidden();
   }
 
+  if (req.payload.company && !credentials.scope.includes('superAdmin')) {
+    throw Boom.forbidden();
+  }
+
   return null;
 };
 

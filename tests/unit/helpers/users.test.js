@@ -274,7 +274,10 @@ describe('createAndSaveFile', () => {
       type: payload['Content-Type'],
       body: payload.file,
     });
-    sinon.assert.calledWithExactly(saveFileStub, params._id, payload.type, { driveId: uploadedFile.id, link: uploadedFile.webViewLink });
+    sinon.assert.calledWithExactly(saveFileStub, params._id, payload.type, {
+      driveId: uploadedFile.id,
+      link: uploadedFile.webViewLink,
+    });
     sinon.assert.notCalled(saveCertificateDriveIdStub);
   });
 
@@ -296,7 +299,10 @@ describe('createAndSaveFile', () => {
       type: payload['Content-Type'],
       body: payload.file,
     });
-    sinon.assert.calledWithExactly(saveCertificateDriveIdStub, params._id, { driveId: uploadedFile.id, link: uploadedFile.webViewLink });
+    sinon.assert.calledWithExactly(saveCertificateDriveIdStub, params._id, {
+      driveId: uploadedFile.id,
+      link: uploadedFile.webViewLink,
+    });
     sinon.assert.notCalled(saveFileStub);
   });
 });
@@ -386,7 +392,7 @@ describe('createUser', () => {
     sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
   });
 
-  it('should create a user other than auxiliary', async () => {
+  it('should create a coach', async () => {
     const payload = {
       identity: { lastname: 'Test', firstname: 'Toto' },
       local: { email: 'toto@test.com', password: '1234567890' },
@@ -410,6 +416,48 @@ describe('createUser', () => {
       .withExactArgs({
         ...payload,
         company: credentials.company._id,
+        refreshToken: sinon.match.string,
+      })
+      .returns({ ...newUser });
+
+    populateRoleStub.returns(populatedUserRights);
+
+    const result = await UsersHelper.createUser(payload, credentials);
+
+    expect(result).toMatchObject({
+      ...newUser,
+      role: { name: newUser.role.name, rights: populatedUserRights },
+    });
+    RoleMock.verify();
+    TaskMock.verify();
+    UserMock.verify();
+    sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
+  });
+
+  it('should create an admin', async () => {
+    const payload = {
+      identity: { lastname: 'Admin', firstname: 'Toto' },
+      local: { email: 'admin@test.com', password: '1234567890' },
+      role: new ObjectID(),
+      company: new ObjectID(),
+    };
+    const newUser = {
+      _id: new ObjectID(),
+      ...payload,
+      role: { name: 'admin', rights: userRights },
+    };
+
+    RoleMock
+      .expects('findById')
+      .withExactArgs(payload.role, { name: 1 })
+      .chain('lean')
+      .returns({ name: 'admin' });
+
+    TaskMock.expects('find').never();
+
+    UserMock.expects('create')
+      .withExactArgs({
+        ...payload,
         refreshToken: sinon.match.string,
       })
       .returns({ ...newUser });
