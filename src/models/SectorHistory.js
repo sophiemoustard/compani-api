@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const { validateQuery, validatePayload, validateAggregation } = require('./preHooks/validate');
 
-const SectorHistorySchema = mongoose.schema({
+const SectorHistorySchema = mongoose.Schema({
   sector: { type: mongoose.Schema.Types.ObjectId, required: true },
   auxiliary: { type: mongoose.Schema.Types.ObjectId, required: true },
   company: { type: mongoose.Schema.Types.ObjectId, required: true },
+  endDate: Date,
 }, {
   timestamps: true,
   toObject: { virtuals: true },
