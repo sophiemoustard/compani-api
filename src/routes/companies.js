@@ -135,7 +135,7 @@ exports.plugin = {
       path: '/',
       handler: create,
       options: {
-        auth: { scope: ['config:edit'] },
+        auth: { scope: ['companies:create'] },
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),

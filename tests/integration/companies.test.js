@@ -179,12 +179,12 @@ describe('COMPANIES ROUTES', () => {
       customersConfig: { billingPeriod: MONTH },
     };
 
-    describe('Admin', () => {
+    describe('SuperAdmin', () => {
       let createFolderForCompany;
       let createFolder;
       beforeEach(populateDB);
       beforeEach(async () => {
-        authToken = await getToken('admin');
+        authToken = await getToken('superAdmin');
         createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
         createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
       });
@@ -232,6 +232,29 @@ describe('COMPANIES ROUTES', () => {
           });
 
           expect(response.statusCode).toBe(400);
+        });
+      });
+    });
+
+    describe('Other role', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 403 },
+        { name: 'admin', expectedCode: 403 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'POST',
+            url: '/companies',
+            headers: { 'x-access-token': authToken },
+            payload,
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
         });
       });
     });

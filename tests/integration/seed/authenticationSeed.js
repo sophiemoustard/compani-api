@@ -123,6 +123,11 @@ const rightsList = [
     description: 'Editer les documents de paie',
     permission: 'paydocuments:edit',
   },
+  {
+    _id: new ObjectID(),
+    description: 'Créer une entreprise',
+    permission: 'companies:create',
+  },
 ];
 
 const coachRights = [
@@ -143,6 +148,15 @@ const coachRights = [
   'roles:read',
   'paydocuments:edit',
 ];
+const adminRights = [
+  ...coachRights,
+  'config:edit',
+  'bills:edit',
+  'payments:edit',
+  'payments:list:create',
+  'pay:edit',
+  'companies:edit',
+];
 const auxiliaryRights = [
   'config:read',
   'pay:read',
@@ -158,10 +172,18 @@ const helperRights = [];
 const rolesList = [
   {
     _id: new ObjectID(),
-    name: 'admin',
+    name: 'superAdmin',
     rights: rightsList.map(right => ({
       right_id: right._id,
       hasAccess: true,
+    })),
+  },
+  {
+    _id: new ObjectID(),
+    name: 'admin',
+    rights: rightsList.map(right => ({
+      right_id: right._id,
+      hasAccess: adminRights.includes(right.permission),
     })),
   },
   {
@@ -263,6 +285,14 @@ const userList = [
     local: { email: 'helper@alenvi.io', password: '123456' },
     refreshToken: uuidv4(),
     role: rolesList.find(role => role.name === 'helper')._id,
+    company: authCompany._id,
+  },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'SuperAdmin', lastname: 'SuperChef' },
+    refreshToken: uuidv4(),
+    local: { email: 'super-admin@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'superAdmin')._id,
     company: authCompany._id,
   },
 ];
