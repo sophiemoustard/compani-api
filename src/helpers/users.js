@@ -118,7 +118,7 @@ exports.createUser = async (userPayload, credentials) => {
   };
 };
 
-exports.updateUser = async (userId, userPayload) => {
+exports.updateUser = async (userId, userPayload, credentials) => {
   const options = { new: true };
   let update;
 
@@ -129,7 +129,11 @@ exports.updateUser = async (userId, userPayload) => {
     options.runValidators = true;
   }
 
-  const updatedUser = await User.findOneAndUpdate({ _id: userId }, update, options).lean({ autopopulate: true });
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: userId, company: get(credentials, 'company._id', null) },
+    update,
+    options
+  ).lean({ autopopulate: true });
 
   if (updatedUser.role && updatedUser.role.rights.length > 0) {
     updatedUser.role.rights = RolesHelper.populateRole(updatedUser.role.rights, { onlyGrantedRights: true });

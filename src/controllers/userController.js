@@ -115,7 +115,7 @@ const show = async (req) => {
 
 const update = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload);
+    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].userUpdated,
@@ -134,7 +134,7 @@ const update = async (req) => {
 
 const updateCertificates = async (req) => {
   try {
-    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload);
+    const updatedUser = await UsersHelper.updateUser(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].userUpdated,

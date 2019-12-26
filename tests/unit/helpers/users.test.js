@@ -507,6 +507,7 @@ describe('createUser', () => {
 describe('updateUser', () => {
   let UserMock;
   let populateRoleStub;
+  const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
   const user = {
     _id: userId,
@@ -539,16 +540,19 @@ describe('updateUser', () => {
   it('should update a user and populate role', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId }, { $set: flat(payload) }, { new: true, runValidators: true })
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId, company: credentials.company._id },
+        { $set: flat(payload) },
+        { new: true, runValidators: true }
+      )
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .returns({ ...cloneDeep(user), payload });
 
     populateRoleStub.returns(populatedUserRights);
 
-    const result = await UsersHelper.updateUser(userId, payload);
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toMatchObject({
       ...user,
@@ -562,16 +566,19 @@ describe('updateUser', () => {
   it('should update a user and not populate role', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId }, { $set: flat(payload) }, { new: true, runValidators: true })
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId, company: credentials.company._id },
+        { $set: flat(payload) },
+        { new: true, runValidators: true }
+      )
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .returns({ _id: user._id, role: { rights: [] }, payload });
 
     populateRoleStub.returns(populatedUserRights);
 
-    const result = await UsersHelper.updateUser(userId, payload);
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toMatchObject({
       ...user,
@@ -587,14 +594,14 @@ describe('updateUser', () => {
 
     UserMock
       .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId }, { $pull: payload }, { new: true })
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $pull: payload }, { new: true })
       .chain('lean')
       .withExactArgs({ autopopulate: true })
       .returns({ ...cloneDeep(user), payload });
 
     populateRoleStub.returns(populatedUserRights);
 
-    const result = await UsersHelper.updateUser(userId, payload);
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toMatchObject({
       ...user,
