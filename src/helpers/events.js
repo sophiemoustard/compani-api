@@ -269,7 +269,6 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   );
   const promises = [];
   const ids = [];
-
   for (const group of unassignedInterventions) {
     if (group._id) {
       const { startDate, endDate, misc } = group.events[0];
