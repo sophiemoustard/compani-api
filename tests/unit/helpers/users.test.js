@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const moment = require('moment');
@@ -5,8 +6,10 @@ const sinon = require('sinon');
 const Boom = require('boom');
 const flat = require('flat');
 const cloneDeep = require('lodash/cloneDeep');
+const omit = require('lodash/omit');
 const UsersHelper = require('../../../src/helpers/users');
 const RolesHelper = require('../../../src/helpers/roles');
+const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const translate = require('../../../src/helpers/translate');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const User = require('../../../src/models/User');
@@ -319,6 +322,9 @@ describe('createUser', () => {
   let TaskMock;
   let RoleMock;
   let populateRoleStub;
+  let objectIdStub;
+  let createHistoryStub;
+  const userId = new ObjectID();
   const userRights = [{
     right_id: { _id: new ObjectID().toHexString(), permission: 'test' },
     hasAccess: true,
@@ -338,6 +344,8 @@ describe('createUser', () => {
     TaskMock = sinon.mock(Task);
     RoleMock = sinon.mock(Role);
     populateRoleStub = sinon.stub(RolesHelper, 'populateRole');
+    objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
+    createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
@@ -345,6 +353,8 @@ describe('createUser', () => {
     TaskMock.restore();
     RoleMock.restore();
     populateRoleStub.restore();
+    objectIdStub.restore();
+    createHistoryStub.restore();
   });
 
   it('should create an auxiliary', async () => {
@@ -352,9 +362,9 @@ describe('createUser', () => {
       identity: { lastname: 'Test', firstname: 'Toto' },
       local: { email: 'toto@test.com', password: '1234567890' },
       role: new ObjectID(),
+      sector: new ObjectID(),
     };
     const newUser = {
-      _id: new ObjectID(),
       ...payload,
       role: { name: 'auxiliary', rights: userRights },
     };
@@ -378,7 +388,8 @@ describe('createUser', () => {
 
     UserMock.expects('create')
       .withExactArgs({
-        ...payload,
+        ...omit(payload, 'sector'),
+        _id: userId,
         company: credentials.company._id,
         refreshToken: sinon.match.string,
         procedure: taskIds,
@@ -397,6 +408,7 @@ describe('createUser', () => {
     TaskMock.verify();
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
+    sinon.assert.calledWithExactly(createHistoryStub, userId, payload.sector, credentials.company._id);
   });
 
   it('should create a coach', async () => {
@@ -406,7 +418,6 @@ describe('createUser', () => {
       role: new ObjectID(),
     };
     const newUser = {
-      _id: new ObjectID(),
       ...payload,
       role: { name: 'coach', rights: userRights },
     };
@@ -422,6 +433,7 @@ describe('createUser', () => {
     UserMock.expects('create')
       .withExactArgs({
         ...payload,
+        _id: userId,
         company: credentials.company._id,
         refreshToken: sinon.match.string,
       })
@@ -439,6 +451,7 @@ describe('createUser', () => {
     TaskMock.verify();
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
+    sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should create an admin', async () => {
@@ -507,6 +520,7 @@ describe('createUser', () => {
       RoleMock.verify();
       UserMock.verify();
       sinon.assert.notCalled(populateRoleStub);
+      sinon.assert.notCalled(createHistoryStub);
     }
   });
 });

@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Boom = require('boom');
 const moment = require('moment');
 const pickBy = require('lodash/pickBy');
@@ -14,6 +15,7 @@ const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const RolesHelper = require('./roles');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
+const SectorHistoriesHelper = require('../helpers/sectorHistories');
 
 const { language } = translate;
 
@@ -97,7 +99,7 @@ exports.createAndSaveFile = async (params, payload) => {
 };
 
 exports.createUser = async (userPayload, credentials) => {
-  const payload = cloneDeep(userPayload);
+  const { sector, ...payload } = cloneDeep(userPayload);
   const role = await Role.findById(payload.role, { name: 1 }).lean();
   if (!role) throw Boom.badRequest('Role does not exist');
 
@@ -107,15 +109,22 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  const user = await User.create({
+  const userId = mongoose.Types.ObjectId();
+  const companyId = get(credentials, 'company._id', null);
+  const creationPromises = [User.create({
     ...payload,
-    company: payload.company || get(credentials, 'company._id', null),
+    _id: userId,
+    company: payload.company || companyId,
     refreshToken: uuidv4(),
-  });
+  })];
+  if (sector) creationPromises.push(SectorHistoriesHelper.createHistory(userId, sector, companyId));
+
+  const [user] = await Promise.all(creationPromises);
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
+
   return {
     ...pickBy(user),
-    role: { name: user.role.name, rights: populatedRights },
+    role: { name: user.role.name, rights: [...populatedRights] },
   };
 };
 

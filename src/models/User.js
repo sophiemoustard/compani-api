@@ -196,11 +196,11 @@ async function populateAfterSave(doc, next) {
           select: 'description permission _id',
         },
       })
-      .populate({
-        path: 'company',
-        select: '-__v -createdAt -updatedAt',
-      })
+      .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
+      .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
       .execPopulate();
+
+    if (doc.sector) doc.sector = doc.sector.sector._id;
 
     return next();
   } catch (e) {
@@ -208,14 +208,10 @@ async function populateAfterSave(doc, next) {
   }
 }
 
-async function populateSector(doc, next) {
-  try {
-    if (doc && doc.sector) doc.sector = doc.sector.sector._id;
+function populateSector(doc, next) {
+  if (doc && doc.sector) doc.sector = doc.sector.sector._id;
 
-    return next();
-  } catch (e) {
-    return next(e);
-  }
+  return next();
 }
 
 UserSchema.virtual('sector', {

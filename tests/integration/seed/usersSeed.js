@@ -142,13 +142,15 @@ const usersSeedList = [
   },
 ];
 
+const userSector = { _id: new ObjectID(), name: 'Terre', company: company._id };
+
 const userPayload = {
   identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
   local: { email: 'kirk@alenvi.io', password: '123456' },
   role: rolesList.find(role => role.name === 'auxiliary')._id,
+  sector: userSector._id,
 };
 
-const userSector = { _id: new ObjectID(), name: 'Terre', company: company._id };
 
 const sectorHistories = usersSeedList
   .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
