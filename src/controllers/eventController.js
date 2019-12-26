@@ -2,6 +2,7 @@ const Boom = require('boom');
 const moment = require('moment');
 const translate = require('../helpers/translate');
 const EventsHelper = require('../helpers/events');
+const Event = require('../models/Event');
 const { isEditionAllowed } = require('../helpers/eventsValidation');
 const { deleteRepetition } = require('../helpers/eventsRepetition');
 const { ABSENCE } = require('../helpers/constants');
@@ -52,7 +53,6 @@ const create = async (req) => {
 const update = async (req) => {
   try {
     const { payload, auth } = req;
-
     let { event } = req.pre;
 
     if (event.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {

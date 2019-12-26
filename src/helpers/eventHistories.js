@@ -2,6 +2,7 @@ const moment = require('moment');
 const get = require('lodash/get');
 const { ObjectID } = require('mongodb');
 const EventHistory = require('../models/EventHistory');
+const User = require('../models/User');
 const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } = require('./constants');
 const UtilsHelper = require('./utils');
 const EventHistoryRepository = require('../repositories/EventHistoryRepository');
@@ -33,8 +34,6 @@ exports.createEventHistory = async (payload, credentials, action) => {
     startDate,
     endDate,
     type,
-    auxiliary,
-    sector,
     absence,
     internalHour,
     address,
@@ -42,7 +41,7 @@ exports.createEventHistory = async (payload, credentials, action) => {
     repetition,
   } = payload;
 
-  const eventHistory = new EventHistory({
+  const eventHistory = {
     company: get(credentials, 'company._id', null),
     createdBy,
     action,
@@ -51,18 +50,22 @@ exports.createEventHistory = async (payload, credentials, action) => {
       startDate,
       endDate,
       customer,
-      auxiliary,
       absence,
       internalHour,
       address,
       misc,
       repetition,
     },
-    ...(auxiliary && { auxiliaries: [auxiliary] }),
-    sectors: [sector],
-  });
+  };
 
-  await eventHistory.save();
+  if (payload.auxiliary) eventHistory.auxiliary = [payload.auxiliary];
+  if (payload.sector) eventHistory.sector = [payload.sector];
+  else {
+    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    eventHistory.sector = [aux.sector];
+  }
+
+  await (new EventHistory(eventHistory)).save();
 };
 
 exports.createEventHistoryOnCreate = async (payload, credentials) =>
@@ -71,8 +74,22 @@ exports.createEventHistoryOnCreate = async (payload, credentials) =>
 exports.createEventHistoryOnDelete = async (payload, credentials) =>
   exports.createEventHistory(payload, credentials, EVENT_DELETION);
 
+const areDaysChanged = (event, payload) => !moment(event.startDate).isSame(payload.startDate, 'day') ||
+  !moment(event.endDate).isSame(payload.endDate, 'day');
+
+const isAuxiliaryUpdated = (event, payload) => (!event.auxiliary && payload.auxiliary) ||
+  (event.auxiliary && event.auxiliary.toHexString() !== payload.auxiliary);
+
+const areHoursChanged = (event, payload) => {
+  const eventStartHour = moment(event.startDate).format('HH:mm');
+  const eventEndHour = moment(event.endDate).format('HH:mm');
+  const payloadStartHour = moment(payload.startDate).format('HH:mm');
+  const payloadEndHour = moment(payload.endDate).format('HH:mm');
+
+  return eventStartHour !== payloadStartHour || eventEndHour !== payloadEndHour;
+};
+
 exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
-  const promises = [];
   const { _id: createdBy } = credentials;
   const { customer, type, repetition } = event;
   const { startDate, endDate, misc } = payload;
@@ -81,49 +98,33 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
     company: get(credentials, 'company._id', null),
     createdBy,
     action: EVENT_UPDATE,
-    event: {
-      type,
-      startDate,
-      endDate,
-      customer,
-      misc,
-    },
+    event: { type, startDate, endDate, customer, misc },
   };
   if (payload.shouldUpdateRepetition) eventHistory.event.repetition = repetition;
   if (event.type === INTERNAL_HOUR) eventHistory.event.internalHour = payload.internalHour || event.internalHour;
   if (event.type === ABSENCE) eventHistory.event.absence = payload.absence || event.absence;
 
-  if ((event.auxiliary && event.auxiliary.toHexString() !== payload.auxiliary)
-    || (!event.auxiliary && payload.auxiliary)) {
-    const auxiliaryUpdateHistory = exports.formatEventHistoryForAuxiliaryUpdate(eventHistory, payload, event);
+  const promises = [];
+  if (isAuxiliaryUpdated(event, payload)) {
+    const auxiliaryUpdateHistory = await exports.formatEventHistoryForAuxiliaryUpdate(eventHistory, payload, event);
     promises.push(new EventHistory(auxiliaryUpdateHistory).save());
   }
-
-  if (!moment(event.startDate).isSame(payload.startDate, 'day')
-  || !moment(event.endDate).isSame(payload.endDate, 'day')) {
-    const datesUpdateHistory = exports.formatEventHistoryForDatesUpdate(eventHistory, payload, event);
+  if (areDaysChanged(event, payload)) {
+    const datesUpdateHistory = await exports.formatEventHistoryForDatesUpdate(eventHistory, payload, event);
     promises.push(new EventHistory(datesUpdateHistory).save());
-  } else {
-    const eventStartHour = moment(event.startDate).format('HH:mm');
-    const eventEndHour = moment(event.endDate).format('HH:mm');
-    const payloadStartHour = moment(payload.startDate).format('HH:mm');
-    const payloadEndHour = moment(payload.endDate).format('HH:mm');
-
-    if (eventStartHour !== payloadStartHour || eventEndHour !== payloadEndHour) {
-      const hoursUpdateHistory = exports.formatEventHistoryForHoursUpdate(eventHistory, payload, event);
-      promises.push(new EventHistory(hoursUpdateHistory).save());
-    }
+  } else if (areHoursChanged(event, payload)) {
+    const hoursUpdateHistory = await exports.formatEventHistoryForHoursUpdate(eventHistory, payload, event);
+    promises.push(new EventHistory(hoursUpdateHistory).save());
   }
-
   if (payload.isCancelled && !event.isCancelled) {
-    const cancelUpdateHistory = exports.formatEventHistoryForCancelUpdate(eventHistory, payload, event);
+    const cancelUpdateHistory = await exports.formatEventHistoryForCancelUpdate(eventHistory, payload, event);
     promises.push(new EventHistory(cancelUpdateHistory).save());
   }
 
   await Promise.all(promises);
 };
 
-exports.formatEventHistoryForAuxiliaryUpdate = (mainInfo, payload, event) => {
+exports.formatEventHistoryForAuxiliaryUpdate = async (mainInfo, payload, event) => {
   const auxiliaryUpdateHistory = { ...mainInfo };
   if (event.auxiliary && payload.auxiliary) {
     auxiliaryUpdateHistory.auxiliaries = [event.auxiliary.toHexString(), payload.auxiliary];
@@ -142,45 +143,55 @@ exports.formatEventHistoryForAuxiliaryUpdate = (mainInfo, payload, event) => {
     };
   }
 
-  if (!payload.sector
-    || event.sector.toHexString() === payload.sector)auxiliaryUpdateHistory.sectors = [event.sector.toHexString()];
-  else auxiliaryUpdateHistory.sectors = [event.sector.toHexString(), payload.sector];
+  const sectors = [];
+  if (!payload.sector && !event.sector) {
+    const auxiliaries = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] }}).lean();
+    for (const aux of auxiliaries) {
+      if (!sectors.includes(aux.sector)) sectors.push([aux.sector]);
+    }
+  } else {
+    if (payload.sector) sectors.push(payload.sector.toHexString());
+    if (event.sector) sectors.push(event.sector.toHexString());
+  }
 
   return auxiliaryUpdateHistory;
 };
 
-exports.formatEventHistoryForDatesUpdate = (mainInfo, payload, event) => {
+const isOneDayEvent = (event, payload) => moment(event.endDate).isSame(event.startDate, 'day') &&
+  moment(payload.endDate).isSame(payload.startDate, 'day');
+
+exports.formatEventHistoryForDatesUpdate = async (mainInfo, payload, event) => {
   const datesUpdateHistory = {
     ...mainInfo,
-    sectors: payload.sector ? [payload.sector] : [],
-    update: {
-      startDate: { from: event.startDate, to: payload.startDate },
-    },
+    update: { startDate: { from: event.startDate, to: payload.startDate } },
   };
 
-  const isOneDayEvent = moment(event.endDate).isSame(event.startDate, 'day')
-    && moment(payload.endDate).isSame(payload.startDate, 'day');
-  if (!isOneDayEvent) datesUpdateHistory.update.endDate = { from: event.endDate, to: payload.endDate };
-
-  if (payload.auxiliary) {
+  if (payload.sector) datesUpdateHistory.sectors = [payload.sector];
+  else {
+    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    datesUpdateHistory.sectors = [aux.sector];
     datesUpdateHistory.auxiliaries = [payload.auxiliary];
     datesUpdateHistory.event.auxiliary = payload.auxiliary;
   }
 
+  if (!isOneDayEvent(event, payload)) datesUpdateHistory.update.endDate = { from: event.endDate, to: payload.endDate };
+
   return datesUpdateHistory;
 };
 
-exports.formatEventHistoryForHoursUpdate = (mainInfo, payload, event) => {
+exports.formatEventHistoryForHoursUpdate = async (mainInfo, payload, event) => {
   const hoursUpdateHistory = {
     ...mainInfo,
-    sectors: payload.sector ? [payload.sector] : [],
     update: {
       startHour: { from: event.startDate, to: payload.startDate },
       endHour: { from: event.endDate, to: payload.endDate },
     },
   };
 
-  if (payload.auxiliary) {
+  if (payload.sector) hoursUpdateHistory.sectors = [payload.sector];
+  else {
+    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    hoursUpdateHistory.sectors = [aux.sector];
     hoursUpdateHistory.auxiliaries = [payload.auxiliary];
     hoursUpdateHistory.event.auxiliary = payload.auxiliary;
   }
@@ -188,15 +199,14 @@ exports.formatEventHistoryForHoursUpdate = (mainInfo, payload, event) => {
   return hoursUpdateHistory;
 };
 
-exports.formatEventHistoryForCancelUpdate = (mainInfo, payload) => {
+exports.formatEventHistoryForCancelUpdate = async (mainInfo, payload) => {
   const { cancel } = payload;
-  const datesUpdateHistory = {
-    ...mainInfo,
-    sectors: payload.sector ? [payload.sector] : [],
-    update: { cancel },
-  };
+  const datesUpdateHistory = { ...mainInfo, update: { cancel } };
 
-  if (payload.auxiliary) {
+  if (payload.sector) datesUpdateHistory.sectors = [payload.sector];
+  else {
+    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    datesUpdateHistory.sectors = [aux.sector];
     datesUpdateHistory.auxiliaries = [payload.auxiliary];
     datesUpdateHistory.event.auxiliary = payload.auxiliary;
   }
