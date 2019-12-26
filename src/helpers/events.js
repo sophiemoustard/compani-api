@@ -209,6 +209,7 @@ exports.formatEditionPayload = (event, payload) => {
   }
   if (isRepetition(event) && !miscUpdatedOnly) set = { ...set, 'repetition.frequency': NEVER };
   if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
+  else unset = { ...unset, sector: '' };
 
   return unset ? { $set: set, $unset: unset } : { $set: set };
 };
@@ -228,7 +229,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
 
   const payload = exports.formatEditionPayload(event, eventPayload);
   const updatedEvent = await Event
-    .findOneAndUpdate({ _id: event._id }, { ...payload })
+    .findOneAndUpdate({ _id: event._id }, { ...payload }, { new: true })
     .populate({
       path: 'auxiliary',
       select: 'identity administrative.driveFolder administrative.transportInvoice company picture',

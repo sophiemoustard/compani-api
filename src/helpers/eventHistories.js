@@ -1,5 +1,6 @@
 const moment = require('moment');
 const get = require('lodash/get');
+const pickBy = require('lodash/pickBy');
 const EventHistory = require('../models/EventHistory');
 const User = require('../models/User');
 const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } = require('./constants');
@@ -45,7 +46,7 @@ exports.createEventHistory = async (payload, credentials, action) => {
     company: get(credentials, 'company._id', null),
     createdBy,
     action,
-    event: {
+    event: pickBy({
       type,
       startDate,
       endDate,
@@ -55,15 +56,13 @@ exports.createEventHistory = async (payload, credentials, action) => {
       address,
       misc,
       repetition,
-    },
+    }),
   };
 
+  if (payload.sector) eventHistory.sectors = [payload.sector];
   if (payload.auxiliary) {
     eventHistory.auxiliaries = [payload.auxiliary];
     eventHistory.event.auxiliary = payload.auxiliary;
-  }
-  if (payload.sector) eventHistory.sectors = [payload.sector];
-  else {
     const aux = await User.findOne({ _id: payload.auxiliary }).lean();
     eventHistory.sectors = [aux.sector.toHexString()];
   }
@@ -128,36 +127,33 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
 };
 
 exports.formatEventHistoryForAuxiliaryUpdate = async (mainInfo, payload, event) => {
-  const auxiliaryUpdateHistory = { ...mainInfo };
-  if (event.auxiliary && payload.auxiliary) {
-    auxiliaryUpdateHistory.auxiliaries = [event.auxiliary.toHexString(), payload.auxiliary];
-    auxiliaryUpdateHistory.update = {
-      auxiliary: { from: event.auxiliary.toHexString(), to: payload.auxiliary },
-    };
-  } else if (event.auxiliary) {
-    auxiliaryUpdateHistory.auxiliaries = [event.auxiliary.toHexString()];
-    auxiliaryUpdateHistory.update = {
-      auxiliary: { from: event.auxiliary.toHexString() },
-    };
-  } else if (payload.auxiliary) {
-    auxiliaryUpdateHistory.auxiliaries = [payload.auxiliary];
-    auxiliaryUpdateHistory.update = {
-      auxiliary: { to: payload.auxiliary },
-    };
-  }
-
   const sectors = [];
-  if (!payload.sector && !event.sector) {
-    const auxiliaries = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] } }).lean();
-    for (const aux of auxiliaries) {
-      if (!sectors.includes(aux.sector)) sectors.push([aux.sector]);
+  let auxiliaries = [];
+  let update = [];
+  if (event.auxiliary && payload.auxiliary) {
+    auxiliaries = [event.auxiliary.toHexString(), payload.auxiliary];
+    update = { auxiliary: { from: event.auxiliary.toHexString(), to: payload.auxiliary } };
+
+    const auxiliaryList = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] } }).lean();
+    for (const aux of auxiliaryList) {
+      if (!sectors.includes(aux.sector)) sectors.push(aux.sector);
     }
-  } else {
-    if (payload.sector) sectors.push(payload.sector.toHexString());
-    if (event.sector) sectors.push(event.sector.toHexString());
+  } else if (event.auxiliary) {
+    auxiliaries = [event.auxiliary.toHexString()];
+    update = { auxiliary: { from: event.auxiliary.toHexString() } };
+    const aux = await User.findOne({ _id: event.auxiliary }).lean();
+    if (!sectors.includes(aux.sector)) sectors.push(aux.sector.toHexString());
+  } else if (payload.auxiliary) {
+    auxiliaries = [payload.auxiliary];
+    update = { auxiliary: { to: payload.auxiliary } };
+    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    if (!sectors.includes(aux.sector)) sectors.push(aux.sector.toHexString());
   }
 
-  return auxiliaryUpdateHistory;
+  if (payload.sector && !sectors.includes(payload.sector)) sectors.push(payload.sector);
+  if (event.sector && !sectors.includes(event.sector.toHexString())) sectors.push(event.sector.toHexString());
+
+  return { ...mainInfo, sectors, auxiliaries, update };
 };
 
 const isOneDayEvent = (event, payload) => moment(event.endDate).isSame(event.startDate, 'day') &&
@@ -172,7 +168,7 @@ exports.formatEventHistoryForDatesUpdate = async (mainInfo, payload, event) => {
   if (payload.sector) datesUpdateHistory.sectors = [payload.sector];
   else {
     const aux = await User.findOne({ _id: payload.auxiliary }).lean();
-    datesUpdateHistory.sectors = [aux.sector];
+    datesUpdateHistory.sectors = [aux.sector.toHexString()];
     datesUpdateHistory.auxiliaries = [payload.auxiliary];
     datesUpdateHistory.event.auxiliary = payload.auxiliary;
   }
@@ -194,7 +190,7 @@ exports.formatEventHistoryForHoursUpdate = async (mainInfo, payload, event) => {
   if (payload.sector) hoursUpdateHistory.sectors = [payload.sector];
   else {
     const aux = await User.findOne({ _id: payload.auxiliary }).lean();
-    hoursUpdateHistory.sectors = [aux.sector];
+    hoursUpdateHistory.sectors = [aux.sector.toHexString()];
     hoursUpdateHistory.auxiliaries = [payload.auxiliary];
     hoursUpdateHistory.event.auxiliary = payload.auxiliary;
   }
@@ -209,7 +205,7 @@ exports.formatEventHistoryForCancelUpdate = async (mainInfo, payload) => {
   if (payload.sector) datesUpdateHistory.sectors = [payload.sector];
   else {
     const aux = await User.findOne({ _id: payload.auxiliary }).lean();
-    datesUpdateHistory.sectors = [aux.sector];
+    datesUpdateHistory.sectors = [aux.sector.toHexString()];
     datesUpdateHistory.auxiliaries = [payload.auxiliary];
     datesUpdateHistory.event.auxiliary = payload.auxiliary;
   }

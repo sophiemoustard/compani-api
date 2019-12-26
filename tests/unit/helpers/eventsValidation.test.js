@@ -454,7 +454,6 @@ describe('isCreationAllowed', () => {
   it('should return false as event is not absence and not on one day', async () => {
     const event = {
       auxiliary: (new ObjectID()).toHexString(),
-      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
@@ -504,7 +503,6 @@ describe('isCreationAllowed', () => {
     const auxiliaryId = new ObjectID();
     const event = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -531,7 +529,6 @@ describe('isCreationAllowed', () => {
     const auxiliaryId = new ObjectID();
     const event = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: (new ObjectID()).toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -554,39 +551,11 @@ describe('isCreationAllowed', () => {
     sinon.assert.calledWithExactly(checkContracts, event, user);
   });
 
-  it('should return false if auxiliary sector is not event sector', async () => {
-    const auxiliaryId = new ObjectID();
-    const event = {
-      auxiliary: auxiliaryId.toHexString(),
-      sector: new ObjectID().toHexString(),
-      type: INTERVENTION,
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
-    };
-    const user = { _id: auxiliaryId, sector: new ObjectID() };
-
-    checkContracts.returns(true);
-    hasConflicts.returns(false);
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
-    const result = await EventsValidationHelper.isCreationAllowed(event);
-
-    UserModel.verify();
-    expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasConflicts, event);
-    sinon.assert.calledWithExactly(checkContracts, event, user);
-  });
-
   it('should return true', async () => {
     const auxiliaryId = new ObjectID();
     const sectorId = new ObjectID();
     const event = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       type: INTERVENTION,
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
@@ -626,11 +595,9 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false as event is billed', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -649,10 +616,8 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false as event is absence or availability and auxiliary is updated', async () => {
-    const sectorId = new ObjectID();
     const payload = {
       auxiliary: (new ObjectID()).toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -670,11 +635,9 @@ describe('isEditionAllowed', () => {
   });
 
   it('should return false as event is not absence and no on one day', async () => {
-    const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-14T11:00:00',
     };
@@ -739,7 +702,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -770,7 +732,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
@@ -802,7 +763,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       shouldUpdateRepetition: true,
@@ -835,7 +795,6 @@ describe('isEditionAllowed', () => {
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
       shouldUpdateRepetition: true,
@@ -862,43 +821,11 @@ describe('isEditionAllowed', () => {
     expect(result).toBeFalsy();
   });
 
-  it('should return false if auxiliary sector is not event sector', async () => {
-    const auxiliaryId = new ObjectID();
-    const payload = {
-      auxiliary: auxiliaryId.toHexString(),
-      sector: (new ObjectID()).toHexString(),
-      startDate: '2019-04-13T09:00:00',
-      endDate: '2019-04-13T11:00:00',
-    };
-    const eventFromDB = {
-      auxiliary: auxiliaryId,
-      type: INTERVENTION,
-    };
-    const user = { _id: auxiliaryId, sector: new ObjectID() };
-
-    checkContracts.returns(true);
-    hasConflicts.returns(false);
-    UserModel.expects('findOne')
-      .withExactArgs({ _id: auxiliaryId.toHexString() })
-      .chain('populate')
-      .chain('lean')
-      .once()
-      .returns(user);
-    const credentials = {};
-    const result = await EventsValidationHelper.isEditionAllowed(eventFromDB, payload, credentials);
-
-    UserModel.verify();
-    expect(result).toBeFalsy();
-    sinon.assert.calledWithExactly(hasConflicts, { ...eventFromDB, ...payload });
-    sinon.assert.calledWithExactly(checkContracts, { ...eventFromDB, ...payload }, user);
-  });
-
   it('should return true', async () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const payload = {
       auxiliary: auxiliaryId.toHexString(),
-      sector: sectorId.toHexString(),
       startDate: '2019-04-13T09:00:00',
       endDate: '2019-04-13T11:00:00',
     };
