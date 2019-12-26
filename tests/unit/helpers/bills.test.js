@@ -25,7 +25,7 @@ describe('formatBillNumber', () => {
   });
 });
 
-describe('generateBillNumber', () => {
+describe('getBillNumber', () => {
   it('should return a bill number', async () => {
     const bills = [{ endDate: new Date('2019-11-15') }];
     const prefix = 'FACT-1119';
@@ -42,7 +42,7 @@ describe('generateBillNumber', () => {
       .chain('lean')
       .returns(billNumber);
 
-    const result = await BillHelper.generateBillNumber(bills);
+    const result = await BillHelper.getBillNumber(bills);
 
     BillNumberMock.verify();
     expect(result).toEqual(billNumber);
@@ -62,7 +62,7 @@ describe('formatAndCreateBills', () => {
   beforeEach(() => {
     BillNumberMock = sinon.mock(BillNumber);
     BillMock = sinon.mock(Bill);
-    generateBillNumberStub = sinon.stub(BillHelper, 'generateBillNumber');
+    generateBillNumberStub = sinon.stub(BillHelper, 'getBillNumber');
     formatCustomerBillsStub = sinon.stub(BillHelper, 'formatCustomerBills');
     formatThirdPartyPayerBillsStub = sinon.stub(BillHelper, 'formatThirdPartyPayerBills');
     updateFundingHistoriesStub = sinon.stub(BillHelper, 'updateFundingHistories');

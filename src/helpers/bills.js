@@ -130,13 +130,10 @@ exports.updateFundingHistories = async (histories, companyId) => {
   await Promise.all(promises);
 };
 
-exports.generateBillNumber = async (bills) => {
-  const prefix = `FACT-${moment(bills[0].endDate).format('MMYY')}`;
-  return BillNumber.findOneAndUpdate(
-    { prefix },
-    {},
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  ).lean();
+exports.getBillNumber = async (bills) => {
+  const prefix = moment(bills[0].endDate).format('MMYY');
+
+  return BillNumber.findOneAndUpdate({ prefix }, {}, { new: true, upsert: true, setDefaultsOnInsert: true }).lean();
 };
 
 exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
@@ -144,7 +141,7 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   let eventsToUpdate = {};
   let fundingHistories = {};
   const companyId = get(credentials, 'company._id', null);
-  const number = await exports.generateBillNumber(groupByCustomerBills);
+  const number = await exports.getBillNumber(groupByCustomerBills);
 
   for (const draftBills of groupByCustomerBills) {
     if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {
