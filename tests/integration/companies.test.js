@@ -170,37 +170,33 @@ describe('COMPANIES ROUTES', () => {
       iban: '0987654321234567890987654',
       bic: 'BR12345678',
       rhConfig: {
-        contractWithCompany: {
-          grossHourlyRate: 10,
-        },
-        contractWithCustomer: {
-          grossHourlyRate: 5,
-        },
+        contractWithCompany: { grossHourlyRate: 10 },
+        contractWithCustomer: { grossHourlyRate: 5 },
         feeAmount: 2,
         amountPerKm: 10,
-        transportSubs: [{
-          department: '75',
-          price: 75,
-        }],
+        transportSubs: [{ department: '75', price: 75 }],
       },
-      customersConfig: {
-        billingPeriod: MONTH,
-      },
+      customersConfig: { billingPeriod: MONTH },
     };
+
     describe('Admin', () => {
+      let createFolderForCompany;
+      let createFolder;
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('admin');
+        createFolderForCompany = sinon.stub(GdriveStorageHelper, 'createFolderForCompany');
+        createFolder = sinon.stub(GdriveStorageHelper, 'createFolder');
+      });
+      afterEach(() => {
+        createFolderForCompany.restore();
+        createFolder.restore();
       });
 
       it('should create a new company', async () => {
         const companiesBefore = await Company.find().lean();
-        const createFolderForCompanyStub = sinon
-          .stub(GdriveStorageHelper, 'createFolderForCompany')
-          .returns({ id: '1234567890' });
-        const createFolderStub = sinon
-          .stub(GdriveStorageHelper, 'createFolder')
-          .returns({ id: '0987654321' });
+        createFolderForCompany.returns({ id: '1234567890' });
+        createFolder.returns({ id: '0987654321' });
 
         const response = await app.inject({
           method: 'POST',
@@ -208,16 +204,17 @@ describe('COMPANIES ROUTES', () => {
           payload,
           headers: { 'x-access-token': authToken },
         });
+
         expect(response.statusCode).toBe(200);
         expect(response.result.data.company).toBeDefined();
         expect(response.result.data.company).toMatchObject({
           folderId: '1234567890',
           directDebitsFolderId: '0987654321',
+          prefixNumber: 104,
         });
-        const companies = await Company.find().lean();
-        expect(companies).toHaveLength(companiesBefore.length + 1);
-        createFolderForCompanyStub.restore();
-        createFolderStub.restore();
+
+        const companiesCount = await Company.countDocuments();
+        expect(companiesCount).toEqual(companiesBefore.length + 1);
       });
 
       const missingParams = [
@@ -233,6 +230,7 @@ describe('COMPANIES ROUTES', () => {
             payload: omit({ ...payload }, test.path),
             headers: { 'x-access-token': authToken },
           });
+
           expect(response.statusCode).toBe(400);
         });
       });
