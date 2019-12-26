@@ -101,7 +101,7 @@ const activeList = async (req) => {
 
 const show = async (req) => {
   try {
-    const user = await getUser(req.params._id);
+    const user = await getUser(req.params._id, req.auth.credentials);
 
     return {
       message: translate[language].userFound,

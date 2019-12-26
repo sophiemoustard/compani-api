@@ -13,6 +13,7 @@ const {
   isInList,
   customerFromOtherCompany,
   userFromOtherCompany,
+  userSector,
 } = require('./seed/usersSeed');
 const { getToken, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
@@ -514,6 +515,7 @@ describe('USERS ROUTES', () => {
           local: expect.objectContaining({ email: usersSeedList[0].local.email }),
           role: expect.objectContaining({ name: 'auxiliary' }),
           isActive: expect.any(Boolean),
+          sector: userSector._id,
         }));
       });
 

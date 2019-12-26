@@ -158,6 +158,7 @@ describe('getUsersList', () => {
 describe('getUser', () => {
   let userMock;
   let populateRole;
+  const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     userMock = sinon.mock(User);
     populateRole = sinon.stub(RolesHelper, 'populateRole');
@@ -178,12 +179,14 @@ describe('getUser', () => {
       .withExactArgs('contracts')
       .chain('populate')
       .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(user);
 
-    await UsersHelper.getUser(userId);
+    await UsersHelper.getUser(userId, credentials);
 
     sinon.assert.notCalled(populateRole);
     userMock.verify();
@@ -201,13 +204,15 @@ describe('getUser', () => {
       .withExactArgs('contracts')
       .chain('populate')
       .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(user);
     populateRole.returns(user);
 
-    await UsersHelper.getUser(userId);
+    await UsersHelper.getUser(userId, credentials);
 
     sinon.assert.calledWithExactly(populateRole, [{ _id: rightId }], { onlyGrantedRights: true });
     userMock.verify();
@@ -224,12 +229,14 @@ describe('getUser', () => {
         .withExactArgs('contracts')
         .chain('populate')
         .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+        .chain('populate')
+        .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
         .chain('lean')
         .withExactArgs({ autopopulate: true, virtuals: true })
         .once()
         .returns(null);
 
-      await UsersHelper.getUser(userId);
+      await UsersHelper.getUser(userId, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(404);
     } finally {

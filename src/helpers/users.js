@@ -43,11 +43,12 @@ exports.getUsersList = async (query, credentials) => {
     .lean({ virtuals: true });
 };
 
-exports.getUser = async (userId) => {
+exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
     .populate('customers')
     .populate('contracts')
     .populate({ path: 'procedure.task', select: 'name _id' })
+    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
     .lean({ autopopulate: true, virtuals: true });
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 

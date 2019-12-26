@@ -46,7 +46,6 @@ const UserSchema = mongoose.Schema({
     autopopulate: { select: '-__v -createdAt -updatedAt', maxDepth: 3 },
     required: true,
   },
-  sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector' },
   youtube: {
     link: { type: String, trim: true },
     location: { type: [String], trim: true },
@@ -209,6 +208,24 @@ async function populateAfterSave(doc, next) {
   }
 }
 
+async function populateSector(doc, next) {
+  try {
+    if (doc && doc.sector) doc.sector = doc.sector.sector._id;
+
+    return next();
+  } catch (e) {
+    return next(e);
+  }
+}
+
+UserSchema.virtual('sector', {
+  ref: 'SectorHistory',
+  localField: '_id',
+  foreignField: 'auxiliary',
+  justOne: true,
+  options: { sort: { createdAt: -1 } },
+});
+
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.pre('save', save);
@@ -217,6 +234,7 @@ UserSchema.pre('find', validateQuery);
 UserSchema.pre('validate', validatePayload);
 UserSchema.pre('aggregate', validateAggregation);
 UserSchema.post('save', populateAfterSave);
+UserSchema.post('findOne', populateSector);
 
 UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);

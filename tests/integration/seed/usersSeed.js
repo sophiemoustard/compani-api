@@ -4,6 +4,8 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Company = require('../../../src/models/Company');
 const Task = require('../../../src/models/Task');
+const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const { rolesList, populateDBForAuthentication, otherCompany } = require('./authenticationSeed');
 
 const company = {
@@ -146,6 +148,12 @@ const userPayload = {
   role: rolesList.find(role => role.name === 'auxiliary')._id,
 };
 
+const userSector = { _id: new ObjectID(), name: 'Terre', company: company._id };
+
+const sectorHistories = usersSeedList
+  .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
+  .map(user => ({ auxiliary: user._id, sector: userSector._id, company: company._id }));
+
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());
 const isExistingRole = (roleId, roleName) => roleId === rolesList.find(r => r.name === roleName)._id;
 
@@ -154,10 +162,14 @@ const populateDB = async () => {
   await Company.deleteMany({});
   await Task.deleteMany({});
   await Customer.deleteMany({});
+  await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
 
   await populateDBForAuthentication();
   await User.create(usersSeedList.concat(userFromOtherCompany));
   await Customer.create(customerFromOtherCompany);
+  await Sector.create(userSector);
+  await SectorHistory.create(sectorHistories);
   await new Company(company).save();
   await new Task(task).save();
 };
@@ -170,4 +182,5 @@ module.exports = {
   isExistingRole,
   customerFromOtherCompany,
   userFromOtherCompany,
+  userSector,
 };
