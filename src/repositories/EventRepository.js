@@ -150,20 +150,11 @@ exports.getAuxiliaryEventsBetweenDates = async (auxiliary, startDate, endDate, c
 };
 
 exports.getEvent = async (eventId, credentials) => Event.findOne({ _id: eventId })
-  .populate({ path: 'auxiliary', select: 'identity administrative.driveFolder administrative.transportInvoice company' })
-  .populate({ path: 'customer', select: 'identity subscriptions contact' })
-  .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
-  .lean();
-
-exports.updateEvent = async (eventId, set, unset, credentials) => Event
-  .findOneAndUpdate(
-    { _id: eventId },
-    { $set: set, ...(unset && { $unset: unset }) },
-    { autopopulate: false, new: true }
-  ).populate({
+  .populate({
     path: 'auxiliary',
-    select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
-  }).populate({ path: 'customer', select: 'identity subscriptions contact' })
+    select: 'identity administrative.driveFolder administrative.transportInvoice company',
+  })
+  .populate({ path: 'customer', select: 'identity subscriptions contact' })
   .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
   .lean();
 

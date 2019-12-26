@@ -1,6 +1,9 @@
 const Boom = require('boom');
 const moment = require('moment');
-const _ = require('lodash');
+const pick = require('lodash/pick');
+const get = require('lodash/get');
+const omit = require('lodash/omit');
+const isEqual = require('lodash/isEqual');
 const momentRange = require('moment-range');
 const { ObjectID } = require('mongodb');
 const {
@@ -35,22 +38,23 @@ exports.list = async (query, credentials) => {
   const { groupBy } = query;
 
   if (groupBy === CUSTOMER) {
-    return EventRepository.getEventsGroupedByCustomers(eventsQuery, _.get(credentials, 'company._id', null));
+    return EventRepository.getEventsGroupedByCustomers(eventsQuery, get(credentials, 'company._id', null));
   } else if (groupBy === AUXILIARY) {
-    return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, _.get(credentials, 'company._id', null));
+    return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, get(credentials, 'company._id', null));
   }
   return exports.populateEvents(await EventRepository.getEventList(eventsQuery));
 };
 
 exports.createEvent = async (payload, credentials) => {
-  const companyId = _.get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id', null);
   let event = { ...payload, company: companyId };
   if (!(await EventsValidationHelper.isCreationAllowed(event))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
   const isRepeatedEvent = isRepetition(event);
-  if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && await EventsValidationHelper.hasConflicts(event)) {
+  const hasConflicts = await EventsValidationHelper.hasConflicts(event);
+  if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && hasConflicts) {
     delete event.auxiliary;
     event.repetition.frequency = NEVER;
   }
@@ -60,8 +64,9 @@ exports.createEvent = async (payload, credentials) => {
   if (payload.type === ABSENCE) {
     const { startDate, endDate, auxiliary, _id } = event;
     const dates = { startDate, endDate };
-    await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliary._id.toHexString(), _id.toHexString(), credentials);
-    await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
+    const auxiliaryId = auxiliary._id.toHexString();
+    await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, _id.toHexString(), credentials);
+    await exports.unassignConflictInterventions(dates, auxiliaryId, credentials);
   }
 
   if (isRepeatedEvent) await EventsRepetitionHelper.createRepetitions(event, { ...payload, company: companyId });
@@ -71,22 +76,24 @@ exports.createEvent = async (payload, credentials) => {
 
 exports.deleteConflictInternalHoursAndUnavailabilities = async (dates, auxiliary, eventId, credentials) => {
   const types = [INTERNAL_HOUR, UNAVAILABILITY];
-  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, _.get(credentials, 'company._id', null), eventId);
+  const companyId = get(credentials, 'company._id', null);
+  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, companyId, eventId);
 
   await exports.deleteEvents(events, credentials);
 };
 
 exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
-  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION], _.get(credentials, 'company._id', null));
+  const companyId = get(credentials, 'company._id', null);
+  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION], companyId);
 
   for (let i = 0, l = interventions.length; i < l; i++) {
-    const payload = _.omit(interventions[i], ['_id', 'auxiliary', 'repetition']);
+    const payload = omit(interventions[i], ['_id', 'auxiliary', 'repetition']);
     await exports.updateEvent(interventions[i], payload, credentials);
   }
 };
 
 exports.getListQuery = (query, credentials) => {
-  const rules = [{ company: new ObjectID(_.get(credentials, 'company._id')) }];
+  const rules = [{ company: new ObjectID(get(credentials, 'company._id')) }];
 
   const { auxiliary, type, customer, sector, isBilled, startDate, endDate, status } = query;
 
@@ -95,7 +102,9 @@ exports.getListQuery = (query, credentials) => {
 
   const sectorOrAuxiliary = [];
   if (auxiliary) {
-    const auxiliaryCondition = Array.isArray(auxiliary) ? auxiliary.map(id => new ObjectID(id)) : [new ObjectID(auxiliary)];
+    const auxiliaryCondition = Array.isArray(auxiliary)
+      ? auxiliary.map(id => new ObjectID(id))
+      : [new ObjectID(auxiliary)];
     sectorOrAuxiliary.push({ auxiliary: { $in: auxiliaryCondition } });
   }
   if (sector) {
@@ -128,10 +137,16 @@ exports.listForCreditNotes = (payload, credentials) => {
     customer: payload.customer,
     isBilled: payload.isBilled,
     type: INTERVENTION,
-    company: _.get(credentials, 'company._id', null),
+    company: get(credentials, 'company._id', null),
   };
   if (payload.thirdPartyPayer) query = { ...query, 'bills.thirdPartyPayer': payload.thirdPartyPayer };
-  else query = { ...query, 'bills.inclTaxesCustomer': { $exists: true, $gt: 0 }, 'bills.inclTaxesTpp': { $exists: false } };
+  else {
+    query = {
+      ...query,
+      'bills.inclTaxesCustomer': { $exists: true, $gt: 0 },
+      'bills.inclTaxesTpp': { $exists: false },
+    };
+  }
   return Event.find(query).lean();
 };
 
@@ -139,7 +154,8 @@ exports.populateEventSubscription = (event) => {
   if (event.type !== INTERVENTION) return event;
   if (!event.customer || !event.customer.subscriptions) throw Boom.badImplementation();
 
-  const subscription = event.customer.subscriptions.find(sub => sub._id.toHexString() === event.subscription.toHexString());
+  const subscription = event.customer.subscriptions
+    .find(sub => sub._id.toHexString() === event.subscription.toHexString());
   if (!subscription) throw Boom.badImplementation();
 
   return { ...event, subscription };
@@ -165,60 +181,75 @@ exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId
 );
 
 exports.isMiscOnlyUpdated = (event, payload) => {
-  const mainEventInfo = {
-    ..._.pick(event, ['isCancelled', 'startDate', 'endDate', 'status', 'internalHour.name', 'address.fullAddress']),
-    sector: event.sector.toHexString(),
-  };
+  const mainEventInfo = pick(
+    event,
+    ['isCancelled', 'startDate', 'endDate', 'status', 'internalHour.name', 'address.fullAddress']
+  );
   if (event.auxiliary) mainEventInfo.auxiliary = event.auxiliary.toHexString();
+  if (event.sector) mainEventInfo.sector = event.sector.toHexString();
   if (event.subscription) mainEventInfo.subscription = event.subscription.toHexString();
 
-  const mainPayloadInfo = _.pick(
+  const mainPayloadInfo = pick(
     payload,
-    ['isCancelled', 'startDate', 'endDate', 'status', 'sector', 'auxiliary', 'subscription', 'internalHour.name', 'address.fullAddress']
+    ['isCancelled', 'startDate', 'endDate', 'status', 'sector', 'auxiliary',
+      'subscription', 'internalHour.name', 'address.fullAddress']
   );
   if (!mainPayloadInfo.isCancelled) mainPayloadInfo.isCancelled = false;
 
-  return (payload.misc !== event.misc && _.isEqual(mainEventInfo, mainPayloadInfo));
+  return (payload.misc !== event.misc && isEqual(mainEventInfo, mainPayloadInfo));
 };
 
-/**
- * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the repetition
- * i.e. delete the repetition object. EXCEPT if we are only updating the misc field
- *
- * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the camcellation
- * i.e. delete the cancel object and set isCancelled to false.
- */
-exports.updateEvent = async (event, eventPayload, credentials) => {
-  await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
-  if (eventPayload.shouldUpdateRepetition) return EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
-
-  const miscUpdatedOnly = eventPayload.misc && exports.isMiscOnlyUpdated(event, eventPayload);
+exports.formatEditionPayload = (event, payload) => {
+  const miscUpdatedOnly = payload.misc && exports.isMiscOnlyUpdated(event, payload);
   let unset = null;
-  let set = eventPayload;
-  if (!eventPayload.isCancelled && event.isCancelled) {
+  let set = payload;
+  if (!payload.isCancelled && event.isCancelled) {
     set = { ...set, isCancelled: false };
     unset = { cancel: '' };
   }
-  if (isRepetition(event) && !miscUpdatedOnly) {
-    set = { ...set, 'repetition.frequency': NEVER };
+  if (isRepetition(event) && !miscUpdatedOnly) set = { ...set, 'repetition.frequency': NEVER };
+  if (!payload.auxiliary) unset = { ...unset, auxiliary: '' };
+
+  return unset ? { $set: set, $unset: unset } : { $set: set };
+};
+
+/**
+ * 1. If the event is in a repetition and we update it without updating the repetition, we should remove it from the
+ * repetition i.e. delete the repetition object. EXCEPT if we are only updating the misc field
+ *
+ * 2. if the event is cancelled and the payload doesn't contain any cancellation info, it means we should remove the
+ * cancellation i.e. delete the cancel object and set isCancelled to false.
+ */
+exports.updateEvent = async (event, eventPayload, credentials) => {
+  await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
+  if (eventPayload.shouldUpdateRepetition) {
+    return EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
   }
 
-  if (!eventPayload.auxiliary) unset = { ...unset, auxiliary: '' };
+  const payload = exports.formatEditionPayload(event, eventPayload);
+  const updatedEvent = await Event
+    .findOneAndUpdate({ _id: event._id }, { ...payload })
+    .populate({
+      path: 'auxiliary',
+      select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+    })
+    .populate({ path: 'customer', select: 'identity subscriptions contact' })
+    .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
+    .lean();
 
-  event = await EventRepository.updateEvent(event._id, set, unset, credentials);
-
-  if (event.type === ABSENCE) {
-    const { startDate, endDate, auxiliary, _id } = event;
-    const dates = { startDate, endDate };
-    await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliary._id.toHexString(), _id.toHexString(), credentials);
-    await exports.unassignConflictInterventions(dates, auxiliary._id.toHexString(), credentials);
+  if (updatedEvent.type === ABSENCE) {
+    const dates = { startDate: updatedEvent.startDate, endDate: updatedEvent.endDate };
+    const auxiliaryId = updatedEvent.auxiliary._id.toHexString();
+    const eventId = updatedEvent._id.toHexString();
+    await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, eventId, credentials);
+    await exports.unassignConflictInterventions(dates, auxiliaryId, credentials);
   }
 
-  return exports.populateEventSubscription(event);
+  return exports.populateEventSubscription(updatedEvent);
 };
 
 exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
-  const companyId = _.get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id', null);
   const customerSubscriptionsFromEvents = await EventRepository.getCustomerSubscriptions(contract, companyId);
 
   if (customerSubscriptionsFromEvents.length === 0) return;
@@ -242,12 +273,14 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   for (const group of unassignedInterventions) {
     if (group._id) {
       const { startDate, endDate, misc } = group.events[0];
-      promises.push(EventHistoriesHelper.createEventHistoryOnUpdate({ startDate, endDate, misc, shouldUpdateRepetition: true }, group.events[0], credentials));
+      const payload = { startDate, endDate, misc, shouldUpdateRepetition: true };
+      promises.push(EventHistoriesHelper.createEventHistoryOnUpdate(payload, group.events[0], credentials));
       ids.push(...group.events.map(ev => ev._id));
     } else {
       for (const intervention of group.events) {
         const { startDate, endDate, misc } = intervention;
-        promises.push(EventHistoriesHelper.createEventHistoryOnUpdate({ startDate, endDate, misc }, intervention, credentials));
+        const payload = { startDate, endDate, misc };
+        promises.push(EventHistoriesHelper.createEventHistoryOnUpdate(payload, intervention, credentials));
         ids.push(intervention._id);
       }
     }
@@ -266,7 +299,8 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 };
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
-  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user, _.get(credentials, 'company._id', null));
+  const companyId = get(credentials, 'company._id', null);
+  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user, companyId);
   const promises = [];
   const ids = [];
 
@@ -288,7 +322,7 @@ exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credenti
 };
 
 exports.deleteList = async (customer, startDate, endDate, credentials) => {
-  const companyId = _.get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id', null);
   const query = {
     customer: new ObjectID(customer),
     startDate: { $gte: moment(startDate).toDate() },
@@ -312,7 +346,7 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
 
 exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, credentials) => {
   const maxEndDate = moment(contractEndDate).hour(PLANNING_VIEW_END_HOUR).startOf('h');
-  const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate, _.get(credentials, 'company._id', null));
+  const absences = await EventRepository.getAbsences(auxiliaryId, maxEndDate, get(credentials, 'company._id', null));
   const absencesIds = absences.map(abs => abs._id);
   const promises = [];
 
@@ -329,7 +363,7 @@ exports.updateAbsencesOnContractEnd = async (auxiliaryId, contractEndDate, crede
 
 exports.deleteEvent = async (event, credentials) => {
   if (!EventsValidationHelper.isDeletionAllowed(event)) throw Boom.conflict('The event is already billed');
-  const deletionInfo = _.omit(event, 'repetition');
+  const deletionInfo = omit(event, 'repetition');
   await EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials);
   await Event.deleteOne({ _id: event._id });
 
@@ -338,9 +372,12 @@ exports.deleteEvent = async (event, credentials) => {
 
 exports.deleteEvents = async (events, credentials) => {
   const promises = [];
-  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) throw Boom.conflict('Some events are already billed');
+  if (events.some(event => !EventsValidationHelper.isDeletionAllowed(event))) {
+    throw Boom.conflict('Some events are already billed');
+  }
+
   for (const event of events) {
-    const deletionInfo = _.omit(event, 'repetition');
+    const deletionInfo = omit(event, 'repetition');
     promises.push(EventHistoriesHelper.createEventHistoryOnDelete(deletionInfo, credentials));
   }
 
@@ -368,7 +405,7 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
 });
 
 exports.workingStats = async (query, credentials) => {
-  const companyId = _.get(credentials, 'company._id', null);
+  const companyId = get(credentials, 'company._id', null);
   const queryAuxiliaries = { company: companyId };
   if (query.auxiliary) {
     const ids = Array.isArray(query.auxiliary)

@@ -1,6 +1,5 @@
 const moment = require('moment');
 const get = require('lodash/get');
-const { ObjectID } = require('mongodb');
 const EventHistory = require('../models/EventHistory');
 const User = require('../models/User');
 const { EVENT_CREATION, EVENT_DELETION, EVENT_UPDATE, INTERNAL_HOUR, ABSENCE } = require('./constants');
@@ -15,16 +14,17 @@ exports.getEventHistories = async (query, credentials) => {
 };
 
 exports.getListQuery = (query, credentials) => {
-  const queryCompany = { company: new ObjectID(get(credentials, 'company._id', null)) };
-  const andRules = [queryCompany];
-  const orRules = [];
   const { sectors, auxiliaries, createdAt } = query;
+  const queryCompany = { company: get(credentials, 'company._id', null) };
+  if (createdAt) queryCompany.createdAt = { $lte: createdAt };
 
+  const orRules = [];
   if (sectors) orRules.push(...UtilsHelper.formatArrayOrStringQueryParam(sectors, 'sectors'));
   if (auxiliaries) orRules.push(...UtilsHelper.formatArrayOrStringQueryParam(auxiliaries, 'auxiliaries'));
-  if (createdAt) andRules.push({ createdAt: { $lte: createdAt } });
 
-  return orRules.length > 0 ? { $and: andRules.concat([{ $or: orRules }]) } : { $and: andRules };
+  if (orRules.length === 0) return queryCompany;
+  if (orRules.length === 1) return { ...queryCompany, ...orRules[0] };
+  return { ...queryCompany, $or: orRules };
 };
 
 exports.createEventHistory = async (payload, credentials, action) => {
@@ -58,14 +58,17 @@ exports.createEventHistory = async (payload, credentials, action) => {
     },
   };
 
-  if (payload.auxiliary) eventHistory.auxiliary = [payload.auxiliary];
-  if (payload.sector) eventHistory.sector = [payload.sector];
+  if (payload.auxiliary) {
+    eventHistory.auxiliaries = [payload.auxiliary];
+    eventHistory.event.auxiliary = payload.auxiliary;
+  }
+  if (payload.sector) eventHistory.sectors = [payload.sector];
   else {
     const aux = await User.findOne({ _id: payload.auxiliary }).lean();
-    eventHistory.sector = [aux.sector];
+    eventHistory.sectors = [aux.sector.toHexString()];
   }
 
-  await (new EventHistory(eventHistory)).save();
+  await EventHistory.create(eventHistory);
 };
 
 exports.createEventHistoryOnCreate = async (payload, credentials) =>
@@ -145,7 +148,7 @@ exports.formatEventHistoryForAuxiliaryUpdate = async (mainInfo, payload, event) 
 
   const sectors = [];
   if (!payload.sector && !event.sector) {
-    const auxiliaries = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] }}).lean();
+    const auxiliaries = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] } }).lean();
     for (const aux of auxiliaries) {
       if (!sectors.includes(aux.sector)) sectors.push([aux.sector]);
     }
