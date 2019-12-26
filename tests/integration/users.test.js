@@ -14,7 +14,7 @@ const {
   customerFromOtherCompany,
   userFromOtherCompany,
 } = require('./seed/usersSeed');
-const { getToken, userList, getTokenByCredentials } = require('./seed/authenticationSeed');
+const { getToken, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
 const { generateFormData } = require('./utils');
 
@@ -114,14 +114,52 @@ describe('USERS ROUTES', () => {
       });
 
       it('should return a 403 if customer is not from the same company', async () => {
-        const payload = { ...userPayload, customer: customerFromOtherCompany };
+        const payload = { ...userPayload, customers: [customerFromOtherCompany] };
         const response = await app.inject({
           method: 'POST',
           url: '/users',
           payload,
           headers: { 'x-access-token': authToken },
         });
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(403);
+      });
+    });
+
+    describe('SuperAdmin', () => {
+      const payload = { ...userPayload, company: otherCompany._id };
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('superAdmin');
+      });
+
+      it('should create a user for another company', async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/users',
+          payload,
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.user.company).toBeDefined();
+        expect(response.result.data.user.company._id).toEqual(otherCompany._id);
+        const usersCount = await User.countDocuments({ company: otherCompany._id });
+        expect(usersCount).toBe(2);
+      });
+
+      const roles = ['helper', 'auxiliary', 'coach', 'admin'];
+
+      roles.forEach((role) => {
+        it(`should return a 403 error as user is ${role}`, async () => {
+          authToken = await getToken(role);
+          const response = await app.inject({
+            method: 'POST',
+            url: '/users',
+            payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toBe(403);
+        });
       });
     });
 

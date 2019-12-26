@@ -154,6 +154,7 @@ module.exports = {
   TECH: 'tech',
   ADMIN: 'admin',
   PLANNING_REFERENT: 'planningReferent',
+  SUPER_ADMIN: 'superAdmin',
   // EXPORTS
   SERVICE: 'service',
   CUSTOMER: 'customer',

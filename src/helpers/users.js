@@ -106,7 +106,11 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  const user = await User.create({ ...payload, company: get(credentials, 'company._id', null), refreshToken: uuidv4() });
+  const user = await User.create({
+    ...payload,
+    company: payload.company || get(credentials, 'company._id', null),
+    refreshToken: uuidv4(),
+  });
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
   return {
     ...pickBy(user),
