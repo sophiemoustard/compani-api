@@ -202,6 +202,7 @@ const authCompany = {
   _id: new ObjectID(),
   name: 'Test SAS',
   tradeName: 'Test',
+  prefixNumber: 101,
   iban: '1234',
   bic: '5678',
   ics: '9876',
@@ -215,6 +216,7 @@ const authCompany = {
 
 const otherCompany = {
   _id: new ObjectID(),
+  prefixNumber: 102,
   name: 'Other test SAS',
   tradeName: 'Other test',
   folderId: '0987654321',

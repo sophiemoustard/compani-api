@@ -20,6 +20,7 @@ const billThirdPartyPayer = {
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
+  prefixNumber: 103,
   name: 'Test',
   tradeName: 'To',
   rhConfig: {

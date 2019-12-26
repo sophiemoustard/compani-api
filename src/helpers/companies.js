@@ -10,9 +10,11 @@ exports.createCompany = async (companyPayload) => {
     GdriveStorageHelper.createFolder('direct debits', companyFolder.id),
     GdriveStorageHelper.createFolder('customers', companyFolder.id),
   ]);
+  const lastCompany = await Company.find().sort({ prefixNumber: -1 }).limit(1).lean();
 
   return Company.create({
     ...companyPayload,
+    prefixNumber: lastCompany[0].prefixNumber + 1,
     directDebitsFolderId: directDebitsFolder.id,
     folderId: companyFolder.id,
     customersFolderId: customersFolder.id,

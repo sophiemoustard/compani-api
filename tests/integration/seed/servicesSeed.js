@@ -17,6 +17,7 @@ const company = {
     ],
     feeAmount: 12,
   },
+  prefixNumber: 103,
   iban: 'FR3514508000505917721779B12',
   bic: 'RTYUIKJHBFRG',
   ics: '12345678',

@@ -19,6 +19,7 @@ const balanceThirdPartyPayer = {
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
   name: 'Test',
+  prefixNumber: 103,
   tradeName: 'To',
   rhConfig: {
     internalHours: [
