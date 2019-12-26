@@ -129,6 +129,7 @@ exports.createUser = async (userPayload, credentials) => {
 };
 
 exports.updateUser = async (userId, userPayload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const options = { new: true };
   let update;
 
@@ -139,11 +140,15 @@ exports.updateUser = async (userId, userPayload, credentials) => {
     options.runValidators = true;
   }
 
-  const updatedUser = await User.findOneAndUpdate(
-    { _id: userId, company: get(credentials, 'company._id', null) },
-    update,
-    options
-  ).lean({ autopopulate: true });
+  const updatePromises = [
+    User
+      .findOneAndUpdate({ _id: userId, company: companyId }, update, options)
+      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+      .lean({ autopopulate: true, virtuals: true }),
+  ];
+  const { sector } = userPayload;
+  if (sector) updatePromises.push(SectorHistoriesHelper.createHistory(userId, userPayload.sector, companyId));
+  const [updatedUser] = await Promise.all(updatePromises);
 
   if (updatedUser.role && updatedUser.role.rights.length > 0) {
     updatedUser.role.rights = RolesHelper.populateRole(updatedUser.role.rights, { onlyGrantedRights: true });

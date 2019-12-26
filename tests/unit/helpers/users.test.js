@@ -462,7 +462,6 @@ describe('createUser', () => {
       company: new ObjectID(),
     };
     const newUser = {
-      _id: new ObjectID(),
       ...payload,
       role: { name: 'admin', rights: userRights },
     };
@@ -478,6 +477,7 @@ describe('createUser', () => {
     UserMock.expects('create')
       .withExactArgs({
         ...payload,
+        _id: userId,
         refreshToken: sinon.match.string,
       })
       .returns({ ...newUser });
@@ -528,6 +528,7 @@ describe('createUser', () => {
 describe('updateUser', () => {
   let UserMock;
   let populateRoleStub;
+  let createHistoryStub;
   const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
   const user = {
@@ -551,11 +552,13 @@ describe('updateUser', () => {
   beforeEach(() => {
     UserMock = sinon.mock(User);
     populateRoleStub = sinon.stub(RolesHelper, 'populateRole');
+    createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
     UserMock.restore();
     populateRoleStub.restore();
+    createHistoryStub.restore();
   });
 
   it('should update a user and populate role', async () => {
@@ -568,7 +571,7 @@ describe('updateUser', () => {
         { new: true, runValidators: true }
       )
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...cloneDeep(user), payload });
 
     populateRoleStub.returns(populatedUserRights);
@@ -582,6 +585,34 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
+    sinon.assert.notCalled(createHistoryStub);
+  });
+
+  it('should update a user, populate role and create sector history', async () => {
+    const payload = { identity: { firstname: 'Titi' }, sector: new ObjectID() };
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId, company: credentials.company._id },
+        { $set: flat(payload) },
+        { new: true, runValidators: true }
+      )
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ ...cloneDeep(user), payload });
+
+    populateRoleStub.returns(populatedUserRights);
+
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
+
+    expect(result).toMatchObject({
+      ...user,
+      payload,
+      role: { rights: populatedUserRights },
+    });
+    UserMock.verify();
+    sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
+    sinon.assert.calledWithExactly(createHistoryStub, userId, payload.sector, credentials.company._id);
   });
 
   it('should update a user and not populate role', async () => {
@@ -594,7 +625,7 @@ describe('updateUser', () => {
         { new: true, runValidators: true }
       )
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ _id: user._id, role: { rights: [] }, payload });
 
     populateRoleStub.returns(populatedUserRights);
@@ -608,6 +639,7 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.notCalled(populateRoleStub);
+    sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should update a user certificate and populate role', async () => {
@@ -617,7 +649,7 @@ describe('updateUser', () => {
       .expects('findOneAndUpdate')
       .withExactArgs({ _id: userId, company: credentials.company._id }, { $pull: payload }, { new: true })
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...cloneDeep(user), payload });
 
     populateRoleStub.returns(populatedUserRights);
@@ -631,6 +663,7 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
+    sinon.assert.notCalled(createHistoryStub);
   });
 });
 

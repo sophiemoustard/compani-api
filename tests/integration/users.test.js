@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const omit = require('lodash/omit');
 const app = require('../../server');
 const User = require('../../src/models/User');
+const SectorHistory = require('../../src/models/SectorHistory');
 const {
   usersSeedList,
   userPayload,
@@ -13,7 +14,9 @@ const {
   isInList,
   customerFromOtherCompany,
   userFromOtherCompany,
-  userSector,
+  userSectors,
+  company,
+  sectorHistories,
 } = require('./seed/usersSeed');
 const { getToken, userList, getTokenByCredentials, otherCompany } = require('./seed/authenticationSeed');
 const GdriveStorage = require('../../src/helpers/gdriveStorage');
@@ -58,7 +61,7 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.user._id).toEqual(expect.any(Object));
-        expect(res.result.data.user.sector).toEqual(userSector._id);
+        expect(res.result.data.user.sector).toEqual(userSectors[0]._id);
         expect(res.result.data.user.role).toMatchObject({
           name: 'auxiliary',
           rights: expect.arrayContaining([
@@ -516,7 +519,7 @@ describe('USERS ROUTES', () => {
           local: expect.objectContaining({ email: usersSeedList[0].local.email }),
           role: expect.objectContaining({ name: 'auxiliary' }),
           isActive: expect.any(Boolean),
-          sector: userSector._id,
+          sector: userSectors[0]._id,
         }));
       });
 
@@ -593,6 +596,7 @@ describe('USERS ROUTES', () => {
       beforeEach(async () => {
         authToken = await getToken('admin', usersSeedList);
       });
+
       it('should update the user', async () => {
         const res = await app.inject({
           method: 'PUT',
@@ -614,6 +618,22 @@ describe('USERS ROUTES', () => {
         expect(updatedUser.identity.firstname).toBe(updatePayload.identity.firstname);
         expect(updatedUser.local.email).toBe(updatePayload.local.email);
         expect(updatedUser.role._id).toEqual(updatePayload.role);
+      });
+
+      it('should update the user sector and sector history', async () => {
+        const userId = usersSeedList[0]._id.toHexString();
+        const res = await app.inject({
+          method: 'PUT',
+          url: `/users/${userId}`,
+          payload: { ...updatePayload, sector: userSectors[1]._id },
+          headers: { 'x-access-token': authToken },
+        });
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.updatedUser).toBeDefined();
+        expect(res.result.data.updatedUser.sector).toEqual(userSectors[1]._id);
+        const userSectorHistory = sectorHistories.filter(history => history.auxiliary.toHexString() === userId);
+        const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company });
+        expect(sectorHistoryCount).toBe(userSectorHistory.length + 1);
       });
 
       it('should return a 404 error if no user found', async () => {

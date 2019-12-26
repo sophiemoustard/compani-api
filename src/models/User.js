@@ -231,6 +231,7 @@ UserSchema.pre('validate', validatePayload);
 UserSchema.pre('aggregate', validateAggregation);
 UserSchema.post('save', populateAfterSave);
 UserSchema.post('findOne', populateSector);
+UserSchema.post('findOneAndUpdate', populateSector);
 
 UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);
