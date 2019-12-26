@@ -67,11 +67,11 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
         administrative: { driveFolder: 1, transportInvoice: 1 },
         company: 1,
         picture: 1,
+        sector: 1,
       },
       type: 1,
       startDate: 1,
       endDate: 1,
-      sector: 1,
       subscription: 1,
       internalHour: 1,
       absence: 1,
@@ -96,7 +96,7 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
 ]).option({ company: companyId });
 
 exports.getEventsGroupedByAuxiliaries = async (rules, companyId) =>
-  getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] }, companyId);
+  getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$auxiliary.sector'] }, companyId);
 
 exports.getEventsGroupedByCustomers = async (rules, companyId) => getEventsGroupedBy(rules, '$customer._id', companyId);
 
@@ -210,12 +210,12 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     {
       $lookup: {
         from: 'sectors',
-        localField: 'sector',
+        localField: 'auxiliary.sector',
         foreignField: '_id',
-        as: 'sector',
+        as: 'auxiliary.sector',
       },
     },
-    { $unwind: { path: '$sector' } },
+    { $unwind: { path: '$auxiliary.sector' } },
     {
       $lookup: {
         from: 'internalhours',
@@ -228,7 +228,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     {
       $project: {
         customer: { identity: 1 },
-        auxiliary: { identity: 1 },
+        auxiliary: { identity: 1, sector: 1 },
         startDate: 1,
         endDate: 1,
         internalHour: 1,
@@ -237,7 +237,6 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
         isBilled: 1,
         cancel: 1,
         repetition: 1,
-        sector: 1,
         misc: 1,
         type: 1,
       },
@@ -256,8 +255,7 @@ exports.getAbsencesForExport = async (start, end, credentials) => {
 
   return Event.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity' })
-    .populate({ path: 'sector' })
+    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector' } })
     .lean();
 };
 

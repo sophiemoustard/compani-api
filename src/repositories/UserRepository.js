@@ -66,10 +66,7 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
       },
     },
     {
-      $group: {
-        _id: '$sector',
-        contracts: { $push: '$contracts' },
-      },
+      $group: { _id: '$sector', contracts: { $push: '$contracts' } },
     },
   ]).option({ company: companyId });
 };
