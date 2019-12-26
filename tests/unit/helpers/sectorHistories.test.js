@@ -2,14 +2,10 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const Boom = require('boom');
 const SectoryHistory = require('../../../src/models/SectorHistory');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
-const translate = require('../../../src/helpers/translate');
 
 require('sinon-mongoose');
-
-const { language } = translate;
 
 describe('createHistory', () => {
   let SectorHistoryMock;
@@ -68,19 +64,19 @@ describe('createHistory', () => {
     SectorHistoryMock.verify();
   });
 
-  it('should throw a 404 error if old sector history does not exist', async () => {
-    try {
-      SectorHistoryMock
-        .expects('findOne')
-        .withExactArgs({ auxiliary, company })
-        .chain('sort')
-        .withExactArgs({ _id: -1 })
-        .chain('lean')
-        .returns(null);
+  it('should create sector history if it does not exist', async () => {
+    SectorHistoryMock
+      .expects('findOne')
+      .withExactArgs({ auxiliary, company })
+      .chain('sort')
+      .withExactArgs({ _id: -1 })
+      .chain('lean')
+      .returns(null);
 
-      await SectorHistoryHelper.createHistory(auxiliary, sector.toHexString(), company);
-    } catch (e) {
-      expect(e).toEqual(Boom.notFound(translate[language].sectorHistoryNotFound));
-    }
+    SectorHistoryMock.expects('create').withExactArgs({ auxiliary, sector, company });
+
+    await SectorHistoryHelper.createHistory(auxiliary, sector, company);
+
+    SectorHistoryMock.verify();
   });
 });
