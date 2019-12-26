@@ -18,27 +18,19 @@ const CreditNoteSchema = mongoose.Schema(
     thirdPartyPayer: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
     exclTaxesCustomer: {
       type: Number,
-      required() {
-        return !this.thirdPartyPayer;
-      },
+      required() { return !this.thirdPartyPayer; },
     },
     inclTaxesCustomer: {
       type: Number,
-      required() {
-        return !this.thirdPartyPayer;
-      },
+      required() { return !this.thirdPartyPayer; },
     },
     exclTaxesTpp: {
       type: Number,
-      required() {
-        return !!this.thirdPartyPayer;
-      },
+      required() { return !!this.thirdPartyPayer; },
     },
     inclTaxesTpp: {
       type: Number,
-      required() {
-        return !!this.thirdPartyPayer;
-      },
+      required() { return !!this.thirdPartyPayer; },
     },
     events: [
       {
@@ -73,15 +65,11 @@ const CreditNoteSchema = mongoose.Schema(
         nature: {
           type: String,
           enum: SERVICE_NATURES,
-          required() {
-            return get(this.subscription, 'service.serviceId', false);
-          },
+          required() { return get(this.subscription, 'service.serviceId', false); },
         },
         name: {
           type: String,
-          required() {
-            return get(this.subscription, 'service.serviceId', false);
-          },
+          required() { return get(this.subscription, 'service.serviceId', false); },
         },
       },
       vat: Number,
