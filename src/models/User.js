@@ -214,6 +214,14 @@ function populateSector(doc, next) {
   return next();
 }
 
+function populateSectors(docs, next) {
+  for (const doc of docs) {
+    if (doc && doc.sector) doc.sector = doc.sector.sector;
+  }
+
+  return next();
+}
+
 UserSchema.virtual('sector', {
   ref: 'SectorHistory',
   localField: '_id',
@@ -232,6 +240,7 @@ UserSchema.pre('aggregate', validateAggregation);
 UserSchema.post('save', populateAfterSave);
 UserSchema.post('findOne', populateSector);
 UserSchema.post('findOneAndUpdate', populateSector);
+UserSchema.post('find', populateSectors);
 
 UserSchema.plugin(mongooseLeanVirtuals);
 UserSchema.plugin(autopopulate);

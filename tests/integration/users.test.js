@@ -327,8 +327,7 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
-        expect(res.result.data.users[0]).toHaveProperty('role');
-        expect(res.result.data.users[0].role.name).toEqual('coach');
+        expect(res.result.data.users.every(user => user.role.name === 'coach')).toBeTruthy();
       });
 
       it('should get all coachs users (company B)', async () => {
@@ -343,8 +342,23 @@ describe('USERS ROUTES', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.result.data.users.length).toBe(coachUsers.length);
-        expect(res.result.data.users[0]).toHaveProperty('role');
-        expect(res.result.data.users[0].role.name).toEqual('coach');
+        expect(res.result.data.users.every(user => user.role.name === 'coach')).toBeTruthy();
+      });
+
+      it('should get all auxiliary users (company B)', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+        const auxiliaryUsers = usersSeedList.filter(u => isExistingRole(u.role, 'auxiliary'));
+
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users?role=auxiliary',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
+        expect(res.result.data.users.every(user => user.role.name === 'auxiliary')).toBeTruthy();
+        expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
       });
 
       it('should not get users if role given doesn\'t exist', async () => {
@@ -420,7 +434,6 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users).toEqual(expect.arrayContaining([
           expect.objectContaining({ isActive: true }),
         ]));
-        expect(res.result.data.users[0].isActive).toBeTruthy();
       });
 
       it('should get all active users (company B)', async () => {
@@ -437,31 +450,24 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users).toEqual(expect.arrayContaining([
           expect.objectContaining({ isActive: true }),
         ]));
-        expect(res.result.data.users[0].isActive).toBeTruthy();
-      });
-
-      it('should get all active auxiliary users (company A)', async () => {
-        const res = await app.inject({
-          method: 'GET',
-          url: '/users/active?role=auxiliary',
-          headers: { 'x-access-token': authToken },
-        });
-        expect(res.statusCode).toBe(200);
-        const activeUsers = userList.filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role, 'auxiliary'));
-        expect(res.result.data.users.length).toBe(activeUsers.length);
       });
 
       it('should get all active auxiliary users (company B)', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+
         const res = await app.inject({
           method: 'GET',
           url: '/users/active?role=auxiliary',
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        expect(res.result.data.users[0]).toHaveProperty('role');
-        expect(res.result.data.users[0].role.name).toEqual('auxiliary');
-        expect(res.result.data.users[0]).toHaveProperty('isActive');
-        expect(res.result.data.users[0].isActive).toBeTruthy();
+        const activeUsers = usersSeedList.filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role, 'auxiliary'));
+        expect(res.result.data.users.length).toBe(activeUsers.length);
+        expect(res.result.data.users).toEqual(expect.arrayContaining([
+          expect.objectContaining({ isActive: true }),
+        ]));
+        expect(res.result.data.users.every(user => user.role.name === 'auxiliary')).toBeTruthy();
+        expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
       });
 
       it('should return a 403 if not from the same company', async () => {

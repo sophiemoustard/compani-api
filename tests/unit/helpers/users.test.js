@@ -54,9 +54,14 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        populate: { path: 'sector', select: ' _id name' },
+      })
       .chain('populate')
-      .withExactArgs('sector')
+      .withExactArgs('contracts')
       .chain('lean')
       .withExactArgs({ virtuals: true })
       .returns(users);
@@ -87,9 +92,14 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        populate: { path: 'sector', select: ' _id name' },
+      })
       .chain('populate')
-      .withExactArgs('sector')
+      .withExactArgs('contracts')
       .chain('lean')
       .withExactArgs({ virtuals: true })
       .returns(users);
@@ -121,9 +131,14 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+        populate: { path: 'sector', select: ' _id name' },
+      })
       .chain('populate')
-      .withExactArgs('sector')
+      .withExactArgs('contracts')
       .chain('lean')
       .withExactArgs({ virtuals: true })
       .returns(users);

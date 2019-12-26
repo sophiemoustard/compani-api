@@ -34,14 +34,18 @@ exports.getUsersList = async (query, credentials) => {
     params.role = role;
   }
 
-  return User
-    .find(params, {}, { autopopulate: false })
+  return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate({ path: 'role', select: 'name' })
+    .populate({
+      path: 'sector',
+      select: '_id sector',
+      match: { company: get(credentials, 'company._id', null) },
+      populate: { path: 'sector', select: ' _id name' },
+    })
     .populate('contracts')
-    .populate('sector')
     .lean({ virtuals: true });
 };
 
