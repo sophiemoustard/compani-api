@@ -24,14 +24,14 @@ const Rum = require('../models/Rum');
 const { language } = translate;
 
 exports.getCustomerBySector = async (query, credentials) => {
-  const queryCustomer = EventsHelper.getListQuery({
+  const eventQuery = EventsHelper.getListQuery({
     startDate: query.startDate,
     endDate: query.endDate,
     type: INTERVENTION,
-    sector: query.sector,
   }, credentials);
   const companyId = get(credentials, 'company._id', null);
-  return EventRepository.getCustomersFromEvent(queryCustomer, companyId);
+
+  return EventRepository.getCustomersFromEvent(query.sector, eventQuery, companyId);
 };
 
 exports.getCustomersWithBilledEvents = async (credentials) => {

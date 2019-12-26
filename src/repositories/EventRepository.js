@@ -2,6 +2,7 @@ const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const Event = require('../models/Event');
+const User = require('../models/User');
 const {
   INTERNAL_HOUR,
   INTERVENTION,
@@ -561,8 +562,30 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
   ]).option({ company: companyId });
 };
 
-exports.getCustomersFromEvent = async (query, companyId) => Event.aggregate([
-  { $match: query },
+exports.getCustomersFromEvent = async (sector, eventQuery, companyId) => User.aggregate([
+  {
+    $match: {
+      sector: Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)],
+    },
+  },
+  {
+    $lookup: {
+      from: 'events',
+      as: 'event',
+      let: { auxiliaryId: '$_id' },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, ...eventQuery.$and],
+            },
+          },
+        },
+      ],
+    },
+  },
+  { $unwind: '$event' },
+  { $replaceRoot: { newRoot: '$event' } },
   {
     $lookup: {
       from: 'customers',
