@@ -795,6 +795,7 @@ describe('formatEventHistoryForDatesUpdate', () => {
         startDate: { from: '2019-01-21T09:38:18', to: '2019-01-20T09:38:18' },
       },
     });
+    UserMock.verify();
   });
 
   it('should format event history without auxiliary', async () => {
