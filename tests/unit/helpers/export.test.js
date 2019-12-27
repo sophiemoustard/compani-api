@@ -1446,10 +1446,13 @@ describe('exportPayAndFinalPayHistory', () => {
       .withExactArgs({
         path: 'auxiliary',
         select: 'identity sector contracts',
-        populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+        populate: [
+          { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+          { path: 'contracts' },
+        ],
       })
       .chain('lean')
-      .once()
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns([]);
     FinalPayMock.expects('find')
       .withExactArgs(query)
@@ -1459,10 +1462,13 @@ describe('exportPayAndFinalPayHistory', () => {
       .withExactArgs({
         path: 'auxiliary',
         select: 'identity sector contracts',
-        populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+        populate: [
+          { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+          { path: 'contracts' },
+        ],
       })
       .chain('lean')
-      .once()
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns([]);
 
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);
@@ -1497,10 +1503,13 @@ describe('exportPayAndFinalPayHistory', () => {
       .withExactArgs({
         path: 'auxiliary',
         select: 'identity sector contracts',
-        populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+        populate: [
+          { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+          { path: 'contracts' },
+        ],
       })
       .chain('lean')
-      .once()
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns(pays);
     FinalPayMock.expects('find')
       .withExactArgs(query)
@@ -1510,10 +1519,13 @@ describe('exportPayAndFinalPayHistory', () => {
       .withExactArgs({
         path: 'auxiliary',
         select: 'identity sector contracts',
-        populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+        populate: [
+          { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+          { path: 'contracts' },
+        ],
       })
       .chain('lean')
-      .once()
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns(finalPays);
     formatFloatForExportStub.callsFake(nb =>
       Number(nb)
@@ -1633,7 +1645,18 @@ describe('exportPayAndFinalPayHistory', () => {
         'surchargedAndExemptDetails',
         '2,00',
         '2,00',
-        'surchargedAndNotExemptDetails', '-89,94', '8,00', '-97,94', '0,00', '0,00', 'Oui', '47,60', '20,00', '100,00', '0,00'],
+        'surchargedAndNotExemptDetails',
+        '-89,94',
+        '8,00',
+        '-97,94',
+        '0,00',
+        '0,00',
+        'Oui',
+        '47,60',
+        '20,00',
+        '100,00',
+        '0,00',
+      ],
     ]);
     sinon.assert.callCount(formatFloatForExportStub, 61);
     PayMock.verify();

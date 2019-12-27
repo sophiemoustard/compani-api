@@ -622,7 +622,7 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
         { path: 'contracts' },
       ],
     })
-    .lean();
+    .lean({ autopopulate: true, virtuals: true });
 
   const rows = [payExportHeader];
   const paysAndFinalPay = [...pays, ...finalPays];
