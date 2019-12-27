@@ -69,7 +69,12 @@ exports.createEvent = async (payload, credentials) => {
     await exports.unassignConflictInterventions(dates, auxiliaryId, credentials);
   }
 
-  if (isRepeatedEvent) await EventsRepetitionHelper.createRepetitions(event, { ...payload, company: companyId });
+  if (isRepeatedEvent) {
+    await EventsRepetitionHelper.createRepetitions(
+      event,
+      { ...payload, company: companyId, 'repetition.parentId': event._id }
+    );
+  }
 
   return exports.populateEventSubscription(event);
 };
