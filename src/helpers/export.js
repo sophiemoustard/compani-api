@@ -605,16 +605,22 @@ exports.exportPayAndFinalPayHistory = async (startDate, endDate, credentials) =>
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+      populate: [
+        { path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } },
+        { path: 'contracts' },
+      ],
     })
-    .lean();
+    .lean({ autopopulate: true, virtuals: true });
 
   const finalPays = await FinalPay.find(query)
     .sort({ startDate: 'desc' })
     .populate({
       path: 'auxiliary',
       select: 'identity sector contracts',
-      populate: [{ path: 'sector', select: 'name' }, { path: 'contracts' }],
+      populate: [
+        { path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } },
+        { path: 'contracts' },
+      ],
     })
     .lean();
 
