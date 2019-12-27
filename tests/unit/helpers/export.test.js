@@ -16,49 +16,56 @@ const UtilsHelper = require('../../../src/helpers/utils');
 const EventRepository = require('../../../src/repositories/EventRepository');
 
 describe('exportWorkingEventsHistory', () => {
-  const header = ['Type', 'Heure interne', 'Service', 'Début', 'Fin', 'Durée', 'Répétition', 'Équipe', 'Auxiliaire - Titre', 'Auxiliaire - Prénom', 'Auxiliaire - Nom', 'A affecter', 'Bénéficiaire - Titre', 'Bénéficiaire - Nom', 'Bénéficiaire - Prénom', 'Divers', 'Facturé', 'Annulé', 'Statut de l\'annulation', 'Raison de l\'annulation'];
+  const header = [
+    'Type',
+    'Heure interne',
+    'Service',
+    'Début',
+    'Fin',
+    'Durée',
+    'Répétition',
+    'Équipe',
+    'Auxiliaire - Titre',
+    'Auxiliaire - Prénom',
+    'Auxiliaire - Nom',
+    'A affecter',
+    'Bénéficiaire - Titre',
+    'Bénéficiaire - Nom',
+    'Bénéficiaire - Prénom',
+    'Divers',
+    'Facturé',
+    'Annulé',
+    'Statut de l\'annulation',
+    'Raison de l\'annulation',
+  ];
   const events = [
     {
       isCancelled: false,
       isBilled: true,
       type: 'intervention',
       repetition: { frequency: 'every_week' },
-      sector: { name: 'Girafes - 75' },
       subscription: {
         service: { versions: [{ name: 'Lala' }] },
       },
       customer: {
-        identity: {
-          title: 'mrs',
-          firstname: 'Mimi',
-          lastname: 'Mathy',
-        },
+        identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       auxiliary: {
-        identity: {
-          firstname: 'Jean-Claude',
-          lastname: 'Van Damme',
-        },
+        identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
+        sector: { name: 'Girafes - 75' },
       },
       startDate: '2019-05-20T06:00:00.000+00:00',
       endDate: '2019-05-20T08:00:00.000+00:00',
     }, {
       isCancelled: true,
-      cancel: {
-        condition: 'invoiced_and_not_paid',
-        reason: 'auxiliary_initiative',
-      },
+      cancel: { condition: 'invoiced_and_not_paid', reason: 'auxiliary_initiative' },
       isBilled: false,
       type: 'internalHour',
       internalHour: { name: 'Formation' },
       repetition: { frequency: 'never' },
       sector: { name: 'Etoiles - 75' },
       customer: {
-        identity: {
-          title: 'mr',
-          firstname: 'Bojack',
-          lastname: 'Horseman',
-        },
+        identity: { title: 'mr', firstname: 'Bojack', lastname: 'Horseman' },
       },
       startDate: '2019-05-20T06:00:00.000+00:00',
       endDate: '2019-05-20T08:00:00.000+00:00',
@@ -91,25 +98,35 @@ describe('exportWorkingEventsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine', 'Girafes - 75', '', 'Jean-Claude', 'VAN DAMME', 'Non', 'Mme', 'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
-      ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '', '', '', 'Oui', 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée', 'Initiative du de l\'intervenant'],
+      ['Intervention', '', 'Lala', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', 'Une fois par semaine',
+        'Girafes - 75', '', 'Jean-Claude', 'VAN DAMME', 'Non', 'Mme', 'MATHY', 'Mimi', '', 'Oui', 'Non', '', ''],
+      ['Heure interne', 'Formation', '', '20/05/2019 08:00', '20/05/2019 10:00', '2,00', '', 'Etoiles - 75', '',
+        '', '', 'Oui', 'M.', 'HORSEMAN', 'Bojack', 'brbr', 'Non', 'Oui', 'Facturée & non payée',
+        'Initiative du de l\'intervenant'],
     ]);
   });
 });
 
 describe('exportAbsencesHistory', () => {
-  const header = ['Type', 'Nature', 'Début', 'Fin', 'Équipe', 'Auxiliaire - Titre', 'Auxiliaire - Prénom', 'Auxiliaire - Nom', 'Divers'];
+  const header = [
+    'Type',
+    'Nature',
+    'Début',
+    'Fin',
+    'Équipe',
+    'Auxiliaire - Titre',
+    'Auxiliaire - Prénom',
+    'Auxiliaire - Nom',
+    'Divers',
+  ];
   const events = [
     {
       type: 'absence',
       absence: 'unjustified absence',
       absenceNature: 'hourly',
-      sector: { name: 'Girafes - 75' },
       auxiliary: {
-        identity: {
-          firstname: 'Jean-Claude',
-          lastname: 'Van Damme',
-        },
+        identity: { firstname: 'Jean-Claude', lastname: 'Van Damme' },
+        sector: { name: 'Girafes - 75' },
       },
       startDate: '2019-05-20T06:00:00.000+00:00',
       endDate: '2019-05-20T08:00:00.000+00:00',
@@ -118,12 +135,9 @@ describe('exportAbsencesHistory', () => {
       absence: 'leave',
       absenceNature: 'daily',
       internalHour: { name: 'Formation' },
-      sector: { name: 'Etoiles - 75' },
       auxiliary: {
-        identity: {
-          firstname: 'Princess',
-          lastname: 'Carolyn',
-        },
+        identity: { firstname: 'Princess', lastname: 'Carolyn' },
+        sector: { name: 'Etoiles - 75' },
       },
       startDate: '2019-05-20T06:00:00.000+00:00',
       endDate: '2019-05-20T08:00:00.000+00:00',
@@ -154,7 +168,8 @@ describe('exportAbsencesHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', 'Girafes - 75', '', 'Jean-Claude', 'VAN DAMME', ''],
+      ['Absence injustifiée', 'Horaire', '20/05/2019 08:00', '20/05/2019 10:00', 'Girafes - 75', '',
+        'Jean-Claude', 'VAN DAMME', ''],
       ['Congé', 'Journalière', '20/05/2019', '20/05/2019', 'Etoiles - 75', '', 'Princess', 'CAROLYN', 'brbr'],
     ]);
   });

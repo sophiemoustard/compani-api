@@ -52,7 +52,6 @@ const create = async (req) => {
 const update = async (req) => {
   try {
     const { payload, auth } = req;
-
     let { event } = req.pre;
 
     if (event.type !== ABSENCE && !moment(payload.startDate).isSame(payload.endDate, 'day')) {

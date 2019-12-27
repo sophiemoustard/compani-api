@@ -164,7 +164,12 @@ const helpersCustomer = {
 };
 
 const repetitionParentId = new ObjectID();
-const repetitions = [{ _id: new ObjectID(), parentId: repetitionParentId, repetition: { frequency: EVERY_WEEK }, company: authCompany._id }];
+const repetitions = [{
+  _id: new ObjectID(),
+  parentId: repetitionParentId,
+  repetition: { frequency: EVERY_WEEK },
+  company: authCompany._id,
+}];
 
 const eventsList = [
   {

@@ -43,54 +43,40 @@ const EventSchema = mongoose.Schema(
     type: { type: String, enum: EVENT_TYPES, required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector', required: true },
+    auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required() { return !this.sector; } },
+    sector: { type: mongoose.Schema.Types.ObjectId, ref: 'Sector', required() { return !this.auxiliary; } },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Customer',
-      required() {
-        return this.type === INTERVENTION;
-      },
+      required() { return this.type === INTERVENTION; },
     },
     subscription: {
       type: mongoose.Schema.Types.ObjectId,
-      required() {
-        return this.type === INTERVENTION;
-      },
+      required() { return this.type === INTERVENTION; },
     },
     internalHour: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'InternalHour',
-      required() {
-        return this.type === INTERNAL_HOUR;
-      },
+      required() { return this.type === INTERNAL_HOUR; },
     },
     absence: {
       type: String,
       enum: ABSENCE_TYPES,
-      required() {
-        return this.type === ABSENCE;
-      },
+      required() { return this.type === ABSENCE; },
     },
     absenceNature: {
       type: String,
       enum: ABSENCE_NATURES,
-      required() {
-        return this.type === ABSENCE;
-      },
+      required() { return this.type === ABSENCE; },
     },
     address: addressSchemaDefinition,
     misc: {
       type: String,
-      required() {
-        return (this.type === ABSENCE && this.absence === OTHER) || this.isCancelled;
-      },
+      required() { return (this.type === ABSENCE && this.absence === OTHER) || this.isCancelled; },
     },
     attachment: {
       type: mongoose.Schema(driveResourceSchemaDefinition, { _id: false }),
-      required() {
-        return this.absence === ILLNESS || this.absence === WORK_ACCIDENT;
-      },
+      required() { return this.absence === ILLNESS || this.absence === WORK_ACCIDENT; },
     },
     repetition: {
       frequency: { type: String, enum: REPETITION_FREQUENCIES },
@@ -116,9 +102,7 @@ const EventSchema = mongoose.Schema(
     status: {
       type: String,
       enum: CONTRACT_STATUS,
-      required() {
-        return this.type === INTERVENTION;
-      },
+      required() { return this.type === INTERVENTION; },
     },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   },

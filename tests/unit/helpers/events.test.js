@@ -20,13 +20,12 @@ const {
   INTERVENTION,
   CUSTOMER_CONTRACT,
   COMPANY_CONTRACT,
+  AUXILIARY_INITIATIVE,
   INTERNAL_HOUR,
   ABSENCE,
   UNAVAILABILITY,
   NEVER,
   EVERY_WEEK,
-  INVOICED_AND_NOT_PAID,
-  CUSTOMER_INITIATIVE,
   AUXILIARY,
   CUSTOMER,
 } = require('../../../src/helpers/constants');
@@ -109,31 +108,90 @@ describe('list', () => {
   });
 });
 
+describe('formatEditionPayload', () => {
+  let isMiscOnlyUpdated;
+  beforeEach(() => {
+    isMiscOnlyUpdated = sinon.stub(EventHelper, 'isMiscOnlyUpdated');
+  });
+  afterEach(() => {
+    isMiscOnlyUpdated.restore();
+  });
+
+  it('Case 1: event is in repetition and misc is not the only field updated', () => {
+    const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectID(), misc: 'lalalal' };
+    const event = { repetition: { frequency: EVERY_WEEK } };
+    isMiscOnlyUpdated.returns(false);
+
+    const result = EventHelper.formatEditionPayload(event, payload);
+
+    expect(result).toEqual({ $set: { ...payload, 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } });
+  });
+  it('Case 2: event is in repetition and misc is the only field updated', () => {
+    const payload = { misc: 'lalala' };
+    const event = { repetition: { frequency: EVERY_WEEK } };
+    isMiscOnlyUpdated.returns(true);
+
+    const result = EventHelper.formatEditionPayload(event, payload);
+
+    expect(result).toEqual({ $set: payload, $unset: { auxiliary: '' } });
+  });
+  it('Case 3: event is in repetition and misc is not updated', () => {
+    const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectID() };
+    const event = { repetition: { frequency: EVERY_WEEK } };
+    isMiscOnlyUpdated.returns(false);
+
+    const result = EventHelper.formatEditionPayload(event, payload);
+
+    expect(result).toEqual({ $set: { ...payload, 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } });
+  });
+  it('Case 4: auxiliary is in payload', () => {
+    const payload = { startDate: '2019-01-10T10:00:00', auxiliary: new ObjectID() };
+    const event = {};
+    isMiscOnlyUpdated.returns(true);
+
+    const result = EventHelper.formatEditionPayload(event, payload);
+
+    expect(result).toEqual({ $set: payload, $unset: { sector: '' } });
+  });
+  it('Case 5: remove cancellation', () => {
+    const payload = { startDate: '2019-01-10T10:00:00', sector: new ObjectID() };
+    const event = { isCancelled: true, cancel: { reason: AUXILIARY_INITIATIVE } };
+    isMiscOnlyUpdated.returns(true);
+
+    const result = EventHelper.formatEditionPayload(event, payload);
+
+    expect(result).toEqual({ $set: { ...payload, isCancelled: false }, $unset: { auxiliary: '', cancel: '' } });
+  });
+});
+
 describe('updateEvent', () => {
   let createEventHistoryOnUpdate;
   let populateEventSubscription;
   let updateRepetition;
-  let updateEvent;
+  let EventMock;
   let deleteConflictInternalHoursAndUnavailabilities;
   let unassignConflictInterventions;
+  let formatEditionPayload;
   beforeEach(() => {
     createEventHistoryOnUpdate = sinon.stub(EventHistoriesHelper, 'createEventHistoryOnUpdate');
     populateEventSubscription = sinon.stub(EventHelper, 'populateEventSubscription');
     updateRepetition = sinon.stub(EventsRepetitionHelper, 'updateRepetition');
-    updateEvent = sinon.stub(EventRepository, 'updateEvent');
+    EventMock = sinon.mock(Event);
     deleteConflictInternalHoursAndUnavailabilities = sinon.stub(
       EventHelper,
       'deleteConflictInternalHoursAndUnavailabilities'
     );
     unassignConflictInterventions = sinon.stub(EventHelper, 'unassignConflictInterventions');
+    formatEditionPayload = sinon.stub(EventHelper, 'formatEditionPayload');
   });
   afterEach(() => {
     createEventHistoryOnUpdate.restore();
     populateEventSubscription.restore();
     updateRepetition.restore();
-    updateEvent.restore();
+    EventMock.restore();
     deleteConflictInternalHoursAndUnavailabilities.restore();
     unassignConflictInterventions.restore();
+    formatEditionPayload.restore();
   });
 
   it('should update repetition', async () => {
@@ -147,29 +205,45 @@ describe('updateEvent', () => {
       shouldUpdateRepetition: true,
     };
 
-    updateEvent.returns(event);
+    EventMock.expects('findOneAndUpdate').never();
     await EventHelper.updateEvent(event, payload, credentials);
 
     sinon.assert.called(updateRepetition);
-    sinon.assert.notCalled(updateEvent);
+    EventMock.verify();
   });
 
-  it('should update absence without unset repetition property', async () => {
-    const credentials = { _id: new ObjectID() };
+  it('should update event', async () => {
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const event = { _id: eventId, type: ABSENCE, auxiliary: { _id: auxiliaryId } };
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
-    updateEvent.returns(event);
+    formatEditionPayload.returns({ $set: {}, unset: {} });
+    EventMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: event._id }, { $set: {}, unset: {} }, { new: true })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
+      .chain('populate')
+      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
+      .chain('lean')
+      .once()
+      .returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
+    EventMock.verify();
     sinon.assert.notCalled(updateRepetition);
   });
 
-  it('should update absence, unassign interventions and delete unavailabilities and internal hours in conflict', async () => {
-    const credentials = { _id: new ObjectID() };
+  it('should update absence', async () => {
+    const companyId = new ObjectID();
+    const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     const eventId = new ObjectID();
     const auxiliaryId = new ObjectID();
     const event = {
@@ -181,10 +255,23 @@ describe('updateEvent', () => {
     };
     const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliaryId.toHexString() };
 
-    updateEvent.returns(event);
+    formatEditionPayload.returns({ $set: {}, unset: {} });
+    EventMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: event._id }, { $set: {}, unset: {} }, { new: true })
+      .chain('populate')
+      .withExactArgs({
+        path: 'auxiliary',
+        select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+      })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity subscriptions contact' })
+      .chain('populate')
+      .withExactArgs({ path: 'internalHour', match: { company: companyId } })
+      .chain('lean')
+      .once()
+      .returns(event);
     await EventHelper.updateEvent(event, payload, credentials);
 
-    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
     sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
@@ -198,157 +285,7 @@ describe('updateEvent', () => {
       eventId.toHexString(),
       credentials
     );
-  });
-
-  it('should update event without repetition without unset repetition property', async () => {
-    const credentials = { _id: new ObjectID() };
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const event = { _id: eventId, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString() };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload, credentials);
-
-    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
-    sinon.assert.notCalled(updateRepetition);
-  });
-
-  it('should update event with NEVER frequency without unset repetition property', async () => {
-    const credentials = { _id: new ObjectID() };
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: NEVER }, auxiliary };
-    const payload = { startDate: '2019-01-21T09:38:18', auxiliary: auxiliary.toHexString() };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload, credentials);
-
-    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
-    sinon.assert.notCalled(updateRepetition);
-  });
-
-  it('should update event when only misc is updated without unset repetition property', async () => {
-    const credentials = { _id: new ObjectID() };
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const sector = new ObjectID();
-    const event = {
-      _id: eventId,
-      startDate: '2019-01-21T09:38:18',
-      repetition: { frequency: NEVER },
-      auxiliary,
-      sector,
-    };
-    const payload = { startDate: '2019-01-21T09:38:18', misc: 'Zoro est là', auxiliary: auxiliary.toHexString() };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload, credentials);
-
-    sinon.assert.calledWithExactly(updateEvent, eventId, payload, null, credentials);
-    sinon.assert.notCalled(updateRepetition);
-  });
-
-  it('should update event and unset repetition property if event in repetition and repetition not updated', async () => {
-    const credentials = { _id: new ObjectID() };
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const event = { _id: eventId, repetition: { frequency: EVERY_WEEK }, auxiliary };
-    const payload = {
-      startDate: '2019-01-21T09:38:18',
-      shouldUpdateRepetition: false,
-      auxiliary: auxiliary.toHexString()
-    };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload, credentials);
-
-    sinon.assert.calledWithExactly(
-      updateEvent,
-      eventId,
-      { ...payload, 'repetition.frequency': NEVER },
-      null,
-      credentials
-    );
-    sinon.assert.notCalled(updateRepetition);
-  });
-
-  it('should update event and unset cancel property when cancellation cancelled', async () => {
-    const credentials = { _id: new ObjectID() };
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const event = {
-      _id: eventId,
-      repetition: { frequency: NEVER },
-      isCancelled: true,
-      cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
-      auxiliary,
-    };
-    const payload = {
-      startDate: '2019-01-21T09:38:18',
-      shouldUpdateRepetition: false,
-      auxiliary: auxiliary.toHexString(),
-    };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload, credentials);
-
-    sinon.assert.calledWithExactly(
-      updateEvent,
-      eventId,
-      { ...payload, isCancelled: false },
-      { cancel: '' },
-      credentials
-    );
-    sinon.assert.notCalled(updateRepetition);
-  });
-
-  it('should update event and unset cancel adn repetition property when cancellation cancelled and repetition not updated', async () => {
-    const credentials = { _id: new ObjectID() };
-    const eventId = new ObjectID();
-    const auxiliary = new ObjectID();
-    const event = {
-      _id: eventId,
-      repetition: { frequency: EVERY_WEEK },
-      isCancelled: true,
-      cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
-      auxiliary,
-    };
-    const payload = {
-      startDate: '2019-01-21T09:38:18',
-      shouldUpdateRepetition: false,
-      auxiliary: auxiliary.toHexString(),
-    };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload, credentials);
-    sinon.assert.calledWithExactly(
-      updateEvent,
-      eventId,
-      { ...payload, isCancelled: false, 'repetition.frequency': NEVER },
-      { cancel: '' },
-      credentials
-    );
-    sinon.assert.notCalled(updateRepetition);
-  });
-
-  it('should update event and unset auxiliary if missing in payload', async () => {
-    const credentials = { _id: new ObjectID() };
-    const eventId = new ObjectID();
-    const event = { _id: eventId };
-    const payload = { startDate: '2019-01-21T09:38:18' };
-
-    updateEvent.returns(event);
-    await EventHelper.updateEvent(event, payload, credentials);
-
-    sinon.assert.notCalled(updateRepetition);
-    sinon.assert.calledWithExactly(
-      updateEvent,
-      eventId,
-      payload,
-      { auxiliary: '' },
-      credentials
-    );
+    EventMock.verify();
   });
 });
 
@@ -1675,7 +1612,6 @@ describe('workingStats', () => {
     sinon.assert.calledWithExactly(getPayFromAbsencesStub, [], contract, queryWithoutAuxiliary);
     UserModel.verify();
     DistanceMatrixModel.verify();
-
   });
 
   it('should return {} if no contract in auxiliaries', async () => {

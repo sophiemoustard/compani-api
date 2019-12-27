@@ -14,7 +14,6 @@ const Drive = require('../models/Google/Drive');
 const EventRepository = require('../repositories/EventRepository');
 const translate = require('../helpers/translate');
 const { INTERVENTION, CUSTOMER_CONTRACT } = require('./constants');
-const EventsHelper = require('./events');
 const SubscriptionsHelper = require('./subscriptions');
 const FundingsHelper = require('./fundings');
 const UtilsHelper = require('./utils');
@@ -24,14 +23,9 @@ const Rum = require('../models/Rum');
 const { language } = translate;
 
 exports.getCustomerBySector = async (query, credentials) => {
-  const queryCustomer = EventsHelper.getListQuery({
-    startDate: query.startDate,
-    endDate: query.endDate,
-    type: INTERVENTION,
-    sector: query.sector,
-  }, credentials);
   const companyId = get(credentials, 'company._id', null);
-  return EventRepository.getCustomersFromEvent(queryCustomer, companyId);
+
+  return EventRepository.getCustomersFromEvent(query, companyId);
 };
 
 exports.getCustomersWithBilledEvents = async (credentials) => {

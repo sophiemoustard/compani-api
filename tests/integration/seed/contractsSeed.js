@@ -4,6 +4,7 @@ const { DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
+const Sector = require('../../../src/models/Sector');
 const Event = require('../../../src/models/Event');
 const { rolesList, getUser } = require('./authenticationSeed');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
@@ -61,6 +62,8 @@ const otherCompanyContractUser = {
   prefixNumber: 103,
 };
 
+const sector = { _id: new ObjectID(), company: authCompany._id };
+
 const contractUsers = [{
   _id: new ObjectID(),
   identity: { firstname: 'Test7', lastname: 'Test7' },
@@ -71,6 +74,7 @@ const contractUsers = [{
   role: rolesList[0]._id,
   contracts: [new ObjectID()],
   company: authCompany._id,
+  sector: sector._id,
 },
 {
   _id: new ObjectID(),
@@ -82,6 +86,7 @@ const contractUsers = [{
   role: rolesList[0]._id,
   contracts: [new ObjectID()],
   company: authCompany._id,
+  sector: sector._id,
 }];
 
 const otherCompanyContract = {
@@ -285,9 +290,11 @@ const populateDB = async () => {
   await User.deleteMany({});
   await Customer.deleteMany({});
   await Event.deleteMany({});
+  await Sector.deleteMany({});
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherCompanyContractUser, userFromOtherCompany]);
+  await new Sector(sector).save();
   await new Customer(contractCustomer).save();
   await new Customer(customerFromOtherCompany).save();
   await Contract.insertMany([...contractsList, otherCompanyContract]);
