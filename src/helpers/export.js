@@ -345,7 +345,8 @@ exports.exportCustomers = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const customers = await Customer.find({ company: companyId })
     .populate({ path: 'subscriptions.service' })
-    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } }) // need the match as it is a virtual populate
+  // need the match as it is a virtual populate
+    .populate({ path: 'firstIntervention', select: 'startDate', match: { company: companyId } })
     .populate({ path: 'referent', select: 'identity.firstname identity.lastname' })
     .lean();
   const rows = [customerExportHeader];
@@ -442,11 +443,12 @@ const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
 };
 
 exports.exportAuxiliaries = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
   const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
-    .find({ role: { $in: roleIds }, company: get(credentials, 'company._id', null) })
-    .populate('sector')
+    .find({ role: { $in: roleIds }, company: companyId })
+    .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .populate({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
     .lean();
   const data = [auxiliaryExportHeader];
