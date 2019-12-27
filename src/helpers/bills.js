@@ -9,7 +9,8 @@ const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
 const { HOURLY, THIRD_PARTY, CIVILITY_LIST } = require('./constants');
 
-exports.formatBillNumber = (prefix, seq) => `${prefix}${seq.toString().padStart(3, '0')}`;
+exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
+  `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
 
 exports.formatSubscriptionData = (bill) => {
   const events = bill.eventsList.map(ev => ({
@@ -27,16 +28,16 @@ exports.formatSubscriptionData = (bill) => {
   };
 };
 
-exports.formatCustomerBills = (customerBills, customer, number, companyId) => {
+exports.formatCustomerBills = (customerBills, customer, number, company) => {
   const billedEvents = {};
   const bill = {
     customer: customer._id,
     subscriptions: [],
-    number: exports.formatBillNumber(number.prefix, number.seq),
+    number: exports.formatBillNumber(company.prefixNumber, number.prefix, number.seq),
     netInclTaxes: UtilsHelper.getFixedNumber(customerBills.total, 2),
     date: customerBills.bills[0].endDate,
     shouldBeSent: customerBills.shouldBeSent,
-    company: companyId,
+    company: company._id,
   };
 
   for (const draftBill of customerBills.bills) {
@@ -49,11 +50,11 @@ exports.formatCustomerBills = (customerBills, customer, number, companyId) => {
   return { bill, billedEvents };
 };
 
-exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, companyId) => {
+exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, company) => {
   let { seq } = number;
   const tppBills = [];
   const billedEvents = {};
-  const fundingHistories = {};
+  const histories = {};
   for (const tpp of thirdPartyPayerBills) {
     const tppBill = {
       customer: customer._id,
@@ -61,14 +62,12 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
       subscriptions: [],
       netInclTaxes: UtilsHelper.getFixedNumber(tpp.total, 2),
       date: tpp.bills[0].endDate,
-      company: companyId,
+      company: company._id,
     };
     if (!tpp.bills[0].externalBilling) {
-      tppBill.number = exports.formatBillNumber(number.prefix, seq);
+      tppBill.number = exports.formatBillNumber(company.prefixNumber, number.prefix, seq);
       seq += 1;
-    } else {
-      tppBill.origin = THIRD_PARTY;
-    }
+    } else tppBill.origin = THIRD_PARTY;
 
     for (const draftBill of tpp.bills) {
       tppBill.subscriptions.push(exports.formatSubscriptionData(draftBill));
@@ -77,27 +76,28 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
         else billedEvents[ev.event] = { ...ev };
 
         if (ev.history.month) {
-          if (!fundingHistories[ev.history.fundingId]) fundingHistories[ev.history.fundingId] = { [ev.history.month]: ev.history };
-          else if (!fundingHistories[ev.history.fundingId][ev.history.month]) fundingHistories[ev.history.fundingId][ev.history.month] = ev.history;
-          else fundingHistories[ev.history.fundingId][ev.history.month].careHours += ev.history.careHours;
-        } else if (!fundingHistories[ev.history.fundingId]) fundingHistories[ev.history.fundingId] = { ...ev.history };
+          if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { [ev.history.month]: ev.history };
+          else if (!histories[ev.history.fundingId][ev.history.month]) {
+            histories[ev.history.fundingId][ev.history.month] = ev.history;
+          } else histories[ev.history.fundingId][ev.history.month].careHours += ev.history.careHours;
+        } else if (!histories[ev.history.fundingId]) histories[ev.history.fundingId] = { ...ev.history };
         else if (ev.history.nature === HOURLY) {
-          fundingHistories[ev.history.fundingId].careHours += ev.history.careHours;
+          histories[ev.history.fundingId].careHours += ev.history.careHours;
         } else { // Funding with once frequency are only fixed !
-          fundingHistories[ev.history.fundingId].amountTTC += ev.history.amountTTC;
+          histories[ev.history.fundingId].amountTTC += ev.history.amountTTC;
         }
       }
     }
     tppBills.push(tppBill);
   }
 
-  return { tppBills, billedEvents, fundingHistories };
+  return { tppBills, billedEvents, fundingHistories: histories };
 };
 
 exports.updateEvents = async (eventsToUpdate) => {
   const promises = [];
   for (const id of Object.keys(eventsToUpdate)) {
-    promises.push(Event.findOneAndUpdate({ _id: id }, { $set: { isBilled: true, bills: eventsToUpdate[id] } }));
+    promises.push(Event.updateOne({ _id: id }, { $set: { isBilled: true, bills: eventsToUpdate[id] } }));
   }
   await Promise.all(promises);
 };
@@ -106,20 +106,20 @@ exports.updateFundingHistories = async (histories, companyId) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
     if (histories[id].amountTTC) {
-      promises.push(FundingHistory.findOneAndUpdate(
+      promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
         { $inc: { amountTTC: histories[id].amountTTC } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else if (histories[id].careHours) {
-      promises.push(FundingHistory.findOneAndUpdate(
+      promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
         { $inc: { careHours: histories[id].careHours } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else {
       for (const month of Object.keys(histories[id])) {
-        promises.push(FundingHistory.findOneAndUpdate(
+        promises.push(FundingHistory.updateOne(
           { fundingId: id, month, company: companyId },
           { $inc: { careHours: histories[id][month].careHours } },
           { new: true, upsert: true, setDefaultsOnInsert: true }
@@ -130,34 +130,33 @@ exports.updateFundingHistories = async (histories, companyId) => {
   await Promise.all(promises);
 };
 
-exports.generateBillNumber = async (bills) => {
-  const prefix = `FACT-${moment(bills[0].endDate).format('MMYY')}`;
-  return BillNumber.findOneAndUpdate(
-    { prefix },
-    {},
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  ).lean();
+exports.getBillNumber = async (bills, company) => {
+  const prefix = moment(bills[0].endDate).format('MMYY');
+
+  return BillNumber
+    .findOneAndUpdate({ prefix, company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true })
+    .lean();
 };
 
 exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   const promises = [];
   let eventsToUpdate = {};
   let fundingHistories = {};
-  const companyId = get(credentials, 'company._id', null);
-  const number = await exports.generateBillNumber(groupByCustomerBills);
+  const { company } = credentials;
+  const number = await exports.getBillNumber(groupByCustomerBills, company);
 
   for (const draftBills of groupByCustomerBills) {
-    if (draftBills.customerBills.bills && draftBills.customerBills.bills.length > 0) {
-      const customerBillingInfo = exports.formatCustomerBills(draftBills.customerBills, draftBills.customer, number, companyId);
+    const { customer, customerBills, thirdPartyPayerBills } = draftBills;
+    if (customerBills.bills && customerBills.bills.length > 0) {
+      const customerBillingInfo = exports.formatCustomerBills(customerBills, customer, number, company);
       eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
       number.seq += 1;
       promises.push(Bill.create(customerBillingInfo.bill));
     }
 
-    if (draftBills.thirdPartyPayerBills && draftBills.thirdPartyPayerBills.length > 0) {
-      const tppBillingInfo = exports.formatThirdPartyPayerBills(draftBills.thirdPartyPayerBills, draftBills.customer, number, companyId);
+    if (thirdPartyPayerBills && thirdPartyPayerBills.length > 0) {
+      const tppBillingInfo = exports.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
       fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
-
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
         promises.push(Bill.create(bill));
@@ -166,10 +165,12 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
     }
   }
 
-  await BillNumber.findOneAndUpdate({ prefix: number.prefix }, { $set: { seq: number.seq } });
-  await exports.updateFundingHistories(fundingHistories, companyId);
-  await exports.updateEvents(eventsToUpdate);
-  await Promise.all(promises);
+  await Promise.all([
+    ...promises,
+    BillNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } }),
+    exports.updateFundingHistories(fundingHistories, company._id),
+    exports.updateEvents(eventsToUpdate),
+  ]);
 };
 
 exports.getBills = async (query, credentials) => {
@@ -187,7 +188,8 @@ const formatCustomerName = customer => (customer.identity.firstname
 exports.getUnitInclTaxes = (bill, subscription) => {
   if (!bill.client) return subscription.unitInclTaxes;
 
-  const funding = bill.customer.fundings.find(fund => fund.thirdPartyPayer.toHexString() === bill.client._id.toHexString());
+  const funding = bill.customer.fundings
+    .find(fund => fund.thirdPartyPayer.toHexString() === bill.client._id.toHexString());
   if (!funding) return 0;
   const version = UtilsHelper.getLastVersion(funding.versions, 'createdAt');
 
