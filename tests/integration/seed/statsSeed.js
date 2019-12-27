@@ -7,18 +7,29 @@ const Customer = require('../../../src/models/Customer');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID } = require('../../../src/helpers/constants');
+const {
+  COMPANY_CONTRACT,
+  HOURLY,
+  MONTHLY,
+  ONCE,
+  FIXED,
+  INVOICED_AND_PAID,
+  INVOICED_AND_NOT_PAID,
+} = require('../../../src/helpers/constants');
 
 const sectorList = [
   {
     _id: new ObjectID(),
+    name: 'Vénus',
     company: authCompany._id,
   },
   {
     _id: new ObjectID(),
+    name: 'Mars',
     company: otherCompany._id,
   },
 ];
@@ -43,12 +54,13 @@ const userList = [
     local: { email: 'white@alenvi.io', password: '123456' },
     role: rolesList.find(role => role.name === 'auxiliary')._id,
     inactivityDate: null,
-    sector: sectorList[0]._id,
     contracts: [contractList[0]._id],
     company: authCompany._id,
     refreshToken: uuidv4(),
   },
 ];
+
+const sectorHistory = { auxiliary: userList[0]._id, sector: sectorList[0]._id, company: authCompany._id };
 
 const serviceList = [{
   _id: new ObjectID(),
@@ -295,6 +307,7 @@ const populateDB = async () => {
   await Customer.deleteMany({});
   await Service.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
   await Contract.deleteMany({});
   await ThirdPartyPayer.deleteMany({});
 
@@ -305,6 +318,7 @@ const populateDB = async () => {
   await Customer.insertMany(customerList.concat(customerFromOtherCompany));
   await Service.insertMany(serviceList);
   await Sector.insertMany(sectorList);
+  await SectorHistory.insertMany([sectorHistory]);
   await Contract.insertMany(contractList);
   await ThirdPartyPayer.insertMany(tppList);
 };
