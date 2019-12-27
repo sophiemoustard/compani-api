@@ -103,7 +103,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
           {
             $lookup: {
               from: 'sectors',
-              as: 'originalSector',
+              as: 'lastSector',
               let: { sectorId: '$sector' },
               pipeline: [
                 { $match: { $expr: { $eq: ['$_id', '$$sectorId'] } } },
@@ -112,8 +112,8 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
           },
           { $sort: { createdAt: -1 } },
           { $group: { _id: null, sector: { $first: '$$ROOT' } } },
-          { $unwind: { path: '$sector.originalSector' } },
-          { $project: { sector: '$sector.originalSector' } },
+          { $unwind: { path: '$sector.lastSector' } },
+          { $project: { sector: '$sector.lastSector' } },
         ],
       },
     },

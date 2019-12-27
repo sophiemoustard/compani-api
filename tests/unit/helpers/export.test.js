@@ -1426,16 +1426,8 @@ describe('exportPayAndFinalPayHistory', () => {
     const startDate = '2019-11-10';
     const endDate = '2019-12-10';
     const query = {
-      endDate: {
-        $lte: moment(endDate)
-          .endOf('M')
-          .toDate(),
-      },
-      startDate: {
-        $gte: moment(startDate)
-          .startOf('M')
-          .toDate(),
-      },
+      endDate: { $lte: moment(endDate).endOf('M').toDate() },
+      startDate: { $gte: moment(startDate).startOf('M').toDate() },
       company: credentials.company._id,
     };
     PayMock.expects('find')
@@ -1527,10 +1519,7 @@ describe('exportPayAndFinalPayHistory', () => {
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .returns(finalPays);
-    formatFloatForExportStub.callsFake(nb =>
-      Number(nb)
-        .toFixed(2)
-        .replace('.', ','));
+    formatFloatForExportStub.callsFake(nb => Number(nb).toFixed(2).replace('.', ','));
     formatSurchargedDetailsForExport.returnsArg(1);
 
     const exportArray = await ExportHelper.exportPayAndFinalPayHistory(startDate, endDate, credentials);

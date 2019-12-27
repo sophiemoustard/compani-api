@@ -225,7 +225,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
           {
             $lookup: {
               from: 'sectors',
-              as: 'originalSector',
+              as: 'lastSector',
               let: { sectorId: '$sector' },
               pipeline: [
                 { $match: { $expr: { $eq: ['$_id', '$$sectorId'] } } },
@@ -234,8 +234,8 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
           },
           { $sort: { createdAt: -1 } },
           { $group: { _id: null, sector: { $first: '$$ROOT' } } },
-          { $unwind: { path: '$sector.originalSector' } },
-          { $project: { sector: '$sector.originalSector' } },
+          { $unwind: { path: '$sector.lastSector' } },
+          { $project: { sector: '$sector.lastSector' } },
         ],
       },
     },

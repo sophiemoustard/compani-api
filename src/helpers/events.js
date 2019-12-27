@@ -125,15 +125,11 @@ exports.getListQuery = (query, credentials) => {
   }
   if (isBilled) rules.push({ customer: isBilled });
   if (startDate) {
-    const startDateQuery = moment(startDate)
-      .startOf('d')
-      .toDate();
+    const startDateQuery = moment(startDate).startOf('d').toDate();
     rules.push({ endDate: { $gt: startDateQuery } });
   }
   if (endDate) {
-    const endDateQuery = moment(endDate)
-      .endOf('d')
-      .toDate();
+    const endDateQuery = moment(endDate).endOf('d').toDate();
     rules.push({ startDate: { $lt: endDateQuery } });
   }
 
@@ -142,16 +138,8 @@ exports.getListQuery = (query, credentials) => {
 
 exports.listForCreditNotes = (payload, credentials) => {
   let query = {
-    startDate: {
-      $gte: moment(payload.startDate)
-        .startOf('d')
-        .toDate(),
-    },
-    endDate: {
-      $lte: moment(payload.endDate)
-        .endOf('d')
-        .toDate(),
-    },
+    startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
+    endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
     customer: payload.customer,
     isBilled: payload.isBilled,
     type: INTERVENTION,
@@ -191,11 +179,7 @@ exports.populateEvents = async (events) => {
 
 exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, internalHourId) =>
   Event.updateMany(
-    {
-      type: INTERNAL_HOUR,
-      internalHour: oldInternalHourId,
-      startDate: { $gte: eventsStartDate },
-    },
+    { type: INTERNAL_HOUR, internalHour: oldInternalHourId, startDate: { $gte: eventsStartDate } },
     { $set: { internalHour: internalHourId } }
   );
 
@@ -344,9 +328,7 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
     startDate: { $gte: moment(startDate).toDate() },
   };
   if (endDate) {
-    query.startDate.$lte = moment(endDate)
-      .endOf('d')
-      .toDate();
+    query.startDate.$lte = moment(endDate).endOf('d').toDate();
   }
   if (
     (await Event.countDocuments({
