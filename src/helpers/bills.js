@@ -97,7 +97,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
 exports.updateEvents = async (eventsToUpdate) => {
   const promises = [];
   for (const id of Object.keys(eventsToUpdate)) {
-    promises.push(Event.findOneAndUpdate({ _id: id }, { $set: { isBilled: true, bills: eventsToUpdate[id] } }));
+    promises.push(Event.updateOne({ _id: id }, { $set: { isBilled: true, bills: eventsToUpdate[id] } }));
   }
   await Promise.all(promises);
 };
@@ -106,20 +106,20 @@ exports.updateFundingHistories = async (histories, companyId) => {
   const promises = [];
   for (const id of Object.keys(histories)) {
     if (histories[id].amountTTC) {
-      promises.push(FundingHistory.findOneAndUpdate(
+      promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
         { $inc: { amountTTC: histories[id].amountTTC } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else if (histories[id].careHours) {
-      promises.push(FundingHistory.findOneAndUpdate(
+      promises.push(FundingHistory.updateOne(
         { fundingId: id, company: companyId },
         { $inc: { careHours: histories[id].careHours } },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       ));
     } else {
       for (const month of Object.keys(histories[id])) {
-        promises.push(FundingHistory.findOneAndUpdate(
+        promises.push(FundingHistory.updateOne(
           { fundingId: id, month, company: companyId },
           { $inc: { careHours: histories[id][month].careHours } },
           { new: true, upsert: true, setDefaultsOnInsert: true }
