@@ -9,8 +9,8 @@ const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
 const { HOURLY, THIRD_PARTY, CIVILITY_LIST } = require('./constants');
 
-exports.formatBillNumber = (prefixNumber, prefix, seq) =>
-  `FACT-${prefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
+exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
+  `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
 
 exports.formatSubscriptionData = (bill) => {
   const events = bill.eventsList.map(ev => ({

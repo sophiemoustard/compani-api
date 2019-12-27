@@ -709,7 +709,6 @@ describe('updateEvents', () => {
     const eventId = (new ObjectID()).toHexString();
     await BillHelper.updateEvents({ [eventId]: { _id: '_id' } });
 
-    sinon.assert.calledOnce(updateOne);
     sinon.assert.calledWithExactly(updateOne, { _id: eventId }, { $set: { isBilled: true, bills: { _id: '_id' } } });
   });
   it('should update event list', async () => {
@@ -756,7 +755,6 @@ describe('updateFundingHistories', () => {
 
     await BillHelper.updateFundingHistories(histories, companyId);
 
-    sinon.assert.calledOnce(updateOne);
     sinon.assert.calledWithExactly(
       updateOne,
       { fundingId: fundingId.toHexString(), company: companyId },
@@ -771,7 +769,6 @@ describe('updateFundingHistories', () => {
 
     await BillHelper.updateFundingHistories(histories, companyId);
 
-    sinon.assert.calledOnce(updateOne);
     sinon.assert.calledWithExactly(
       updateOne,
       { fundingId: fundingId.toHexString(), company: companyId },
@@ -800,7 +797,42 @@ describe('updateFundingHistories', () => {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
   });
-  it('should update list of histories', async () => {});
+  it('should update list of histories', async () => {
+    const companyId = new ObjectID();
+    const histories = {
+      1: { amountTTC: 12 },
+      2: { careHours: 12 },
+      3: { 11: { careHours: 12 }, 12: { careHours: 18 } },
+    };
+
+    await BillHelper.updateFundingHistories(histories, companyId);
+
+    sinon.assert.callCount(updateOne, 4);
+    sinon.assert.calledWithExactly(
+      updateOne.getCall(0),
+      { fundingId: '1', company: companyId },
+      { $inc: { amountTTC: 12 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne.getCall(1),
+      { fundingId: '2', company: companyId },
+      { $inc: { careHours: 12 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne.getCall(2),
+      { fundingId: '3', company: companyId, month: '11' },
+      { $inc: { careHours: 12 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne.getCall(3),
+      { fundingId: '3', company: companyId, month: '12' },
+      { $inc: { careHours: 18 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+  });
 });
 
 describe('getBillNumber', () => {
@@ -1316,6 +1348,8 @@ describe('formatEventsForPdf', () => {
 });
 
 describe('formatPDF', () => {
+  const url =
+    'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png';
   let formatEventsForPdf;
   let formatBillSubscriptionsForPdf;
   beforeEach(() => {
@@ -1377,7 +1411,7 @@ describe('formatPDF', () => {
         totalVAT: '55,99 €',
         formattedEvents: ['hello'],
         company: {},
-        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+        logo: url,
         forTpp: false,
       },
     };
@@ -1385,7 +1419,6 @@ describe('formatPDF', () => {
     const result = BillHelper.formatPDF(bill, {});
 
     expect(result).toEqual(expectedResult);
-    sinon.assert.calledOnce(formatEventsForPdf);
     sinon.assert.calledWithExactly(
       formatEventsForPdf,
       bill.subscriptions[0].events,
@@ -1453,7 +1486,7 @@ describe('formatPDF', () => {
         totalVAT: '55,99 €',
         formattedEvents: ['hello'],
         company: {},
-        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+        logo: url,
         forTpp: true,
       },
     };
