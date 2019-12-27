@@ -119,6 +119,49 @@ describe('GET /stats/customer-fundings-monitoring', () => {
   });
 });
 
+describe('GET /stats/all-customers-fundings-monitoring', () => {
+  let adminToken = null;
+
+  describe('Admin', () => {
+    beforeEach(populateDB);
+    beforeEach(populateDBWithEventsForFundingsMonitoring);
+    beforeEach(async () => {
+      adminToken = await getToken('admin');
+    });
+
+    it('should get customer fundings monitoring', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/stats/all-customers-fundings-monitoring',
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.allCustomersFundingsMonitoring[0]).toBeDefined();
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 200 },
+      { name: 'coach', expectedCode: 200 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        const authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: '/stats/all-customers-fundings-monitoring',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
 describe('GET /stats/customer-duration', () => {
   let adminToken = null;
 
