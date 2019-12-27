@@ -130,7 +130,10 @@ describe('createEventHistory', () => {
     const credentials = { _id: new ObjectID(), company: { _id: companyId } };
     UserMock.expects('findOne')
       .withExactArgs({ _id: payload.auxiliary })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns({ sector: sectorId });
     await EventHistoryHelper.createEventHistory(payload, credentials, 'event_creation');
@@ -260,7 +263,8 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      event,
+      credentials.company._id
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
@@ -299,7 +303,8 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      event,
+      credentials.company._id
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
@@ -340,7 +345,7 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      credentials.company._id
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
@@ -379,7 +384,8 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      event,
+      credentials.company._id
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
@@ -420,7 +426,7 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      credentials.company._id
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForAuxiliaryUpdate);
@@ -439,7 +445,8 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      event,
+      credentials.company._id
     );
     sinon.assert.notCalled(formatEventHistoryForHoursUpdate);
   });
@@ -479,7 +486,8 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      event,
+      credentials.company._id
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
@@ -521,7 +529,8 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      event,
+      credentials.company._id
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
@@ -563,7 +572,8 @@ describe('createEventHistoryOnUpdate', () => {
         },
       },
       payload,
-      event
+      event,
+      credentials.company._id
     );
     sinon.assert.called(save);
     sinon.assert.notCalled(formatEventHistoryForDatesUpdate);
@@ -584,6 +594,7 @@ describe('formatEventHistoryForAuxiliaryUpdate', () => {
   it('should format event history when auxiliary is updated', async () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
+    const companyId = new ObjectID();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -594,11 +605,14 @@ describe('formatEventHistoryForAuxiliaryUpdate', () => {
 
     UserMock.expects('find')
       .withExactArgs({ _id: { $in: [auxiliaryId, 'qwertyuiop'] } })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns([{ _id: auxiliaryId, sector: sectorId }]);
 
-    const result = await EventHistoryHelper.formatEventHistoryForAuxiliaryUpdate(mainInfo, payload, event);
+    const result = await EventHistoryHelper.formatEventHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -617,6 +631,7 @@ describe('formatEventHistoryForAuxiliaryUpdate', () => {
   it('should format event history when auxiliary is removed (Unassign)', async () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
+    const companyId = new ObjectID();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -627,10 +642,13 @@ describe('formatEventHistoryForAuxiliaryUpdate', () => {
 
     UserMock.expects('findOne')
       .withExactArgs({ _id: auxiliaryId })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns({ _id: auxiliaryId, sector: sectorId });
-    const result = await EventHistoryHelper.formatEventHistoryForAuxiliaryUpdate(mainInfo, payload, event);
+    const result = await EventHistoryHelper.formatEventHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -648,6 +666,7 @@ describe('formatEventHistoryForAuxiliaryUpdate', () => {
     const sectorId = new ObjectID();
     const eventSectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
+    const companyId = new ObjectID();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -658,10 +677,13 @@ describe('formatEventHistoryForAuxiliaryUpdate', () => {
 
     UserMock.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns({ _id: auxiliaryId, sector: sectorId });
-    const result = await EventHistoryHelper.formatEventHistoryForAuxiliaryUpdate(mainInfo, payload, event);
+    const result = await EventHistoryHelper.formatEventHistoryForAuxiliaryUpdate(mainInfo, payload, event, companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -689,6 +711,7 @@ describe('formatEventHistoryForCancelUpdate', () => {
   it('should format event history with one auxiliary', async () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
+    const companyId = new ObjectID();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -700,11 +723,14 @@ describe('formatEventHistoryForCancelUpdate', () => {
     };
     UserMock.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns({ _id: auxiliaryId, sector: sectorId });
 
-    const result = await EventHistoryHelper.formatEventHistoryForCancelUpdate(mainInfo, payload);
+    const result = await EventHistoryHelper.formatEventHistoryForCancelUpdate(mainInfo, payload, companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -764,6 +790,7 @@ describe('formatEventHistoryForDatesUpdate', () => {
   it('should format event history with one auxiliary', async () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
+    const companyId = new ObjectID();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -778,11 +805,14 @@ describe('formatEventHistoryForDatesUpdate', () => {
 
     UserMock.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns({ _id: auxiliaryId, sector: sectorId });
 
-    const result = await EventHistoryHelper.formatEventHistoryForDatesUpdate(mainInfo, payload, event);
+    const result = await EventHistoryHelper.formatEventHistoryForDatesUpdate(mainInfo, payload, event, companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -870,6 +900,7 @@ describe('formatEventHistoryForHoursUpdate', () => {
   it('should format event history with one auxiliary', async () => {
     const sectorId = new ObjectID();
     const auxiliaryId = new ObjectID();
+    const companyId = new ObjectID();
     const mainInfo = {
       createdBy: 'james bond',
       action: 'event_update',
@@ -884,12 +915,15 @@ describe('formatEventHistoryForHoursUpdate', () => {
 
     UserMock.expects('findOne')
       .withExactArgs({ _id: auxiliaryId.toHexString() })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: companyId } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns({ _id: auxiliaryId, sector: sectorId });
 
     UserMock.expects('findOne').never();
-    const result = await EventHistoryHelper.formatEventHistoryForHoursUpdate(mainInfo, payload, event);
+    const result = await EventHistoryHelper.formatEventHistoryForHoursUpdate(mainInfo, payload, event, companyId);
 
     expect(result).toBeDefined();
     expect(result).toEqual({

@@ -63,7 +63,10 @@ exports.createEventHistory = async (payload, credentials, action) => {
   if (payload.auxiliary) {
     eventHistory.auxiliaries = [payload.auxiliary];
     eventHistory.event.auxiliary = payload.auxiliary;
-    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    const aux = await User
+      .findOne({ _id: payload.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+      .lean({ autopopulate: true, virtuals: true });
     eventHistory.sectors = [aux.sector.toHexString()];
   }
 
@@ -95,9 +98,10 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
   const { _id: createdBy } = credentials;
   const { customer, type, repetition } = event;
   const { startDate, endDate, misc } = payload;
+  const companyId = get(credentials, 'company._id', null);
 
   const eventHistory = {
-    company: get(credentials, 'company._id', null),
+    company: companyId,
     createdBy,
     action: EVENT_UPDATE,
     event: { type, startDate, endDate, customer, misc },
@@ -108,25 +112,25 @@ exports.createEventHistoryOnUpdate = async (payload, event, credentials) => {
 
   const promises = [];
   if (isAuxiliaryUpdated(event, payload)) {
-    const auxiliaryUpdateHistory = await exports.formatEventHistoryForAuxiliaryUpdate(eventHistory, payload, event);
+    const auxiliaryUpdateHistory = await exports.formatEventHistoryForAuxiliaryUpdate(eventHistory, payload, event, companyId);
     promises.push(new EventHistory(auxiliaryUpdateHistory).save());
   }
   if (areDaysChanged(event, payload)) {
-    const datesUpdateHistory = await exports.formatEventHistoryForDatesUpdate(eventHistory, payload, event);
+    const datesUpdateHistory = await exports.formatEventHistoryForDatesUpdate(eventHistory, payload, event, companyId);
     promises.push(new EventHistory(datesUpdateHistory).save());
   } else if (areHoursChanged(event, payload)) {
-    const hoursUpdateHistory = await exports.formatEventHistoryForHoursUpdate(eventHistory, payload, event);
+    const hoursUpdateHistory = await exports.formatEventHistoryForHoursUpdate(eventHistory, payload, event, companyId);
     promises.push(new EventHistory(hoursUpdateHistory).save());
   }
   if (payload.isCancelled && !event.isCancelled) {
-    const cancelUpdateHistory = await exports.formatEventHistoryForCancelUpdate(eventHistory, payload, event);
+    const cancelUpdateHistory = await exports.formatEventHistoryForCancelUpdate(eventHistory, payload, companyId);
     promises.push(new EventHistory(cancelUpdateHistory).save());
   }
 
   await Promise.all(promises);
 };
 
-exports.formatEventHistoryForAuxiliaryUpdate = async (mainInfo, payload, event) => {
+exports.formatEventHistoryForAuxiliaryUpdate = async (mainInfo, payload, event, companyId) => {
   const sectors = [];
   let auxiliaries = [];
   let update = [];
@@ -134,19 +138,28 @@ exports.formatEventHistoryForAuxiliaryUpdate = async (mainInfo, payload, event) 
     auxiliaries = [event.auxiliary.toHexString(), payload.auxiliary];
     update = { auxiliary: { from: event.auxiliary.toHexString(), to: payload.auxiliary } };
 
-    const auxiliaryList = await User.find({ _id: { $in: [event.auxiliary, payload.auxiliary] } }).lean();
+    const auxiliaryList = await User
+      .find({ _id: { $in: [event.auxiliary, payload.auxiliary] } })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean({ autopopulate: true, virtuals: true });
     for (const aux of auxiliaryList) {
-      if (!sectors.includes(aux.sector)) sectors.push(aux.sector);
+      if (!sectors.includes(aux.sector._id)) sectors.push(aux.sector);
     }
   } else if (event.auxiliary) {
     auxiliaries = [event.auxiliary.toHexString()];
     update = { auxiliary: { from: event.auxiliary.toHexString() } };
-    const aux = await User.findOne({ _id: event.auxiliary }).lean();
+    const aux = await User
+      .findOne({ _id: event.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean({ autopopulate: true, virtuals: true });
     if (!sectors.includes(aux.sector)) sectors.push(aux.sector.toHexString());
   } else if (payload.auxiliary) {
     auxiliaries = [payload.auxiliary];
     update = { auxiliary: { to: payload.auxiliary } };
-    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    const aux = await User
+      .findOne({ _id: payload.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean({ autopopulate: true, virtuals: true });
     if (!sectors.includes(aux.sector)) sectors.push(aux.sector.toHexString());
   }
 
@@ -159,7 +172,7 @@ exports.formatEventHistoryForAuxiliaryUpdate = async (mainInfo, payload, event) 
 const isOneDayEvent = (event, payload) => moment(event.endDate).isSame(event.startDate, 'day') &&
   moment(payload.endDate).isSame(payload.startDate, 'day');
 
-exports.formatEventHistoryForDatesUpdate = async (mainInfo, payload, event) => {
+exports.formatEventHistoryForDatesUpdate = async (mainInfo, payload, event, companyId) => {
   const datesUpdateHistory = {
     ...mainInfo,
     update: { startDate: { from: event.startDate, to: payload.startDate } },
@@ -167,7 +180,10 @@ exports.formatEventHistoryForDatesUpdate = async (mainInfo, payload, event) => {
 
   if (payload.sector) datesUpdateHistory.sectors = [payload.sector];
   else {
-    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    const aux = await User
+      .findOne({ _id: payload.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean({ autopopulate: true, virtuals: true });
     datesUpdateHistory.sectors = [aux.sector.toHexString()];
     datesUpdateHistory.auxiliaries = [payload.auxiliary];
     datesUpdateHistory.event.auxiliary = payload.auxiliary;
@@ -178,7 +194,7 @@ exports.formatEventHistoryForDatesUpdate = async (mainInfo, payload, event) => {
   return datesUpdateHistory;
 };
 
-exports.formatEventHistoryForHoursUpdate = async (mainInfo, payload, event) => {
+exports.formatEventHistoryForHoursUpdate = async (mainInfo, payload, event, companyId) => {
   const hoursUpdateHistory = {
     ...mainInfo,
     update: {
@@ -189,7 +205,10 @@ exports.formatEventHistoryForHoursUpdate = async (mainInfo, payload, event) => {
 
   if (payload.sector) hoursUpdateHistory.sectors = [payload.sector];
   else {
-    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    const aux = await User
+      .findOne({ _id: payload.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean({ autopopulate: true, virtuals: true });
     hoursUpdateHistory.sectors = [aux.sector.toHexString()];
     hoursUpdateHistory.auxiliaries = [payload.auxiliary];
     hoursUpdateHistory.event.auxiliary = payload.auxiliary;
@@ -198,13 +217,16 @@ exports.formatEventHistoryForHoursUpdate = async (mainInfo, payload, event) => {
   return hoursUpdateHistory;
 };
 
-exports.formatEventHistoryForCancelUpdate = async (mainInfo, payload) => {
+exports.formatEventHistoryForCancelUpdate = async (mainInfo, payload, companyId) => {
   const { cancel } = payload;
   const datesUpdateHistory = { ...mainInfo, update: { cancel } };
 
   if (payload.sector) datesUpdateHistory.sectors = [payload.sector];
   else {
-    const aux = await User.findOne({ _id: payload.auxiliary }).lean();
+    const aux = await User
+      .findOne({ _id: payload.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean({ autopopulate: true, virtuals: true });
     datesUpdateHistory.sectors = [aux.sector.toHexString()];
     datesUpdateHistory.auxiliaries = [payload.auxiliary];
     datesUpdateHistory.event.auxiliary = payload.auxiliary;
