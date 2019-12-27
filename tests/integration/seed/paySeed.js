@@ -6,6 +6,7 @@ const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const Pay = require('../../../src/models/Pay');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -28,7 +29,7 @@ const user = {
   company: authCompany._id,
 };
 
-const auxiliary1 = {
+const auxiliaries = [{
   _id: auxiliaryId1,
   identity: { firstname: 'Test7', lastname: 'Test7' },
   local: { email: 'test7@alenvi.io', password: '123456' },
@@ -36,11 +37,8 @@ const auxiliary1 = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId1,
-  sector: sectorId,
   company: authCompany._id,
-};
-
-const auxiliary2 = {
+}, {
   _id: auxiliaryId2,
   identity: { firstname: 'Test8', lastname: 'Test8' },
   local: { email: 'test8@alenvi.io', password: '123456' },
@@ -48,9 +46,8 @@ const auxiliary2 = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId2,
-  sector: sectorId,
   company: authCompany._id,
-};
+}];
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
@@ -110,7 +107,7 @@ const event = {
   status: 'contract_with_company',
   startDate: '2019-05-12T09:00:00',
   endDate: '2019-05-12T11:00:00',
-  auxiliary: auxiliaryId1,
+  auxiliary: auxiliaries[0],
   customer: customerId,
   createdAt: '2019-05-01T09:00:00',
   sector: new ObjectID(),
@@ -162,6 +159,11 @@ const service = {
 };
 
 const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
+const sectorHistories = auxiliaries.map(aux => ({
+  auxiliary: aux._id,
+  sector: sectorId,
+  company: authCompany._id,
+}));
 
 const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
 
@@ -172,20 +174,22 @@ const populateDB = async () => {
   await Contract.deleteMany({});
   await Event.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
   await Pay.deleteMany({});
 
   await populateDBForAuthentication();
-  await User.create([user, auxiliary1, auxiliary2, auxiliaryFromOtherCompany]);
+  await User.create([user, ...auxiliaries, auxiliaryFromOtherCompany]);
   await (new Customer(customer)).save();
   await (new Service(service)).save();
   await (new Event(event)).save();
   await Contract.insertMany(contracts);
   await Sector.create([sector, sectorFromOtherCompany]);
+  await SectorHistory.create(sectorHistories);
 };
 
 module.exports = {
   populateDB,
-  auxiliary1,
+  auxiliaries,
   auxiliaryFromOtherCompany,
   sectorId,
   sectorFromOtherCompany,

@@ -2,7 +2,7 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const {
   populateDB,
-  auxiliary1,
+  auxiliaries,
   auxiliaryFromOtherCompany,
   sectorId,
   sectorFromOtherCompany,
@@ -64,7 +64,7 @@ describe('PAY ROUTES - POST /pay', () => {
   let authToken = null;
   beforeEach(populateDB);
   const payload = [{
-    auxiliary: auxiliary1._id,
+    auxiliary: auxiliaries[0]._id,
     startDate: '2019-04-30T22:00:00',
     endDate: '2019-05-28T14:34:04',
     month: '05-2019',
@@ -191,7 +191,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
     it('should get hours balance details', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-balance-details?auxiliary=${auxiliary1._id}&month=10-2019`,
+        url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2019`,
         headers: { 'x-access-token': authToken },
       });
 
@@ -222,7 +222,7 @@ describe('PAY ROUTES - GET /hours-balance-details', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/pay/hours-balance-details?auxiliary=${auxiliary1._id}&month=10-2019`,
+          url: `/pay/hours-balance-details?auxiliary=${auxiliaries[0]._id}&month=10-2019`,
           headers: { 'x-access-token': authToken },
         });
 

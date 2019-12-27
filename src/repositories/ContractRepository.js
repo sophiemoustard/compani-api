@@ -16,10 +16,35 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
   { $unwind: { path: '$auxiliary' } },
   {
     $lookup: {
-      from: 'sectors',
-      localField: 'auxiliary.sector',
-      foreignField: '_id',
+      from: 'sectorhistories',
       as: 'auxiliary.sector',
+      let: { auxiliaryId: '$auxiliary._id', companyId: '$auxiliary.company' },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                { $eq: ['$company', '$$companyId'] },
+              ],
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'sectors',
+            as: 'originalSector',
+            let: { sectorId: '$sector' },
+            pipeline: [
+              { $match: { $expr: { $eq: ['$_id', '$$sectorId'] } } },
+            ],
+          },
+        },
+        { $sort: { createdAt: -1 } },
+        { $group: { _id: null, sector: { $first: '$$ROOT' } } },
+        { $unwind: { path: '$sector.originalSector' } },
+        { $project: { sector: '$sector.originalSector' } },
+      ],
     },
   },
   { $unwind: { path: '$auxiliary.sector' } },
@@ -27,7 +52,7 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
     $project: {
       _id: 1,
       identity: { firstname: '$auxiliary.identity.firstname', lastname: '$auxiliary.identity.lastname' },
-      sector: '$auxiliary.sector',
+      sector: '$auxiliary.sector.sector',
       contracts: '$contracts',
       contact: '$auxiliary.contact',
       administrative: { mutualFund: '$auxiliary.administrative.mutualFund', transportInvoice: '$auxiliary.administrative.transportInvoice' },
