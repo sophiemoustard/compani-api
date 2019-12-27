@@ -86,7 +86,7 @@ const getMatchEvents = eventsDate => [
 ];
 
 
-exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, splitEventsDate, companyId) => {
+exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, companyId) => {
   const versionMatch = getVersionMatch(fundingsDate);
   const fundingsMatch = getFundingsMatch();
 
@@ -104,14 +104,15 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
 
   const matchEvents = getMatchEvents(eventsDate);
 
+  const startOfMonth = moment().startOf('month').toDate();
   const formatFundings = [
     {
       $addFields: {
         prevMonthEvents: {
-          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', splitEventsDate] } },
+          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', startOfMonth] } },
         },
         currentMonthEvents: {
-          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', splitEventsDate] } },
+          $filter: { input: '$events', as: 'event', cond: { $gte: ['$$event.startDate', startOfMonth] } },
         },
       },
     },
@@ -125,6 +126,100 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
         careDays: '$version.careDays',
         prevMonthEvents: { startDate: 1, endDate: 1 },
         currentMonthEvents: { startDate: 1, endDate: 1 },
+      },
+    },
+  ];
+
+  return Customer
+    .aggregate([
+      ...matchFundings,
+      ...populateFundings,
+      ...matchEvents,
+      ...formatFundings,
+    ])
+    .option({ company: companyId });
+};
+
+exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsDate, companyId) => {
+  const versionMatch = getVersionMatch(fundingsDate);
+  const fundingsMatch = getFundingsMatch();
+
+  const matchFundings = [
+    { $match: { fundings: { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } } } },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'referent',
+        foreignField: '_id',
+        as: 'referent',
+      },
+    },
+    { $unwind: { path: '$referent', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'sectors',
+        localField: 'referent.sector',
+        foreignField: '_id',
+        as: 'sector',
+      },
+    },
+    { $unwind: { path: '$sector', preserveNullAndEmptyArrays: true } },
+    { $unwind: { path: '$fundings' } },
+    {
+      $addFields: {
+        'fundings.customer': '$identity',
+        'fundings.referent': '$referent.identity',
+        'fundings.sector': '$sector',
+      },
+    },
+  ];
+
+  const populateFundings = getPopulateFundings(fundingsMatch, fundingsDate);
+
+  const matchEvents = getMatchEvents(eventsDate);
+
+  const startOfMonth = moment().startOf('month').toDate();
+  const endOfMonth = moment().endOf('month').toDate();
+  const formatFundings = [
+    {
+      $addFields: {
+        prevMonthEvents: {
+          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', startOfMonth] } },
+        },
+        currentMonthEvents: {
+          $filter: {
+            input: '$events',
+            as: 'event',
+            cond: {
+              $and: [{ $gte: ['$$event.startDate', startOfMonth] }, { $lte: ['$$event.startDate', endOfMonth] }],
+            },
+          },
+        },
+        nextMonthEvents: {
+          $filter: {
+            input: '$events',
+            as: 'event',
+            cond: { $gte: ['$$event.startDate', endOfMonth] },
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        thirdPartyPayer: { name: 1 },
+        subscription: 1,
+        startDate: '$version.startDate',
+        endDate: '$version.endDate',
+        careHours: '$version.careHours',
+        careDays: '$version.careDays',
+        unitTTCRate: '$version.unitTTCRate',
+        customerParticipationRate: '$version.customerParticipationRate',
+        prevMonthEvents: { startDate: 1, endDate: 1 },
+        currentMonthEvents: { startDate: 1, endDate: 1 },
+        nextMonthEvents: { startDate: 1, endDate: 1 },
+        customer: { firstname: 1, lastname: 1 },
+        referent: { firstname: 1, lastname: 1 },
+        sector: '$sector.name',
       },
     },
   ];
