@@ -22,30 +22,20 @@ const { CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 require('sinon-mongoose');
 
 describe('getCustomerBySector', () => {
-  let getListQuery;
   let getCustomersFromEvent;
   beforeEach(() => {
-    getListQuery = sinon.stub(EventsHelper, 'getListQuery');
     getCustomersFromEvent = sinon.stub(EventRepository, 'getCustomersFromEvent');
   });
   afterEach(() => {
-    getListQuery.restore();
     getCustomersFromEvent.restore();
   });
 
   it('should return customer by sector', async () => {
-    const startDate = '2019-04-14T09:00:00';
-    const endDate = '2019-05-14T09:00:00';
-    const sector = 'sector';
-    const query = { startDate };
-    getListQuery.returns(query);
-
+    const query = { startDate: '2019-04-14T09:00:00', endDate: '2019-05-14T09:00:00', sector: 'sector' };
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
 
-    const queryBySector = { ...query, endDate, sector };
-    await CustomerHelper.getCustomerBySector(queryBySector, credentials);
-    sinon.assert.calledWithExactly(getListQuery, { startDate, endDate, sector, type: 'intervention' }, credentials);
+    await CustomerHelper.getCustomerBySector(query, credentials);
     sinon.assert.calledWithExactly(getCustomersFromEvent, query, companyId);
   });
 });

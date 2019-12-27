@@ -326,12 +326,13 @@ exports.getEventsGroupedByParentId = async (rules, companyId) => Event.aggregate
 ]).option({ company: companyId });
 
 
-exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds, companyId) => exports.getEventsGroupedByParentId({
-  startDate: { $gt: maxDate },
-  auxiliary,
-  subscription: { $in: subIds },
-  $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
-}, companyId);
+exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds, companyId) =>
+  exports.getEventsGroupedByParentId({
+    startDate: { $gt: maxDate },
+    auxiliary,
+    subscription: { $in: subIds },
+    $or: [{ isBilled: false }, { isBilled: { $exists: false } }],
+  }, companyId);
 
 exports.getEventsExceptInterventions = async (startDate, auxiliary, companyId) => exports.getEventsGroupedByParentId({
   startDate: { $gt: startDate },
@@ -562,101 +563,108 @@ exports.getEventsToBill = async (dates, customerId, companyId) => {
   ]).option({ company: companyId });
 };
 
-exports.getCustomersFromEvent = async (sector, eventQuery, companyId) => User.aggregate([
-  {
-    $match: {
-      sector: Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)],
+exports.getCustomersFromEvent = async (query, companyId) => {
+  const { sector, startDate, endDate } = query;
+  const eventQuery = [
+    { $eq: ['$auxiliary', '$$auxiliaryId'] },
+    { $eq: ['$type', INTERVENTION] },
+    { $gt: ['$endDate', startDate] },
+    { $lt: ['$startDate', endDate] },
+  ];
+
+  return User.aggregate([
+    {
+      $match: {
+        sector: { $in: Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)] },
+        company: companyId,
+      },
     },
-  },
-  {
-    $lookup: {
-      from: 'events',
-      as: 'event',
-      let: { auxiliaryId: '$_id' },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, ...eventQuery.$and],
-            },
-          },
-        },
-      ],
-    },
-  },
-  { $unwind: '$event' },
-  { $replaceRoot: { newRoot: '$event' } },
-  {
-    $lookup: {
-      from: 'customers',
-      as: 'customer',
-      let: { customerId: '$customer' },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ['$_id', '$$customerId'] },
-              ],
-            },
-          },
-        },
-      ],
-    },
-  },
-  { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
-  { $group: { _id: '$customer._id', customer: { $first: '$customer' } } },
-  { $replaceRoot: { newRoot: '$customer' } },
-  { $project: { subscriptions: 1, identity: 1 } },
-  { $unwind: '$subscriptions' },
-  {
-    $lookup: {
-      from: 'services',
-      localField: 'subscriptions.service',
-      foreignField: '_id',
-      as: 'subscriptions.service',
-    },
-  },
-  { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
-  {
-    $addFields: {
-      'subscriptions.service.version': {
-        $arrayElemAt: [
-          '$subscriptions.service.versions',
+    {
+      $lookup: {
+        from: 'events',
+        as: 'event',
+        let: { auxiliaryId: '$_id' },
+        pipeline: [
           {
-            $indexOfArray: ['$subscriptions.service.versions.startDate', { $max: '$subscriptions.service.versions.startDate' }],
+            $match: {
+              $expr: { $and: [...eventQuery] },
+            },
           },
         ],
       },
     },
-  },
-  {
-    $lookup: {
-      from: 'surcharges',
-      localField: 'subscriptions.service.version.surcharge',
-      foreignField: '_id',
-      as: 'subscriptions.service.version.surcharge',
+    { $unwind: '$event' },
+    { $replaceRoot: { newRoot: '$event' } },
+    {
+      $lookup: {
+        from: 'customers',
+        as: 'customer',
+        let: { customerId: '$customer' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [{ $eq: ['$_id', '$$customerId'] }],
+              },
+            },
+          },
+        ],
+      },
     },
-  },
-  { $unwind: { path: '$subscriptions.service.version.surcharge', preserveNullAndEmptyArrays: true } },
-  { $addFields: { 'subscriptions.service.exemptFromCharges': '$subscriptions.service.version.exemptFromCharges' } },
-  { $addFields: { 'subscriptions.service.name': '$subscriptions.service.version.name' } },
-  { $addFields: { 'subscriptions.service.startDate': '$subscriptions.service.version.startDate' } },
-  { $addFields: { 'subscriptions.service.defaultUnitAmount': '$subscriptions.service.version.defaultUnitAmount' } },
-  { $addFields: { 'subscriptions.service.vat': '$subscriptions.service.version.vat' } },
-  { $addFields: { 'subscriptions.service.surcharge': '$subscriptions.service.version.surcharge' } },
-  {
-    $project: {
-      'subscriptions.service.versions': 0,
-      'subscriptions.service.version': 0,
+    { $unwind: { path: '$customer', preserveNullAndEmptyArrays: true } },
+    { $group: { _id: '$customer._id', customer: { $first: '$customer' } } },
+    { $replaceRoot: { newRoot: '$customer' } },
+    { $project: { subscriptions: 1, identity: 1 } },
+    { $unwind: '$subscriptions' },
+    {
+      $lookup: {
+        from: 'services',
+        localField: 'subscriptions.service',
+        foreignField: '_id',
+        as: 'subscriptions.service',
+      },
     },
-  },
-  {
-    $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
-  },
-  { $addFields: { 'customer.subscriptions': '$subscriptions' } },
-  { $replaceRoot: { newRoot: '$customer' } },
-]).option({ company: companyId });
+    { $unwind: { path: '$subscriptions.service', preserveNullAndEmptyArrays: true } },
+    {
+      $addFields: {
+        'subscriptions.service.version': {
+          $arrayElemAt: [
+            '$subscriptions.service.versions',
+            {
+              $indexOfArray: [
+                '$subscriptions.service.versions.startDate',
+                { $max: '$subscriptions.service.versions.startDate' }
+              ],
+            },
+          ],
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: 'surcharges',
+        localField: 'subscriptions.service.version.surcharge',
+        foreignField: '_id',
+        as: 'subscriptions.service.version.surcharge',
+      },
+    },
+    { $unwind: { path: '$subscriptions.service.version.surcharge', preserveNullAndEmptyArrays: true } },
+    { $addFields: { 'subscriptions.service.exemptFromCharges': '$subscriptions.service.version.exemptFromCharges' } },
+    { $addFields: { 'subscriptions.service.name': '$subscriptions.service.version.name' } },
+    { $addFields: { 'subscriptions.service.startDate': '$subscriptions.service.version.startDate' } },
+    { $addFields: { 'subscriptions.service.defaultUnitAmount': '$subscriptions.service.version.defaultUnitAmount' } },
+    { $addFields: { 'subscriptions.service.vat': '$subscriptions.service.version.vat' } },
+    { $addFields: { 'subscriptions.service.surcharge': '$subscriptions.service.version.surcharge' } },
+    {
+      $project: { 'subscriptions.service.versions': 0, 'subscriptions.service.version': 0 },
+    },
+    {
+      $group: { _id: '$_id', customer: { $first: '$$ROOT' }, subscriptions: { $push: '$subscriptions' } },
+    },
+    { $addFields: { 'customer.subscriptions': '$subscriptions' } },
+    { $replaceRoot: { newRoot: '$customer' } },
+  ]).option({ company: companyId });
+};
 
 exports.getCustomersWithBilledEvents = async (query, companyId) => Event.aggregate([
   { $match: query },
