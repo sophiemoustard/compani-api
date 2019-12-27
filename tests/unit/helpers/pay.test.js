@@ -11,7 +11,7 @@ const DistanceMatrix = require('../../../src/models/DistanceMatrix');
 const PayHelper = require('../../../src/helpers/pay');
 const DraftPayHelper = require('../../../src/helpers/draftPay');
 const EventRepository = require('../../../src/repositories/EventRepository');
-const UserRepository = require('../../../src/repositories/UserRepository');
+const SectorHistoryRepository = require('../../../src/repositories/SectorHistoryRepository');
 const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
 require('sinon-mongoose');
@@ -527,7 +527,7 @@ describe('getHoursToWorkBySector', () => {
   let computeHoursToWorkStub;
 
   beforeEach(() => {
-    getContractsAndAbsencesBySectorStub = sinon.stub(UserRepository, 'getContractsAndAbsencesBySector');
+    getContractsAndAbsencesBySectorStub = sinon.stub(SectorHistoryRepository, 'getContractsAndAbsencesBySector');
     computeHoursToWorkStub = sinon.stub(PayHelper, 'computeHoursToWork');
   });
 
