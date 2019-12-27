@@ -86,18 +86,16 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
       isBilled: 1,
       bills: 1,
       status: 1,
+      sector: 1,
     },
   },
   {
-    $group: {
-      _id: groupById,
-      events: { $push: '$$ROOT' },
-    },
+    $group: { _id: groupById, events: { $push: '$$ROOT' } },
   },
 ]).option({ company: companyId });
 
 exports.getEventsGroupedByAuxiliaries = async (rules, companyId) =>
-  getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$auxiliary.sector'] }, companyId);
+  getEventsGroupedBy(rules, { $ifNull: ['$auxiliary._id', '$sector'] }, companyId);
 
 exports.getEventsGroupedByCustomers = async (rules, companyId) => getEventsGroupedBy(rules, '$customer._id', companyId);
 
