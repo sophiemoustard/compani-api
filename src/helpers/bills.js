@@ -5,6 +5,7 @@ const Event = require('../models/Event');
 const Bill = require('../models/Bill');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
+const BillSlipHelper = require('../helpers/billSlips');
 const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
 const { HOURLY, THIRD_PARTY, CIVILITY_LIST } = require('./constants');
@@ -55,10 +56,11 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
   const tppBills = [];
   const billedEvents = {};
   const histories = {};
+  const billSlips = [];
   for (const tpp of thirdPartyPayerBills) {
     const tppBill = {
       customer: customer._id,
-      client: tpp.bills[0].thirdPartyPayer,
+      client: get(tpp.bills[0], 'thirdPartyPayer._id', null),
       subscriptions: [],
       netInclTaxes: UtilsHelper.getFixedNumber(tpp.total, 2),
       date: tpp.bills[0].endDate,
@@ -91,7 +93,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
     tppBills.push(tppBill);
   }
 
-  return { tppBills, billedEvents, fundingHistories: histories };
+  return { tppBills, billedEvents, fundingHistories: histories, billSlips };
 };
 
 exports.updateEvents = async (eventsToUpdate) => {
@@ -130,8 +132,8 @@ exports.updateFundingHistories = async (histories, companyId) => {
   await Promise.all(promises);
 };
 
-exports.getBillNumber = async (bills, company) => {
-  const prefix = moment(bills[0].endDate).format('MMYY');
+exports.getBillNumber = async (endDate, company) => {
+  const prefix = moment(endDate).format('MMYY');
 
   return BillNumber
     .findOneAndUpdate({ prefix, company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true })
@@ -139,11 +141,12 @@ exports.getBillNumber = async (bills, company) => {
 };
 
 exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
-  const promises = [];
+  const billList = [];
   let eventsToUpdate = {};
   let fundingHistories = {};
   const { company } = credentials;
-  const number = await exports.getBillNumber(groupByCustomerBills, company);
+  const { endDate } = groupByCustomerBills[0];
+  const number = await exports.getBillNumber(endDate, company);
 
   for (const draftBills of groupByCustomerBills) {
     const { customer, customerBills, thirdPartyPayerBills } = draftBills;
@@ -151,7 +154,7 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
       const customerBillingInfo = exports.formatCustomerBills(customerBills, customer, number, company);
       eventsToUpdate = { ...eventsToUpdate, ...customerBillingInfo.billedEvents };
       number.seq += 1;
-      promises.push(Bill.create(customerBillingInfo.bill));
+      billList.push(customerBillingInfo.bill);
     }
 
     if (thirdPartyPayerBills && thirdPartyPayerBills.length > 0) {
@@ -159,14 +162,15 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
       fundingHistories = { ...fundingHistories, ...tppBillingInfo.fundingHistories };
       eventsToUpdate = { ...eventsToUpdate, ...tppBillingInfo.billedEvents };
       for (const bill of tppBillingInfo.tppBills) {
-        promises.push(Bill.create(bill));
+        billList.push(bill);
         if (bill.number) number.seq += 1;
       }
     }
   }
 
   await Promise.all([
-    ...promises,
+    BillSlipHelper.createBillSlips(billList, endDate, credentials.company),
+    Bill.insertMany(billList),
     BillNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } }),
     exports.updateFundingHistories(fundingHistories, company._id),
     exports.updateEvents(eventsToUpdate),

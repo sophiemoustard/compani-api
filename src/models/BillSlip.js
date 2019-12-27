@@ -4,7 +4,7 @@ const { validatePayload, validateQuery, validateAggregation } = require('./preHo
 const BillSlipSchema = mongoose.Schema({
   thirdPartyPayer: { type: mongoose.Types.ObjectId, ref: 'ThirdPartyPayer', required: true },
   month: { type: String, required: true, validate: /(0[0-9]{1}|1[0-2]{1})[0-9]{2}/ },
-  number: { type: String, required: true },
+  number: { type: String, required: true, validate: /BORD-[0-9]{12}/ },
   company: { type: mongoose.Types.ObjectId, required: true },
 });
 
