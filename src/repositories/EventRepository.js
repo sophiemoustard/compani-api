@@ -208,10 +208,35 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
-        from: 'sectors',
-        localField: 'auxiliary.sector',
-        foreignField: '_id',
+        from: 'sectorhistories',
         as: 'auxiliary.sector',
+        let: { auxiliaryId: '$auxiliary._id', companyId: '$auxiliary.company' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $eq: ['$company', '$$companyId'] },
+                ],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'sectors',
+              as: 'originalSector',
+              let: { sectorId: '$sector' },
+              pipeline: [
+                { $match: { $expr: { $eq: ['$_id', '$$sectorId'] } } },
+              ],
+            },
+          },
+          { $sort: { createdAt: -1 } },
+          { $group: { _id: null, sector: { $first: '$$ROOT' } } },
+          { $unwind: { path: '$sector.originalSector' } },
+          { $project: { sector: '$sector.originalSector' } },
+        ],
       },
     },
     { $unwind: { path: '$auxiliary.sector' } },
@@ -227,7 +252,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     {
       $project: {
         customer: { identity: 1 },
-        auxiliary: { identity: 1, sector: 1 },
+        auxiliary: { identity: 1, sector: '$auxiliary.sector.sector' },
         startDate: 1,
         endDate: 1,
         internalHour: 1,

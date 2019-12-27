@@ -10,6 +10,7 @@ const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const Payment = require('../../../src/models/Payment');
 const Pay = require('../../../src/models/Pay');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const FinalPay = require('../../../src/models/FinalPay');
 const Company = require('../../../src/models/Company');
 const { rolesList, populateDBForAuthentication, authCompany } = require('./authenticationSeed');
@@ -36,6 +37,11 @@ const auxiliary = {
   role: rolesList.find(role => role.name === 'admin')._id,
   local: { email: 'toto@alenvi.io', password: '1234567890' },
   refreshToken: uuidv4(),
+  company: authCompany._id,
+};
+
+const sectorHistory = {
+  auxiliary: auxiliary._id,
   sector: sector._id,
   company: authCompany._id,
 };
@@ -564,11 +570,13 @@ const populateEvents = async () => {
   await User.deleteMany();
   await Customer.deleteMany();
   await Sector.deleteMany();
+  await SectorHistory.deleteMany();
 
   await populateDBForAuthentication();
   await Event.insertMany(eventList);
   await new User(auxiliary).save();
   await new Sector(sector).save();
+  await new SectorHistory(sectorHistory).save();
   await new Customer(customer).save();
 };
 
