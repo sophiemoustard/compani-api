@@ -5,6 +5,7 @@ const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const Event = require('../../../src/models/Event');
 const { rolesList, getUser } = require('./authenticationSeed');
 const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
@@ -71,7 +72,7 @@ const contractUsers = [{
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: rolesList[0]._id,
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: [new ObjectID()],
   company: authCompany._id,
   sector: sector._id,
@@ -83,11 +84,17 @@ const contractUsers = [{
   inactivityDate: null,
   employee_id: 12345678,
   refreshToken: uuidv4(),
-  role: rolesList[0]._id,
+  role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: [new ObjectID()],
   company: authCompany._id,
   sector: sector._id,
 }];
+
+const sectorHistories = contractUsers.map(user => ({
+  auxiliary: user._id,
+  sector: sector._id,
+  company: authCompany._id,
+}));
 
 const otherCompanyContract = {
   createdAt: '2018-12-04T16:34:04.144Z',
@@ -291,6 +298,7 @@ const populateDB = async () => {
   await Customer.deleteMany({});
   await Event.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
 
   await populateDBForAuthentication();
   await User.insertMany([...contractUsers, otherCompanyContractUser, userFromOtherCompany]);
@@ -299,6 +307,7 @@ const populateDB = async () => {
   await new Customer(customerFromOtherCompany).save();
   await Contract.insertMany([...contractsList, otherCompanyContract]);
   await Event.insertMany(contractEvents);
+  await SectorHistory.insertMany(sectorHistories);
 };
 
 module.exports = {
