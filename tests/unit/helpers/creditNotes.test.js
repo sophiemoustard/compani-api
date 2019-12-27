@@ -244,6 +244,397 @@ describe('updateEventAndFundingHistory', () => {
   });
 });
 
+describe('formatCreditNoteNumber', () => {
+  it('should return the correct credit note number', () => {
+    expect(CreditNoteHelper.formatCreditNoteNumber(12345, 'toto', 5)).toEqual('AV-12345toto00005');
+    expect(CreditNoteHelper.formatCreditNoteNumber(12345, 'toto', 12345)).toEqual('AV-12345toto12345');
+  });
+});
+
+describe('formatCreditNote', () => {
+  let formatCreditNoteNumber;
+  let getFixedNumber;
+  beforeEach(() => {
+    formatCreditNoteNumber = sinon.stub(CreditNoteHelper, 'formatCreditNoteNumber');
+    getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
+  });
+  afterEach(() => {
+    formatCreditNoteNumber.restore();
+    getFixedNumber.restore();
+  });
+
+  it('should format credit note with number', async () => {
+    const payload = {};
+    const companyPrefix = 12345;
+    const prefix = 12;
+    const seq = 432;
+    formatCreditNoteNumber.returns('number');
+
+    await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
+    sinon.assert.calledWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
+    sinon.assert.notCalled(getFixedNumber);
+  });
+  it('should format credit note for customer', async () => {
+    const payload = { inclTaxesCustomer: 98 };
+    const companyPrefix = 12345;
+    const prefix = 12;
+    const seq = 432;
+    formatCreditNoteNumber.returns('number');
+    getFixedNumber.returnsArg(0);
+
+    const creditNote = await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
+    sinon.assert.calledWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
+    sinon.assert.calledWithExactly(getFixedNumber, 98, 2);
+    expect(creditNote.number).toEqual('number');
+    expect(creditNote.inclTaxesCustomer).toEqual(98);
+  });
+  it('should format credit note for third party payer', async () => {
+    const payload = { inclTaxesTpp: 98 };
+    const companyPrefix = 12345;
+    const prefix = 12;
+    const seq = 432;
+    formatCreditNoteNumber.returns('number');
+    getFixedNumber.returnsArg(0);
+
+    const creditNote = await CreditNoteHelper.formatCreditNote(payload, companyPrefix, prefix, seq);
+    sinon.assert.calledWithExactly(formatCreditNoteNumber, companyPrefix, prefix, seq);
+    sinon.assert.calledWithExactly(getFixedNumber, 98, 2);
+    expect(creditNote.number).toEqual('number');
+    expect(creditNote.inclTaxesTpp).toEqual(98);
+  });
+});
+
+describe('getCreditNoteNumber', () => {
+  let CreditNoteNumberMock;
+  beforeEach(() => {
+    CreditNoteNumberMock = sinon.mock(CreditNoteNumber);
+  });
+  afterEach(() => {
+    CreditNoteNumberMock.restore();
+  });
+
+  it('should get credit note number', async () => {
+    const payload = { date: '2019-09-19T00:00:00' };
+    const company = { _id: new ObjectID() };
+
+    CreditNoteNumberMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { prefix: '1909', company: company._id },
+        {},
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      )
+      .chain('lean')
+      .once();
+
+    await CreditNoteHelper.getCreditNoteNumber(payload, company);
+    CreditNoteNumberMock.verify();
+  });
+});
+
+describe('createCreditNotes', () => {
+  let updateOneNumber;
+  let formatCreditNote;
+  let insertManyCreditNote;
+  let updateEventAndFundingHistory;
+  let getCreditNoteNumber;
+  const credentials = { company: { _id: new ObjectID(), prefixNumber: 'prefixNumber' } };
+  const prefix = 'AV-1907';
+
+  beforeEach(() => {
+    getCreditNoteNumber = sinon.stub(CreditNoteHelper, 'getCreditNoteNumber');
+    updateOneNumber = sinon.stub(CreditNoteNumber, 'updateOne');
+    formatCreditNote = sinon.stub(CreditNoteHelper, 'formatCreditNote');
+    insertManyCreditNote = sinon.stub(CreditNote, 'insertMany');
+    updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
+  });
+  afterEach(() => {
+    getCreditNoteNumber.restore();
+    updateOneNumber.restore();
+    formatCreditNote.restore();
+    insertManyCreditNote.restore();
+    updateEventAndFundingHistory.restore();
+  });
+
+  it('should create one credit note (for customer)', async () => {
+    const payload = {
+      date: '2019-07-30T00:00:00',
+      inclTaxesCustomer: 123,
+      thirdPartyPayer: 'qwertyuiop',
+    };
+    getCreditNoteNumber.returns({ seq: 1, prefix });
+    formatCreditNote.returns({ inclTaxesCustomer: 1234 });
+
+    await CreditNoteHelper.createCreditNotes(payload, credentials);
+
+    sinon.assert.calledWithExactly(
+      formatCreditNote,
+      {
+        date: '2019-07-30T00:00:00',
+        inclTaxesCustomer: 123,
+        exclTaxesTpp: 0,
+        inclTaxesTpp: 0,
+        company: credentials.company._id,
+      },
+      'prefixNumber',
+      prefix,
+      1
+    );
+    sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesCustomer: 1234 }]);
+    sinon.assert.notCalled(updateEventAndFundingHistory);
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
+    sinon.assert.calledWithExactly(updateOneNumber, { prefix }, { $set: { seq: 2 } });
+  });
+
+  it('should create one credit note (for tpp)', async () => {
+    const payload = {
+      date: '2019-07-30T00:00:00',
+      inclTaxesTpp: 123,
+      thirdPartyPayer: 'qwertyuiop',
+      events: [{ _id: 'asdfghjkl' }],
+    };
+    getCreditNoteNumber.returns({ seq: 1, prefix });
+    formatCreditNote.returns({ inclTaxesTpp: 1234 });
+
+    await CreditNoteHelper.createCreditNotes(payload, credentials);
+
+    sinon.assert.calledWithExactly(
+      formatCreditNote,
+      {
+        date: '2019-07-30T00:00:00',
+        events: [{ _id: 'asdfghjkl' }],
+        inclTaxesTpp: 123,
+        thirdPartyPayer: 'qwertyuiop',
+        exclTaxesCustomer: 0,
+        inclTaxesCustomer: 0,
+        company: credentials.company._id,
+      },
+      'prefixNumber',
+      prefix,
+      1
+    );
+    sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesTpp: 1234 }]);
+    sinon.assert.calledWithExactly(updateEventAndFundingHistory, [{ _id: 'asdfghjkl' }], false, credentials);
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
+    sinon.assert.calledWithExactly(updateOneNumber, { prefix }, { $set: { seq: 2 } });
+  });
+
+  it('should create two credit notes (for customer and tpp)', async () => {
+    const payload = {
+      date: '2019-07-30T00:00:00',
+      inclTaxesTpp: 123,
+      inclTaxesCustomer: 654,
+      thirdPartyPayer: 'qwertyuiop',
+    };
+    getCreditNoteNumber.returns({ seq: 1, prefix });
+    formatCreditNote.onCall(0).returns({ _id: '1234', inclTaxesCustomer: 32 });
+    formatCreditNote.onCall(1).returns({ _id: '0987', inclTaxesTpp: 1234 });
+
+    await CreditNoteHelper.createCreditNotes(payload, credentials);
+
+    sinon.assert.calledWithExactly(
+      formatCreditNote.getCall(0),
+      {
+        date: '2019-07-30T00:00:00',
+        inclTaxesTpp: 123,
+        thirdPartyPayer: 'qwertyuiop',
+        exclTaxesCustomer: 0,
+        inclTaxesCustomer: 0,
+        company: credentials.company._id,
+      },
+      'prefixNumber',
+      prefix,
+      1
+    );
+    sinon.assert.calledWithExactly(
+      formatCreditNote.getCall(1),
+      {
+        date: '2019-07-30T00:00:00',
+        inclTaxesCustomer: 654,
+        exclTaxesTpp: 0,
+        inclTaxesTpp: 0,
+        company: credentials.company._id,
+      },
+      'prefixNumber',
+      prefix,
+      2
+    );
+    sinon.assert.calledWithExactly(
+      insertManyCreditNote,
+      [
+        { _id: '0987', linkedCreditNote: '1234', inclTaxesTpp: 1234 },
+        { _id: '1234', linkedCreditNote: '0987', inclTaxesCustomer: 32 },
+      ]
+    );
+    sinon.assert.notCalled(updateEventAndFundingHistory);
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
+    sinon.assert.calledWithExactly(updateOneNumber, { prefix }, { $set: { seq: 3 } });
+  });
+});
+
+describe('updateCreditNotes', () => {
+  let updateEventAndFundingHistory;
+  let findByIdAndUpdate;
+  let updateOne;
+  const creditNote = {
+    _id: new ObjectID(),
+    number: 1,
+    events: [{
+      auxiliary: {
+        identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
+      },
+      startDate: '2019-04-29T06:00:00.000Z',
+      endDate: '2019-04-29T15:00:00.000Z',
+      serviceName: 'Toto',
+      bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
+    }],
+    customer: {
+      identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
+      contact: { primaryAddress: { fullAddress: 'La ruche' } },
+      subscriptions: [{ _id: new ObjectID(), service: { versions: [{ name: 'Toto' }] } }],
+    },
+    date: '2019-04-29T22:00:00.000Z',
+    exclTaxesCustomer: 221,
+    inclTaxesCustomer: 234,
+    exclTaxesTpp: 21,
+    inclTaxesTpp: 34,
+  };
+  const credentials = { company: { _id: new ObjectID() } };
+
+  beforeEach(() => {
+    updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
+    findByIdAndUpdate = sinon.stub(CreditNote, 'findByIdAndUpdate');
+    updateOne = sinon.stub(CreditNote, 'updateOne');
+  });
+
+  afterEach(() => {
+    updateEventAndFundingHistory.restore();
+    findByIdAndUpdate.restore();
+    updateOne.restore();
+  });
+
+  it('should update a credit note', async () => {
+    const payload = { customer: { identity: { firstname: 'Titi' } } };
+    const updatedCreditNote = {
+      ...creditNote,
+      customer: {
+        ...creditNote.customer,
+        identity: {
+          ...creditNote.customer.identity,
+          firstname: payload.customer.identity.firstname,
+        },
+      },
+    };
+
+    findByIdAndUpdate.returns(updatedCreditNote);
+
+    const result = await CreditNoteHelper.updateCreditNotes(creditNote, payload, credentials);
+
+    expect(result).toMatchObject(updatedCreditNote);
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory,
+      creditNote.events,
+      true,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      { $set: payload },
+      { new: true }
+    );
+  });
+
+  it('should update a customer credit note and its tpp linked credit note', async () => {
+    const creditNoteWithLink = { ...creditNote, linkedCreditNote: new ObjectID() };
+    const payload = {
+      events: [{
+        auxiliary: {
+          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
+        },
+        startDate: '2019-04-30T06:00:00.000Z',
+        endDate: '2019-04-30T15:00:00.000Z',
+        serviceName: 'Toto',
+        bills: { inclTaxesCustomer: 123, exclTaxesCustomer: 90 },
+      }],
+    };
+    const updatedCreditNote = { ...creditNoteWithLink, events: payload.events };
+
+    findByIdAndUpdate.returns(updatedCreditNote);
+
+    const result = await CreditNoteHelper.updateCreditNotes(creditNoteWithLink, payload, credentials);
+    expect(result).toMatchObject(updatedCreditNote);
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory.firstCall,
+      creditNoteWithLink.events,
+      true,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory.secondCall,
+      payload.events,
+      false,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { new: true }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: creditNoteWithLink.linkedCreditNote },
+      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      { new: true }
+    );
+  });
+
+  it('should update a tpp credit note and its customer linked credit note', async () => {
+    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: new ObjectID(), linkedCreditNote: new ObjectID() };
+    const payload = {
+      events: [{
+        auxiliary: {
+          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
+        },
+        startDate: '2019-04-30T06:00:00.000Z',
+        endDate: '2019-04-30T15:00:00.000Z',
+        serviceName: 'Toto',
+        bills: { inclTaxesCustomer: 123, exclTaxesCustomer: 90 },
+      }],
+    };
+    const updatedCreditNote = { ...creditNoteWithLink, events: payload.events };
+
+    findByIdAndUpdate.returns(updatedCreditNote);
+
+    const result = await CreditNoteHelper.updateCreditNotes(creditNoteWithLink, payload, credentials);
+    expect(result).toMatchObject(updatedCreditNote);
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory.firstCall,
+      creditNoteWithLink.events,
+      true,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      updateEventAndFundingHistory.secondCall,
+      payload.events,
+      false,
+      credentials
+    );
+    sinon.assert.calledWithExactly(
+      findByIdAndUpdate,
+      creditNote._id,
+      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
+      { new: true }
+    );
+    sinon.assert.calledWithExactly(
+      updateOne,
+      { _id: creditNoteWithLink.linkedCreditNote },
+      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
+      { new: true }
+    );
+  });
+});
+
 describe('formatPDF', () => {
   let getMatchingVersion;
   let formatPrice;
@@ -425,330 +816,6 @@ describe('formatPDF', () => {
     expect(result.creditNote.subscription).toBeDefined();
     expect(result.creditNote.subscription.service).toBe('service');
     expect(result.creditNote.subscription.unitInclTaxes).toBe('12,00 €');
-  });
-});
-
-describe('createCreditNotes', () => {
-  let findOneAndUpdateNumber;
-  let formatCreditNote;
-  let insertManyCreditNote;
-  let updateEventAndFundingHistory;
-  const credentials = { company: { _id: new ObjectID() } };
-  const prefix = 'AV-1907';
-
-  beforeEach(() => {
-    findOneAndUpdateNumber = sinon.stub(CreditNoteNumber, 'findOneAndUpdate');
-    formatCreditNote = sinon.stub(CreditNoteHelper, 'formatCreditNote');
-    insertManyCreditNote = sinon.stub(CreditNote, 'insertMany');
-    updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
-  });
-  afterEach(() => {
-    findOneAndUpdateNumber.restore();
-    formatCreditNote.restore();
-    insertManyCreditNote.restore();
-    updateEventAndFundingHistory.restore();
-  });
-
-  it('should create one credit note (for customer)', async () => {
-    const payload = {
-      date: '2019-07-30T00:00:00',
-      inclTaxesCustomer: 123,
-      thirdPartyPayer: 'qwertyuiop',
-    };
-    findOneAndUpdateNumber.onCall(0).returns({ seq: 1, prefix });
-    formatCreditNote.returns({ inclTaxesCustomer: 1234 });
-
-    await CreditNoteHelper.createCreditNotes(payload, credentials);
-
-    sinon.assert.calledWithExactly(
-      formatCreditNote,
-      {
-        date: '2019-07-30T00:00:00',
-        inclTaxesCustomer: 123,
-        exclTaxesTpp: 0,
-        inclTaxesTpp: 0,
-        company: credentials.company._id,
-      },
-      prefix,
-      1
-    );
-    sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesCustomer: 1234 }]);
-    sinon.assert.notCalled(updateEventAndFundingHistory);
-    sinon.assert.calledWithExactly(
-      findOneAndUpdateNumber.getCall(0),
-      { prefix },
-      {},
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    sinon.assert.calledWithExactly(
-      findOneAndUpdateNumber.getCall(1),
-      { prefix },
-      { $set: { seq: 2 } }
-    );
-  });
-
-  it('should create one credit note (for tpp)', async () => {
-    const payload = {
-      date: '2019-07-30T00:00:00',
-      inclTaxesTpp: 123,
-      thirdPartyPayer: 'qwertyuiop',
-      events: [{ _id: 'asdfghjkl' }],
-    };
-    findOneAndUpdateNumber.onCall(0).returns({ seq: 1, prefix });
-    formatCreditNote.returns({ inclTaxesTpp: 1234 });
-
-    await CreditNoteHelper.createCreditNotes(payload, credentials);
-
-    sinon.assert.calledWithExactly(
-      formatCreditNote,
-      {
-        date: '2019-07-30T00:00:00',
-        events: [{ _id: 'asdfghjkl' }],
-        inclTaxesTpp: 123,
-        thirdPartyPayer: 'qwertyuiop',
-        exclTaxesCustomer: 0,
-        inclTaxesCustomer: 0,
-        company: credentials.company._id,
-      },
-      prefix,
-      1
-    );
-    sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesTpp: 1234 }]);
-    sinon.assert.calledWithExactly(updateEventAndFundingHistory, [{ _id: 'asdfghjkl' }], false, credentials);
-    sinon.assert.calledWithExactly(
-      findOneAndUpdateNumber.getCall(0),
-      { prefix },
-      {},
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    sinon.assert.calledWithExactly(
-      findOneAndUpdateNumber.getCall(1),
-      { prefix },
-      { $set: { seq: 2 } }
-    );
-  });
-
-  it('should create two credit notes (for customer and tpp)', async () => {
-    const payload = {
-      date: '2019-07-30T00:00:00',
-      inclTaxesTpp: 123,
-      inclTaxesCustomer: 654,
-      thirdPartyPayer: 'qwertyuiop',
-    };
-    findOneAndUpdateNumber.onCall(0).returns({ seq: 1, prefix });
-    formatCreditNote.onCall(0).returns({ _id: '1234', inclTaxesCustomer: 32 });
-    formatCreditNote.onCall(1).returns({ _id: '0987', inclTaxesTpp: 1234 });
-
-    await CreditNoteHelper.createCreditNotes(payload, credentials);
-
-    sinon.assert.calledWithExactly(
-      formatCreditNote.getCall(0),
-      {
-        date: '2019-07-30T00:00:00',
-        inclTaxesTpp: 123,
-        thirdPartyPayer: 'qwertyuiop',
-        exclTaxesCustomer: 0,
-        inclTaxesCustomer: 0,
-        company: credentials.company._id,
-      },
-      prefix,
-      1
-    );
-    sinon.assert.calledWithExactly(
-      formatCreditNote.getCall(1),
-      {
-        date: '2019-07-30T00:00:00',
-        inclTaxesCustomer: 654,
-        exclTaxesTpp: 0,
-        inclTaxesTpp: 0,
-        company: credentials.company._id,
-      },
-      prefix,
-      2
-    );
-    sinon.assert.calledWithExactly(
-      insertManyCreditNote,
-      [
-        { _id: '0987', linkedCreditNote: '1234', inclTaxesTpp: 1234 },
-        { _id: '1234', linkedCreditNote: '0987', inclTaxesCustomer: 32 },
-      ]
-    );
-    sinon.assert.notCalled(updateEventAndFundingHistory);
-    sinon.assert.calledWithExactly(
-      findOneAndUpdateNumber.getCall(0),
-      { prefix },
-      {},
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-    sinon.assert.calledWithExactly(
-      findOneAndUpdateNumber.getCall(1),
-      { prefix },
-      { $set: { seq: 3 } }
-    );
-  });
-});
-
-describe('updateCreditNotes', () => {
-  let updateEventAndFundingHistory;
-  let findByIdAndUpdate;
-  let updateOne;
-  const creditNote = {
-    _id: new ObjectID(),
-    number: 1,
-    events: [{
-      auxiliary: {
-        identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
-      },
-      startDate: '2019-04-29T06:00:00.000Z',
-      endDate: '2019-04-29T15:00:00.000Z',
-      serviceName: 'Toto',
-      bills: { inclTaxesCustomer: 234, exclTaxesCustomer: 221, surcharges: [{ percentage: 30 }] },
-    }],
-    customer: {
-      identity: { firstname: 'Toto', lastname: 'Bobo', title: 'mr' },
-      contact: { primaryAddress: { fullAddress: 'La ruche' } },
-      subscriptions: [{ _id: new ObjectID(), service: { versions: [{ name: 'Toto' }] } }],
-    },
-    date: '2019-04-29T22:00:00.000Z',
-    exclTaxesCustomer: 221,
-    inclTaxesCustomer: 234,
-    exclTaxesTpp: 21,
-    inclTaxesTpp: 34,
-  };
-  const credentials = { company: { _id: new ObjectID() } };
-
-  beforeEach(() => {
-    updateEventAndFundingHistory = sinon.stub(CreditNoteHelper, 'updateEventAndFundingHistory');
-    findByIdAndUpdate = sinon.stub(CreditNote, 'findByIdAndUpdate');
-    updateOne = sinon.stub(CreditNote, 'updateOne');
-  });
-
-  afterEach(() => {
-    updateEventAndFundingHistory.restore();
-    findByIdAndUpdate.restore();
-    updateOne.restore();
-  });
-
-  it('should update a credit note', async () => {
-    const payload = { customer: { identity: { firstname: 'Titi' } } };
-    const updatedCreditNote = {
-      ...creditNote,
-      customer: {
-        ...creditNote.customer,
-        identity: {
-          ...creditNote.customer.identity,
-          firstname: payload.customer.identity.firstname,
-        },
-      },
-    };
-
-    findByIdAndUpdate.returns(updatedCreditNote);
-
-    const result = await CreditNoteHelper.updateCreditNotes(creditNote, payload, credentials);
-
-    expect(result).toMatchObject(updatedCreditNote);
-    sinon.assert.calledWithExactly(
-      updateEventAndFundingHistory,
-      creditNote.events,
-      true,
-      credentials
-    );
-    sinon.assert.calledWithExactly(
-      findByIdAndUpdate,
-      creditNote._id,
-      { $set: payload },
-      { new: true }
-    );
-  });
-
-  it('should update a customer credit note and its tpp linked credit note', async () => {
-    const creditNoteWithLink = { ...creditNote, linkedCreditNote: new ObjectID() };
-    const payload = {
-      events: [{
-        auxiliary: {
-          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
-        },
-        startDate: '2019-04-30T06:00:00.000Z',
-        endDate: '2019-04-30T15:00:00.000Z',
-        serviceName: 'Toto',
-        bills: { inclTaxesCustomer: 123, exclTaxesCustomer: 90 },
-      }],
-    };
-    const updatedCreditNote = { ...creditNoteWithLink, events: payload.events };
-
-    findByIdAndUpdate.returns(updatedCreditNote);
-
-    const result = await CreditNoteHelper.updateCreditNotes(creditNoteWithLink, payload, credentials);
-    expect(result).toMatchObject(updatedCreditNote);
-    sinon.assert.calledWithExactly(
-      updateEventAndFundingHistory.firstCall,
-      creditNoteWithLink.events,
-      true,
-      credentials
-    );
-    sinon.assert.calledWithExactly(
-      updateEventAndFundingHistory.secondCall,
-      payload.events,
-      false,
-      credentials
-    );
-    sinon.assert.calledWithExactly(
-      findByIdAndUpdate,
-      creditNote._id,
-      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
-      { new: true }
-    );
-    sinon.assert.calledWithExactly(
-      updateOne,
-      { _id: creditNoteWithLink.linkedCreditNote },
-      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
-      { new: true }
-    );
-  });
-
-  it('should update a tpp credit note and its customer linked credit note', async () => {
-    const creditNoteWithLink = { ...creditNote, thirdPartyPayer: new ObjectID(), linkedCreditNote: new ObjectID() };
-    const payload = {
-      events: [{
-        auxiliary: {
-          identity: { firstname: 'Nathanaelle', lastname: 'Tata' },
-        },
-        startDate: '2019-04-30T06:00:00.000Z',
-        endDate: '2019-04-30T15:00:00.000Z',
-        serviceName: 'Toto',
-        bills: { inclTaxesCustomer: 123, exclTaxesCustomer: 90 },
-      }],
-    };
-    const updatedCreditNote = { ...creditNoteWithLink, events: payload.events };
-
-    findByIdAndUpdate.returns(updatedCreditNote);
-
-    const result = await CreditNoteHelper.updateCreditNotes(creditNoteWithLink, payload, credentials);
-    expect(result).toMatchObject(updatedCreditNote);
-    sinon.assert.calledWithExactly(
-      updateEventAndFundingHistory.firstCall,
-      creditNoteWithLink.events,
-      true,
-      credentials
-    );
-    sinon.assert.calledWithExactly(
-      updateEventAndFundingHistory.secondCall,
-      payload.events,
-      false,
-      credentials
-    );
-    sinon.assert.calledWithExactly(
-      findByIdAndUpdate,
-      creditNote._id,
-      { $set: { ...payload, inclTaxesCustomer: 0, exclTaxesCustomer: 0 } },
-      { new: true }
-    );
-    sinon.assert.calledWithExactly(
-      updateOne,
-      { _id: creditNoteWithLink.linkedCreditNote },
-      { $set: { ...payload, inclTaxesTpp: 0, exclTaxesTpp: 0 } },
-      { new: true }
-    );
   });
 });
 

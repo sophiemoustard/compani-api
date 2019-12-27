@@ -70,7 +70,7 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
 };
 
 exports.formatCreditNoteNumber = (companyPrefix, prefix, seq) =>
-  `AV-${companyPrefix}${prefix}${seq.toString().padStart(3, '0')}`;
+  `AV-${companyPrefix}${prefix}${seq.toString().padStart(5, '0')}`;
 
 exports.formatCreditNote = (payload, companyPrefix, prefix, seq) => {
   const creditNote = { ...payload, number: exports.formatCreditNoteNumber(companyPrefix, prefix, seq) };
@@ -151,27 +151,6 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
   return creditNote;
 };
 
-exports.getCreditNotes = async (query, credentials) => {
-  const { startDate, endDate, ...creditNoteQuery } = query;
-  if (startDate || endDate) creditNoteQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
-  creditNoteQuery.company = get(credentials, 'company._id', null);
-
-  const creditNotes = await CreditNote.find(creditNoteQuery)
-    .populate({
-      path: 'customer',
-      select: '_id identity subscriptions',
-      populate: { path: 'subscriptions.service' },
-    })
-    .populate({ path: 'thirdPartyPayer', select: '_id name' })
-    .lean();
-
-  for (let i = 0, l = creditNotes.length; i < l; i++) {
-    creditNotes[i].customer = SubscriptionsHelper.populateSubscriptionsServices({ ...creditNotes[i].customer });
-  }
-
-  return creditNotes;
-};
-
 const formatCustomerName = customer =>
   (customer.identity.firstname
     ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
@@ -186,10 +165,9 @@ const formatEventForPdf = event => ({
   surcharges: event.bills.surcharges && PdfHelper.formatEventSurchargesForPdf(event.bills.surcharges),
 });
 
-const computeCreditNoteEventVat = (creditNote, event) =>
-  (creditNote.exclTaxesTpp
-    ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
-    : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
+const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTpp
+  ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
+  : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
 exports.formatPDF = (creditNote, company) => {
   const computedData = {
