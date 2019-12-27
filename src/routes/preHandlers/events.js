@@ -108,7 +108,10 @@ exports.checkEventCreationOrUpdate = async (req) => {
   }
 
   if (req.payload.auxiliary) {
-    const auxiliary = await User.findOne(({ _id: req.payload.auxiliary, company: companyId })).lean();
+    const auxiliary = await User
+      .findOne(({ _id: req.payload.auxiliary, company: companyId }))
+      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
+      .lean({ autopopulate: true, virtuals: true });
     if (!auxiliary) throw Boom.forbidden();
   }
 
@@ -127,7 +130,10 @@ exports.checkEventCreationOrUpdate = async (req) => {
 
 exports.authorizeEventDeletionList = async (req) => {
   const { credentials } = req.auth;
-  const customer = await Customer.findOne({ _id: req.query.customer, company: get(credentials, 'company._id', null) }).lean();
+  const customer = await Customer.findOne({
+    _id: req.query.customer,
+    company: get(credentials, 'company._id', null),
+  }).lean();
   if (!customer) throw Boom.forbidden();
   return null;
 };

@@ -99,11 +99,11 @@ exports.getEventsGroupedByAuxiliaries = async (rules, companyId) =>
 
 exports.getEventsGroupedByCustomers = async (rules, companyId) => getEventsGroupedBy(rules, '$customer._id', companyId);
 
-exports.getEventList = rules => Event.find(rules)
+exports.getEventList = (rules, companyId) => Event.find(rules)
   .populate({
     path: 'auxiliary',
     select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
-    populate: { path: 'sector' },
+    populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
   })
   .populate({
     path: 'customer',
@@ -111,7 +111,7 @@ exports.getEventList = rules => Event.find(rules)
     populate: { path: 'subscriptions.service' },
   })
   .populate({ path: 'internalHour' })
-  .lean();
+  .lean({ autopopulate: true, viruals: true });
 
 exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {
   const rules = {
@@ -631,7 +631,7 @@ exports.getCustomersFromEvent = async (query, companyId) => {
             {
               $indexOfArray: [
                 '$subscriptions.service.versions.startDate',
-                { $max: '$subscriptions.service.versions.startDate' }
+                { $max: '$subscriptions.service.versions.startDate' },
               ],
             },
           ],

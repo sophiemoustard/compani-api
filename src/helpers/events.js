@@ -34,6 +34,7 @@ momentRange.extendMoment(moment);
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.list = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const eventsQuery = exports.getListQuery(query, credentials);
   const { groupBy } = query;
 
@@ -42,13 +43,13 @@ exports.list = async (query, credentials) => {
   } else if (groupBy === AUXILIARY) {
     return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, get(credentials, 'company._id', null));
   }
-  return exports.populateEvents(await EventRepository.getEventList(eventsQuery));
+  return exports.populateEvents(await EventRepository.getEventList(eventsQuery, companyId));
 };
 
 exports.createEvent = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   let event = { ...payload, company: companyId };
-  if (!(await EventsValidationHelper.isCreationAllowed(event))) throw Boom.badData();
+  if (!(await EventsValidationHelper.isCreationAllowed(event, companyId))) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
@@ -124,11 +125,15 @@ exports.getListQuery = (query, credentials) => {
   }
   if (isBilled) rules.push({ customer: isBilled });
   if (startDate) {
-    const startDateQuery = moment(startDate).startOf('d').toDate();
+    const startDateQuery = moment(startDate)
+      .startOf('d')
+      .toDate();
     rules.push({ endDate: { $gt: startDateQuery } });
   }
   if (endDate) {
-    const endDateQuery = moment(endDate).endOf('d').toDate();
+    const endDateQuery = moment(endDate)
+      .endOf('d')
+      .toDate();
     rules.push({ startDate: { $lt: endDateQuery } });
   }
 
@@ -137,8 +142,16 @@ exports.getListQuery = (query, credentials) => {
 
 exports.listForCreditNotes = (payload, credentials) => {
   let query = {
-    startDate: { $gte: moment(payload.startDate).startOf('d').toDate() },
-    endDate: { $lte: moment(payload.endDate).endOf('d').toDate() },
+    startDate: {
+      $gte: moment(payload.startDate)
+        .startOf('d')
+        .toDate(),
+    },
+    endDate: {
+      $lte: moment(payload.endDate)
+        .endOf('d')
+        .toDate(),
+    },
     customer: payload.customer,
     isBilled: payload.isBilled,
     type: INTERVENTION,
@@ -176,14 +189,15 @@ exports.populateEvents = async (events) => {
   return populatedEvents;
 };
 
-exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, internalHourId) => Event.updateMany(
-  {
-    type: INTERNAL_HOUR,
-    internalHour: oldInternalHourId,
-    startDate: { $gte: eventsStartDate },
-  },
-  { $set: { internalHour: internalHourId } }
-);
+exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, internalHourId) =>
+  Event.updateMany(
+    {
+      type: INTERNAL_HOUR,
+      internalHour: oldInternalHourId,
+      startDate: { $gte: eventsStartDate },
+    },
+    { $set: { internalHour: internalHourId } }
+  );
 
 exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = pick(
@@ -260,10 +274,10 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
   if (customerSubscriptionsFromEvents.length === 0) return;
   let correspondingSubs;
-  correspondingSubs = contract.status === COMPANY_CONTRACT
-    ? customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status)
-    : correspondingSubs = customerSubscriptionsFromEvents
-      .filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status);
+  correspondingSubs =
+    contract.status === COMPANY_CONTRACT
+      ? customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status)
+      : (correspondingSubs = customerSubscriptionsFromEvents.filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status));
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
@@ -292,10 +306,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   }
 
   promises.push(
-    Event.updateMany(
-      { _id: { $in: ids } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
-    ),
+    Event.updateMany({ _id: { $in: ids } }, { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }),
     Repetition.updateMany({ auxiliary: contract.user, type: INTERVENTION }, { $unset: { auxiliary: '' } }),
     Repetition.deleteMany({ auxiliary: contract.user, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } })
   );
@@ -332,12 +343,20 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
     customer: new ObjectID(customer),
     startDate: { $gte: moment(startDate).toDate() },
   };
-  if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
-  if (await Event.countDocuments({
-    ...query,
-    company: new ObjectID(companyId),
-    isBilled: true,
-  }) > 0) throw Boom.conflict('Some events are already billed');
+  if (endDate) {
+    query.startDate.$lte = moment(endDate)
+      .endOf('d')
+      .toDate();
+  }
+  if (
+    (await Event.countDocuments({
+      ...query,
+      company: new ObjectID(companyId),
+      isBilled: true,
+    })) > 0
+  ) {
+    throw Boom.conflict('Some events are already billed');
+  }
 
   const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query, companyId);
   for (const group of eventsGroupedByParentId) {
@@ -399,15 +418,16 @@ exports.getContractWeekInfo = (contract, query) => {
   return ContractHelper.getContractInfo(versions, query, weekRatio);
 };
 
-exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
-  const isCompanyContract = cont.status === COMPANY_CONTRACT;
-  if (!isCompanyContract) return false;
+exports.getContract = (contracts, startDate, endDate) =>
+  contracts.find((cont) => {
+    const isCompanyContract = cont.status === COMPANY_CONTRACT;
+    if (!isCompanyContract) return false;
 
-  const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
-  if (!contractStarted) return false;
+    const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
+    if (!contractStarted) return false;
 
-  return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
-});
+    return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
+  });
 
 exports.workingStats = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -418,7 +438,9 @@ exports.workingStats = async (query, credentials) => {
       : [new ObjectID(query.auxiliary)];
     queryAuxiliaries._id = { $in: ids };
   }
-  const auxiliaries = await User.find(queryAuxiliaries).populate('contracts').lean();
+  const auxiliaries = await User.find(queryAuxiliaries)
+    .populate('contracts')
+    .lean();
   const { startDate, endDate } = query;
   const distanceMatrix = await DistanceMatrix.find({ company: companyId }).lean();
   const auxiliariesIds = auxiliaries.map(aux => aux._id);
@@ -426,9 +448,7 @@ exports.workingStats = async (query, credentials) => {
 
   const workingStats = {};
   for (const auxiliary of auxiliaries) {
-    const eventsToPay =
-      eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString())
-      || { absences: [], events: [] };
+    const eventsToPay = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString()) || { absences: [], events: [] };
     const { contracts } = auxiliary;
     if (!contracts || !contracts.length) continue;
     const contract = exports.getContract(contracts, query.startDate, query.endDate);
