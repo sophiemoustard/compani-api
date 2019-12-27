@@ -69,50 +69,61 @@ exports.updateEventAndFundingHistory = async (eventsToUpdate, isBilled, credenti
   await Promise.all(promises);
 };
 
-exports.formatCreditNote = (payload, prefix, seq) => {
-  payload.number = `${prefix}${seq.toString().padStart(3, '0')}`;
-  if (payload.inclTaxesCustomer) payload.inclTaxesCustomer = UtilsHelper.getFixedNumber(payload.inclTaxesCustomer, 2);
-  if (payload.inclTaxesTpp) payload.inclTaxesTpp = UtilsHelper.getFixedNumber(payload.inclTaxesTpp, 2);
+exports.formatCreditNoteNumber = (companyPrefix, prefix, seq) =>
+  `AV-${companyPrefix}${prefix}${seq.toString().padStart(5, '0')}`;
 
-  return new CreditNote(payload);
+exports.formatCreditNote = (payload, companyPrefix, prefix, seq) => {
+  const creditNote = { ...payload, number: exports.formatCreditNoteNumber(companyPrefix, prefix, seq) };
+  if (payload.inclTaxesCustomer) {
+    creditNote.inclTaxesCustomer = UtilsHelper.getFixedNumber(payload.inclTaxesCustomer, 2);
+  }
+  if (payload.inclTaxesTpp) creditNote.inclTaxesTpp = UtilsHelper.getFixedNumber(payload.inclTaxesTpp, 2);
+
+  return new CreditNote(creditNote);
+};
+
+exports.getCreditNoteNumber = async (payload, company) => {
+  const prefix = moment(payload.date).format('YYMM');
+
+  return CreditNoteNumber
+    .findOneAndUpdate({ prefix, company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true })
+    .lean();
 };
 
 exports.createCreditNotes = async (payload, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const query = { prefix: `AV-${moment(payload.date).format('YYMM')}` };
-  const number = await CreditNoteNumber.findOneAndUpdate(
-    query,
-    {},
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
-  let { seq } = number;
+  const { company } = credentials;
+  const number = await exports.getCreditNoteNumber(payload, company);
 
-  let tppCreditNote;
-  let customerCreditNote;
+  let tppCN;
+  let customerCN;
   if (payload.inclTaxesTpp) {
-    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0, company: companyId };
-    tppCreditNote = await exports.formatCreditNote(tppPayload, number.prefix, seq);
-    seq++;
+    const tppPayload = { ...payload, exclTaxesCustomer: 0, inclTaxesCustomer: 0, company: company._id };
+    tppCN = await exports.formatCreditNote(tppPayload, company.prefixNumber, number.prefix, number.seq);
+    number.seq++;
   }
   if (payload.inclTaxesCustomer) {
     delete payload.thirdPartyPayer;
-    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0, company: companyId };
-    customerCreditNote = await exports.formatCreditNote(customerPayload, number.prefix, seq);
-    seq++;
+    const customerPayload = { ...payload, exclTaxesTpp: 0, inclTaxesTpp: 0, company: company._id };
+    customerCN = await exports.formatCreditNote(customerPayload, company.prefixNumber, number.prefix, number.seq);
+    number.seq++;
   }
 
   let creditNotes = [];
   const promises = [];
-  if (tppCreditNote && customerCreditNote) {
-    customerCreditNote.linkedCreditNote = tppCreditNote._id;
-    tppCreditNote.linkedCreditNote = customerCreditNote._id;
-    creditNotes = [customerCreditNote, tppCreditNote];
-  } else if (tppCreditNote) creditNotes = [tppCreditNote];
-  else creditNotes = [customerCreditNote];
+  if (tppCN && customerCN) {
+    customerCN.linkedCreditNote = tppCN._id;
+    tppCN.linkedCreditNote = customerCN._id;
+    creditNotes = [customerCN, tppCN];
+  } else if (tppCN) creditNotes = [tppCN];
+  else creditNotes = [customerCN];
 
-  promises.push(CreditNote.insertMany(creditNotes), CreditNoteNumber.findOneAndUpdate(query, { $set: { seq } }));
   if (payload.events) promises.push(exports.updateEventAndFundingHistory(payload.events, false, credentials));
-  return Promise.all(promises);
+
+  return Promise.all([
+    ...promises,
+    CreditNote.insertMany(creditNotes),
+    CreditNoteNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } }),
+  ]);
 };
 
 exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
@@ -140,27 +151,6 @@ exports.updateCreditNotes = async (creditNoteFromDB, payload, credentials) => {
   return creditNote;
 };
 
-exports.getCreditNotes = async (query, credentials) => {
-  const { startDate, endDate, ...creditNoteQuery } = query;
-  if (startDate || endDate) creditNoteQuery.date = UtilsHelper.getDateQuery({ startDate, endDate });
-  creditNoteQuery.company = get(credentials, 'company._id', null);
-
-  const creditNotes = await CreditNote.find(creditNoteQuery)
-    .populate({
-      path: 'customer',
-      select: '_id identity subscriptions',
-      populate: { path: 'subscriptions.service' },
-    })
-    .populate({ path: 'thirdPartyPayer', select: '_id name' })
-    .lean();
-
-  for (let i = 0, l = creditNotes.length; i < l; i++) {
-    creditNotes[i].customer = SubscriptionsHelper.populateSubscriptionsServices({ ...creditNotes[i].customer });
-  }
-
-  return creditNotes;
-};
-
 const formatCustomerName = customer =>
   (customer.identity.firstname
     ? `${CIVILITY_LIST[customer.identity.title]} ${customer.identity.firstname} ${customer.identity.lastname}`
@@ -175,10 +165,9 @@ const formatEventForPdf = event => ({
   surcharges: event.bills.surcharges && PdfHelper.formatEventSurchargesForPdf(event.bills.surcharges),
 });
 
-const computeCreditNoteEventVat = (creditNote, event) =>
-  (creditNote.exclTaxesTpp
-    ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
-    : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
+const computeCreditNoteEventVat = (creditNote, event) => (creditNote.exclTaxesTpp
+  ? event.bills.inclTaxesTpp - event.bills.exclTaxesTpp
+  : event.bills.inclTaxesCustomer - event.bills.exclTaxesCustomer);
 
 exports.formatPDF = (creditNote, company) => {
   const computedData = {
