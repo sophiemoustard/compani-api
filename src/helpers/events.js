@@ -98,7 +98,7 @@ exports.unassignConflictInterventions = async (dates, auxiliary, credentials) =>
 };
 
 exports.getListQuery = (query, credentials) => {
-  const rules = [{ company: new ObjectID(get(credentials, 'company._id')) }];
+  const rules = [{ company: new ObjectID(get(credentials, 'company._id', null)) }];
 
   const { auxiliary, type, customer, sector, isBilled, startDate, endDate, status } = query;
 

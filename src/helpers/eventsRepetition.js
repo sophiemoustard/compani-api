@@ -209,6 +209,8 @@ exports.createFutureEventBasedOnRepetition = async (repetition) => {
   if (newEvent.type === INTERVENTION && newEvent.auxiliary && await EventsValidationHelper.hasConflicts(newEvent)) {
     delete newEvent.auxiliary;
     newEvent.repetition.frequency = NEVER;
+    const user = await User.findOne({ _id: repetition.auxiliary }).populate('sector').lean();
+    newEvent.sector = user.sector._id;
   }
 
   return new Event(newEvent);
