@@ -49,7 +49,8 @@ exports.list = async (query, credentials) => {
 exports.createEvent = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   let event = { ...payload, company: companyId };
-  if (!(await EventsValidationHelper.isCreationAllowed(event, companyId))) throw Boom.badData();
+  const isCreationAllowed = await EventsValidationHelper.isCreationAllowed(event, credentials);
+  if (!isCreationAllowed) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
@@ -258,10 +259,10 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
   if (customerSubscriptionsFromEvents.length === 0) return;
   let correspondingSubs;
-  correspondingSubs =
-    contract.status === COMPANY_CONTRACT
-      ? customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status)
-      : (correspondingSubs = customerSubscriptionsFromEvents.filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status));
+  correspondingSubs = contract.status === COMPANY_CONTRACT
+    ? customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status)
+    : (correspondingSubs = customerSubscriptionsFromEvents
+      .filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status));
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
@@ -327,18 +328,9 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
     customer: new ObjectID(customer),
     startDate: { $gte: moment(startDate).toDate() },
   };
-  if (endDate) {
-    query.startDate.$lte = moment(endDate).endOf('d').toDate();
-  }
-  if (
-    (await Event.countDocuments({
-      ...query,
-      company: new ObjectID(companyId),
-      isBilled: true,
-    })) > 0
-  ) {
-    throw Boom.conflict('Some events are already billed');
-  }
+  if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
+  const billedEventsCount = await Event.countDocuments({ ...query, company: new ObjectID(companyId), isBilled: true });
+  if (billedEventsCount > 0) throw Boom.conflict('Some events are already billed');
 
   const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query, companyId);
   for (const group of eventsGroupedByParentId) {
@@ -400,16 +392,15 @@ exports.getContractWeekInfo = (contract, query) => {
   return ContractHelper.getContractInfo(versions, query, weekRatio);
 };
 
-exports.getContract = (contracts, startDate, endDate) =>
-  contracts.find((cont) => {
-    const isCompanyContract = cont.status === COMPANY_CONTRACT;
-    if (!isCompanyContract) return false;
+exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) => {
+  const isCompanyContract = cont.status === COMPANY_CONTRACT;
+  if (!isCompanyContract) return false;
 
-    const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
-    if (!contractStarted) return false;
+  const contractStarted = moment(cont.startDate).isSameOrBefore(endDate);
+  if (!contractStarted) return false;
 
-    return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
-  });
+  return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
+});
 
 exports.workingStats = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -420,9 +411,7 @@ exports.workingStats = async (query, credentials) => {
       : [new ObjectID(query.auxiliary)];
     queryAuxiliaries._id = { $in: ids };
   }
-  const auxiliaries = await User.find(queryAuxiliaries)
-    .populate('contracts')
-    .lean();
+  const auxiliaries = await User.find(queryAuxiliaries).populate('contracts').lean();
   const { startDate, endDate } = query;
   const distanceMatrix = await DistanceMatrix.find({ company: companyId }).lean();
   const auxiliariesIds = auxiliaries.map(aux => aux._id);
@@ -430,7 +419,8 @@ exports.workingStats = async (query, credentials) => {
 
   const workingStats = {};
   for (const auxiliary of auxiliaries) {
-    const eventsToPay = eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString()) || { absences: [], events: [] };
+    const eventsToPay = eventsByAuxiliary
+      .find(g => g.auxiliary._id.toHexString() === auxiliary._id.toHexString()) || { absences: [], events: [] };
     const { contracts } = auxiliary;
     if (!contracts || !contracts.length) continue;
     const contract = exports.getContract(contracts, query.startDate, query.endDate);

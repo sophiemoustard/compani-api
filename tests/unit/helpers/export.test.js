@@ -200,11 +200,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       date: '2019-05-20T06:00:00.000+00:00',
       customer: {
         _id: ObjectID('5c35b5eb1a4fb00997363eb3'),
-        identity: {
-          title: 'mrs',
-          firstname: 'Mimi',
-          lastname: 'Mathy',
-        },
+        identity: { title: 'mrs', firstname: 'Mimi', lastname: 'Mathy' },
       },
       client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
@@ -255,10 +251,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       date: '2019-05-21T01:00:00.000+00:00',
       customer: {
         _id: new ObjectID('5d761a8f6f6cba0d259b17eb'),
-        identity: {
-          firstname: 'Jar jar',
-          lastname: 'Binks',
-        },
+        identity: { firstname: 'Jar jar', lastname: 'Binks' },
       },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
@@ -272,9 +265,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       date: '2019-05-25T02:00:00.000+00:00',
       customer: {
         _id: new ObjectID('5d761a8f6f8eba0d259b173f'),
-        identity: {
-          lastname: 'R2D2',
-        },
+        identity: { lastname: 'R2D2' },
       },
       subscription: { service: { name: 'Temps de qualité - autonomie' } },
       exclTaxesCustomer: 10.5,
@@ -308,8 +299,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array containing just the header', async () => {
-    mockBill
-      .expects('find')
+    mockBill.expects('find')
       .withExactArgs(findQuery)
       .chain('sort')
       .withExactArgs(sortQuery)
@@ -319,8 +309,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .withExactArgs('client')
       .chain('lean')
       .returns([]);
-    mockCreditNote
-      .expects('find')
+    mockCreditNote.expects('find')
       .withExactArgs(findQuery)
       .chain('sort')
       .withExactArgs(sortQuery)
@@ -339,8 +328,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
   });
 
   it('should return an array with the header and a row of empty cells', async () => {
-    mockBill
-      .expects('find')
+    mockBill.expects('find')
       .withExactArgs(findQuery)
       .chain('sort')
       .withExactArgs(sortQuery)
@@ -350,8 +338,7 @@ describe('exportBillsAndCreditNotesHistory', () => {
       .withExactArgs('client')
       .chain('lean')
       .returns([{}]);
-    mockCreditNote
-      .expects('find')
+    mockCreditNote.expects('find')
       .withExactArgs(findQuery)
       .chain('sort')
       .withExactArgs(sortQuery)
@@ -990,9 +977,7 @@ describe('exportHelpers', () => {
 
   it('should return csv header', async () => {
     const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'helper' })
-      .returns({ _id: roleId });
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
 
     const helpers = [];
     UserModel.expects('find')
@@ -1027,17 +1012,13 @@ describe('exportHelpers', () => {
 
   it('should return helper info', async () => {
     const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'helper' })
-      .returns({ _id: roleId });
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
 
-    const helpers = [
-      {
-        local: { email: 'aide@sos.io' },
-        identity: { lastname: 'Je', firstname: 'suis' },
-        createdAt: '2019-02-01T09:38:18.653Z',
-      },
-    ];
+    const helpers = [{
+      local: { email: 'aide@sos.io' },
+      identity: { lastname: 'Je', firstname: 'suis' },
+      createdAt: '2019-02-01T09:38:18.653Z',
+    }];
     UserModel.expects('find')
       .withExactArgs({ role: roleId, company: credentials.company._id })
       .chain('populate')
@@ -1057,28 +1038,22 @@ describe('exportHelpers', () => {
 
   it('should return customer helper info', async () => {
     const roleId = new ObjectID();
-    RoleModel.expects('findOne')
-      .withExactArgs({ name: 'helper' })
-      .returns({ _id: roleId });
+    RoleModel.expects('findOne').withExactArgs({ name: 'helper' }).returns({ _id: roleId });
 
-    const helpers = [
-      {
-        customers: [
-          {
-            firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
-            identity: { title: 'mr', lastname: 'Patate' },
-            contact: {
-              primaryAddress: {
-                fullAddress: '37 rue de Ponthieu 75008 Paris',
-                street: '37 rue de Ponthieu',
-                zipCode: '75008',
-                city: 'Paris',
-              },
-            },
+    const helpers = [{
+      customers: [{
+        firstIntervention: { startDate: '2019-05-20T06:00:00.000+00:00' },
+        identity: { title: 'mr', lastname: 'Patate' },
+        contact: {
+          primaryAddress: {
+            fullAddress: '37 rue de Ponthieu 75008 Paris',
+            street: '37 rue de Ponthieu',
+            zipCode: '75008',
+            city: 'Paris',
           },
-        ],
-      },
-    ];
+        },
+      }],
+    }];
     UserModel.expects('find')
       .withExactArgs({ role: roleId, company: credentials.company._id })
       .chain('populate')
@@ -1114,34 +1089,28 @@ describe('formatSurchargedDetailsForExport', () => {
   const emptyPlan = { planName: 'Empty plan' };
   const unknownPlan = { planName: 'Unknown plan', helloWorld: { percentage: 7, hours: 10 } };
   const onePlan = {
-    plan: [
-      {
-        planName: 'Small plan',
-        sunday: { percentage: 28, hours: 11 },
-        evening: { percentage: 17, hours: 12 },
-        custom: { percentage: 8, hours: 13 },
-      },
-    ],
+    plan: [{
+      planName: 'Small plan',
+      sunday: { percentage: 28, hours: 11 },
+      evening: { percentage: 17, hours: 12 },
+      custom: { percentage: 8, hours: 13 },
+    }],
   };
   const onePlanWithDiff = {
-    plan: [
-      {
-        planName: 'Small plan',
-        sunday: { percentage: 28, hours: 11 },
-        evening: { percentage: 17, hours: 12 },
-        custom: { percentage: 8, hours: 13 },
-      },
-    ],
+    plan: [{
+      planName: 'Small plan',
+      sunday: { percentage: 28, hours: 11 },
+      evening: { percentage: 17, hours: 12 },
+      custom: { percentage: 8, hours: 13 },
+    }],
     diff: {
-      plan: [
-        {
-          planName: 'Full plan',
-          saturday: { percentage: 20, hours: 1.12543 },
-          sunday: { percentage: 30, hours: 2.2 },
-          publicHoliday: { percentage: 25, hours: 3 },
-          twentyFifthOfDecember: { percentage: 35, hours: 4 },
-        },
-      ],
+      plan: [{
+        planName: 'Full plan',
+        saturday: { percentage: 20, hours: 1.12543 },
+        sunday: { percentage: 30, hours: 2.2 },
+        publicHoliday: { percentage: 25, hours: 3 },
+        twentyFifthOfDecember: { percentage: 35, hours: 4 },
+      }],
     },
   };
   const multiplePlans = {
@@ -1475,16 +1444,8 @@ describe('exportPayAndFinalPayHistory', () => {
     const startDate = '2019-11-10';
     const endDate = '2019-12-10';
     const query = {
-      endDate: {
-        $lte: moment(endDate)
-          .endOf('M')
-          .toDate(),
-      },
-      startDate: {
-        $gte: moment(startDate)
-          .startOf('M')
-          .toDate(),
-      },
+      endDate: { $lte: moment(endDate).endOf('M').toDate() },
+      startDate: { $gte: moment(startDate).startOf('M').toDate() },
       company: credentials.company._id,
     };
     PayMock.expects('find')

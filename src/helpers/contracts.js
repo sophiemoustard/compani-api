@@ -186,10 +186,7 @@ exports.formatVersionEditionPayload = async (oldVersion, newVersion, versionInde
     if (versionIndex === 0) set.startDate = newVersion.startDate;
     else {
       set[`versions.${versionIndex - 1}`] = {
-        endDate: moment(newVersion.startDate)
-          .subtract(1, 'd')
-          .endOf('d')
-          .toISOString(),
+        endDate: moment(newVersion.startDate).subtract(1, 'd').endOf('d').toISOString(),
       };
     }
   }
