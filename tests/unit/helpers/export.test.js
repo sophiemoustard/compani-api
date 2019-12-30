@@ -14,6 +14,7 @@ const FinalPay = require('../../../src/models/FinalPay');
 const ExportHelper = require('../../../src/helpers/export');
 const UtilsHelper = require('../../../src/helpers/utils');
 const EventRepository = require('../../../src/repositories/EventRepository');
+const { COMPANY_CONTRACT, CUSTOMER_CONTRACT } = require('../../../src/helpers/constants');
 
 describe('exportWorkingEventsHistory', () => {
   const header = [
@@ -698,15 +699,19 @@ describe('exportAuxiliaries', () => {
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs('sector')
+      .chain('populate')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .chain('lean')
       .once()
       .returns(auxiliaries);
 
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id de l\'auxiliaire', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
-      'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité sociale', 'Addresse', 'Téléphone',
-      'Nombre de contracts', 'Date d\'inactivité', 'Date de création']);
+    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id de l\'auxiliaire', 'Titre', 'Nom', 'Prénom',
+      'Date de naissance', 'Pays de naissance', 'Departement de naissance', 'Ville de naissance', 'Nationalité',
+      'N° de sécurité sociale', 'Addresse', 'Téléphone', 'Nombre de contracts', 'Date de début de contrat prestataire',
+      'Date de fin de contrat prestataire', 'Date d\'inactivité', 'Date de création']);
   });
 
   it('should return auxiliary info', async () => {
@@ -729,6 +734,9 @@ describe('exportAuxiliaries', () => {
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs('sector')
+      .chain('populate')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .chain('lean')
       .once()
       .returns(auxiliaries);
 
@@ -736,7 +744,27 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '0123456789', 0, '01/02/2019', '01/02/2019']);
+    expect(result[1]).toMatchObject([
+      'aide@sos.io',
+      '',
+      auxiliaries[0]._id,
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '0123456789',
+      0,
+      '',
+      '',
+      '01/02/2019',
+      '01/02/2019',
+    ]);
   });
 
   it('should return auxiliary sector', async () => {
@@ -753,6 +781,9 @@ describe('exportAuxiliaries', () => {
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs('sector')
+      .chain('populate')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .chain('lean')
       .once()
       .returns(auxiliaries);
 
@@ -760,7 +791,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', 'La ruche', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', 'La ruche', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, '', '', '', '']);
   });
 
   it('should return auxiliary identity', async () => {
@@ -790,6 +821,9 @@ describe('exportAuxiliaries', () => {
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs('sector')
+      .chain('populate')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .chain('lean')
       .once()
       .returns(auxiliaries);
 
@@ -797,10 +831,30 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, 'M.', 'MARIO', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
+    expect(result[1]).toMatchObject([
+      '',
+      '',
+      auxiliaries[0]._id,
+      'M.',
+      'MARIO',
+      'Super',
+      '07/02/1994',
+      'France',
+      78,
+      'Paris',
+      'Française',
+      '0987654321',
+      '',
+      '',
+      0,
+      '',
+      '',
+      '',
+      '',
+    ]);
   });
 
-  it('should return auxiliary contracts count', async () => {
+  it('should return auxiliary contracts info', async () => {
     const credentials = { company: { _id: new ObjectID() } };
     const roleIds = [new ObjectID(), new ObjectID()];
     RoleModel.expects('find')
@@ -808,12 +862,22 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { contracts: [{ _id: 1 }, { _id: 2 }], _id: new ObjectID() },
+      {
+        _id: new ObjectID(),
+        contracts: [
+          { _id: 1, startDate: '2019-11-10', status: COMPANY_CONTRACT, endDate: '2019-12-01' },
+          { _id: 1, startDate: '2019-12-02', status: COMPANY_CONTRACT },
+          { _id: 1, startDate: '2019-12-04', status: CUSTOMER_CONTRACT },
+        ],
+      },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs('sector')
+      .chain('populate')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .chain('lean')
       .once()
       .returns(auxiliaries);
 
@@ -821,7 +885,9 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '']);
+    expect(result[2]).toBeDefined();
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '10/11/2019', '01/12/2019', '', '']);
+    expect(result[2]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 3, '02/12/2019', '', '', '']);
   });
 
   it('should return auxiliary address', async () => {
@@ -838,6 +904,9 @@ describe('exportAuxiliaries', () => {
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
       .chain('populate')
       .withExactArgs('sector')
+      .chain('populate')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+      .chain('lean')
       .once()
       .returns(auxiliaries);
 
@@ -845,7 +914,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '', '', '']);
   });
 });
 

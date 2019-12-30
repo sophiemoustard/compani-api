@@ -15,6 +15,7 @@ const {
   HELPER,
   AUXILIARY,
   PLANNING_REFERENT,
+  COMPANY_CONTRACT,
   END_CONTRACT_REASONS,
   SURCHARGES,
 } = require('./constants');
@@ -403,45 +404,62 @@ const auxiliaryExportHeader = [
   'Addresse',
   'Téléphone',
   'Nombre de contracts',
+  'Date de début de contrat prestataire',
+  'Date de fin de contrat prestataire',
   'Date d\'inactivité',
   'Date de création',
 ];
+
+const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
+  const nationality = get(aux, 'identity.nationality');
+  const lastname = get(aux, 'identity.lastname');
+  const birthDate = get(aux, 'identity.birthDate');
+  const address = get(aux, 'contact.address.fullAddress');
+  const birthCountry = get(aux, 'identity.birthCountry');
+  const { inactivityDate, createdAt } = aux;
+
+  return [
+    get(aux, 'local.email') || '',
+    get(aux, 'sector.name') || '',
+    aux._id,
+    CIVILITY_LIST[get(aux, 'identity.title')] || '',
+    lastname ? lastname.toUpperCase() : '',
+    get(aux, 'identity.firstname') || '',
+    birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
+    countries[birthCountry] || '',
+    get(aux, 'identity.birthState') || '',
+    get(aux, 'identity.birthCity') || '',
+    nationality ? nationalities[nationality] : '',
+    get(aux, 'identity.socialSecurityNumber') || '',
+    address || '',
+    get(aux, 'contact.phone') || '',
+    contractsLength,
+    get(contract, 'startDate', null) ? moment(contract.startDate).format('DD/MM/YYYY') : '',
+    get(contract, 'endDate', null) ? moment(contract.endDate).format('DD/MM/YYYY') : '',
+    inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
+    createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
+  ];
+};
 
 exports.exportAuxiliaries = async (credentials) => {
   const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } });
   const roleIds = roles.map(role => role._id);
   const auxiliaries = await User
     .find({ role: { $in: roleIds }, company: get(credentials, 'company._id', null) })
-    .populate('sector');
+    .populate('sector')
+    .populate({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
+    .lean();
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {
-    const nationality = get(aux, 'identity.nationality');
-    const lastname = get(aux, 'identity.lastname');
-    const birthDate = get(aux, 'identity.birthDate');
-    const address = get(aux, 'contact.address.fullAddress');
-    const birthCountry = get(aux, 'identity.birthCountry');
-    const { contracts, inactivityDate, createdAt } = aux;
-
-    data.push([
-      get(aux, 'local.email') || '',
-      get(aux, 'sector.name') || '',
-      aux._id,
-      CIVILITY_LIST[get(aux, 'identity.title')] || '',
-      lastname ? lastname.toUpperCase() : '',
-      get(aux, 'identity.firstname') || '',
-      birthDate ? moment(birthDate).format('DD/MM/YYYY') : '',
-      countries[birthCountry] || '',
-      get(aux, 'identity.birthState') || '',
-      get(aux, 'identity.birthCity') || '',
-      nationality ? nationalities[nationality] : '',
-      get(aux, 'identity.socialSecurityNumber') || '',
-      address || '',
-      get(aux, 'contact.phone') || '',
-      contracts ? contracts.length : 0,
-      inactivityDate ? moment(inactivityDate).format('DD/MM/YYYY') : '',
-      createdAt ? moment(createdAt).format('DD/MM/YYYY') : '',
-    ]);
+    const { contracts } = aux;
+    if (contracts && contracts.length) {
+      for (const contract of contracts) {
+        data.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
+      }
+    } else {
+      data.push(getDataForAuxiliariesExport(aux, 0));
+    }
   }
 
   return data;
