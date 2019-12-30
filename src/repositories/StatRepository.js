@@ -23,7 +23,7 @@ const getFundingsMatch = () => ({
   nature: HOURLY,
 });
 
-const getPopulateFundings = (fundingsMatch, fundingsDate) => [
+const getPopulatedFundings = (fundingsMatch, fundingsDate) => [
   { $replaceRoot: { newRoot: '$fundings' } },
   { $addFields: { version: { $arrayElemAt: ['$versions', -1] } } },
   {
@@ -64,16 +64,16 @@ const getMatchEvents = eventsDate => [
               $and: [
                 { $eq: ['$subscription', '$$subscriptionId'] },
                 { $eq: ['$type', INTERVENTION] },
-                { $gt: ['$startDate', eventsDate.minStartDate] },
-                { $gt: ['$startDate', '$$fundingStartDate'] },
-                { $lte: ['$startDate', eventsDate.maxStartDate] },
-                { $lte: ['$startDate', '$$fundingEndDate'] },
+                { $gte: ['$startDate', eventsDate.minDate] },
+                { $gte: ['$startDate', '$$fundingStartDate'] },
+                { $lte: ['$endDate', eventsDate.maxDate] },
+                { $lte: ['$endDate', '$$fundingEndDate'] },
                 {
                   $or: [
-                    ['$isCancelled', false],
-                    ['$isCancelled', ['$exists', false]],
-                    ['$cancel.condition', INVOICED_AND_PAID],
-                    ['$cancel.condition', INVOICED_AND_NOT_PAID],
+                    { $eq: ['$isCancelled', false] },
+                    { $eq: ['$isCancelled', ['$exists', false]] },
+                    { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
+                    { $eq: ['$cancel.condition', INVOICED_AND_NOT_PAID] },
                   ],
                 },
               ],
@@ -99,10 +99,6 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     },
     { $unwind: { path: '$fundings' } },
   ];
-
-  const populateFundings = getPopulateFundings(fundingsMatch, fundingsDate);
-
-  const matchEvents = getMatchEvents(eventsDate);
 
   const startOfMonth = moment().startOf('month').toDate();
   const formatFundings = [
@@ -133,8 +129,8 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
   return Customer
     .aggregate([
       ...matchFundings,
-      ...populateFundings,
-      ...matchEvents,
+      ...getPopulatedFundings(fundingsMatch, fundingsDate),
+      ...getMatchEvents(eventsDate),
       ...formatFundings,
     ])
     .option({ company: companyId });
@@ -173,10 +169,6 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
       },
     },
   ];
-
-  const populateFundings = getPopulateFundings(fundingsMatch, fundingsDate);
-
-  const matchEvents = getMatchEvents(eventsDate);
 
   const startOfMonth = moment().startOf('month').toDate();
   const endOfMonth = moment().endOf('month').toDate();
@@ -227,8 +219,8 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
   return Customer
     .aggregate([
       ...matchFundings,
-      ...populateFundings,
-      ...matchEvents,
+      ...getPopulatedFundings(fundingsMatch, fundingsDate),
+      ...getMatchEvents(eventsDate),
       ...formatFundings,
     ])
     .option({ company: companyId });
