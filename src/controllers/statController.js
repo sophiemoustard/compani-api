@@ -21,7 +21,7 @@ exports.getCustomerFollowUp = async (req) => {
       };
     }
 
-    followUp = followUp.filter(user => User.isActive(user));
+    // followUp = followUp.filter(user => User.isActive(user));
 
     return {
       message: messages.statsFound,
