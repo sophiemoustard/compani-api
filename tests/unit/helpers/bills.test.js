@@ -10,6 +10,7 @@ const BillNumber = require('../../../src/models/BillNumber');
 const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
 const BillHelper = require('../../../src/helpers/bills');
+const BillSlipsHelper = require('../../../src/helpers/billSlips');
 const UtilsHelper = require('../../../src/helpers/utils');
 const PdfHelper = require('../../../src/helpers/pdf');
 const {
@@ -296,7 +297,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
-        thirdPartyPayer: 'Papa',
+        thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         startDate: moment().add(1, 'd').toISOString(),
@@ -375,7 +376,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
-        thirdPartyPayer: 'Papa',
+        thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         startDate: moment().add(1, 'd').toISOString(),
@@ -451,7 +452,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
-        thirdPartyPayer: 'Papa',
+        thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         startDate: moment().add(1, 'd').toISOString(),
@@ -527,7 +528,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
-        thirdPartyPayer: 'Papa',
+        thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
@@ -553,7 +554,7 @@ describe('formatThirdPartyPayerBills', () => {
           },
         ],
       }, {
-        thirdPartyPayer: 'Papa',
+        thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'fgh', service: { versions: [{ vat: 5.5, startDate: moment().toISOString() }] } },
         unitExclTaxes: 34,
         exclTaxes: 15,
@@ -656,7 +657,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
-        thirdPartyPayer: 'Papa',
+        thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
@@ -671,7 +672,7 @@ describe('formatThirdPartyPayerBills', () => {
     }, {
       total: 14.4,
       bills: [{
-        thirdPartyPayer: 'Papa',
+        thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'fgh', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 34,
         startDate: moment().add(1, 'd').toISOString(),
@@ -846,7 +847,6 @@ describe('getBillNumber', () => {
 
   it('should return a bill number', async () => {
     const companyId = new ObjectID();
-    const bills = [{ endDate: new Date('2019-11-15') }];
     const prefix = '1119';
     const billNumber = { prefix, seq: 1 };
 
@@ -859,7 +859,7 @@ describe('getBillNumber', () => {
       .chain('lean')
       .returns(billNumber);
 
-    const result = await BillHelper.getBillNumber(bills, { _id: companyId });
+    const result = await BillHelper.getBillNumber(new Date('2019-11-15'), { _id: companyId });
 
     BillNumberMock.verify();
     expect(result).toEqual(billNumber);
@@ -868,29 +868,32 @@ describe('getBillNumber', () => {
 
 describe('formatAndCreateBills', () => {
   let BillNumberMock;
-  let BillMock;
+  let insertManyBill;
   let getBillNumberStub;
   let formatCustomerBillsStub;
   let formatThirdPartyPayerBillsStub;
   let updateFundingHistoriesStub;
   let updateEventsStub;
+  let createBillSlips;
   beforeEach(() => {
     BillNumberMock = sinon.mock(BillNumber);
-    BillMock = sinon.mock(Bill);
+    insertManyBill = sinon.stub(Bill, 'insertMany');
     getBillNumberStub = sinon.stub(BillHelper, 'getBillNumber');
     formatCustomerBillsStub = sinon.stub(BillHelper, 'formatCustomerBills');
     formatThirdPartyPayerBillsStub = sinon.stub(BillHelper, 'formatThirdPartyPayerBills');
     updateFundingHistoriesStub = sinon.stub(BillHelper, 'updateFundingHistories');
     updateEventsStub = sinon.stub(BillHelper, 'updateEvents');
+    createBillSlips = sinon.stub(BillSlipsHelper, 'createBillSlips');
   });
   afterEach(() => {
     BillNumberMock.restore();
-    BillMock.restore();
+    insertManyBill.restore();
     getBillNumberStub.restore();
     formatCustomerBillsStub.restore();
     formatThirdPartyPayerBillsStub.restore();
     updateFundingHistoriesStub.restore();
     updateEventsStub.restore();
+    createBillSlips.restore();
   });
 
   it('should create customer and third party payer bills', async () => {
@@ -960,17 +963,21 @@ describe('formatAndCreateBills', () => {
     getBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
-    BillMock.expects('create').twice();
-    BillNumberMock
-      .expects('updateOne')
+    BillNumberMock.expects('updateOne')
       .withExactArgs({ prefix: number.prefix }, { $set: { seq: 3 } })
       .once();
 
     await BillHelper.formatAndCreateBills(billsData, credentials);
 
     BillNumberMock.verify();
-    BillMock.verify();
-    sinon.assert.calledWithExactly(getBillNumberStub, billsData, { _id: companyId });
+    sinon.assert.calledWithExactly(insertManyBill, [customerBillingInfo.bill, ...tppBillingInfo.tppBills]);
+    sinon.assert.calledWithExactly(
+      createBillSlips,
+      [customerBillingInfo.bill, ...tppBillingInfo.tppBills],
+      billsData[0].endDate,
+      credentials.company
+    );
+    sinon.assert.calledWithExactly(getBillNumberStub, billsData[0].endDate, { _id: companyId });
     sinon.assert.calledWithExactly(
       formatCustomerBillsStub,
       billsData[0].customerBills,
@@ -1028,16 +1035,20 @@ describe('formatAndCreateBills', () => {
 
     getBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
-    BillMock.expects('create').once();
-    BillNumberMock
-      .expects('updateOne')
+    BillNumberMock.expects('updateOne')
       .withExactArgs({ prefix: number.prefix }, { $set: { seq: 2 } })
       .once();
 
     await BillHelper.formatAndCreateBills([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
 
     BillNumberMock.verify();
-    BillMock.verify();
+    sinon.assert.calledWithExactly(insertManyBill, [customerBillingInfo.bill]);
+    sinon.assert.calledWithExactly(
+      createBillSlips,
+      [customerBillingInfo.bill],
+      billsData[0].endDate,
+      credentials.company
+    );
     sinon.assert.calledWithExactly(
       formatCustomerBillsStub,
       billsData[0].customerBills,
@@ -1087,16 +1098,20 @@ describe('formatAndCreateBills', () => {
 
     getBillNumberStub.returns(number);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
-    BillMock.expects('create').once();
-    BillNumberMock
-      .expects('updateOne')
+    BillNumberMock.expects('updateOne')
       .withExactArgs({ prefix: number.prefix }, { $set: { seq: 2 } })
       .once();
 
     await BillHelper.formatAndCreateBills([{ ...billsData[0], customerBills: {} }], credentials);
 
     BillNumberMock.verify();
-    BillMock.verify();
+    sinon.assert.calledWithExactly(insertManyBill, tppBillingInfo.tppBills);
+    sinon.assert.calledWithExactly(
+      createBillSlips,
+      tppBillingInfo.tppBills,
+      billsData[0].endDate,
+      credentials.company
+    );
     sinon.assert.notCalled(formatCustomerBillsStub);
     sinon.assert.calledWithExactly(
       formatThirdPartyPayerBillsStub,
