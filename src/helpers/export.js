@@ -410,7 +410,7 @@ const auxiliaryExportHeader = [
   'Date de création',
 ];
 
-const getDataForExportAuxiliaries = (aux, contractsLength, contract) => {
+const getDataForAuxiliariesExport = (aux, contractsLength, contract) => {
   const nationality = get(aux, 'identity.nationality');
   const lastname = get(aux, 'identity.lastname');
   const birthDate = get(aux, 'identity.birthDate');
@@ -455,10 +455,10 @@ exports.exportAuxiliaries = async (credentials) => {
     const { contracts } = aux;
     if (contracts && contracts.length) {
       for (const contract of contracts) {
-        data.push(getDataForExportAuxiliaries(aux, contracts.length, contract));
+        data.push(getDataForAuxiliariesExport(aux, contracts.length, contract));
       }
     } else {
-      data.push(getDataForExportAuxiliaries(aux, 0));
+      data.push(getDataForAuxiliariesExport(aux, 0));
     }
   }
 
