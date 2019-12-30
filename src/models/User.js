@@ -4,6 +4,7 @@ const autopopulate = require('mongoose-autopopulate');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const moment = require('moment');
+const get = require('lodash/get');
 
 const addressSchemaDefinition = require('./schemaDefinitions/address');
 const { identitySchemaDefinition } = require('./schemaDefinitions/identity');
@@ -191,10 +192,7 @@ async function populateAfterSave(doc, next) {
       .populate({
         path: 'role',
         select: '-__v -createdAt -updatedAt',
-        populate: {
-          path: 'role.right_id',
-          select: 'description permission _id',
-        },
+        populate: { path: 'role.right_id', select: 'description permission _id' },
       })
       .populate({ path: 'company', select: '-__v -createdAt -updatedAt' })
       .populate({ path: 'sector', select: '_id sector', match: { company: doc.company } })
@@ -209,14 +207,16 @@ async function populateAfterSave(doc, next) {
 }
 
 function populateSector(doc, next) {
-  if (doc && doc.sector) doc.sector = doc.sector.sector._id;
+  if (get(doc, 'sector.sector._id')) doc.sector = doc.sector.sector._id;
 
   return next();
 }
 
 function populateSectors(docs, next) {
   for (const doc of docs) {
-    if (doc && doc.sector) doc.sector = doc.sector.sector;
+    if (doc && doc.sector) {
+      doc.sector = doc.sector.sector;
+    }
   }
 
   return next();

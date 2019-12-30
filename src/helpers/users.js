@@ -43,10 +43,9 @@ exports.getUsersList = async (query, credentials) => {
       path: 'sector',
       select: '_id sector',
       match: { company: get(credentials, 'company._id', null) },
-      populate: { path: 'sector', select: ' _id name' },
     })
     .populate('contracts')
-    .lean({ virtuals: true });
+    .lean({ virtuals: true, autopopulate: true });
 };
 
 exports.getUser = async (userId, credentials) => {

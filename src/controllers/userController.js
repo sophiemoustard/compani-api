@@ -21,7 +21,7 @@ const { language } = translate;
 
 const authenticate = async (req) => {
   try {
-    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() });
+    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() }).lean();
     if (!alenviUser) return Boom.notFound();
 
     if (!alenviUser.refreshToken) return Boom.forbidden();
@@ -183,7 +183,7 @@ const getUserTasks = async (req) => {
     const user = await User.findOne(
       { _id: req.params._id, procedure: { $exists: true } },
       { identity: 1, procedure: 1 }
-    ).populate({ path: 'procedure.task', select: 'name _id' });
+    ).populate({ path: 'procedure.task', select: 'name _id' }).lean();
 
     if (!user) return Boom.notFound();
 
@@ -202,7 +202,7 @@ const getUserTasks = async (req) => {
 
 const refreshToken = async (req) => {
   try {
-    const user = await User.findOne({ refreshToken: req.payload.refreshToken });
+    const user = await User.findOne({ refreshToken: req.payload.refreshToken }).lean();
     if (!user) return Boom.notFound(translate[language].refreshTokenNotFound);
 
     const payload = { _id: user._id, role: user.role.name };

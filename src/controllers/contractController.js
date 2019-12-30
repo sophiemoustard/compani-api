@@ -59,7 +59,7 @@ const remove = async (req) => {
     const contract = await Contract.findOneAndRemove({ _id: req.params._id });
     if (!contract) return Boom.notFound(translate[language].contractNotFound);
 
-    await User.findOneAndUpdate({ _id: contract.user }, { $pull: { contracts: contract._id } });
+    await User.updateOne({ _id: contract.user }, { $pull: { contracts: contract._id } });
     if (contract.customer) {
       await Customer.findOneAndUpdate({ _id: contract.customer }, { $pull: { contracts: contract._id } });
     }

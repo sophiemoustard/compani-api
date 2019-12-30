@@ -108,10 +108,7 @@ exports.checkEventCreationOrUpdate = async (req) => {
   }
 
   if (req.payload.auxiliary) {
-    const auxiliary = await User
-      .findOne(({ _id: req.payload.auxiliary, company: companyId }))
-      .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
-      .lean({ autopopulate: true, virtuals: true });
+    const auxiliary = await User.findOne(({ _id: req.payload.auxiliary, company: companyId })).lean();
     if (!auxiliary) throw Boom.forbidden();
   }
 
