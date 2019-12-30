@@ -182,7 +182,7 @@ describe('GET /stats/customer-duration', () => {
       expect(res.result.data.customerAndDuration[0]).toBeDefined();
       expect(res.result.data.customerAndDuration[0].sector).toEqual(sectorList[0]._id);
       expect(res.result.data.customerAndDuration[0].customerCount).toEqual(1);
-      expect(res.result.data.customerAndDuration[0].duration).toEqual(2.5);
+      expect(res.result.data.customerAndDuration[0].duration).toEqual(4);
     });
 
     it('should return 403 if sector is not from the same company', async () => {

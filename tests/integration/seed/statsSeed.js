@@ -58,14 +58,28 @@ const userList = [
     company: authCompany._id,
     refreshToken: uuidv4(),
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary', lastname: 'Black' },
+    local: { email: 'black@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    inactivityDate: '2019-01-01T23:59:59',
+    company: authCompany._id,
+    refreshToken: uuidv4(),
+  },
 ];
 
-const sectorHistory = {
+const sectorHistoryList = [{
   auxiliary: userList[0]._id,
   sector: sectorList[0]._id,
   company: authCompany._id,
   createdAt: '2019-05-12T12:00:00',
-};
+}, {
+  auxiliary: userList[1]._id,
+  sector: sectorList[0]._id,
+  company: authCompany._id,
+  createdAt: '2019-05-12T12:00:00',
+}];
 
 const serviceList = [{
   _id: new ObjectID(),
@@ -191,6 +205,18 @@ const eventListForFollowUp = [
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
+    startDate: '2019-07-02T09:00:00.000+00:00',
+    endDate: '2019-07-02T10:30:00.000+00:00',
+  },
+  {
+    _id: new ObjectID(),
+    company: authCompany._id,
+    type: 'intervention',
+    status: COMPANY_CONTRACT,
+    customer: customerList[0]._id,
+    sector: new ObjectID(),
+    subscription: subscriptionId,
+    auxiliary: userList[1]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
     endDate: '2019-07-02T10:30:00.000+00:00',
   },
@@ -323,7 +349,7 @@ const populateDB = async () => {
   await Customer.insertMany(customerList.concat(customerFromOtherCompany));
   await Service.insertMany(serviceList);
   await Sector.insertMany(sectorList);
-  await SectorHistory.insertMany([sectorHistory]);
+  await SectorHistory.insertMany(sectorHistoryList);
   await Contract.insertMany(contractList);
   await ThirdPartyPayer.insertMany(tppList);
 };
