@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const Event = require('../models/Event');
-const User = require('../models/User');
+const SectorHistory = require('../models/SectorHistory');
 const {
   INTERNAL_HOUR,
   INTERVENTION,
@@ -600,24 +600,29 @@ exports.getCustomersFromEvent = async (query, companyId) => {
     { $lt: ['$startDate', endDate] },
   ];
 
-  return User.aggregate([
+  return SectorHistory.aggregate([
     {
       $match: {
         sector: { $in: Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)] },
-        company: companyId,
       },
     },
+    {
+      $lookup: {
+        from: 'users',
+        as: 'auxiliary',
+        localField: 'auxiliary',
+        foreignField: '_id',
+      },
+    },
+    { $unwind: { path: '$auxiliary' } },
+    { $replaceRoot: { newRoot: '$auxiliary' } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
         let: { auxiliaryId: '$_id' },
         pipeline: [
-          {
-            $match: {
-              $expr: { $and: [...eventQuery] },
-            },
-          },
+          { $match: { $expr: { $and: [...eventQuery] } } },
         ],
       },
     },

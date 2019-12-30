@@ -58,12 +58,11 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
-        populate: { path: 'sector', select: ' _id name' },
       })
       .chain('populate')
       .withExactArgs('contracts')
       .chain('lean')
-      .withExactArgs({ virtuals: true })
+      .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
 
     const result = await UsersHelper.getUsersList(query, credentials);
@@ -96,12 +95,11 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
-        populate: { path: 'sector', select: ' _id name' },
       })
       .chain('populate')
       .withExactArgs('contracts')
       .chain('lean')
-      .withExactArgs({ virtuals: true })
+      .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
 
     const result = await UsersHelper.getUsersList(query, credentials);
@@ -135,12 +133,11 @@ describe('getUsersList', () => {
         path: 'sector',
         select: '_id sector',
         match: { company: credentials.company._id },
-        populate: { path: 'sector', select: ' _id name' },
       })
       .chain('populate')
       .withExactArgs('contracts')
       .chain('lean')
-      .withExactArgs({ virtuals: true })
+      .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
 
     const result = await UsersHelper.getUsersList(query, credentials);
