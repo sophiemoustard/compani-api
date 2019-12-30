@@ -447,17 +447,15 @@ exports.exportAuxiliaries = async (credentials) => {
   const auxiliaries = await User
     .find({ role: { $in: roleIds }, company: get(credentials, 'company._id', null) })
     .populate('sector')
-    .populate('contracts')
+    .populate({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
     .lean();
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {
     const { contracts } = aux;
-    if (contracts) {
+    if (contracts && contracts.length) {
       for (const contract of contracts) {
-        if (contract.status === COMPANY_CONTRACT) {
-          data.push(getDataForExportAuxiliaries(aux, contracts.length, contract));
-        }
+        data.push(getDataForExportAuxiliaries(aux, contracts.length, contract));
       }
     } else {
       data.push(getDataForExportAuxiliaries(aux, 0));

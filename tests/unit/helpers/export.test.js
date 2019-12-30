@@ -700,7 +700,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
       .once()
       .returns(auxiliaries);
@@ -735,7 +735,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
       .once()
       .returns(auxiliaries);
@@ -782,7 +782,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
       .once()
       .returns(auxiliaries);
@@ -822,7 +822,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
       .once()
       .returns(auxiliaries);
@@ -876,7 +876,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
       .once()
       .returns(auxiliaries);
@@ -905,7 +905,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs('sector')
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
       .once()
       .returns(auxiliaries);
