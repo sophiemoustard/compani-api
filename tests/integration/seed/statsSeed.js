@@ -60,7 +60,12 @@ const userList = [
   },
 ];
 
-const sectorHistory = { auxiliary: userList[0]._id, sector: sectorList[0]._id, company: authCompany._id };
+const sectorHistory = {
+  auxiliary: userList[0]._id,
+  sector: sectorList[0]._id,
+  company: authCompany._id,
+  createdAt: '2019-05-12T12:00:00',
+};
 
 const serviceList = [{
   _id: new ObjectID(),

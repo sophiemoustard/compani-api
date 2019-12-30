@@ -21,7 +21,8 @@ const { language } = translate;
 
 const authenticate = async (req) => {
   try {
-    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() }).lean();
+    const alenviUser = await User.findOne({ 'local.email': req.payload.email.toLowerCase() })
+      .lean({ autopopulate: true });
     if (!alenviUser) return Boom.notFound();
 
     if (!alenviUser.refreshToken) return Boom.forbidden();
