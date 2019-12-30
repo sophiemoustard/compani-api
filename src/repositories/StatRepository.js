@@ -231,7 +231,13 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
   const maxStartDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
   return SectorHistory.aggregate([
-    { $match: { sector: { $in: sectors } } },
+    {
+      $match: {
+        sector: { $in: sectors },
+        createdAt: { $lt: maxStartDate },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
+      },
+    },
     {
       $lookup: {
         from: 'users',
@@ -241,22 +247,32 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
       },
     },
     { $unwind: { path: '$auxiliary' } },
-    { $addFields: { 'auxiliary.sector': '$sector' } },
+    {
+      $addFields: {
+        'auxiliary.sector._id': '$sector',
+        'auxiliary.sector.createdAt': '$createdAt',
+        'auxiliary.sector.endDate': '$endDate',
+      },
+    },
     { $replaceRoot: { newRoot: '$auxiliary' } },
-    { $project: { _id: 1, sector: 1 } },
+    { $project: { _id: 1, sector: 1, identity: 1 } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
-        let: { auxiliaryId: '$_id' },
+        let: {
+          auxiliaryId: '$_id',
+          startDate: { $max: ['$sector.createdAt', minStartDate] },
+          endDate: { $min: [{ $ifNull: ['$secor.endDate', maxStartDate] }, maxStartDate] },
+        },
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
                   { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                  { $gte: ['$startDate', minStartDate] },
-                  { $lt: ['$startDate', maxStartDate] },
+                  { $gt: ['$endDate', '$$startDate'] },
+                  { $lt: ['$startDate', '$$endDate'] },
                   { $eq: ['$type', INTERVENTION] },
                   {
                     $or: [
@@ -280,7 +296,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     },
     {
       $group: {
-        _id: { sector: '$sector', customer: '$event.customer' },
+        _id: { sector: '$sector._id', customer: '$event.customer' },
         duration: { $sum: '$duration' },
       },
     },
