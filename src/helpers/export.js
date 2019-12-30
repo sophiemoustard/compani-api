@@ -390,6 +390,7 @@ exports.exportCustomers = async (credentials) => {
 const auxiliaryExportHeader = [
   'Email',
   'Équipe',
+  'Id de l\'auxiliaire',
   'Titre',
   'Nom',
   'Prénom',
@@ -425,6 +426,7 @@ exports.exportAuxiliaries = async (credentials) => {
     data.push([
       get(aux, 'local.email') || '',
       get(aux, 'sector.name') || '',
+      aux._id,
       CIVILITY_LIST[get(aux, 'identity.title')] || '',
       lastname ? lastname.toUpperCase() : '',
       get(aux, 'identity.firstname') || '',

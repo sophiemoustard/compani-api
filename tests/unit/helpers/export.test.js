@@ -704,7 +704,7 @@ describe('exportAuxiliaries', () => {
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
+    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id de l\'auxiliaire', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
       'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité sociale', 'Addresse', 'Téléphone',
       'Nombre de contracts', 'Date d\'inactivité', 'Date de création']);
   });
@@ -718,6 +718,7 @@ describe('exportAuxiliaries', () => {
 
     const auxiliaries = [
       {
+        _id: new ObjectID(),
         local: { email: 'aide@sos.io' },
         contact: { phone: '0123456789' },
         inactivityDate: '2019-02-01T09:38:18.653Z',
@@ -735,7 +736,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', '', '', '', '', '', '', '', '', '', '', '', '0123456789', 0, '01/02/2019', '01/02/2019']);
+    expect(result[1]).toMatchObject(['aide@sos.io', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '0123456789', 0, '01/02/2019', '01/02/2019']);
   });
 
   it('should return auxiliary sector', async () => {
@@ -746,7 +747,7 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { sector: { name: 'La ruche' } },
+      { sector: { name: 'La ruche' }, _id: new ObjectID() },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
@@ -759,7 +760,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', 'La ruche', '', '', '', '', '', '', '', '', '', '', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', 'La ruche', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, '', '']);
   });
 
   it('should return auxiliary identity', async () => {
@@ -771,6 +772,7 @@ describe('exportAuxiliaries', () => {
 
     const auxiliaries = [
       {
+        _id: new ObjectID(),
         identity: {
           title: 'mr',
           firstname: 'Super',
@@ -795,7 +797,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', 'M.', 'MARIO', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, 'M.', 'MARIO', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
   });
 
   it('should return auxiliary contracts count', async () => {
@@ -806,7 +808,7 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { contracts: [{ _id: 1 }, { _id: 2 }] },
+      { contracts: [{ _id: 1 }, { _id: 2 }], _id: new ObjectID() },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
@@ -819,7 +821,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', 2, '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '']);
   });
 
   it('should return auxiliary address', async () => {
@@ -830,7 +832,7 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { contact: { address: { fullAddress: 'La ruche' } } },
+      { contact: { address: { fullAddress: 'La ruche' } }, _id: new ObjectID() },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
@@ -843,7 +845,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '']);
   });
 });
 
