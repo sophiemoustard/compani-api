@@ -270,17 +270,22 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
 };
 
 exports.getAbsencesForExport = async (start, end, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const query = {
     type: ABSENCE,
     startDate: { $lt: end },
     endDate: { $gt: start },
-    company: get(credentials, 'company._id', null),
+    company: companyId,
   };
 
   return Event.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector' } })
-    .lean();
+    .populate({
+      path: 'auxiliary',
+      select: 'identity sector',
+      populate: { path: 'sector', match: { company: companyId } },
+    })
+    .lean({ autopopulate: true, virtuals: true });
 };
 
 exports.getCustomerSubscriptions = (contract, companyId) => Event.aggregate([

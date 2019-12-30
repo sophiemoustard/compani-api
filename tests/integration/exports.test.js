@@ -63,6 +63,47 @@ describe('EXPORTS ROUTES', () => {
     });
   });
 
+  describe('GET /exports/absence/history', () => {
+    describe('Admin', () => {
+      beforeEach(populateEvents);
+      beforeEach(async () => {
+        adminToken = await getToken('admin');
+      });
+      it('should get absences', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/exports/absence/history?startDate=2019-01-15&endDate=2019-01-21',
+          headers: { 'x-access-token': adminToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result).toBeDefined();
+        expect(response.result.split('\r\n').length).toBe(2);
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 403 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          adminToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/exports/absence/history?startDate=2019-01-15&endDate=2019-01-17',
+            headers: { 'x-access-token': adminToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
   describe('GET /exports/bill/history', () => {
     describe('Admin', () => {
       beforeEach(populateBillsAndCreditNotes);
