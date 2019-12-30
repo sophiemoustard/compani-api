@@ -55,7 +55,7 @@ const getMatchEvents = eventsDate => [
       let: {
         subscriptionId: '$subscription',
         fundingStartDate: '$version.startDate',
-        fundingEndDate: { $ifNull: ['$version.endDate', moment().endOf('month').toDate()] },
+        fundingEndDate: { $ifNull: ['$version.endDate', eventsDate.maxDate] },
       },
       pipeline: [
         {
