@@ -10,7 +10,7 @@ const Sector = require('../../../src/models/Sector');
 const Contract = require('../../../src/models/Contract');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
-const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
+const { COMPANY_CONTRACT, HOURLY, MONTHLY, ONCE, FIXED, INVOICED_AND_PAID, INVOICED_AND_NOT_PAID } = require('../../../src/helpers/constants');
 
 const sectorList = [
   {
@@ -257,6 +257,9 @@ const eventListForFundingsMonitoring = [
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
+    isCancelled: true,
+    cancel: { condition: INVOICED_AND_NOT_PAID },
+    misc: 'test',
     startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toDate(),
     endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toDate(),
   },
@@ -269,6 +272,9 @@ const eventListForFundingsMonitoring = [
     sector: new ObjectID(),
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
+    isCancelled: true,
+    cancel: { condition: INVOICED_AND_PAID },
+    misc: 'test',
     startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toDate(),
     endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toDate(),
   },

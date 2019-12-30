@@ -7,6 +7,7 @@ const {
   getCustomerFollowUp,
   getCustomerFundingsMonitoring,
   getCustomersAndDuration,
+  getAllCustomersFundingsMonitoring,
 } = require('../controllers/statController');
 const { authorizeGetStats } = require('./preHandlers/stats');
 
@@ -41,6 +42,15 @@ exports.plugin = {
         pre: [{ method: authorizeGetStats }],
       },
       handler: getCustomerFundingsMonitoring,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/all-customers-fundings-monitoring',
+      options: {
+        auth: { scope: ['customers:read'] },
+      },
+      handler: getAllCustomersFundingsMonitoring,
     });
 
     server.route({
