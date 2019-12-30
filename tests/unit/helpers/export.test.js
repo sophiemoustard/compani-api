@@ -485,12 +485,22 @@ describe('exportContractHistory', () => {
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
-    expect(result).toEqual([['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire']]);
+    expect(result).toEqual([[
+      'Type',
+      'Id de l\'auxiliaire',
+      'Titre',
+      'Prénom',
+      'Nom',
+      'Date de début',
+      'Date de fin',
+      'Taux horaire',
+      'Volume horaire hebdomadaire',
+    ]]);
   });
 
   it('should return an array containing the header and one row', async () => {
     const credentials = { company: { _id: '1234567890' } };
-    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }] }];
+    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }], user: { _id: new ObjectID() } }];
     contractMock.expects('find')
       .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
       .chain('populate')
@@ -501,8 +511,8 @@ describe('exportContractHistory', () => {
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
     expect(result).toEqual([
-      ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
-      ['Contrat', '', '', '', '10/10/2019', '', '', ''],
+      ['Type', 'Id de l\'auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
+      ['Contrat', contracts[0].user._id, '', '', '', '10/10/2019', '', '', ''],
     ]);
   });
 
@@ -510,13 +520,13 @@ describe('exportContractHistory', () => {
     const credentials = { company: { _id: '1234567890' } };
     const contracts = [
       {
-        user: { identity: { title: 'mr', lastname: 'Patate' } },
+        user: { identity: { title: 'mr', lastname: 'Patate' }, _id: new ObjectID() },
         versions: [
           { startDate: '2019-10-10T00:00:00', weeklyHours: 12, grossHourlyRate: 10.45 },
         ],
       },
       {
-        user: { identity: { title: 'mrs', firstname: 'Patate' } },
+        user: { identity: { title: 'mrs', firstname: 'Patate' }, _id: new ObjectID() },
         versions: [
           { startDate: '2019-09-08T00:00:00', endDate: '2019-10-07T00:00:00', weeklyHours: 10, grossHourlyRate: 10 },
           { startDate: '2019-10-08T00:00:00', endDate: '2019-11-07T00:00:00', weeklyHours: 14, grossHourlyRate: 2 },
@@ -533,9 +543,9 @@ describe('exportContractHistory', () => {
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     expect(result).toEqual([
-      ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
-      ['Contrat', 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
-      ['Avenant', 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
+      ['Type', 'Id de l\'auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
+      ['Contrat', contracts[0].user._id, 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
+      ['Avenant', contracts[1].user._id, 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
     contractMock.verify();
   });
@@ -694,7 +704,7 @@ describe('exportAuxiliaries', () => {
     const result = await ExportHelper.exportAuxiliaries(credentials);
 
     expect(result).toBeDefined();
-    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
+    expect(result[0]).toMatchObject(['Email', 'Équipe', 'Id de l\'auxiliaire', 'Titre', 'Nom', 'Prénom', 'Date de naissance', 'Pays de naissance',
       'Departement de naissance', 'Ville de naissance', 'Nationalité', 'N° de sécurité sociale', 'Addresse', 'Téléphone',
       'Nombre de contracts', 'Date d\'inactivité', 'Date de création']);
   });
@@ -708,6 +718,7 @@ describe('exportAuxiliaries', () => {
 
     const auxiliaries = [
       {
+        _id: new ObjectID(),
         local: { email: 'aide@sos.io' },
         contact: { phone: '0123456789' },
         inactivityDate: '2019-02-01T09:38:18.653Z',
@@ -725,7 +736,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['aide@sos.io', '', '', '', '', '', '', '', '', '', '', '', '0123456789', 0, '01/02/2019', '01/02/2019']);
+    expect(result[1]).toMatchObject(['aide@sos.io', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '0123456789', 0, '01/02/2019', '01/02/2019']);
   });
 
   it('should return auxiliary sector', async () => {
@@ -736,7 +747,7 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { sector: { name: 'La ruche' } },
+      { sector: { name: 'La ruche' }, _id: new ObjectID() },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
@@ -749,7 +760,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', 'La ruche', '', '', '', '', '', '', '', '', '', '', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', 'La ruche', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 0, '', '']);
   });
 
   it('should return auxiliary identity', async () => {
@@ -761,6 +772,7 @@ describe('exportAuxiliaries', () => {
 
     const auxiliaries = [
       {
+        _id: new ObjectID(),
         identity: {
           title: 'mr',
           firstname: 'Super',
@@ -785,7 +797,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', 'M.', 'MARIO', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, 'M.', 'MARIO', 'Super', '07/02/1994', 'France', 78, 'Paris', 'Française', '0987654321', '', '', 0, '', '']);
   });
 
   it('should return auxiliary contracts count', async () => {
@@ -796,7 +808,7 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { contracts: [{ _id: 1 }, { _id: 2 }] },
+      { contracts: [{ _id: 1 }, { _id: 2 }], _id: new ObjectID() },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
@@ -809,7 +821,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', '', '', 2, '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', '', '', 2, '', '']);
   });
 
   it('should return auxiliary address', async () => {
@@ -820,7 +832,7 @@ describe('exportAuxiliaries', () => {
       .returns([{ _id: roleIds[0] }, { _id: roleIds[1] }]);
 
     const auxiliaries = [
-      { contact: { address: { fullAddress: 'La ruche' } } },
+      { contact: { address: { fullAddress: 'La ruche' } }, _id: new ObjectID() },
     ];
     UserModel.expects('find')
       .withExactArgs({ role: { $in: roleIds }, company: credentials.company._id })
@@ -833,7 +845,7 @@ describe('exportAuxiliaries', () => {
 
     expect(result).toBeDefined();
     expect(result[1]).toBeDefined();
-    expect(result[1]).toMatchObject(['', '', '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '']);
+    expect(result[1]).toMatchObject(['', '', auxiliaries[0]._id, '', '', '', '', '', '', '', '', '', 'La ruche', '', 0, '', '']);
   });
 });
 

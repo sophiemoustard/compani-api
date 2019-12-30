@@ -264,6 +264,7 @@ exports.exportBillsAndCreditNotesHistory = async (startDate, endDate, credential
 
 const contractExportHeader = [
   'Type',
+  'Id de l\'auxiliaire',
   'Titre',
   'Prénom',
   'Nom',
@@ -288,6 +289,7 @@ exports.exportContractHistory = async (startDate, endDate, credentials) => {
       if (version.startDate && moment(version.startDate).isBetween(startDate, endDate, null, '[]')) {
         rows.push([
           i === 0 ? 'Contrat' : 'Avenant',
+          get(contract, 'user._id', ''),
           CIVILITY_LIST[identity.title] || '',
           identity.firstname || '',
           identity.lastname || '',
@@ -388,6 +390,7 @@ exports.exportCustomers = async (credentials) => {
 const auxiliaryExportHeader = [
   'Email',
   'Équipe',
+  'Id de l\'auxiliaire',
   'Titre',
   'Nom',
   'Prénom',
@@ -423,6 +426,7 @@ exports.exportAuxiliaries = async (credentials) => {
     data.push([
       get(aux, 'local.email') || '',
       get(aux, 'sector.name') || '',
+      aux._id,
       CIVILITY_LIST[get(aux, 'identity.title')] || '',
       lastname ? lastname.toUpperCase() : '',
       get(aux, 'identity.firstname') || '',
