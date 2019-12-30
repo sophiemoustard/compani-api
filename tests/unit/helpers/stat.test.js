@@ -13,8 +13,8 @@ describe('getCustomerFundingsMonitoring', () => {
     minEndDate: moment().startOf('month').toDate(),
   };
   const eventsDate = {
-    minStartDate: moment().subtract(2, 'month').endOf('month').toDate(),
-    maxStartDate: moment().endOf('month').toDate(),
+    minDate: moment().subtract(1, 'month').startOf('month').toDate(),
+    maxDate: moment().endOf('month').toDate(),
   };
 
   let getEventsGroupedByFundingsStub;
@@ -203,8 +203,8 @@ describe('getAllCustomersFundingsMonitoring', () => {
     minEndDate: moment().startOf('month').toDate(),
   };
   const eventsDate = {
-    minStartDate: moment().subtract(2, 'month').endOf('month').toDate(),
-    maxStartDate: moment().add(1, 'month').endOf('month').toDate(),
+    minDate: moment().subtract(1, 'month').startOf('month').toDate(),
+    maxDate: moment().add(1, 'month').endOf('month').toDate(),
   };
   const companyId = new ObjectID();
   const credentials = { company: { _id: companyId } };
