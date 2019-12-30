@@ -56,7 +56,6 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
   const tppBills = [];
   const billedEvents = {};
   const histories = {};
-  const billSlips = [];
   for (const tpp of thirdPartyPayerBills) {
     const tppBill = {
       customer: customer._id,
@@ -93,7 +92,7 @@ exports.formatThirdPartyPayerBills = (thirdPartyPayerBills, customer, number, co
     tppBills.push(tppBill);
   }
 
-  return { tppBills, billedEvents, fundingHistories: histories, billSlips };
+  return { tppBills, billedEvents, fundingHistories: histories };
 };
 
 exports.updateEvents = async (eventsToUpdate) => {

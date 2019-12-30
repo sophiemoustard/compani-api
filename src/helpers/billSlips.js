@@ -15,7 +15,7 @@ exports.getBillSlipNumber = async (endDate, company) => {
 
 exports.createBillSlips = async (billList, endDate, company) => {
   const month = moment(endDate).format('MMYY');
-  const tppIds = [...new Set(billList.map(bill => bill.client && bill.client))];
+  const tppIds = [...new Set(billList.filter(bill => bill.client).map(bill => bill.client))];
   const billSlipList = await BillSlip.find({ thirdPartyPayer: { $in: tppIds }, month, company: company._id }).lean();
 
   if (tppIds.length === billSlipList.length) return;
