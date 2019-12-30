@@ -485,12 +485,22 @@ describe('exportContractHistory', () => {
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
-    expect(result).toEqual([['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire']]);
+    expect(result).toEqual([[
+      'Type',
+      'Id de l\'auxiliaire',
+      'Titre',
+      'Prénom',
+      'Nom',
+      'Date de début',
+      'Date de fin',
+      'Taux horaire',
+      'Volume horaire hebdomadaire',
+    ]]);
   });
 
   it('should return an array containing the header and one row', async () => {
     const credentials = { company: { _id: '1234567890' } };
-    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }] }];
+    const contracts = [{ versions: [{ startDate: '2019-10-10T00:00:00' }], user: { _id: new ObjectID() } }];
     contractMock.expects('find')
       .withExactArgs({ company: '1234567890', 'versions.startDate': { $lte: endDate, $gte: startDate } })
       .chain('populate')
@@ -501,8 +511,8 @@ describe('exportContractHistory', () => {
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     contractMock.verify();
     expect(result).toEqual([
-      ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
-      ['Contrat', '', '', '', '10/10/2019', '', '', ''],
+      ['Type', 'Id de l\'auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
+      ['Contrat', contracts[0].user._id, '', '', '', '10/10/2019', '', '', ''],
     ]);
   });
 
@@ -510,13 +520,13 @@ describe('exportContractHistory', () => {
     const credentials = { company: { _id: '1234567890' } };
     const contracts = [
       {
-        user: { identity: { title: 'mr', lastname: 'Patate' } },
+        user: { identity: { title: 'mr', lastname: 'Patate' }, _id: new ObjectID() },
         versions: [
           { startDate: '2019-10-10T00:00:00', weeklyHours: 12, grossHourlyRate: 10.45 },
         ],
       },
       {
-        user: { identity: { title: 'mrs', firstname: 'Patate' } },
+        user: { identity: { title: 'mrs', firstname: 'Patate' }, _id: new ObjectID() },
         versions: [
           { startDate: '2019-09-08T00:00:00', endDate: '2019-10-07T00:00:00', weeklyHours: 10, grossHourlyRate: 10 },
           { startDate: '2019-10-08T00:00:00', endDate: '2019-11-07T00:00:00', weeklyHours: 14, grossHourlyRate: 2 },
@@ -533,9 +543,9 @@ describe('exportContractHistory', () => {
 
     const result = await ExportHelper.exportContractHistory(startDate, endDate, credentials);
     expect(result).toEqual([
-      ['Type', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
-      ['Contrat', 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
-      ['Avenant', 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
+      ['Type', 'Id de l\'auxiliaire', 'Titre', 'Prénom', 'Nom', 'Date de début', 'Date de fin', 'Taux horaire', 'Volume horaire hebdomadaire'],
+      ['Contrat', contracts[0].user._id, 'M.', '', 'Patate', '10/10/2019', '', '10,45', 12],
+      ['Avenant', contracts[1].user._id, 'Mme', 'Patate', '', '08/10/2019', '07/11/2019', '2,00', 14],
     ]);
     contractMock.verify();
   });
