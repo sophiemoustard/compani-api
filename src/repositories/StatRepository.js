@@ -198,7 +198,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     },
     {
       $project: {
-        thirdPartyPayer: { name: 1 },
+        thirdPartyPayer: { name: 1, _id: 1 },
         subscription: 1,
         startDate: '$version.startDate',
         endDate: '$version.endDate',
