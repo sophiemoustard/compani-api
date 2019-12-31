@@ -60,24 +60,28 @@ const getMatchEvents = eventsDate => [
       pipeline: [
         {
           $match: {
-            $expr: {
-              $and: [
-                { $eq: ['$subscription', '$$subscriptionId'] },
-                { $eq: ['$type', INTERVENTION] },
-                { $gte: ['$startDate', eventsDate.minDate] },
-                { $gte: ['$startDate', '$$fundingStartDate'] },
-                { $lte: ['$endDate', eventsDate.maxDate] },
-                { $lte: ['$endDate', '$$fundingEndDate'] },
-                {
-                  $or: [
-                    { $eq: ['$isCancelled', false] },
-                    { $eq: ['$isCancelled', ['$exists', false]] },
-                    { $eq: ['$cancel.condition', INVOICED_AND_PAID] },
-                    { $eq: ['$cancel.condition', INVOICED_AND_NOT_PAID] },
+            $and: [
+              { startDate: { $gte: eventsDate.minDate } },
+              { endDate: { $lte: eventsDate.maxDate } },
+              { type: INTERVENTION },
+              {
+                $expr: {
+                  $and: [
+                    { $gte: ['$startDate', '$$fundingStartDate'] },
+                    { $eq: ['$subscription', '$$subscriptionId'] },
+                    { $lte: ['$startDate', '$$fundingEndDate'] },
                   ],
                 },
-              ],
-            },
+              },
+              {
+                $or: [
+                  { isCancelled: false },
+                  { isCancelled: { $exists: false } },
+                  { 'cancel.condition': INVOICED_AND_PAID },
+                  { 'cancel.condition': INVOICED_AND_NOT_PAID },
+                ],
+              },
+            ],
           },
         },
       ],
