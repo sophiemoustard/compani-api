@@ -26,6 +26,7 @@ const Contract = require('../models/Contract');
 const Customer = require('../models/Customer');
 const Role = require('../models/Role');
 const User = require('../models/User');
+const SectorHistory = require('../models/SectorHistory');
 const Pay = require('../models/Pay');
 const FinalPay = require('../models/FinalPay');
 const EventRepository = require('../repositories/EventRepository');
@@ -509,6 +510,38 @@ exports.exportHelpers = async (credentials) => {
       get(customer, 'contact.primaryAddress.city', ''),
       status,
       hel.createdAt ? moment(hel.createdAt).format('DD/MM/YYYY') : '',
+    ]);
+  }
+
+  return data;
+};
+
+const sectorExportHeader = [
+  'Equipe',
+  'Id de l\'auxiliaire',
+  'Nom',
+  'Prénom',
+  'Date d\'arrivée dans l\'équipe',
+  'Date de départ de l\'équipe',
+];
+
+exports.exportSectors = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const sectorHistories = await SectorHistory
+    .find({ company: companyId })
+    .populate({ path: 'sector', select: '_id name' })
+    .populate({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
+    .lean();
+  const data = [sectorExportHeader];
+  console.log(sectorHistories.length);
+  for (const sectorHistory of sectorHistories) {
+    data.push([
+      get(sectorHistory, 'sector.name', ''),
+      get(sectorHistory, 'auxiliary._id', ''),
+      get(sectorHistory, 'auxiliary.identity.firstname', ''),
+      get(sectorHistory, 'auxiliary.identity.lastname', ''),
+      moment(sectorHistory.createdAt).format('DD/MM/YYYY'),
+      sectorHistory.endDate ? moment(sectorHistory.endDate).format('DD/MM/YYYY') : '',
     ]);
   }
 

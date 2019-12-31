@@ -9,8 +9,8 @@ const SectorHistorySchema = mongoose.Schema({
     autopopulate: { select: '_id name' },
     required: true,
   },
-  auxiliary: { type: mongoose.Schema.Types.ObjectId, required: true },
-  company: { type: mongoose.Schema.Types.ObjectId, required: true },
+  auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   endDate: Date,
 }, { timestamps: true });
 
