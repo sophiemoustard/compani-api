@@ -103,7 +103,7 @@ describe('list', () => {
     expect(result).toEqual(populatedEvents);
     sinon.assert.notCalled(getEventsGroupedByAuxiliariesStub);
     sinon.assert.notCalled(getEventsGroupedByCustomersStub);
-    sinon.assert.calledWithExactly(getEventListStub, eventsQuery);
+    sinon.assert.calledWithExactly(getEventListStub, eventsQuery, companyId);
     sinon.assert.calledWithExactly(populateEventsStub, events);
   });
 });

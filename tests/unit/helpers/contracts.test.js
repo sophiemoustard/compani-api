@@ -35,7 +35,13 @@ describe('getContractList', () => {
     ContractMock.expects('find')
       .withExactArgs({ $and: [{ company: '1234567890' }, { user: '1234567890' }] })
       .chain('populate')
+      .withExactArgs({
+        path: 'user',
+        select: 'identity administrative.driveFolder sector contact local',
+        populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+      })
       .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity driveFolder' })
       .chain('lean')
       .returns(contracts);
 
@@ -60,7 +66,13 @@ describe('getContractList', () => {
         ],
       })
       .chain('populate')
+      .withExactArgs({
+        path: 'user',
+        select: 'identity administrative.driveFolder sector contact local',
+        populate: { path: 'sector', select: '_id sector', match: { company: credentials.company._id } },
+      })
       .chain('populate')
+      .withExactArgs({ path: 'customer', select: 'identity driveFolder' })
       .chain('lean')
       .returns(contracts);
 
@@ -106,9 +118,10 @@ describe('createContract', () => {
     const contract = { ...payload, company: '1234567890' };
 
     hasNotEndedCompanyContracts.returns(false);
-    ContractMock.expects('create').withArgs(contract).returns(contract);
-    UserMock
-      .expects('findOneAndUpdate')
+    ContractMock.expects('create')
+      .withArgs(contract)
+      .returns(contract);
+    UserMock.expects('findOneAndUpdate')
       .withArgs({ _id: payload.user }, { $push: { contracts: payload._id }, $unset: { inactivityDate: '' } })
       .once();
     CustomerMock.expects('findOneAndUpdate').never();
@@ -130,11 +143,13 @@ describe('createContract', () => {
       user: new ObjectID(),
       startDate: moment('2018-12-03T23:00:00').toDate(),
       status: 'contract_with_company',
-      versions: [{
-        weeklyHours: 18,
-        grossHourlyRate: 25,
-        signature: { templateId: '0987654321', title: 'Test' },
-      }],
+      versions: [
+        {
+          weeklyHours: 18,
+          grossHourlyRate: 25,
+          signature: { templateId: '0987654321', title: 'Test' },
+        },
+      ],
     };
     const credentials = { company: { _id: '1234567890' } };
     const contract = { ...payload, company: '1234567890' };
@@ -146,9 +161,10 @@ describe('createContract', () => {
 
     hasNotEndedCompanyContracts.returns(false);
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
-    ContractMock.expects('create').withArgs(contractWithDoc).returns(contractWithDoc);
-    UserMock
-      .expects('findOneAndUpdate')
+    ContractMock.expects('create')
+      .withArgs(contractWithDoc)
+      .returns(contractWithDoc);
+    UserMock.expects('findOneAndUpdate')
       .withArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
       .once();
     CustomerMock.expects('findOneAndUpdate').never();
@@ -177,13 +193,13 @@ describe('createContract', () => {
 
     hasNotEndedCompanyContracts.returns(false);
 
-    ContractMock.expects('create').withArgs(contract).returns(contract);
-    UserMock
-      .expects('findOneAndUpdate')
+    ContractMock.expects('create')
+      .withArgs(contract)
+      .returns(contract);
+    UserMock.expects('findOneAndUpdate')
       .withArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
       .once();
-    CustomerMock
-      .expects('findOneAndUpdate')
+    CustomerMock.expects('findOneAndUpdate')
       .withArgs({ _id: contract.customer }, { $push: { contracts: contract._id } })
       .once();
 
@@ -228,7 +244,10 @@ describe('endContract', () => {
     ContractMock = sinon.mock(Contract);
     updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
     unassignInterventionsOnContractEnd = sinon.stub(EventHelper, 'unassignInterventionsOnContractEnd');
-    removeEventsExceptInterventionsOnContractEnd = sinon.stub(EventHelper, 'removeEventsExceptInterventionsOnContractEnd');
+    removeEventsExceptInterventionsOnContractEnd = sinon.stub(
+      EventHelper,
+      'removeEventsExceptInterventionsOnContractEnd'
+    );
     updateAbsencesOnContractEnd = sinon.stub(EventHelper, 'updateAbsencesOnContractEnd');
     unassignReferentOnContractEnd = sinon.stub(CustomerHelper, 'unassignReferentOnContractEnd');
   });
@@ -284,7 +303,12 @@ describe('endContract', () => {
     sinon.assert.calledWithExactly(unassignInterventionsOnContractEnd, updatedContract, credentials);
     sinon.assert.calledWithExactly(unassignReferentOnContractEnd, updatedContract);
     sinon.assert.calledWithExactly(removeEventsExceptInterventionsOnContractEnd, updatedContract, credentials);
-    sinon.assert.calledWithExactly(updateAbsencesOnContractEnd, updatedContract.user, updatedContract.endDate, credentials);
+    sinon.assert.calledWithExactly(
+      updateAbsencesOnContractEnd,
+      updatedContract.user,
+      updatedContract.endDate,
+      credentials
+    );
     expect(result).toMatchObject(updatedContract);
     ContractMock.verify();
   });
@@ -308,7 +332,10 @@ describe('endContract', () => {
       };
       const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
 
-      ContractMock.expects('findOne').chain('lean').returns(contract).once();
+      ContractMock.expects('findOne')
+        .chain('lean')
+        .returns(contract)
+        .once();
       ContractMock.expects('findOneAndUpdate').never();
 
       await ContractHelper.endContract(contractId.toHexString(), payload, credentials);
@@ -353,14 +380,13 @@ describe('createVersion', () => {
     ContractMock.expects('updateOne')
       .withExactArgs(
         { _id: contract._id.toHexString() },
-        { $set: { [`versions.${1}.endDate`]: moment('2019-09-13T00:00:00').subtract(1, 'd').endOf('d').toISOString() } }
+        {
+          $set: { [`versions.${1}.endDate`]: moment('2019-09-13T00:00:00').subtract(1, 'd').endOf('d').toISOString() },
+        }
       )
       .once();
     ContractMock.expects('findOneAndUpdate')
-      .withExactArgs(
-        { _id: contract._id.toHexString() },
-        { $push: { versions: newVersion } }
-      )
+      .withExactArgs({ _id: contract._id.toHexString() }, { $push: { versions: newVersion } })
       .chain('lean')
       .once();
 
@@ -382,7 +408,10 @@ describe('createVersion', () => {
       .returns(contract);
     ContractMock.expects('updateOne').never();
     ContractMock.expects('findOneAndUpdate')
-      .withExactArgs({ _id: contract._id.toHexString() }, { $push: { versions: { ...newVersion, signature: { eversignId: '1234567890' } } } })
+      .withExactArgs(
+        { _id: contract._id.toHexString() },
+        { $push: { versions: { ...newVersion, signature: { eversignId: '1234567890' } } } }
+      )
       .chain('lean')
       .once()
       .returns(contract);
@@ -524,7 +553,11 @@ describe('updateVersion', () => {
 
   it('should update version', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const versionToUpdate = {
+      _id: versionId,
+      startDate: '2019-09-10T00:00:00',
+      signature: { templateId: '1234567890' },
+    };
     const contract = {
       startDate: '2019-09-09T00:00:00',
       versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' }],
@@ -556,7 +589,11 @@ describe('updateVersion', () => {
 
   it('should update version and unset', async () => {
     const credentials = { company: { _id: new ObjectID() } };
-    const versionToUpdate = { _id: versionId, startDate: '2019-09-10T00:00:00', signature: { templateId: '1234567890' } };
+    const versionToUpdate = {
+      _id: versionId,
+      startDate: '2019-09-10T00:00:00',
+      signature: { templateId: '1234567890' },
+    };
     const contract = {
       startDate: '2019-09-09T00:00:00',
       versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00', auxiliaryDoc: 'toto' }],
@@ -597,7 +634,10 @@ describe('updateVersion', () => {
         startDate: '2019-09-09T00:00:00',
         versions: [{ _id: versionId, startDate: '2019-09-10T00:00:00' }],
       };
-      ContractMock.expects('findOne').chain('lean').once().returns(contract);
+      ContractMock.expects('findOne')
+        .chain('lean')
+        .once()
+        .returns(contract);
       ContractMock.expects('findOneAndUpdate').never();
       canUpdateVersion.returns(false);
 
@@ -655,13 +695,15 @@ describe('deleteVersion', () => {
     };
     countAuxiliaryEventsBetweenDates.returns(0);
     findOneContract.returns(contract);
-    const credentials = { company: { _id: new ObjectID() }};
+    const credentials = { company: { _id: new ObjectID() } };
     await ContractHelper.deleteVersion(contractId.toHexString(), versionId.toHexString(), credentials);
     sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
-    sinon.assert.calledWithExactly(
-      countAuxiliaryEventsBetweenDates,
-      { auxiliary: 'toot', startDate: '2019-09-09', status: 'ok', company: credentials.company._id }
-    );
+    sinon.assert.calledWithExactly(countAuxiliaryEventsBetweenDates, {
+      auxiliary: 'toot',
+      startDate: '2019-09-09',
+      status: 'ok',
+      company: credentials.company._id,
+    });
     sinon.assert.notCalled(saveContract);
     sinon.assert.calledWithExactly(deleteOne, { _id: contractId.toHexString() });
     sinon.assert.calledWithExactly(updateOneUser, { _id: 'toot' }, { $pull: { contracts: contractId } });
@@ -683,7 +725,10 @@ describe('deleteVersion', () => {
     } catch (e) {
       expect(e.output.statusCode).toEqual(403);
     } finally {
-      sinon.assert.calledWithExactly(findOneContract, { _id: contractId.toHexString(), 'versions.0': { $exists: true } });
+      sinon.assert.calledWithExactly(findOneContract, {
+        _id: contractId.toHexString(),
+        'versions.0': { $exists: true },
+      });
       sinon.assert.notCalled(saveContract);
       sinon.assert.called(countAuxiliaryEventsBetweenDates);
       sinon.assert.notCalled(deleteOne);
@@ -766,7 +811,9 @@ describe('getContractInfo', () => {
     expect(result).toBeDefined();
     sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
-      moment('2019-06-03').startOf('d').toDate(),
+      moment('2019-06-03')
+        .startOf('d')
+        .toDate(),
       moment('2019-06-09').toDate()
     );
   });
@@ -798,7 +845,9 @@ describe('getContractInfo', () => {
     expect(result.holidaysHours).toBe(4);
     sinon.assert.calledWithExactly(
       getDaysRatioBetweenTwoDates,
-      moment('2019-05-04').startOf('d').toDate(),
+      moment('2019-05-04')
+        .startOf('d')
+        .toDate(),
       moment('2019-05-10').toDate()
     );
   });

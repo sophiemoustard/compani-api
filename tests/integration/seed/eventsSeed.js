@@ -10,6 +10,7 @@ const Service = require('../../../src/models/Service');
 const EventHistory = require('../../../src/models/EventHistory');
 const InternalHour = require('../../../src/models/InternalHour');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 const app = require('../../../server');
 const { EVERY_WEEK, NEVER, COMPANY_CONTRACT, DAILY, PAID_LEAVE } = require('../../../src/helpers/constants');
@@ -65,9 +66,10 @@ const eventAuxiliary = {
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
   contracts: [contracts[0]._id],
-  sector: sectors[0]._id,
   company: authCompany._id,
 };
+
+const sectorHistory = { auxiliary: auxiliaryId, sector: sectors[0]._id, company: authCompany._id };
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
@@ -76,9 +78,10 @@ const auxiliaryFromOtherCompany = {
   administrative: { driveFolder: { driveId: '1234567890' } },
   refreshToken: uuidv4(),
   role: rolesList[1]._id,
-  sector: sectors[0]._id,
   company: otherCompany._id,
 };
+
+const sectorHistoryFromOtherCompany = { auxiliary: auxiliaryId, sector: sectors[2]._id, company: otherCompany._id };
 
 const thirdPartyPayer = {
   _id: new ObjectID(),
@@ -357,6 +360,7 @@ const populateDB = async () => {
   await Service.deleteMany({});
   await EventHistory.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
   await Repetition.deleteMany({});
   await InternalHour.deleteMany({});
 
@@ -365,6 +369,7 @@ const populateDB = async () => {
   await Contract.insertMany(contracts);
   await Repetition.insertMany(repetitions);
   await Sector.insertMany(sectors);
+  await SectorHistory.insertMany([sectorHistory, sectorHistoryFromOtherCompany]);
   await (new User(eventAuxiliary)).save();
   await (new User(helpersCustomer)).save();
   await (new User(auxiliaryFromOtherCompany)).save();

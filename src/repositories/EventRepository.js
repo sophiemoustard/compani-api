@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 const omit = require('lodash/omit');
 const get = require('lodash/get');
 const Event = require('../models/Event');
-const User = require('../models/User');
+const SectorHistory = require('../models/SectorHistory');
 const {
   INTERNAL_HOUR,
   INTERVENTION,
@@ -99,11 +99,11 @@ exports.getEventsGroupedByAuxiliaries = async (rules, companyId) =>
 
 exports.getEventsGroupedByCustomers = async (rules, companyId) => getEventsGroupedBy(rules, '$customer._id', companyId);
 
-exports.getEventList = rules => Event.find(rules)
+exports.getEventList = (rules, companyId) => Event.find(rules)
   .populate({
     path: 'auxiliary',
     select: 'identity administrative.driveFolder administrative.transportInvoice company picture sector',
-    populate: { path: 'sector' },
+    populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
   })
   .populate({
     path: 'customer',
@@ -111,7 +111,7 @@ exports.getEventList = rules => Event.find(rules)
     populate: { path: 'subscriptions.service' },
   })
   .populate({ path: 'internalHour' })
-  .lean();
+  .lean({ autopopulate: true, viruals: true });
 
 exports.getEventsInConflicts = async (dates, auxiliary, types, companyId, eventId = null) => {
   const rules = {
@@ -208,10 +208,35 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
-        from: 'sectors',
-        localField: 'auxiliary.sector',
-        foreignField: '_id',
+        from: 'sectorhistories',
         as: 'auxiliary.sector',
+        let: { auxiliaryId: '$auxiliary._id', companyId: '$auxiliary.company' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $eq: ['$company', '$$companyId'] },
+                ],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'sectors',
+              as: 'lastSector',
+              let: { sectorId: '$sector' },
+              pipeline: [
+                { $match: { $expr: { $eq: ['$_id', '$$sectorId'] } } },
+              ],
+            },
+          },
+          { $sort: { createdAt: -1 } },
+          { $group: { _id: null, sector: { $first: '$$ROOT' } } },
+          { $unwind: { path: '$sector.lastSector' } },
+          { $project: { sector: '$sector.lastSector' } },
+        ],
       },
     },
     { $unwind: { path: '$auxiliary.sector' } },
@@ -227,7 +252,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     {
       $project: {
         customer: { identity: 1 },
-        auxiliary: { identity: 1, sector: 1 },
+        auxiliary: { identity: 1, sector: '$auxiliary.sector.sector' },
         startDate: 1,
         endDate: 1,
         internalHour: 1,
@@ -245,17 +270,22 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
 };
 
 exports.getAbsencesForExport = async (start, end, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const query = {
     type: ABSENCE,
     startDate: { $lt: end },
     endDate: { $gt: start },
-    company: get(credentials, 'company._id', null),
+    company: companyId,
   };
 
   return Event.find(query)
     .sort({ startDate: 'desc' })
-    .populate({ path: 'auxiliary', select: 'identity sector', populate: { path: 'sector' } })
-    .lean();
+    .populate({
+      path: 'auxiliary',
+      select: 'identity sector',
+      populate: { path: 'sector', match: { company: companyId } },
+    })
+    .lean({ autopopulate: true, virtuals: true });
 };
 
 exports.getCustomerSubscriptions = (contract, companyId) => Event.aggregate([
@@ -570,24 +600,29 @@ exports.getCustomersFromEvent = async (query, companyId) => {
     { $lt: ['$startDate', endDate] },
   ];
 
-  return User.aggregate([
+  return SectorHistory.aggregate([
     {
       $match: {
         sector: { $in: Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)] },
-        company: companyId,
       },
     },
+    {
+      $lookup: {
+        from: 'users',
+        as: 'auxiliary',
+        localField: 'auxiliary',
+        foreignField: '_id',
+      },
+    },
+    { $unwind: { path: '$auxiliary' } },
+    { $replaceRoot: { newRoot: '$auxiliary' } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
         let: { auxiliaryId: '$_id' },
         pipeline: [
-          {
-            $match: {
-              $expr: { $and: [...eventQuery] },
-            },
-          },
+          { $match: { $expr: { $and: [...eventQuery] } } },
         ],
       },
     },
@@ -631,7 +666,7 @@ exports.getCustomersFromEvent = async (query, companyId) => {
             {
               $indexOfArray: [
                 '$subscriptions.service.versions.startDate',
-                { $max: '$subscriptions.service.versions.startDate' }
+                { $max: '$subscriptions.service.versions.startDate' },
               ],
             },
           ],

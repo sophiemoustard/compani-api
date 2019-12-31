@@ -12,7 +12,7 @@ const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const DraftPayHelper = require('./draftPay');
 const EventRepository = require('../repositories/EventRepository');
-const UserRepository = require('../repositories/UserRepository');
+const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 const { COMPANY_CONTRACT } = require('./constants');
 
 exports.formatSurchargeDetail = (detail) => {
@@ -139,7 +139,7 @@ exports.getHoursToWorkBySector = async (query, credentials) => {
   const hoursToWorkBySector = [];
   const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
 
-  const contractsAndEventsBySector = await UserRepository.getContractsAndAbsencesBySector(
+  const contractsAndEventsBySector = await SectorHistoryRepository.getContractsAndAbsencesBySector(
     query.month,
     sectors,
     get(credentials, 'company._id', null)

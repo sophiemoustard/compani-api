@@ -219,6 +219,9 @@ module.exports = {
     /* Stats */
     statsFound: 'Stats found.',
     statsNotFound: 'Stats not found.',
+
+    /* Sector history */
+    sectorHistoryNotFound: 'Sector history not found',
   },
   'fr-FR': {
     /* Global errors */
@@ -436,5 +439,8 @@ module.exports = {
     /* Stats */
     statsFound: 'Statistiques trouvées.',
     statsNotFound: 'Statistiques non trouvées.',
+
+    /* Sector history */
+    sectorHistoryNotFound: 'Historique du secteur non trouvé.',
   },
 };

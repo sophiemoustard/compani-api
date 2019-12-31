@@ -4,6 +4,8 @@ const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Company = require('../../../src/models/Company');
 const Task = require('../../../src/models/Task');
+const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const { rolesList, populateDBForAuthentication, otherCompany } = require('./authenticationSeed');
 
 const company = {
@@ -140,11 +142,22 @@ const usersSeedList = [
   },
 ];
 
+const userSectors = [
+  { _id: new ObjectID(), name: 'Terre', company: company._id },
+  { _id: new ObjectID(), name: 'Lune', company: company._id },
+];
+
 const userPayload = {
   identity: { firstname: 'Auxiliary2', lastname: 'Kirk' },
   local: { email: 'kirk@alenvi.io', password: '123456' },
   role: rolesList.find(role => role.name === 'auxiliary')._id,
+  sector: userSectors[0]._id,
 };
+
+
+const sectorHistories = usersSeedList
+  .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
+  .map(user => ({ auxiliary: user._id, sector: userSectors[0]._id, company: company._id }));
 
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());
 const isExistingRole = (roleId, roleName) => roleId === rolesList.find(r => r.name === roleName)._id;
@@ -154,10 +167,14 @@ const populateDB = async () => {
   await Company.deleteMany({});
   await Task.deleteMany({});
   await Customer.deleteMany({});
+  await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
 
   await populateDBForAuthentication();
   await User.create(usersSeedList.concat(userFromOtherCompany));
   await Customer.create(customerFromOtherCompany);
+  await Sector.create(userSectors);
+  await SectorHistory.create(sectorHistories);
   await new Company(company).save();
   await new Task(task).save();
 };
@@ -170,4 +187,7 @@ module.exports = {
   isExistingRole,
   customerFromOtherCompany,
   userFromOtherCompany,
+  userSectors,
+  company,
+  sectorHistories,
 };

@@ -1,13 +1,24 @@
 const moment = require('moment');
-const User = require('../models/User');
+const SectorHistory = require('../models/SectorHistory');
 const { ABSENCE, COMPANY_CONTRACT } = require('../helpers/constants');
 
 exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
   const minDate = moment(month, 'MMYYYY').startOf('month').toDate();
   const maxDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
-  return User.aggregate([
+  return SectorHistory.aggregate([
     { $match: { sector: { $in: sectors } } },
+    {
+      $lookup: {
+        from: 'users',
+        as: 'auxiliary',
+        localField: 'auxiliary',
+        foreignField: '_id',
+      },
+    },
+    { $unwind: { path: '$auxiliary' } },
+    { $addFields: { 'auxiliary.sector': '$sector' } },
+    { $replaceRoot: { newRoot: '$auxiliary' } },
     { $project: { _id: 1, sector: 1 } },
     {
       $lookup: {

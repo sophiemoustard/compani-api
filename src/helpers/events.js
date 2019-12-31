@@ -34,6 +34,7 @@ momentRange.extendMoment(moment);
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
 exports.list = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const eventsQuery = exports.getListQuery(query, credentials);
   const { groupBy } = query;
 
@@ -42,13 +43,14 @@ exports.list = async (query, credentials) => {
   } else if (groupBy === AUXILIARY) {
     return EventRepository.getEventsGroupedByAuxiliaries(eventsQuery, get(credentials, 'company._id', null));
   }
-  return exports.populateEvents(await EventRepository.getEventList(eventsQuery));
+  return exports.populateEvents(await EventRepository.getEventList(eventsQuery, companyId));
 };
 
 exports.createEvent = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   let event = { ...payload, company: companyId };
-  if (!(await EventsValidationHelper.isCreationAllowed(event))) throw Boom.badData();
+  const isCreationAllowed = await EventsValidationHelper.isCreationAllowed(event, credentials);
+  if (!isCreationAllowed) throw Boom.badData();
 
   await EventHistoriesHelper.createEventHistoryOnCreate(payload, credentials);
 
@@ -176,14 +178,11 @@ exports.populateEvents = async (events) => {
   return populatedEvents;
 };
 
-exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, internalHourId) => Event.updateMany(
-  {
-    type: INTERNAL_HOUR,
-    internalHour: oldInternalHourId,
-    startDate: { $gte: eventsStartDate },
-  },
-  { $set: { internalHour: internalHourId } }
-);
+exports.updateEventsInternalHourType = async (eventsStartDate, oldInternalHourId, internalHourId) =>
+  Event.updateMany(
+    { type: INTERNAL_HOUR, internalHour: oldInternalHourId, startDate: { $gte: eventsStartDate } },
+    { $set: { internalHour: internalHourId } }
+  );
 
 exports.isMiscOnlyUpdated = (event, payload) => {
   const mainEventInfo = pick(
@@ -262,8 +261,8 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   let correspondingSubs;
   correspondingSubs = contract.status === COMPANY_CONTRACT
     ? customerSubscriptionsFromEvents.filter(ev => ev.sub.service.type === contract.status)
-    : correspondingSubs = customerSubscriptionsFromEvents
-      .filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status);
+    : (correspondingSubs = customerSubscriptionsFromEvents
+      .filter(ev => ev.customer._id === contract.customer && ev.sub.service.type === contract.status));
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
@@ -292,10 +291,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   }
 
   promises.push(
-    Event.updateMany(
-      { _id: { $in: ids } },
-      { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }
-    ),
+    Event.updateMany({ _id: { $in: ids } }, { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }),
     Repetition.updateMany({ auxiliary: contract.user, type: INTERVENTION }, { $unset: { auxiliary: '' } }),
     Repetition.deleteMany({ auxiliary: contract.user, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } })
   );
@@ -333,11 +329,8 @@ exports.deleteList = async (customer, startDate, endDate, credentials) => {
     startDate: { $gte: moment(startDate).toDate() },
   };
   if (endDate) query.startDate.$lte = moment(endDate).endOf('d').toDate();
-  if (await Event.countDocuments({
-    ...query,
-    company: new ObjectID(companyId),
-    isBilled: true,
-  }) > 0) throw Boom.conflict('Some events are already billed');
+  const billedEventsCount = await Event.countDocuments({ ...query, company: new ObjectID(companyId), isBilled: true });
+  if (billedEventsCount > 0) throw Boom.conflict('Some events are already billed');
 
   const eventsGroupedByParentId = await EventRepository.getEventsGroupedByParentId(query, companyId);
   for (const group of eventsGroupedByParentId) {
@@ -426,9 +419,8 @@ exports.workingStats = async (query, credentials) => {
 
   const workingStats = {};
   for (const auxiliary of auxiliaries) {
-    const eventsToPay =
-      eventsByAuxiliary.find(group => group.auxiliary._id.toHexString() === auxiliary._id.toHexString())
-      || { absences: [], events: [] };
+    const eventsToPay = eventsByAuxiliary
+      .find(g => g.auxiliary._id.toHexString() === auxiliary._id.toHexString()) || { absences: [], events: [] };
     const { contracts } = auxiliary;
     if (!contracts || !contracts.length) continue;
     const contract = exports.getContract(contracts, query.startDate, query.endDate);

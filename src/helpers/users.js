@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Boom = require('boom');
 const moment = require('moment');
 const pickBy = require('lodash/pickBy');
@@ -14,6 +15,7 @@ const translate = require('./translate');
 const GdriveStorage = require('./gdriveStorage');
 const RolesHelper = require('./roles');
 const { AUXILIARY, PLANNING_REFERENT } = require('./constants');
+const SectorHistoriesHelper = require('../helpers/sectorHistories');
 
 const { language } = translate;
 
@@ -32,22 +34,26 @@ exports.getUsersList = async (query, credentials) => {
     params.role = role;
   }
 
-  return User
-    .find(params, {}, { autopopulate: false })
+  return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
     .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate({ path: 'role', select: 'name' })
+    .populate({
+      path: 'sector',
+      select: '_id sector',
+      match: { company: get(credentials, 'company._id', null) },
+    })
     .populate('contracts')
-    .populate('sector')
-    .lean({ virtuals: true });
+    .lean({ virtuals: true, autopopulate: true });
 };
 
-exports.getUser = async (userId) => {
+exports.getUser = async (userId, credentials) => {
   const user = await User.findOne({ _id: userId })
     .populate('customers')
     .populate('contracts')
     .populate({ path: 'procedure.task', select: 'name _id' })
+    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
     .lean({ autopopulate: true, virtuals: true });
   if (!user) throw Boom.notFound(translate[language].userNotFound);
 
@@ -96,7 +102,7 @@ exports.createAndSaveFile = async (params, payload) => {
 };
 
 exports.createUser = async (userPayload, credentials) => {
-  const payload = cloneDeep(userPayload);
+  const { sector, ...payload } = cloneDeep(userPayload);
   const role = await Role.findById(payload.role, { name: 1 }).lean();
   if (!role) throw Boom.badRequest('Role does not exist');
 
@@ -106,19 +112,27 @@ exports.createUser = async (userPayload, credentials) => {
     payload.procedure = taskIds;
   }
 
-  const user = await User.create({
+  const userId = mongoose.Types.ObjectId();
+  const companyId = get(credentials, 'company._id', null);
+  const creationPromises = [User.create({
     ...payload,
-    company: payload.company || get(credentials, 'company._id', null),
+    _id: userId,
+    company: payload.company || companyId,
     refreshToken: uuidv4(),
-  });
+  })];
+  if (sector) creationPromises.push(SectorHistoriesHelper.createHistory(userId, sector, companyId));
+
+  const [user] = await Promise.all(creationPromises);
   const populatedRights = RolesHelper.populateRole(user.role.rights, { onlyGrantedRights: true });
+
   return {
     ...pickBy(user),
-    role: { name: user.role.name, rights: populatedRights },
+    role: { name: user.role.name, rights: [...populatedRights] },
   };
 };
 
-exports.updateUser = async (userId, userPayload) => {
+exports.updateUser = async (userId, userPayload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const options = { new: true };
   let update;
 
@@ -129,7 +143,15 @@ exports.updateUser = async (userId, userPayload) => {
     options.runValidators = true;
   }
 
-  const updatedUser = await User.findOneAndUpdate({ _id: userId }, update, options).lean({ autopopulate: true });
+  const updatePromises = [
+    User
+      .findOneAndUpdate({ _id: userId, company: companyId }, update, options)
+      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+      .lean({ autopopulate: true, virtuals: true }),
+  ];
+  const { sector } = userPayload;
+  if (sector) updatePromises.push(SectorHistoriesHelper.createHistory(userId, userPayload.sector, companyId));
+  const [updatedUser] = await Promise.all(updatePromises);
 
   if (updatedUser.role && updatedUser.role.rights.length > 0) {
     updatedUser.role.rights = RolesHelper.populateRole(updatedUser.role.rights, { onlyGrantedRights: true });

@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const expect = require('expect');
 const moment = require('moment');
@@ -5,8 +6,10 @@ const sinon = require('sinon');
 const Boom = require('boom');
 const flat = require('flat');
 const cloneDeep = require('lodash/cloneDeep');
+const omit = require('lodash/omit');
 const UsersHelper = require('../../../src/helpers/users');
 const RolesHelper = require('../../../src/helpers/roles');
+const SectorHistoriesHelper = require('../../../src/helpers/sectorHistories');
 const translate = require('../../../src/helpers/translate');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const User = require('../../../src/models/User');
@@ -51,11 +54,15 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+      })
       .chain('populate')
-      .withExactArgs('sector')
+      .withExactArgs('contracts')
       .chain('lean')
-      .withExactArgs({ virtuals: true })
+      .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
 
     const result = await UsersHelper.getUsersList(query, credentials);
@@ -84,11 +91,15 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+      })
       .chain('populate')
-      .withExactArgs('sector')
+      .withExactArgs('contracts')
       .chain('lean')
-      .withExactArgs({ virtuals: true })
+      .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
 
     const result = await UsersHelper.getUsersList(query, credentials);
@@ -118,11 +129,15 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
-      .withExactArgs('contracts')
+      .withExactArgs({
+        path: 'sector',
+        select: '_id sector',
+        match: { company: credentials.company._id },
+      })
       .chain('populate')
-      .withExactArgs('sector')
+      .withExactArgs('contracts')
       .chain('lean')
-      .withExactArgs({ virtuals: true })
+      .withExactArgs({ virtuals: true, autopopulate: true })
       .returns(users);
 
     const result = await UsersHelper.getUsersList(query, credentials);
@@ -158,6 +173,7 @@ describe('getUsersList', () => {
 describe('getUser', () => {
   let userMock;
   let populateRole;
+  const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     userMock = sinon.mock(User);
     populateRole = sinon.stub(RolesHelper, 'populateRole');
@@ -178,12 +194,14 @@ describe('getUser', () => {
       .withExactArgs('contracts')
       .chain('populate')
       .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(user);
 
-    await UsersHelper.getUser(userId);
+    await UsersHelper.getUser(userId, credentials);
 
     sinon.assert.notCalled(populateRole);
     userMock.verify();
@@ -201,13 +219,15 @@ describe('getUser', () => {
       .withExactArgs('contracts')
       .chain('populate')
       .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
       .chain('lean')
       .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(user);
     populateRole.returns(user);
 
-    await UsersHelper.getUser(userId);
+    await UsersHelper.getUser(userId, credentials);
 
     sinon.assert.calledWithExactly(populateRole, [{ _id: rightId }], { onlyGrantedRights: true });
     userMock.verify();
@@ -224,12 +244,14 @@ describe('getUser', () => {
         .withExactArgs('contracts')
         .chain('populate')
         .withExactArgs({ path: 'procedure.task', select: 'name _id' })
+        .chain('populate')
+        .withExactArgs({ path: 'sector', select: '_id sector', match: { company: credentials.company._id } })
         .chain('lean')
         .withExactArgs({ autopopulate: true, virtuals: true })
         .once()
         .returns(null);
 
-      await UsersHelper.getUser(userId);
+      await UsersHelper.getUser(userId, credentials);
     } catch (e) {
       expect(e.output.statusCode).toEqual(404);
     } finally {
@@ -312,6 +334,9 @@ describe('createUser', () => {
   let TaskMock;
   let RoleMock;
   let populateRoleStub;
+  let objectIdStub;
+  let createHistoryStub;
+  const userId = new ObjectID();
   const userRights = [{
     right_id: { _id: new ObjectID().toHexString(), permission: 'test' },
     hasAccess: true,
@@ -331,6 +356,8 @@ describe('createUser', () => {
     TaskMock = sinon.mock(Task);
     RoleMock = sinon.mock(Role);
     populateRoleStub = sinon.stub(RolesHelper, 'populateRole');
+    objectIdStub = sinon.stub(mongoose.Types, 'ObjectId').returns(userId);
+    createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
@@ -338,6 +365,8 @@ describe('createUser', () => {
     TaskMock.restore();
     RoleMock.restore();
     populateRoleStub.restore();
+    objectIdStub.restore();
+    createHistoryStub.restore();
   });
 
   it('should create an auxiliary', async () => {
@@ -345,9 +374,9 @@ describe('createUser', () => {
       identity: { lastname: 'Test', firstname: 'Toto' },
       local: { email: 'toto@test.com', password: '1234567890' },
       role: new ObjectID(),
+      sector: new ObjectID(),
     };
     const newUser = {
-      _id: new ObjectID(),
       ...payload,
       role: { name: 'auxiliary', rights: userRights },
     };
@@ -371,7 +400,8 @@ describe('createUser', () => {
 
     UserMock.expects('create')
       .withExactArgs({
-        ...payload,
+        ...omit(payload, 'sector'),
+        _id: userId,
         company: credentials.company._id,
         refreshToken: sinon.match.string,
         procedure: taskIds,
@@ -390,6 +420,7 @@ describe('createUser', () => {
     TaskMock.verify();
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
+    sinon.assert.calledWithExactly(createHistoryStub, userId, payload.sector, credentials.company._id);
   });
 
   it('should create a coach', async () => {
@@ -399,7 +430,6 @@ describe('createUser', () => {
       role: new ObjectID(),
     };
     const newUser = {
-      _id: new ObjectID(),
       ...payload,
       role: { name: 'coach', rights: userRights },
     };
@@ -415,6 +445,7 @@ describe('createUser', () => {
     UserMock.expects('create')
       .withExactArgs({
         ...payload,
+        _id: userId,
         company: credentials.company._id,
         refreshToken: sinon.match.string,
       })
@@ -432,6 +463,7 @@ describe('createUser', () => {
     TaskMock.verify();
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, newUser.role.rights, { onlyGrantedRights: true });
+    sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should create an admin', async () => {
@@ -442,7 +474,6 @@ describe('createUser', () => {
       company: new ObjectID(),
     };
     const newUser = {
-      _id: new ObjectID(),
       ...payload,
       role: { name: 'admin', rights: userRights },
     };
@@ -458,6 +489,7 @@ describe('createUser', () => {
     UserMock.expects('create')
       .withExactArgs({
         ...payload,
+        _id: userId,
         refreshToken: sinon.match.string,
       })
       .returns({ ...newUser });
@@ -500,6 +532,7 @@ describe('createUser', () => {
       RoleMock.verify();
       UserMock.verify();
       sinon.assert.notCalled(populateRoleStub);
+      sinon.assert.notCalled(createHistoryStub);
     }
   });
 });
@@ -507,6 +540,8 @@ describe('createUser', () => {
 describe('updateUser', () => {
   let UserMock;
   let populateRoleStub;
+  let createHistoryStub;
+  const credentials = { company: { _id: new ObjectID() } };
   const userId = new ObjectID();
   const user = {
     _id: userId,
@@ -529,26 +564,31 @@ describe('updateUser', () => {
   beforeEach(() => {
     UserMock = sinon.mock(User);
     populateRoleStub = sinon.stub(RolesHelper, 'populateRole');
+    createHistoryStub = sinon.stub(SectorHistoriesHelper, 'createHistory');
   });
 
   afterEach(() => {
     UserMock.restore();
     populateRoleStub.restore();
+    createHistoryStub.restore();
   });
 
   it('should update a user and populate role', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId }, { $set: flat(payload) }, { new: true, runValidators: true })
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId, company: credentials.company._id },
+        { $set: flat(payload) },
+        { new: true, runValidators: true }
+      )
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...cloneDeep(user), payload });
 
     populateRoleStub.returns(populatedUserRights);
 
-    const result = await UsersHelper.updateUser(userId, payload);
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toMatchObject({
       ...user,
@@ -557,21 +597,52 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
+    sinon.assert.notCalled(createHistoryStub);
+  });
+
+  it('should update a user, populate role and create sector history', async () => {
+    const payload = { identity: { firstname: 'Titi' }, sector: new ObjectID() };
+
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId, company: credentials.company._id },
+        { $set: flat(payload) },
+        { new: true, runValidators: true }
+      )
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ ...cloneDeep(user), payload });
+
+    populateRoleStub.returns(populatedUserRights);
+
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
+
+    expect(result).toMatchObject({
+      ...user,
+      payload,
+      role: { rights: populatedUserRights },
+    });
+    UserMock.verify();
+    sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
+    sinon.assert.calledWithExactly(createHistoryStub, userId, payload.sector, credentials.company._id);
   });
 
   it('should update a user and not populate role', async () => {
     const payload = { identity: { firstname: 'Titi' } };
 
-    UserMock
-      .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId }, { $set: flat(payload) }, { new: true, runValidators: true })
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs(
+        { _id: userId, company: credentials.company._id },
+        { $set: flat(payload) },
+        { new: true, runValidators: true }
+      )
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ _id: user._id, role: { rights: [] }, payload });
 
     populateRoleStub.returns(populatedUserRights);
 
-    const result = await UsersHelper.updateUser(userId, payload);
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toMatchObject({
       ...user,
@@ -580,6 +651,7 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.notCalled(populateRoleStub);
+    sinon.assert.notCalled(createHistoryStub);
   });
 
   it('should update a user certificate and populate role', async () => {
@@ -587,14 +659,14 @@ describe('updateUser', () => {
 
     UserMock
       .expects('findOneAndUpdate')
-      .withExactArgs({ _id: userId }, { $pull: payload }, { new: true })
+      .withExactArgs({ _id: userId, company: credentials.company._id }, { $pull: payload }, { new: true })
       .chain('lean')
-      .withExactArgs({ autopopulate: true })
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .returns({ ...cloneDeep(user), payload });
 
     populateRoleStub.returns(populatedUserRights);
 
-    const result = await UsersHelper.updateUser(userId, payload);
+    const result = await UsersHelper.updateUser(userId, payload, credentials);
 
     expect(result).toMatchObject({
       ...user,
@@ -603,6 +675,7 @@ describe('updateUser', () => {
     });
     UserMock.verify();
     sinon.assert.calledWithExactly(populateRoleStub, user.role.rights, { onlyGrantedRights: true });
+    sinon.assert.notCalled(createHistoryStub);
   });
 });
 

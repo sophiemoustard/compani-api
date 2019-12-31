@@ -7,6 +7,7 @@ const Contract = require('../../../src/models/Contract');
 const Service = require('../../../src/models/Service');
 const Event = require('../../../src/models/Event');
 const Sector = require('../../../src/models/Sector');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const FinalPay = require('../../../src/models/FinalPay');
 const { rolesList, populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
@@ -138,6 +139,12 @@ const sector = {
   company: authCompany._id,
 };
 
+const sectorHistory = {
+  auxiliary: auxiliaryId,
+  sector: sectorId,
+  company: authCompany._id,
+};
+
 const populateDB = async () => {
   await User.deleteMany({});
   await Customer.deleteMany({});
@@ -145,6 +152,7 @@ const populateDB = async () => {
   await Contract.deleteMany({});
   await Event.deleteMany({});
   await Sector.deleteMany({});
+  await SectorHistory.deleteMany({});
   await FinalPay.deleteMany({});
 
   await populateDBForAuthentication();
@@ -154,6 +162,7 @@ const populateDB = async () => {
   await (new Event(event)).save();
   await (new Contract(contract)).save();
   await (new Sector(sector)).save();
+  await SectorHistory.create(sectorHistory);
 };
 
 module.exports = { populateDB, auxiliary, auxiliaryFromOtherCompany };

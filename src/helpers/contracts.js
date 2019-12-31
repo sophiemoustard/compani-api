@@ -24,7 +24,8 @@ const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
 
 exports.getContractList = async (query, credentials) => {
-  const rules = [{ company: get(credentials, 'company._id', null) }];
+  const companyId = get(credentials, 'company._id', null);
+  const rules = [{ company: companyId }];
   if (query.startDate && query.endDate) {
     rules.push({
       $or: [
@@ -43,10 +44,10 @@ exports.getContractList = async (query, credentials) => {
     .populate({
       path: 'user',
       select: 'identity administrative.driveFolder sector contact local',
-      populate: { path: 'sector', select: 'name' },
+      populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
     })
     .populate({ path: 'customer', select: 'identity driveFolder' })
-    .lean();
+    .lean({ autopopulate: true, virtuals: true });
 };
 
 exports.hasNotEndedCompanyContracts = async (contract, companyId) => {
@@ -61,7 +62,9 @@ exports.createContract = async (contractPayload, credentials) => {
 
   if (payload.status === COMPANY_CONTRACT) {
     const hasNotEndedCompanyContracts = await exports.hasNotEndedCompanyContracts(payload, companyId);
-    if (hasNotEndedCompanyContracts) throw Boom.badRequest('New contract start date is before last company contract end date.');
+    if (hasNotEndedCompanyContracts) {
+      throw Boom.badRequest('New contract start date is before last company contract end date.');
+    }
   }
 
   if (payload.versions[0].signature) {
@@ -88,7 +91,9 @@ exports.createContract = async (contractPayload, credentials) => {
 exports.endContract = async (contractId, contractToEnd, credentials) => {
   const contract = await Contract.findOne({ _id: contractId }).lean();
   const lastVersion = contract.versions[contract.versions.length - 1];
-  if (moment(contractToEnd.endDate).isBefore(lastVersion.startDate, 'd')) throw Boom.conflict('End date is before last version start date');
+  if (moment(contractToEnd.endDate).isBefore(lastVersion.startDate, 'd')) {
+    throw Boom.conflict('End date is before last version start date');
+  }
 
   const set = {
     endDate: contractToEnd.endDate,
@@ -97,7 +102,11 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     otherMisc: contractToEnd.otherMisc,
     [`versions.${contract.versions.length - 1}.endDate`]: contractToEnd.endDate,
   };
-  const updatedContract = await Contract.findOneAndUpdate({ _id: contractId }, { $set: flat(set) }, { new: true }).lean();
+  const updatedContract = await Contract.findOneAndUpdate(
+    { _id: contractId },
+    { $set: flat(set) },
+    { new: true }
+  ).lean();
 
   await Promise.all([
     UserHelper.updateUserInactivityDate(updatedContract.user, updatedContract.endDate, credentials),
@@ -176,7 +185,9 @@ exports.formatVersionEditionPayload = async (oldVersion, newVersion, versionInde
   if (newVersion.startDate) {
     if (versionIndex === 0) set.startDate = newVersion.startDate;
     else {
-      set[`versions.${versionIndex - 1}`] = { endDate: moment(newVersion.startDate).subtract(1, 'd').endOf('d').toISOString() };
+      set[`versions.${versionIndex - 1}`] = {
+        endDate: moment(newVersion.startDate).subtract(1, 'd').endOf('d').toISOString(),
+      };
     }
   }
 

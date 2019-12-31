@@ -86,10 +86,33 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
   const lookup = [
     {
       $lookup: {
-        from: 'sectors',
-        localField: 'sector',
-        foreignField: '_id',
+        from: 'sectorhistories',
         as: 'sector',
+        let: { auxiliaryId: '$_id', companyId: '$company' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $eq: ['$company', '$$companyId'] },
+                ],
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'sectors',
+              as: 'lastSector',
+              foreignField: '_id',
+              localField: 'sector',
+            },
+          },
+          { $sort: { createdAt: -1 } },
+          { $limit: 1 },
+          { $unwind: { path: '$lastSector' } },
+          { $replaceRoot: { newRoot: '$lastSector' } },
+        ],
       },
     },
     { $unwind: { path: '$sector' } },
@@ -117,7 +140,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
       'picture.link': 1,
       'identity.firstname': 1,
       'identity.lastname': 1,
-      'sector.name': 1,
+      sector: { name: '$sector.name' },
       totalHours: 1,
       'lastEvent.startDate': 1,
       // to compute isActive

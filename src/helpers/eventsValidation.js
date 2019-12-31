@@ -1,5 +1,6 @@
 const moment = require('moment');
-const _ = require('lodash');
+const get = require('lodash/get');
+const omit = require('lodash/omit');
 const momentRange = require('moment-range');
 const {
   INTERVENTION,
@@ -18,11 +19,10 @@ const EventRepository = require('../repositories/EventRepository');
 
 momentRange.extendMoment(moment);
 
-exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) =>
-  contracts.some(contract =>
-    contract.status === COMPANY_CONTRACT &&
-      moment(contract.startDate).isSameOrBefore(day, 'd') &&
-      (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
+exports.auxiliaryHasActiveCompanyContractOnDay = (contracts, day) => contracts.some(contract =>
+  contract.status === COMPANY_CONTRACT &&
+    moment(contract.startDate).isSameOrBefore(day, 'd') &&
+    (!contract.endDate || moment(contract.endDate).isSameOrAfter(day, 'd')));
 
 exports.checkContracts = async (event, user) => {
   if (!user.contracts || user.contracts.length === 0) return false;
@@ -35,10 +35,7 @@ exports.checkContracts = async (event, user) => {
   if (event.type === INTERVENTION) {
     let customer = await Customer
       .findOne({ _id: event.customer })
-      .populate({
-        path: 'subscriptions.service',
-        populate: { path: 'versions.surcharge' },
-      })
+      .populate({ path: 'subscriptions.service', populate: { path: 'versions.surcharge' } })
       .lean();
     customer = populateSubscriptionsServices(customer);
 
@@ -82,28 +79,34 @@ const isAuxiliaryUpdated = (payload, eventFromDB) => payload.auxiliary &&
   payload.auxiliary !== eventFromDB.auxiliary.toHexString();
 const isRepetition = event => event.repetition && event.repetition.frequency && event.repetition.frequency !== NEVER;
 
-exports.isCreationAllowed = async (event) => {
+exports.isCreationAllowed = async (event, credentials) => {
   if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
   if (!event.auxiliary) return event.type === INTERVENTION;
-  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
+  const user = await User.findOne({ _id: event.auxiliary })
+    .populate('contracts')
+    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+    .lean({ autopopulate: true, virtuals: true });
   if (!await exports.checkContracts(event, user)) return false;
   if (!(isRepetition(event) && event.type === INTERVENTION) && await exports.hasConflicts(event)) return false;
 
   return true;
 };
 
-exports.isEditionAllowed = async (eventFromDB, payload) => {
+exports.isEditionAllowed = async (eventFromDB, payload, credentials) => {
   if (eventFromDB.type === INTERVENTION && eventFromDB.isBilled) return false;
   if ([ABSENCE, UNAVAILABILITY].includes(eventFromDB.type) && isAuxiliaryUpdated(payload, eventFromDB)) return false;
 
   const event = !payload.auxiliary
-    ? { ..._.omit(eventFromDB, 'auxiliary'), ...payload }
+    ? { ...omit(eventFromDB, 'auxiliary'), ...payload }
     : { ...eventFromDB, ...payload };
 
   if (event.type !== ABSENCE && !isOneDayEvent(event)) return false;
   if (!event.auxiliary) return event.type === INTERVENTION;
 
-  const user = await User.findOne({ _id: event.auxiliary }).populate('contracts').lean();
+  const user = await User.findOne({ _id: event.auxiliary })
+    .populate('contracts')
+    .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+    .lean({ autopopulate: true, virtuals: true });
   if (!await exports.checkContracts(event, user)) return false;
 
   if (!(isRepetition(event) && event.type === INTERVENTION) &&
