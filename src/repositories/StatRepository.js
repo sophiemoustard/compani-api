@@ -212,6 +212,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         customer: { firstname: 1, lastname: 1 },
         referent: { firstname: 1, lastname: 1 },
         sector: '$sector.name',
+        sectorId: '$sector._id',
       },
     },
   ];
