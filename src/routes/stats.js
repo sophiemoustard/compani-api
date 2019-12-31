@@ -49,6 +49,11 @@ exports.plugin = {
       path: '/all-customers-fundings-monitoring',
       options: {
         auth: { scope: ['customers:read'] },
+        validate: {
+          query: {
+            limit: Joi.number(),
+          },
+        },
       },
       handler: getAllCustomersFundingsMonitoring,
     });

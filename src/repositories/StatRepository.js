@@ -23,29 +23,36 @@ const getFundingsMatch = () => ({
   nature: HOURLY,
 });
 
-const getPopulatedFundings = (fundingsMatch, fundingsDate) => [
-  { $replaceRoot: { newRoot: '$fundings' } },
-  { $addFields: { version: { $arrayElemAt: ['$versions', -1] } } },
-  {
-    $match: {
-      ...fundingsMatch,
-      'version.startDate': { $lte: fundingsDate.maxStartDate },
-      $or: [
-        { 'version.endDate': { $exists: false } },
-        { 'version.endDate': { $gte: fundingsDate.minEndDate } },
-      ],
+const getPopulatedFundings = (fundingsMatch, fundingsDate, limit = -1) => {
+  const result = [
+    { $replaceRoot: { newRoot: '$fundings' } },
+    { $addFields: { version: { $arrayElemAt: ['$versions', -1] } } },
+    {
+      $match: {
+        ...fundingsMatch,
+        'version.startDate': { $lte: fundingsDate.maxStartDate },
+        $or: [
+          { 'version.endDate': { $exists: false } },
+          { 'version.endDate': { $gte: fundingsDate.minEndDate } },
+        ],
+      },
     },
-  },
-  {
-    $lookup: {
-      from: 'thirdpartypayers',
-      localField: 'thirdPartyPayer',
-      foreignField: '_id',
-      as: 'thirdPartyPayer',
+  ];
+
+  if (limit > 0) result.push({ $limit: limit });
+
+  return result.concat([
+    {
+      $lookup: {
+        from: 'thirdpartypayers',
+        localField: 'thirdPartyPayer',
+        foreignField: '_id',
+        as: 'thirdPartyPayer',
+      },
     },
-  },
-  { $unwind: { path: '$thirdPartyPayer' } },
-];
+    { $unwind: { path: '$thirdPartyPayer' } },
+  ]);;
+};
 
 const getMatchEvents = eventsDate => [
   {
@@ -140,7 +147,7 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     .option({ company: companyId });
 };
 
-exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsDate, companyId) => {
+exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsDate, limit, companyId) => {
   const versionMatch = getVersionMatch(fundingsDate);
   const fundingsMatch = getFundingsMatch();
 
@@ -223,7 +230,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
   return Customer
     .aggregate([
       ...matchFundings,
-      ...getPopulatedFundings(fundingsMatch, fundingsDate),
+      ...getPopulatedFundings(fundingsMatch, fundingsDate, limit),
       ...getMatchEvents(eventsDate),
       ...formatFundings,
     ])

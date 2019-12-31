@@ -49,7 +49,7 @@ exports.getCustomerFundingsMonitoring = async (req) => {
 
 exports.getAllCustomersFundingsMonitoring = async (req) => {
   try {
-    const allCustomersFundingsMonitoring = await getAllCustomersFundingsMonitoring(req.auth.credentials);
+    const allCustomersFundingsMonitoring = await getAllCustomersFundingsMonitoring(req.query, req.auth.credentials);
 
     return {
       message: messages.statsFound,

@@ -48,7 +48,7 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
   return customerFundingsMonitoring;
 };
 
-exports.getAllCustomersFundingsMonitoring = async (credentials) => {
+exports.getAllCustomersFundingsMonitoring = async (query, credentials) => {
   const fundingsDate = {
     maxStartDate: moment().endOf('month').toDate(),
     minEndDate: moment().startOf('month').toDate(),
@@ -60,6 +60,7 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
   const eventsGroupedByFundingsforAllCustomers = await StatRepository.getEventsGroupedByFundingsforAllCustomers(
     fundingsDate,
     eventsDate,
+    query.limit || -1,
     get(credentials, 'company._id', null)
   );
   const allCustomersFundingsMonitoring = [];
