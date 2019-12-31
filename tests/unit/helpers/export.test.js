@@ -8,6 +8,7 @@ const Bill = require('../../../src/models/Bill');
 const CreditNote = require('../../../src/models/CreditNote');
 const Contract = require('../../../src/models/Contract');
 const User = require('../../../src/models/User');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const Role = require('../../../src/models/Role');
 const Pay = require('../../../src/models/Pay');
 const FinalPay = require('../../../src/models/FinalPay');
@@ -1082,6 +1083,92 @@ describe('exportHelpers', () => {
       'Actif',
       '',
     ]);
+  });
+});
+
+describe('exportSectors', () => {
+  let SectorHistoryModel;
+  beforeEach(() => {
+    SectorHistoryModel = sinon.mock(SectorHistory);
+  });
+
+  afterEach(() => {
+    SectorHistoryModel.restore();
+  });
+
+  it('should return csv header', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    SectorHistoryModel.expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
+      .chain('lean')
+      .returns([]);
+
+    const result = await ExportHelper.exportSectors(credentials);
+
+    expect(result).toBeDefined();
+    expect(result[0]).toMatchObject([
+      'Equipe',
+      'Id de l\'auxiliaire',
+      'Nom',
+      'Prénom',
+      'Date d\'arrivée dans l\'équipe',
+      'Date de départ de l\'équipe',
+    ]);
+    SectorHistoryModel.verify();
+  });
+
+  it('should return sector info', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    const sectorHistories = [{
+      sector: { name: 'test' },
+      auxiliary: {
+        _id: new ObjectID(),
+        identity: { firstname: 'toto', lastname: 'Tutu' },
+      },
+      createdAt: '2019-11-10',
+    },
+    {
+      sector: { name: 'test2' },
+      auxiliary: {
+        _id: new ObjectID(),
+        identity: { firstname: 'toto2', lastname: 'Tutu2' },
+      },
+      createdAt: '2019-11-10',
+      endDate: '2019-12-10',
+    }];
+    SectorHistoryModel.expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', select: '_id name' })
+      .chain('populate')
+      .withExactArgs({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
+      .chain('lean')
+      .returns(sectorHistories);
+
+    const result = await ExportHelper.exportSectors(credentials);
+
+    expect(result).toBeDefined();
+    expect(result[1]).toMatchObject([
+      'test',
+      sectorHistories[0].auxiliary._id,
+      'Tutu',
+      'toto',
+      '10/11/2019',
+      '',
+    ]);
+    expect(result[2]).toMatchObject([
+      'test2',
+      sectorHistories[1].auxiliary._id,
+      'Tutu2',
+      'toto2',
+      '10/11/2019',
+      '10/12/2019',
+    ]);
+    SectorHistoryModel.verify();
   });
 });
 

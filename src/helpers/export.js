@@ -533,13 +533,13 @@ exports.exportSectors = async (credentials) => {
     .populate({ path: 'auxiliary', select: '_id identity.firstname identity.lastname' })
     .lean();
   const data = [sectorExportHeader];
-  console.log(sectorHistories.length);
+
   for (const sectorHistory of sectorHistories) {
     data.push([
       get(sectorHistory, 'sector.name', ''),
       get(sectorHistory, 'auxiliary._id', ''),
-      get(sectorHistory, 'auxiliary.identity.firstname', ''),
       get(sectorHistory, 'auxiliary.identity.lastname', ''),
+      get(sectorHistory, 'auxiliary.identity.firstname', ''),
       moment(sectorHistory.createdAt).format('DD/MM/YYYY'),
       sectorHistory.endDate ? moment(sectorHistory.endDate).format('DD/MM/YYYY') : '',
     ]);
