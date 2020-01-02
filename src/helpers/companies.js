@@ -5,6 +5,7 @@ const Event = require('../models/Event');
 const GdriveStorageHelper = require('./gdriveStorage');
 const { addFile } = require('../helpers/gdriveStorage');
 const drive = require('../models/Google/Drive');
+const { INTERVENTION } = require('./constants');
 
 exports.createCompany = async (companyPayload) => {
   const companyFolder = await GdriveStorageHelper.createFolderForCompany(companyPayload.name);
@@ -46,7 +47,11 @@ exports.uploadFile = async (payload, params) => {
 
 exports.getFirstIntervention = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const firstIntervention = await Event.find({ company: companyId }).sort({ startDate: 1 }).limit(1).lean();
+  const firstIntervention = await Event
+    .find({ company: companyId, type: INTERVENTION })
+    .sort({ startDate: 1 })
+    .limit(1)
+    .lean();
 
-  return get(firstIntervention[0], 'startDate', null);
+  return firstIntervention;
 };

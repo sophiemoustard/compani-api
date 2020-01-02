@@ -262,7 +262,11 @@ describe('COMPANIES ROUTES', () => {
 
   describe('GET /companies/first-intervention', () => {
     describe('Admin', () => {
-      it('should create a new company', async () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+      it('should get the first intervention of the company', async () => {
         const response = await app.inject({
           method: 'GET',
           url: '/companies/first-intervention',
