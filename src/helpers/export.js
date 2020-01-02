@@ -536,10 +536,10 @@ exports.exportSectors = async (credentials) => {
 
   for (const sectorHistory of sectorHistories) {
     data.push([
-      get(sectorHistory, 'sector.name', ''),
-      get(sectorHistory, 'auxiliary._id', ''),
-      get(sectorHistory, 'auxiliary.identity.lastname', ''),
-      get(sectorHistory, 'auxiliary.identity.firstname', ''),
+      get(sectorHistory, 'sector.name', null) || '',
+      get(sectorHistory, 'auxiliary._id', null) || '',
+      get(sectorHistory, 'auxiliary.identity.lastname', null) || '',
+      get(sectorHistory, 'auxiliary.identity.firstname', null) || '',
       moment(sectorHistory.createdAt).format('DD/MM/YYYY'),
       sectorHistory.endDate ? moment(sectorHistory.endDate).format('DD/MM/YYYY') : '',
     ]);

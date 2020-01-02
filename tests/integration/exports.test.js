@@ -11,6 +11,7 @@ const {
   populateService,
   populateUser,
   populateCustomer,
+  populateSectorHistories,
 } = require('./seed/exportSeed');
 
 describe('NODE ENV', () => {
@@ -260,7 +261,7 @@ describe('EXPORTS ROUTES', () => {
     },
     {
       exportType: SECTOR,
-      populate: populateEvents,
+      populate: populateSectorHistories,
       lineCount: 2,
     },
   ];

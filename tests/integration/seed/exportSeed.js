@@ -580,6 +580,17 @@ const populateEvents = async () => {
   await new Customer(customer).save();
 };
 
+const populateSectorHistories = async () => {
+  await User.deleteMany();
+  await Sector.deleteMany();
+  await SectorHistory.deleteMany();
+
+  await populateDBForAuthentication();
+  await new User(auxiliary).save();
+  await new Sector(sector).save();
+  await new SectorHistory(sectorHistory).save();
+};
+
 const populateBillsAndCreditNotes = async () => {
   await Bill.deleteMany();
   await Customer.deleteMany();
@@ -650,4 +661,5 @@ module.exports = {
   populateService,
   populateCustomer,
   populateUser,
+  populateSectorHistories,
 };
