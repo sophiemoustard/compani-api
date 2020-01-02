@@ -231,8 +231,10 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 
   it('should return info if no events', async () => {
+    const tppId = new ObjectID();
+    const sectorId = new ObjectID();
     getEventsGroupedByFundingsforAllCustomersStub.returns([{
-      thirdPartyPayer: { name: 'Tiers payeur' },
+      thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
       startDate: moment().startOf('month').subtract(1, 'month'),
       careHours: 5,
@@ -244,19 +246,19 @@ describe('getAllCustomersFundingsMonitoring', () => {
       nextMonthEvents: [],
       customer: { firstname: 'toto', lastname: 'test' },
       referent: { firstname: 'referent', lastname: 'test' },
-      sector: 'equipe',
+      sector: { name: 'equipe', _id: sectorId },
     }]);
     const fundingsMonitoring = await StatsHelper.getAllCustomersFundingsMonitoring(credentials);
 
     expect(fundingsMonitoring).toEqual([{
-      thirdPartyPayer: 'Tiers payeur',
+      tpp: { name: 'Tiers payeur', _id: tppId },
       currentMonthCareHours: 0,
       plannedCareHours: 5,
       prevMonthCareHours: 0,
       nextMonthCareHours: 0,
       unitTTCRate: 12,
       customerParticipationRate: 10,
-      sector: 'equipe',
+      sector: { name: 'equipe', _id: sectorId },
       customer: { firstname: 'toto', lastname: 'test' },
       referent: { firstname: 'referent', lastname: 'test' },
     }]);
@@ -269,8 +271,10 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 
   it('should return stats on care hours', async () => {
+    const tppId = new ObjectID();
+    const sectorId = new ObjectID();
     const eventsGroupedByFundings = [{
-      thirdPartyPayer: { name: 'Tiers payeur' },
+      thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
       startDate: moment().startOf('month').subtract(1, 'month'),
       careHours: 5,
@@ -279,7 +283,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
       customerParticipationRate: 10,
       customer: { firstname: 'toto', lastname: 'test' },
       referent: { firstname: 'referent', lastname: 'test' },
-      sector: 'equipe',
+      sector: { name: 'equipe', _id: sectorId },
       currentMonthEvents: [
         {
           startDate: moment().startOf('month').hours(14),
@@ -337,14 +341,14 @@ describe('getAllCustomersFundingsMonitoring', () => {
     const fundingsMonitoring = await StatsHelper.getAllCustomersFundingsMonitoring(credentials);
 
     expect(fundingsMonitoring).toEqual([{
-      thirdPartyPayer: 'Tiers payeur',
+      tpp: { name: 'Tiers payeur', _id: tppId },
       currentMonthCareHours: 6,
       plannedCareHours: 5,
       prevMonthCareHours: 3.5,
       nextMonthCareHours: 3,
       unitTTCRate: 12,
       customerParticipationRate: 10,
-      sector: 'equipe',
+      sector: { name: 'equipe', _id: sectorId },
       customer: { firstname: 'toto', lastname: 'test' },
       referent: { firstname: 'referent', lastname: 'test' },
     }]);
@@ -357,17 +361,19 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 
   it('should return -1 for previous month if funding starts on current month', async () => {
+    const tppId = new ObjectID();
+    const sectorId = new ObjectID();
     const eventsGroupedByFundings = [{
       unitTTCRate: 12,
       customerParticipationRate: 10,
-      thirdPartyPayer: { name: 'Tiers payeur' },
+      thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
       startDate: moment().startOf('month'),
       careHours: 5,
       createdAt: '2019-10-01T14:06:16.089Z',
       customer: { firstname: 'toto', lastname: 'test' },
       referent: { firstname: 'referent', lastname: 'test' },
-      sector: 'equipe',
+      sector: { name: 'equipe', _id: sectorId },
       currentMonthEvents: [
         {
           startDate: moment().startOf('month').hours(14),
@@ -425,14 +431,14 @@ describe('getAllCustomersFundingsMonitoring', () => {
     const fundingsMonitoring = await StatsHelper.getAllCustomersFundingsMonitoring(credentials);
 
     expect(fundingsMonitoring).toEqual([{
-      thirdPartyPayer: 'Tiers payeur',
+      tpp: { name: 'Tiers payeur', _id: tppId },
       currentMonthCareHours: 6,
       plannedCareHours: 5,
       prevMonthCareHours: -1,
       nextMonthCareHours: 3,
       unitTTCRate: 12,
       customerParticipationRate: 10,
-      sector: 'equipe',
+      sector: { name: 'equipe', _id: sectorId },
       customer: { firstname: 'toto', lastname: 'test' },
       referent: { firstname: 'referent', lastname: 'test' },
     }]);
@@ -445,8 +451,10 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 
   it('should return -1 for next month if funding ends on current month', async () => {
+    const tppId = new ObjectID();
+    const sectorId = new ObjectID();
     const eventsGroupedByFundings = [{
-      thirdPartyPayer: { name: 'Tiers payeur' },
+      thirdPartyPayer: { name: 'Tiers payeur', _id: tppId },
       careDays: [0, 1, 2, 3, 4, 5, 6, 7],
       startDate: '2019-11-01',
       endDate: moment().endOf('month'),
@@ -455,7 +463,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
       customerParticipationRate: 10,
       customer: { firstname: 'toto', lastname: 'test' },
       referent: { firstname: 'referent', lastname: 'test' },
-      sector: 'equipe',
+      sector: { name: 'equipe', _id: sectorId },
       createdAt: '2019-10-01T14:06:16.089Z',
       currentMonthEvents: [
         {
@@ -515,14 +523,14 @@ describe('getAllCustomersFundingsMonitoring', () => {
     const fundingsMonitoring = await StatsHelper.getAllCustomersFundingsMonitoring(credentials);
 
     expect(fundingsMonitoring).toEqual([{
-      thirdPartyPayer: 'Tiers payeur',
+      tpp: { name: 'Tiers payeur', _id: tppId },
       currentMonthCareHours: 6,
       plannedCareHours: 5,
       nextMonthCareHours: -1,
       prevMonthCareHours: 3.5,
       unitTTCRate: 12,
       customerParticipationRate: 10,
-      sector: 'equipe',
+      sector: { name: 'equipe', _id: sectorId },
       customer: { firstname: 'toto', lastname: 'test' },
       referent: { firstname: 'referent', lastname: 'test' },
     }]);
