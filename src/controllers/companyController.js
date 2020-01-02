@@ -74,11 +74,15 @@ const getFirstIntervention = async (req) => {
   try {
     const firstIntervention = await CompanyHelper.getFirstIntervention(req.auth.credentials);
 
+    if (!firstIntervention) {
+      return {
+        message: translate[language].companyFirstInterventionNotFound,
+        data: { firstIntervention: '' },
+      };
+    }
     return {
-      message: firstIntervention
-        ? translate[language].companyFirstInterventionFound
-        : translate[language].companyFirstInterventionNotFound,
-      data: { firstIntervention: firstIntervention.startDate },
+      message: translate[language].companyFirstInterventionFound,
+      data: { firstIntervention },
     };
   } catch (e) {
     req.log('error', e);

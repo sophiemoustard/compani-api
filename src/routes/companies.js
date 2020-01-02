@@ -173,6 +173,9 @@ exports.plugin = {
       method: 'GET',
       path: '/first-intervention',
       handler: getFirstIntervention,
+      options: {
+        auth: { scope: ['events:read'] },
+      },
     });
   },
 };

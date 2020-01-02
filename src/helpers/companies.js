@@ -48,5 +48,5 @@ exports.getFirstIntervention = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const firstIntervention = await Event.find({ company: companyId }).sort({ startDate: 1 }).limit(1).lean();
 
-  return firstIntervention[0];
+  return get(firstIntervention[0], 'startDate', null);
 };

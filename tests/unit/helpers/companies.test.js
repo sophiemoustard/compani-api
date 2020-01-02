@@ -1,7 +1,9 @@
 const sinon = require('sinon');
 const flat = require('flat');
+const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const Company = require('../../../src/models/Company');
+const Event = require('../../../src/models/Event');
 const CompanyHelper = require('../../../src/helpers/companies');
 const GdriveStorageHelper = require('../../../src/helpers/gdriveStorage');
 const Drive = require('../../../src/models/Google/Drive');
@@ -97,5 +99,34 @@ describe('uploadFile', () => {
     });
     sinon.assert.calledWithExactly(getFileByIdStub, { fileId: uploadedFile.id });
     CompanyModel.verify();
+  });
+});
+
+describe('getFirstIntervention', () => {
+  let EventModel;
+  beforeEach(() => {
+    EventModel = sinon.mock(Event);
+  });
+  afterEach(() => {
+    EventModel.restore();
+  });
+
+  it('should get first intervention', async () => {
+    const credentials = { company: { _id: new ObjectID() } };
+    EventModel
+      .expects('find')
+      .withExactArgs({ company: credentials.company._id })
+      .chain('sort')
+      .withExactArgs({ startDate: 1 })
+      .chain('limit')
+      .withExactArgs(1)
+      .chain('lean')
+      .returns([{ startDate: '2019-11-12' }]);
+
+    const result = await CompanyHelper.getFirstIntervention(credentials);
+
+    expect(result).toBeDefined();
+    expect(result).toEqual('2019-11-12');
+    EventModel.verify();
   });
 });
