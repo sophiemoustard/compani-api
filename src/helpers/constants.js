@@ -157,6 +157,7 @@ module.exports = {
   SUPER_ADMIN: 'superAdmin',
   // EXPORTS
   SERVICE: 'service',
+  SECTOR: 'sector',
   CUSTOMER: 'customer',
   SUBSCRIPTION: 'subscription',
   FUNDING: 'funding',

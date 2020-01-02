@@ -1,6 +1,6 @@
 const expect = require('expect');
 const app = require('../../server');
-const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION } = require('../../src/helpers/constants');
+const { SERVICE, AUXILIARY, HELPER, CUSTOMER, FUNDING, SUBSCRIPTION, SECTOR } = require('../../src/helpers/constants');
 const { getToken } = require('./seed/authenticationSeed');
 const {
   populateEvents,
@@ -11,6 +11,7 @@ const {
   populateService,
   populateUser,
   populateCustomer,
+  populateSectorHistories,
 } = require('./seed/exportSeed');
 
 describe('NODE ENV', () => {
@@ -257,6 +258,11 @@ describe('EXPORTS ROUTES', () => {
       exportType: SUBSCRIPTION,
       populate: populateCustomer,
       lineCount: 3,
+    },
+    {
+      exportType: SECTOR,
+      populate: populateSectorHistories,
+      lineCount: 2,
     },
   ];
 

@@ -14,6 +14,7 @@ const {
   ABSENCE,
   PAY,
   CONTRACT,
+  SECTOR,
 } = require('../helpers/constants');
 const { exportServices } = require('../helpers/services');
 const { exportSubscriptions } = require('../helpers/subscriptions');
@@ -27,6 +28,7 @@ const {
   exportAuxiliaries,
   exportHelpers,
   exportPayAndFinalPayHistory,
+  exportSectors,
 } = require('../helpers/export');
 const { exportPaymentsHistory } = require('../helpers/payments');
 const { exportToCsv } = require('../helpers/file');
@@ -55,6 +57,9 @@ const exportData = async (req, h) => {
         break;
       case SERVICE:
         data = await exportServices(credentials);
+        break;
+      case SECTOR:
+        data = await exportSectors(credentials);
         break;
     }
 
