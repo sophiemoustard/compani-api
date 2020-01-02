@@ -5,6 +5,7 @@ const Boom = require('boom');
 const flat = require('flat');
 const { ObjectID } = require('mongodb');
 const EventHelper = require('../../../src/helpers/events');
+const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 const ContractHelper = require('../../../src/helpers/contracts');
 const UtilsHelper = require('../../../src/helpers/utils');
 const ESignHelper = require('../../../src/helpers/eSign');
@@ -240,6 +241,7 @@ describe('endContract', () => {
   let removeEventsExceptInterventionsOnContractEnd;
   let updateAbsencesOnContractEnd;
   let unassignReferentOnContractEnd;
+  let setEndDateStub;
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
@@ -250,6 +252,7 @@ describe('endContract', () => {
     );
     updateAbsencesOnContractEnd = sinon.stub(EventHelper, 'updateAbsencesOnContractEnd');
     unassignReferentOnContractEnd = sinon.stub(CustomerHelper, 'unassignReferentOnContractEnd');
+    setEndDateStub = sinon.stub(SectorHistoryHelper, 'setEndDate');
   });
   afterEach(() => {
     ContractMock.restore();
@@ -258,6 +261,7 @@ describe('endContract', () => {
     removeEventsExceptInterventionsOnContractEnd.restore();
     updateAbsencesOnContractEnd.restore();
     unassignReferentOnContractEnd.restore();
+    setEndDateStub.restore();
   });
 
   it('should end contract', async () => {
@@ -309,6 +313,7 @@ describe('endContract', () => {
       updatedContract.endDate,
       credentials
     );
+    sinon.assert.calledWithExactly(setEndDateStub, updatedContract.user, updatedContract.endDate);
     expect(result).toMatchObject(updatedContract);
     ContractMock.verify();
   });
@@ -347,6 +352,7 @@ describe('endContract', () => {
       sinon.assert.notCalled(unassignReferentOnContractEnd);
       sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
       sinon.assert.notCalled(updateAbsencesOnContractEnd);
+      sinon.assert.notCalled(setEndDateStub);
       ContractMock.verify();
     }
   });

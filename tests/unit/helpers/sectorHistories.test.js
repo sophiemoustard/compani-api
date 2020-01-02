@@ -80,3 +80,27 @@ describe('createHistory', () => {
     SectorHistoryMock.verify();
   });
 });
+
+describe('setEndDate', () => {
+  let SectorHistoryMock;
+
+  beforeEach(() => {
+    SectorHistoryMock = sinon.mock(SectoryHistory);
+  });
+
+  afterEach(() => {
+    SectorHistoryMock.restore();
+  });
+
+  it('should update sector history', async () => {
+    const auxiliary = new ObjectID();
+    const endDate = '2020-01-01';
+    SectorHistoryMock
+      .expects('updateOne')
+      .withExactArgs({ auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] }, { $set: { endDate } });
+
+    await SectorHistoryHelper.setEndDate(auxiliary, endDate);
+
+    SectorHistoryMock.verify();
+  });
+});
