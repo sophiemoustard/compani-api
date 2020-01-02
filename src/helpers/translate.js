@@ -90,7 +90,6 @@ module.exports = {
     /* User tasks */
     userTasksFound: 'User tasks found',
     userTaskUpdated: 'User task updated',
-
     /* Customers */
     customersFound: 'Customers found.',
     customerFound: 'Customer found.',
@@ -120,17 +119,14 @@ module.exports = {
     customerFundingUpdated: 'Customer funding updated.',
     customerFundingsFound: 'Customer fundings found.',
     customerFundingRemoved: 'Customer funding removed.',
-
     /* ESign */
     signatureRequestCreated: 'Signature request created.',
     documentNotFound: 'Eversign document not found.',
     documentFound: 'Eversign document found.',
-
     /* Google drive */
     googleDriveFolderCreationFailed: 'Google drive folder creation failed.',
     googleDriveFolderNotFound: 'Google drive folder not found.',
     googleDriveFileNotFound: 'Google drive file not found.',
-
     /* Events */
     eventsNotFound: 'Events not found',
     eventNotFound: 'Event not found',
@@ -140,18 +136,15 @@ module.exports = {
     eventDeleted: 'Event deleted',
     eventsDeleted: 'Events deleted',
     eventDatesNotOnSameDay: 'Start and end dates should be on the same day',
-
     /* Google Map */
     distanceMatrixFound: 'Distance Matrix found',
     distanceMatrixNotFound: 'Distance Matrix not found',
-
     /* Sectors */
     sectorCreated: 'Sector created.',
     sectorUpdated: 'Sector updated.',
     sectorNotFound: 'Sector not found.',
     sectorsFound: 'Sectors found.',
     sectorDeleted: 'Sector deleted.',
-
     /* Services */
     servicesFound: 'Services found.',
     serviceCreated: 'Service created.',
@@ -159,7 +152,6 @@ module.exports = {
     servicesNotFound: 'Services not found.',
     serviceNotFound: 'Service not found.',
     servicesUpdated: 'Services updated.',
-
     /* Surcharges */
     surchargesFound: 'Surcharges found.',
     surchargeCreated: 'Surcharge created.',
@@ -167,21 +159,18 @@ module.exports = {
     surchargesNotFound: 'Surcharges not found.',
     surchargeNotFound: 'Surcharge not found.',
     surchargesUpdated: 'Surcharges updated.',
-
     /* Third party payers */
     thirdPartyPayerCreated: 'Company third party payer created.',
     thirdPartyPayersFound: 'Company third party payers found.',
     thirdPartyPayersNotFound: 'Company third party payers not found.',
     thirdPartyPayerUpdated: 'Company third party payer updated.',
     thirdPartyPayerDeleted: 'Company third party payer deleted.',
-
     /* Bills */
     billsCreated: 'Bills created',
     draftBillsCreated: 'Draft bills created',
     billsFound: 'Bills found',
     billsNotFound: 'Bills not found',
     billNotCompani: 'Bill\'s origin must be \'Compani\'.',
-
     /* Credit Notes */
     creditNotesFound: 'Credit notes found.',
     creditNoteCreated: 'Credit note found.',
@@ -190,40 +179,34 @@ module.exports = {
     creditNoteNotFound: 'Credit note not found.',
     creditNoteUpdated: 'Credit note updated.',
     creditNoteNotCompani: 'Credit note\'s origin must be \'Compani\'.',
-
     /* Balances */
     balancesFound: 'Balances found.',
-
     /* Payments */
     paymentsFound: 'Payments found.',
     paymentsNotFound: 'Payments not found.',
     paymentNotFound: 'Payment not found.',
     paymentCreated: 'Payment created.',
     paymentUpated: 'Payment updated.',
-
     /* Pay */
     payListCreated: 'Pay list created.',
     hoursToWorkFound: 'Hours to work found.',
-
     /* Final pay */
     finalPayListCreated: 'Final pay list created.',
-
     /* Event history */
     eventHistoriesFound: 'Event histories found.',
-
     /* Pay documents */
     payDocumentCreated: 'Pay document created.',
     payDocumentsFound: 'Pay documents found.',
     payDocumentsNotFound: 'Pay documents not found.',
     payDocumentNotFound: 'Pay document not found.',
     payDocumentDeleted: 'Pay document deleted.',
-
     /* Stats */
     statsFound: 'Stats found.',
     statsNotFound: 'Stats not found.',
-
     /* Sector history */
     sectorHistoryNotFound: 'Sector history not found',
+    /* Bill slip */
+    billSlipsFound: 'Bill slips found',
   },
   'fr-FR': {
     /* Global errors */
@@ -342,17 +325,14 @@ module.exports = {
     customerFundingUpdated: 'Financement du bénéficiaire modifié.',
     customerFundingsFound: 'Financements du bénéficiaire trouvés.',
     customerFundingRemoved: 'Financement du bénéficiaire supprimé.',
-
     /* ESign */
     signatureRequestCreated: 'Demande de signature créée.',
     documentNotFound: 'Document eversign non trouvé.',
     documentFound: 'Document eversign trouvé.',
-
     /* Google drive */
     googleDriveFolderCreationFailed: 'Echec de la création du dossier google drive.',
     googleDriveFolderNotFound: 'Dossier google drive non trouvé.',
     googleDriveFileNotFound: 'Fichier google drive non trouvé.',
-
     /* Events */
     eventsNotFound: 'Evènements non trouvés',
     eventNotFound: 'Evènement non trouvé',
@@ -362,18 +342,15 @@ module.exports = {
     eventDeleted: 'Evènement supprimé',
     eventsDeleted: 'Evènements supprimé',
     eventDatesNotOnSameDay: 'Les dates de début et de fin devraient être le même jour',
-
     /* Google Map */
     distanceMatrixFound: 'Distance Matrix trouvée',
     distanceMatrixNotFound: 'Distance Matrix non trouvée',
-
     /* Sectors */
     sectorCreated: 'Équipe créée.',
     sectorUpdated: 'Équipe modifiée.',
     sectorNotFound: 'Équipe non trouvée.',
     sectorsFound: 'Équipes trouvées.',
     sectorDeleted: 'Équipe supprimée.',
-
     /* Services */
     servicesFound: 'Services trouvés.',
     serviceCreated: 'Service créé.',
@@ -381,7 +358,6 @@ module.exports = {
     servicesNotFound: 'Services non trouvés.',
     serviceNotFound: 'Service non trouvé.',
     servicesUpdated: 'Service modifié.',
-
     /* Surcharges */
     surchargesFound: 'Plans de majorations trouvés.',
     surchargeCreated: 'Plan de majoration créé.',
@@ -389,21 +365,18 @@ module.exports = {
     surchargesNotFound: 'Plans de majorations non trouvés.',
     surchargeNotFound: 'Plan de majoration non trouvé.',
     surchargeUpdated: 'Plan de majoration modifié.',
-
     /* Third party payers */
     thirdPartyPayerCreated: 'Tiers payeur de l\'entreprise créé.',
     thirdPartyPayersFound: 'Tiers payeurs de l\'entreprise trouvés.',
     thirdPartyPayersNotFound: 'Tiers payeurs de l\'entreprise non trouvés.',
     thirdPartyPayerUpdated: 'Tiers payeur de l\'entreprise modifié.',
     thirdPartyPayerDeleted: 'Tiers payeur de l\'entreprise supprimé.',
-
     /* Bills */
     billsCreated: 'Factures crées',
     draftBillsCreated: 'Brouillons de facture générés',
     billsFound: 'Factures trouvés',
     billsNotFound: 'Factures non trouvés',
     billNotCompani: 'L\'origine de la facture doit être \'Compani\'.',
-
     /* Credit Notes */
     creditNotesFound: 'Avoirs trouvés.',
     creditNoteCreated: 'Avoir créé.',
@@ -412,39 +385,33 @@ module.exports = {
     creditNoteNotFound: 'Avoir non trouvé.',
     creditNoteUpdated: 'Avoir modifié.',
     creditNoteNotCompani: 'L\'origine de l\'avoir doit être \'Compani\'.',
-
     /* Balances */
     balancesFound: 'Balances trouvées.',
-
     /* Payments */
     paymentsFound: 'Règlements trouvés.',
     paymentsNotFound: 'Règlements non trouvés.',
     paymentCreated: 'Règlement créé.',
     paymentNotFound: 'Règlement non trouvé.',
     paymentUpated: 'Règlement modifié.',
-
     /* Pay */
     payListCreated: 'Liste de paie créée',
     hoursToWorkFound: 'Heures à travailler trouvées.',
-
     /* Final pay */
     finalPayListCreated: 'Liste des stc créée',
-
     /* Event history */
     eventHistoriesFound: 'Historique des évènements trouvés',
-
     /* Pay documents */
     payDocumentCreated: 'Document de paie créé.',
     payDocumentsFound: 'Documents de paie trouvés.',
     payDocumentsNotFound: 'Documents de paie non trouvés.',
     payDocumentNotFound: 'Document de paie non trouvé.',
     payDocumentDeleted: 'Document de paie supprimé.',
-
     /* Stats */
     statsFound: 'Statistiques trouvées.',
     statsNotFound: 'Statistiques non trouvées.',
-
     /* Sector history */
     sectorHistoryNotFound: 'Historique du secteur non trouvé.',
+    /* Bill slip */
+    billSlipsFound: 'Bordereaux trouvés',
   },
 };

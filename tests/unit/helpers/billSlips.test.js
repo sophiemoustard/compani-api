@@ -3,9 +3,28 @@ const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const BillSlipHelper = require('../../../src/helpers/billSlips');
 const BillSlipNumber = require('../../../src/models/BillSlipNumber');
+const BillRepository = require('../../../src/repositories/BillRepository');
 const BillSlip = require('../../../src/models/BillSlip');
 
 require('sinon-mongoose');
+
+describe('getBillSlips', () => {
+  let getBillsSlipList;
+  beforeEach(() => {
+    getBillsSlipList = sinon.stub(BillRepository, 'getBillsSlipList');
+  });
+  afterEach(() => {
+    getBillsSlipList.restore();
+  });
+
+  it('should return bill slips list', async () => {
+    const company = { _id: new ObjectID() };
+
+    await BillSlipHelper.getBillSlips({ company });
+
+    sinon.assert.calledWithExactly(getBillsSlipList, company._id);
+  });
+});
 
 describe('formatBillSlipNumber', () => {
   it('should format bill slip number', () => {
@@ -67,7 +86,7 @@ describe('createBillSlips', () => {
     const billList = [{ client: client1 }, { client: client2 }];
     const company = { _id: new ObjectID() };
     BillSlipMock.expects('find')
-      .withExactArgs({ thirdPartyPayer: { $in: [client1, client2] }, month: '0919', company: company._id })
+      .withExactArgs({ thirdPartyPayer: { $in: [client1, client2] }, month: '09-2019', company: company._id })
       .chain('lean')
       .once()
       .returns([{ _id: new ObjectID() }, { _id: new ObjectID() }]);
@@ -88,7 +107,7 @@ describe('createBillSlips', () => {
     const company = { _id: new ObjectID(), prefixNumber: 129 };
     const endDate = '2019-09-12T00:00:00';
     BillSlipMock.expects('find')
-      .withExactArgs({ thirdPartyPayer: { $in: [client1, client2] }, month: '0919', company: company._id })
+      .withExactArgs({ thirdPartyPayer: { $in: [client1, client2] }, month: '09-2019', company: company._id })
       .chain('lean')
       .once()
       .returns([]);
@@ -97,8 +116,8 @@ describe('createBillSlips', () => {
     formatBillSlipNumber.onCall(1).returns('BORD-129ASD00013');
     BillSlipMock.expects('insertMany')
       .withExactArgs([
-        { company: company._id, month: '0919', thirdPartyPayer: client1, number: 'BORD-129ASD00012' },
-        { company: company._id, month: '0919', thirdPartyPayer: client2, number: 'BORD-129ASD00013' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: client1, number: 'BORD-129ASD00012' },
+        { company: company._id, month: '09-2019', thirdPartyPayer: client2, number: 'BORD-129ASD00013' },
       ])
       .once();
 
@@ -109,7 +128,7 @@ describe('createBillSlips', () => {
     sinon.assert.calledWithExactly(formatBillSlipNumber.getCall(1), 129, 'ASD', 13);
     sinon.assert.calledWithExactly(
       updateOneBillSlipNumber,
-      { prefix: '0919', company: company._id },
+      { prefix: '09-2019', company: company._id },
       { $set: { seq: 14 } }
     );
     BillSlipMock.verify();

@@ -1,6 +1,15 @@
 const moment = require('moment');
+const get = require('lodash/get');
 const BillSlip = require('../models/BillSlip');
 const BillSlipNumber = require('../models/BillSlipNumber');
+const BillRepository = require('../repositories/BillRepository');
+
+exports.getBillSlips = async (credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  const billSlipList = await BillRepository.getBillsSlipList(companyId);
+
+  return billSlipList;
+};
 
 exports.formatBillSlipNumber = (companyPrefixNumber, prefix, seq) =>
   `BORD-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -14,7 +23,7 @@ exports.getBillSlipNumber = async (endDate, company) => {
 };
 
 exports.createBillSlips = async (billList, endDate, company) => {
-  const month = moment(endDate).format('MMYY');
+  const month = moment(endDate).format('MM-YYYY');
   const tppIds = [...new Set(billList.filter(bill => bill.client).map(bill => bill.client))];
   const billSlipList = await BillSlip.find({ thirdPartyPayer: { $in: tppIds }, month, company: company._id }).lean();
 
