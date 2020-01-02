@@ -7,6 +7,7 @@ const {
   update,
   uploadFile,
   create,
+  getFirstIntervention,
 } = require('../controllers/companyController');
 const { TWO_WEEKS } = require('../helpers/constants');
 const { COMPANY_BILLING_PERIODS, COMPANY_TYPES } = require('../models/Company');
@@ -166,6 +167,12 @@ exports.plugin = {
           }),
         },
       },
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/first-intervention',
+      handler: getFirstIntervention,
     });
   },
 };

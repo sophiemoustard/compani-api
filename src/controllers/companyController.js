@@ -70,8 +70,25 @@ const create = async (req) => {
   }
 };
 
+const getFirstIntervention = async (req) => {
+  try {
+    const firstIntervention = await CompanyHelper.getFirstIntervention(req.auth.credentials);
+
+    return {
+      message: firstIntervention
+        ? translate[language].companyFirstInterventionFound
+        : translate[language].companyFirstInterventionNotFound,
+      data: { firstIntervention: firstIntervention.startDate },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
 module.exports = {
   update,
   uploadFile,
   create,
+  getFirstIntervention,
 };
