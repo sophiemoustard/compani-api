@@ -450,7 +450,7 @@ exports.exportAuxiliaries = async (credentials) => {
     .find({ role: { $in: roleIds }, company: companyId })
     .populate({ path: 'sector', select: '_id sector', match: { company: companyId } })
     .populate({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
-    .lean();
+    .lean({ autopopulate: true, virtuals: true });
   const data = [auxiliaryExportHeader];
 
   for (const aux of auxiliaries) {
