@@ -200,7 +200,7 @@ describe('EXPORTS ROUTES', () => {
     {
       exportType: HELPER,
       populate: populateUser,
-      lineCount: 2,
+      lineCount: 3,
     },
     {
       exportType: CUSTOMER,
