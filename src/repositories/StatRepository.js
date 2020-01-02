@@ -158,7 +158,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         let: { auxiliaryId: '$referent._id' },
         pipeline: [
           { $match: { $expr: { $eq: ['$auxiliary', '$$auxiliaryId'] } } },
-          { $sort: { createdAt: 1 } },
+          { $sort: { createdAt: -1 } },
           { $limit: 1 },
         ],
       },
