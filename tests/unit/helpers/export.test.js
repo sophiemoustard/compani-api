@@ -744,6 +744,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(auxiliaries);
 
@@ -779,6 +780,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(auxiliaries);
 
@@ -824,6 +826,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(auxiliaries);
 
@@ -864,6 +867,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(auxiliaries);
 
@@ -918,6 +922,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(auxiliaries);
 
@@ -947,6 +952,7 @@ describe('exportAuxiliaries', () => {
       .chain('populate')
       .withExactArgs({ path: 'contracts', $match: { status: COMPANY_CONTRACT } })
       .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
       .once()
       .returns(auxiliaries);
 
