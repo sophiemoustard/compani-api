@@ -2,6 +2,11 @@ const moment = require('moment');
 const BillSlip = require('../models/BillSlip');
 const BillSlipNumber = require('../models/BillSlipNumber');
 
+exports.list = async () => {
+  const billSlipList = [];
+  return billSlipList;
+};
+
 exports.formatBillSlipNumber = (companyPrefixNumber, prefix, seq) =>
   `BORD-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
 
