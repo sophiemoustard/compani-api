@@ -5,7 +5,7 @@ const BillSlipNumberSchema = mongoose.Schema({
   prefix: { type: String, required: true },
   seq: { type: Number, default: 1 },
   company: { type: mongoose.Types.ObjectId, required: true },
-});
+}, { timestamp: true });
 
 BillSlipNumberSchema.pre('validate', validatePayload);
 BillSlipNumberSchema.pre('find', validateQuery);
