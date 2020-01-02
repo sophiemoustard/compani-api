@@ -70,7 +70,7 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
     allCustomersFundingsMonitoring.push({
       ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
       plannedCareHours: funding.careHours,
-      thirdPartyPayer: funding.thirdPartyPayer.name,
+      tpp: funding.thirdPartyPayer,
       prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
       currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
       nextMonthCareHours: isNextMonthRelevant ? getMonthCareHours(funding.nextMonthEvents, funding.careDays) : -1,
