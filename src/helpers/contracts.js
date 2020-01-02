@@ -22,6 +22,7 @@ const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
+const SectorHistoryHelper = require('../helpers/sectorHistories');
 
 exports.getContractList = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -114,6 +115,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     CustomerHelper.unassignReferentOnContractEnd(updatedContract),
     EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials),
     EventHelper.updateAbsencesOnContractEnd(updatedContract.user, updatedContract.endDate, credentials),
+    SectorHistoryHelper.setEndDate(updatedContract.user, updatedContract.endDate),
   ]);
 
   return updatedContract;
