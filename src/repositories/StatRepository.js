@@ -153,8 +153,21 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     { $unwind: { path: '$referent', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
+        from: 'sectorhistories',
+        as: 'sector',
+        let: { auxiliaryId: '$referent._id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$auxiliary', '$$auxiliaryId'] } } },
+          { $sort: { createdAt: 1 } },
+          { $limit: 1 },
+        ],
+      },
+    },
+    { $unwind: { path: '$sector', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
         from: 'sectors',
-        localField: 'referent.sector',
+        localField: 'sector.sector',
         foreignField: '_id',
         as: 'sector',
       },
@@ -211,8 +224,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         nextMonthEvents: { startDate: 1, endDate: 1 },
         customer: { firstname: 1, lastname: 1 },
         referent: { firstname: 1, lastname: 1 },
-        sector: '$sector.name',
-        sectorId: '$sector._id',
+        sector: { name: 1, _id: 1 },
       },
     },
   ];

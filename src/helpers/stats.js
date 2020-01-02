@@ -68,10 +68,9 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
     const isNextMonthRelevant = !funding.endDate || moment(funding.endDate).isAfter(moment().endOf('month').toDate());
 
     allCustomersFundingsMonitoring.push({
-      ...pick(funding, ['sector', 'sectorId', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
+      ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
       plannedCareHours: funding.careHours,
-      thirdPartyPayer: funding.thirdPartyPayer.name,
-      thirdPartyPayerId: funding.thirdPartyPayer._id,
+      tpp: funding.thirdPartyPayer,
       prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
       currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
       nextMonthCareHours: isNextMonthRelevant ? getMonthCareHours(funding.nextMonthEvents, funding.careDays) : -1,
