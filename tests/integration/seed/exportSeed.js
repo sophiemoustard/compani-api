@@ -565,6 +565,16 @@ const creditNotesList = [
   },
 ];
 
+const user = {
+  _id: new ObjectID(),
+  identity: { firstname: 'test', lastname: 'Toto' },
+  local: { email: 'toto@alenvi.io', password: '123456' },
+  refreshToken: uuidv4(),
+  role: rolesList.find(role => role.name === 'helper')._id,
+  company: authCompany._id,
+  customers: [customer._id],
+};
+
 const populateEvents = async () => {
   await Event.deleteMany();
   await User.deleteMany();
@@ -627,7 +637,11 @@ const populateCustomer = async () => {
 };
 
 const populateUser = async () => {
+  await User.deleteMany();
+  await Customer.deleteMany();
   await populateDBForAuthentication();
+  await (new User(user)).save();
+  await (new Customer(customer)).save();
 };
 
 const populatePay = async () => {
