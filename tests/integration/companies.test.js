@@ -259,4 +259,45 @@ describe('COMPANIES ROUTES', () => {
       });
     });
   });
+
+  describe('GET /companies/first-intervention', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+      it('should get the first intervention of the company', async () => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/companies/first-intervention',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.result.data.firstIntervention).toBeDefined();
+      });
+    });
+
+    describe('Other role', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+        { name: 'superAdmin', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/companies/first-intervention',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
 });

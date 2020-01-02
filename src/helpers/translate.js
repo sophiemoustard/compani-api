@@ -74,6 +74,8 @@ module.exports = {
     companyInternalHourRemoved: 'Company internal hour removed.',
     companyInternalHourCreationNotAllowed: 'Company internal hour creation not allowed',
     companyInternalHourDeletionNotAllowed: 'Company internal hour deletion not allowed',
+    companyFirstInterventionFound: 'Company first intervention found',
+    companyFirstInterventionNotFound: 'Company first intervention not found',
     /* Contracts */
     contractsFound: 'Contracts found.',
     contractsNotFound: 'Contracts not found.',
@@ -295,6 +297,8 @@ module.exports = {
     companyInternalHourRemoved: 'Heure interne de l\'entreprise supprimé.',
     companyInternalHourCreationNotAllowed: 'Creation de l\'heure interne non autorisée.',
     companyInternalHourDeletionNotAllowed: 'Suppression de l\'heure interne non autorisée.',
+    companyFirstInterventionFound: 'Première intervention de l\'entreprise trouvée',
+    companyFirstInterventionNotFound: 'Première intervention de l\'entreprise non trouvée',
     /* Contracts */
     contractsFound: 'Contrats trouvés.',
     contractsNotFound: 'Contrats non trouvés.',

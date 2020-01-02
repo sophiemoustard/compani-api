@@ -1,6 +1,8 @@
 const { ObjectID } = require('mongodb');
 const Company = require('../../../src/models/Company');
-const { populateDBForAuthentication } = require('./authenticationSeed');
+const Event = require('../../../src/models/Event');
+const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { INTERVENTION, COMPANY_CONTRACT } = require('../../../src/helpers/constants');
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
@@ -21,11 +23,24 @@ const company = {
   prefixNumber: 103,
 };
 
+const event = {
+  startDate: '2019-12-11',
+  endDate: '2019-12-11',
+  auxiliary: new ObjectID(),
+  customer: new ObjectID(),
+  subscription: new ObjectID(),
+  type: INTERVENTION,
+  company: authCompany._id,
+  status: COMPANY_CONTRACT,
+};
+
 const populateDB = async () => {
   await Company.deleteMany({});
+  await Event.deleteMany({});
 
   await populateDBForAuthentication();
   await (new Company(company)).save();
+  await (new Event(event)).save();
 };
 
 module.exports = { company, populateDB };
