@@ -459,11 +459,12 @@ const helperExportHeader = [
 
 exports.exportHelpers = async (credentials) => {
   const role = await Role.findOne({ name: HELPER });
+  const companyId = get(credentials, 'company._id', null);
   const helpers = await User
-    .find({ role: role._id, company: get(credentials, 'company._id', null) })
+    .find({ role: role._id, company: companyId })
     .populate({
       path: 'customers',
-      populate: { path: 'firstIntervention', select: 'startDate' },
+      populate: { path: 'firstIntervention', select: 'startDate', match: { company: companyId } },
     });
   const data = [helperExportHeader];
 
