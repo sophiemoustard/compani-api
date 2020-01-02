@@ -6,7 +6,7 @@ const { language } = translate;
 
 const list = async (req) => {
   try {
-    const billSlips = await BillSlipsHelper.list(req.auth.credentials);
+    const billSlips = await BillSlipsHelper.getBillSlips(req.auth.credentials);
 
     return {
       message: translate[language].billSlipsFound,

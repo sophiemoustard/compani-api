@@ -2,11 +2,11 @@ const moment = require('moment');
 const get = require('lodash/get');
 const BillSlip = require('../models/BillSlip');
 const BillSlipNumber = require('../models/BillSlipNumber');
-const BillSlipRepository = require('../repositories/BillSlipRepository');
+const BillRepository = require('../repositories/BillRepository');
 
-exports.list = async (credentials) => {
+exports.getBillSlips = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const billSlipList = await BillSlipRepository.getBillsSlipList(companyId);
+  const billSlipList = await BillRepository.getBillsSlipList(companyId);
 
   return billSlipList;
 };
