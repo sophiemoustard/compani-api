@@ -985,7 +985,7 @@ describe('exportHelpers', () => {
       .chain('populate')
       .withExactArgs({
         path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate' },
+        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
       })
       .once()
       .returns(helpers);
@@ -1024,7 +1024,7 @@ describe('exportHelpers', () => {
       .chain('populate')
       .withExactArgs({
         path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate' },
+        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
       })
       .once()
       .returns(helpers);
@@ -1059,7 +1059,7 @@ describe('exportHelpers', () => {
       .chain('populate')
       .withExactArgs({
         path: 'customers',
-        populate: { path: 'firstIntervention', select: 'startDate' },
+        populate: { path: 'firstIntervention', select: 'startDate', match: { company: credentials.company._id } },
       })
       .once()
       .returns(helpers);
