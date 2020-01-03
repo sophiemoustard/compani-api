@@ -22,6 +22,7 @@ const ESignHelper = require('./eSign');
 const UserHelper = require('./users');
 const EventRepository = require('../repositories/EventRepository');
 const ContractRepository = require('../repositories/ContractRepository');
+const SectorHistoryHelper = require('../helpers/sectorHistories');
 
 exports.getContractList = async (query, credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -77,13 +78,16 @@ exports.createContract = async (contractPayload, credentials) => {
 
   const newContract = await Contract.create(payload);
 
-  await User.findOneAndUpdate(
+  const user = await User.findOneAndUpdate(
     { _id: newContract.user },
     { $push: { contracts: newContract._id }, $unset: { inactivityDate: '' } }
-  );
+  )
+    .populate({ path: 'sector', match: { company: companyId } })
+    .lean({ autopopulate: true, virtuals: true });
   if (newContract.customer) {
     await Customer.findOneAndUpdate({ _id: newContract.customer }, { $push: { contracts: newContract._id } });
   }
+  if (user.sector) await SectorHistoryHelper.createHistory(user._id, user.sector.toHexString(), companyId);
 
   return newContract;
 };
@@ -114,6 +118,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     CustomerHelper.unassignReferentOnContractEnd(updatedContract),
     EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials),
     EventHelper.updateAbsencesOnContractEnd(updatedContract.user, updatedContract.endDate, credentials),
+    SectorHistoryHelper.updateEndDate(updatedContract.user, updatedContract.endDate),
   ]);
 
   return updatedContract;

@@ -28,7 +28,7 @@ describe('createHistory', () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID() };
     SectorHistoryMock
       .expects('findOne')
-      .withExactArgs({ auxiliary, company })
+      .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
       .withExactArgs({ _id: -1 })
       .chain('lean')
@@ -49,7 +49,7 @@ describe('createHistory', () => {
     const sectorHistory = { _id: new ObjectID(), sector };
     SectorHistoryMock
       .expects('findOne')
-      .withExactArgs({ auxiliary, company })
+      .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
       .withExactArgs({ _id: -1 })
       .chain('lean')
@@ -67,7 +67,7 @@ describe('createHistory', () => {
   it('should create sector history if it does not exist', async () => {
     SectorHistoryMock
       .expects('findOne')
-      .withExactArgs({ auxiliary, company })
+      .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
       .withExactArgs({ _id: -1 })
       .chain('lean')
@@ -76,6 +76,30 @@ describe('createHistory', () => {
     SectorHistoryMock.expects('create').withExactArgs({ auxiliary, sector, company });
 
     await SectorHistoryHelper.createHistory(auxiliary, sector, company);
+
+    SectorHistoryMock.verify();
+  });
+});
+
+describe('updateEndDate', () => {
+  let SectorHistoryMock;
+
+  beforeEach(() => {
+    SectorHistoryMock = sinon.mock(SectoryHistory);
+  });
+
+  afterEach(() => {
+    SectorHistoryMock.restore();
+  });
+
+  it('should update sector history', async () => {
+    const auxiliary = new ObjectID();
+    const endDate = '2020-01-01';
+    SectorHistoryMock
+      .expects('updateOne')
+      .withExactArgs({ auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] }, { $set: { endDate } });
+
+    await SectorHistoryHelper.updateEndDate(auxiliary, endDate);
 
     SectorHistoryMock.verify();
   });
