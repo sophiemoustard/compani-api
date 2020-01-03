@@ -22,7 +22,7 @@ exports.formatSubscriptionData = (bill) => {
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.endDate, bill.subscription.service, 'startDate');
 
   return {
-    ...bill,
+    ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'discount']),
     subscription: bill.subscription._id,
     service: { serviceId: matchingServiceVersion._id, ...pick(matchingServiceVersion, ['name', 'nature']) },
     vat: matchingServiceVersion.vat,
