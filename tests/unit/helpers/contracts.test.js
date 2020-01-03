@@ -89,10 +89,12 @@ describe('createContract', () => {
   let generateSignatureRequestStub;
   let UserMock;
   let CustomerMock;
+  let createHistoryStub;
 
   beforeEach(() => {
     hasNotEndedCompanyContracts = sinon.stub(ContractHelper, 'hasNotEndedCompanyContracts');
     generateSignatureRequestStub = sinon.stub(ESignHelper, 'generateSignatureRequest');
+    createHistoryStub = sinon.stub(SectorHistoryHelper, 'createHistory');
     ContractMock = sinon.mock(Contract);
     UserMock = sinon.mock(User);
     CustomerMock = sinon.mock(Customer);
@@ -101,6 +103,7 @@ describe('createContract', () => {
   afterEach(() => {
     hasNotEndedCompanyContracts.restore();
     generateSignatureRequestStub.restore();
+    createHistoryStub.restore();
     ContractMock.restore();
     UserMock.restore();
     CustomerMock.restore();
@@ -120,10 +123,15 @@ describe('createContract', () => {
 
     hasNotEndedCompanyContracts.returns(false);
     ContractMock.expects('create')
-      .withArgs(contract)
+      .withExactArgs(contract)
       .returns(contract);
     UserMock.expects('findOneAndUpdate')
-      .withArgs({ _id: payload.user }, { $push: { contracts: payload._id }, $unset: { inactivityDate: '' } })
+      .withExactArgs({ _id: payload.user }, { $push: { contracts: payload._id }, $unset: { inactivityDate: '' } })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ name: 'toto' })
       .once();
     CustomerMock.expects('findOneAndUpdate').never();
 
@@ -131,6 +139,7 @@ describe('createContract', () => {
 
     sinon.assert.notCalled(generateSignatureRequestStub);
     sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.notCalled(createHistoryStub);
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
@@ -163,16 +172,22 @@ describe('createContract', () => {
     hasNotEndedCompanyContracts.returns(false);
     generateSignatureRequestStub.returns({ data: { document_hash: '1234567890' } });
     ContractMock.expects('create')
-      .withArgs(contractWithDoc)
+      .withExactArgs(contractWithDoc)
       .returns(contractWithDoc);
     UserMock.expects('findOneAndUpdate')
-      .withArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
+      .withExactArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ name: 'toto' })
       .once();
     CustomerMock.expects('findOneAndUpdate').never();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.calledWithExactly(generateSignatureRequestStub, contract.versions[0].signature);
+    sinon.assert.notCalled(createHistoryStub);
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
@@ -195,23 +210,67 @@ describe('createContract', () => {
     hasNotEndedCompanyContracts.returns(false);
 
     ContractMock.expects('create')
-      .withArgs(contract)
+      .withExactArgs(contract)
       .returns(contract);
     UserMock.expects('findOneAndUpdate')
-      .withArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
+      .withExactArgs({ _id: contract.user }, { $push: { contracts: contract._id }, $unset: { inactivityDate: '' } })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns({ name: 'toto' })
       .once();
     CustomerMock.expects('findOneAndUpdate')
-      .withArgs({ _id: contract.customer }, { $push: { contracts: contract._id } })
+      .withExactArgs({ _id: contract.customer }, { $push: { contracts: contract._id } })
       .once();
 
     const result = await ContractHelper.createContract(payload, credentials);
 
     sinon.assert.notCalled(generateSignatureRequestStub);
     sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.notCalled(createHistoryStub);
     expect(result).toEqual(expect.objectContaining(contract));
     ContractMock.verify();
     UserMock.verify();
     CustomerMock.verify();
+  });
+
+  it('should create a new company contract and create sector history', async () => {
+    const payload = {
+      _id: new ObjectID(),
+      endDate: null,
+      user: new ObjectID(),
+      startDate: moment('2018-12-03T23:00:00').toDate(),
+      status: 'contract_with_company',
+      versions: [{ weeklyHours: 18, grossHourlyRate: 25 }],
+    };
+    const credentials = { company: { _id: '1234567890' } };
+    const contract = { ...payload, company: '1234567890' };
+
+    hasNotEndedCompanyContracts.returns(false);
+    ContractMock.expects('create')
+      .withExactArgs(contract)
+      .returns(contract);
+    const user = { name: 'toto', sector: new ObjectID(), _id: new ObjectID() };
+    UserMock.expects('findOneAndUpdate')
+      .withExactArgs({ _id: payload.user }, { $push: { contracts: payload._id }, $unset: { inactivityDate: '' } })
+      .chain('populate')
+      .withExactArgs({ path: 'sector', match: { company: credentials.company._id } })
+      .chain('lean')
+      .withExactArgs({ autopopulate: true, virtuals: true })
+      .returns(user)
+      .once();
+    CustomerMock.expects('findOneAndUpdate').never();
+
+    const result = await ContractHelper.createContract(payload, credentials);
+
+    sinon.assert.notCalled(generateSignatureRequestStub);
+    sinon.assert.calledWithExactly(hasNotEndedCompanyContracts, contract, '1234567890');
+    sinon.assert.calledWithExactly(createHistoryStub, user._id, user.sector.toHexString(), credentials.company._id);
+    ContractMock.verify();
+    UserMock.verify();
+    CustomerMock.verify();
+    expect(result).toEqual(expect.objectContaining(contract));
   });
 
   it('should throw a 400 error if new company contract startDate is before last ended company contract', async () => {

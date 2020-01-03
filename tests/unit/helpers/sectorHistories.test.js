@@ -28,7 +28,7 @@ describe('createHistory', () => {
     const sectorHistory = { _id: new ObjectID(), sector: new ObjectID() };
     SectorHistoryMock
       .expects('findOne')
-      .withExactArgs({ auxiliary, company })
+      .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
       .withExactArgs({ _id: -1 })
       .chain('lean')
@@ -49,7 +49,7 @@ describe('createHistory', () => {
     const sectorHistory = { _id: new ObjectID(), sector };
     SectorHistoryMock
       .expects('findOne')
-      .withExactArgs({ auxiliary, company })
+      .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
       .withExactArgs({ _id: -1 })
       .chain('lean')
@@ -67,7 +67,7 @@ describe('createHistory', () => {
   it('should create sector history if it does not exist', async () => {
     SectorHistoryMock
       .expects('findOne')
-      .withExactArgs({ auxiliary, company })
+      .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
       .withExactArgs({ _id: -1 })
       .chain('lean')
