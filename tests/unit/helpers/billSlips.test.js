@@ -128,7 +128,7 @@ describe('createBillSlips', () => {
     sinon.assert.calledWithExactly(formatBillSlipNumber.getCall(1), 129, 'ASD', 13);
     sinon.assert.calledWithExactly(
       updateOneBillSlipNumber,
-      { prefix: '09-2019', company: company._id },
+      { prefix: '0919', company: company._id },
       { $set: { seq: 14 } }
     );
     BillSlipMock.verify();

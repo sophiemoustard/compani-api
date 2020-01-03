@@ -24,6 +24,7 @@ exports.getBillSlipNumber = async (endDate, company) => {
 
 exports.createBillSlips = async (billList, endDate, company) => {
   const month = moment(endDate).format('MM-YYYY');
+  const prefix = moment(endDate).format('MMYY');
   const tppIds = [...new Set(billList.filter(bill => bill.client).map(bill => bill.client))];
   const billSlipList = await BillSlip.find({ thirdPartyPayer: { $in: tppIds }, month, company: company._id }).lean();
 
@@ -41,6 +42,6 @@ exports.createBillSlips = async (billList, endDate, company) => {
 
   await Promise.all([
     BillSlip.insertMany(list),
-    BillSlipNumber.updateOne({ prefix: month, company: company._id }, { $set: { seq } }),
+    BillSlipNumber.updateOne({ prefix, company: company._id }, { $set: { seq } }),
   ]);
 };
