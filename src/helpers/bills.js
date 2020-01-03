@@ -14,14 +14,15 @@ exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
 
 exports.formatSubscriptionData = (bill) => {
-  const events = bill.eventsList.map(ev => ({
-    eventId: ev.event,
-    ...pick(ev, ['auxiliary', 'startDate', 'endDate', 'surcharges']),
-  }));
+  const pickedFields = ['auxiliary', 'startDate', 'endDate', 'surcharges'];
+  if (bill.thirdPartyPayer) pickedFields.push('inclTaxesTpp', 'exclTaxesTpp', 'fundingId');
+  else pickedFields.push('inclTaxesCustomer', 'exclTaxesCustomer');
+
+  const events = bill.eventsList.map(ev => ({ eventId: ev.event, ...pick(ev, pickedFields) }));
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.endDate, bill.subscription.service, 'startDate');
 
   return {
-    ...bill,
+    ...pick(bill, ['startDate', 'endDate', 'hours', 'unitInclTaxes', 'exclTaxes', 'inclTaxes', 'discount']),
     subscription: bill.subscription._id,
     service: { serviceId: matchingServiceVersion._id, ...pick(matchingServiceVersion, ['name', 'nature']) },
     vat: matchingServiceVersion.vat,

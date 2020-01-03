@@ -29,7 +29,15 @@ describe('formatBillNumber', () => {
 });
 
 describe('formatSubscriptionData', () => {
-  it('should return formatted subscription data', () => {
+  let getMatchingVersionStub;
+  beforeEach(() => {
+    getMatchingVersionStub = sinon.stub(UtilsHelper, 'getMatchingVersion');
+  });
+  afterEach(() => {
+    getMatchingVersionStub.restore();
+  });
+
+  it('should return formatted subscription data for customer', () => {
     const bill = {
       subscription: {
         _id: 'asd',
@@ -50,16 +58,25 @@ describe('formatSubscriptionData', () => {
           startDate: '2019-05-28T10:00:55.374Z',
           endDate: '2019-05-28T13:00:55.374Z',
           auxiliary: '34567890',
+          inclTaxesCustomer: 12,
+          exclTaxesCustomer: 10,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 5,
+          exclTaxesTpp: 4,
         },
         {
           event: '456',
           startDate: '2019-05-29T08:00:55.374Z',
           endDate: '2019-05-29T10:00:55.374Z',
           auxiliary: '34567890',
+          inclTaxesCustomer: 14,
+          exclTaxesCustomer: 12,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 3,
+          exclTaxesTpp: 2,
         },
       ],
     };
-    const getMatchingVersionStub = sinon.stub(UtilsHelper, 'getMatchingVersion');
     getMatchingVersionStub.returns({
       _id: '1234567890',
       nature: 'test',
@@ -72,7 +89,6 @@ describe('formatSubscriptionData', () => {
     expect(result).toEqual(expect.objectContaining({
       subscription: 'asd',
       service: { serviceId: '1234567890', nature: 'test', name: 'service' },
-      unitExclTaxes: 24.644549763033176,
       exclTaxes: 13.649289099526067,
       inclTaxes: 14.4,
       vat: 12,
@@ -84,21 +100,119 @@ describe('formatSubscriptionData', () => {
           startDate: '2019-05-28T10:00:55.374Z',
           endDate: '2019-05-28T13:00:55.374Z',
           auxiliary: '34567890',
+          inclTaxesCustomer: 12,
+          exclTaxesCustomer: 10,
         },
         {
           eventId: '456',
           startDate: '2019-05-29T08:00:55.374Z',
           endDate: '2019-05-29T10:00:55.374Z',
           auxiliary: '34567890',
+          inclTaxesCustomer: 14,
+          exclTaxesCustomer: 12,
         },
       ],
     }));
     sinon.assert.calledWithExactly(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
-    getMatchingVersionStub.restore();
+  });
+  it('should return formatted subscription data for tpp', () => {
+    const bill = {
+      subscription: {
+        _id: 'asd',
+        service: {
+          _id: '1234567890',
+          nature: 'test',
+          versions: [{ name: 'service', vat: 12, startDate: moment().toISOString() }],
+        },
+      },
+      thirdPartyPayer: 'client',
+      unitExclTaxes: 24.644549763033176,
+      exclTaxes: 13.649289099526067,
+      inclTaxes: 14.4,
+      startDate: '2019-06-28T10:06:55.374Z',
+      hours: 1.5,
+      eventsList: [
+        {
+          event: '123',
+          startDate: '2019-05-28T10:00:55.374Z',
+          endDate: '2019-05-28T13:00:55.374Z',
+          auxiliary: '34567890',
+          inclTaxesCustomer: 12,
+          exclTaxesCustomer: 10,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 5,
+          exclTaxesTpp: 4,
+        },
+        {
+          event: '456',
+          startDate: '2019-05-29T08:00:55.374Z',
+          endDate: '2019-05-29T10:00:55.374Z',
+          auxiliary: '34567890',
+          inclTaxesCustomer: 14,
+          exclTaxesCustomer: 12,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 3,
+          exclTaxesTpp: 2,
+        },
+      ],
+    };
+    getMatchingVersionStub.returns({
+      _id: '1234567890',
+      nature: 'test',
+      name: 'service',
+      vat: 12,
+      startDate: '2019-06-27T10:06:55.374Z',
+    });
+
+    const result = BillHelper.formatSubscriptionData(bill);
+    expect(result).toEqual(expect.objectContaining({
+      subscription: 'asd',
+      service: { serviceId: '1234567890', nature: 'test', name: 'service' },
+      exclTaxes: 13.649289099526067,
+      inclTaxes: 14.4,
+      vat: 12,
+      startDate: '2019-06-28T10:06:55.374Z',
+      hours: 1.5,
+      events: [
+        {
+          eventId: '123',
+          startDate: '2019-05-28T10:00:55.374Z',
+          endDate: '2019-05-28T13:00:55.374Z',
+          auxiliary: '34567890',
+          fundingId: 'fundingId',
+          inclTaxesTpp: 5,
+          exclTaxesTpp: 4,
+        },
+        {
+          eventId: '456',
+          startDate: '2019-05-29T08:00:55.374Z',
+          endDate: '2019-05-29T10:00:55.374Z',
+          auxiliary: '34567890',
+          fundingId: 'fundingId',
+          inclTaxesTpp: 3,
+          exclTaxesTpp: 2,
+        },
+      ],
+    }));
+    sinon.assert.calledWithExactly(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
   });
 });
 
 describe('formatCustomerBills', () => {
+  let formatBillNumber;
+  let getFixedNumber;
+  let formatSubscriptionData;
+  beforeEach(() => {
+    formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
+    getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
+    formatSubscriptionData = sinon.stub(BillHelper, 'formatSubscriptionData');
+  });
+  afterEach(() => {
+    formatBillNumber.restore();
+    getFixedNumber.restore();
+    formatSubscriptionData.restore();
+  });
+
   it('Case 1 : 1 bill', () => {
     const company = { prefixNumber: 1234, _id: new ObjectID() };
     const customer = { _id: 'lilalo' };
@@ -106,6 +220,7 @@ describe('formatCustomerBills', () => {
     const customerBills = {
       shouldBeSent: true,
       bills: [{
+        endDate: '2019-09-19T00:00:00',
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
@@ -131,44 +246,30 @@ describe('formatCustomerBills', () => {
       }],
       total: 14.4,
     };
+    formatBillNumber.returns('FACT-1234Picsou00077');
+    getFixedNumber.returns(14.40);
+    formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
     expect(result).toBeDefined();
     expect(result.bill).toBeDefined();
-    expect(result.bill).toMatchObject({
+    expect(result.bill).toEqual({
       company: company._id,
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
       shouldBeSent: true,
-      subscriptions: [{
-        subscription: 'asd',
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
-        events: [
-          {
-            eventId: '123',
-            startDate: '2019-05-28T10:00:55.374Z',
-            endDate: '2019-05-28T13:00:55.374Z',
-            auxiliary: '34567890',
-          },
-          {
-            eventId: '456',
-            startDate: '2019-05-29T08:00:55.374Z',
-            endDate: '2019-05-29T10:00:55.374Z',
-            auxiliary: '34567890',
-          },
-        ],
-        vat: 12,
-      }],
+      subscriptions: [{ subscriptions: 'subscriptions' }],
+      netInclTaxes: 14.40,
+      date: '2019-09-19T00:00:00',
     });
-
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
       123: { event: '123', inclTaxesTpp: 14.4 },
       456: { event: '456', inclTaxesTpp: 12 },
     });
+    sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
+    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledWithExactly(formatSubscriptionData, customerBills.bills[0]);
   });
 
   it('Case 2 : multiple bills', () => {
@@ -179,6 +280,7 @@ describe('formatCustomerBills', () => {
       total: 14.4,
       shouldBeSent: false,
       bills: [{
+        endDate: '2019-09-19T00:00:00',
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
         exclTaxes: 13.649289099526067,
@@ -202,6 +304,7 @@ describe('formatCustomerBills', () => {
           },
         ],
       }, {
+        endDate: '2019-09-19T00:00:00',
         subscription: { _id: 'fgh', service: { versions: [{ vat: 34, startDate: moment().toISOString() }] } },
         unitExclTaxes: 34,
         exclTaxes: 15,
@@ -226,6 +329,9 @@ describe('formatCustomerBills', () => {
         ],
       }],
     };
+    formatBillNumber.returns('FACT-1234Picsou00077');
+    getFixedNumber.returns(14.40);
+    formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatCustomerBills(customerBills, customer, number, company);
     expect(result).toBeDefined();
@@ -235,49 +341,9 @@ describe('formatCustomerBills', () => {
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
       shouldBeSent: false,
-      subscriptions: [{
-        subscription: 'asd',
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
-        events: [
-          {
-            eventId: '123',
-            startDate: '2019-05-28T10:00:55.374Z',
-            endDate: '2019-05-28T13:00:55.374Z',
-            auxiliary: '34567890',
-          },
-          {
-            eventId: '456',
-            startDate: '2019-05-29T08:00:55.374Z',
-            endDate: '2019-05-29T10:00:55.374Z',
-            auxiliary: '34567890',
-          },
-        ],
-        vat: 12,
-      }, {
-        subscription: 'fgh',
-        unitExclTaxes: 34,
-        exclTaxes: 15,
-        inclTaxes: 11,
-        hours: 5,
-        events: [
-          {
-            eventId: '890',
-            startDate: '2019-05-29T10:00:55.374Z',
-            endDate: '2019-05-29T13:00:55.374Z',
-            auxiliary: '34567890',
-          },
-          {
-            eventId: '736',
-            startDate: '2019-05-30T08:00:55.374Z',
-            endDate: '2019-05-30T10:00:55.374Z',
-            auxiliary: '34567890',
-          },
-        ],
-        vat: 34,
-      }],
+      date: '2019-09-19T00:00:00',
+      netInclTaxes: 14.40,
+      subscriptions: [{ subscriptions: 'subscriptions' }, { subscriptions: 'subscriptions' }],
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
@@ -286,10 +352,28 @@ describe('formatCustomerBills', () => {
       890: { event: '890', inclTaxesTpp: 45 },
       736: { event: '736', inclTaxesTpp: 23 },
     });
+    sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
+    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledWithExactly(formatSubscriptionData.getCall(0), customerBills.bills[0]);
+    sinon.assert.calledWithExactly(formatSubscriptionData.getCall(1), customerBills.bills[1]);
   });
 });
 
 describe('formatThirdPartyPayerBills', () => {
+  let getFixedNumber;
+  let formatBillNumber;
+  let formatSubscriptionData;
+  beforeEach(() => {
+    getFixedNumber = sinon.stub(UtilsHelper, 'getFixedNumber');
+    formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
+    formatSubscriptionData = sinon.stub(BillHelper, 'formatSubscriptionData');
+  });
+  afterEach(() => {
+    getFixedNumber.restore();
+    formatBillNumber.restore();
+    formatSubscriptionData.restore();
+  });
+
   it('Case 1 : 1 third party payer - 1 bill - Funding monthly and hourly', () => {
     const company = { prefixNumber: 1234, _id: new ObjectID() };
     const customer = { _id: 'lilalo' };
@@ -297,6 +381,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
+        endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -324,6 +409,9 @@ describe('formatThirdPartyPayerBills', () => {
         ],
       }],
     }];
+    formatBillNumber.returns('FACT-1234Picsou00077');
+    getFixedNumber.returns(14.40);
+    formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
     expect(result).toBeDefined();
@@ -333,28 +421,9 @@ describe('formatThirdPartyPayerBills', () => {
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
       client: 'Papa',
-      subscriptions: [{
-        subscription: 'asd',
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
-        events: [
-          {
-            eventId: '123',
-            auxiliary: '34567890',
-            startDate: '2019-02-15T08:00:55.374Z',
-            endDate: '2019-02-15T10:00:55.374Z',
-          },
-          {
-            eventId: '456',
-            auxiliary: '34567890',
-            startDate: '2019-02-16T08:00:55.374Z',
-            endDate: '2019-02-16T10:00:55.374Z',
-          },
-        ],
-        vat: 12,
-      }],
+      date: '2019-09-19T00:00:00',
+      netInclTaxes: 14.40,
+      subscriptions: [{ subscriptions: 'subscriptions' }],
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
@@ -368,6 +437,9 @@ describe('formatThirdPartyPayerBills', () => {
         '03/2019': { careHours: 2, fundingId: 'fund', month: '03/2019', nature: 'hourly' },
       },
     });
+    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
+    sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
   it('Case 2 : 1 third party payer - 1 bill - Funding once and hourly', () => {
     const company = { prefixNumber: 1234, _id: new ObjectID() };
@@ -376,6 +448,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
+        endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -403,6 +476,9 @@ describe('formatThirdPartyPayerBills', () => {
         ],
       }],
     }];
+    formatBillNumber.returns('FACT-1234Picsou00077');
+    getFixedNumber.returns(14.40);
+    formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
     expect(result).toBeDefined();
@@ -412,28 +488,9 @@ describe('formatThirdPartyPayerBills', () => {
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
       client: 'Papa',
-      subscriptions: [{
-        subscription: 'asd',
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
-        events: [
-          {
-            eventId: '123',
-            auxiliary: '34567890',
-            startDate: '2019-02-15T08:00:55.374Z',
-            endDate: '2019-02-15T10:00:55.374Z',
-          },
-          {
-            eventId: '456',
-            auxiliary: '34567890',
-            startDate: '2019-02-16T08:00:55.374Z',
-            endDate: '2019-02-16T10:00:55.374Z',
-          },
-        ],
-        vat: 12,
-      }],
+      date: '2019-09-19T00:00:00',
+      netInclTaxes: 14.40,
+      subscriptions: [{ subscriptions: 'subscriptions' }],
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
@@ -444,6 +501,9 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.fundingHistories).toMatchObject({
       fund: { careHours: 6, fundingId: 'fund', nature: 'hourly' },
     });
+    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
+    sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
   it('Case 3 : 1 third party payer - 1 bill - Funding once and fixed', () => {
     const company = { prefixNumber: 1234, _id: new ObjectID() };
@@ -452,6 +512,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
+        endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -479,6 +540,9 @@ describe('formatThirdPartyPayerBills', () => {
         ],
       }],
     }];
+    formatBillNumber.returns('FACT-1234Picsou00077');
+    getFixedNumber.returns(14.40);
+    formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
     expect(result).toBeDefined();
@@ -488,28 +552,9 @@ describe('formatThirdPartyPayerBills', () => {
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
       client: 'Papa',
-      subscriptions: [{
-        subscription: 'asd',
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
-        events: [
-          {
-            eventId: '123',
-            auxiliary: '34567890',
-            startDate: '2019-02-15T08:00:55.374Z',
-            endDate: '2019-02-15T10:00:55.374Z',
-          },
-          {
-            eventId: '456',
-            auxiliary: '34567890',
-            startDate: '2019-02-16T08:00:55.374Z',
-            endDate: '2019-02-16T10:00:55.374Z',
-          },
-        ],
-        vat: 12,
-      }],
+      date: '2019-09-19T00:00:00',
+      netInclTaxes: 14.40,
+      subscriptions: [{ subscriptions: 'subscriptions' }],
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
@@ -520,6 +565,9 @@ describe('formatThirdPartyPayerBills', () => {
     expect(result.fundingHistories).toMatchObject({
       fund: { amountTTC: 60, fundingId: 'fund', nature: 'fixed' },
     });
+    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
+    sinon.assert.calledWithExactly(formatSubscriptionData, thirdPartyPayerBills[0].bills[0]);
   });
   it('Case 4 : 1 third party payer - multiple bills', () => {
     const company = { _id: new ObjectID(), prefixNumber: 1234 };
@@ -528,6 +576,7 @@ describe('formatThirdPartyPayerBills', () => {
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
+        endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -581,6 +630,9 @@ describe('formatThirdPartyPayerBills', () => {
         ],
       }],
     }];
+    formatBillNumber.returns('FACT-1234Picsou00077');
+    getFixedNumber.returns(14.40);
+    formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
     const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
     expect(result).toBeDefined();
@@ -590,49 +642,9 @@ describe('formatThirdPartyPayerBills', () => {
       customer: 'lilalo',
       number: 'FACT-1234Picsou00077',
       client: 'Papa',
-      subscriptions: [{
-        subscription: 'asd',
-        unitExclTaxes: 24.644549763033176,
-        exclTaxes: 13.649289099526067,
-        inclTaxes: 14.4,
-        hours: 1.5,
-        events: [
-          {
-            eventId: '123',
-            auxiliary: '34567890',
-            startDate: '2019-02-15T08:00:55.374Z',
-            endDate: '2019-02-15T10:00:55.374Z',
-          },
-          {
-            eventId: '456',
-            auxiliary: '34567890',
-            startDate: '2019-02-16T08:00:55.374Z',
-            endDate: '2019-02-16T10:00:55.374Z',
-          },
-        ],
-        vat: 12,
-      }, {
-        subscription: 'fgh',
-        unitExclTaxes: 34,
-        exclTaxes: 15,
-        inclTaxes: 11,
-        hours: 5,
-        events: [
-          {
-            eventId: '890',
-            auxiliary: '34567890',
-            startDate: '2019-02-17T08:00:55.374Z',
-            endDate: '2019-02-17T10:00:55.374Z',
-          },
-          {
-            eventId: '736',
-            auxiliary: '34567890',
-            startDate: '2019-02-18T08:00:55.374Z',
-            endDate: '2019-02-18T10:00:55.374Z',
-          },
-        ],
-        vat: 5.5,
-      }],
+      date: '2019-09-19T00:00:00',
+      netInclTaxes: 14.40,
+      subscriptions: [{ subscriptions: 'subscriptions' }, { subscriptions: 'subscriptions' }],
     });
     expect(result.billedEvents).toBeDefined();
     expect(result.billedEvents).toMatchObject({
@@ -649,14 +661,19 @@ describe('formatThirdPartyPayerBills', () => {
       },
       lio: { '02/2019': { careHours: 4, fundingId: 'lio', month: '02/2019', nature: 'hourly' } },
     });
+    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledWithExactly(formatBillNumber, 1234, 'Picsou', 77);
+    sinon.assert.calledWithExactly(formatSubscriptionData.getCall(0), thirdPartyPayerBills[0].bills[0]);
+    sinon.assert.calledWithExactly(formatSubscriptionData.getCall(1), thirdPartyPayerBills[0].bills[1]);
   });
   it('Case 5 : multiple third party payers', () => {
-    const companyId = new ObjectID();
+    const company = { _id: new ObjectID(), prefixNumber: 1234 };
     const customer = { _id: 'lilalo' };
     const number = { prefix: 'Picsou', seq: 77 };
     const thirdPartyPayerBills = [{
       total: 14.4,
       bills: [{
+        endDate: '2019-09-19T00:00:00',
         thirdPartyPayer: { _id: 'Papa' },
         subscription: { _id: 'asd', service: { versions: [{ vat: 12, startDate: moment().toISOString() }] } },
         unitExclTaxes: 24.644549763033176,
@@ -685,11 +702,19 @@ describe('formatThirdPartyPayerBills', () => {
         ],
       }],
     }];
+    formatBillNumber.returns('FACT-1234Picsou00077');
+    getFixedNumber.returns(14.40);
+    formatSubscriptionData.returns({ subscriptions: 'subscriptions' });
 
-    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, companyId);
+    const result = BillHelper.formatThirdPartyPayerBills(thirdPartyPayerBills, customer, number, company);
     expect(result).toBeDefined();
     expect(result.tppBills).toBeDefined();
     expect(result.tppBills.length).toEqual(2);
+    sinon.assert.calledWithExactly(getFixedNumber, 14.4, 2);
+    sinon.assert.calledWithExactly(formatBillNumber.getCall(0), 1234, 'Picsou', 77);
+    sinon.assert.calledWithExactly(formatBillNumber.getCall(1), 1234, 'Picsou', 78);
+    sinon.assert.calledWithExactly(formatSubscriptionData.getCall(0), thirdPartyPayerBills[0].bills[0]);
+    sinon.assert.calledWithExactly(formatSubscriptionData.getCall(1), thirdPartyPayerBills[1].bills[0]);
   });
 });
 
