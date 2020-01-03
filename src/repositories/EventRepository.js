@@ -17,9 +17,35 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
   {
     $lookup: {
       from: 'users',
-      localField: 'auxiliary',
-      foreignField: '_id',
       as: 'auxiliary',
+      let: { auxiliaryId: '$auxiliary' },
+      pipeline: [
+        { $match: { $expr: { $and: [{ $eq: ['$_id', '$$auxiliaryId'] }] } } },
+        {
+          $lookup: {
+            from: 'sectorhistories',
+            as: 'sector',
+            let: { auxiliaryId: '$_id', companyId: '$company' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$company', '$$companyId'] }],
+                  },
+                },
+              },
+              { $sort: { createdAt: -1 } },
+              { $limit: 1 },
+              {
+                $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
+              },
+              { $unwind: { path: '$lastSector' } },
+              { $replaceRoot: { newRoot: '$lastSector' } },
+            ],
+          },
+        },
+        { $unwind: { path: '$sector' } },
+      ],
     },
   },
   { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },

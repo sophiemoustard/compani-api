@@ -93,10 +93,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
           {
             $match: {
               $expr: {
-                $and: [
-                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                  { $eq: ['$company', '$$companyId'] },
-                ],
+                $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$company', '$$companyId'] }],
               },
             },
           },
