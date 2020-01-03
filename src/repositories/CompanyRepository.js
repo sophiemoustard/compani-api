@@ -97,16 +97,11 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
               },
             },
           },
-          {
-            $lookup: {
-              from: 'sectors',
-              as: 'lastSector',
-              foreignField: '_id',
-              localField: 'sector',
-            },
-          },
           { $sort: { createdAt: -1 } },
           { $limit: 1 },
+          {
+            $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
+          },
           { $unwind: { path: '$lastSector' } },
           { $replaceRoot: { newRoot: '$lastSector' } },
         ],

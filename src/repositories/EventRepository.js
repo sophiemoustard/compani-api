@@ -226,46 +226,42 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     {
       $lookup: {
         from: 'users',
-        localField: 'auxiliary',
-        foreignField: '_id',
         as: 'auxiliary',
-      },
-    },
-    { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: 'sectorhistories',
-        as: 'auxiliary.sector',
-        let: { auxiliaryId: '$auxiliary._id', companyId: '$auxiliary.company' },
+        let: { auxiliaryId: '$auxiliary', startDate: '$startDate' },
         pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
-                  { $eq: ['$company', '$$companyId'] },
-                ],
-              },
-            },
-          },
+          { $match: { $expr: { $and: [{ $eq: ['$_id', '$$auxiliaryId'] }] } } },
           {
             $lookup: {
-              from: 'sectors',
-              as: 'lastSector',
-              let: { sectorId: '$sector' },
+              from: 'sectorhistories',
+              as: 'sector',
+              let: { auxiliaryId: '$_id', companyId: '$company' },
               pipeline: [
-                { $match: { $expr: { $eq: ['$_id', '$$sectorId'] } } },
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                        { $eq: ['$company', '$$companyId'] },
+                        { $lte: ['$createdAt', '$$startDate'] },
+                      ],
+                    },
+                  },
+                },
+                { $sort: { createdAt: -1 } },
+                { $limit: 1 },
+                {
+                  $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
+                },
+                { $unwind: { path: '$lastSector' } },
+                { $replaceRoot: { newRoot: '$lastSector' } },
               ],
             },
           },
-          { $sort: { createdAt: -1 } },
-          { $group: { _id: null, sector: { $first: '$$ROOT' } } },
-          { $unwind: { path: '$sector.lastSector' } },
-          { $project: { sector: '$sector.lastSector' } },
+          { $unwind: { path: '$sector' } },
         ],
       },
     },
-    { $unwind: { path: '$auxiliary.sector' } },
+    { $unwind: { path: '$auxiliary', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: 'internalhours',
@@ -278,7 +274,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
     {
       $project: {
         customer: { identity: 1 },
-        auxiliary: { identity: 1, sector: '$auxiliary.sector.sector' },
+        auxiliary: { identity: 1, sector: 1 },
         startDate: 1,
         endDate: 1,
         internalHour: 1,
