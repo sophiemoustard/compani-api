@@ -5,7 +5,9 @@ exports.createHistory = async (auxiliary, sector, company) => {
   const lastSectorHistory = await SectorHistory.findOne({ auxiliary, company, endDate: { $exists: false } })
     .sort({ _id: -1 })
     .lean();
-  if (!lastSectorHistory) return SectorHistory.create({ auxiliary, sector, company });
+  if (!lastSectorHistory) {
+    return SectorHistory.create({ auxiliary, sector, company, startDate: moment().startOf('day') });
+  }
   if (lastSectorHistory.sector.toHexString() === sector) return;
 
   return Promise.all([

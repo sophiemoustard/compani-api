@@ -2,7 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const SectoryHistory = require('../../../src/models/SectorHistory');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 
 require('sinon-mongoose');
@@ -15,7 +15,7 @@ describe('createHistory', () => {
   const sector = new ObjectID();
 
   beforeEach(() => {
-    SectorHistoryMock = sinon.mock(SectoryHistory);
+    SectorHistoryMock = sinon.mock(SectorHistory);
     clock = sinon.useFakeTimers(new Date('2019-01-02'));
   });
 
@@ -85,7 +85,7 @@ describe('updateEndDate', () => {
   let SectorHistoryMock;
 
   beforeEach(() => {
-    SectorHistoryMock = sinon.mock(SectoryHistory);
+    SectorHistoryMock = sinon.mock(SectorHistory);
   });
 
   afterEach(() => {

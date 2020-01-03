@@ -9,9 +9,10 @@ const SectorHistorySchema = mongoose.Schema({
     autopopulate: { select: '_id name' },
     required: true,
   },
-  auxiliary: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
-  endDate: Date,
+  auxiliary: { type: mongoose.Schema.Types.ObjectId, required: true },
+  company: { type: mongoose.Schema.Types.ObjectId, required: true },
+  startDate: { type: Date, required: true },
+  endDate: { type: Date },
 }, { timestamps: true });
 
 SectorHistorySchema.pre('aggregate', validateAggregation);
