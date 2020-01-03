@@ -12,7 +12,7 @@ exports.createHistory = async (auxiliary, sector, company) => {
   ]);
 };
 
-exports.setEndDate = async (auxiliary, endDate) =>
+exports.updateEndDate = async (auxiliary, endDate) =>
   SectorHistory.updateOne(
     { auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
     { $set: { endDate } }

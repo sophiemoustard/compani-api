@@ -81,7 +81,7 @@ describe('createHistory', () => {
   });
 });
 
-describe('setEndDate', () => {
+describe('updateEndDate', () => {
   let SectorHistoryMock;
 
   beforeEach(() => {
@@ -99,7 +99,7 @@ describe('setEndDate', () => {
       .expects('updateOne')
       .withExactArgs({ auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] }, { $set: { endDate } });
 
-    await SectorHistoryHelper.setEndDate(auxiliary, endDate);
+    await SectorHistoryHelper.updateEndDate(auxiliary, endDate);
 
     SectorHistoryMock.verify();
   });

@@ -115,7 +115,7 @@ exports.endContract = async (contractId, contractToEnd, credentials) => {
     CustomerHelper.unassignReferentOnContractEnd(updatedContract),
     EventHelper.removeEventsExceptInterventionsOnContractEnd(updatedContract, credentials),
     EventHelper.updateAbsencesOnContractEnd(updatedContract.user, updatedContract.endDate, credentials),
-    SectorHistoryHelper.setEndDate(updatedContract.user, updatedContract.endDate),
+    SectorHistoryHelper.updateEndDate(updatedContract.user, updatedContract.endDate),
   ]);
 
   return updatedContract;

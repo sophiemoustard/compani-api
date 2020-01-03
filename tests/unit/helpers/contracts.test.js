@@ -241,7 +241,7 @@ describe('endContract', () => {
   let removeEventsExceptInterventionsOnContractEnd;
   let updateAbsencesOnContractEnd;
   let unassignReferentOnContractEnd;
-  let setEndDateStub;
+  let updateEndDateStub;
   beforeEach(() => {
     ContractMock = sinon.mock(Contract);
     updateUserInactivityDate = sinon.stub(UserHelper, 'updateUserInactivityDate');
@@ -252,7 +252,7 @@ describe('endContract', () => {
     );
     updateAbsencesOnContractEnd = sinon.stub(EventHelper, 'updateAbsencesOnContractEnd');
     unassignReferentOnContractEnd = sinon.stub(CustomerHelper, 'unassignReferentOnContractEnd');
-    setEndDateStub = sinon.stub(SectorHistoryHelper, 'setEndDate');
+    updateEndDateStub = sinon.stub(SectorHistoryHelper, 'updateEndDate');
   });
   afterEach(() => {
     ContractMock.restore();
@@ -261,7 +261,7 @@ describe('endContract', () => {
     removeEventsExceptInterventionsOnContractEnd.restore();
     updateAbsencesOnContractEnd.restore();
     unassignReferentOnContractEnd.restore();
-    setEndDateStub.restore();
+    updateEndDateStub.restore();
   });
 
   it('should end contract', async () => {
@@ -313,7 +313,7 @@ describe('endContract', () => {
       updatedContract.endDate,
       credentials
     );
-    sinon.assert.calledWithExactly(setEndDateStub, updatedContract.user, updatedContract.endDate);
+    sinon.assert.calledWithExactly(updateEndDateStub, updatedContract.user, updatedContract.endDate);
     expect(result).toMatchObject(updatedContract);
     ContractMock.verify();
   });
@@ -352,7 +352,7 @@ describe('endContract', () => {
       sinon.assert.notCalled(unassignReferentOnContractEnd);
       sinon.assert.notCalled(removeEventsExceptInterventionsOnContractEnd);
       sinon.assert.notCalled(updateAbsencesOnContractEnd);
-      sinon.assert.notCalled(setEndDateStub);
+      sinon.assert.notCalled(updateEndDateStub);
       ContractMock.verify();
     }
   });
