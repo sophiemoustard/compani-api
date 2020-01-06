@@ -3,7 +3,7 @@ const SectorHistory = require('../models/SectorHistory');
 
 exports.createHistory = async (auxiliary, sector, company) => {
   const lastSectorHistory = await SectorHistory.findOne({ auxiliary, company, endDate: { $exists: false } })
-    .sort({ _id: -1 })
+    .sort({ startDate: -1 })
     .lean();
   if (!lastSectorHistory) {
     return SectorHistory.create({ auxiliary, sector, company, startDate: moment().startOf('day') });
@@ -11,13 +11,16 @@ exports.createHistory = async (auxiliary, sector, company) => {
   if (lastSectorHistory.sector.toHexString() === sector) return;
 
   return Promise.all([
-    SectorHistory.updateOne({ _id: lastSectorHistory._id }, { $set: { endDate: moment().subtract(1, 'd').toDate() } }),
-    SectorHistory.create({ auxiliary, sector, company }),
+    SectorHistory.updateOne(
+      { _id: lastSectorHistory._id },
+      { $set: { endDate: moment().subtract(1, 'd').endOf('day').toDate() } }
+    ),
+    SectorHistory.create({ auxiliary, sector, company, startDate: moment().startOf('day') }),
   ]);
 };
 
 exports.updateEndDate = async (auxiliary, endDate) =>
   SectorHistory.updateOne(
     { auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
-    { $set: { endDate } }
+    { $set: { endDate: moment(endDate).endOf('day').toDate() } }
   );
