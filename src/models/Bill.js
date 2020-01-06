@@ -8,7 +8,7 @@ const { validatePayload, validateQuery, validateAggregation } = require('./preHo
 const BILL_ORIGINS = [COMPANI, THIRD_PARTY, OGUST];
 
 const BillSchema = mongoose.Schema({
-  number: { type: String, required: true },
+  number: { type: String },
   date: { type: Date, required: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
