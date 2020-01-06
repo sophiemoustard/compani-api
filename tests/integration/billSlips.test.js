@@ -28,28 +28,28 @@ describe('BILL SLIP ROUTES - GET /', () => {
       expect(response.statusCode).toBe(200);
       expect(response.result.data.billSlips).toEqual(expect.arrayContaining([
         {
-          _id: { thirdPartyPayer: tppList[0]._id, year: 2019, month: 11 },
+          _id: billSlipList[0]._id,
           netInclTaxes: 50,
           month: '11-2019',
           thirdPartyPayer: { _id: tppList[0]._id, name: 'third party payer' },
           number: 'BORD-123456789009',
         },
         {
-          _id: { thirdPartyPayer: tppList[1]._id, year: 2019, month: 11 },
+          _id: billSlipList[1]._id,
           netInclTaxes: 100,
           month: '11-2019',
           thirdPartyPayer: { _id: tppList[1]._id, name: 'tpp' },
           number: 'BORD-123456789001',
         },
         {
-          _id: { thirdPartyPayer: tppList[0]._id, year: 2019, month: 12 },
+          _id: billSlipList[2]._id,
           netInclTaxes: 120,
           month: '12-2019',
           thirdPartyPayer: { _id: tppList[0]._id, name: 'third party payer' },
           number: 'BORD-123456789002',
         },
         {
-          _id: { thirdPartyPayer: tppList[1]._id, year: 2019, month: 12 },
+          _id: billSlipList[3]._id,
           netInclTaxes: 70,
           month: '12-2019',
           thirdPartyPayer: { _id: tppList[1]._id, name: 'tpp' },
