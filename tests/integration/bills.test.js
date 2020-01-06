@@ -225,6 +225,70 @@ describe('BILL ROUTES - POST /bills', () => {
         },
       ],
     },
+    {
+      customer: {
+        _id: billCustomerList[1]._id,
+        identity: billCustomerList[1].identity,
+      },
+      endDate: '2019-05-31T23:59:59.999Z',
+      customerBills: { bills: [], total: 0 },
+      thirdPartyPayerBills: [
+        {
+          bills: [
+            {
+              _id: '5ccbfcf4bffe7646a387b472',
+              subscription: {
+                _id: billCustomerList[1].subscriptions[0]._id,
+                service: billServices[0],
+                versions: [
+                  {
+                    unitTTCRate: 12,
+                    estimatedWeeklyVolume: 12,
+                    evenings: 2,
+                    sundays: 1,
+                    startDate: '2019-04-03T08:33:55.370Z',
+                    createdAt: '2019-05-03T08:33:56.144Z',
+                  },
+                ],
+                createdAt: '2019-05-03T08:33:56.144Z',
+              },
+              discount: 0,
+              startDate: '2019-05-01T00:00:00.000Z',
+              endDate: '2019-05-31T23:59:59.999Z',
+              unitExclTaxes: 10.714285714285714,
+              unitInclTaxes: 12,
+              vat: 12,
+              exclTaxes: 21.428571428571427,
+              inclTaxes: 24,
+              hours: 2,
+              eventsList: [
+                {
+                  event: eventList[4]._id,
+                  auxiliary: new ObjectID(),
+                  startDate: '2019-05-02T08:00:00.000Z',
+                  endDate: '2019-05-02T10:00:00.000Z',
+                  inclTaxesTpp: 24,
+                  exclTaxesTpp: 21.428571428571427,
+                  thirdPartyPayer: billThirdPartyPayer._id,
+                  inclTaxesCustomer: 0,
+                  exclTaxesCustomer: 0,
+                  history: {
+                    amountTTC: 24,
+                    fundingId: '5ccbfcf4bffe7646a387b45a',
+                    nature: 'fixed',
+                  },
+                  fundingId: '5ccbfcf4bffe7646a387b45a',
+                  nature: 'fixed',
+                },
+              ],
+              externalBilling: true,
+              thirdPartyPayer: billThirdPartyPayer,
+            },
+          ],
+          total: 24,
+        },
+      ],
+    },
   ];
 
   describe('Admin', () => {
@@ -242,7 +306,8 @@ describe('BILL ROUTES - POST /bills', () => {
 
       expect(response.statusCode).toBe(200);
       const bills = await Bill.find({ company: authCompany._id }).lean();
-      const draftBillsLength = payload[0].customerBills.bills.length + payload[0].thirdPartyPayerBills[0].bills.length;
+      const draftBillsLength = payload[0].customerBills.bills.length + payload[0].thirdPartyPayerBills[0].bills.length
+        + payload[1].thirdPartyPayerBills[0].bills.length;
       expect(bills.length).toBe(draftBillsLength + authBillsList.length);
     });
 
