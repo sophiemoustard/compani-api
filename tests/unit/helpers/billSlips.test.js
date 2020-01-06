@@ -5,6 +5,7 @@ const BillSlipHelper = require('../../../src/helpers/billSlips');
 const BillSlipNumber = require('../../../src/models/BillSlipNumber');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const BillSlip = require('../../../src/models/BillSlip');
+const PdfHelper = require('../../../src/helpers/pdf');
 
 require('sinon-mongoose');
 
@@ -132,5 +133,46 @@ describe('createBillSlips', () => {
       { $set: { seq: 14 } }
     );
     BillSlipMock.verify();
+  });
+});
+
+describe('generatePdf', () => {
+  let BillSlipMock;
+  let generatePdfStub;
+  const billSlip = { _id: new ObjectID(), number: 'BORD-1234567890' };
+  const pdf = 'This is a pdf';
+
+  beforeEach(() => {
+    BillSlipMock = sinon.mock(BillSlip);
+    generatePdfStub = sinon.stub(PdfHelper, 'generatePdf');
+  });
+
+  afterEach(() => {
+    BillSlipMock.restore();
+    generatePdfStub.restore();
+  });
+
+  it('should return generated pdf and bill slip number', async () => {
+    BillSlipMock
+      .expects('findById')
+      .withExactArgs(billSlip._id)
+      .chain('lean')
+      .once()
+      .returns(billSlip);
+    generatePdfStub.returns(pdf);
+
+    const result = await BillSlipHelper.generatePdf(billSlip._id);
+
+    expect(result).toMatchObject({
+      billSlipNumber: billSlip.number,
+      pdf,
+    });
+    BillSlipMock.restore();
+    sinon.assert.calledWithExactly(
+      generatePdfStub,
+      {},
+      './src/data/billSlip.html',
+      { format: 'A4', printBackground: true, landscape: true }
+    );
   });
 });

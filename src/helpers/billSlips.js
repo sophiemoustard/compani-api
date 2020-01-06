@@ -47,5 +47,12 @@ exports.createBillSlips = async (billList, endDate, company) => {
 };
 
 exports.generatePdf = async (billSlipId) => {
-  return PdfHelper.generatePdf({}, './src/data/billSlip.html', { format: 'A4', printBackground: true, landscape: true });
+  const billSlip = await BillSlip.findById(billSlipId).lean();
+  const pdf = await PdfHelper.generatePdf({}, './src/data/billSlip.html', {
+    format: 'A4',
+    printBackground: true,
+    landscape: true,
+  });
+
+  return { billSlipNumber: billSlip.number, pdf };
 };

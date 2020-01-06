@@ -1,4 +1,5 @@
 const expect = require('expect');
+const { ObjectID } = require('mongodb');
 const { populateDB, tppList, billSlipList, billSlipFromAnotherCompany } = require('./seed/billSlipsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const app = require('../../server');
@@ -108,6 +109,16 @@ describe('BILL SLIP ROUTES - GET /:_id/pdfs', () => {
       });
 
       expect(response.statusCode).toBe(403);
+    });
+
+    it('should return a 404 error if bill slip does not exist', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/billslips/${new ObjectID()}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 

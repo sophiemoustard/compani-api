@@ -20,11 +20,10 @@ const list = async (req) => {
 
 const generateBillSlipPdf = async (req, h) => {
   try {
-    const { billSlip } = req.pre;
-    const pdf = await BillSlipsHelper.generatePdf(billSlip._id);
+    const { pdf, billSlipNumber } = await BillSlipsHelper.generatePdf(req.params._id);
 
     return h.response(pdf)
-      .header('content-disposition', `inline; filename=${billSlip.number}.pdf`)
+      .header('content-disposition', `inline; filename=${billSlipNumber}.pdf`)
       .type('application/pdf');
   } catch (e) {
     req.log('error', e);
