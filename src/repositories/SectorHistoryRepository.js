@@ -56,8 +56,7 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
                 },
                 {
                   $and: [
-                    { endDate: { $exists: true } },
-                    { $gte: ['$endDate', minDate] },
+                    { endDate: { $exists: true, $gte: minDate } },
                     {
                       $expr: {
                         $and: [

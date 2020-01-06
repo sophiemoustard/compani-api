@@ -157,7 +157,12 @@ const userPayload = {
 
 const sectorHistories = usersSeedList
   .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)
-  .map(user => ({ auxiliary: user._id, sector: userSectors[0]._id, company: company._id }));
+  .map(user => ({
+    auxiliary: user._id,
+    sector: userSectors[0]._id,
+    company: company._id,
+    startDate: '2018-12-10',
+  }));
 
 const isInList = (list, user) => list.some(i => i._id.toHexString() === user._id.toHexString());
 const isExistingRole = (roleId, roleName) => roleId === rolesList.find(r => r.name === roleName)._id;

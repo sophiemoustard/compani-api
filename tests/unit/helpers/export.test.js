@@ -1135,7 +1135,7 @@ describe('exportSectors', () => {
         _id: new ObjectID(),
         identity: { firstname: 'toto', lastname: 'Tutu' },
       },
-      createdAt: '2019-11-10',
+      startDate: '2019-11-10',
     },
     {
       sector: { name: 'test2' },
@@ -1143,7 +1143,7 @@ describe('exportSectors', () => {
         _id: new ObjectID(),
         identity: { firstname: 'toto2', lastname: 'Tutu2' },
       },
-      createdAt: '2019-11-10',
+      startDate: '2019-11-10',
       endDate: '2019-12-10',
     }];
     SectorHistoryModel.expects('find')

@@ -69,7 +69,12 @@ const eventAuxiliary = {
   company: authCompany._id,
 };
 
-const sectorHistory = { auxiliary: auxiliaryId, sector: sectors[0]._id, company: authCompany._id };
+const sectorHistory = {
+  auxiliary: auxiliaryId,
+  sector: sectors[0]._id,
+  company: authCompany._id,
+  startDate: '2018-12-10',
+};
 
 const auxiliaryFromOtherCompany = {
   _id: new ObjectID(),
@@ -81,7 +86,12 @@ const auxiliaryFromOtherCompany = {
   company: otherCompany._id,
 };
 
-const sectorHistoryFromOtherCompany = { auxiliary: auxiliaryId, sector: sectors[2]._id, company: otherCompany._id };
+const sectorHistoryFromOtherCompany = {
+  auxiliary: auxiliaryId,
+  sector: sectors[2]._id,
+  company: otherCompany._id,
+  startDate: '2018-12-10',
+};
 
 const thirdPartyPayer = {
   _id: new ObjectID(),

@@ -163,6 +163,7 @@ const sectorHistories = auxiliaries.map(aux => ({
   auxiliary: aux._id,
   sector: sectorId,
   company: authCompany._id,
+  startDate: '2018-12-10',
 }));
 
 const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };

@@ -30,15 +30,23 @@ describe('createHistory', () => {
       .expects('findOne')
       .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
-      .withExactArgs({ _id: -1 })
+      .withExactArgs({ startDate: -1 })
       .chain('lean')
       .returns(sectorHistory);
 
     SectorHistoryMock
       .expects('updateOne')
-      .withExactArgs({ _id: sectorHistory._id }, { $set: { endDate: moment().subtract(1, 'd').toDate() } });
+      .withExactArgs(
+        { _id: sectorHistory._id },
+        { $set: { endDate: moment().subtract(1, 'd').endOf('day').toDate() } }
+      );
 
-    SectorHistoryMock.expects('create').withExactArgs({ auxiliary, sector, company });
+    SectorHistoryMock.expects('create').withExactArgs({
+      auxiliary,
+      sector,
+      company,
+      startDate: moment().startOf('day'),
+    });
 
     await SectorHistoryHelper.createHistory(auxiliary, sector, company);
 
@@ -51,7 +59,7 @@ describe('createHistory', () => {
       .expects('findOne')
       .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
-      .withExactArgs({ _id: -1 })
+      .withExactArgs({ startDate: -1 })
       .chain('lean')
       .returns(sectorHistory);
 
@@ -69,11 +77,16 @@ describe('createHistory', () => {
       .expects('findOne')
       .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
-      .withExactArgs({ _id: -1 })
+      .withExactArgs({ startDate: -1 })
       .chain('lean')
       .returns(null);
 
-    SectorHistoryMock.expects('create').withExactArgs({ auxiliary, sector, company });
+    SectorHistoryMock.expects('create').withExactArgs({
+      auxiliary,
+      sector,
+      company,
+      startDate: moment().startOf('day'),
+    });
 
     await SectorHistoryHelper.createHistory(auxiliary, sector, company);
 
@@ -97,7 +110,10 @@ describe('updateEndDate', () => {
     const endDate = '2020-01-01';
     SectorHistoryMock
       .expects('updateOne')
-      .withExactArgs({ auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] }, { $set: { endDate } });
+      .withExactArgs(
+        { auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+        { $set: { endDate: moment(endDate).endOf('day').toDate() } }
+      );
 
     await SectorHistoryHelper.updateEndDate(auxiliary, endDate);
 
