@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 const Bill = require('../../../src/models/Bill');
 const BillSlip = require('../../../src/models/BillSlip');
 const ThirdPartyPayer = require('../../../src/models/ThirdPartyPayer');
-const { populateDBForAuthentication, authCompany } = require('./authenticationSeed');
+const { populateDBForAuthentication, authCompany, otherCompany } = require('./authenticationSeed');
 
 const tppList = [
   { _id: new ObjectID(), name: 'third party payer', company: authCompany._id },
@@ -83,6 +83,14 @@ const billList = [
   },
 ];
 
+const billSlipFromAnotherCompany = {
+  _id: new ObjectID(),
+  month: '11-2019',
+  thirdPartyPayer: new ObjectID(),
+  company: otherCompany._id,
+  number: 'BORD-123456745009',
+};
+
 const populateDB = async () => {
   await Bill.deleteMany({});
   await BillSlip.deleteMany({});
@@ -91,11 +99,13 @@ const populateDB = async () => {
   await populateDBForAuthentication();
 
   await ThirdPartyPayer.insertMany(tppList);
-  await BillSlip.insertMany(billSlipList);
+  await BillSlip.insertMany([...billSlipList, billSlipFromAnotherCompany]);
   await Bill.insertMany(billList);
 };
 
 module.exports = {
   populateDB,
   tppList,
+  billSlipList,
+  billSlipFromAnotherCompany,
 };

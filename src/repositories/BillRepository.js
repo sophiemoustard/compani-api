@@ -136,6 +136,7 @@ exports.getBillsSlipList = async companyId => Bill.aggregate([
   { $unwind: { path: '$thirdPartyPayer' } },
   {
     $project: {
+      _id: '$billSlip._id',
       netInclTaxes: 1,
       thirdPartyPayer: { _id: 1, name: 1 },
       month: 1,

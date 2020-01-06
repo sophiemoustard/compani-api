@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const BillSlip = require('../models/BillSlip');
 const BillSlipNumber = require('../models/BillSlipNumber');
 const BillRepository = require('../repositories/BillRepository');
+const PdfHelper = require('./pdf');
 
 exports.getBillSlips = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -44,4 +45,15 @@ exports.createBillSlips = async (billList, endDate, company) => {
     BillSlip.insertMany(list),
     BillSlipNumber.updateOne({ prefix, company: company._id }, { $set: { seq } }),
   ]);
+};
+
+exports.generatePdf = async (billSlipId) => {
+  const billSlip = await BillSlip.findById(billSlipId).lean();
+  const pdf = await PdfHelper.generatePdf({}, './src/data/billSlip.html', {
+    format: 'A4',
+    printBackground: true,
+    landscape: true,
+  });
+
+  return { billSlipNumber: billSlip.number, pdf };
 };
