@@ -18,6 +18,21 @@ const list = async (req) => {
   }
 };
 
+const generateBillSlipPdf = async (req, h) => {
+  try {
+    const { billSlip } = req.pre;
+    const pdf = await BillSlipsHelper.generatePdf(billSlip._id);
+
+    return h.response(pdf)
+      .header('content-disposition', `inline; filename=${billSlip.number}.pdf`)
+      .type('application/pdf');
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation();
+  }
+};
+
 module.exports = {
   list,
+  generateBillSlipPdf,
 };

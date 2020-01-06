@@ -1,5 +1,5 @@
 const expect = require('expect');
-const { populateDB, tppList } = require('./seed/billSlipsSeed');
+const { populateDB, tppList, billSlipList, billSlipFromAnotherCompany } = require('./seed/billSlipsSeed');
 const { getToken } = require('./seed/authenticationSeed');
 const app = require('../../server');
 
@@ -72,6 +72,58 @@ describe('BILL SLIP ROUTES - GET /', () => {
         const response = await app.inject({
           method: 'GET',
           url: '/billslips',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(response.statusCode).toBe(role.expectedCode);
+      });
+    });
+  });
+});
+
+describe('BILL SLIP ROUTES - GET /:_id/pdfs', () => {
+  let authToken = null;
+  beforeEach(populateDB);
+
+  describe('Admin', () => {
+    beforeEach(async () => {
+      authToken = await getToken('admin');
+    });
+
+    it('should return bill slips', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/billslips/${billSlipList[0]._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('should return a 403 error if user is not from same company', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/billslips/${billSlipFromAnotherCompany._id}/pdfs`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('Other roles', () => {
+    const roles = [
+      { name: 'helper', expectedCode: 403 },
+      { name: 'auxiliary', expectedCode: 403 },
+      { name: 'coach', expectedCode: 403 },
+    ];
+
+    roles.forEach((role) => {
+      it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+        authToken = await getToken(role.name);
+        const response = await app.inject({
+          method: 'GET',
+          url: `/billslips/${billSlipList[0]._id}/pdfs`,
           headers: { 'x-access-token': authToken },
         });
 

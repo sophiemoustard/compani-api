@@ -2,7 +2,8 @@
 
 const Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
-const { list } = require('../controllers/billSlipController');
+const { list, generateBillSlipPdf } = require('../controllers/billSlipController');
+const { getBillSlip } = require('./preHandlers/billSlips');
 
 exports.plugin = {
   name: 'routes-bill-slip',
@@ -14,6 +15,19 @@ exports.plugin = {
         auth: { scope: ['bills:edit'] },
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/{_id}/pdfs',
+      options: {
+        validate: {
+          params: { _id: Joi.objectId() },
+        },
+        auth: { scope: ['bills:edit'] },
+        pre: [{ method: getBillSlip, assign: 'billSlip' }],
+      },
+      handler: generateBillSlipPdf,
     });
   },
 };
