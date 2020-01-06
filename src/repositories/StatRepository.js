@@ -164,11 +164,9 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
               },
             },
           },
-          { $sort: { createdAt: -1 } },
+          { $sort: { startDate: -1 } },
           { $limit: 1 },
-          {
-            $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
-          },
+          { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
           { $unwind: { path: '$lastSector' } },
           { $replaceRoot: { newRoot: '$lastSector' } },
         ],

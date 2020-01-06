@@ -34,7 +34,7 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
                   },
                 },
               },
-              { $sort: { createdAt: -1 } },
+              { $sort: { startDate: -1 } },
               { $limit: 1 },
               {
                 $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
@@ -242,7 +242,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
                       $and: [
                         { $eq: ['$auxiliary', '$$auxiliaryId'] },
                         { $eq: ['$company', '$$companyId'] },
-                        { $lte: ['$createdAt', '$$startDate'] },
+                        { $lte: ['$startDate', '$$startDate'] },
                       ],
                     },
                   },
