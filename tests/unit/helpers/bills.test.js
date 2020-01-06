@@ -9,6 +9,7 @@ const FundingHistory = require('../../../src/models/FundingHistory');
 const BillNumber = require('../../../src/models/BillNumber');
 const Event = require('../../../src/models/Event');
 const Bill = require('../../../src/models/Bill');
+const Company = require('../../../src/models/Company');
 const BillHelper = require('../../../src/helpers/bills');
 const BillSlipsHelper = require('../../../src/helpers/billSlips');
 const UtilsHelper = require('../../../src/helpers/utils');
@@ -1534,5 +1535,56 @@ describe('formatPDF', () => {
     const result = BillHelper.formatPDF(bill, {});
 
     expect(result).toEqual(expected);
+  });
+});
+
+describe('generateBillPdf', async () => {
+  let formatPDF;
+  let BillMock;
+  let CompanyMock;
+  let generatePdf;
+  beforeEach(() => {
+    formatPDF = sinon.stub(BillHelper, 'formatPDF');
+    BillMock = sinon.mock(Bill);
+    CompanyMock = sinon.mock(Company);
+    generatePdf = sinon.stub(PdfHelper, 'generatePdf');
+  });
+  afterEach(() => {
+    formatPDF.restore();
+    BillMock.restore();
+    CompanyMock.restore();
+    generatePdf.restore();
+  });
+
+  it('should generate pdf', async () => {
+    const companyId = new ObjectID();
+    const credentials = { company: { _id: companyId } };
+    const bill = { _id: new ObjectID(), number: 'number' };
+    BillMock.expects('findOne')
+      .withExactArgs({ _id: bill._id, origin: 'compani' })
+      .chain('populate')
+      .withExactArgs({ path: 'client', select: '_id name address' })
+      .chain('populate')
+      .withExactArgs({ path: 'customer', select: '_id identity contact fundings' })
+      .chain('populate')
+      .withExactArgs({ path: 'subscriptions.events.auxiliary', select: 'identity' })
+      .chain('lean')
+      .once()
+      .returns(bill);
+    CompanyMock.expects('findOne')
+      .withExactArgs({ _id: companyId })
+      .chain('lean')
+      .once()
+      .returns(credentials.company);
+    formatPDF.returns({ data: 'data' });
+    generatePdf.returns({ pdf: 'pdf' });
+
+    const result = await BillHelper.generateBillPdf({ _id: bill._id }, credentials);
+
+    expect(result).toEqual({ billNumber: bill.number, pdf: { pdf: 'pdf' } });
+    sinon.assert.calledWithExactly(formatPDF, bill, credentials.company);
+    sinon.assert.calledWithExactly(generatePdf, { data: 'data' }, './src/data/bill.html');
+    BillMock.verify();
+    CompanyMock.verify();
   });
 });

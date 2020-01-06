@@ -3,12 +3,13 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const Event = require('../models/Event');
 const Bill = require('../models/Bill');
+const Company = require('../models/Company');
 const BillNumber = require('../models/BillNumber');
 const FundingHistory = require('../models/FundingHistory');
 const BillSlipHelper = require('../helpers/billSlips');
 const UtilsHelper = require('./utils');
 const PdfHelper = require('./pdf');
-const { HOURLY, THIRD_PARTY, CIVILITY_LIST } = require('./constants');
+const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI } = require('./constants');
 
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
@@ -282,4 +283,18 @@ exports.formatPDF = (bill, company) => {
       logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
     },
   };
+};
+
+exports.generateBillPdf = async (params, credentials) => {
+  const bill = await Bill.findOne({ _id: params._id, origin: COMPANI })
+    .populate({ path: 'client', select: '_id name address' })
+    .populate({ path: 'customer', select: '_id identity contact fundings' })
+    .populate({ path: 'subscriptions.events.auxiliary', select: 'identity' })
+    .lean();
+
+  const company = await Company.findOne({ _id: get(credentials, 'company._id', null) }).lean();
+  const data = exports.formatPDF(bill, company);
+  const pdf = await PdfHelper.generatePdf(data, './src/data/bill.html');
+
+  return { pdf, billNumber: bill.number };
 };
