@@ -642,13 +642,11 @@ exports.getCustomersFromEvent = async (query, companyId) => {
       },
     },
     { $unwind: { path: '$auxiliary' } },
-    // { $replaceRoot: { newRoot: '$auxiliary' } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
         let: {
-          // auxiliaryId: '$_id',
           auxiliaryId: '$auxiliary._id',
           startDateInSector: '$startDate',
           endDateInSector: { $ifNull: ['$endDate', endDate] },
