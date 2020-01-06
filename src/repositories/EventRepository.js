@@ -626,6 +626,11 @@ exports.getCustomersFromEvent = async (query, companyId) => {
     {
       $match: {
         sector: { $in: Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)] },
+        startDate: { $lte: endDate },
+        $or: [
+          { endDate: { $exists: false } },
+          { endDate: { $gte: startDate } },
+        ],
       },
     },
     {
@@ -637,14 +642,29 @@ exports.getCustomersFromEvent = async (query, companyId) => {
       },
     },
     { $unwind: { path: '$auxiliary' } },
-    { $replaceRoot: { newRoot: '$auxiliary' } },
+    // { $replaceRoot: { newRoot: '$auxiliary' } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
-        let: { auxiliaryId: '$_id' },
+        let: {
+          // auxiliaryId: '$_id',
+          auxiliaryId: '$auxiliary._id',
+          startDateInSector: '$startDate',
+          endDateInSector: { $ifNull: ['$endDate', endDate] },
+        },
         pipeline: [
-          { $match: { $expr: { $and: [...eventQuery] } } },
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  ...eventQuery,
+                  { $gt: ['$endDate', '$$startDateInSector'] },
+                  { $lt: ['$startDate', '$$endDateInSector'] },
+                ],
+              },
+            },
+          },
         ],
       },
     },
