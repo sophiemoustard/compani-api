@@ -289,7 +289,7 @@ const billsList = [
   {
     _id: new ObjectID(),
     date: '2019-05-25',
-    number: 'FACT-1905002',
+    number: 'FACT-1905003',
     company: authCompany._id,
     customer: customer._id,
     netInclTaxes: 101.28,
