@@ -12,7 +12,7 @@ const CompanySchema = mongoose.Schema({
   siren: { type: String, unique: true, sparse: true },
   tradeName: { type: String, maxLength: 11, required: true },
   prefixNumber: { type: Number, required: true, unique: true },
-  address: addressSchemaDefinition,
+  address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
   rcs: { type: String },
   rna: { type: String },
   ics: { type: String },

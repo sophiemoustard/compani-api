@@ -141,9 +141,11 @@ const customerAuxiliary = {
   ],
   contact: {
     primaryAddress: {
+      street: '37 rue de Ponthieu',
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -158,9 +160,11 @@ const customerFromOtherCompany = {
   ],
   contact: {
     primaryAddress: {
+      street: '37 rue de Ponthieu',
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -227,6 +231,13 @@ const eventsList = [
     customer: customerAuxiliary._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -241,6 +252,13 @@ const eventsList = [
     customer: customerAuxiliary._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -256,6 +274,13 @@ const eventsList = [
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: true,
     repetition: { frequency: NEVER },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
     bills: {
       thirdPartyPayer: thirdPartyPayer._id,
       inclTaxesCustomer: 20,
@@ -281,6 +306,13 @@ const eventsList = [
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: customerAuxiliary.subscriptions[0]._id,
     isBilled: true,
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
     bills: {
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
@@ -317,6 +349,13 @@ const eventsList = [
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
     },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -336,6 +375,13 @@ const eventsList = [
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
     },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: repetitionParentId,
@@ -354,6 +400,13 @@ const eventsList = [
     bills: {
       inclTaxesCustomer: 20,
       exclTaxesCustomer: 15,
+    },
+    address: {
+      fullAddress: '4 rue du test 92160 Antony',
+      street: '4 rue du test',
+      zipCode: '92160',
+      city: 'Antony',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
   },
 ];

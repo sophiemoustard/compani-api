@@ -7,7 +7,7 @@ const Customer = require('./Customer');
 
 const ThirdPartyPayerSchema = mongoose.Schema({
   name: String,
-  address: addressSchemaDefinition,
+  address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
   email: String,
   unitTTCRate: Number,
   billingMode: {
@@ -20,7 +20,8 @@ const ThirdPartyPayerSchema = mongoose.Schema({
 const countFundings = async (docs) => {
   if (docs.length > 0) {
     for (const tpp of docs) {
-      const customerCount = await Customer.countDocuments({ fundings: { $exists: true }, 'fundings.thirdPartyPayer': tpp._id });
+      const customerCount = await Customer
+        .countDocuments({ fundings: { $exists: true }, 'fundings.thirdPartyPayer': tpp._id });
       tpp.isUsedInFundings = customerCount > 0;
     }
   }

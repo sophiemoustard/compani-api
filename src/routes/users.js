@@ -88,9 +88,9 @@ exports.plugin = {
                 city: Joi.string().required(),
                 fullAddress: Joi.string().required(),
                 location: Joi.object().keys({
-                  type: Joi.string(),
-                  coordinates: Joi.array(),
-                }),
+                  type: Joi.string().required(),
+                  coordinates: Joi.array().length(2).required(),
+                }).required(),
               }),
             }),
             administrative: Joi.object().keys({
@@ -193,11 +193,11 @@ exports.plugin = {
                 street: Joi.string().required(),
                 zipCode: Joi.string().required(),
                 city: Joi.string().required(),
-                fullAddress: Joi.string(),
+                fullAddress: Joi.string().required(),
                 location: Joi.object().keys({
-                  type: Joi.string(),
-                  coordinates: Joi.array(),
-                }),
+                  type: Joi.string().required(),
+                  coordinates: Joi.array().length(2).required(),
+                }).required(),
               }),
             }),
             administrative: Joi.object().keys({

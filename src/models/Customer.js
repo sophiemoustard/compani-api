@@ -36,7 +36,7 @@ const CustomerSchema = mongoose.Schema({
       type: mongoose.Schema(addressSchemaDefinition, { _id: false }),
       required: true,
     },
-    secondaryAddress: addressSchemaDefinition,
+    secondaryAddress: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
     phone: String,
     accessCodes: String,
   },
@@ -140,7 +140,8 @@ function validateAddress(next) {
   const { $set, $unset } = this.getUpdate();
   const setPrimaryAddressToNull = has($set, 'contact.primaryAddress') &&
     (!get($set, 'contact.primaryAddress') || !get($set, 'contact.primaryAddress.fullAddress'));
-  const unsetPrimaryAddress = has($unset, 'contact.primaryAddress') || has($unset, 'contact.primaryAddress.fullAddress');
+  const unsetPrimaryAddress = has($unset, 'contact.primaryAddress') ||
+    has($unset, 'contact.primaryAddress.fullAddress');
   if (setPrimaryAddressToNull || unsetPrimaryAddress) throw Boom.badRequest('PrimaryAddress is required');
 
   next();

@@ -413,19 +413,19 @@ describe('EVENTS ROUTES', () => {
         authToken = await getToken('admin');
       });
       it('should create an internal hour', async () => {
-        const auxiliary = eventAuxiliary;
         const payload = {
           type: INTERNAL_HOUR,
           startDate: '2019-01-23T10:00:00.000+01:00',
           endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: auxiliary._id.toHexString(),
+          auxiliary: eventAuxiliary._id.toHexString(),
+          internalHour: internalHour._id,
           address: {
             fullAddress: '4 rue du test 92160 Antony',
             street: '4 rue du test',
             zipCode: '92160',
             city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
           },
-          internalHour: internalHour._id,
         };
 
         const response = await app.inject({
@@ -448,6 +448,13 @@ describe('EVENTS ROUTES', () => {
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -470,6 +477,13 @@ describe('EVENTS ROUTES', () => {
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -526,29 +540,131 @@ describe('EVENTS ROUTES', () => {
         expect(response.result.data.event).toBeDefined();
       });
 
-      it('should return a 400 error as payload is invalid (subscription missing with type intervention)', async () => {
-        const payload = {
-          type: 'intervention',
-          startDate: '2019-01-23T10:00:00.000+01:00',
-          endDate: '2019-01-23T12:30:00.000+01:00',
-          auxiliary: '5c0002a5086ec30013f7f436',
-          customer: '5c35b5eb1a6fb00997363eeb',
-          sector: sectors[0]._id.toHexString(),
-          address: {
-            fullAddress: '4 rue du test 92160 Antony',
-            street: '4 rue du test',
-            zipCode: '92160',
-            city: 'Antony',
-          },
-        };
-
-        const response = await app.inject({
-          method: 'POST',
-          url: '/events',
-          payload,
-          headers: { 'x-access-token': authToken },
+      const baseInterventionPayload = {
+        type: INTERVENTION,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: eventAuxiliary._id.toHexString(),
+        customer: customerAuxiliary._id.toHexString(),
+        subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
+        status: 'contract_with_company',
+        address: {
+          fullAddress: '4 rue du test 92160 Antony',
+          street: '4 rue du test',
+          zipCode: '92160',
+          city: 'Antony',
+          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+        },
+      };
+      const interventionMissingParams = [
+        { payload: { ...omit(baseInterventionPayload, 'address') }, reason: 'missing address' },
+        { payload: { ...omit(baseInterventionPayload, 'address.fullAddress') }, reason: 'missing address.fullAddress' },
+        { payload: { ...omit(baseInterventionPayload, 'address.street') }, reason: 'missing address.street' },
+        { payload: { ...omit(baseInterventionPayload, 'address.zipCode') }, reason: 'missing address.zipCode' },
+        { payload: { ...omit(baseInterventionPayload, 'address.city') }, reason: 'missing address.city' },
+        { payload: { ...omit(baseInterventionPayload, 'address.location') }, reason: 'missing address.location' },
+        {
+          payload: { ...omit(baseInterventionPayload, 'address.location.coordinates') },
+          reason: 'missing address.location.coordinates',
+        },
+        {
+          payload: { ...omit(baseInterventionPayload, 'address.location.type') },
+          reason: 'missing address.location.type',
+        },
+        { payload: { ...omit(baseInterventionPayload, 'customer') }, reason: 'missing customer' },
+        { payload: { ...omit(baseInterventionPayload, 'subscription') }, reason: 'missing subscription' },
+        { payload: { ...omit(baseInterventionPayload, 'status') }, reason: 'missing status' },
+        { payload: { ...omit(baseInterventionPayload, 'type') }, reason: 'missing type' },
+        { payload: { ...omit(baseInterventionPayload, 'startDate') }, reason: 'missing startDate' },
+        { payload: { ...omit(baseInterventionPayload, 'endDate') }, reason: 'missing endDate' },
+      ];
+      interventionMissingParams.forEach((test) => {
+        it(`should return a 400 error as intervention payload is invalid: ${test.reason}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/events',
+            payload: test.payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toEqual(400);
         });
-        expect(response.statusCode).toEqual(400);
+      });
+
+      const baseInternalHourPayload = {
+        type: INTERNAL_HOUR,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: eventAuxiliary._id.toHexString(),
+        internalHour: internalHour._id,
+      };
+      const internalHourMissingParams = [
+        { payload: { ...omit(baseInternalHourPayload, 'internalHour') }, reason: 'missing internalHour' },
+        { payload: { ...omit(baseInternalHourPayload, 'startDate') }, reason: 'missing startDate' },
+        { payload: { ...omit(baseInternalHourPayload, 'endDate') }, reason: 'missing endDate' },
+        { payload: { ...omit(baseInternalHourPayload, 'auxiliary') }, reason: 'missing auxiliary' },
+      ];
+      internalHourMissingParams.forEach((test) => {
+        it(`should return a 400 error as internal hour payload is invalid: ${test.reason}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/events',
+            payload: test.payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toEqual(400);
+        });
+      });
+
+      const baseAbsencePayload = {
+        type: ABSENCE,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: eventAuxiliary._id.toHexString(),
+        absence: ILLNESS,
+        absenceNature: DAILY,
+        attachment: { driveId: 'qwertyuiop', link: 'asdfghjkl;' },
+      };
+      const absenceMissingParams = [
+        { payload: { ...omit(baseAbsencePayload, 'absence') }, reason: 'missing absence' },
+        { payload: { ...omit(baseAbsencePayload, 'absenceNature') }, reason: 'missing absenceNature' },
+        { payload: { ...omit(baseAbsencePayload, 'startDate') }, reason: 'missing startDate' },
+        { payload: { ...omit(baseAbsencePayload, 'endDate') }, reason: 'missing endDate' },
+        { payload: { ...omit(baseAbsencePayload, 'auxiliary') }, reason: 'missing auxiliary' },
+        { payload: { ...omit(baseAbsencePayload, 'attachment') }, reason: 'missing attachment on illness' },
+      ];
+      absenceMissingParams.forEach((test) => {
+        it(`should return a 400 error as absence payload is invalid: ${test.reason}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/events',
+            payload: test.payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toEqual(400);
+        });
+      });
+
+      const baseUnavailabilityPayload = {
+        type: UNAVAILABILITY,
+        startDate: '2019-01-23T10:00:00.000+01:00',
+        endDate: '2019-01-23T12:30:00.000+01:00',
+        auxiliary: eventAuxiliary._id.toHexString(),
+      };
+      const unavailabilityMissingParams = [
+        { payload: { ...omit(baseUnavailabilityPayload, 'startDate') }, reason: 'missing startDate' },
+        { payload: { ...omit(baseUnavailabilityPayload, 'endDate') }, reason: 'missing endDate' },
+        { payload: { ...omit(baseUnavailabilityPayload, 'auxiliary') }, reason: 'missing auxiliary' },
+      ];
+      unavailabilityMissingParams.forEach((test) => {
+        it(`should return a 400 error as unavailability payload is invalid: ${test.reason}`, async () => {
+          const response = await app.inject({
+            method: 'POST',
+            url: '/events',
+            payload: test.payload,
+            headers: { 'x-access-token': authToken },
+          });
+          expect(response.statusCode).toEqual(400);
+        });
       });
 
       it('should return a 400 error as payload contains auxiliary and sector', async () => {
@@ -565,6 +681,7 @@ describe('EVENTS ROUTES', () => {
             street: '4 rue du test',
             zipCode: '92160',
             city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
           },
         };
 
@@ -586,6 +703,13 @@ describe('EVENTS ROUTES', () => {
           customer: customerFromOtherCompany._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -607,6 +731,13 @@ describe('EVENTS ROUTES', () => {
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerFromOtherCompany.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -628,6 +759,13 @@ describe('EVENTS ROUTES', () => {
           customer: customerAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -649,6 +787,13 @@ describe('EVENTS ROUTES', () => {
           auxiliary: eventAuxiliary._id.toHexString(),
           subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
           status: 'contract_with_company',
+          address: {
+            fullAddress: '4 rue du test 92160 Antony',
+            street: '4 rue du test',
+            zipCode: '92160',
+            city: 'Antony',
+            location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+          },
         };
 
         const response = await app.inject({
@@ -673,6 +818,13 @@ describe('EVENTS ROUTES', () => {
         customer: customerAuxiliary._id.toHexString(),
         subscription: customerAuxiliary.subscriptions[0]._id.toHexString(),
         status: 'contract_with_company',
+        address: {
+          fullAddress: '4 rue du test 92160 Antony',
+          street: '4 rue du test',
+          zipCode: '92160',
+          city: 'Antony',
+          location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+        },
       };
 
       const roles = [
