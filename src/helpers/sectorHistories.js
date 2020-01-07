@@ -6,7 +6,7 @@ exports.createHistory = async (auxiliary, sector, company) => {
     .sort({ startDate: -1 })
     .lean();
   if (!lastSectorHistory) {
-    return SectorHistory.create({ auxiliary, sector, company, startDate: moment().startOf('day') });
+    return SectorHistory.create({ auxiliary, sector, company });
   }
   if (lastSectorHistory.sector.toHexString() === sector) return;
 
@@ -15,7 +15,7 @@ exports.createHistory = async (auxiliary, sector, company) => {
       { _id: lastSectorHistory._id },
       { $set: { endDate: moment().subtract(1, 'd').endOf('day').toDate() } }
     ),
-    SectorHistory.create({ auxiliary, sector, company, startDate: moment().startOf('day') }),
+    SectorHistory.create({ auxiliary, sector, company }),
   ]);
 };
 

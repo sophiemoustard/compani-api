@@ -45,7 +45,6 @@ describe('createHistory', () => {
       auxiliary,
       sector,
       company,
-      startDate: moment().startOf('day'),
     });
 
     await SectorHistoryHelper.createHistory(auxiliary, sector, company);
@@ -85,7 +84,6 @@ describe('createHistory', () => {
       auxiliary,
       sector,
       company,
-      startDate: moment().startOf('day'),
     });
 
     await SectorHistoryHelper.createHistory(auxiliary, sector, company);
