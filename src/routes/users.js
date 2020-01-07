@@ -7,6 +7,7 @@ const {
   authenticate,
   create,
   list,
+  listWithSectorHistories,
   activeList,
   show,
   update,
@@ -121,6 +122,20 @@ exports.plugin = {
         pre: [{ method: authorizeUserGet }],
       },
       handler: list,
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/sector-histories',
+      options: {
+        auth: { scope: ['users:list'] },
+        validate: {
+          query: {
+            role: [Joi.array(), Joi.string()],
+          },
+        },
+      },
+      handler: listWithSectorHistories,
     });
 
     server.route({

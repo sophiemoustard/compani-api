@@ -12,7 +12,7 @@ const { encode } = require('../helpers/authentication');
 const GdriveStorageHelper = require('../helpers/gdriveStorage');
 const { forgetPasswordEmail } = require('../helpers/emailOptions');
 const UsersHelper = require('../helpers/users');
-const { getUsersList, createAndSaveFile, getUser } = require('../helpers/users');
+const { getUsersList, getUsersListWithSectorHistories, createAndSaveFile, getUser } = require('../helpers/users');
 const { AUXILIARY, SENDER_MAIL } = require('../helpers/constants');
 const User = require('../models/User');
 const cloudinary = require('../models/Cloudinary');
@@ -74,6 +74,20 @@ const create = async (req) => {
 const list = async (req) => {
   try {
     const users = await getUsersList(req.query, req.auth.credentials);
+
+    return {
+      message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
+      data: { users },
+    };
+  } catch (e) {
+    req.log('error', e);
+    return Boom.isBoom(e) ? e : Boom.badImplementation(e);
+  }
+};
+
+const listWithSectorHistories = async (req) => {
+  try {
+    const users = await getUsersListWithSectorHistories(req.query, req.auth.credentials);
 
     return {
       message: users.length === 0 ? translate[language].usersNotFound : translate[language].userFound,
@@ -360,6 +374,7 @@ module.exports = {
   authenticate,
   create,
   list,
+  listWithSectorHistories,
   activeList,
   show,
   update,
