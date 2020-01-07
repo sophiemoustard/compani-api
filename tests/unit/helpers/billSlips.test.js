@@ -136,30 +136,78 @@ describe('createBillSlips', () => {
   });
 });
 
+describe('formatPdf', () => {
+  it('should return formatted data for pdf generation', async () => {
+    const fakeDate = sinon.useFakeTimers(new Date('2019-12-12'));
+    const company = {
+      iban: 'FR8512739000305678847384Q97',
+      bic: 'AGFBFRCC',
+      siren: '530514157',
+      address: { fullAddress: '10 rue des cathédrales 75007 Paris' },
+    };
+    const billSlip = {
+      number: 'BORD-1234567890',
+      thirdPartyPayer: { name: 'Diocèse de Paris' },
+      month: '12-2019',
+    };
+
+    const result = await BillSlipHelper.formatPdf(billSlip, company);
+
+    expect(result).toEqual({
+      billSlip: {
+        number: billSlip.number,
+        thirdPartyPayer: billSlip.thirdPartyPayer,
+        company: {
+          iban: company.iban,
+          bic: company.bic,
+          siren: company.siren,
+          address: company.address.fullAddress,
+          logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+          email: 'support@alenvi.io',
+          website: 'www.alenvi.io',
+        },
+        date: '12/12/2019',
+        period: {
+          start: '01/12/2019',
+          end: '31/12/2019',
+        },
+      },
+    });
+    fakeDate.restore();
+  });
+});
+
 describe('generatePdf', () => {
   let BillSlipMock;
   let generatePdfStub;
+  let formatPdfStub;
   const billSlip = { _id: new ObjectID(), number: 'BORD-1234567890' };
+  const billSlipData = { billSlip: { number: '123467890' } };
   const pdf = 'This is a pdf';
 
   beforeEach(() => {
     BillSlipMock = sinon.mock(BillSlip);
     generatePdfStub = sinon.stub(PdfHelper, 'generatePdf');
+    formatPdfStub = sinon.stub(BillSlipHelper, 'formatPdf');
   });
 
   afterEach(() => {
     BillSlipMock.restore();
     generatePdfStub.restore();
+    formatPdfStub.restore();
   });
 
   it('should return generated pdf and bill slip number', async () => {
     BillSlipMock
       .expects('findById')
       .withExactArgs(billSlip._id)
+      .chain('populate')
+      .withExactArgs('thirdPartyPayer')
       .chain('lean')
       .once()
       .returns(billSlip);
     generatePdfStub.returns(pdf);
+    formatPdfStub.returns(billSlipData);
 
     const result = await BillSlipHelper.generatePdf(billSlip._id);
 
@@ -170,7 +218,7 @@ describe('generatePdf', () => {
     BillSlipMock.restore();
     sinon.assert.calledWithExactly(
       generatePdfStub,
-      {},
+      billSlipData,
       './src/data/billSlip.html',
       { format: 'A4', printBackground: true, landscape: true }
     );

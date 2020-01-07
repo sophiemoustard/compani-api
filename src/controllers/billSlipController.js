@@ -20,7 +20,7 @@ const list = async (req) => {
 
 const generateBillSlipPdf = async (req, h) => {
   try {
-    const { pdf, billSlipNumber } = await BillSlipsHelper.generatePdf(req.params._id);
+    const { pdf, billSlipNumber } = await BillSlipsHelper.generatePdf(req.params._id, req.auth.credentials.company);
 
     return h.response(pdf)
       .header('content-disposition', `inline; filename=${billSlipNumber}.pdf`)

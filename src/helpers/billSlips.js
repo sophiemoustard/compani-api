@@ -1,5 +1,6 @@
 const moment = require('moment');
 const get = require('lodash/get');
+const pick = require('lodash/pick');
 const BillSlip = require('../models/BillSlip');
 const BillSlipNumber = require('../models/BillSlipNumber');
 const BillRepository = require('../repositories/BillRepository');
@@ -47,9 +48,30 @@ exports.createBillSlips = async (billList, endDate, company) => {
   ]);
 };
 
-exports.generatePdf = async (billSlipId) => {
-  const billSlip = await BillSlip.findById(billSlipId).lean();
-  const pdf = await PdfHelper.generatePdf({}, './src/data/billSlip.html', {
+exports.formatPdf = (billSlip, company) => {
+  return {
+    billSlip: {
+      ...pick(billSlip, ['number', 'thirdPartyPayer']),
+      date: moment(new Date()).format('DD/MM/YYYY'),
+      company: {
+        ...pick(company, ['iban', 'bic', 'siren']),
+        address: get(company, 'address.fullAddress', ''),
+        logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
+        email: 'support@alenvi.io',
+        website: 'www.alenvi.io',
+      },
+      period: {
+        start: moment(billSlip.month, 'MM-YYYY').startOf('M').format('DD/MM/YYYY'),
+        end: moment(billSlip.month, 'MM-YYYY').endOf('M').format('DD/MM/YYYY'),
+      },
+    },
+  };
+};
+
+exports.generatePdf = async (billSlipId, company) => {
+  const billSlip = await BillSlip.findById(billSlipId).populate('thirdPartyPayer').lean();
+  const data = exports.formatPdf(billSlip, company);
+  const pdf = await PdfHelper.generatePdf(data, './src/data/billSlip.html', {
     format: 'A4',
     printBackground: true,
     landscape: true,
