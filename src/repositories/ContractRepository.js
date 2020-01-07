@@ -26,7 +26,6 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
               $and: [
                 { $eq: ['$auxiliary', '$$auxiliaryId'] },
                 { $eq: ['$company', '$$companyId'] },
-                { $eq: ['$company', '$$companyId'] },
                 { $lte: ['$startDate', end] },
               ],
             },

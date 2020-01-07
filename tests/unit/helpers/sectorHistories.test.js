@@ -41,11 +41,7 @@ describe('createHistory', () => {
         { $set: { endDate: moment().subtract(1, 'd').endOf('day').toDate() } }
       );
 
-    SectorHistoryMock.expects('create').withExactArgs({
-      auxiliary,
-      sector,
-      company,
-    });
+    SectorHistoryMock.expects('create').withExactArgs({ auxiliary, sector, company });
 
     await SectorHistoryHelper.createHistory(auxiliary, sector, company);
 
@@ -80,11 +76,7 @@ describe('createHistory', () => {
       .chain('lean')
       .returns(null);
 
-    SectorHistoryMock.expects('create').withExactArgs({
-      auxiliary,
-      sector,
-      company,
-    });
+    SectorHistoryMock.expects('create').withExactArgs({ auxiliary, sector, company });
 
     await SectorHistoryHelper.createHistory(auxiliary, sector, company);
 
