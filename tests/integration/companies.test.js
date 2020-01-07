@@ -72,6 +72,20 @@ describe('COMPANIES ROUTES', () => {
 
         expect(response.statusCode).toBe(403);
       });
+
+      it('should return 409 error if siren already exists', async () => {
+        const payload = {
+          siren: company.siren,
+        };
+        const response = await app.inject({
+          method: 'PUT',
+          url: `/companies/${authCompany._id}`,
+          headers: { 'x-access-token': authToken },
+          payload,
+        });
+
+        expect(response.statusCode).toBe(409);
+      });
     });
 
     describe('Other role', () => {
