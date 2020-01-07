@@ -44,6 +44,11 @@ exports.getUsersList = async (query, credentials) => {
       select: '_id sector',
       match: { company: get(credentials, 'company._id', null) },
     })
+    .populate({
+      path: 'sectorHistories',
+      select: '_id sector startDate endDate',
+      match: { company: get(credentials, 'company._id', null) },
+    })
     .populate('contracts')
     .lean({ virtuals: true, autopopulate: true });
 };

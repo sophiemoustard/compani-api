@@ -230,6 +230,13 @@ UserSchema.virtual('sector', {
   options: { sort: { startDate: -1 } },
 });
 
+UserSchema.virtual('sectorHistories', {
+  ref: 'SectorHistory',
+  localField: '_id',
+  foreignField: 'auxiliary',
+  options: { sort: { startDate: -1 } },
+});
+
 UserSchema.statics.isActive = isActive;
 UserSchema.virtual('isActive').get(setIsActive);
 UserSchema.pre('save', save);
