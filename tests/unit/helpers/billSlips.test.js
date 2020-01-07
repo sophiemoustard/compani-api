@@ -180,6 +180,7 @@ describe('generatePdf', () => {
   let formatPdfStub;
   const billSlip = { _id: new ObjectID(), number: 'BORD-1234567890' };
   const billSlipData = { billSlip: { number: '123467890' } };
+  const credentials = { company: { _id: new ObjectID() } };
   const pdf = 'This is a pdf';
 
   beforeEach(() => {
@@ -206,7 +207,7 @@ describe('generatePdf', () => {
     generatePdfStub.returns(pdf);
     formatPdfStub.returns(billSlipData);
 
-    const result = await BillSlipHelper.generatePdf(billSlip._id);
+    const result = await BillSlipHelper.generatePdf(billSlip._id, credentials);
 
     expect(result).toMatchObject({
       billSlipNumber: billSlip.number,
