@@ -163,6 +163,8 @@ const customerList = [
         fullAddress: '37 rue de ponthieu 75008 Paris',
         zipCode: '75008',
         city: 'Paris',
+        street: '37 rue de Ponthieu',
+        location: { type: 'Point', coordinates: [2.377133, 48.801389] },
       },
       phone: '0612345678',
     },
@@ -178,6 +180,8 @@ const customerFromOtherCompany = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -195,6 +199,13 @@ const eventListForFollowUp = [
     auxiliary: userList[0]._id,
     startDate: '2019-07-01T08:00:00.000+00:00',
     endDate: '2019-07-01T09:00:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -207,6 +218,13 @@ const eventListForFollowUp = [
     auxiliary: userList[0]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
     endDate: '2019-07-02T10:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -219,6 +237,13 @@ const eventListForFollowUp = [
     auxiliary: userList[1]._id,
     startDate: '2019-07-02T09:00:00.000+00:00',
     endDate: '2019-07-02T10:30:00.000+00:00',
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
 ];
 
@@ -266,6 +291,13 @@ const eventListForFundingsMonitoring = [
     auxiliary: userList[0]._id,
     startDate: cloneDeep(mondayOfCurrentMonth).hour('12').toDate(),
     endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -278,6 +310,13 @@ const eventListForFundingsMonitoring = [
     auxiliary: userList[0]._id,
     startDate: cloneDeep(tuesdayOfCurrentMonth).hour('12').toDate(),
     endDate: cloneDeep(tuesdayOfCurrentMonth).hour('15').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -290,6 +329,13 @@ const eventListForFundingsMonitoring = [
     auxiliary: userList[0]._id,
     startDate: cloneDeep(saturdayOfCurrentMonth).hour('8').toDate(),
     endDate: cloneDeep(saturdayOfCurrentMonth).hour('10').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -305,6 +351,13 @@ const eventListForFundingsMonitoring = [
     misc: 'test',
     startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toDate(),
     endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -320,6 +373,13 @@ const eventListForFundingsMonitoring = [
     misc: 'test',
     startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toDate(),
     endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toDate(),
+    address: {
+      street: '37 rue de Ponthieu',
+      zipCode: '75008',
+      city: 'Paris',
+      fullAddress: '37 rue de Ponthieu 75008 Paris',
+      location: { type: 'Point', coordinates: [2.0987, 1.2345] },
+    },
   },
 ];
 

@@ -53,6 +53,8 @@ const customer = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -118,7 +120,7 @@ const auxiliaryFromOtherCompany = {
   role: rolesList[2]._id,
   company: otherCompany._id,
   refreshToken: uuidv4(),
-}
+};
 
 const populateDB = async () => {
   await Customer.deleteMany({});

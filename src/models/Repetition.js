@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { REPETITION_FREQUENCIES } = require('../helpers/constants');
+const { REPETITION_FREQUENCIES, INTERVENTION } = require('../helpers/constants');
 const { EVENT_TYPES } = require('./Event');
 const driveResourceSchemaDefinition = require('./schemaDefinitions/driveResource');
 const { CONTRACT_STATUS } = require('./Contract');
@@ -16,7 +16,10 @@ const RepetitionSchema = mongoose.Schema({
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   subscription: { type: mongoose.Schema.Types.ObjectId },
   internalHour: { type: mongoose.Schema.Types.ObjectId, ref: 'InternalHour' },
-  address: addressSchemaDefinition,
+  address: {
+    type: mongoose.Schema(addressSchemaDefinition, { _id: false }),
+    required() { return this.type === INTERVENTION; },
+  },
   misc: String,
   attachment: driveResourceSchemaDefinition,
   frequency: { type: String, enum: REPETITION_FREQUENCIES },

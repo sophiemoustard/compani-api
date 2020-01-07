@@ -32,6 +32,13 @@ const event = {
   type: INTERVENTION,
   company: authCompany._id,
   status: COMPANY_CONTRACT,
+  address: {
+    fullAddress: '37 rue de ponthieu 75008 Paris',
+    zipCode: '75008',
+    city: 'Paris',
+    street: '37 rue de Ponthieu',
+    location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+  },
 };
 
 const populateDB = async () => {

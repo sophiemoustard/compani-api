@@ -24,6 +24,8 @@ const contractCustomer = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0123456789',
   },
@@ -137,6 +139,8 @@ const customerFromOtherCompany = {
       fullAddress: '37 rue de ponthieu 75008 Paris',
       zipCode: '75008',
       city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
     },
     phone: '0612345678',
   },
@@ -247,10 +251,7 @@ const contractEvents = [
     auxiliary: contractUsers[0]._id,
     customer: contractCustomer._id,
     createdAt: '2019-01-05T15:24:18.653Z',
-    internalHour: {
-      _id: new ObjectID(),
-      name: 'Formation',
-    },
+    internalHour: { _id: new ObjectID(), name: 'Formation' },
   },
   {
     _id: new ObjectID(),
@@ -276,6 +277,13 @@ const contractEvents = [
     customer: contractCustomer._id,
     createdAt: '2019-01-15T11:33:14.343Z',
     subscription: contractCustomer.subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
   {
     _id: new ObjectID(),
@@ -289,6 +297,13 @@ const contractEvents = [
     customer: contractCustomer._id,
     createdAt: '2019-01-16T14:30:19.543Z',
     subscription: contractCustomer.subscriptions[0]._id,
+    address: {
+      fullAddress: '37 rue de ponthieu 75008 Paris',
+      zipCode: '75008',
+      city: 'Paris',
+      street: '37 rue de Ponthieu',
+      location: { type: 'Point', coordinates: [2.377133, 48.801389] },
+    },
   },
 ];
 

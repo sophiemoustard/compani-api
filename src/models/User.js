@@ -67,7 +67,7 @@ const UserSchema = mongoose.Schema({
     required: true,
   },
   contact: {
-    address: addressSchemaDefinition,
+    address: { type: mongoose.Schema(addressSchemaDefinition, { _id: false }) },
     phone: String,
   },
   emergencyPhone: String,
