@@ -69,7 +69,10 @@ const EventSchema = mongoose.Schema(
       enum: ABSENCE_NATURES,
       required() { return this.type === ABSENCE; },
     },
-    address: addressSchemaDefinition,
+    address: {
+      type: mongoose.Schema(addressSchemaDefinition, { _id: false }),
+      required() { return this.type === INTERVENTION; },
+    },
     misc: {
       type: String,
       required() { return (this.type === ABSENCE && this.absence === OTHER) || this.isCancelled; },
