@@ -167,10 +167,7 @@ describe('formatPdf', () => {
           website: 'www.alenvi.io',
         },
         date: '12/12/2019',
-        period: {
-          start: '01/12/2019',
-          end: '31/12/2019',
-        },
+        period: { start: '01/12/2019', end: '31/12/2019' },
       },
     });
     fakeDate.restore();

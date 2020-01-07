@@ -31,7 +31,7 @@
   }
 
   .header .company-info .info {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .header .extra-info {
@@ -45,7 +45,7 @@
   }
 
   .header .extra-info .third-party-payer {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .logo {
@@ -92,6 +92,14 @@
     text-align: center;
     font-size: 12px;
   }
+
+  .text-bold {
+    font-weight: bold;
+  }
+
+  .text-underline {
+    text-decoration: underline;
+  }
 </style>
 
 <div class="header">
@@ -107,11 +115,11 @@
   </div>
   <div class="extra-info">
     <div class="slip-number">
-      <div style="font-weight: bold;">Bordereau</div>
+      <div class="text-bold">Bordereau</div>
       <div>{{ billSlip.number }}</div>
     </div>
     <div class="third-party-payer">
-      <span style="text-decoration: underline;">État des sommes dus par:</span>
+      <span class="text-underline">État des sommes dues par :</span>
       <div>{{ billSlip.thirdPartyPayer.name }}</div>
       <div>{{ billSlip.thirdPartyPayer.address.fullAddress }}</div>
     </div>
@@ -154,7 +162,7 @@
 <div class="footer">
   <div class="footer-info">
     <div>SIREN {{ billSlip.company.siren}}</div>
-    <div>IBAN {{ billSlip.company.iban }} - BIC {{ billSlip.company.iban }}</div>
+    <div>IBAN {{ billSlip.company.iban }} - BIC {{ billSlip.company.bic }}</div>
     <div>{{ billSlip.company.address }}</div>
     <div>{{ billSlip.company.email }}</div>
     <div>{{ billSlip.company.website }}</div>
