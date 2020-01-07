@@ -46,20 +46,10 @@ exports.getUsersList = async (query, credentials) => {
     .populate('contracts')
     .lean({ virtuals: true, autopopulate: true });
 };
-exports.getUsersListWithSectorHistories = async (query, credentials) => {
-  const params = {
-    ...pickBy(query),
-    company: get(credentials, 'company._id', null),
-  };
-
-  if (query.role) {
-    let role;
-    if (Array.isArray(query.role)) role = await Role.find({ name: { $in: query.role } }, { _id: 1 }).lean();
-    else role = await Role.findOne({ name: query.role }, { _id: 1 }).lean();
-
-    if (!role) throw Boom.notFound(translate[language].roleNotFound);
-    params.role = role;
-  }
+exports.getUsersListWithSectorHistories = async (credentials) => {
+  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
+  const roleIds = roles.map(role => role._id);
+  const params = { company: get(credentials, 'company._id', null), role: { $in: roleIds } };
 
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'role', select: 'name' })

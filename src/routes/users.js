@@ -129,11 +129,6 @@ exports.plugin = {
       path: '/sector-histories',
       options: {
         auth: { scope: ['users:list'] },
-        validate: {
-          query: {
-            role: [Joi.array(), Joi.string()],
-          },
-        },
       },
       handler: listWithSectorHistories,
     });
