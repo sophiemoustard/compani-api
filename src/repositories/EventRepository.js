@@ -247,7 +247,7 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
                     },
                   },
                 },
-                { $sort: { createdAt: -1 } },
+                { $sort: { startDate: -1 } },
                 { $limit: 1 },
                 {
                   $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
@@ -627,10 +627,7 @@ exports.getCustomersFromEvent = async (query, companyId) => {
       $match: {
         sector: { $in: Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)] },
         startDate: { $lte: endDate },
-        $or: [
-          { endDate: { $exists: false } },
-          { endDate: { $gte: startDate } },
-        ],
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: startDate } }],
       },
     },
     {
