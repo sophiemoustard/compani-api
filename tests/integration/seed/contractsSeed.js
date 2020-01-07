@@ -94,6 +94,7 @@ const sectorHistories = contractUsers.map(user => ({
   auxiliary: user._id,
   sector: sector._id,
   company: authCompany._id,
+  startDate: '2018-12-10',
 }));
 
 const otherCompanyContract = {

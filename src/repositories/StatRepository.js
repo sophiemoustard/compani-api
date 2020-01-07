@@ -164,11 +164,9 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
               },
             },
           },
-          { $sort: { createdAt: -1 } },
+          { $sort: { startDate: -1 } },
           { $limit: 1 },
-          {
-            $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
-          },
+          { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
           { $unwind: { path: '$lastSector' } },
           { $replaceRoot: { newRoot: '$lastSector' } },
         ],
@@ -249,7 +247,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     {
       $match: {
         sector: { $in: sectors },
-        createdAt: { $lt: maxStartDate },
+        startDate: { $lt: maxStartDate },
         $or: [{ endDate: { $exists: false } }, { endDate: { $gt: minStartDate } }],
       },
     },
@@ -265,7 +263,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
     {
       $addFields: {
         'auxiliary.sector._id': '$sector',
-        'auxiliary.sector.createdAt': '$createdAt',
+        'auxiliary.sector.startDate': '$startDate',
         'auxiliary.sector.endDate': '$endDate',
       },
     },
@@ -277,7 +275,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         as: 'event',
         let: {
           auxiliaryId: '$_id',
-          startDate: { $max: ['$sector.createdAt', minStartDate] },
+          startDate: { $max: ['$sector.startDate', minStartDate] },
           endDate: { $min: [{ $ifNull: ['$secor.endDate', maxStartDate] }, maxStartDate] },
         },
         pipeline: [

@@ -2,7 +2,7 @@ const sinon = require('sinon');
 const expect = require('expect');
 const { ObjectID } = require('mongodb');
 const moment = require('moment');
-const SectoryHistory = require('../../../src/models/SectorHistory');
+const SectorHistory = require('../../../src/models/SectorHistory');
 const SectorHistoryHelper = require('../../../src/helpers/sectorHistories');
 
 require('sinon-mongoose');
@@ -15,7 +15,7 @@ describe('createHistory', () => {
   const sector = new ObjectID();
 
   beforeEach(() => {
-    SectorHistoryMock = sinon.mock(SectoryHistory);
+    SectorHistoryMock = sinon.mock(SectorHistory);
     clock = sinon.useFakeTimers(new Date('2019-01-02'));
   });
 
@@ -30,13 +30,16 @@ describe('createHistory', () => {
       .expects('findOne')
       .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
-      .withExactArgs({ _id: -1 })
+      .withExactArgs({ startDate: -1 })
       .chain('lean')
       .returns(sectorHistory);
 
     SectorHistoryMock
       .expects('updateOne')
-      .withExactArgs({ _id: sectorHistory._id }, { $set: { endDate: moment().subtract(1, 'd').toDate() } });
+      .withExactArgs(
+        { _id: sectorHistory._id },
+        { $set: { endDate: moment().subtract(1, 'd').endOf('day').toDate() } }
+      );
 
     SectorHistoryMock.expects('create').withExactArgs({ auxiliary, sector, company });
 
@@ -51,7 +54,7 @@ describe('createHistory', () => {
       .expects('findOne')
       .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
-      .withExactArgs({ _id: -1 })
+      .withExactArgs({ startDate: -1 })
       .chain('lean')
       .returns(sectorHistory);
 
@@ -69,7 +72,7 @@ describe('createHistory', () => {
       .expects('findOne')
       .withExactArgs({ auxiliary, company, endDate: { $exists: false } })
       .chain('sort')
-      .withExactArgs({ _id: -1 })
+      .withExactArgs({ startDate: -1 })
       .chain('lean')
       .returns(null);
 
@@ -85,7 +88,7 @@ describe('updateEndDate', () => {
   let SectorHistoryMock;
 
   beforeEach(() => {
-    SectorHistoryMock = sinon.mock(SectoryHistory);
+    SectorHistoryMock = sinon.mock(SectorHistory);
   });
 
   afterEach(() => {
@@ -97,7 +100,10 @@ describe('updateEndDate', () => {
     const endDate = '2020-01-01';
     SectorHistoryMock
       .expects('updateOne')
-      .withExactArgs({ auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] }, { $set: { endDate } });
+      .withExactArgs(
+        { auxiliary, $or: [{ endDate: { $exists: false } }, { endDate: null }] },
+        { $set: { endDate: moment(endDate).endOf('day').toDate() } }
+      );
 
     await SectorHistoryHelper.updateEndDate(auxiliary, endDate);
 

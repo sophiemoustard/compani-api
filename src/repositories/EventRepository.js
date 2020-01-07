@@ -34,7 +34,7 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
                   },
                 },
               },
-              { $sort: { createdAt: -1 } },
+              { $sort: { startDate: -1 } },
               { $limit: 1 },
               {
                 $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
@@ -242,12 +242,12 @@ exports.getWorkingEventsForExport = async (startDate, endDate, companyId) => {
                       $and: [
                         { $eq: ['$auxiliary', '$$auxiliaryId'] },
                         { $eq: ['$company', '$$companyId'] },
-                        { $lte: ['$createdAt', '$$startDate'] },
+                        { $lte: ['$startDate', '$$startDate'] },
                       ],
                     },
                   },
                 },
-                { $sort: { createdAt: -1 } },
+                { $sort: { startDate: -1 } },
                 { $limit: 1 },
                 {
                   $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
@@ -626,6 +626,8 @@ exports.getCustomersFromEvent = async (query, companyId) => {
     {
       $match: {
         sector: { $in: Array.isArray(sector) ? sector.map(id => new ObjectID(id)) : [new ObjectID(sector)] },
+        startDate: { $lte: endDate },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: startDate } }],
       },
     },
     {
@@ -637,14 +639,27 @@ exports.getCustomersFromEvent = async (query, companyId) => {
       },
     },
     { $unwind: { path: '$auxiliary' } },
-    { $replaceRoot: { newRoot: '$auxiliary' } },
     {
       $lookup: {
         from: 'events',
         as: 'event',
-        let: { auxiliaryId: '$_id' },
+        let: {
+          auxiliaryId: '$auxiliary._id',
+          startDateInSector: '$startDate',
+          endDateInSector: { $ifNull: ['$endDate', endDate] },
+        },
         pipeline: [
-          { $match: { $expr: { $and: [...eventQuery] } } },
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  ...eventQuery,
+                  { $gt: ['$endDate', '$$startDateInSector'] },
+                  { $lt: ['$startDate', '$$endDateInSector'] },
+                ],
+              },
+            },
+          },
         ],
       },
     },

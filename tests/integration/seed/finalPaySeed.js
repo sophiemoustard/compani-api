@@ -143,6 +143,7 @@ const sectorHistory = {
   auxiliary: auxiliaryId,
   sector: sectorId,
   company: authCompany._id,
+  startDate: '2018-12-10',
 };
 
 const populateDB = async () => {

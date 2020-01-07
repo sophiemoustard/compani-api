@@ -23,11 +23,15 @@ exports.getAuxiliariesToPay = async (contractRules, end, payCollection, companyI
         {
           $match: {
             $expr: {
-              $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$company', '$$companyId'] }],
+              $and: [
+                { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                { $eq: ['$company', '$$companyId'] },
+                { $lte: ['$startDate', end] },
+              ],
             },
           },
         },
-        { $sort: { createdAt: -1 } },
+        { $sort: { startDate: -1 } },
         { $limit: 1 },
         {
           $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },

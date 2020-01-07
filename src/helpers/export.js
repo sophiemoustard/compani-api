@@ -541,7 +541,7 @@ exports.exportSectors = async (credentials) => {
       get(sectorHistory, 'auxiliary._id', null) || '',
       get(sectorHistory, 'auxiliary.identity.lastname', null) || '',
       get(sectorHistory, 'auxiliary.identity.firstname', null) || '',
-      moment(sectorHistory.createdAt).format('DD/MM/YYYY'),
+      moment(sectorHistory.startDate).format('DD/MM/YYYY'),
       sectorHistory.endDate ? moment(sectorHistory.endDate).format('DD/MM/YYYY') : '',
     ]);
   }

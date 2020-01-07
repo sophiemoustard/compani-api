@@ -7,7 +7,13 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
   const maxDate = moment(month, 'MMYYYY').endOf('month').toDate();
 
   return SectorHistory.aggregate([
-    { $match: { sector: { $in: sectors } } },
+    {
+      $match: {
+        sector: { $in: sectors },
+        startDate: { $lte: maxDate },
+        $or: [{ endDate: { $exists: false } }, { endDate: { $gte: minDate } }],
+      },
+    },
     {
       $lookup: {
         from: 'users',
@@ -24,14 +30,45 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
       $lookup: {
         from: 'contracts',
         as: 'contracts',
-        let: { auxiliaryId: '$_id' },
+        let: {
+          auxiliaryId: '$_id',
+          sectorStartDate: '$sector.startDate',
+          sectorEndDate: { $ifNull: ['$sector.endDate', maxDate] },
+        },
         pipeline: [
           {
             $match: {
-              $expr: { $and: [{ $eq: ['$user', '$$auxiliaryId'] }] },
-              startDate: { $lte: maxDate },
               status: COMPANY_CONTRACT,
-              $or: [{ endDate: { $exists: false } }, { endDate: { $gte: minDate } }],
+              startDate: { $lte: maxDate },
+              $or: [
+                {
+                  $and: [
+                    { endDate: { $exists: false } },
+                    {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$user', '$$auxiliaryId'] },
+                          { $lte: ['$startDate', '$$sectorEndDate'] },
+                        ],
+                      },
+                    },
+                  ],
+                },
+                {
+                  $and: [
+                    { endDate: { $exists: true, $gte: minDate } },
+                    {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$user', '$$auxiliaryId'] },
+                          { $lte: ['$startDate', '$$sectorEndDate'] },
+                          { $gte: ['$endDate', '$$sectorStartDate'] },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              ],
             },
           },
         ],
@@ -42,11 +79,21 @@ exports.getContractsAndAbsencesBySector = async (month, sectors, companyId) => {
       $lookup: {
         from: 'events',
         as: 'contracts.absences',
-        let: { auxiliaryId: '$_id' },
+        let: {
+          auxiliaryId: '$_id',
+          sectorStartDate: '$sector.startDate',
+          sectorEndDate: { $ifNull: ['$sector.endDate', maxDate] },
+        },
         pipeline: [
           {
             $match: {
-              $expr: { $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }] },
+              $expr: {
+                $and: [
+                  { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                  { $lte: ['$startDate', '$$sectorEndDate'] },
+                  { $gte: ['$endDate', '$$sectorStartDate'] },
+                ],
+              },
               startDate: { $lte: maxDate },
               endDate: { $gte: minDate },
               type: ABSENCE,

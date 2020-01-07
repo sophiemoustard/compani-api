@@ -97,7 +97,7 @@ exports.getCustomerFollowUp = async (customerId, credentials) => {
               },
             },
           },
-          { $sort: { createdAt: -1 } },
+          { $sort: { startDate: -1 } },
           { $limit: 1 },
           {
             $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },

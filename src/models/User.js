@@ -227,7 +227,7 @@ UserSchema.virtual('sector', {
   localField: '_id',
   foreignField: 'auxiliary',
   justOne: true,
-  options: { sort: { createdAt: -1 } },
+  options: { sort: { startDate: -1 } },
 });
 
 UserSchema.statics.isActive = isActive;
