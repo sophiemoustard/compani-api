@@ -29,13 +29,212 @@ describe('formatBillNumber', () => {
   });
 });
 
+describe('formatBilledEvents', () => {
+  it('should format events for customer', () => {
+    const bill = {
+      subscription: {
+        _id: 'asd',
+        service: {
+          _id: '1234567890',
+          nature: 'test',
+          versions: [{ name: 'service', vat: 12, startDate: moment().toISOString() }],
+        },
+      },
+      unitExclTaxes: 24.644549763033176,
+      exclTaxes: 13.649289099526067,
+      inclTaxes: 14.4,
+      startDate: '2019-06-28T10:06:55.374Z',
+      hours: 1.5,
+      eventsList: [
+        {
+          event: '123',
+          startDate: '2019-05-28T10:00:55.374Z',
+          endDate: '2019-05-28T13:00:55.374Z',
+          auxiliary: '34567890',
+          inclTaxesCustomer: 12,
+          exclTaxesCustomer: 10,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 5,
+          exclTaxesTpp: 4,
+        },
+        {
+          event: '456',
+          startDate: '2019-05-29T08:00:55.374Z',
+          endDate: '2019-05-29T10:00:55.374Z',
+          auxiliary: '34567890',
+          inclTaxesCustomer: 14,
+          exclTaxesCustomer: 12,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 3,
+          exclTaxesTpp: 2,
+        },
+      ],
+    };
+
+    const result = BillHelper.formatBilledEvents(bill);
+    expect(result).toEqual([
+      {
+        eventId: '123',
+        startDate: '2019-05-28T10:00:55.374Z',
+        endDate: '2019-05-28T13:00:55.374Z',
+        auxiliary: '34567890',
+        inclTaxesCustomer: 12,
+        exclTaxesCustomer: 10,
+      },
+      {
+        eventId: '456',
+        startDate: '2019-05-29T08:00:55.374Z',
+        endDate: '2019-05-29T10:00:55.374Z',
+        auxiliary: '34567890',
+        inclTaxesCustomer: 14,
+        exclTaxesCustomer: 12,
+      },
+    ]);
+  });
+  it('should format events for tpp with care hours', () => {
+    const bill = {
+      subscription: {
+        _id: 'asd',
+        service: {
+          _id: '1234567890',
+          nature: 'test',
+          versions: [{ name: 'service', vat: 12, startDate: moment().toISOString() }],
+        },
+      },
+      thirdPartyPayer: 'client',
+      unitExclTaxes: 24.644549763033176,
+      exclTaxes: 13.649289099526067,
+      inclTaxes: 14.4,
+      startDate: '2019-06-28T10:06:55.374Z',
+      hours: 1.5,
+      eventsList: [
+        {
+          event: '123',
+          startDate: '2019-05-28T10:00:55.374Z',
+          endDate: '2019-05-28T13:00:55.374Z',
+          auxiliary: '34567890',
+          inclTaxesCustomer: 12,
+          exclTaxesCustomer: 10,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 5,
+          exclTaxesTpp: 4,
+          history: {careHours: 0.5},
+        },
+        {
+          event: '456',
+          startDate: '2019-05-29T08:00:55.374Z',
+          endDate: '2019-05-29T10:00:55.374Z',
+          auxiliary: '34567890',
+          inclTaxesCustomer: 14,
+          exclTaxesCustomer: 12,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 3,
+          exclTaxesTpp: 2,
+          history: {careHours: 2},
+        },
+      ],
+    };
+
+    const result = BillHelper.formatBilledEvents(bill);
+    expect(result).toEqual([
+      {
+        eventId: '123',
+        startDate: '2019-05-28T10:00:55.374Z',
+        endDate: '2019-05-28T13:00:55.374Z',
+        auxiliary: '34567890',
+        fundingId: 'fundingId',
+        inclTaxesTpp: 5,
+        exclTaxesTpp: 4,
+        careHours: 0.5,
+      },
+      {
+        eventId: '456',
+        startDate: '2019-05-29T08:00:55.374Z',
+        endDate: '2019-05-29T10:00:55.374Z',
+        auxiliary: '34567890',
+        fundingId: 'fundingId',
+        inclTaxesTpp: 3,
+        exclTaxesTpp: 2,
+        careHours: 2,
+      },
+    ]);
+  });
+  it('should format events for tpp without care hours', () => {
+    const bill = {
+      subscription: {
+        _id: 'asd',
+        service: {
+          _id: '1234567890',
+          nature: 'test',
+          versions: [{ name: 'service', vat: 12, startDate: moment().toISOString() }],
+        },
+      },
+      thirdPartyPayer: 'client',
+      unitExclTaxes: 24.644549763033176,
+      exclTaxes: 13.649289099526067,
+      inclTaxes: 14.4,
+      startDate: '2019-06-28T10:06:55.374Z',
+      hours: 1.5,
+      eventsList: [
+        {
+          event: '123',
+          startDate: '2019-05-28T10:00:55.374Z',
+          endDate: '2019-05-28T13:00:55.374Z',
+          auxiliary: '34567890',
+          inclTaxesCustomer: 12,
+          exclTaxesCustomer: 10,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 5,
+          exclTaxesTpp: 4,
+        },
+        {
+          event: '456',
+          startDate: '2019-05-29T08:00:55.374Z',
+          endDate: '2019-05-29T10:00:55.374Z',
+          auxiliary: '34567890',
+          inclTaxesCustomer: 14,
+          exclTaxesCustomer: 12,
+          fundingId: 'fundingId',
+          inclTaxesTpp: 3,
+          exclTaxesTpp: 2,
+        },
+      ],
+    };
+
+    const result = BillHelper.formatBilledEvents(bill);
+    expect(result).toEqual([
+      {
+        eventId: '123',
+        startDate: '2019-05-28T10:00:55.374Z',
+        endDate: '2019-05-28T13:00:55.374Z',
+        auxiliary: '34567890',
+        fundingId: 'fundingId',
+        inclTaxesTpp: 5,
+        exclTaxesTpp: 4,
+      },
+      {
+        eventId: '456',
+        startDate: '2019-05-29T08:00:55.374Z',
+        endDate: '2019-05-29T10:00:55.374Z',
+        auxiliary: '34567890',
+        fundingId: 'fundingId',
+        inclTaxesTpp: 3,
+        exclTaxesTpp: 2,
+      },
+    ]);
+  });
+});
+
 describe('formatSubscriptionData', () => {
   let getMatchingVersionStub;
+  let formatBilledEvents;
   beforeEach(() => {
     getMatchingVersionStub = sinon.stub(UtilsHelper, 'getMatchingVersion');
+    formatBilledEvents = sinon.stub(BillHelper, 'formatBilledEvents');
   });
   afterEach(() => {
     getMatchingVersionStub.restore();
+    formatBilledEvents.restore();
   });
 
   it('should return formatted subscription data for customer', () => {
@@ -85,6 +284,7 @@ describe('formatSubscriptionData', () => {
       vat: 12,
       startDate: '2019-06-27T10:06:55.374Z',
     });
+    formatBilledEvents.returns([{ event: 'event' }]);
 
     const result = BillHelper.formatSubscriptionData(bill);
     expect(result).toEqual(expect.objectContaining({
@@ -95,26 +295,10 @@ describe('formatSubscriptionData', () => {
       vat: 12,
       startDate: '2019-06-28T10:06:55.374Z',
       hours: 1.5,
-      events: [
-        {
-          eventId: '123',
-          startDate: '2019-05-28T10:00:55.374Z',
-          endDate: '2019-05-28T13:00:55.374Z',
-          auxiliary: '34567890',
-          inclTaxesCustomer: 12,
-          exclTaxesCustomer: 10,
-        },
-        {
-          eventId: '456',
-          startDate: '2019-05-29T08:00:55.374Z',
-          endDate: '2019-05-29T10:00:55.374Z',
-          auxiliary: '34567890',
-          inclTaxesCustomer: 14,
-          exclTaxesCustomer: 12,
-        },
-      ],
+      events: [{ event: 'event' }],
     }));
     sinon.assert.calledWithExactly(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
+    sinon.assert.calledWithExactly(formatBilledEvents, bill);
   });
   it('should return formatted subscription data for tpp', () => {
     const bill = {
@@ -164,6 +348,7 @@ describe('formatSubscriptionData', () => {
       vat: 12,
       startDate: '2019-06-27T10:06:55.374Z',
     });
+    formatBilledEvents.returns([{ event: 'event' }]);
 
     const result = BillHelper.formatSubscriptionData(bill);
     expect(result).toEqual(expect.objectContaining({
@@ -174,28 +359,10 @@ describe('formatSubscriptionData', () => {
       vat: 12,
       startDate: '2019-06-28T10:06:55.374Z',
       hours: 1.5,
-      events: [
-        {
-          eventId: '123',
-          startDate: '2019-05-28T10:00:55.374Z',
-          endDate: '2019-05-28T13:00:55.374Z',
-          auxiliary: '34567890',
-          fundingId: 'fundingId',
-          inclTaxesTpp: 5,
-          exclTaxesTpp: 4,
-        },
-        {
-          eventId: '456',
-          startDate: '2019-05-29T08:00:55.374Z',
-          endDate: '2019-05-29T10:00:55.374Z',
-          auxiliary: '34567890',
-          fundingId: 'fundingId',
-          inclTaxesTpp: 3,
-          exclTaxesTpp: 2,
-        },
-      ],
+      events: [{ event: 'event' }],
     }));
     sinon.assert.calledWithExactly(getMatchingVersionStub, bill.endDate, bill.subscription.service, 'startDate');
+    sinon.assert.calledWithExactly(formatBilledEvents, bill);
   });
 });
 

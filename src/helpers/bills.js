@@ -14,12 +14,18 @@ const { HOURLY, THIRD_PARTY, CIVILITY_LIST, COMPANI } = require('./constants');
 exports.formatBillNumber = (companyPrefixNumber, prefix, seq) =>
   `FACT-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
 
-exports.formatSubscriptionData = (bill) => {
+exports.formatBilledEvents = (bill) => {
   const pickedFields = ['auxiliary', 'startDate', 'endDate', 'surcharges'];
   if (bill.thirdPartyPayer) pickedFields.push('inclTaxesTpp', 'exclTaxesTpp', 'fundingId');
   else pickedFields.push('inclTaxesCustomer', 'exclTaxesCustomer');
 
-  const events = bill.eventsList.map(ev => ({ eventId: ev.event, ...pick(ev, pickedFields) }));
+  return bill.eventsList.map(ev => (ev.history && ev.history.careHours
+    ? { eventId: ev.event, ...pick(ev, pickedFields), careHours: ev.history.careHours }
+    : { eventId: ev.event, ...pick(ev, pickedFields) }
+  ));
+};
+
+exports.formatSubscriptionData = (bill) => {
   const matchingServiceVersion = UtilsHelper.getMatchingVersion(bill.endDate, bill.subscription.service, 'startDate');
 
   return {
@@ -27,7 +33,7 @@ exports.formatSubscriptionData = (bill) => {
     subscription: bill.subscription._id,
     service: { serviceId: matchingServiceVersion._id, ...pick(matchingServiceVersion, ['name', 'nature']) },
     vat: matchingServiceVersion.vat,
-    events,
+    events: exports.formatBilledEvents(bill),
   };
 };
 
