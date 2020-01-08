@@ -50,25 +50,14 @@ const EventSchema = mongoose.Schema(
       ref: 'Customer',
       required() { return this.type === INTERVENTION; },
     },
-    subscription: {
-      type: mongoose.Schema.Types.ObjectId,
-      required() { return this.type === INTERVENTION; },
-    },
+    subscription: { type: mongoose.Schema.Types.ObjectId, required() { return this.type === INTERVENTION; } },
     internalHour: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'InternalHour',
       required() { return this.type === INTERNAL_HOUR; },
     },
-    absence: {
-      type: String,
-      enum: ABSENCE_TYPES,
-      required() { return this.type === ABSENCE; },
-    },
-    absenceNature: {
-      type: String,
-      enum: ABSENCE_NATURES,
-      required() { return this.type === ABSENCE; },
-    },
+    absence: { type: String, enum: ABSENCE_TYPES, required() { return this.type === ABSENCE; } },
+    absenceNature: { type: String, enum: ABSENCE_NATURES, required() { return this.type === ABSENCE; } },
     address: {
       type: mongoose.Schema(addressSchemaDefinition, { _id: false }),
       required() { return this.type === INTERVENTION; },
@@ -79,7 +68,7 @@ const EventSchema = mongoose.Schema(
     },
     attachment: {
       type: mongoose.Schema(driveResourceSchemaDefinition, { _id: false }),
-      required() { return this.absence === ILLNESS || this.absence === WORK_ACCIDENT; },
+      required() { return [ILLNESS, WORK_ACCIDENT].includes(this.absence); },
     },
     repetition: {
       frequency: { type: String, enum: REPETITION_FREQUENCIES },
@@ -87,8 +76,8 @@ const EventSchema = mongoose.Schema(
     },
     isCancelled: { type: Boolean, default: false },
     cancel: {
-      condition: { type: String, enum: EVENT_CANCELLATION_CONDITIONS },
-      reason: { type: String, enum: EVENT_CANCELLATION_REASONS },
+      condition: { type: String, enum: EVENT_CANCELLATION_CONDITIONS, required() { return this.isCancelled; } },
+      reason: { type: String, enum: EVENT_CANCELLATION_REASONS, required() { return this.isCancelled; } },
     },
     isBilled: { type: Boolean, default: false },
     bills: {
@@ -102,11 +91,7 @@ const EventSchema = mongoose.Schema(
       careHours: Number,
       surcharges: billEventSurchargesSchemaDefinition,
     },
-    status: {
-      type: String,
-      enum: CONTRACT_STATUS,
-      required() { return this.type === INTERVENTION; },
-    },
+    status: { type: String, enum: CONTRACT_STATUS, required() { return this.type === INTERVENTION; } },
     company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   },
   { timestamps: true }
