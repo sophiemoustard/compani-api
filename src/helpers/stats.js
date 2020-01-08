@@ -45,8 +45,11 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
     customerFundingsMonitoring.push({
       thirdPartyPayer: funding.thirdPartyPayer.name,
       careHours: funding.careHours,
-      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
-      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
+      prevMonthCareHours: isPrevMonthRelevant
+        ? getMonthCareHours(funding.prevMonthEvents, funding.careDays, funding.startDate, funding.endDate)
+        : -1,
+      currentMonthCareHours:
+        getMonthCareHours(funding.currentMonthEvents, funding.careDays, funding.startDate, funding.endDate),
     });
   }
 

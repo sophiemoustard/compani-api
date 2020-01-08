@@ -53,11 +53,7 @@ const getMatchEvents = eventsDate => [
     $lookup: {
       from: 'events',
       as: 'events',
-      let: {
-        subscriptionId: '$subscription',
-        fundingStartDate: '$version.startDate',
-        fundingEndDate: { $ifNull: ['$version.endDate', eventsDate.maxDate] },
-      },
+      let: { subscriptionId: '$subscription' },
       pipeline: [
         {
           $match: {
@@ -166,11 +162,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
     {
       $match: {
         fundings: { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } },
-        $expr: {
-          $and: [
-            { $eq: ['$_id', '$$customerId'] },
-          ],
-        },
+        $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] },
       },
     },
     { $unwind: { path: '$fundings' } },
@@ -181,21 +173,10 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         'fundings.nature': HOURLY,
         'fundings.version.startDate': { $lte: fundingsDate.maxStartDate },
         $or: [
-          {
-            'fundings.endDate': { $exists: false },
-            $expr: {
-              $and: [
-                { $eq: ['$_id', '$$customerId'] },
-              ],
-            },
-          },
+          { 'fundings.endDate': { $exists: false }, $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] } },
           {
             'fundings.endDate': { $exists: true, $gte: fundingsDate.minEndDate },
-            $expr: {
-              $and: [
-                { $eq: ['$_id', '$$customerId'] },
-              ],
-            },
+            $expr: { $and: [{ $eq: ['$_id', '$$customerId'] }] },
           },
         ],
       },
@@ -287,7 +268,10 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
         },
         customer: { firstname: '$customer.identity.firstname', lastname: '$customer.identity.lastname' },
         sector: { name: '$customer.sector.name', _id: '$customer.sector._id' },
-        thirdPartyPayer: { name: '$customer.fundings.thirdPartyPayer.name', _id: '$customer.fundings.thirdPartyPayer._id' },
+        thirdPartyPayer: {
+          name: '$customer.fundings.thirdPartyPayer.name',
+          _id: '$customer.fundings.thirdPartyPayer._id',
+        },
         subscription: '$customer.subscription',
         startDate: '$customer.fundings.version.startDate',
         endDate: '$customer.fundings.version.endDate',
