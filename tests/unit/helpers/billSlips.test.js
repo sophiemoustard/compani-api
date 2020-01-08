@@ -5,6 +5,7 @@ const BillSlipHelper = require('../../../src/helpers/billSlips');
 const BillSlipNumber = require('../../../src/models/BillSlipNumber');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const BillSlip = require('../../../src/models/BillSlip');
+const Bill = require('../../../src/models/Bill');
 const PdfHelper = require('../../../src/helpers/pdf');
 
 require('sinon-mongoose');
@@ -137,6 +138,14 @@ describe('createBillSlips', () => {
 });
 
 describe('formatPdf', () => {
+  let formatBillsForPdf;
+  beforeEach(() => {
+    formatBillsForPdf = sinon.stub(BillSlipHelper, 'formatBillsForPdf');
+  });
+  afterEach(() => {
+    formatBillsForPdf.restore();
+  });
+
   it('should return formatted data for pdf generation', async () => {
     const company = {
       iban: 'FR8512739000305678847384Q97',
@@ -149,8 +158,10 @@ describe('formatPdf', () => {
       thirdPartyPayer: { name: 'Diocèse de Paris' },
       month: '12-2019',
     };
+    const billList = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+    formatBillsForPdf.returns({ total: 100, formattedBills: [{ bills: 'bills' }] });
 
-    const result = await BillSlipHelper.formatPdf(billSlip, company);
+    const result = await BillSlipHelper.formatPdf(billSlip, billList, company);
 
     expect(result).toEqual({
       billSlip: {
@@ -167,8 +178,11 @@ describe('formatPdf', () => {
         },
         date: expect.stringMatching(/^\d\d\/\d\d\/\d\d\d\d$/),
         period: { start: '01/12/2019', end: '31/12/2019' },
+        total: 100,
+        formattedBills: [{ bills: 'bills' }],
       },
     });
+    sinon.assert.calledWithExactly(formatBillsForPdf, billList);
   });
 });
 
@@ -176,32 +190,37 @@ describe('generatePdf', () => {
   let BillSlipMock;
   let generatePdfStub;
   let formatPdfStub;
+  let BillMock;
   const billSlip = { _id: new ObjectID(), number: 'BORD-1234567890' };
   const billSlipData = { billSlip: { number: '123467890' } };
   const credentials = { company: { _id: new ObjectID() } };
   const pdf = 'This is a pdf';
-
+  const billList = [];
   beforeEach(() => {
     BillSlipMock = sinon.mock(BillSlip);
+    BillMock = sinon.mock(Bill);
     generatePdfStub = sinon.stub(PdfHelper, 'generatePdf');
     formatPdfStub = sinon.stub(BillSlipHelper, 'formatPdf');
   });
-
   afterEach(() => {
     BillSlipMock.restore();
     generatePdfStub.restore();
     formatPdfStub.restore();
+    BillMock.restore();
   });
 
   it('should return generated pdf and bill slip number', async () => {
-    BillSlipMock
-      .expects('findById')
+    BillSlipMock.expects('findById')
       .withExactArgs(billSlip._id)
       .chain('populate')
       .withExactArgs('thirdPartyPayer')
       .chain('lean')
       .once()
       .returns(billSlip);
+    BillMock.expects('find')
+      .chain('populate')
+      .chain('lean')
+      .returns(billList);
     generatePdfStub.returns(pdf);
     formatPdfStub.returns(billSlipData);
 
@@ -212,6 +231,7 @@ describe('generatePdf', () => {
       pdf,
     });
     BillSlipMock.restore();
+    sinon.assert.calledWithExactly(formatPdfStub, billSlip, billList, credentials.company);
     sinon.assert.calledWithExactly(
       generatePdfStub,
       billSlipData,
