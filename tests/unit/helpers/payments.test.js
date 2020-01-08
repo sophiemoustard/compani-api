@@ -93,23 +93,6 @@ describe('getPayments', () => {
   });
 });
 
-describe('generatePaymentNumber', () => {
-  const paymentNatures = [
-    { type: PAYMENT, returned: { prefix: 'REG-1904', seq: '1' }, result: 'REG-1904001' },
-    { type: REFUND, returned: { prefix: 'REMB-1904', seq: '1' }, result: 'REMB-1904001' },
-  ];
-  paymentNatures.forEach((nature) => {
-    it(`should return right payment number if nature is '${nature.type}' `, async () => {
-      const findOneAndUpdate = sinon.stub(PaymentNumber, 'findOneAndUpdate').returns(nature.returned);
-      const result = await PaymentsHelper.generatePaymentNumber(nature.type);
-      findOneAndUpdate.restore();
-
-      expect(result).toBeDefined();
-      expect(result).toBe(nature.result);
-    });
-  });
-});
-
 describe('generateXML', () => {
   const company = {
     _id: new ObjectID(),

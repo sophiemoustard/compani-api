@@ -148,7 +148,6 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   const { company } = credentials;
   const { endDate } = groupByCustomerBills[0];
   const number = await exports.getBillNumber(endDate, company);
-  console.log('number', number);
 
   for (const draftBills of groupByCustomerBills) {
     const { customer, customerBills, thirdPartyPayerBills } = draftBills;
