@@ -140,109 +140,6 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     .option({ company: companyId });
 };
 
-exports.getEventsGroupedByFundingsforAllCustomers2 = async (fundingsDate, eventsDate, companyId) => {
-  const versionMatch = getVersionMatch(fundingsDate);
-  const fundingsMatch = getFundingsMatch();
-
-  const matchFundings = [
-    { $match: { fundings: { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } } } },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'referent',
-        foreignField: '_id',
-        as: 'referent',
-      },
-    },
-    { $unwind: { path: '$referent', preserveNullAndEmptyArrays: true } },
-    {
-      $lookup: {
-        from: 'sectorhistories',
-        as: 'sector',
-        let: { auxiliaryId: '$referent._id', companyId: '$company' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$company', '$$companyId'] }],
-              },
-            },
-          },
-          { $sort: { startDate: -1 } },
-          { $limit: 1 },
-          { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
-          { $unwind: { path: '$lastSector' } },
-          { $replaceRoot: { newRoot: '$lastSector' } },
-        ],
-      },
-    },
-    { $unwind: { path: '$sector', preserveNullAndEmptyArrays: true } },
-    { $unwind: { path: '$fundings' } },
-    {
-      $addFields: {
-        'fundings.customer': '$identity',
-        'fundings.referent': '$referent.identity',
-        'fundings.sector': '$sector',
-      },
-    },
-  ];
-
-  const startOfMonth = moment().startOf('month').toDate();
-  const endOfMonth = moment().endOf('month').toDate();
-  const formatFundings = [
-    {
-      $addFields: {
-        prevMonthEvents: {
-          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', startOfMonth] } },
-        },
-        currentMonthEvents: {
-          $filter: {
-            input: '$events',
-            as: 'event',
-            cond: {
-              $and: [{ $gte: ['$$event.startDate', startOfMonth] }, { $lte: ['$$event.startDate', endOfMonth] }],
-            },
-          },
-        },
-        nextMonthEvents: {
-          $filter: {
-            input: '$events',
-            as: 'event',
-            cond: { $gte: ['$$event.startDate', endOfMonth] },
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        thirdPartyPayer: { name: 1, _id: 1 },
-        subscription: 1,
-        startDate: '$version.startDate',
-        endDate: '$version.endDate',
-        careHours: '$version.careHours',
-        careDays: '$version.careDays',
-        unitTTCRate: '$version.unitTTCRate',
-        customerParticipationRate: '$version.customerParticipationRate',
-        prevMonthEvents: { startDate: 1, endDate: 1 },
-        currentMonthEvents: { startDate: 1, endDate: 1 },
-        nextMonthEvents: { startDate: 1, endDate: 1 },
-        customer: { firstname: 1, lastname: 1 },
-        referent: { firstname: 1, lastname: 1 },
-        sector: { name: 1, _id: 1 },
-      },
-    },
-  ];
-
-  return Customer
-    .aggregate([
-      ...matchFundings,
-      ...getPopulatedFundings(fundingsMatch, fundingsDate),
-      ...getMatchEvents(eventsDate),
-      ...formatFundings,
-    ])
-    .option({ company: companyId });
-};
-
 exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsDate, companyId) => {
   const versionMatch = getVersionMatch(fundingsDate);
   const fundingsMatch = getFundingsMatch();
@@ -262,36 +159,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
       },
     },
     { $project: { startDate: 1, endDate: 1, subscription: 1, customer: 1 } },
-    {
-      $group: {
-        _id: { customer: '$customer' },
-        events: { $addToSet: '$$ROOT' },
-      },
-    },
-    {
-      $addFields: {
-        prevMonthEvents: {
-          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', startOfMonth] } },
-        },
-        currentMonthEvents: {
-          $filter: {
-            input: '$events',
-            as: 'event',
-            cond: {
-              $and: [{ $gte: ['$$event.startDate', startOfMonth] }, { $lte: ['$$event.startDate', endOfMonth] }],
-            },
-          },
-        },
-        nextMonthEvents: {
-          $filter: {
-            input: '$events',
-            as: 'event',
-            cond: { $gte: ['$$event.startDate', endOfMonth] },
-          },
-        },
-      },
-    },
-    { $sort: { '_id.customer': 1 } },
+    { $group: { _id: { customer: '$customer' }, events: { $addToSet: '$$ROOT' } } },
   ];
 
   const pipelineForLookupCustomer = [
@@ -318,7 +186,6 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
             $expr: {
               $and: [
                 { $eq: ['$_id', '$$customerId'] },
-                { $lte: ['$fundings.startDate', '$$eventStartDate'] },
               ],
             },
           },
@@ -327,8 +194,6 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
             $expr: {
               $and: [
                 { $eq: ['$_id', '$$customerId'] },
-                { $lte: ['$fundings.startDate', '$$eventStartDate'] },
-                { $gte: ['$fundings.endDate', '$$eventStartDate'] },
               ],
             },
           },
@@ -387,6 +252,29 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
   ];
 
   const formatFundings = [
+    {
+      $addFields: {
+        prevMonthEvents: {
+          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', startOfMonth] } },
+        },
+        currentMonthEvents: {
+          $filter: {
+            input: '$events',
+            as: 'event',
+            cond: {
+              $and: [{ $gte: ['$$event.startDate', startOfMonth] }, { $lte: ['$$event.startDate', endOfMonth] }],
+            },
+          },
+        },
+        nextMonthEvents: {
+          $filter: {
+            input: '$events',
+            as: 'event',
+            cond: { $gte: ['$$event.startDate', endOfMonth] },
+          },
+        },
+      },
+    },
     {
       $project: {
         month: '$_id.month',

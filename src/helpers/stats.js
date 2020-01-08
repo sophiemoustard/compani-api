@@ -9,10 +9,15 @@ const isHoliday = day => moment(day).startOf('d').isHoliday();
 const isInCareDays = (careDays, day) => (careDays.includes(moment(day).isoWeekday() - 1) && !isHoliday(day))
   || (careDays.includes(7) && isHoliday(day));
 
-const getMonthCareHours = (events, versionCareDays) => {
+const hasNotBegun = (eventStartDate, fundingStartDate) => moment(fundingStartDate).isAfter(eventStartDate);
+
+const hasEnded = (eventStartDate, fundingEndDate) => fundingEndDate && moment(fundingEndDate).isBefore(eventStartDate);
+
+const getMonthCareHours = (events, versionCareDays, fundingStartDate, fundingEndDate) => {
   let monthCareHours = 0;
   for (const event of events) {
-    if (!isInCareDays(versionCareDays, event.startDate)) continue;
+    if (!isInCareDays(versionCareDays, event.startDate) || hasNotBegun(event.startDate, fundingStartDate)
+      || hasEnded(event.startDate, fundingEndDate)) continue;
     monthCareHours += moment(event.endDate).diff(event.startDate, 'h', true);
   }
   return monthCareHours;
@@ -71,9 +76,13 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
       ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
       careHours: funding.careHours,
       tpp: funding.thirdPartyPayer,
-      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
-      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
-      nextMonthCareHours: isNextMonthRelevant ? getMonthCareHours(funding.nextMonthEvents, funding.careDays) : -1,
+      prevMonthCareHours: isPrevMonthRelevant
+        ? getMonthCareHours(funding.prevMonthEvents, funding.careDays, funding.startDate, funding.endDate)
+        : -1,
+      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays, funding.startDate, funding.endDate),
+      nextMonthCareHours: isNextMonthRelevant
+        ? getMonthCareHours(funding.nextMonthEvents, funding.careDays, funding.startDate, funding.endDate)
+        : -1,
     });
   }
 
