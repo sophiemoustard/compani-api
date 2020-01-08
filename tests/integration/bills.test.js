@@ -17,11 +17,15 @@ const {
   billThirdPartyPayer,
   otherCompanyBillThirdPartyPayer,
   customerFromOtherCompany,
+  fundingHistory,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
 const BillHelper = require('../../src/helpers/bills');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const Bill = require('../../src/models/Bill');
+const BillNumber = require('../../src/models/BillNumber');
+const FundingHistory = require('../../src/models/FundingHistory');
+const Event = require('../../src/models/Event');
 
 describe('NODE ENV', () => {
   it("should be 'test'", () => {
@@ -120,10 +124,7 @@ describe('BILL ROUTES - POST /bills', () => {
   beforeEach(populateDB);
   const payload = [
     {
-      customer: {
-        _id: billCustomerList[0]._id,
-        identity: billCustomerList[0].identity,
-      },
+      customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
       endDate: '2019-05-31T23:59:59.999Z',
       customerBills: {
         bills: [
@@ -210,12 +211,8 @@ describe('BILL ROUTES - POST /bills', () => {
                   thirdPartyPayer: billThirdPartyPayer._id,
                   inclTaxesCustomer: 0,
                   exclTaxesCustomer: 0,
-                  history: {
-                    amountTTC: 24,
-                    fundingId: '5ccbfcf4bffe7646a387b45a',
-                    nature: 'fixed',
-                  },
-                  fundingId: '5ccbfcf4bffe7646a387b45a',
+                  history: { amountTTC: 24, fundingId: fundingHistory._id, nature: 'fixed' },
+                  fundingId: fundingHistory._id,
                   nature: 'fixed',
                 },
               ],
@@ -253,17 +250,28 @@ describe('BILL ROUTES - POST /bills', () => {
       formatBillNumber.returns(billsList[0].number);
 
       const billCountBefore = await Bill.countDocuments({});
+      const billNumberBefore = await BillNumber.findOne({ prefix: '0519' }).lean();
+      const fundingHistoryBefore = await FundingHistory.findOne({ fundingId: fundingHistory.fundingId }).lean();
 
-      await app.inject({
+      const response = await app.inject({
         method: 'POST',
         url: '/bills',
         payload: { bills: payload },
         headers: { 'x-access-token': authToken },
       });
 
+      expect(response.statusCode).toEqual(500);
+      formatBillNumber.restore();
+
       const billCountAfter = await Bill.countDocuments({});
       expect(billCountAfter).toEqual(billCountBefore);
-      formatBillNumber.restore();
+      const billNumberAfter = await BillNumber.findOne({ prefix: '0519' }).lean();
+      expect(billNumberBefore.seq).toEqual(billNumberAfter.seq);
+      const fundingHistoryAfter = await FundingHistory.findOne({ fundingId: fundingHistory.fundingId }).lean();
+      expect(fundingHistoryBefore.amountTTC).toEqual(fundingHistoryAfter.amountTTC);
+      const eventInBill = await Event.findOne({ _id: eventList[4]._id });
+      expect(eventInBill.isBilled).toBeFalsy();
+      expect(eventInBill.bill).not.toBeDefined();
     });
 
     it('should create new bill with vat 0 if service is not taxed', async () => {
