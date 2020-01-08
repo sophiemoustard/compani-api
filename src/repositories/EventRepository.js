@@ -18,27 +18,44 @@ const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregat
     $lookup: {
       from: 'users',
       as: 'auxiliary',
-      let: { auxiliaryId: '$auxiliary' },
+      let: { auxiliaryId: '$auxiliary', eventStartDate: '$startDate' },
       pipeline: [
         { $match: { $expr: { $and: [{ $eq: ['$_id', '$$auxiliaryId'] }] } } },
         {
           $lookup: {
             from: 'sectorhistories',
             as: 'sector',
-            let: { auxiliaryId: '$_id', companyId: '$company' },
+            let: { auxiliaryId: '$_id', companyId: '$company', eventStartDate: '$$eventStartDate' },
             pipeline: [
               {
                 $match: {
-                  $expr: {
-                    $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }, { $eq: ['$company', '$$companyId'] }],
-                  },
+                  $or: [
+                    {
+                      endDate: { $exists: true },
+                      $expr: {
+                        $and: [
+                          { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                          { $eq: ['$company', '$$companyId'] },
+                          { $lte: ['$startDate', '$$eventStartDate'] },
+                          { $gte: ['$endDate', '$$eventStartDate'] },
+                        ],
+                      },
+                    },
+                    {
+                      endDate: { $exists: false },
+                      $expr: {
+                        $and: [
+                          { $eq: ['$auxiliary', '$$auxiliaryId'] },
+                          { $eq: ['$company', '$$companyId'] },
+                          { $lte: ['$startDate', '$$eventStartDate'] },
+                        ],
+                      },
+                    },
+                  ],
                 },
               },
-              { $sort: { startDate: -1 } },
               { $limit: 1 },
-              {
-                $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' },
-              },
+              { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
               { $unwind: { path: '$lastSector' } },
               { $replaceRoot: { newRoot: '$lastSector' } },
             ],

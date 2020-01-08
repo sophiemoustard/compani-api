@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
+const get = require('lodash/get');
 const expect = require('expect');
 const moment = require('moment');
 const sinon = require('sinon');
@@ -50,8 +51,6 @@ describe('getUsersList', () => {
       .chain('populate')
       .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
       .chain('populate')
-      .withExactArgs({ path: 'company', select: 'auxiliariesConfig' })
-      .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
       .withExactArgs({
@@ -86,8 +85,6 @@ describe('getUsersList', () => {
       .withExactArgs({ path: 'procedure.task', select: 'name' })
       .chain('populate')
       .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
-      .chain('populate')
-      .withExactArgs({ path: 'company', select: 'auxiliariesConfig' })
       .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
@@ -124,8 +121,6 @@ describe('getUsersList', () => {
       .withExactArgs({ path: 'procedure.task', select: 'name' })
       .chain('populate')
       .withExactArgs({ path: 'customers', select: 'identity driveFolder' })
-      .chain('populate')
-      .withExactArgs({ path: 'company', select: 'auxiliariesConfig' })
       .chain('populate')
       .withExactArgs({ path: 'role', select: 'name' })
       .chain('populate')
@@ -167,6 +162,57 @@ describe('getUsersList', () => {
       RoleMock.verify();
       UserMock.verify();
     }
+  });
+});
+
+describe('getUsersListWithSectorHistories', () => {
+  let UserMock;
+  let RoleMock;
+  const users = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+  const roles = [{ _id: new ObjectID() }, { _id: new ObjectID() }];
+  const credentials = { company: { _id: new ObjectID() } };
+  const companyId = credentials.company._id;
+
+  beforeEach(() => {
+    UserMock = sinon.mock(User);
+    RoleMock = sinon.mock(Role);
+  });
+
+  afterEach(() => {
+    UserMock.restore();
+    RoleMock.restore();
+  });
+
+  it('should get users', async () => {
+    RoleMock
+      .expects('find')
+      .withExactArgs({ name: { $in: ['auxiliary', 'planningReferent'] } })
+      .chain('lean')
+      .returns(roles);
+
+    const roleIds = roles.map(role => role._id);
+
+    UserMock
+      .expects('find')
+      .withExactArgs({ role: { $in: roleIds }, company: companyId }, {}, { autopopulate: false })
+      .chain('populate')
+      .withExactArgs({ path: 'role', select: 'name' })
+      .chain('populate')
+      .withExactArgs({
+        path: 'sectorHistories',
+        select: '_id sector startDate endDate',
+        match: { company: get(credentials, 'company._id', null) },
+      })
+      .chain('populate')
+      .withExactArgs('contracts')
+      .chain('lean')
+      .withExactArgs({ virtuals: true, autopopulate: true })
+      .returns(users);
+
+    const result = await UsersHelper.getUsersListWithSectorHistories(credentials);
+    expect(result).toEqual(users);
+    RoleMock.verify();
+    UserMock.verify();
   });
 });
 

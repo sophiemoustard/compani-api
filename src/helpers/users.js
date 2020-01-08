@@ -37,11 +37,25 @@ exports.getUsersList = async (query, credentials) => {
   return User.find(params, {}, { autopopulate: false })
     .populate({ path: 'procedure.task', select: 'name' })
     .populate({ path: 'customers', select: 'identity driveFolder' })
-    .populate({ path: 'company', select: 'auxiliariesConfig' })
     .populate({ path: 'role', select: 'name' })
     .populate({
       path: 'sector',
       select: '_id sector',
+      match: { company: get(credentials, 'company._id', null) },
+    })
+    .populate('contracts')
+    .lean({ virtuals: true, autopopulate: true });
+};
+exports.getUsersListWithSectorHistories = async (credentials) => {
+  const roles = await Role.find({ name: { $in: [AUXILIARY, PLANNING_REFERENT] } }).lean();
+  const roleIds = roles.map(role => role._id);
+  const params = { company: get(credentials, 'company._id', null), role: { $in: roleIds } };
+
+  return User.find(params, {}, { autopopulate: false })
+    .populate({ path: 'role', select: 'name' })
+    .populate({
+      path: 'sectorHistories',
+      select: '_id sector startDate endDate',
       match: { company: get(credentials, 'company._id', null) },
     })
     .populate('contracts')

@@ -411,6 +411,54 @@ describe('USERS ROUTES', () => {
     });
   });
 
+  describe('GET /users/sector-histories', () => {
+    describe('Admin', () => {
+      beforeEach(populateDB);
+      beforeEach(async () => {
+        authToken = await getToken('admin');
+      });
+
+      it('should get all auxiliary users', async () => {
+        authToken = await getTokenByCredentials(usersSeedList[0].local);
+        const auxiliaryUsers = usersSeedList.filter(u =>
+          isExistingRole(u.role, 'auxiliary') || isExistingRole(u.role, 'planningReferent'));
+
+        const res = await app.inject({
+          method: 'GET',
+          url: '/users/sector-histories',
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
+        expect(res.result.data.users.every(user =>
+          user.role.name === 'auxiliary' || user.role.name === 'planningReferent')).toBeTruthy();
+        expect(res.result.data.users.every(user => !!user.sectorHistories)).toBeTruthy();
+      });
+    });
+
+    describe('Other roles', () => {
+      const roles = [
+        { name: 'helper', expectedCode: 403 },
+        { name: 'auxiliary', expectedCode: 200 },
+        { name: 'coach', expectedCode: 200 },
+      ];
+
+      roles.forEach((role) => {
+        it(`should return ${role.expectedCode} as user is ${role.name}`, async () => {
+          authToken = await getToken(role.name);
+          const response = await app.inject({
+            method: 'GET',
+            url: '/users/sector-histories',
+            headers: { 'x-access-token': authToken },
+          });
+
+          expect(response.statusCode).toBe(role.expectedCode);
+        });
+      });
+    });
+  });
+
   describe('GET /users/active', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
