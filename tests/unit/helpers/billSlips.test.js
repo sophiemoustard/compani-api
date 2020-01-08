@@ -138,7 +138,6 @@ describe('createBillSlips', () => {
 
 describe('formatPdf', () => {
   it('should return formatted data for pdf generation', async () => {
-    const fakeDate = sinon.useFakeTimers(new Date('2019-12-12'));
     const company = {
       iban: 'FR8512739000305678847384Q97',
       bic: 'AGFBFRCC',
@@ -166,11 +165,10 @@ describe('formatPdf', () => {
           email: 'support@alenvi.io',
           website: 'www.alenvi.io',
         },
-        date: '12/12/2019',
+        date: expect.stringMatching(/^\d\d\/\d\d\/\d\d\d\d$/),
         period: { start: '01/12/2019', end: '31/12/2019' },
       },
     });
-    fakeDate.restore();
   });
 });
 
