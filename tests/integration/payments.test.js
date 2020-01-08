@@ -14,7 +14,9 @@ const {
 const { PAYMENT, REFUND } = require('../../src/helpers/constants');
 const translate = require('../../src/helpers/translate');
 const Payment = require('../../src/models/Payment');
+const PaymentNumber = require('../../src/models/PaymentNumber');
 const Drive = require('../../src/models/Google/Drive');
+const PaymentHelper = require('../../src/helpers/payments');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 
 const { language } = translate;
@@ -200,10 +202,45 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const payments = await Payment.find({ company: authCompany._id }).lean();
-      expect(payments.length).toBe(paymentsList.length + 2);
+      const paymentsCount = await Payment.countDocuments({ company: authCompany._id });
+      expect(paymentsCount).toBe(paymentsList.length + 2);
       sinon.assert.called(addStub);
       addStub.restore();
+    });
+
+    it('should not create new payment with existing number', async () => {
+      const payload = [...originalPayload];
+      const formatPaymentNumber = sinon.stub(PaymentHelper, 'formatPaymentNumber');
+      const generateXML = sinon.stub(PaymentHelper, 'generateXML');
+      formatPaymentNumber.returns(paymentsList[0].number);
+
+      const paymentCountBefore = await Payment.countDocuments({ company: authCompany._id });
+      const paymentNumberBefore = await PaymentNumber.findOne({
+        prefix: '1903',
+        nature: 'payment',
+        company: authCompany._id,
+      }).lean();
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(500);
+
+      const paymentCountAfter = await Payment.countDocuments({ company: authCompany._id });
+      expect(paymentCountAfter).toEqual(paymentCountBefore);
+      const paymentNumberAfter = await PaymentNumber.findOne({
+        prefix: '1903',
+        nature: 'payment',
+        company: authCompany._id,
+      }).lean();
+      expect(paymentNumberBefore.seq).toEqual(paymentNumberAfter.seq);
+      sinon.assert.notCalled(generateXML);
+      formatPaymentNumber.restore();
+      generateXML.restore();
     });
 
     it('it should not create multiple payments if at least one customer is not from the same company', async () => {

@@ -384,21 +384,24 @@ describe('formatPaymentNumber', () => {
 });
 
 describe('savePayments', () => {
+  let getPaymentNumberStub;
   let formatPaymentStub;
   let generateXMLStub;
-  let saveStub;
   let PaymentModel;
+  let updateOneStub;
   beforeEach(() => {
+    getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber');
     formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment');
     generateXMLStub = sinon.stub(PaymentsHelper, 'generateXML');
-    saveStub = sinon.stub(Payment.prototype, 'save');
+    updateOneStub = sinon.stub(PaymentNumber, 'updateOne');
     PaymentModel = sinon.mock(Payment);
   });
 
   afterEach(() => {
+    getPaymentNumberStub.restore();
     formatPaymentStub.restore();
     generateXMLStub.restore();
-    saveStub.restore();
+    updateOneStub.restore();
     PaymentModel.restore();
   });
   const credentials = {
@@ -411,6 +414,10 @@ describe('savePayments', () => {
       directDebitsFolderId: '1234567890',
     },
   };
+  const paymentNumbers = [
+    { prefix: '1911', seq: 1, nature: 'payment', company: credentials.company._id },
+    { prefix: '1911', seq: 1, nature: 'refund', company: credentials.company._id },
+  ];
   const payload = [{
     company: credentials.company._id,
     date: '2019-11-20',
@@ -426,17 +433,22 @@ describe('savePayments', () => {
     customer: new ObjectID(),
     client: new ObjectID(),
     netInclTaxes: 120,
-    nature: PAYMENT,
+    nature: REFUND,
     type: 'direct_debit',
   }];
 
   it('should return error if company is missing', async () => {
     try {
       const credentialsTmp = {};
+      PaymentModel.expects('insertMany').never();
+
       await PaymentsHelper.savePayments(payload, credentialsTmp);
-      sinon.assert.notCalled(formatPaymentStub);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Missing mandatory company info !'));
+      sinon.assert.notCalled(getPaymentNumberStub);
+      sinon.assert.notCalled(formatPaymentStub);
+      sinon.assert.notCalled(updateOneStub);
+      PaymentModel.verify();
     }
   });
 
@@ -444,10 +456,15 @@ describe('savePayments', () => {
   params.forEach((param) => {
     it(`should return error if missing '${param}' `, async () => {
       try {
+        PaymentModel.expects('insertMany').never();
+
         await PaymentsHelper.savePayments(payload, omit(credentials, `company.${param}`));
-        sinon.assert.notCalled(formatPaymentStub);
       } catch (e) {
         expect(e).toEqual(Boom.badRequest('Missing mandatory company info !'));
+        sinon.assert.notCalled(getPaymentNumberStub);
+        sinon.assert.notCalled(formatPaymentStub);
+        sinon.assert.notCalled(updateOneStub);
+        PaymentModel.verify();
       }
     });
   });
@@ -455,15 +472,32 @@ describe('savePayments', () => {
   it('should save payments', async () => {
     PaymentModel.expects('countDocuments').onCall(0).returns(0);
     PaymentModel.expects('countDocuments').onCall(1).returns(1);
+    PaymentModel.expects('insertMany').withExactArgs(payload).once();
+    getPaymentNumberStub.onCall(0).returns(paymentNumbers[0]);
+    getPaymentNumberStub.onCall(1).returns(paymentNumbers[1]);
     formatPaymentStub.onCall(0).returns(payload[0]);
     formatPaymentStub.onCall(1).returns(payload[1]);
     generateXMLStub.returns('');
 
     await PaymentsHelper.savePayments(payload, credentials);
     sinon.assert.calledTwice(formatPaymentStub);
-    sinon.assert.calledTwice(saveStub);
     sinon.assert.calledWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
     sinon.assert.calledOnce(generateXMLStub);
+    sinon.assert.calledWithExactly(getPaymentNumberStub.getCall(0), PAYMENT);
+    sinon.assert.calledWithExactly(getPaymentNumberStub.getCall(1), REFUND);
+    sinon.assert.calledTwice(getPaymentNumberStub);
+    sinon.assert.calledWithExactly(
+      updateOneStub.getCall(0),
+      { prefix: paymentNumbers[0].prefix, nature: PAYMENT, company: credentials.company._id },
+      { $set: { seq: 2 } }
+    );
+    sinon.assert.calledWithExactly(
+      updateOneStub.getCall(1),
+      { prefix: paymentNumbers[1].prefix, nature: REFUND, company: credentials.company._id },
+      { $set: { seq: 2 } }
+    );
+    sinon.assert.calledTwice(updateOneStub);
+    PaymentModel.verify();
   });
 });
 

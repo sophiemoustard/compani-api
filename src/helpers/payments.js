@@ -144,19 +144,37 @@ exports.savePayments = async (payload, credentials) => {
     throw Boom.badRequest('Missing mandatory company info !');
   }
 
-  const promises = [];
+  const allPayments = [];
   const firstPayments = [];
   const recurPayments = [];
-  for (let payment of payload) {
-    payment = await exports.formatPayment(payment, company);
-    const count = await Payment.countDocuments({ customer: payment.customer, type: DIRECT_DEBIT, rum: payment.rum });
-    if (count === 0) firstPayments.push(payment);
-    else recurPayments.push(payment);
+  const paymentNumber = await exports.getPaymentNumber(PAYMENT);
+  const refundNumber = await exports.getPaymentNumber(REFUND);
+  for (const payment of payload) {
+    const number = payment.nature === PAYMENT ? paymentNumber : refundNumber;
+    const newPayment = await exports.formatPayment(payment, company, number);
+    const count = await Payment.countDocuments({
+      customer: newPayment.customer,
+      type: DIRECT_DEBIT,
+      rum: newPayment.rum,
+      company: company._id,
+    });
+    if (count === 0) firstPayments.push(newPayment);
+    else recurPayments.push(newPayment);
 
-    const savedPayment = new Payment(payment);
-    promises.push(savedPayment.save());
+    allPayments.push(newPayment);
+    if (newPayment.nature === PAYMENT) paymentNumber.seq += 1;
+    else refundNumber.seq += 1;
   }
-  return Promise.all([exports.generateXML(firstPayments, recurPayments, company), ...promises]);
+  await Payment.insertMany(allPayments);
+  await PaymentNumber.updateOne(
+    { prefix: paymentNumber.prefix, nature: PAYMENT, company: company._id },
+    { $set: { seq: paymentNumber.seq } }
+  );
+  await PaymentNumber.updateOne(
+    { prefix: refundNumber.prefix, nature: REFUND, company: company._id },
+    { $set: { seq: refundNumber.seq } }
+  );
+  return exports.generateXML(firstPayments, recurPayments, company);
 };
 
 const paymentExportHeader = [
