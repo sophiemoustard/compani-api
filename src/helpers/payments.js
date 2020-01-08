@@ -30,22 +30,30 @@ exports.getPayments = async (payload, credentials) => {
     .lean();
 };
 
-exports.generatePaymentNumber = async (paymentNature) => {
-  const numberQuery = {};
+exports.getPaymentNumber = async (paymentNature, companyId) => {
+  const numberQuery = { nature: paymentNature, company: companyId };
   switch (paymentNature) {
     case REFUND:
-      numberQuery.prefix = `REMB-${moment().format('YYMM')}`;
+      numberQuery.prefix = moment().format('YYMM');
       break;
     case PAYMENT:
-      numberQuery.prefix = `REG-${moment().format('YYMM')}`;
+      numberQuery.prefix = moment().format('YYMM');
       break;
   }
-  const number = await PaymentNumber.findOneAndUpdate(
+  return PaymentNumber.findOneAndUpdate(
     numberQuery,
-    { $inc: { seq: 1 } },
+    {},
     { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
-  return `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
+  ).lean();
+};
+
+exports.formatPaymentNumber = (companyPrefixNumber, prefix, seq, paymentNature) => {
+  switch (paymentNature) {
+    case REFUND:
+      return `REMB-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
+    case PAYMENT:
+      return `REG-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
+  }
 };
 
 exports.generateXML = async (firstPayments, recurPayments, company) => {
@@ -101,26 +109,34 @@ exports.generateXML = async (firstPayments, recurPayments, company) => {
     recurPaymentsInfo = XmlHelper.addTransactionInfo(recurPaymentsInfo, recurPayments);
   }
 
-  const outputPath = await XmlHelper.generateSEPAXml(doc, header, company.directDebitsFolderId, firstPaymentsInfo, recurPaymentsInfo);
+  const outputPath = await XmlHelper.generateSEPAXml(
+    doc,
+    header,
+    company.directDebitsFolderId,
+    firstPaymentsInfo,
+    recurPaymentsInfo
+  );
   return outputPath;
 };
 
 exports.createPayment = async (payload, credentials) => {
   const { company } = credentials;
-  const payment = new Payment(await exports.formatPayment(payload, company));
-  await payment.save();
+  const number = await exports.getPaymentNumber(payload.nature);
+  const payment = await Payment.create(exports.formatPayment(payload, company, number));
+  number.seq += 1;
+  await PaymentNumber.updateOne(
+    { prefix: number.prefix, nature: payload.nature, company: company._id },
+    { $set: { seq: number.seq } }
+  );
   return payment;
 };
 
-exports.formatPayment = async (payment, company) => {
-  const paymentNumber = await exports.generatePaymentNumber(payment.nature);
-  return {
-    ...payment,
-    _id: new ObjectID(),
-    number: paymentNumber,
-    company: company._id,
-  };
-};
+exports.formatPayment = (payment, company, number) => ({
+  ...payment,
+  _id: new ObjectID(),
+  number: exports.formatPaymentNumber(company.prefixNumber, number.prefix, number.seq, payment.nature),
+  company: company._id,
+});
 
 exports.savePayments = async (payload, credentials) => {
   const { company } = credentials;

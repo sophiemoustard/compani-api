@@ -148,6 +148,7 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   const { company } = credentials;
   const { endDate } = groupByCustomerBills[0];
   const number = await exports.getBillNumber(endDate, company);
+  console.log('number', number);
 
   for (const draftBills of groupByCustomerBills) {
     const { customer, customerBills, thirdPartyPayerBills } = draftBills;
@@ -173,7 +174,7 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
   await Bill.insertMany(billList);
   await exports.updateEvents(eventsToUpdate);
   await exports.updateFundingHistories(fundingHistories, company._id);
-  await BillNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } });
+  await BillNumber.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
   await BillSlipHelper.createBillSlips(billList, endDate, credentials.company);
 };
 

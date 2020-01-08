@@ -54,8 +54,8 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         expect(response.result.message).toBe(translate[language].paymentCreated);
         expect(response.result.data.payment).toEqual(expect.objectContaining(payload));
         expect(response.result.data.payment.number).toBe(payload.nature === PAYMENT
-          ? `REG-${moment().format('YYMM')}001`
-          : `REMB-${moment().format('YYMM')}001`);
+          ? `REG-${authCompany.prefixNumber}${moment().format('YYMM')}00001`
+          : `REMB-${authCompany.prefixNumber}${moment().format('YYMM')}00001`);
         const payments = await Payment.find({ company: authCompany._id }).lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
