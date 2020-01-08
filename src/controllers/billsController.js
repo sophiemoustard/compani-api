@@ -1,12 +1,7 @@
 const Boom = require('boom');
-const get = require('lodash/get');
-const Bill = require('../models/Bill');
-const Company = require('../models/Company');
 const translate = require('../helpers/translate');
 const { getDraftBillsList } = require('../helpers/draftBills');
 const BillHelper = require('../helpers/bills');
-const { generatePdf } = require('../helpers/pdf');
-const { COMPANI } = require('../helpers/constants');
 
 const { language } = translate;
 

@@ -2,6 +2,7 @@ const expect = require('expect');
 const moment = require('moment');
 const qs = require('qs');
 const omit = require('lodash/omit');
+const sinon = require('sinon');
 const { ObjectID } = require('mongodb');
 
 const app = require('../../server');
@@ -18,6 +19,7 @@ const {
   customerFromOtherCompany,
 } = require('./seed/billsSeed');
 const { TWO_WEEKS } = require('../../src/helpers/constants');
+const BillHelper = require('../../src/helpers/bills');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 const Bill = require('../../src/models/Bill');
 
@@ -246,6 +248,24 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(bills.length).toBe(draftBillsLength + authBillsList.length);
     });
 
+    it('should not create new bill with existing number', async () => {
+      const formatBillNumber = sinon.stub(BillHelper, 'formatBillNumber');
+      formatBillNumber.returns(billsList[0].number);
+
+      const billCountBefore = await Bill.countDocuments({});
+
+      await app.inject({
+        method: 'POST',
+        url: '/bills',
+        payload: { bills: payload },
+        headers: { 'x-access-token': authToken },
+      });
+
+      const billCountAfter = await Bill.countDocuments({});
+      expect(billCountAfter).toEqual(billCountBefore);
+      formatBillNumber.restore();
+    });
+
     it('should create new bill with vat 0 if service is not taxed', async () => {
       const draftBillPayload = [
         {
@@ -402,7 +422,6 @@ describe('BILL ROUTES - POST /bills', () => {
       const draftBillsLength = draftBillPayload[0].thirdPartyPayerBills[0].bills.length;
       expect(bills.length).toBe(draftBillsLength + authBillsList.length);
     });
-
 
     it('should return a 403 error if customer is not from same company', async () => {
       const response = await app.inject({
