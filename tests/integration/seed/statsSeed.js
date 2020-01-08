@@ -19,6 +19,7 @@ const {
   FIXED,
   INVOICED_AND_PAID,
   INVOICED_AND_NOT_PAID,
+  CUSTOMER_INITIATIVE,
 } = require('../../../src/helpers/constants');
 
 const sectorList = [
@@ -347,7 +348,7 @@ const eventListForFundingsMonitoring = [
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     isCancelled: true,
-    cancel: { condition: INVOICED_AND_NOT_PAID },
+    cancel: { condition: INVOICED_AND_NOT_PAID, reason: CUSTOMER_INITIATIVE },
     misc: 'test',
     startDate: cloneDeep(mondayOfCurrentMonth).hour('13').toDate(),
     endDate: cloneDeep(mondayOfCurrentMonth).hour('14').toDate(),
@@ -369,7 +370,7 @@ const eventListForFundingsMonitoring = [
     subscription: subscriptionId,
     auxiliary: userList[0]._id,
     isCancelled: true,
-    cancel: { condition: INVOICED_AND_PAID },
+    cancel: { condition: INVOICED_AND_PAID, reason: CUSTOMER_INITIATIVE },
     misc: 'test',
     startDate: cloneDeep(tuesdayOfPreviousMonth).hour('10').toDate(),
     endDate: cloneDeep(tuesdayOfPreviousMonth).hour('14').toDate(),
