@@ -425,7 +425,7 @@ describe('USERS ROUTES', () => {
 
         const res = await app.inject({
           method: 'GET',
-          url: '/users?role=auxiliary',
+          url: '/users/sector-histories',
           headers: { 'x-access-token': authToken },
         });
 
@@ -433,7 +433,7 @@ describe('USERS ROUTES', () => {
         expect(res.result.data.users.length).toBe(auxiliaryUsers.length);
         expect(res.result.data.users.every(user =>
           user.role.name === 'auxiliary' || user.role.name === 'planningReferent')).toBeTruthy();
-        expect(res.result.data.users.every(user => !!user.sector.name)).toBeTruthy();
+        expect(res.result.data.users.every(user => !!user.sectorHistories)).toBeTruthy();
       });
     });
 
