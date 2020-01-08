@@ -1,6 +1,7 @@
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
 const Customer = require('../models/Customer');
+const Event = require('../models/Event');
 const SectorHistory = require('../models/SectorHistory');
 const {
   HOURLY,
@@ -139,7 +140,7 @@ exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate
     .option({ company: companyId });
 };
 
-exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsDate, companyId) => {
+exports.getEventsGroupedByFundingsforAllCustomers2 = async (fundingsDate, eventsDate, companyId) => {
   const versionMatch = getVersionMatch(fundingsDate);
   const fundingsMatch = getFundingsMatch();
 
@@ -237,6 +238,183 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
       ...matchFundings,
       ...getPopulatedFundings(fundingsMatch, fundingsDate),
       ...getMatchEvents(eventsDate),
+      ...formatFundings,
+    ])
+    .option({ company: companyId });
+};
+
+exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsDate, companyId) => {
+  const versionMatch = getVersionMatch(fundingsDate);
+  const fundingsMatch = getFundingsMatch();
+  const startOfMonth = moment().startOf('month').toDate();
+  const endOfMonth = moment().endOf('month').toDate();
+
+  const matchAndGroupEvents = [
+    {
+      $match: {
+        startDate: { $gte: eventsDate.minDate, $lte: eventsDate.maxDate },
+        type: INTERVENTION,
+        $or: [
+          { isCancelled: false },
+          { 'cancel.condition': INVOICED_AND_PAID },
+          { 'cancel.condition': INVOICED_AND_NOT_PAID },
+        ],
+      },
+    },
+    { $project: { startDate: 1, endDate: 1, subscription: 1, customer: 1 } },
+    {
+      $group: {
+        _id: { customer: '$customer' },
+        events: { $addToSet: '$$ROOT' },
+      },
+    },
+    {
+      $addFields: {
+        prevMonthEvents: {
+          $filter: { input: '$events', as: 'event', cond: { $lt: ['$$event.startDate', startOfMonth] } },
+        },
+        currentMonthEvents: {
+          $filter: {
+            input: '$events',
+            as: 'event',
+            cond: {
+              $and: [{ $gte: ['$$event.startDate', startOfMonth] }, { $lte: ['$$event.startDate', endOfMonth] }],
+            },
+          },
+        },
+        nextMonthEvents: {
+          $filter: {
+            input: '$events',
+            as: 'event',
+            cond: { $gte: ['$$event.startDate', endOfMonth] },
+          },
+        },
+      },
+    },
+    { $sort: { '_id.customer': 1 } },
+  ];
+
+  const pipelineForLookupCustomer = [
+    {
+      $match: {
+        fundings: { $elemMatch: { ...fundingsMatch, versions: { $elemMatch: versionMatch } } },
+        $expr: {
+          $and: [
+            { $eq: ['$_id', '$$customerId'] },
+          ],
+        },
+      },
+    },
+    { $unwind: { path: '$fundings' } },
+    { $addFields: { 'fundings.version': { $arrayElemAt: ['$fundings.versions', -1] } } },
+    {
+      $match: {
+        'fundings.frequency': MONTHLY,
+        'fundings.nature': HOURLY,
+        'fundings.version.startDate': { $lte: fundingsDate.maxStartDate },
+        $or: [
+          {
+            'fundings.endDate': { $exists: false },
+            $expr: {
+              $and: [
+                { $eq: ['$_id', '$$customerId'] },
+                { $lte: ['$fundings.startDate', '$$eventStartDate'] },
+              ],
+            },
+          },
+          {
+            'fundings.endDate': { $exists: true, $gte: fundingsDate.minEndDate },
+            $expr: {
+              $and: [
+                { $eq: ['$_id', '$$customerId'] },
+                { $lte: ['$fundings.startDate', '$$eventStartDate'] },
+                { $gte: ['$fundings.endDate', '$$eventStartDate'] },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        from: 'thirdpartypayers',
+        localField: 'fundings.thirdPartyPayer',
+        foreignField: '_id',
+        as: 'fundings.thirdPartyPayer',
+      },
+    },
+    { $unwind: { path: '$fundings.thirdPartyPayer' } },
+  ];
+
+  const getCustomerWithFundings = [
+    {
+      $lookup: {
+        from: 'customers',
+        as: 'customer',
+        let: {
+          customerId: '$_id.customer',
+          eventStartDate: '$startDate',
+        },
+        pipeline: pipelineForLookupCustomer,
+      },
+    },
+    { $unwind: { path: '$customer' } },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'customer.referent',
+        foreignField: '_id',
+        as: 'customer.referent',
+      },
+    },
+    { $unwind: { path: '$customer.referent', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: 'sectorhistories',
+        as: 'customer.sector',
+        let: { auxiliaryId: '$customer.referent._id' },
+        pipeline: [
+          { $match: { $expr: { $and: [{ $eq: ['$auxiliary', '$$auxiliaryId'] }] } } },
+          { $sort: { startDate: -1 } },
+          { $limit: 1 },
+          { $lookup: { from: 'sectors', as: 'lastSector', foreignField: '_id', localField: 'sector' } },
+          { $unwind: { path: '$lastSector' } },
+          { $replaceRoot: { newRoot: '$lastSector' } },
+        ],
+      },
+    },
+    { $unwind: { path: '$customer.sector', preserveNullAndEmptyArrays: true } },
+  ];
+
+  const formatFundings = [
+    {
+      $project: {
+        month: '$_id.month',
+        prevMonthEvents: 1,
+        currentMonthEvents: 1,
+        nextMonthEvents: 1,
+        referent: {
+          firstname: '$customer.referent.identity.firstname',
+          lastname: '$customer.referent.identity.lastname',
+        },
+        customer: { firstname: '$customer.identity.firstname', lastname: '$customer.identity.lastname' },
+        sector: { name: '$customer.sector.name', _id: '$customer.sector._id' },
+        thirdPartyPayer: { name: '$customer.fundings.thirdPartyPayer.name', _id: '$customer.fundings.thirdPartyPayer._id' },
+        subscription: '$customer.subscription',
+        startDate: '$customer.fundings.version.startDate',
+        endDate: '$customer.fundings.version.endDate',
+        careHours: '$customer.fundings.version.careHours',
+        careDays: '$customer.fundings.version.careDays',
+        unitTTCRate: '$customer.fundings.version.unitTTCRate',
+        customerParticipationRate: '$customer.fundings.version.customerParticipationRate',
+      },
+    },
+  ];
+
+  return Event
+    .aggregate([
+      ...matchAndGroupEvents,
+      ...getCustomerWithFundings,
       ...formatFundings,
     ])
     .option({ company: companyId });
