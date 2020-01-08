@@ -125,7 +125,7 @@ describe('BILL ROUTES - POST /bills', () => {
   const payload = [
     {
       customer: { _id: billCustomerList[0]._id, identity: billCustomerList[0].identity },
-      endDate: '2019-05-31T23:59:59.999Z',
+      endDate: '2019-05-30T23:59:59.999Z',
       customerBills: {
         bills: [
           {
@@ -211,8 +211,8 @@ describe('BILL ROUTES - POST /bills', () => {
                   thirdPartyPayer: billThirdPartyPayer._id,
                   inclTaxesCustomer: 0,
                   exclTaxesCustomer: 0,
-                  history: { amountTTC: 24, fundingId: fundingHistory._id, nature: 'fixed' },
-                  fundingId: fundingHistory._id,
+                  history: { amountTTC: 24, fundingId: fundingHistory.fundingId, nature: 'fixed' },
+                  fundingId: fundingHistory.fundingId,
                   nature: 'fixed',
                 },
               ],
@@ -269,9 +269,9 @@ describe('BILL ROUTES - POST /bills', () => {
       expect(billNumberBefore.seq).toEqual(billNumberAfter.seq);
       const fundingHistoryAfter = await FundingHistory.findOne({ fundingId: fundingHistory.fundingId }).lean();
       expect(fundingHistoryBefore.amountTTC).toEqual(fundingHistoryAfter.amountTTC);
-      const eventInBill = await Event.findOne({ _id: eventList[4]._id });
+      const eventInBill = await Event.findOne({ _id: eventList[4]._id }).lean();
       expect(eventInBill.isBilled).toBeFalsy();
-      expect(eventInBill.bill).not.toBeDefined();
+      expect(eventInBill.bills).toEqual({ surcharges: [] });
     });
 
     it('should create new bill with vat 0 if service is not taxed', async () => {

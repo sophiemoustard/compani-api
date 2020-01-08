@@ -171,9 +171,9 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
 
   // Order is important
   await Bill.insertMany(billList);
-  await BillNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } });
   await exports.updateEvents(eventsToUpdate);
   await exports.updateFundingHistories(fundingHistories, company._id);
+  await BillNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } });
   await BillSlipHelper.createBillSlips(billList, endDate, credentials.company);
 };
 
