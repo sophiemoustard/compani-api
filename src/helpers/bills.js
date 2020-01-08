@@ -169,13 +169,12 @@ exports.formatAndCreateBills = async (groupByCustomerBills, credentials) => {
     }
   }
 
-  await Promise.all([
-    BillSlipHelper.createBillSlips(billList, endDate, credentials.company),
-    Bill.insertMany(billList),
-    BillNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } }),
-    exports.updateFundingHistories(fundingHistories, company._id),
-    exports.updateEvents(eventsToUpdate),
-  ]);
+  // Order is important
+  await Bill.insertMany(billList);
+  await BillNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } });
+  await exports.updateEvents(eventsToUpdate);
+  await exports.updateFundingHistories(fundingHistories, company._id);
+  await BillSlipHelper.createBillSlips(billList, endDate, credentials.company);
 };
 
 exports.getBills = async (query, credentials) => {
