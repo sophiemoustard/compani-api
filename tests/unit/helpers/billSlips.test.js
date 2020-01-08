@@ -190,7 +190,7 @@ describe('generatePdf', () => {
   let BillSlipMock;
   let generatePdfStub;
   let formatPdfStub;
-  let BillMock;
+  let getBillsFromBillSlip;
   const billSlip = { _id: new ObjectID(), number: 'BORD-1234567890' };
   const billSlipData = { billSlip: { number: '123467890' } };
   const credentials = { company: { _id: new ObjectID() } };
@@ -198,7 +198,7 @@ describe('generatePdf', () => {
   const billList = [];
   beforeEach(() => {
     BillSlipMock = sinon.mock(BillSlip);
-    BillMock = sinon.mock(Bill);
+    getBillsFromBillSlip = sinon.stub(BillRepository, 'getBillsFromBillSlip');
     generatePdfStub = sinon.stub(PdfHelper, 'generatePdf');
     formatPdfStub = sinon.stub(BillSlipHelper, 'formatPdf');
   });
@@ -206,7 +206,7 @@ describe('generatePdf', () => {
     BillSlipMock.restore();
     generatePdfStub.restore();
     formatPdfStub.restore();
-    BillMock.restore();
+    getBillsFromBillSlip.restore();
   });
 
   it('should return generated pdf and bill slip number', async () => {
@@ -217,10 +217,7 @@ describe('generatePdf', () => {
       .chain('lean')
       .once()
       .returns(billSlip);
-    BillMock.expects('find')
-      .chain('populate')
-      .chain('lean')
-      .returns(billList);
+    getBillsFromBillSlip.returns(billList);
     generatePdfStub.returns(pdf);
     formatPdfStub.returns(billSlipData);
 
@@ -232,6 +229,7 @@ describe('generatePdf', () => {
     });
     BillSlipMock.restore();
     sinon.assert.calledWithExactly(formatPdfStub, billSlip, billList, credentials.company);
+    sinon.assert.calledWithExactly(getBillsFromBillSlip, billSlip, credentials.company._id);
     sinon.assert.calledWithExactly(
       generatePdfStub,
       billSlipData,

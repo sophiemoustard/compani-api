@@ -2,12 +2,11 @@ const moment = require('moment');
 const get = require('lodash/get');
 const pick = require('lodash/pick');
 const BillSlip = require('../models/BillSlip');
-const Bill = require('../models/Bill');
 const BillSlipNumber = require('../models/BillSlipNumber');
 const BillRepository = require('../repositories/BillRepository');
 const PdfHelper = require('./pdf');
 const UtilsHelper = require('./utils');
-const { MONTHLY, HOURLY } = require('./constants');
+const { MONTHLY } = require('./constants');
 
 exports.getBillSlips = async (credentials) => {
   const companyId = get(credentials, 'company._id', null);
@@ -72,7 +71,7 @@ exports.formatBillsForPdf = (billList) => {
         if (!bills[event.fundingId]) {
           const matchingFunding = bill.customer.fundings
             .find(f => f._id.toHexString() === event.fundingId.toHexString());
-          if (!matchingFunding || matchingFunding.frequency !== MONTHLY || matchingFunding.nature !== HOURLY) continue;
+          if (!matchingFunding || matchingFunding.frequency !== MONTHLY) continue;
 
           const matchingVersion = UtilsHelper.mergeLastVersionWithBaseObject(matchingFunding, 'createdAt');
           if (!matchingVersion) continue;
@@ -125,25 +124,16 @@ exports.formatPdf = (billSlip, billList, company) => {
 };
 
 exports.generatePdf = async (billSlipId, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   const billSlip = await BillSlip.findById(billSlipId).populate('thirdPartyPayer').lean();
-  const query = {
-    client: billSlip.thirdPartyPayer,
-    date: {
-      $gte: moment(billSlip.month, 'MM-YYYY').startOf('month').toDate(),
-      $lte: moment(billSlip.month, 'MM-YYYY').endOf('month').toDate(),
-    },
-    company: credentials.company._id,
-  };
-  const billList = await Bill.find(query)
-    .populate({ path: 'customer', select: 'fundings identity' })
-    .lean();
+  const billList = await BillRepository.getBillsFromBillSlip(billSlip, companyId);
 
   const data = exports.formatPdf(billSlip, billList, credentials.company);
-  const pdf = await PdfHelper.generatePdf(data, './src/data/billSlip.html', {
-    format: 'A4',
-    printBackground: true,
-    landscape: true,
-  });
+  const pdf = await PdfHelper.generatePdf(
+    data,
+    './src/data/billSlip.html',
+    { format: 'A4', printBackground: true, landscape: true }
+  );
 
   return { billSlipNumber: billSlip.number, pdf };
 };
