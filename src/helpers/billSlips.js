@@ -51,7 +51,7 @@ exports.createBillSlips = async (billList, endDate, company) => {
 exports.formatPdf = (billSlip, company) => ({
   billSlip: {
     ...pick(billSlip, ['number', 'thirdPartyPayer']),
-    date: moment(new Date()).format('DD/MM/YYYY'),
+    date: moment().format('DD/MM/YYYY'),
     company: {
       ...pick(company, ['iban', 'bic', 'siren']),
       address: get(company, 'address.fullAddress') || '',
