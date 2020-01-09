@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const Boom = require('boom');
 const expect = require('expect');
-const moment = require('moment');
 const { ObjectID } = require('mongodb');
 
 const omit = require('lodash/omit');
@@ -91,23 +90,6 @@ describe('getPayments', () => {
 
     expect(result).toEqual([payment]);
     sinon.assert.calledWithExactly(getDateQueryStub, { startDate: query.startDate, endDate: query.endDate });
-  });
-});
-
-describe('generatePaymentNumber', () => {
-  const paymentNatures = [
-    { type: PAYMENT, returned: { prefix: 'REG-1904', seq: '1' }, result: 'REG-1904001' },
-    { type: REFUND, returned: { prefix: 'REMB-1904', seq: '1' }, result: 'REMB-1904001' },
-  ];
-  paymentNatures.forEach((nature) => {
-    it(`should return right payment number if nature is '${nature.type}' `, async () => {
-      const findOneAndUpdate = sinon.stub(PaymentNumber, 'findOneAndUpdate').returns(nature.returned);
-      const result = await PaymentsHelper.generatePaymentNumber(nature.type);
-      findOneAndUpdate.restore();
-
-      expect(result).toBeDefined();
-      expect(result).toBe(nature.result);
-    });
   });
 });
 
@@ -312,25 +294,42 @@ describe('createPayment', () => {
     };
     const companyId = new ObjectID();
     const credentials = { company: { _id: companyId } };
-    const formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment').returns(payment);
-    const saveStub = sinon.stub(Payment.prototype, 'save');
+    const number = { prefix: '1219', seq: 1, nature: 'payment', company: companyId };
+    const formattedPayment = {
+      ...payment,
+      _id: new ObjectID(),
+      number: 'REG-101121900001',
+      company: companyId,
+    };
+    const getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber').returns(number);
+    const formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment').returns(formattedPayment);
+    const PaymentMock = sinon.mock(Payment);
+    const PaymentNumberMock = sinon.mock(PaymentNumber);
+    PaymentMock.expects('create').withExactArgs(formattedPayment).returns(formattedPayment);
+    PaymentNumberMock
+      .expects('updateOne')
+      .withExactArgs(
+        { prefix: number.prefix, nature: number.nature, company: companyId },
+        { $set: { seq: number.seq + 1 } }
+      );
 
     const result = await PaymentsHelper.createPayment(payment, credentials);
 
-    expect(result).toBeDefined();
-    sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials.company);
-    sinon.assert.calledOnce(formatPaymentStub);
-    sinon.assert.calledOnce(saveStub);
-
+    expect(result).toEqual(formattedPayment);
+    sinon.assert.calledWithExactly(getPaymentNumberStub, payment, credentials.company._id);
+    sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials.company, number);
+    PaymentMock.verify();
+    PaymentNumberMock.verify();
+    getPaymentNumberStub.restore();
     formatPaymentStub.restore();
-    saveStub.restore();
+    PaymentMock.restore();
+    PaymentNumberMock.restore();
   });
 });
 
 describe('formatPayment', () => {
   it('should add an id, a number and a company to payment', async () => {
     const payment = {
-      date: moment().toDate(),
       customer: new ObjectID(),
       client: new ObjectID(),
       netInclTaxes: 190,
@@ -338,34 +337,75 @@ describe('formatPayment', () => {
       type: 'direct_debit',
     };
     const companyId = new ObjectID();
-    const company = { _id: companyId };
-    const generatePaymentNumberStub = sinon.stub(PaymentsHelper, 'generatePaymentNumber').returns('REG-1904001');
-    const result = await PaymentsHelper.formatPayment(payment, company);
-    generatePaymentNumberStub.restore();
+    const company = { _id: companyId, prefixNumber: 101 };
+    const number = { prefix: '1219', seq: 1 };
+    const formatPaymentNumberStub = sinon.stub(PaymentsHelper, 'formatPaymentNumber').returns('REG-190410100001');
+    const result = PaymentsHelper.formatPayment(payment, company, number);
 
     expect(result).toBeDefined();
-    expect(result.number).toBe('REG-1904001');
+    expect(result.number).toBe('REG-190410100001');
     expect(ObjectID.isValid(result._id)).toBe(true);
     expect(result.company).toBe(companyId);
+    sinon.assert.calledWithExactly(
+      formatPaymentNumberStub,
+      company.prefixNumber,
+      number.prefix,
+      number.seq,
+      payment.nature
+    );
+    formatPaymentNumberStub.restore();
+  });
+});
+
+describe('getPaymentNumber', () => {
+  it('should get payment number', async () => {
+    const payment = { nature: 'payment', date: new Date('2019-12-01') };
+    const companyId = new ObjectID();
+    const PaymentNumberMock = sinon.mock(PaymentNumber);
+
+    PaymentNumberMock
+      .expects('findOneAndUpdate')
+      .withExactArgs(
+        { nature: payment.nature, company: companyId, prefix: '1219' },
+        {},
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      )
+      .chain('lean');
+
+    await PaymentsHelper.getPaymentNumber(payment, companyId);
+
+    PaymentNumberMock.verify();
+  });
+});
+
+describe('formatPaymentNumber', () => {
+  it('should return a refund number', () => {
+    expect(PaymentsHelper.formatPaymentNumber(101, '1219', 1, 'refund')).toBe('REMB-101121900001');
+  });
+  it('should return a payment number', () => {
+    expect(PaymentsHelper.formatPaymentNumber(102, '1219', 1, 'payment')).toBe('REG-102121900001');
   });
 });
 
 describe('savePayments', () => {
+  let getPaymentNumberStub;
   let formatPaymentStub;
   let generateXMLStub;
-  let saveStub;
   let PaymentModel;
+  let updateOneStub;
   beforeEach(() => {
+    getPaymentNumberStub = sinon.stub(PaymentsHelper, 'getPaymentNumber');
     formatPaymentStub = sinon.stub(PaymentsHelper, 'formatPayment');
     generateXMLStub = sinon.stub(PaymentsHelper, 'generateXML');
-    saveStub = sinon.stub(Payment.prototype, 'save');
+    updateOneStub = sinon.stub(PaymentNumber, 'updateOne');
     PaymentModel = sinon.mock(Payment);
   });
 
   afterEach(() => {
+    getPaymentNumberStub.restore();
     formatPaymentStub.restore();
     generateXMLStub.restore();
-    saveStub.restore();
+    updateOneStub.restore();
     PaymentModel.restore();
   });
   const credentials = {
@@ -378,6 +418,10 @@ describe('savePayments', () => {
       directDebitsFolderId: '1234567890',
     },
   };
+  const paymentNumbers = [
+    { prefix: '1911', seq: 1, nature: 'payment', company: credentials.company._id },
+    { prefix: '1911', seq: 1, nature: 'refund', company: credentials.company._id },
+  ];
   const payload = [{
     company: credentials.company._id,
     date: '2019-11-20',
@@ -393,17 +437,22 @@ describe('savePayments', () => {
     customer: new ObjectID(),
     client: new ObjectID(),
     netInclTaxes: 120,
-    nature: PAYMENT,
+    nature: REFUND,
     type: 'direct_debit',
   }];
 
   it('should return error if company is missing', async () => {
     try {
       const credentialsTmp = {};
+      PaymentModel.expects('insertMany').never();
+
       await PaymentsHelper.savePayments(payload, credentialsTmp);
-      sinon.assert.notCalled(formatPaymentStub);
     } catch (e) {
       expect(e).toEqual(Boom.badRequest('Missing mandatory company info !'));
+      sinon.assert.notCalled(getPaymentNumberStub);
+      sinon.assert.notCalled(formatPaymentStub);
+      sinon.assert.notCalled(updateOneStub);
+      PaymentModel.verify();
     }
   });
 
@@ -411,10 +460,15 @@ describe('savePayments', () => {
   params.forEach((param) => {
     it(`should return error if missing '${param}' `, async () => {
       try {
+        PaymentModel.expects('insertMany').never();
+
         await PaymentsHelper.savePayments(payload, omit(credentials, `company.${param}`));
-        sinon.assert.notCalled(formatPaymentStub);
       } catch (e) {
         expect(e).toEqual(Boom.badRequest('Missing mandatory company info !'));
+        sinon.assert.notCalled(getPaymentNumberStub);
+        sinon.assert.notCalled(formatPaymentStub);
+        sinon.assert.notCalled(updateOneStub);
+        PaymentModel.verify();
       }
     });
   });
@@ -422,23 +476,60 @@ describe('savePayments', () => {
   it('should save payments', async () => {
     PaymentModel.expects('countDocuments').onCall(0).returns(0);
     PaymentModel.expects('countDocuments').onCall(1).returns(1);
+    PaymentModel.expects('insertMany').withExactArgs(payload).once();
+    getPaymentNumberStub.onCall(0).returns(paymentNumbers[0]);
+    getPaymentNumberStub.onCall(1).returns(paymentNumbers[1]);
     formatPaymentStub.onCall(0).returns(payload[0]);
     formatPaymentStub.onCall(1).returns(payload[1]);
     generateXMLStub.returns('');
 
     await PaymentsHelper.savePayments(payload, credentials);
     sinon.assert.calledTwice(formatPaymentStub);
-    sinon.assert.calledTwice(saveStub);
     sinon.assert.calledWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
     sinon.assert.calledOnce(generateXMLStub);
+    sinon.assert.calledWithExactly(
+      getPaymentNumberStub.getCall(0),
+      { nature: 'payment', date: sinon.match.date },
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(
+      getPaymentNumberStub.getCall(1),
+      { nature: 'refund', date: sinon.match.date },
+      credentials.company._id
+    );
+    sinon.assert.calledTwice(getPaymentNumberStub);
+    sinon.assert.calledWithExactly(
+      updateOneStub.getCall(0),
+      { prefix: paymentNumbers[0].prefix, nature: PAYMENT, company: credentials.company._id },
+      { $set: { seq: 2 } }
+    );
+    sinon.assert.calledWithExactly(
+      updateOneStub.getCall(1),
+      { prefix: paymentNumbers[1].prefix, nature: REFUND, company: credentials.company._id },
+      { $set: { seq: 2 } }
+    );
+    sinon.assert.calledTwice(updateOneStub);
+    PaymentModel.verify();
   });
 });
 
 describe('exportPaymentsHistory', () => {
-  const header = ['Nature', 'Identifiant', 'Date', 'Id Bénéficiaire', 'Titre', 'Nom', 'Prénom', 'Id tiers payeur', 'Tiers payeur', 'Moyen de paiement', 'Montant TTC en €'];
+  const header = [
+    'Nature',
+    'Identifiant',
+    'Date',
+    'Id Bénéficiaire',
+    'Titre',
+    'Nom',
+    'Prénom',
+    'Id tiers payeur',
+    'Tiers payeur',
+    'Moyen de paiement',
+    'Montant TTC en €',
+  ];
   const paymentsList = [
     {
-      number: 'REG-1905562',
+      number: 'REG-101051900562',
       type: 'bank_transfer',
       nature: 'payment',
       date: '2019-05-20T06:00:00.000+00:00',
@@ -453,7 +544,7 @@ describe('exportPaymentsHistory', () => {
       client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
     }, {
-      number: 'REG-1905342',
+      number: 'REG-101051900342',
       type: 'direct_debit',
       nature: 'refund',
       date: '2019-05-22T06:00:00.000+00:00',
@@ -506,8 +597,32 @@ describe('exportPaymentsHistory', () => {
 
     expect(exportArray).toEqual([
       header,
-      ['Paiement', 'REG-1905562', '20/05/2019', '5c35b5eb1a4fb00997363eb3', 'Mme', 'MATHY', 'Mimi', '5c35b5eb7e0fb87297363eb2', 'TF1', 'Virement', '389276,02'],
-      ['Remboursement', 'REG-1905342', '22/05/2019', '5c35b5eb1a6fb02397363eb1', 'M.', 'HORSEMAN', 'Bojack', '5c35b5eb1a6fb87297363eb2', 'The Sherif', 'Prélèvement', '1002,40'],
+      [
+        'Paiement',
+        'REG-101051900562',
+        '20/05/2019',
+        '5c35b5eb1a4fb00997363eb3',
+        'Mme',
+        'MATHY',
+        'Mimi',
+        '5c35b5eb7e0fb87297363eb2',
+        'TF1',
+        'Virement',
+        '389276,02',
+      ],
+      [
+        'Remboursement',
+        'REG-101051900342',
+        '22/05/2019',
+        '5c35b5eb1a6fb02397363eb1',
+        'M.',
+        'HORSEMAN',
+        'Bojack',
+        '5c35b5eb1a6fb87297363eb2',
+        'The Sherif',
+        'Prélèvement',
+        '1002,40',
+      ],
     ]);
   });
 });

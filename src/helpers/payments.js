@@ -30,22 +30,19 @@ exports.getPayments = async (payload, credentials) => {
     .lean();
 };
 
-exports.generatePaymentNumber = async (paymentNature) => {
-  const numberQuery = {};
+exports.getPaymentNumber = async (payment, companyId) => PaymentNumber.findOneAndUpdate(
+  { nature: payment.nature, company: companyId, prefix: moment(payment.date).format('MMYY') },
+  {},
+  { new: true, upsert: true, setDefaultsOnInsert: true }
+).lean();
+
+exports.formatPaymentNumber = (companyPrefixNumber, prefix, seq, paymentNature) => {
   switch (paymentNature) {
     case REFUND:
-      numberQuery.prefix = `REMB-${moment().format('YYMM')}`;
-      break;
+      return `REMB-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
     case PAYMENT:
-      numberQuery.prefix = `REG-${moment().format('YYMM')}`;
-      break;
+      return `REG-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
   }
-  const number = await PaymentNumber.findOneAndUpdate(
-    numberQuery,
-    { $inc: { seq: 1 } },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
-  return `${number.prefix}${number.seq.toString().padStart(3, '0')}`;
 };
 
 exports.generateXML = async (firstPayments, recurPayments, company) => {
@@ -101,26 +98,34 @@ exports.generateXML = async (firstPayments, recurPayments, company) => {
     recurPaymentsInfo = XmlHelper.addTransactionInfo(recurPaymentsInfo, recurPayments);
   }
 
-  const outputPath = await XmlHelper.generateSEPAXml(doc, header, company.directDebitsFolderId, firstPaymentsInfo, recurPaymentsInfo);
+  const outputPath = await XmlHelper.generateSEPAXml(
+    doc,
+    header,
+    company.directDebitsFolderId,
+    firstPaymentsInfo,
+    recurPaymentsInfo
+  );
   return outputPath;
 };
 
 exports.createPayment = async (payload, credentials) => {
   const { company } = credentials;
-  const payment = new Payment(await exports.formatPayment(payload, company));
-  await payment.save();
+  const number = await exports.getPaymentNumber(payload, company._id);
+  const payment = await Payment.create(exports.formatPayment(payload, company, number));
+  number.seq += 1;
+  await PaymentNumber.updateOne(
+    { prefix: number.prefix, nature: payload.nature, company: company._id },
+    { $set: { seq: number.seq } }
+  );
   return payment;
 };
 
-exports.formatPayment = async (payment, company) => {
-  const paymentNumber = await exports.generatePaymentNumber(payment.nature);
-  return {
-    ...payment,
-    _id: new ObjectID(),
-    number: paymentNumber,
-    company: company._id,
-  };
-};
+exports.formatPayment = (payment, company, number) => ({
+  ...payment,
+  _id: new ObjectID(),
+  number: exports.formatPaymentNumber(company.prefixNumber, number.prefix, number.seq, payment.nature),
+  company: company._id,
+});
 
 exports.savePayments = async (payload, credentials) => {
   const { company } = credentials;
@@ -128,19 +133,37 @@ exports.savePayments = async (payload, credentials) => {
     throw Boom.badRequest('Missing mandatory company info !');
   }
 
-  const promises = [];
+  const allPayments = [];
   const firstPayments = [];
   const recurPayments = [];
-  for (let payment of payload) {
-    payment = await exports.formatPayment(payment, company);
-    const count = await Payment.countDocuments({ customer: payment.customer, type: DIRECT_DEBIT, rum: payment.rum });
-    if (count === 0) firstPayments.push(payment);
-    else recurPayments.push(payment);
+  const paymentNumber = await exports.getPaymentNumber({ nature: PAYMENT, date: new Date() }, company._id);
+  const refundNumber = await exports.getPaymentNumber({ nature: REFUND, date: new Date() }, company._id);
+  for (const payment of payload) {
+    const number = payment.nature === PAYMENT ? paymentNumber : refundNumber;
+    const newPayment = await exports.formatPayment(payment, company, number);
+    const count = await Payment.countDocuments({
+      customer: newPayment.customer,
+      type: DIRECT_DEBIT,
+      rum: newPayment.rum,
+      company: company._id,
+    });
+    if (count === 0) firstPayments.push(newPayment);
+    else recurPayments.push(newPayment);
 
-    const savedPayment = new Payment(payment);
-    promises.push(savedPayment.save());
+    allPayments.push(newPayment);
+    if (newPayment.nature === PAYMENT) paymentNumber.seq += 1;
+    else refundNumber.seq += 1;
   }
-  return Promise.all([exports.generateXML(firstPayments, recurPayments, company), ...promises]);
+  await Payment.insertMany(allPayments);
+  await PaymentNumber.updateOne(
+    { prefix: paymentNumber.prefix, nature: PAYMENT, company: company._id },
+    { $set: { seq: paymentNumber.seq } }
+  );
+  await PaymentNumber.updateOne(
+    { prefix: refundNumber.prefix, nature: REFUND, company: company._id },
+    { $set: { seq: refundNumber.seq } }
+  );
+  return exports.generateXML(firstPayments, recurPayments, company);
 };
 
 const paymentExportHeader = [

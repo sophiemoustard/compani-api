@@ -1157,7 +1157,7 @@ describe('formatAndCreateBills', () => {
     formatCustomerBillsStub.returns(customerBillingInfo);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
     BillNumberMock.expects('updateOne')
-      .withExactArgs({ prefix: number.prefix }, { $set: { seq: 3 } })
+      .withExactArgs({ prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 3 } })
       .once();
 
     await BillHelper.formatAndCreateBills(billsData, credentials);
@@ -1229,7 +1229,7 @@ describe('formatAndCreateBills', () => {
     getBillNumberStub.returns(number);
     formatCustomerBillsStub.returns(customerBillingInfo);
     BillNumberMock.expects('updateOne')
-      .withExactArgs({ prefix: number.prefix }, { $set: { seq: 2 } })
+      .withExactArgs({ prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 2 } })
       .once();
 
     await BillHelper.formatAndCreateBills([omit(billsData[0], 'thirdPartyPayerBills')], credentials);
@@ -1292,7 +1292,7 @@ describe('formatAndCreateBills', () => {
     getBillNumberStub.returns(number);
     formatThirdPartyPayerBillsStub.returns(tppBillingInfo);
     BillNumberMock.expects('updateOne')
-      .withExactArgs({ prefix: number.prefix }, { $set: { seq: 2 } })
+      .withExactArgs({ prefix: number.prefix, company: credentials.company._id }, { $set: { seq: 2 } })
       .once();
 
     await BillHelper.formatAndCreateBills([{ ...billsData[0], customerBills: {} }], credentials);

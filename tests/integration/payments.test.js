@@ -14,7 +14,9 @@ const {
 const { PAYMENT, REFUND } = require('../../src/helpers/constants');
 const translate = require('../../src/helpers/translate');
 const Payment = require('../../src/models/Payment');
+const PaymentNumber = require('../../src/models/PaymentNumber');
 const Drive = require('../../src/models/Google/Drive');
+const PaymentHelper = require('../../src/helpers/payments');
 const { getToken, getTokenByCredentials, authCompany } = require('./seed/authenticationSeed');
 
 const { language } = translate;
@@ -29,7 +31,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
   let authToken = null;
   beforeEach(populateDB);
   const originalPayload = {
-    date: moment().toDate(),
+    date: moment('2019-09-15').toDate(),
     customer: paymentCustomerList[0]._id,
     netInclTaxes: 400,
     nature: PAYMENT,
@@ -54,8 +56,8 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         expect(response.result.message).toBe(translate[language].paymentCreated);
         expect(response.result.data.payment).toEqual(expect.objectContaining(payload));
         expect(response.result.data.payment.number).toBe(payload.nature === PAYMENT
-          ? `REG-${moment().format('YYMM')}001`
-          : `REMB-${moment().format('YYMM')}001`);
+          ? `REG-${authCompany.prefixNumber}091900001`
+          : `REMB-${authCompany.prefixNumber}091900001`);
         const payments = await Payment.find({ company: authCompany._id }).lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
@@ -200,10 +202,55 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const payments = await Payment.find({ company: authCompany._id }).lean();
-      expect(payments.length).toBe(paymentsList.length + 2);
+      const paymentsCount = await Payment.countDocuments({ company: authCompany._id });
+      expect(paymentsCount).toBe(paymentsList.length + 2);
+      const newPaymentsCount = await Payment.countDocuments({
+        number: {
+          $in: [
+            `REG-${authCompany.prefixNumber}${moment().format('MMYY')}00001`,
+            `REG-${authCompany.prefixNumber}${moment().format('MMYY')}00002`,
+          ],
+        },
+        company: authCompany._id,
+      });
+      expect(newPaymentsCount).toBe(payload.length);
       sinon.assert.called(addStub);
       addStub.restore();
+    });
+
+    it('should not create new payment with existing number', async () => {
+      const payload = [...originalPayload];
+      const formatPaymentNumber = sinon.stub(PaymentHelper, 'formatPaymentNumber');
+      const generateXML = sinon.stub(PaymentHelper, 'generateXML');
+      formatPaymentNumber.returns(paymentsList[0].number);
+
+      const paymentCountBefore = await Payment.countDocuments({ company: authCompany._id });
+      const paymentNumberBefore = await PaymentNumber.findOne({
+        prefix: '0319',
+        nature: 'payment',
+        company: authCompany._id,
+      }).lean();
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/payments/createlist',
+        payload,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toEqual(500);
+
+      const paymentCountAfter = await Payment.countDocuments({ company: authCompany._id });
+      expect(paymentCountAfter).toEqual(paymentCountBefore);
+      const paymentNumberAfter = await PaymentNumber.findOne({
+        prefix: '0319',
+        nature: 'payment',
+        company: authCompany._id,
+      }).lean();
+      expect(paymentNumberBefore.seq).toEqual(paymentNumberAfter.seq);
+      sinon.assert.notCalled(generateXML);
+      formatPaymentNumber.restore();
+      generateXML.restore();
     });
 
     it('it should not create multiple payments if at least one customer is not from the same company', async () => {
