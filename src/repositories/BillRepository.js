@@ -144,3 +144,18 @@ exports.getBillsSlipList = async companyId => Bill.aggregate([
     },
   },
 ]).option({ company: companyId });
+
+exports.getBillsFromBillSlip = async (billSlip, companyId) => {
+  const query = {
+    client: billSlip.thirdPartyPayer,
+    date: {
+      $gte: moment(billSlip.month, 'MM-YYYY').startOf('month').toDate(),
+      $lte: moment(billSlip.month, 'MM-YYYY').endOf('month').toDate(),
+    },
+    company: companyId,
+  };
+
+  return Bill.find(query)
+    .populate({ path: 'customer', select: 'fundings identity' })
+    .lean();
+};

@@ -6,12 +6,12 @@
 
   body {
     font-family: 'Source Sans Pro', 'Roboto', 'Helvetica', 'Arial';
-    font-size: 14px;
+    font-size: 13px;
   }
 
   table {
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   table, th, td {
@@ -28,10 +28,6 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 15px;
-  }
-
-  .header .company-info .info {
-    font-size: 13px;
   }
 
   .header .extra-info {
@@ -118,6 +114,7 @@
       <div class="text-bold">Bordereau</div>
       <div>{{ billSlip.number }}</div>
     </div>
+    <br />
     <div class="third-party-payer">
       <span class="text-underline">État des sommes dues par :</span>
       <div>{{ billSlip.thirdPartyPayer.name }}</div>
@@ -134,23 +131,39 @@
       <tr>
         <th align="left">Bénéficiaire</th>
         <th align="left">Dossier</th>
-        <th align="left">Facture</th>
+        <th align="left" style="width: 150px">Facture</th>
         <th align="left">Date</th>
         <th align="left">Part bénéf.</th>
         <th align="left">Part CD</th>
         <th align="left">Nb heures max</th>
         <th align="left">Nb heures effectif</th>
         <th align="left">Taux horaire</th>
-        <th align="left">Montant TTC facturé à l'organisme</th>
+        <th align="left" style="width: 150px">Montant TTC facturé à l'organisme</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody>
+      {{#table billSlip.formattedBills}}
+        <tr>
+          <td align="left">{{ customer }}</td>
+          <td align="right"> {{ folderNumber }}</td>
+          <td align="right"> {{ billNumber }} </td>
+          <td align="right"> {{ date }}</td>
+          <td align="right"> {{ customerParticipationRate }}</td>
+          <td align="right"> {{ tppParticipationRate }}</td>
+          <td align="right"> {{ careHours }}</td>
+          <td align="right"> {{ billedCareHours }}</td>
+          <td align="right"> {{ unitTTCRate }}</td>
+          <td align="right"> {{ netInclTaxes }}</td>
+        </tr>
+      {{/table}}
+    </tbody>
   </table>
+  <br />
   <table class="total">
     <tbody>
       <tr>
-        <td>Total à régler TTC</td>
-        <td></td>
+        <td align="left">Total à régler TTC</td>
+        <td align="right">{{ billSlip.total }}</td>
       </tr>
     </tbody>
   </table>

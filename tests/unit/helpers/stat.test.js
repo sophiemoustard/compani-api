@@ -62,7 +62,7 @@ describe('getCustomerFundingsMonitoring', () => {
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
       currentMonthCareHours: 0,
-      plannedCareHours: 5,
+      careHours: 5,
       prevMonthCareHours: 0,
     }]);
     sinon.assert.calledWithExactly(
@@ -123,7 +123,7 @@ describe('getCustomerFundingsMonitoring', () => {
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
       currentMonthCareHours: 6,
-      plannedCareHours: 5,
+      careHours: 5,
       prevMonthCareHours: 3.5,
     }]);
     sinon.assert.calledWithExactly(
@@ -184,7 +184,7 @@ describe('getCustomerFundingsMonitoring', () => {
     expect(fundingsMonitoring).toEqual([{
       thirdPartyPayer: 'Tiers payeur',
       currentMonthCareHours: 6,
-      plannedCareHours: 5,
+      careHours: 5,
       prevMonthCareHours: -1,
     }]);
     sinon.assert.calledWithExactly(
@@ -253,7 +253,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
     expect(fundingsMonitoring).toEqual([{
       tpp: { name: 'Tiers payeur', _id: tppId },
       currentMonthCareHours: 0,
-      plannedCareHours: 5,
+      careHours: 5,
       prevMonthCareHours: 0,
       nextMonthCareHours: 0,
       unitTTCRate: 12,
@@ -343,7 +343,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
     expect(fundingsMonitoring).toEqual([{
       tpp: { name: 'Tiers payeur', _id: tppId },
       currentMonthCareHours: 6,
-      plannedCareHours: 5,
+      careHours: 5,
       prevMonthCareHours: 3.5,
       nextMonthCareHours: 3,
       unitTTCRate: 12,
@@ -433,7 +433,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
     expect(fundingsMonitoring).toEqual([{
       tpp: { name: 'Tiers payeur', _id: tppId },
       currentMonthCareHours: 6,
-      plannedCareHours: 5,
+      careHours: 5,
       prevMonthCareHours: -1,
       nextMonthCareHours: 3,
       unitTTCRate: 12,
@@ -525,7 +525,7 @@ describe('getAllCustomersFundingsMonitoring', () => {
     expect(fundingsMonitoring).toEqual([{
       tpp: { name: 'Tiers payeur', _id: tppId },
       currentMonthCareHours: 6,
-      plannedCareHours: 5,
+      careHours: 5,
       nextMonthCareHours: -1,
       prevMonthCareHours: 3.5,
       unitTTCRate: 12,

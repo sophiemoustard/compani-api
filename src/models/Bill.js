@@ -33,6 +33,7 @@ const BillSchema = mongoose.Schema({
       inclTaxesCustomer: { type: Number, required() { return !this.fundingId; } },
       exclTaxesTpp: { type: Number, required() { return this.fundingId; } },
       inclTaxesTpp: { type: Number, required() { return this.fundingId; } },
+      careHours: { type: Number },
     }],
     hours: { type: Number, required: true },
     unitInclTaxes: { type: Number, required: true },
