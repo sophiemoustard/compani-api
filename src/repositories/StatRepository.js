@@ -61,15 +61,7 @@ const getMatchEvents = eventsDate => [
               { startDate: { $gte: eventsDate.minDate } },
               { endDate: { $lte: eventsDate.maxDate } },
               { type: INTERVENTION },
-              {
-                $expr: {
-                  $and: [
-                    { $gte: ['$startDate', '$$fundingStartDate'] },
-                    { $eq: ['$subscription', '$$subscriptionId'] },
-                    { $lte: ['$startDate', '$$fundingEndDate'] },
-                  ],
-                },
-              },
+              { $expr: { $and: [{ $eq: ['$subscription', '$$subscriptionId'] }] } },
               {
                 $or: [
                   { isCancelled: false },
