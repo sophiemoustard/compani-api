@@ -5,8 +5,8 @@ const BillSlipHelper = require('../../../src/helpers/billSlips');
 const BillSlipNumber = require('../../../src/models/BillSlipNumber');
 const BillRepository = require('../../../src/repositories/BillRepository');
 const BillSlip = require('../../../src/models/BillSlip');
-const Bill = require('../../../src/models/Bill');
 const PdfHelper = require('../../../src/helpers/pdf');
+const UtilsHelper = require('../../../src/helpers/utils');
 
 require('sinon-mongoose');
 
@@ -134,6 +134,108 @@ describe('createBillSlips', () => {
       { $set: { seq: 14 } }
     );
     BillSlipMock.verify();
+  });
+});
+
+describe('formatFundingAndBillInfo', () => {
+  let formatPercentage;
+  let formatHour;
+  let formatPrice;
+  beforeEach(() => {
+    formatPercentage = sinon.stub(UtilsHelper, 'formatPercentage');
+    formatHour = sinon.stub(UtilsHelper, 'formatHour');
+    formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
+  });
+  afterEach(() => {
+    formatPercentage.restore();
+    formatHour.restore();
+    formatPrice.restore();
+  });
+  it('should format funding and bill info', () => {
+    const bill = {
+      number: 'FACT-1234567890',
+      date: '2019-09-18T09:00:00',
+      customer: { identity: { lastname: 'Toto' } },
+    };
+    const fundingVersion = { folderNumber: 'folder', customerParticipationRate: 40, careHours: 12, unitTTCRate: 24 };
+    formatPercentage.returnsArg(0);
+    formatPrice.returnsArg(0);
+    formatHour.returnsArg(0);
+    const result = BillSlipHelper.formatFundingAndBillInfo(bill, fundingVersion);
+
+    expect(result).toEqual({
+      billNumber: 'FACT-1234567890',
+      date: '18/09/2019',
+      customer: 'Toto',
+      folderNumber: fundingVersion.folderNumber,
+      tppParticipationRate: 0.6,
+      customerParticipationRate: 0.4,
+      careHours: 12,
+      unitTTCRate: 24,
+      billedCareHours: 0,
+      netInclTaxes: 0,
+    });
+  });
+});
+
+describe('formatBillsForPdf', () => {
+  let formatFundingAndBillInfo;
+  let mergeLastVersionWithBaseObject;
+  let formatPrice;
+  let formatHour;
+  beforeEach(() => {
+    formatFundingAndBillInfo = sinon.stub(BillSlipHelper, 'formatFundingAndBillInfo');
+    mergeLastVersionWithBaseObject = sinon.stub(UtilsHelper, 'mergeLastVersionWithBaseObject');
+    formatPrice = sinon.stub(UtilsHelper, 'formatPrice');
+    formatHour = sinon.stub(UtilsHelper, 'formatHour');
+  });
+  afterEach(() => {
+    formatFundingAndBillInfo.restore();
+    mergeLastVersionWithBaseObject.restore();
+    formatPrice.restore();
+    formatHour.restore();
+  });
+
+  it('should return 0 and [] if [] given', () => {
+    const billList = [];
+
+    formatPrice.returnsArg(0);
+
+    const result = BillSlipHelper.formatBillsForPdf(billList);
+
+    expect(result.total).toEqual(0);
+    expect(result.formattedBills).toEqual([]);
+    sinon.assert.notCalled(formatFundingAndBillInfo);
+    sinon.assert.notCalled(mergeLastVersionWithBaseObject);
+    sinon.assert.calledWithExactly(formatPrice, 0);
+    sinon.assert.notCalled(formatHour);
+  });
+
+  it('should format bills for pdf', () => {
+    const fundingId = new ObjectID();
+    const billList = [
+      {
+        customer: { fundings: [{ _id: fundingId, versions: [{ _id: new ObjectID() }], frequency: 'monthly' }] },
+        subscriptions: [
+          { events: [{ fundingId, careHours: 2, inclTaxesTpp: 12 }] },
+        ],
+      },
+    ];
+    const matchingVersion = { version: 'matching' };
+
+    formatFundingAndBillInfo.returns({ billedCareHours: 0, netInclTaxes: 0 });
+    mergeLastVersionWithBaseObject.returns(matchingVersion);
+    formatPrice.returnsArg(0);
+    formatHour.returnsArg(0);
+
+    const result = BillSlipHelper.formatBillsForPdf(billList);
+
+    expect(result.total).toEqual(12);
+    expect(result.formattedBills).toEqual([{ billedCareHours: 2, netInclTaxes: 12 }]);
+    sinon.assert.calledWithExactly(formatFundingAndBillInfo, billList[0], matchingVersion);
+    sinon.assert.calledWithExactly(mergeLastVersionWithBaseObject, billList[0].customer.fundings[0], 'createdAt');
+    sinon.assert.calledWithExactly(formatPrice, 12);
+    sinon.assert.calledWithExactly(formatHour, 2);
   });
 });
 

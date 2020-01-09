@@ -57,18 +57,18 @@ exports.formatFundingAndBillInfo = (bill, fundingVersion) => ({
   folderNumber: fundingVersion.folderNumber,
   tppParticipationRate: UtilsHelper.formatPercentage((100 - fundingVersion.customerParticipationRate) / 100),
   customerParticipationRate: UtilsHelper.formatPercentage(fundingVersion.customerParticipationRate / 100),
-  careHours: UtilsHelper.formatHour(bill.careHours),
-  unitTTCRate: UtilsHelper.formatPrice(bill.unitTTCRate),
+  careHours: UtilsHelper.formatHour(fundingVersion.careHours),
+  unitTTCRate: UtilsHelper.formatPrice(fundingVersion.unitTTCRate),
   billedCareHours: 0,
   netInclTaxes: 0,
 });
 
 exports.formatBillsForPdf = (billList) => {
-  const bills = {};
+  const billingData = {};
   for (const bill of billList) {
     for (const subscription of bill.subscriptions) {
       for (const event of subscription.events) {
-        if (!bills[event.fundingId]) {
+        if (!billingData[event.fundingId]) {
           const matchingFunding = bill.customer.fundings
             .find(f => f._id.toHexString() === event.fundingId.toHexString());
           if (!matchingFunding || matchingFunding.frequency !== MONTHLY) continue;
@@ -76,18 +76,18 @@ exports.formatBillsForPdf = (billList) => {
           const matchingVersion = UtilsHelper.mergeLastVersionWithBaseObject(matchingFunding, 'createdAt');
           if (!matchingVersion) continue;
 
-          bills[event.fundingId] = exports.formatFundingAndBillInfo(bill, matchingVersion);
+          billingData[event.fundingId] = exports.formatFundingAndBillInfo(bill, matchingVersion);
         }
 
-        bills[event.fundingId].billedCareHours += event.careHours;
-        bills[event.fundingId].netInclTaxes += event.inclTaxesTpp;
+        billingData[event.fundingId].billedCareHours += event.careHours;
+        billingData[event.fundingId].netInclTaxes += event.inclTaxesTpp;
       }
     }
   }
 
   let total = 0;
   const formattedBills = [];
-  for (const bill of Object.values(bills)) {
+  for (const bill of Object.values(billingData)) {
     total += bill.netInclTaxes;
     formattedBills.push({
       ...bill,
