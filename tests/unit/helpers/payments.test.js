@@ -487,8 +487,16 @@ describe('savePayments', () => {
     sinon.assert.calledTwice(formatPaymentStub);
     sinon.assert.calledWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
     sinon.assert.calledOnce(generateXMLStub);
-    sinon.assert.calledWithExactly(getPaymentNumberStub.getCall(0), { nature: 'payment' }, credentials.company._id);
-    sinon.assert.calledWithExactly(getPaymentNumberStub.getCall(1), { nature: 'refund' }, credentials.company._id);
+    sinon.assert.calledWithExactly(
+      getPaymentNumberStub.getCall(0),
+      { nature: 'payment', date: sinon.match.date },
+      credentials.company._id
+    );
+    sinon.assert.calledWithExactly(
+      getPaymentNumberStub.getCall(1),
+      { nature: 'refund', date: sinon.match.date },
+      credentials.company._id
+    );
     sinon.assert.calledTwice(getPaymentNumberStub);
     sinon.assert.calledWithExactly(
       updateOneStub.getCall(0),
