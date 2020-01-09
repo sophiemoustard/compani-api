@@ -6,7 +6,7 @@ const { INTERVENTION, COMPANY_CONTRACT } = require('../../../src/helpers/constan
 
 const company = {
   _id: new ObjectID('5d3eb871dd552f11866eea7b'),
-  siren: '1234567890',
+  rcs: '1234567890',
   name: 'Test',
   tradeName: 'TT',
   rhConfig: {

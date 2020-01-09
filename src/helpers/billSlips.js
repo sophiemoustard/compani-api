@@ -59,7 +59,7 @@ exports.formatFundingAndBillInfo = (bill, fundingVersion) => ({
   customerParticipationRate: UtilsHelper.formatPercentage(fundingVersion.customerParticipationRate / 100),
   careHours: UtilsHelper.formatHour(bill.careHours),
   unitTTCRate: UtilsHelper.formatPrice(bill.unitTTCRate),
-  plannedCareHours: 0,
+  billedCareHours: 0,
   netInclTaxes: 0,
 });
 
@@ -79,7 +79,7 @@ exports.formatBillsForPdf = (billList) => {
           bills[event.fundingId] = exports.formatFundingAndBillInfo(bill, matchingVersion);
         }
 
-        bills[event.fundingId].plannedCareHours += event.careHours;
+        bills[event.fundingId].billedCareHours += event.careHours;
         bills[event.fundingId].netInclTaxes += event.inclTaxesTpp;
       }
     }
@@ -92,7 +92,7 @@ exports.formatBillsForPdf = (billList) => {
     formattedBills.push({
       ...bill,
       netInclTaxes: UtilsHelper.formatPrice(bill.netInclTaxes),
-      plannedCareHours: UtilsHelper.formatHour(bill.plannedCareHours),
+      billedCareHours: UtilsHelper.formatHour(bill.billedCareHours),
     });
   }
 

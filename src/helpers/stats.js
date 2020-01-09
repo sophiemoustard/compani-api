@@ -39,7 +39,7 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
     const isPrevMonthRelevant = moment(funding.startDate).isBefore(moment().startOf('month').toDate());
     customerFundingsMonitoring.push({
       thirdPartyPayer: funding.thirdPartyPayer.name,
-      plannedCareHours: funding.careHours,
+      careHours: funding.careHours,
       prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
       currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
     });
@@ -69,7 +69,7 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
 
     allCustomersFundingsMonitoring.push({
       ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
-      plannedCareHours: funding.careHours,
+      careHours: funding.careHours,
       tpp: funding.thirdPartyPayer,
       prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
       currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
