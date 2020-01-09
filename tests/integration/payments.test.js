@@ -31,7 +31,7 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
   let authToken = null;
   beforeEach(populateDB);
   const originalPayload = {
-    date: moment().toDate(),
+    date: moment('2019-09-15').toDate(),
     customer: paymentCustomerList[0]._id,
     netInclTaxes: 400,
     nature: PAYMENT,
@@ -56,8 +56,8 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         expect(response.result.message).toBe(translate[language].paymentCreated);
         expect(response.result.data.payment).toEqual(expect.objectContaining(payload));
         expect(response.result.data.payment.number).toBe(payload.nature === PAYMENT
-          ? `REG-${authCompany.prefixNumber}${moment().format('MMYY')}00001`
-          : `REMB-${authCompany.prefixNumber}${moment().format('MMYY')}00001`);
+          ? `REG-${authCompany.prefixNumber}091900001`
+          : `REMB-${authCompany.prefixNumber}091900001`);
         const payments = await Payment.find({ company: authCompany._id }).lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
@@ -204,6 +204,16 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       expect(response.statusCode).toBe(200);
       const paymentsCount = await Payment.countDocuments({ company: authCompany._id });
       expect(paymentsCount).toBe(paymentsList.length + 2);
+      const newPaymentsCount = await Payment.countDocuments({
+        number: {
+          $in: [
+            `REG-${authCompany.prefixNumber}${moment().format('MMYY')}00001`,
+            `REG-${authCompany.prefixNumber}${moment().format('MMYY')}00002`,
+          ],
+        },
+        company: authCompany._id,
+      });
+      expect(newPaymentsCount).toBe(payload.length);
       sinon.assert.called(addStub);
       addStub.restore();
     });

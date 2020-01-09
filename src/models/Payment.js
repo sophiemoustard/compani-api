@@ -15,7 +15,7 @@ const PAYMENT_TYPES = [DIRECT_DEBIT, BANK_TRANSFER, CHECK, CESU];
 
 const PaymentSchema = mongoose.Schema({
   number: { type: String, unique: true },
-  date: { type: Date, required: true },
+  date: { type: Date, default: Date.now },
   company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
   client: { type: mongoose.Schema.Types.ObjectId, ref: 'ThirdPartyPayer' },
