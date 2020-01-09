@@ -266,7 +266,7 @@ const getCustomerQuotes = async (req) => {
 
 const createCustomerQuote = async (req) => {
   try {
-    const customer = await QuoteHelper.createQuote(req.params._id, req.payload);
+    const customer = await QuoteHelper.createQuote(req.params._id, req.payload, req.auth.credentials);
 
     return {
       message: translate[language].customerQuoteAdded,

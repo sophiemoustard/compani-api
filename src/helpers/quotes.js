@@ -1,4 +1,3 @@
-const flat = require('flat');
 const moment = require('moment');
 const Customer = require('../models/Customer');
 const QuoteNumber = require('../models/QuoteNumber');
@@ -9,17 +8,30 @@ exports.getQuotes = async customerId => Customer.findOne(
   { autopopulate: false }
 ).lean();
 
-exports.createQuote = async (customerId, payload) => {
-  const number = await QuoteNumber.findOneAndUpdate(
-    { quoteNumber: { prefix: `DEV${moment().format('MMYY')}` } },
-    { $inc: flat({ quoteNumber: { seq: 1 } }) },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  ).lean();
-  const quoteNumber = `${number.quoteNumber.prefix}-${number.quoteNumber.seq.toString().padStart(3, '0')}`;
+exports.getQuoteNumber = async company => QuoteNumber.findOneAndUpdate(
+  { prefix: moment().format('MMYY'), company: company._id },
+  {},
+  { new: true, upsert: true, setDefaultsOnInsert: true }
+).lean();
 
-  return Customer.findOneAndUpdate(
+exports.formatQuoteNumber = (companyPrefixNumber, prefix, seq) =>
+  `DEV-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
+
+exports.createQuote = async (customerId, payload, credentials) => {
+  const { company } = credentials;
+  const number = await exports.getQuoteNumber(company);
+
+  const customer = await Customer.findOneAndUpdate(
     { _id: customerId },
-    { $push: { quotes: { ...payload, quoteNumber } } },
+    {
+      $push: {
+        quotes: { ...payload, quoteNumber: exports.formatQuoteNumber(company.prefixNumber, number.prefix, number.seq) },
+      },
+    },
     { new: true, select: { identity: 1, quotes: 1 }, autopopulate: false }
   ).lean();
+  number.seq += 1;
+  await QuoteNumber.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
+
+  return customer;
 };

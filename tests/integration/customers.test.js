@@ -1318,7 +1318,7 @@ describe('CUSTOMERS QUOTES ROUTES', () => {
       expect(res.result.data.customer).toBeDefined();
       expect(res.result.data.customer.quotes).toBeDefined();
       expect(res.result.data.customer._id).toEqual(customersList[1]._id);
-      expect(res.result.data.customer.quotes[0].quoteNumber).toEqual(expect.any(String));
+      expect(res.result.data.customer.quotes[0].quoteNumber).toEqual(`DEV-101${moment().format('MMYY')}00001`);
       expect(res.result.data.customer.quotes[0].subscriptions).toEqual(expect.arrayContaining([
         expect.objectContaining(payload.subscriptions[0]),
         expect.objectContaining(payload.subscriptions[1]),
