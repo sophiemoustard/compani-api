@@ -68,6 +68,15 @@ const userList = [
     company: authCompany._id,
     refreshToken: uuidv4(),
   },
+  {
+    _id: new ObjectID(),
+    identity: { firstname: 'Auxiliary', lastname: 'Black' },
+    local: { email: 'blue@alenvi.io', password: '123456' },
+    role: rolesList.find(role => role.name === 'auxiliary')._id,
+    inactivityDate: '2019-01-01T23:59:59',
+    company: otherCompany._id,
+    refreshToken: uuidv4(),
+  },
 ];
 
 const sectorHistoryList = [{
