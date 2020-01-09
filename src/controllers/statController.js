@@ -3,11 +3,7 @@ const Boom = require('boom');
 const translate = require('../helpers/translate');
 const User = require('../models/User');
 const { getCustomerFollowUp } = require('../repositories/CompanyRepository');
-const {
-  getCustomerFundingsMonitoring,
-  getCustomersAndDurationBySector,
-  getAllCustomersFundingsMonitoring,
-} = require('../helpers/stats');
+const StatsHelper = require('../helpers/stats');
 
 const messages = translate[translate.language];
 
@@ -35,7 +31,9 @@ exports.getCustomerFollowUp = async (req) => {
 
 exports.getCustomerFundingsMonitoring = async (req) => {
   try {
-    const customerFundingsMonitoring = await getCustomerFundingsMonitoring(req.query.customer, req.auth.credentials);
+    const { customer } = req.query;
+    const { credentials } = req.auth;
+    const customerFundingsMonitoring = await StatsHelper.getCustomerFundingsMonitoring(customer, credentials);
 
     return {
       message: messages.statsFound,
@@ -49,7 +47,7 @@ exports.getCustomerFundingsMonitoring = async (req) => {
 
 exports.getAllCustomersFundingsMonitoring = async (req) => {
   try {
-    const allCustomersFundingsMonitoring = await getAllCustomersFundingsMonitoring(req.auth.credentials);
+    const allCustomersFundingsMonitoring = await StatsHelper.getAllCustomersFundingsMonitoring(req.auth.credentials);
 
     return {
       message: messages.statsFound,
@@ -63,7 +61,7 @@ exports.getAllCustomersFundingsMonitoring = async (req) => {
 
 exports.getCustomersAndDuration = async (req) => {
   try {
-    const customerAndDuration = await getCustomersAndDurationBySector(req.query, req.auth.credentials);
+    const customerAndDuration = await StatsHelper.getCustomersAndDuration(req.query, req.auth.credentials);
 
     return {
       message: messages.statsFound,

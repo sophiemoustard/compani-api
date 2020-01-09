@@ -4,6 +4,7 @@ const sinon = require('sinon');
 const moment = require('../../../src/extensions/moment');
 const StatsHelper = require('../../../src/helpers/stats');
 const StatRepository = require('../../../src/repositories/StatRepository');
+const EventRepository = require('../../../src/repositories/EventRepository');
 
 require('sinon-mongoose');
 
@@ -543,21 +544,23 @@ describe('getAllCustomersFundingsMonitoring', () => {
   });
 });
 
-
-describe('getCustomersAndDurationBySector', () => {
+describe('getCustomersAndDuration', () => {
   let getCustomersAndDurationBySector;
+  let getCustomerAndDurationByAuxiliary;
   const credentials = { company: { _id: new ObjectID() } };
   beforeEach(() => {
     getCustomersAndDurationBySector = sinon.stub(StatRepository, 'getCustomersAndDurationBySector');
+    getCustomerAndDurationByAuxiliary = sinon.stub(EventRepository, 'getCustomerAndDurationByAuxiliary');
   });
   afterEach(() => {
     getCustomersAndDurationBySector.restore();
+    getCustomerAndDurationByAuxiliary.restore();
   });
 
-  it('should format sector as array', async () => {
+  it('Case sector : should format sector as array', async () => {
     const query = { sector: '5d1a40b7ecb0da251cfa4fe9', month: '102019' };
     getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
-    const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
+    const result = await StatsHelper.getCustomersAndDuration(query, credentials);
 
     expect(result).toEqual({ cutomerCount: 9 });
     sinon.assert.calledWithExactly(
@@ -566,12 +569,13 @@ describe('getCustomersAndDurationBySector', () => {
       '102019',
       credentials.company._id
     );
+    sinon.assert.notCalled(getCustomerAndDurationByAuxiliary);
   });
 
-  it('should format array sector with objectId', async () => {
+  it('Case sector : should format array sector with objectId', async () => {
     const query = { sector: ['5d1a40b7ecb0da251cfa4fea', '5d1a40b7ecb0da251cfa4fe9'], month: '102019' };
     getCustomersAndDurationBySector.returns({ cutomerCount: 9 });
-    const result = await StatsHelper.getCustomersAndDurationBySector(query, credentials);
+    const result = await StatsHelper.getCustomersAndDuration(query, credentials);
 
     expect(result).toEqual({ cutomerCount: 9 });
     sinon.assert.calledWithExactly(
@@ -580,5 +584,21 @@ describe('getCustomersAndDurationBySector', () => {
       '102019',
       credentials.company._id
     );
+    sinon.assert.notCalled(getCustomerAndDurationByAuxiliary);
+  });
+
+  it('Case auxiliary', async () => {
+    const query = { auxiliary: new ObjectID(), month: '102019' };
+    getCustomerAndDurationByAuxiliary.returns({ cutomerCount: 9 });
+    const result = await StatsHelper.getCustomersAndDuration(query, credentials);
+
+    expect(result).toEqual({ cutomerCount: 9 });
+    sinon.assert.calledWithExactly(
+      getCustomerAndDurationByAuxiliary,
+      query.auxiliary,
+      '102019',
+      credentials.company._id
+    );
+    sinon.assert.notCalled(getCustomersAndDurationBySector);
   });
 });

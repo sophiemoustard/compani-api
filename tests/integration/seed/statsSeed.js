@@ -417,6 +417,7 @@ const populateDB = async () => {
 
 module.exports = {
   customerList,
+  userList,
   sectorList,
   populateDB,
   populateDBWithEventsForFollowup,
