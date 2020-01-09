@@ -59,10 +59,11 @@ exports.plugin = {
       options: {
         auth: { scope: ['events:read'] },
         validate: {
-          query: {
-            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())).required(),
+          query: Joi.object().keys({
+            sector: Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string())),
+            auxiliary: Joi.objectId(),
             month: Joi.string().required(),
-          },
+          }).xor('sector', 'auxiliary'),
         },
         pre: [{ method: authorizeGetStats }],
       },

@@ -6,6 +6,7 @@ const {
   populateDBWithEventsForFollowup,
   populateDBWithEventsForFundingsMonitoring,
   sectorList,
+  userList,
   customerFromOtherCompany,
 } = require('./seed/statsSeed');
 const { getToken } = require('./seed/authenticationSeed');
@@ -172,7 +173,7 @@ describe('GET /stats/customer-duration', () => {
       adminToken = await getToken('admin');
     });
 
-    it('should get customer and duration stats', async () => {
+    it('should get customer and duration stats for sector', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration?month=072019&sector=${sectorList[0]._id}`,
@@ -185,6 +186,19 @@ describe('GET /stats/customer-duration', () => {
       expect(res.result.data.customerAndDuration[0].duration).toEqual(4);
     });
 
+    it('should get customer and duration stats for auxiliary', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration?month=072019&auxiliary=${userList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customerAndDuration[0]).toBeDefined();
+      expect(res.result.data.customerAndDuration[0].auxiliary).toEqual(userList[0]._id);
+      expect(res.result.data.customerAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customerAndDuration[0].duration).toEqual(2.5);
+    });
+
     it('should return 403 if sector is not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
@@ -195,7 +209,17 @@ describe('GET /stats/customer-duration', () => {
       expect(res.statusCode).toBe(403);
     });
 
-    it('should not get customer and duration stats as sector is missing', async () => {
+    it('should return 403 if auxiliary is not from the same company', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration?month=072019&auxiliary=${userList[2]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('should not get customer and duration stats as auxiliary and sector are missing', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/customer-duration?month=072019',

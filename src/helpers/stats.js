@@ -3,6 +3,7 @@ const get = require('lodash/get');
 const pick = require('lodash/pick');
 const moment = require('../extensions/moment');
 const StatRepository = require('../repositories/StatRepository');
+const EventRepository = require('../repositories/EventRepository');
 
 const isHoliday = day => moment(day).startOf('d').isHoliday();
 
@@ -80,8 +81,15 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
   return allCustomersFundingsMonitoring;
 };
 
-exports.getCustomersAndDurationBySector = async (query, credentials) => {
-  const sectors = Array.isArray(query.sector) ? query.sector.map(id => new ObjectID(id)) : [new ObjectID(query.sector)];
+exports.getCustomersAndDuration = async (query, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
+  if (query.sector) {
+    const sectors = Array.isArray(query.sector)
+      ? query.sector.map(id => new ObjectID(id))
+      : [new ObjectID(query.sector)];
 
-  return StatRepository.getCustomersAndDurationBySector(sectors, query.month, get(credentials, 'company._id', null));
+    return StatRepository.getCustomersAndDurationBySector(sectors, query.month, companyId);
+  }
+
+  return EventRepository.getCustomerAndDurationByAuxiliary(query.auxiliary, query.month, companyId);
 };

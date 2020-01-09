@@ -59,12 +59,6 @@ exports.getContract = (contracts, startDate, endDate) => contracts.find((cont) =
   return !cont.endDate || moment(cont.endDate).isSameOrAfter(startDate);
 });
 
-exports.getCustomerCount = (events) => {
-  const eventsGroupedByCustomer = keyBy(flatten(events), 'customer._id');
-
-  return Object.keys(eventsGroupedByCustomer).length;
-};
-
 exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   const companyId = get(credentials, 'company._id', null);
   const startDate = moment(month, 'MM-YYYY').startOf('M').toDate();
@@ -75,10 +69,9 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
     [new ObjectID(auxiliaryId)],
     companyId
   );
-  const customersCount = auxiliaryEvents[0] ? exports.getCustomerCount(auxiliaryEvents[0].events) : 0;
 
   const pay = await Pay.findOne({ auxiliary: auxiliaryId, month }).lean();
-  if (pay) return { ...pay, customersCount };
+  if (pay) return pay;
 
   const auxiliary = await User.findOne({ _id: auxiliaryId }).populate('contracts').lean();
   const prevMonth = moment(month, 'MM-YYYY').subtract(1, 'M').format('MM-YYYY');
@@ -113,7 +106,7 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
     surcharges
   );
 
-  return draft ? { ...draft, customersCount } : null;
+  return draft || null;
 };
 
 exports.computeHoursToWork = (month, contracts) => {
