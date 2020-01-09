@@ -147,7 +147,7 @@ exports.getEventsGroupedByFundingsforAllCustomers = async (fundingsDate, eventsD
       },
     },
     { $project: { startDate: 1, endDate: 1, subscription: 1, customer: 1 } },
-    { $group: { _id: { customer: '$customer' }, events: { $addToSet: '$$ROOT' } } },
+    { $group: { _id: { customer: '$customer' }, events: { $push: '$$ROOT' } } },
   ];
 
   const pipelineForLookupCustomer = [
