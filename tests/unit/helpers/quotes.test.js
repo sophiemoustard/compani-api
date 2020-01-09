@@ -55,6 +55,10 @@ describe('formatQuoteNumber', () => {
   it('should format quote number', () => {
     expect(QuoteHelper.formatQuoteNumber(101, '1219', 1)).toBe('DEV-101121900001');
   });
+
+  it('should format quote number with 5 digits', () => {
+    expect(QuoteHelper.formatQuoteNumber(101, '1219', 12345)).toBe('DEV-101121912345');
+  });
 });
 
 describe('createQuote', () => {
