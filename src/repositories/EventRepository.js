@@ -11,6 +11,7 @@ const {
   INVOICED_AND_PAID,
   COMPANY_CONTRACT,
   NOT_INVOICED_AND_NOT_PAID,
+  INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
 
 const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregate([
@@ -392,7 +393,6 @@ exports.getEventsGroupedByParentId = async (rules, companyId) => Event.aggregate
     $group: { _id: '$_id', events: { $push: '$events' } },
   },
 ]).option({ company: companyId });
-
 
 exports.getUnassignedInterventions = async (maxDate, auxiliary, subIds, companyId) =>
   exports.getEventsGroupedByParentId({
@@ -883,6 +883,10 @@ exports.getCustomerAndDurationByAuxiliary = async (auxiliaryId, month, companyId
         auxiliary: new ObjectID(auxiliaryId),
         startDate: { $lte: maxStartDate, $gte: minStartDate },
         type: INTERVENTION,
+        $or: [
+          { isCancelled: false },
+          { 'cancel.condition': INVOICED_AND_PAID },
+        ],
       },
     },
     {
