@@ -130,7 +130,7 @@ describe('GET /stats/all-customers-fundings-monitoring', () => {
       adminToken = await getToken('admin');
     });
 
-    it('should get customer fundings monitoring', async () => {
+    it('should get all customers fundings monitoring', async () => {
       const res = await app.inject({
         method: 'GET',
         url: '/stats/all-customers-fundings-monitoring',

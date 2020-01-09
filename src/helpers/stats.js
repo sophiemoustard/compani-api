@@ -10,10 +10,15 @@ const isHoliday = day => moment(day).startOf('d').isHoliday();
 const isInCareDays = (careDays, day) => (careDays.includes(moment(day).isoWeekday() - 1) && !isHoliday(day))
   || (careDays.includes(7) && isHoliday(day));
 
-const getMonthCareHours = (events, versionCareDays) => {
+const isNotStarted = (eventStartDate, fundingStartDate) => moment(fundingStartDate).isAfter(eventStartDate);
+
+const isEnded = (eventStartDate, fundingEndDate) => fundingEndDate && moment(fundingEndDate).isBefore(eventStartDate);
+
+const getMonthCareHours = (events, funding) => {
   let monthCareHours = 0;
   for (const event of events) {
-    if (!isInCareDays(versionCareDays, event.startDate)) continue;
+    if (!isInCareDays(funding.careDays, event.startDate) || isNotStarted(event.startDate, funding.startDate)
+      || isEnded(event.startDate, funding.endDate)) continue;
     monthCareHours += moment(event.endDate).diff(event.startDate, 'h', true);
   }
   return monthCareHours;
@@ -41,8 +46,8 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
     customerFundingsMonitoring.push({
       thirdPartyPayer: funding.thirdPartyPayer.name,
       careHours: funding.careHours,
-      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
-      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
+      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding) : -1,
+      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding),
     });
   }
 
@@ -72,9 +77,9 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
       ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
       careHours: funding.careHours,
       tpp: funding.thirdPartyPayer,
-      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding.careDays) : -1,
-      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays),
-      nextMonthCareHours: isNextMonthRelevant ? getMonthCareHours(funding.nextMonthEvents, funding.careDays) : -1,
+      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding) : -1,
+      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding),
+      nextMonthCareHours: isNextMonthRelevant ? getMonthCareHours(funding.nextMonthEvents, funding) : -1,
     });
   }
 
