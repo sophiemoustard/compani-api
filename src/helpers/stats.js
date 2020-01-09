@@ -9,15 +9,15 @@ const isHoliday = day => moment(day).startOf('d').isHoliday();
 const isInCareDays = (careDays, day) => (careDays.includes(moment(day).isoWeekday() - 1) && !isHoliday(day))
   || (careDays.includes(7) && isHoliday(day));
 
-const hasNotBegun = (eventStartDate, fundingStartDate) => moment(fundingStartDate).isAfter(eventStartDate);
+const isNotStarted = (eventStartDate, fundingStartDate) => moment(fundingStartDate).isAfter(eventStartDate);
 
-const hasEnded = (eventStartDate, fundingEndDate) => fundingEndDate && moment(fundingEndDate).isBefore(eventStartDate);
+const isEnded = (eventStartDate, fundingEndDate) => fundingEndDate && moment(fundingEndDate).isBefore(eventStartDate);
 
-const getMonthCareHours = (events, versionCareDays, fundingStartDate, fundingEndDate) => {
+const getMonthCareHours = (events, funding) => {
   let monthCareHours = 0;
   for (const event of events) {
-    if (!isInCareDays(versionCareDays, event.startDate) || hasNotBegun(event.startDate, fundingStartDate)
-      || hasEnded(event.startDate, fundingEndDate)) continue;
+    if (!isInCareDays(funding.careDays, event.startDate) || isNotStarted(event.startDate, funding.startDate)
+      || isEnded(event.startDate, funding.endDate)) continue;
     monthCareHours += moment(event.endDate).diff(event.startDate, 'h', true);
   }
   return monthCareHours;
@@ -45,11 +45,8 @@ exports.getCustomerFundingsMonitoring = async (customerId, credentials) => {
     customerFundingsMonitoring.push({
       thirdPartyPayer: funding.thirdPartyPayer.name,
       careHours: funding.careHours,
-      prevMonthCareHours: isPrevMonthRelevant
-        ? getMonthCareHours(funding.prevMonthEvents, funding.careDays, funding.startDate, funding.endDate)
-        : -1,
-      currentMonthCareHours:
-        getMonthCareHours(funding.currentMonthEvents, funding.careDays, funding.startDate, funding.endDate),
+      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding) : -1,
+      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding),
     });
   }
 
@@ -79,13 +76,9 @@ exports.getAllCustomersFundingsMonitoring = async (credentials) => {
       ...pick(funding, ['sector', 'customer', 'referent', 'unitTTCRate', 'customerParticipationRate']),
       careHours: funding.careHours,
       tpp: funding.thirdPartyPayer,
-      prevMonthCareHours: isPrevMonthRelevant
-        ? getMonthCareHours(funding.prevMonthEvents, funding.careDays, funding.startDate, funding.endDate)
-        : -1,
-      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding.careDays, funding.startDate, funding.endDate),
-      nextMonthCareHours: isNextMonthRelevant
-        ? getMonthCareHours(funding.nextMonthEvents, funding.careDays, funding.startDate, funding.endDate)
-        : -1,
+      prevMonthCareHours: isPrevMonthRelevant ? getMonthCareHours(funding.prevMonthEvents, funding) : -1,
+      currentMonthCareHours: getMonthCareHours(funding.currentMonthEvents, funding),
+      nextMonthCareHours: isNextMonthRelevant ? getMonthCareHours(funding.nextMonthEvents, funding) : -1,
     });
   }
 
