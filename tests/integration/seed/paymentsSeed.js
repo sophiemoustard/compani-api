@@ -112,7 +112,7 @@ const paymentsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: 'REG-101190300201',
+    number: 'REG-101031900201',
     date: '2019-05-26T15:47:42',
     customer: paymentCustomerList[0]._id,
     client: paymentTppList[0]._id,
@@ -123,7 +123,7 @@ const paymentsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: 'REG-101190300202',
+    number: 'REG-101031900202',
     date: '2019-05-24T15:47:42',
     customer: paymentCustomerList[0]._id,
     netInclTaxes: 390,
@@ -133,7 +133,7 @@ const paymentsList = [
   {
     _id: new ObjectID(),
     company: authCompany._id,
-    number: 'REMB-101190300201',
+    number: 'REMB-101031900201',
     date: '2019-05-27T12:10:20',
     customer: paymentCustomerList[1]._id,
     client: paymentTppList[1]._id,
@@ -144,8 +144,8 @@ const paymentsList = [
 ];
 
 const paymentNumberList = [
-  { prefix: '1903', seq: 203, nature: 'payment', company: authCompany._id },
-  { prefix: '1903', seq: 202, nature: 'refund', company: authCompany._id },
+  { prefix: '0319', seq: 203, nature: 'payment', company: authCompany._id },
+  { prefix: '0319', seq: 202, nature: 'refund', company: authCompany._id },
 ];
 
 const paymentUser = {

@@ -56,8 +56,8 @@ describe('PAYMENTS ROUTES - POST /payments', () => {
         expect(response.result.message).toBe(translate[language].paymentCreated);
         expect(response.result.data.payment).toEqual(expect.objectContaining(payload));
         expect(response.result.data.payment.number).toBe(payload.nature === PAYMENT
-          ? `REG-${authCompany.prefixNumber}${moment().format('YYMM')}00001`
-          : `REMB-${authCompany.prefixNumber}${moment().format('YYMM')}00001`);
+          ? `REG-${authCompany.prefixNumber}${moment().format('MMYY')}00001`
+          : `REMB-${authCompany.prefixNumber}${moment().format('MMYY')}00001`);
         const payments = await Payment.find({ company: authCompany._id }).lean();
         expect(payments.length).toBe(paymentsList.length + 1);
       });
@@ -216,7 +216,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
 
       const paymentCountBefore = await Payment.countDocuments({ company: authCompany._id });
       const paymentNumberBefore = await PaymentNumber.findOne({
-        prefix: '1903',
+        prefix: '0319',
         nature: 'payment',
         company: authCompany._id,
       }).lean();
@@ -233,7 +233,7 @@ describe('PAYMENTS ROUTES - POST /payments/createlist', () => {
       const paymentCountAfter = await Payment.countDocuments({ company: authCompany._id });
       expect(paymentCountAfter).toEqual(paymentCountBefore);
       const paymentNumberAfter = await PaymentNumber.findOne({
-        prefix: '1903',
+        prefix: '0319',
         nature: 'payment',
         company: authCompany._id,
       }).lean();

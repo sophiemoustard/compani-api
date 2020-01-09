@@ -30,22 +30,11 @@ exports.getPayments = async (payload, credentials) => {
     .lean();
 };
 
-exports.getPaymentNumber = async (paymentNature, companyId) => {
-  const numberQuery = { nature: paymentNature, company: companyId };
-  switch (paymentNature) {
-    case REFUND:
-      numberQuery.prefix = moment().format('YYMM');
-      break;
-    case PAYMENT:
-      numberQuery.prefix = moment().format('YYMM');
-      break;
-  }
-  return PaymentNumber.findOneAndUpdate(
-    numberQuery,
-    {},
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  ).lean();
-};
+exports.getPaymentNumber = async (payment, companyId) => PaymentNumber.findOneAndUpdate(
+  { nature: payment.nature, company: companyId, prefix: moment(payment.date).format('MMYY') },
+  {},
+  { new: true, upsert: true, setDefaultsOnInsert: true }
+).lean();
 
 exports.formatPaymentNumber = (companyPrefixNumber, prefix, seq, paymentNature) => {
   switch (paymentNature) {
@@ -121,7 +110,7 @@ exports.generateXML = async (firstPayments, recurPayments, company) => {
 
 exports.createPayment = async (payload, credentials) => {
   const { company } = credentials;
-  const number = await exports.getPaymentNumber(payload.nature);
+  const number = await exports.getPaymentNumber(payload, company._id);
   const payment = await Payment.create(exports.formatPayment(payload, company, number));
   number.seq += 1;
   await PaymentNumber.updateOne(
@@ -132,6 +121,7 @@ exports.createPayment = async (payload, credentials) => {
 };
 
 exports.formatPayment = (payment, company, number) => ({
+  date: new Date(),
   ...payment,
   _id: new ObjectID(),
   number: exports.formatPaymentNumber(company.prefixNumber, number.prefix, number.seq, payment.nature),
@@ -147,8 +137,8 @@ exports.savePayments = async (payload, credentials) => {
   const allPayments = [];
   const firstPayments = [];
   const recurPayments = [];
-  const paymentNumber = await exports.getPaymentNumber(PAYMENT);
-  const refundNumber = await exports.getPaymentNumber(REFUND);
+  const paymentNumber = await exports.getPaymentNumber({ nature: PAYMENT }, company._id);
+  const refundNumber = await exports.getPaymentNumber({ nature: REFUND }, company._id);
   for (const payment of payload) {
     const number = payment.nature === PAYMENT ? paymentNumber : refundNumber;
     const newPayment = await exports.formatPayment(payment, company, number);

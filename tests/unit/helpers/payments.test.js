@@ -316,7 +316,7 @@ describe('createPayment', () => {
     const result = await PaymentsHelper.createPayment(payment, credentials);
 
     expect(result).toEqual(formattedPayment);
-    sinon.assert.calledWithExactly(getPaymentNumberStub, payment.nature);
+    sinon.assert.calledWithExactly(getPaymentNumberStub, payment, credentials.company._id);
     sinon.assert.calledWithExactly(formatPaymentStub, payment, credentials.company, number);
     PaymentMock.verify();
     PaymentNumberMock.verify();
@@ -354,6 +354,27 @@ describe('formatPayment', () => {
       payment.nature
     );
     formatPaymentNumberStub.restore();
+  });
+});
+
+describe('getPaymentNumber', () => {
+  it('should get payment number', async () => {
+    const payment = { nature: 'payment', date: new Date('2019-12-01') };
+    const companyId = new ObjectID();
+    const PaymentNumberMock = sinon.mock(PaymentNumber);
+
+    PaymentNumberMock
+      .expects('findOneAndUpdate')
+      .withExactArgs(
+        { nature: payment.nature, company: companyId, prefix: '1219' },
+        {},
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      )
+      .chain('lean');
+
+    await PaymentsHelper.getPaymentNumber(payment, companyId);
+
+    PaymentNumberMock.verify();
   });
 });
 
@@ -466,8 +487,8 @@ describe('savePayments', () => {
     sinon.assert.calledTwice(formatPaymentStub);
     sinon.assert.calledWithExactly(generateXMLStub, [payload[0]], [payload[1]], credentials.company);
     sinon.assert.calledOnce(generateXMLStub);
-    sinon.assert.calledWithExactly(getPaymentNumberStub.getCall(0), PAYMENT);
-    sinon.assert.calledWithExactly(getPaymentNumberStub.getCall(1), REFUND);
+    sinon.assert.calledWithExactly(getPaymentNumberStub.getCall(0), { nature: 'payment' }, credentials.company._id);
+    sinon.assert.calledWithExactly(getPaymentNumberStub.getCall(1), { nature: 'refund' }, credentials.company._id);
     sinon.assert.calledTwice(getPaymentNumberStub);
     sinon.assert.calledWithExactly(
       updateOneStub.getCall(0),
@@ -500,7 +521,7 @@ describe('exportPaymentsHistory', () => {
   ];
   const paymentsList = [
     {
-      number: 'REG-1905562',
+      number: 'REG-101051900562',
       type: 'bank_transfer',
       nature: 'payment',
       date: '2019-05-20T06:00:00.000+00:00',
@@ -515,7 +536,7 @@ describe('exportPaymentsHistory', () => {
       client: { _id: ObjectID('5c35b5eb7e0fb87297363eb2'), name: 'TF1' },
       netInclTaxes: 389276.023,
     }, {
-      number: 'REG-1905342',
+      number: 'REG-101051900342',
       type: 'direct_debit',
       nature: 'refund',
       date: '2019-05-22T06:00:00.000+00:00',
@@ -570,7 +591,7 @@ describe('exportPaymentsHistory', () => {
       header,
       [
         'Paiement',
-        'REG-1905562',
+        'REG-101051900562',
         '20/05/2019',
         '5c35b5eb1a4fb00997363eb3',
         'Mme',
@@ -583,7 +604,7 @@ describe('exportPaymentsHistory', () => {
       ],
       [
         'Remboursement',
-        'REG-1905342',
+        'REG-101051900342',
         '22/05/2019',
         '5c35b5eb1a6fb02397363eb1',
         'M.',
