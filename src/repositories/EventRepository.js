@@ -11,7 +11,6 @@ const {
   INVOICED_AND_PAID,
   COMPANY_CONTRACT,
   NOT_INVOICED_AND_NOT_PAID,
-  INVOICED_AND_NOT_PAID,
 } = require('../helpers/constants');
 
 const getEventsGroupedBy = async (rules, groupById, companyId) => Event.aggregate([

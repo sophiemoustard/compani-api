@@ -275,6 +275,11 @@ describe('hoursBalanceDetail', () => {
       distanceMatrix,
       surcharges
     );
+    PayModel.verify();
+    UserModel.verify();
+    CompanyModel.verify();
+    SurchargeModel.verify();
+    DistanceMatrixModel.verify();
   });
 
   it('should return pay if it exists', async () => {
@@ -283,6 +288,11 @@ describe('hoursBalanceDetail', () => {
       .withExactArgs({ auxiliary: auxiliaryId, month })
       .chain('lean')
       .returns(pay);
+    UserModel.expects('findOne').never();
+    PayModel.expects('findOne').never();
+    CompanyModel.expects('findOne').never();
+    SurchargeModel.expects('find').never();
+    DistanceMatrixModel.expects('find').never();
 
     const events = [{ _id: new ObjectID() }];
     getEventsToPayStub.returns([{ auxiliary: { _id: auxiliaryId }, events, absences: [] }]);
@@ -294,6 +304,11 @@ describe('hoursBalanceDetail', () => {
     sinon.assert.notCalled(getPreviousMonthPayStub);
     sinon.assert.notCalled(getContractStub);
     sinon.assert.notCalled(computeAuxiliaryDraftPayStub);
+    PayModel.verify();
+    UserModel.verify();
+    CompanyModel.verify();
+    SurchargeModel.verify();
+    DistanceMatrixModel.verify();
   });
 
   it('should return 400 if no contract', async () => {
@@ -345,6 +360,11 @@ describe('hoursBalanceDetail', () => {
         companyId
       );
       sinon.assert.calledWithExactly(getContractStub, auxiliary.contracts, startDate, endDate);
+      PayModel.verify();
+      UserModel.verify();
+      CompanyModel.verify();
+      SurchargeModel.verify();
+      DistanceMatrixModel.verify();
     }
   });
 
@@ -408,6 +428,11 @@ describe('hoursBalanceDetail', () => {
       distanceMatrix,
       surcharges
     );
+    PayModel.verify();
+    UserModel.verify();
+    CompanyModel.verify();
+    SurchargeModel.verify();
+    DistanceMatrixModel.verify();
   });
 });
 

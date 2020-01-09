@@ -338,5 +338,6 @@ describe('generatePdf', () => {
       './src/data/billSlip.html',
       { format: 'A4', printBackground: true, landscape: true }
     );
+    BillSlipMock.verify();
   });
 });

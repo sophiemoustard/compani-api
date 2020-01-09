@@ -209,7 +209,7 @@ describe('GET /stats/customer-duration', () => {
       expect(res.statusCode).toBe(403);
     });
 
-    it('should return 403 if sector is not from the same company', async () => {
+    it('should return 403 if auxiliary is not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
         url: `/stats/customer-duration?month=072019&auxiliary=${userList[2]._id}`,
