@@ -7,7 +7,7 @@ const PaymentNumberSchema = mongoose.Schema({
   seq: { type: Number, default: 1 },
   nature: { type: String, enum: [REFUND, PAYMENT], required: true },
   company: { type: mongoose.Types.ObjectId, required: true },
-});
+}, { timestamps: true });
 
 PaymentNumberSchema.pre('validate', validatePayload);
 PaymentNumberSchema.pre('find', validateQuery);
