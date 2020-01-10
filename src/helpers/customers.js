@@ -6,7 +6,6 @@ const has = require('lodash/has');
 const get = require('lodash/get');
 const keyBy = require('lodash/keyBy');
 const GdriveStorageHelper = require('./gdriveStorage');
-const Company = require('../models/Company');
 const Customer = require('../models/Customer');
 const Service = require('../models/Service');
 const Event = require('../models/Event');
@@ -108,21 +107,17 @@ exports.getCustomer = async (customerId, credentials) => {
   return customer;
 };
 
-exports.generateRum = async () => {
-  const query = {
-    prefix: `R${moment().format('YYMM')}`,
-  };
-  const payload = { seq: 1 };
-  const number = await Rum.findOneAndUpdate(
-    query,
-    { $inc: payload },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
+exports.getRumNumber = async companyId => Rum.findOneAndUpdate(
+  { prefix: moment().format('YYMM'), company: companyId },
+  {},
+  { new: true, upsert: true, setDefaultsOnInsert: true }
+).lean();
 
+exports.formatRumNumber = (companyPrefixNumber, prefix, seq) => {
   const len = 20;
   const random = crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len).toUpperCase();
 
-  return `${number.prefix}${number.seq.toString().padStart(5, '0')}${random}`;
+  return `R-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}${random}`;
 };
 
 exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
@@ -130,8 +125,10 @@ exports.unassignReferentOnContractEnd = async contract => Customer.updateMany(
   { $unset: { referent: '' } }
 );
 
-exports.updateCustomer = async (customerId, customerPayload) => {
+exports.updateCustomer = async (customerId, customerPayload, credentials) => {
   let payload;
+  let number;
+  const { company } = credentials;
   if (customerPayload.referent === '') {
     payload = { $unset: { referent: '' } };
   } else if (has(customerPayload, 'payment.iban')) {
@@ -139,12 +136,14 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     // if the user updates its RIB, we should generate a new mandate.
     if (customer.payment.iban && customer.payment.iban !== '' &&
       customer.payment.iban !== customerPayload.payment.iban) {
-      const mandate = { rum: await exports.generateRum() };
+      number = await exports.getRumNumber(company._id);
+      const mandate = { rum: exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq) };
       payload = {
         $set: flat(customerPayload, { safe: true }),
         $push: { 'payment.mandates': mandate },
         $unset: { 'payment.bic': '' },
       };
+      number.seq += 1;
     } else {
       payload = { $set: flat(customerPayload, { safe: true }) };
     }
@@ -172,13 +171,17 @@ exports.updateCustomer = async (customerId, customerPayload) => {
     payload = { $set: flat(customerPayload, { safe: true }) };
   }
 
-  return Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
+  const customer = Customer.findOneAndUpdate({ _id: customerId }, payload, { new: true }).lean();
+  if (number) await Rum.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
+
+  return customer;
 };
 
 exports.createCustomer = async (payload, credentials) => {
-  const companyId = get(credentials, 'company._id', null);
-  const rum = await exports.generateRum();
-  const company = await Company.findOne({ _id: companyId }).lean();
+  const { company } = credentials;
+  const companyId = company._id || null;
+  const number = await exports.getRumNumber(company._id);
+  const rum = exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq);
   const folder = await GdriveStorageHelper.createFolder(payload.identity, company.customersFolderId);
 
   const customer = {
@@ -188,7 +191,11 @@ exports.createCustomer = async (payload, credentials) => {
     driveFolder: { driveId: folder.id, link: folder.webViewLink },
   };
 
-  return Customer.create(customer);
+  const newCustomer = await Customer.create(customer);
+  number.seq += 1;
+  await Rum.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } });
+
+  return newCustomer;
 };
 
 const uploadQuote = async (customerId, quoteId, file) => {

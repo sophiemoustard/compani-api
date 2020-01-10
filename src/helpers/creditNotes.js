@@ -82,17 +82,17 @@ exports.formatCreditNote = (payload, companyPrefix, prefix, seq) => {
   return new CreditNote(creditNote);
 };
 
-exports.getCreditNoteNumber = async (payload, company) => {
-  const prefix = moment(payload.date).format('YYMM');
+exports.getCreditNoteNumber = async (payload, companyId) => {
+  const prefix = moment(payload.date).format('MMYY');
 
   return CreditNoteNumber
-    .findOneAndUpdate({ prefix, company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true })
+    .findOneAndUpdate({ prefix, company: companyId }, {}, { new: true, upsert: true, setDefaultsOnInsert: true })
     .lean();
 };
 
 exports.createCreditNotes = async (payload, credentials) => {
   const { company } = credentials;
-  const number = await exports.getCreditNoteNumber(payload, company);
+  const number = await exports.getCreditNoteNumber(payload, company._id);
 
   let tppCN;
   let customerCN;
@@ -122,7 +122,7 @@ exports.createCreditNotes = async (payload, credentials) => {
   return Promise.all([
     ...promises,
     CreditNote.insertMany(creditNotes),
-    CreditNoteNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } }),
+    CreditNoteNumber.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } }),
   ]);
 };
 

@@ -319,14 +319,14 @@ describe('getCreditNoteNumber', () => {
 
     CreditNoteNumberMock.expects('findOneAndUpdate')
       .withExactArgs(
-        { prefix: '1909', company: company._id },
+        { prefix: '0919', company: company._id },
         {},
         { new: true, upsert: true, setDefaultsOnInsert: true }
       )
       .chain('lean')
       .once();
 
-    await CreditNoteHelper.getCreditNoteNumber(payload, company);
+    await CreditNoteHelper.getCreditNoteNumber(payload, company._id);
     CreditNoteNumberMock.verify();
   });
 });
@@ -338,7 +338,7 @@ describe('createCreditNotes', () => {
   let updateEventAndFundingHistory;
   let getCreditNoteNumber;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 'prefixNumber' } };
-  const prefix = 'AV-1907';
+  const prefix = 'AV-0719';
 
   beforeEach(() => {
     getCreditNoteNumber = sinon.stub(CreditNoteHelper, 'getCreditNoteNumber');
@@ -381,8 +381,8 @@ describe('createCreditNotes', () => {
     );
     sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesCustomer: 1234 }]);
     sinon.assert.notCalled(updateEventAndFundingHistory);
-    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
-    sinon.assert.calledWithExactly(updateOneNumber, { prefix }, { $set: { seq: 2 } });
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
+    sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 2 } });
   });
 
   it('should create one credit note (for tpp)', async () => {
@@ -414,8 +414,8 @@ describe('createCreditNotes', () => {
     );
     sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesTpp: 1234 }]);
     sinon.assert.calledWithExactly(updateEventAndFundingHistory, [{ _id: 'asdfghjkl' }], false, credentials);
-    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
-    sinon.assert.calledWithExactly(updateOneNumber, { prefix }, { $set: { seq: 2 } });
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
+    sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 2 } });
   });
 
   it('should create two credit notes (for customer and tpp)', async () => {
@@ -466,8 +466,8 @@ describe('createCreditNotes', () => {
       ]
     );
     sinon.assert.notCalled(updateEventAndFundingHistory);
-    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
-    sinon.assert.calledWithExactly(updateOneNumber, { prefix }, { $set: { seq: 3 } });
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
+    sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 3 } });
   });
 });
 

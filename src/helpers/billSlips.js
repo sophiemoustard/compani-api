@@ -18,11 +18,11 @@ exports.getBillSlips = async (credentials) => {
 exports.formatBillSlipNumber = (companyPrefixNumber, prefix, seq) =>
   `BORD-${companyPrefixNumber}${prefix}${seq.toString().padStart(5, '0')}`;
 
-exports.getBillSlipNumber = async (endDate, company) => {
+exports.getBillSlipNumber = async (endDate, companyId) => {
   const prefix = moment(endDate).format('MMYY');
 
   return BillSlipNumber
-    .findOneAndUpdate({ prefix, company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true })
+    .findOneAndUpdate({ prefix, company: companyId }, {}, { new: true, upsert: true, setDefaultsOnInsert: true })
     .lean();
 };
 
@@ -34,7 +34,7 @@ exports.createBillSlips = async (billList, endDate, company) => {
 
   if (tppIds.length === billSlipList.length) return;
 
-  const slipNumber = await exports.getBillSlipNumber(endDate, company);
+  const slipNumber = await exports.getBillSlipNumber(endDate, company._id);
   const list = [];
   let { seq } = slipNumber;
   for (const tpp of tppIds) {

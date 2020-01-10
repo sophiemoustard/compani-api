@@ -57,7 +57,7 @@ describe('getBillSlipNumber', () => {
       .once()
       .returns('1234567890');
 
-    const result = await BillSlipHelper.getBillSlipNumber(endDate, company);
+    const result = await BillSlipHelper.getBillSlipNumber(endDate, company._id);
 
     expect(result).toEqual('1234567890');
     BillSlipNumberMock.verify();
@@ -125,7 +125,7 @@ describe('createBillSlips', () => {
 
     await BillSlipHelper.createBillSlips(billList, endDate, company);
 
-    sinon.assert.calledWithExactly(getBillSlipNumber, endDate, company);
+    sinon.assert.calledWithExactly(getBillSlipNumber, endDate, company._id);
     sinon.assert.calledWithExactly(formatBillSlipNumber.getCall(0), 129, 'ASD', 12);
     sinon.assert.calledWithExactly(formatBillSlipNumber.getCall(1), 129, 'ASD', 13);
     sinon.assert.calledWithExactly(

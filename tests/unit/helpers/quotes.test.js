@@ -45,7 +45,7 @@ describe('getQuoteNumber', () => {
       )
       .chain('lean');
 
-    await QuoteHelper.getQuoteNumber(company);
+    await QuoteHelper.getQuoteNumber(company._id);
 
     QuoteNumberMock.verify();
   });
@@ -106,7 +106,7 @@ describe('createQuote', () => {
 
     CustomerMock.verify();
     QuoteNumberMock.verify();
-    sinon.assert.calledWithExactly(getQuoteNumberStub, credentials.company);
+    sinon.assert.calledWithExactly(getQuoteNumberStub, credentials.company._id);
     sinon.assert.calledWithExactly(formatQuoteNumberStub, credentials.company.prefixNumber, 'pre', 2);
   });
 });
