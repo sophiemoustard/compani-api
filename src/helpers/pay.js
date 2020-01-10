@@ -108,12 +108,14 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   return draft || null;
 };
 
-const changeVersion = (version, sector) => {
-  let { startDate, endDate } = version;
-  if (moment(sector.startDate).isAfter(version.startDate)) ({ startDate } = sector);
+const updateVersionsWithSectorDates = (version, sector) => {
+  let { endDate } = version;
   if (sector.endDate && (!version.endDate || moment(sector.endDate).isBefore(version.endDate))) ({ endDate } = sector);
 
-  const returnedVersion = { ...version, startDate };
+  const returnedVersion = {
+    ...version,
+    startDate: moment.max(moment(sector.startDate), moment(version.startDate)).startOf('d').toDate(),
+  };
   if (endDate) returnedVersion.endDate = endDate;
   return returnedVersion;
 };
@@ -130,17 +132,17 @@ exports.computeHoursToWork = (month, contracts) => {
     };
 
     let versions = ContractHelper.getMatchingVersionsList(contract.versions || [], contractQuery);
-    versions = versions.map(version => changeVersion(version, contract.sector));
-    const contractConsideringSectorChange = { ...contract, versions };
+    versions = versions.map(version => updateVersionsWithSectorDates(version, contract.sector));
+    const contractWithSectorDates = { ...contract, versions };
 
-    const contractInfo = DraftPayHelper.getContractMonthInfo(contractConsideringSectorChange, contractQuery);
+    const contractInfo = DraftPayHelper.getContractMonthInfo(contractWithSectorDates, contractQuery);
     contractsInfoSum.contractHours += contractInfo.contractHours;
     contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
 
-    if (contractConsideringSectorChange.absences.length) {
+    if (contractWithSectorDates.absences.length) {
       contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(
-        contractConsideringSectorChange.absences,
-        contractConsideringSectorChange,
+        contractWithSectorDates.absences,
+        contractWithSectorDates,
         contractQuery
       );
     }
