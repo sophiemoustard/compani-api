@@ -27,7 +27,6 @@ exports.plugin = {
           },
           payload: Joi.object().keys({
             name: Joi.string(),
-            siren: Joi.string(),
             tradeName: Joi.string().allow('', null),
             address: Joi.object().keys({
               street: Joi.string().required(),
@@ -141,7 +140,6 @@ exports.plugin = {
         validate: {
           payload: Joi.object().keys({
             name: Joi.string().required(),
-            siren: Joi.string(),
             tradeName: Joi.string().max(11).required(),
             type: Joi.string().valid(COMPANY_TYPES).required(),
             rcs: Joi.string(),

@@ -252,7 +252,7 @@ describe('formatPdf', () => {
     const company = {
       iban: 'FR8512739000305678847384Q97',
       bic: 'AGFBFRCC',
-      siren: '530514157',
+      rcs: '530514157',
       address: { fullAddress: '10 rue des cathédrales 75007 Paris' },
     };
     const billSlip = {
@@ -272,7 +272,7 @@ describe('formatPdf', () => {
         company: {
           iban: company.iban,
           bic: company.bic,
-          siren: company.siren,
+          rcs: company.rcs,
           address: company.address.fullAddress,
           logo: 'https://res.cloudinary.com/alenvi/image/upload/v1507019444/images/business/alenvi_logo_complet_183x50.png',
           email: 'support@alenvi.io',
