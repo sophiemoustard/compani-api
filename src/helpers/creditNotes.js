@@ -122,7 +122,7 @@ exports.createCreditNotes = async (payload, credentials) => {
   return Promise.all([
     ...promises,
     CreditNote.insertMany(creditNotes),
-    CreditNoteNumber.updateOne({ prefix: number.prefix }, { $set: { seq: number.seq } }),
+    CreditNoteNumber.updateOne({ prefix: number.prefix, company: company._id }, { $set: { seq: number.seq } }),
   ]);
 };
 

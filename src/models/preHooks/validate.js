@@ -21,4 +21,9 @@ module.exports = {
     this.pipeline().unshift({ $match: { company: new ObjectID(companyId) } });
     next();
   },
+  validateUpdateOne(next) {
+    const query = this.getQuery();
+    if (!query.company) next(Boom.badRequest());
+    next();
+  },
 };

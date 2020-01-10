@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
-const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
+const {
+  validatePayload,
+  validateQuery,
+  validateAggregation,
+  validateUpdateOne,
+} = require('./preHooks/validate');
 
 const QuoteNumberSchema = mongoose.Schema({
   prefix: { type: String, required: true },
@@ -10,5 +15,6 @@ const QuoteNumberSchema = mongoose.Schema({
 QuoteNumberSchema.pre('validate', validatePayload);
 QuoteNumberSchema.pre('find', validateQuery);
 QuoteNumberSchema.pre('aggregate', validateAggregation);
+QuoteNumberSchema.pre('updateOne', validateUpdateOne);
 
 module.exports = mongoose.model('QuoteNumber', QuoteNumberSchema);
