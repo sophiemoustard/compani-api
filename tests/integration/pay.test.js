@@ -4,7 +4,7 @@ const {
   populateDB,
   auxiliaries,
   auxiliaryFromOtherCompany,
-  sectorId,
+  sectors,
   sectorFromOtherCompany,
 } = require('./seed/paySeed');
 const app = require('../../server');
@@ -244,12 +244,30 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
     it('should get hours to work by sector', async () => {
       const response = await app.inject({
         method: 'GET',
-        url: `/pay/hours-to-work?sector=${sectorId}&month=122018`,
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=122018`,
         headers: { 'x-access-token': authToken },
       });
 
       expect(response.statusCode).toBe(200);
       expect(response.result.data.hoursToWork).toBeDefined();
+    });
+
+    it('should get relevant hours to work by sector if an auxiliary has changed sector', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/pay/hours-to-work?sector=${sectors[0]._id}&sector=${sectors[1]._id}&month=122019`,
+        headers: { 'x-access-token': authToken },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.result.data.hoursToWork).toBeDefined();
+      const oldSectorResult = response.result.data.hoursToWork.find(res =>
+        res.sector.toHexString() === sectors[0]._id.toHexString());
+      const newSectorResult = response.result.data.hoursToWork.find(res =>
+        res.sector.toHexString() === sectors[1]._id.toHexString());
+
+      expect(oldSectorResult.hoursToWork).toEqual(13.5);
+      expect(newSectorResult.hoursToWork).toEqual(25.5);
     });
 
     it('should not get hours to work if user is not from the same company as sector', async () => {
@@ -275,7 +293,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
         authToken = await getToken(role.name);
         const response = await app.inject({
           method: 'GET',
-          url: `/pay/hours-to-work?sector=${sectorId}&month=122018`,
+          url: `/pay/hours-to-work?sector=${sectors[0]._id}&month=122018`,
           headers: { 'x-access-token': authToken },
         });
 

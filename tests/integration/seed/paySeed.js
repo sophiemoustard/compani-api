@@ -17,8 +17,10 @@ const auxiliaryId2 = new ObjectID();
 const customerId = new ObjectID();
 const subscriptionId = new ObjectID();
 const serviceId = new ObjectID();
-const sectorId = new ObjectID();
-
+const sectors = [
+  { name: 'Toto', _id: new ObjectID(), company: authCompany._id },
+  { name: 'Titi', _id: new ObjectID(), company: authCompany._id },
+];
 const user = {
   _id: new ObjectID(),
   local: { email: 'test4@alenvi.io', password: '123456' },
@@ -57,7 +59,7 @@ const auxiliaryFromOtherCompany = {
   refreshToken: uuidv4(),
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   contracts: contractId2,
-  sector: sectorId,
+  sector: sectors[0]._id,
   company: otherCompany._id,
 };
 
@@ -168,13 +170,27 @@ const service = {
   nature: 'hourly',
 };
 
-const sector = { name: 'Toto', _id: sectorId, company: authCompany._id };
-const sectorHistories = auxiliaries.map(aux => ({
-  auxiliary: aux._id,
-  sector: sectorId,
-  company: authCompany._id,
-  startDate: '2018-12-10',
-}));
+const sectorHistories = [
+  {
+    auxiliary: auxiliaries[0]._id,
+    sector: sectors[0]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T23:00:00',
+    endDate: '2019-12-11T22:59:00',
+  },
+  {
+    auxiliary: auxiliaries[0]._id,
+    sector: sectors[1]._id,
+    company: authCompany._id,
+    startDate: '2019-12-11T23:00:00',
+  },
+  {
+    auxiliary: auxiliaries[1]._id,
+    sector: sectors[0]._id,
+    company: authCompany._id,
+    startDate: '2018-12-10T23:00:00',
+  },
+];
 
 const sectorFromOtherCompany = { _id: new ObjectID(), name: 'Titi', company: otherCompany._id };
 
@@ -194,7 +210,7 @@ const populateDB = async () => {
   await (new Service(service)).save();
   await (new Event(event)).save();
   await Contract.insertMany(contracts);
-  await Sector.create([sector, sectorFromOtherCompany]);
+  await Sector.create([...sectors, sectorFromOtherCompany]);
   await SectorHistory.create(sectorHistories);
 };
 
@@ -202,6 +218,6 @@ module.exports = {
   populateDB,
   auxiliaries,
   auxiliaryFromOtherCompany,
-  sectorId,
+  sectors,
   sectorFromOtherCompany,
 };
