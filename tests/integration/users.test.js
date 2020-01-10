@@ -93,7 +93,7 @@ describe('USERS ROUTES', () => {
 
       it('should not create a user if email provided already exists', () => {
         const payload = {
-          idenity: { firstname: 'Test', lastname: 'Test' },
+          identity: { firstname: 'Test', lastname: 'Test' },
           local: { email: 'horseman@alenvi.io', password: '123456' },
           role: new ObjectID(),
         };
