@@ -1,11 +1,14 @@
 const mongoose = require('mongoose');
+const { validatePayload, validateQuery, validateAggregation } = require('./preHooks/validate');
 
 const RumSchema = mongoose.Schema({
-  prefix: String,
-  seq: {
-    type: Number,
-    default: 0,
-  },
+  prefix: { type: String, required: true },
+  seq: { type: Number, default: 1 },
+  company: { type: mongoose.Types.ObjectId, required: true },
 });
+
+RumSchema.pre('validate', validatePayload);
+RumSchema.pre('find', validateQuery);
+RumSchema.pre('aggregate', validateAggregation);
 
 module.exports = mongoose.model('Rum', RumSchema);
