@@ -77,7 +77,6 @@ const getMatchEvents = eventsDate => [
   },
 ];
 
-
 exports.getEventsGroupedByFundings = async (customerId, fundingsDate, eventsDate, companyId) => {
   const versionMatch = getVersionMatch(fundingsDate);
   const fundingsMatch = getFundingsMatch();
