@@ -147,6 +147,7 @@ const usersSeedList = [
 const userSectors = [
   { _id: new ObjectID(), name: 'Terre', company: company._id },
   { _id: new ObjectID(), name: 'Lune', company: company._id },
+  { _id: new ObjectID(), name: 'Soleil', company: company._id },
 ];
 
 const userPayload = {
@@ -155,7 +156,6 @@ const userPayload = {
   role: rolesList.find(role => role.name === 'auxiliary')._id,
   sector: userSectors[0]._id,
 };
-
 
 const sectorHistories = usersSeedList
   .filter(user => user.role === rolesList.find(role => role.name === 'auxiliary')._id)

@@ -33,26 +33,23 @@ describe('USERS ROUTES', () => {
 
   describe('POST /users', () => {
     describe('Admin', () => {
-      let res = null;
-      let user = null;
       beforeEach(populateDB);
       beforeEach(async () => {
         authToken = await getToken('admin');
       });
+
       it('should not create a user if missing parameters', async () => {
-        const payload = { ...userPayload };
-        delete payload.role;
         const response = await app.inject({
           method: 'POST',
           url: '/users',
-          payload,
+          payload: omit(userPayload, 'role'),
           headers: { 'x-access-token': authToken },
         });
         expect(response.statusCode).toBe(400);
       });
 
       it('should create a user', async () => {
-        res = await app.inject({
+        const res = await app.inject({
           method: 'POST',
           url: '/users',
           payload: userPayload,
@@ -73,8 +70,8 @@ describe('USERS ROUTES', () => {
             }),
           ]),
         });
-        user = await User.findById(res.result.data.user._id);
-        expect(user.firstname).toBe(userPayload.firstname);
+        const user = await User.findById(res.result.data.user._id);
+        expect(user.identity.firstname).toBe(userPayload.identity.firstname);
         expect(user.identity.lastname).toBe(userPayload.identity.lastname);
         expect(user.local.email).toBe(userPayload.local.email);
         expect(user.local.password).toBeDefined();
@@ -95,22 +92,16 @@ describe('USERS ROUTES', () => {
       });
 
       it('should not create a user if email provided already exists', () => {
-        const userPayload2 = {
-          idenity: {
-            firstname: 'Test',
-            lastname: 'Test',
-          },
-          local: {
-            email: 'horseman@alenvi.io',
-            password: '123456',
-          },
+        const payload = {
+          identity: { firstname: 'Test', lastname: 'Test' },
+          local: { email: 'horseman@alenvi.io', password: '123456' },
           role: new ObjectID(),
         };
         expect(async () => {
           const response = await app.inject({
             method: 'POST',
             url: '/users',
-            payload: userPayload2,
+            payload,
             headers: { 'x-access-token': authToken },
           });
           expect(response).toThrow('NoRole');
@@ -153,7 +144,6 @@ describe('USERS ROUTES', () => {
       });
 
       const roles = ['helper', 'auxiliary', 'coach', 'admin'];
-
       roles.forEach((role) => {
         it(`should return a 403 error as user is ${role}`, async () => {
           authToken = await getToken(role);
@@ -194,14 +184,10 @@ describe('USERS ROUTES', () => {
   describe('POST /users/authenticate', () => {
     beforeEach(populateDB);
     it('should authenticate a user', async () => {
-      const credentials = {
-        email: 'horseman@alenvi.io',
-        password: '123456',
-      };
       const response = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: credentials,
+        payload: { email: 'horseman@alenvi.io', password: '123456' },
       });
       expect(response.statusCode).toBe(200);
       expect(response.result.data).toEqual(expect.objectContaining({
@@ -213,66 +199,47 @@ describe('USERS ROUTES', () => {
     });
 
     it('should authenticate a user if email has capitals', async () => {
-      const credentials = {
-        email: 'Horseman@alenvi.io',
-        password: '123456',
-      };
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: credentials,
+        payload: { email: 'Horseman@alenvi.io', password: '123456' },
       });
       expect(res.statusCode).toBe(200);
     });
 
     it('should not authenticate a user if missing parameter', async () => {
-      const credentials = {
-        email: 'horseman@alenvi.io',
-      };
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: credentials,
+        payload: { email: 'horseman@alenvi.io' },
       });
       expect(res.statusCode).toBe(400);
     });
 
     it('should not authenticate a user if user does not exist', async () => {
-      const credentials = {
-        email: 'test@alenvi.io',
-        password: '123456',
-      };
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: credentials,
+        payload: { email: 'test@alenvi.io', password: '123456' },
       });
       expect(res.statusCode).toBe(404);
     });
 
     it('should not authenticate a user if wrong password', async () => {
-      const credentials = {
-        email: 'horseman@alenvi.io',
-        password: '7890',
-      };
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: credentials,
+        payload: { email: 'horseman@alenvi.io', password: '7890' },
       });
       expect(res.statusCode).toBe(401);
     });
 
     it('should not authenticate a user if refreshToken is missing', async () => {
-      const credentials = {
-        email: 'white@alenvi.io',
-        password: '123456',
-      };
       await User.findOneAndUpdate({ 'local.email': 'white@alenvi.io' }, { $unset: { refreshToken: '' } });
       const res = await app.inject({
         method: 'POST',
         url: '/users/authenticate',
-        payload: credentials,
+        payload: { email: 'white@alenvi.io', password: '123456' },
       });
       expect(res.statusCode).toBe(403);
     });
@@ -315,7 +282,6 @@ describe('USERS ROUTES', () => {
 
       it('should get all coachs users (company A)', async () => {
         const coachUsers = userList.filter(u => isExistingRole(u.role, 'coach'));
-
         const res = await app.inject({
           method: 'GET',
           url: '/users?role=coach',
@@ -414,9 +380,6 @@ describe('USERS ROUTES', () => {
   describe('GET /users/sector-histories', () => {
     describe('Admin', () => {
       beforeEach(populateDB);
-      beforeEach(async () => {
-        authToken = await getToken('admin');
-      });
 
       it('should get all auxiliary users', async () => {
         authToken = await getTokenByCredentials(usersSeedList[0].local);
@@ -506,7 +469,8 @@ describe('USERS ROUTES', () => {
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(200);
-        const activeUsers = usersSeedList.filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role, 'auxiliary'));
+        const activeUsers = usersSeedList
+          .filter(u => isInList(res.result.data.users, u) && isExistingRole(u.role, 'auxiliary'));
         expect(res.result.data.users.length).toBe(activeUsers.length);
         expect(res.result.data.users).toEqual(expect.arrayContaining([
           expect.objectContaining({ isActive: true }),
@@ -633,13 +597,8 @@ describe('USERS ROUTES', () => {
 
   describe('PUT /users/:id/', () => {
     const updatePayload = {
-      identity: {
-        firstname: 'Riri',
-      },
-      local: {
-        email: 'riri@alenvi.io',
-        password: '098765',
-      },
+      identity: { firstname: 'Riri' },
+      local: { email: 'riri@alenvi.io', password: '098765' },
       role: userPayload.role,
     };
     describe('Admin', () => {
@@ -685,6 +644,32 @@ describe('USERS ROUTES', () => {
         const userSectorHistory = sectorHistories.filter(history => history.auxiliary.toHexString() === userId);
         const sectorHistoryCount = await SectorHistory.countDocuments({ auxiliary: userId, company });
         expect(sectorHistoryCount).toBe(userSectorHistory.length + 1);
+      });
+
+      it('should delete unrelevant sector histories on update', async () => {
+        const userId = usersSeedList[0]._id.toHexString();
+        const firstResponse = await app.inject({
+          method: 'PUT',
+          url: `/users/${userId}`,
+          payload: { sector: userSectors[1]._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(firstResponse.statusCode).toBe(200);
+
+        const secondRespons = await app.inject({
+          method: 'PUT',
+          url: `/users/${userId}`,
+          payload: { sector: userSectors[2]._id },
+          headers: { 'x-access-token': authToken },
+        });
+
+        expect(secondRespons.statusCode).toBe(200);
+        expect(secondRespons.result.data.updatedUser.sector).toEqual(userSectors[2]._id);
+        const histories = await SectorHistory.find({ auxiliary: userId, company }).lean();
+        expect(histories.find(sh => sh.sector.toHexString() === userSectors[0]._id.toHexString())).toBeDefined();
+        expect(histories.find(sh => sh.sector.toHexString() === userSectors[1]._id.toHexString())).not.toBeDefined();
+        expect(histories.find(sh => sh.sector.toHexString() === userSectors[2]._id.toHexString())).toBeDefined();
       });
 
       it('should return a 404 error if no user found', async () => {
@@ -764,10 +749,9 @@ describe('USERS ROUTES', () => {
       });
 
       it('should return a 404 error if user is not found', async () => {
-        const objectId = new ObjectID();
         const res = await app.inject({
           method: 'DELETE',
-          url: `/users/${objectId}`,
+          url: `/users/${(new ObjectID()).toHexString()}`,
           headers: { 'x-access-token': authToken },
         });
         expect(res.statusCode).toBe(404);
@@ -820,9 +804,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/refreshToken',
-        payload: {
-          refreshToken: usersSeedList[1].refreshToken,
-        },
+        payload: { refreshToken: usersSeedList[1].refreshToken },
       });
       expect(res.statusCode).toBe(200);
     });
@@ -831,9 +813,7 @@ describe('USERS ROUTES', () => {
       const res = await app.inject({
         method: 'POST',
         url: '/users/refreshToken',
-        payload: {
-          refreshToken: 'b171c888-6874-45fd-9c4e-1a9daf0231ba',
-        },
+        payload: { refreshToken: 'b171c888-6874-45fd-9c4e-1a9daf0231ba' },
       });
       expect(res.statusCode).toBe(404);
     });
@@ -862,10 +842,9 @@ describe('USERS ROUTES', () => {
       });
 
       it('should return a 404 error if no user found', async () => {
-        const id = new ObjectID().toHexString();
         const res = await app.inject({
           method: 'PUT',
-          url: `/users/${id}`,
+          url: `/users/${new ObjectID().toHexString()}`,
           payload: {},
           headers: { 'x-access-token': authToken },
         });
