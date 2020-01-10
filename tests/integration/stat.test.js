@@ -28,7 +28,7 @@ describe('GET /stats/customer-follow-up', () => {
       });
       expect(res.statusCode).toBe(200);
       expect(res.result.data.stats.length).toBe(1);
-      expect(res.result.data.stats[0].totalHours).toBe(2.5);
+      expect(res.result.data.stats[0].totalHours).toBe(4);
     });
 
     it('should not get customer follow up if customer is not from the same company', async () => {
@@ -199,10 +199,23 @@ describe('GET /stats/customer-duration', () => {
       expect(res.result.data.customerAndDuration[0].duration).toEqual(2.5);
     });
 
+    it('should return only relevant hours if an auxiliary has changed sector', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/stats/customer-duration?month=112019&sector=${sectorList[0]._id}`,
+        headers: { 'x-access-token': adminToken },
+      });
+      expect(res.statusCode).toBe(200);
+      expect(res.result.data.customerAndDuration[0]).toBeDefined();
+      expect(res.result.data.customerAndDuration[0].sector).toEqual(sectorList[0]._id);
+      expect(res.result.data.customerAndDuration[0].customerCount).toEqual(1);
+      expect(res.result.data.customerAndDuration[0].duration).toEqual(1.5);
+    });
+
     it('should return 403 if sector is not from the same company', async () => {
       const res = await app.inject({
         method: 'GET',
-        url: `/stats/customer-duration?month=072019&sector=${sectorList[1]._id}`,
+        url: `/stats/customer-duration?month=072019&sector=${sectorList[2]._id}`,
         headers: { 'x-access-token': adminToken },
       });
 
