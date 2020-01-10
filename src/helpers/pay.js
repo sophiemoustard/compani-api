@@ -1,7 +1,5 @@
 const cloneDeep = require('lodash/cloneDeep');
 const get = require('lodash/get');
-const flatten = require('lodash/flatten');
-const keyBy = require('lodash/keyBy');
 const Boom = require('boom');
 const moment = require('moment');
 const { ObjectID } = require('mongodb');
@@ -11,6 +9,7 @@ const Company = require('../models/Company');
 const DistanceMatrix = require('../models/DistanceMatrix');
 const Surcharge = require('../models/Surcharge');
 const DraftPayHelper = require('./draftPay');
+const ContractHelper = require('./contracts');
 const EventRepository = require('../repositories/EventRepository');
 const SectorHistoryRepository = require('../repositories/SectorHistoryRepository');
 const { COMPANY_CONTRACT } = require('./constants');
@@ -109,19 +108,38 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
   return draft || null;
 };
 
+const changeVersion = (version, sector) => {
+  let { startDate, endDate } = version;
+  if (moment(sector.startDate).isAfter(version.startDate)) ({ startDate } = sector);
+  if (sector.endDate && (!version.endDate || moment(sector.endDate).isBefore(version.endDate))) ({ endDate } = sector);
+
+  return { ...version, startDate, endDate };
+};
+
 exports.computeHoursToWork = (month, contracts) => {
-  const contractQuery = {
-    startDate: moment(month, 'MMYYYY').startOf('M').toDate(),
-    endDate: moment(month, 'MMYYYY').endOf('M').toDate(),
-  };
   const contractsInfoSum = { contractHours: 0, holidaysHours: 0, absencesHours: 0 };
 
   for (const contract of contracts) {
-    const contractInfo = DraftPayHelper.getContractMonthInfo(contract, contractQuery);
+    const contractQuery = {
+      startDate: moment.max(moment(month, 'MMYYYY').startOf('M'), moment(contract.sector.startDate)).toDate(),
+      endDate: contract.sector.endDate
+        ? moment.min(moment(month, 'MMYYYY').endOf('M'), moment(contract.sector.endDate)).toDate()
+        : moment(month, 'MMYYYY').endOf('M'),
+    };
+
+    let versions = ContractHelper.getMatchingVersionsList(contract.versions || [], contractQuery);
+    versions = versions.map(version => changeVersion(version, contract.sector));
+    const contractConsideringSectorChange = { ...contract, versions };
+
+    const contractInfo = DraftPayHelper.getContractMonthInfo(contractConsideringSectorChange, contractQuery);
     contractsInfoSum.contractHours += contractInfo.contractHours;
     contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
-    if (contract.absences.length) {
-      contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(contract.absences, contract, contractQuery);
+    if (contractConsideringSectorChange.absences.length) {
+      contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(
+        contractConsideringSectorChange.absences,
+        contractConsideringSectorChange,
+        contractQuery
+      );
     }
   }
 
