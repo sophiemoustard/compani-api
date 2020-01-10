@@ -113,7 +113,9 @@ const changeVersion = (version, sector) => {
   if (moment(sector.startDate).isAfter(version.startDate)) ({ startDate } = sector);
   if (sector.endDate && (!version.endDate || moment(sector.endDate).isBefore(version.endDate))) ({ endDate } = sector);
 
-  return { ...version, startDate, endDate };
+  const returnedVersion = { ...version, startDate };
+  if (endDate) returnedVersion.endDate = endDate;
+  return returnedVersion;
 };
 
 exports.computeHoursToWork = (month, contracts) => {
@@ -124,7 +126,7 @@ exports.computeHoursToWork = (month, contracts) => {
       startDate: moment.max(moment(month, 'MMYYYY').startOf('M'), moment(contract.sector.startDate)).toDate(),
       endDate: contract.sector.endDate
         ? moment.min(moment(month, 'MMYYYY').endOf('M'), moment(contract.sector.endDate)).toDate()
-        : moment(month, 'MMYYYY').endOf('M'),
+        : moment(month, 'MMYYYY').endOf('M').toDate(),
     };
 
     let versions = ContractHelper.getMatchingVersionsList(contract.versions || [], contractQuery);
@@ -134,6 +136,7 @@ exports.computeHoursToWork = (month, contracts) => {
     const contractInfo = DraftPayHelper.getContractMonthInfo(contractConsideringSectorChange, contractQuery);
     contractsInfoSum.contractHours += contractInfo.contractHours;
     contractsInfoSum.holidaysHours += contractInfo.holidaysHours;
+
     if (contractConsideringSectorChange.absences.length) {
       contractsInfoSum.absencesHours += DraftPayHelper.getPayFromAbsences(
         contractConsideringSectorChange.absences,
