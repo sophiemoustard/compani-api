@@ -1,5 +1,6 @@
 const uuidv4 = require('uuid/v4');
 const { ObjectID } = require('mongodb');
+const moment = require('moment');
 const User = require('../../../src/models/User');
 const Customer = require('../../../src/models/Customer');
 const Contract = require('../../../src/models/Contract');
@@ -175,20 +176,20 @@ const sectorHistories = [
     auxiliary: auxiliaries[0]._id,
     sector: sectors[0]._id,
     company: authCompany._id,
-    startDate: '2018-12-10T23:00:00',
-    endDate: '2019-12-11T22:59:00',
+    startDate: moment('2018-12-10').startOf('day').toDate(),
+    endDate: moment('2019-12-11').endOf('day').toDate(),
   },
   {
     auxiliary: auxiliaries[0]._id,
     sector: sectors[1]._id,
     company: authCompany._id,
-    startDate: '2019-12-11T23:00:00',
+    startDate: moment('2019-12-12').startOf('day').toDate(),
   },
   {
     auxiliary: auxiliaries[1]._id,
     sector: sectors[0]._id,
     company: authCompany._id,
-    startDate: '2018-12-10T23:00:00',
+    startDate: moment('2018-12-10').startOf('day').toDate(),
   },
 ];
 

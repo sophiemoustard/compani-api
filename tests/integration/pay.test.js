@@ -267,7 +267,7 @@ describe('PAY ROUTES - GET /hours-to-work', () => {
         res.sector.toHexString() === sectors[1]._id.toHexString());
 
       expect(oldSectorResult.hoursToWork).toEqual(13.5);
-      expect(newSectorResult.hoursToWork).toEqual(25.5);
+      expect(newSectorResult.hoursToWork).toEqual(24);
     });
 
     it('should not get hours to work if user is not from the same company as sector', async () => {
