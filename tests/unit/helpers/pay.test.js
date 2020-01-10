@@ -496,21 +496,21 @@ describe('computeHoursToWork', () => {
   });
 
   it('should change version endDate if auxiliary changed sector', () => {
-    const endDate = moment('2019-12-10').toDate();
+    const endDate = moment('2019-12-10').endOf('d').toDate();
     const contractId = new ObjectID();
     const contracts = [
       {
         _id: contractId,
         absences: [],
         sector: { ...sector, endDate },
-        versions: [{ startDate: moment('2018-11-01').toDate() }],
+        versions: [{ startDate: moment('2018-11-01').startOf('day').toDate() }],
       },
     ];
     const newContract = {
       _id: contractId,
       absences: [],
       sector: { ...sector, endDate },
-      versions: [{ startDate: moment('2018-11-01').toDate(), endDate }],
+      versions: [{ startDate: moment('2018-11-01').startOf('day').toDate(), endDate }],
     };
     getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
     getMatchingVersionsListStub.returns(contracts[0].versions);

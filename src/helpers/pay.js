@@ -109,14 +109,15 @@ exports.hoursBalanceDetail = async (auxiliaryId, month, credentials) => {
 };
 
 const updateVersionsWithSectorDates = (version, sector) => {
-  let { endDate } = version;
-  if (sector.endDate && (!version.endDate || moment(sector.endDate).isBefore(version.endDate))) ({ endDate } = sector);
-
   const returnedVersion = {
     ...version,
     startDate: moment.max(moment(sector.startDate), moment(version.startDate)).startOf('d').toDate(),
   };
-  if (endDate) returnedVersion.endDate = endDate;
+
+  if (version.endDate && sector.endDate) {
+    returnedVersion.endDate = moment.min(moment(sector.endDate), moment(version.endDate)).endOf('d').toDate();
+  } else if (sector.endDate) returnedVersion.endDate = moment(sector.endDate).endOf('d').toDate();
+
   return returnedVersion;
 };
 
