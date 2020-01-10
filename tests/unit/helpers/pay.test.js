@@ -458,7 +458,14 @@ describe('computeHoursToWork', () => {
   });
 
   it('should compute hours to work with absences', () => {
-    const contracts = [{ _id: new ObjectID(), absences: [{ _id: new ObjectID() }], sector, versions: [{ startDate: '2018-11-01' }] }];
+    const contracts = [
+      {
+        _id: new ObjectID(),
+        absences: [{ _id: new ObjectID() }],
+        sector,
+        versions: [{ startDate: moment('2018-11-01').toDate() }],
+      },
+    ];
     getMatchingVersionsListStub.returns(contracts[0].versions);
     getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
     getPayFromAbsences.returns(6);
@@ -471,7 +478,10 @@ describe('computeHoursToWork', () => {
   });
 
   it('should compute hours to work without absences', () => {
-    const contracts = [{ _id: new ObjectID(), absences: [], sector, versions: [{ startDate: '2018-11-01' }] }, { _id: new ObjectID(), absences: [], sector, versions: [{ startDate: '2018-11-01' }] }];
+    const contracts = [
+      { _id: new ObjectID(), absences: [], sector, versions: [{ startDate: moment('2018-11-01').toDate() }] },
+      { _id: new ObjectID(), absences: [], sector, versions: [{ startDate: moment('2018-11-01').toDate() }] },
+    ];
     getContractMonthInfoStub.onCall(0).returns({ contractHours: 85, holidaysHours: 5 });
     getContractMonthInfoStub.onCall(1).returns({ contractHours: 100, holidaysHours: 5 });
     getMatchingVersionsListStub.onCall(0).returns(contracts[0].versions);
@@ -493,14 +503,14 @@ describe('computeHoursToWork', () => {
         _id: contractId,
         absences: [],
         sector: { ...sector, endDate },
-        versions: [{ startDate: '2018-11-01' }],
+        versions: [{ startDate: moment('2018-11-01').toDate() }],
       },
     ];
     const newContract = {
       _id: contractId,
       absences: [],
       sector: { ...sector, endDate },
-      versions: [{ startDate: '2018-11-01', endDate }],
+      versions: [{ startDate: moment('2018-11-01').toDate(), endDate }],
     };
     getContractMonthInfoStub.returns({ contractHours: 85, holidaysHours: 5 });
     getMatchingVersionsListStub.returns(contracts[0].versions);
@@ -520,7 +530,7 @@ describe('computeHoursToWork', () => {
         _id: contractId,
         absences: [],
         sector: { ...sector, startDate },
-        versions: [{ startDate: '2018-11-01' }],
+        versions: [{ startDate: moment('2018-11-01').toDate() }],
       },
     ];
     const newContract = {
