@@ -321,7 +321,7 @@ exports.getCustomersAndDurationBySector = async (sectors, month, companyId) => {
         let: {
           auxiliaryId: '$_id',
           startDate: { $max: ['$sector.startDate', minStartDate] },
-          endDate: { $min: [{ $ifNull: ['$secor.endDate', maxStartDate] }, maxStartDate] },
+          endDate: { $min: [{ $ifNull: ['$sector.endDate', maxStartDate] }, maxStartDate] },
         },
         pipeline: [
           {
