@@ -80,12 +80,13 @@
   }
 
   .footer {
-    display: flex;
-    justify-content: center;
+    page-break-inside: avoid;
   }
 
-  .footer .footer-info {
-    text-align: center;
+  .footer-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     font-size: 12px;
   }
 
@@ -168,16 +169,16 @@
     </tbody>
   </table>
 </div>
-<div class="date">
-  <div>Date</div>
-  <div>{{ billSlip.date}}</div>
-</div>
 <div class="footer">
+  <div class="date">
+    <div>Date</div>
+    <div>{{ billSlip.date}}</div>
+  </div>
   <div class="footer-info">
     <div>SIREN {{ billSlip.company.siren}}</div>
     <div>IBAN {{ billSlip.company.iban }} - BIC {{ billSlip.company.bic }}</div>
     <div>{{ billSlip.company.address }}</div>
     <div>{{ billSlip.company.email }}</div>
     <div>{{ billSlip.company.website }}</div>
-  </div>
+</div>
 </div>
