@@ -319,7 +319,7 @@ describe('getCreditNoteNumber', () => {
 
     CreditNoteNumberMock.expects('findOneAndUpdate')
       .withExactArgs(
-        { prefix: '1909', company: company._id },
+        { prefix: '0919', company: company._id },
         {},
         { new: true, upsert: true, setDefaultsOnInsert: true }
       )
@@ -338,7 +338,7 @@ describe('createCreditNotes', () => {
   let updateEventAndFundingHistory;
   let getCreditNoteNumber;
   const credentials = { company: { _id: new ObjectID(), prefixNumber: 'prefixNumber' } };
-  const prefix = 'AV-1907';
+  const prefix = 'AV-0719';
 
   beforeEach(() => {
     getCreditNoteNumber = sinon.stub(CreditNoteHelper, 'getCreditNoteNumber');

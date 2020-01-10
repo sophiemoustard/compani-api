@@ -83,7 +83,7 @@ exports.formatCreditNote = (payload, companyPrefix, prefix, seq) => {
 };
 
 exports.getCreditNoteNumber = async (payload, company) => {
-  const prefix = moment(payload.date).format('YYMM');
+  const prefix = moment(payload.date).format('MMYY');
 
   return CreditNoteNumber
     .findOneAndUpdate({ prefix, company: company._id }, {}, { new: true, upsert: true, setDefaultsOnInsert: true })
