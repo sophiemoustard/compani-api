@@ -342,19 +342,19 @@ describe('getCustomer', () => {
 
 describe('getRumNumber', () => {
   it('should get RUM number', async () => {
-    const company = { _id: new ObjectID() };
+    const companyId = new ObjectID();
     const RumMock = sinon.mock(Rum);
 
     RumMock
       .expects('findOneAndUpdate')
       .withExactArgs(
-        { prefix: moment().format('YYMM'), company: company._id },
+        { prefix: moment().format('YYMM'), company: companyId },
         {},
         { new: true, upsert: true, setDefaultsOnInsert: true }
       )
       .chain('lean');
 
-    await CustomerHelper.getRumNumber(company);
+    await CustomerHelper.getRumNumber(companyId);
 
     RumMock.verify();
     RumMock.restore();
@@ -490,7 +490,7 @@ describe('updateCustomer', () => {
     expect(result).toBe(customerResult);
     CustomerMock.verify();
     sinon.assert.notCalled(updateMany);
-    sinon.assert.calledWithExactly(getRumNumberStub, credentials.company);
+    sinon.assert.calledWithExactly(getRumNumberStub, credentials.company._id);
     sinon.assert.calledWithExactly(
       formatRumNumberStub,
       credentials.company.prefixNumber,
@@ -897,7 +897,7 @@ describe('createCustomer', () => {
     expect(result.driveFolder.link).toEqual('http://qwertyuiop');
     expect(result.driveFolder.driveId).toEqual('1234567890');
     sinon.assert.calledWithExactly(createFolder, { lastname: 'Bear', firstname: 'Teddy' }, '12345');
-    sinon.assert.calledWithExactly(getRumNumberStub, credentials.company);
+    sinon.assert.calledWithExactly(getRumNumberStub, credentials.company._id);
     sinon.assert.calledWithExactly(
       formatRumNumberStub,
       credentials.company.prefixNumber,

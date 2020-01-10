@@ -87,10 +87,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 
       expect(response.statusCode).toBe(200);
       const creditNotes = await CreditNote.find({ company: authCompany }).lean();
-      const CNWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
-      expect(CNWithlinkedCreditNotes).toBeDefined();
-      expect(CNWithlinkedCreditNotes.length).toEqual(2);
-      expect(CNWithlinkedCreditNotes).toEqual(expect.arrayContaining([
+      const cnWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
+      expect(cnWithlinkedCreditNotes).toBeDefined();
+      expect(cnWithlinkedCreditNotes.length).toEqual(2);
+      expect(cnWithlinkedCreditNotes).toEqual(expect.arrayContaining([
         expect.objectContaining({ number: 'AV-101071900001' }),
         expect.objectContaining({ number: 'AV-101071900002' }),
       ]));
@@ -113,10 +113,10 @@ describe('CREDIT NOTES ROUTES - POST /creditNotes', () => {
 
       expect(response.statusCode).toBe(200);
       const creditNotes = await CreditNote.find({ company: authCompany }).lean();
-      const CNWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
-      expect(CNWithlinkedCreditNotes).toBeDefined();
-      expect(CNWithlinkedCreditNotes.length).toEqual(2);
-      expect(CNWithlinkedCreditNotes).toEqual(expect.arrayContaining([
+      const cnWithlinkedCreditNotes = creditNotes.filter(cn => cn.linkedCreditNote);
+      expect(cnWithlinkedCreditNotes).toBeDefined();
+      expect(cnWithlinkedCreditNotes.length).toEqual(2);
+      expect(cnWithlinkedCreditNotes).toEqual(expect.arrayContaining([
         expect.objectContaining({ number: 'AV-101071900001' }),
         expect.objectContaining({ number: 'AV-101071900002' }),
       ]));

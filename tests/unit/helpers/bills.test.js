@@ -1052,7 +1052,7 @@ describe('getBillNumber', () => {
       .chain('lean')
       .returns(billNumber);
 
-    const result = await BillHelper.getBillNumber(new Date('2019-11-15'), { _id: companyId });
+    const result = await BillHelper.getBillNumber(new Date('2019-11-15'), companyId);
 
     BillNumberMock.verify();
     expect(result).toEqual(billNumber);
@@ -1170,7 +1170,7 @@ describe('formatAndCreateBills', () => {
       billsData[0].endDate,
       credentials.company
     );
-    sinon.assert.calledWithExactly(getBillNumberStub, billsData[0].endDate, { _id: companyId });
+    sinon.assert.calledWithExactly(getBillNumberStub, billsData[0].endDate, companyId);
     sinon.assert.calledWithExactly(
       formatCustomerBillsStub,
       billsData[0].customerBills,

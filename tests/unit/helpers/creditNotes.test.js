@@ -326,7 +326,7 @@ describe('getCreditNoteNumber', () => {
       .chain('lean')
       .once();
 
-    await CreditNoteHelper.getCreditNoteNumber(payload, company);
+    await CreditNoteHelper.getCreditNoteNumber(payload, company._id);
     CreditNoteNumberMock.verify();
   });
 });
@@ -381,7 +381,7 @@ describe('createCreditNotes', () => {
     );
     sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesCustomer: 1234 }]);
     sinon.assert.notCalled(updateEventAndFundingHistory);
-    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 2 } });
   });
 
@@ -414,7 +414,7 @@ describe('createCreditNotes', () => {
     );
     sinon.assert.calledWithExactly(insertManyCreditNote, [{ inclTaxesTpp: 1234 }]);
     sinon.assert.calledWithExactly(updateEventAndFundingHistory, [{ _id: 'asdfghjkl' }], false, credentials);
-    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 2 } });
   });
 
@@ -466,7 +466,7 @@ describe('createCreditNotes', () => {
       ]
     );
     sinon.assert.notCalled(updateEventAndFundingHistory);
-    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company);
+    sinon.assert.calledWithExactly(getCreditNoteNumber, payload, credentials.company._id);
     sinon.assert.calledWithExactly(updateOneNumber, { prefix, company: credentials.company._id }, { $set: { seq: 3 } });
   });
 });

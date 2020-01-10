@@ -8,8 +8,8 @@ exports.getQuotes = async customerId => Customer.findOne(
   { autopopulate: false }
 ).lean();
 
-exports.getQuoteNumber = async company => QuoteNumber.findOneAndUpdate(
-  { prefix: moment().format('MMYY'), company: company._id },
+exports.getQuoteNumber = async companyId => QuoteNumber.findOneAndUpdate(
+  { prefix: moment().format('MMYY'), company: companyId },
   {},
   { new: true, upsert: true, setDefaultsOnInsert: true }
 ).lean();
@@ -19,7 +19,7 @@ exports.formatQuoteNumber = (companyPrefixNumber, prefix, seq) =>
 
 exports.createQuote = async (customerId, payload, credentials) => {
   const { company } = credentials;
-  const number = await exports.getQuoteNumber(company);
+  const number = await exports.getQuoteNumber(company._id);
 
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId },

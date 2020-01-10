@@ -107,8 +107,8 @@ exports.getCustomer = async (customerId, credentials) => {
   return customer;
 };
 
-exports.getRumNumber = async company => Rum.findOneAndUpdate(
-  { prefix: moment().format('YYMM'), company: company._id },
+exports.getRumNumber = async companyId => Rum.findOneAndUpdate(
+  { prefix: moment().format('YYMM'), company: companyId },
   {},
   { new: true, upsert: true, setDefaultsOnInsert: true }
 ).lean();
@@ -136,7 +136,7 @@ exports.updateCustomer = async (customerId, customerPayload, credentials) => {
     // if the user updates its RIB, we should generate a new mandate.
     if (customer.payment.iban && customer.payment.iban !== '' &&
       customer.payment.iban !== customerPayload.payment.iban) {
-      number = await exports.getRumNumber(company);
+      number = await exports.getRumNumber(company._id);
       const mandate = { rum: exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq) };
       payload = {
         $set: flat(customerPayload, { safe: true }),
@@ -180,7 +180,7 @@ exports.updateCustomer = async (customerId, customerPayload, credentials) => {
 exports.createCustomer = async (payload, credentials) => {
   const { company } = credentials;
   const companyId = company._id || null;
-  const number = await exports.getRumNumber(company);
+  const number = await exports.getRumNumber(company._id);
   const rum = exports.formatRumNumber(company.prefixNumber, number.prefix, number.seq);
   const folder = await GdriveStorageHelper.createFolder(payload.identity, company.customersFolderId);
 
