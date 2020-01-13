@@ -81,8 +81,8 @@ exports.createEvent = async (payload, credentials) => {
   if (isRepeatedEvent) {
     await EventsRepetitionHelper.createRepetitions(
       event,
-      { ...payload, company: companyId, 'repetition.parentId': event._id },
-      credentials,
+      { ...payload, company: companyId, repetition: { ...payload.repetition, parentId: event._id } },
+      credentials
     );
   }
 
