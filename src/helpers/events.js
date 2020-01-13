@@ -4,6 +4,7 @@ const pick = require('lodash/pick');
 const get = require('lodash/get');
 const omit = require('lodash/omit');
 const isEqual = require('lodash/isEqual');
+const cloneDeep = require('lodash/cloneDeep');
 const momentRange = require('moment-range');
 const { ObjectID } = require('mongodb');
 const {
@@ -48,7 +49,7 @@ exports.list = async (query, credentials) => {
 
 exports.createEvent = async (payload, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  let event = { ...payload, company: companyId };
+  let event = { ...cloneDeep(payload), company: companyId };
   const isCreationAllowed = await EventsValidationHelper.isCreationAllowed(event, credentials);
   if (!isCreationAllowed) throw Boom.badData();
 
@@ -57,44 +58,55 @@ exports.createEvent = async (payload, credentials) => {
   const isRepeatedEvent = isRepetition(event);
   const hasConflicts = await EventsValidationHelper.hasConflicts(event);
   if (event.type === INTERVENTION && event.auxiliary && isRepeatedEvent && hasConflicts) {
+    const auxiliary = await User.findOne({ _id: event.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+      .lean({ autopopulate: true, virtuals: true });
     delete event.auxiliary;
+    event.sector = auxiliary.sector;
     event.repetition.frequency = NEVER;
   }
 
   event = await Event.create(event);
   event = await EventRepository.getEvent(event._id, credentials);
   if (payload.type === ABSENCE) {
-    const { startDate, endDate, auxiliary, _id } = event;
+    const { startDate, endDate } = event;
     const dates = { startDate, endDate };
-    const auxiliaryId = auxiliary._id.toHexString();
-    await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, _id.toHexString(), credentials);
-    await exports.unassignConflictInterventions(dates, auxiliaryId, credentials);
+    const auxiliary = await User.findOne({ _id: event.auxiliary })
+      .populate({ path: 'sector', select: '_id sector', match: { company: get(credentials, 'company._id', null) } })
+      .lean({ autopopulate: true, virtuals: true });
+    await exports.deleteConflictInternalHoursAndUnavailabilities(event, auxiliary, credentials);
+    await exports.unassignConflictInterventions(dates, auxiliary, credentials);
   }
 
   if (isRepeatedEvent) {
     await EventsRepetitionHelper.createRepetitions(
       event,
-      { ...payload, company: companyId, 'repetition.parentId': event._id }
+      { ...payload, company: companyId, repetition: { ...payload.repetition, parentId: event._id } },
+      credentials
     );
   }
 
   return exports.populateEventSubscription(event);
 };
 
-exports.deleteConflictInternalHoursAndUnavailabilities = async (dates, auxiliary, eventId, credentials) => {
+exports.deleteConflictInternalHoursAndUnavailabilities = async (event, auxiliary, credentials) => {
   const types = [INTERNAL_HOUR, UNAVAILABILITY];
+  const dates = { startDate: event.startDate, endDate: event.endDate };
   const companyId = get(credentials, 'company._id', null);
-  const events = await EventRepository.getEventsInConflicts(dates, auxiliary, types, companyId, eventId);
+  const events = await EventRepository.getEventsInConflicts(dates, auxiliary._id, types, companyId, event._id);
 
   await exports.deleteEvents(events, credentials);
 };
 
 exports.unassignConflictInterventions = async (dates, auxiliary, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary, [INTERVENTION], companyId);
+  const interventions = await EventRepository.getEventsInConflicts(dates, auxiliary._id, [INTERVENTION], companyId);
 
   for (let i = 0, l = interventions.length; i < l; i++) {
-    const payload = omit(interventions[i], ['_id', 'auxiliary', 'repetition']);
+    const payload = {
+      ...omit(interventions[i], ['_id', 'auxiliary', 'repetition']),
+      sector: auxiliary.sector,
+    };
     await exports.updateEvent(interventions[i], payload, credentials);
   }
 };
@@ -226,6 +238,7 @@ exports.formatEditionPayload = (event, payload) => {
  * cancellation i.e. delete the cancel object and set isCancelled to false.
  */
 exports.updateEvent = async (event, eventPayload, credentials) => {
+  const companyId = get(credentials, 'company._id', null);
   await EventHistoriesHelper.createEventHistoryOnUpdate(eventPayload, event, credentials);
   if (eventPayload.shouldUpdateRepetition) {
     return EventsRepetitionHelper.updateRepetition(event, eventPayload, credentials);
@@ -237,6 +250,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
     .populate({
       path: 'auxiliary',
       select: 'identity administrative.driveFolder administrative.transportInvoice company picture',
+      populate: { path: 'sector', select: '_id sector', match: { company: companyId } },
     })
     .populate({ path: 'customer', select: 'identity subscriptions contact' })
     .populate({ path: 'internalHour', match: { company: get(credentials, 'company._id', null) } })
@@ -244,10 +258,8 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
 
   if (updatedEvent.type === ABSENCE) {
     const dates = { startDate: updatedEvent.startDate, endDate: updatedEvent.endDate };
-    const auxiliaryId = updatedEvent.auxiliary._id.toHexString();
-    const eventId = updatedEvent._id.toHexString();
-    await exports.deleteConflictInternalHoursAndUnavailabilities(dates, auxiliaryId, eventId, credentials);
-    await exports.unassignConflictInterventions(dates, auxiliaryId, credentials);
+    await exports.deleteConflictInternalHoursAndUnavailabilities(updatedEvent, updatedEvent.auxiliary, credentials);
+    await exports.unassignConflictInterventions(dates, updatedEvent.auxiliary, credentials);
   }
 
   return exports.populateEventSubscription(updatedEvent);
@@ -266,9 +278,10 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
   const correspondingSubsIds = correspondingSubs.map(sub => sub.sub._id);
 
+  const { sector, _id: auxiliaryId } = contract.user;
   const unassignedInterventions = await EventRepository.getUnassignedInterventions(
     contract.endDate,
-    contract.user,
+    auxiliaryId,
     correspondingSubsIds,
     companyId
   );
@@ -291,9 +304,15 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
   }
 
   promises.push(
-    Event.updateMany({ _id: { $in: ids } }, { $set: { 'repetition.frequency': NEVER }, $unset: { auxiliary: '' } }),
-    Repetition.updateMany({ auxiliary: contract.user, type: INTERVENTION }, { $unset: { auxiliary: '' } }),
-    Repetition.deleteMany({ auxiliary: contract.user, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } })
+    Event.updateMany(
+      { _id: { $in: ids } },
+      { $set: { 'repetition.frequency': NEVER, sector }, $unset: { auxiliary: '' } }
+    ),
+    Repetition.updateMany(
+      { auxiliary: auxiliaryId, type: INTERVENTION },
+      { $unset: { auxiliary: '' }, $set: { sector } }
+    ),
+    Repetition.deleteMany({ auxiliary: auxiliaryId, type: { $in: [UNAVAILABILITY, INTERNAL_HOUR] } })
   );
 
   return Promise.all(promises);
@@ -301,7 +320,7 @@ exports.unassignInterventionsOnContractEnd = async (contract, credentials) => {
 
 exports.removeEventsExceptInterventionsOnContractEnd = async (contract, credentials) => {
   const companyId = get(credentials, 'company._id', null);
-  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user, companyId);
+  const events = await EventRepository.getEventsExceptInterventions(contract.endDate, contract.user._id, companyId);
   const promises = [];
   const ids = [];
 

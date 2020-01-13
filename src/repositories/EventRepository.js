@@ -333,7 +333,7 @@ exports.getCustomerSubscriptions = (contract, companyId) => Event.aggregate([
     $match: {
       $and: [
         { startDate: { $gt: new Date(contract.endDate) } },
-        { auxiliary: new ObjectID(contract.user) },
+        { auxiliary: new ObjectID(contract.user._id) },
         { $or: [{ isBilled: false }, { isBilled: { $exists: false } }] },
       ],
     },

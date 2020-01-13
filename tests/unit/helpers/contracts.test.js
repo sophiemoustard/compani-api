@@ -341,6 +341,7 @@ describe('endContract', () => {
     const updatedContract = {
       ...contract,
       ...payload,
+      user: { _id: new ObjectID(), sector: new ObjectID() },
       versions: [{ ...contract.versions[0], endDate: payload.endDate }],
     };
     const credentials = { _id: new ObjectID(), company: { _id: '1234567890' } };
@@ -362,17 +363,17 @@ describe('endContract', () => {
 
     const result = await ContractHelper.endContract(contract._id.toHexString(), payload, credentials);
 
-    sinon.assert.calledWithExactly(updateUserInactivityDate, contract.user, payload.endDate, credentials);
+    sinon.assert.calledWithExactly(updateUserInactivityDate, updatedContract.user._id, payload.endDate, credentials);
     sinon.assert.calledWithExactly(unassignInterventionsOnContractEnd, updatedContract, credentials);
     sinon.assert.calledWithExactly(unassignReferentOnContractEnd, updatedContract);
     sinon.assert.calledWithExactly(removeEventsExceptInterventionsOnContractEnd, updatedContract, credentials);
     sinon.assert.calledWithExactly(
       updateAbsencesOnContractEnd,
-      updatedContract.user,
+      updatedContract.user._id,
       updatedContract.endDate,
       credentials
     );
-    sinon.assert.calledWithExactly(updateEndDateStub, updatedContract.user, updatedContract.endDate);
+    sinon.assert.calledWithExactly(updateEndDateStub, updatedContract.user._id, updatedContract.endDate);
     expect(result).toMatchObject(updatedContract);
     ContractMock.verify();
   });
