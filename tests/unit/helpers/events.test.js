@@ -277,7 +277,7 @@ describe('updateEvent', () => {
     sinon.assert.calledWithExactly(
       unassignConflictInterventions,
       { startDate: '2019-01-21T09:38:18', endDate: '2019-01-21T10:38:18' },
-      auxiliaryId,
+      event.auxiliary,
       credentials
     );
     sinon.assert.calledWithExactly(

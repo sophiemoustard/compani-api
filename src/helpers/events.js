@@ -259,7 +259,7 @@ exports.updateEvent = async (event, eventPayload, credentials) => {
   if (updatedEvent.type === ABSENCE) {
     const dates = { startDate: updatedEvent.startDate, endDate: updatedEvent.endDate };
     await exports.deleteConflictInternalHoursAndUnavailabilities(updatedEvent, updatedEvent.auxiliary, credentials);
-    await exports.unassignConflictInterventions(dates, updatedEvent.auxiliary._id, credentials);
+    await exports.unassignConflictInterventions(dates, updatedEvent.auxiliary, credentials);
   }
 
   return exports.populateEventSubscription(updatedEvent);
